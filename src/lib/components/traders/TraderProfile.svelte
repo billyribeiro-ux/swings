@@ -45,14 +45,14 @@
 
   <!-- Bio -->
   <div class="space-y-4 mb-8">
-    {#each trader.bio as paragraph}
+    {#each trader.bio as paragraph, i (i)}
       <p class="text-grey-300 leading-relaxed">{@html paragraph}</p>
     {/each}
   </div>
 
   <!-- Highlights -->
   <div class="grid grid-cols-3 gap-4 mb-8">
-    {#each trader.highlights as highlight}
+    {#each trader.highlights as highlight, i (i)}
       <div class="bg-navy-mid border border-white/10 rounded-xl p-4 text-center">
         <div class="kpi-value text-teal-light mb-1">{highlight.value}</div>
         <div class="kpi-label text-grey-400">{highlight.label}</div>
@@ -62,7 +62,7 @@
 
   <!-- Action Buttons -->
   <div class="flex flex-wrap gap-4">
-    {#each trader.actions as action}
+    {#each trader.actions as action, i (i)}
       {@const IconComponent = iconMap[action.icon as keyof typeof iconMap]}
       <button 
         class="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm transition-all {action.variant === 'primary' ? 'bg-teal text-white hover:bg-teal-light' : 'bg-transparent border border-white/20 text-white hover:bg-white/10'}"

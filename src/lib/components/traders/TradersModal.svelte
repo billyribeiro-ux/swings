@@ -40,15 +40,19 @@
     class="fixed inset-0 z-50 bg-navy/85 backdrop-blur-lg"
     transition:fade={{ duration: 300 }}
     onclick={() => closeModal()}
-    role="dialog"
-    aria-modal="true"
-    aria-label="Meet the traders"
+    onkeydown={(e) => e.key === 'Enter' && closeModal()}
+    tabindex="0"
+    role="button"
+    aria-label="Close modal overlay"
   >
     <!-- Modal Container -->
     <div 
       class="absolute inset-4 md:inset-8 lg:inset-16 bg-navy rounded-2xl overflow-hidden"
       transition:fly={{ y: 30, duration: 400, easing: cubicOut }}
       onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => e.stopPropagation()}
+      role="presentation"
+      tabindex="-1"
     >
       <!-- Close Button -->
       <button 
@@ -69,7 +73,7 @@
             </p>
 
             <div class="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-              {#each traders as trader}
+              {#each traders as trader (trader.id)}
                 <TraderCard {trader} />
               {/each}
             </div>
