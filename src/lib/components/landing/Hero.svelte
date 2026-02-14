@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { gsap } from 'gsap';
   import Button from '$lib/components/ui/Button.svelte';
   import SampleAlertCard from './SampleAlertCard.svelte';
@@ -7,24 +8,32 @@
   let heroRef: HTMLElement | undefined = $state();
   let glowRef: HTMLElement | undefined = $state();
 
-  $effect(() => {
+  onMount(() => {
     if (!heroRef) return;
 
+    const elements = ['.hero-badge', '.hero-title', '.hero-subtitle', '.hero-actions', '.hero-trust'];
+
+    // Set initial state — content visible in SSR, hidden only after JS loads
+    gsap.set(elements, { opacity: 0, y: 30 });
+
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+      const tl = gsap.timeline({
+        defaults: { ease: 'power3.out', duration: 0.9 },
+        delay: 0.2,
+      });
 
-      tl.from('.hero-badge', { y: 24, opacity: 0, duration: 0.6 })
-        .from('.hero-title', { y: 24, opacity: 0, duration: 0.6 }, '-=0.4')
-        .from('.hero-subtitle', { y: 24, opacity: 0, duration: 0.6 }, '-=0.4')
-        .from('.hero-actions', { y: 24, opacity: 0, duration: 0.6 }, '-=0.4')
-        .from('.hero-trust', { y: 24, opacity: 0, duration: 0.6 }, '-=0.4');
+      tl.to('.hero-badge', { opacity: 1, y: 0, duration: 0.7 })
+        .to('.hero-title', { opacity: 1, y: 0 }, '-=0.5')
+        .to('.hero-subtitle', { opacity: 1, y: 0 }, '-=0.6')
+        .to('.hero-actions', { opacity: 1, y: 0 }, '-=0.6')
+        .to('.hero-trust', { opacity: 1, y: 0 }, '-=0.6');
 
-      // Glow orb animation
+      // Cinematic glow orb — slow breathing pulse
       if (glowRef) {
         gsap.to(glowRef, {
-          scale: 1.08,
-          opacity: 1,
-          duration: 3,
+          scale: 1.15,
+          opacity: 0.8,
+          duration: 4,
           ease: 'sine.inOut',
           yoyo: true,
           repeat: -1,
@@ -32,7 +41,10 @@
       }
     }, heroRef as HTMLElement);
 
-    return () => ctx.revert();
+    return () => {
+      ctx.revert();
+      gsap.set(elements, { clearProps: 'all' });
+    };
   });
 
   function scrollToHowItWorks() {

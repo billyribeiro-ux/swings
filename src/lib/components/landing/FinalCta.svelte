@@ -1,28 +1,54 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
   import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
   let sectionRef: HTMLElement | undefined = $state();
   let glowRef: HTMLElement | undefined = $state();
 
-  $effect(() => {
+  onMount(() => {
     if (!sectionRef || !glowRef) return;
     const section = sectionRef;
     const glow = glowRef;
 
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Set initial state for content elements
+    const contentEls = section.querySelectorAll('.final-cta-content > *');
+    gsap.set(contentEls, { opacity: 0, y: 40 });
+
     const ctx = gsap.context(() => {
+      // Cinematic glow orb — slow breathing pulse
       gsap.to(glow, {
-        scale: 1.08,
-        opacity: 1,
-        duration: 3,
+        scale: 1.2,
+        opacity: 0.7,
+        duration: 4.5,
         ease: 'sine.inOut',
         yoyo: true,
         repeat: -1,
       });
+
+      // Staggered content reveal on scroll
+      gsap.to(contentEls, {
+        opacity: 1,
+        y: 0,
+        duration: 1,
+        stagger: 0.2,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: section,
+          start: 'top 75%',
+          once: true,
+        },
+      });
     }, section);
 
-    return () => ctx.revert();
+    return () => {
+      ctx.revert();
+      gsap.set(contentEls, { clearProps: 'all' });
+    };
   });
 </script>
 
@@ -37,7 +63,7 @@
     style="background: radial-gradient(circle, rgba(15, 164, 175, 0.4) 0%, transparent 70%);"
   ></div>
 
-  <div class="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
+  <div class="final-cta-content relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
     <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 font-heading">
       Trade with Clarity. Trade with Confidence.
     </h2>

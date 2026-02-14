@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { sampleAlert } from '$lib/data/alerts';
   import { gsap } from 'gsap';
 
@@ -6,25 +7,31 @@
     delay?: number;
   }
 
-  let { delay = 0.4 }: Props = $props();
+  let { delay = 0.6 }: Props = $props();
 
   let cardRef: HTMLElement | undefined = $state();
 
-  $effect(() => {
+  onMount(() => {
     if (!cardRef) return;
     const element = cardRef;
 
+    gsap.set(element, { opacity: 0, x: 80, scale: 0.95 });
+
     const ctx = gsap.context(() => {
-      gsap.from(element, {
-        x: 60,
-        opacity: 0,
-        duration: 0.8,
+      gsap.to(element, {
+        opacity: 1,
+        x: 0,
+        scale: 1,
+        duration: 1.2,
         delay,
         ease: 'power3.out',
       });
     }, element);
 
-    return () => ctx.revert();
+    return () => {
+      ctx.revert();
+      gsap.set(element, { clearProps: 'all' });
+    };
   });
 </script>
 
