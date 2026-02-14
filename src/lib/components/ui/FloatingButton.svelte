@@ -12,5 +12,5 @@
   <span class="absolute inset-0 rounded-full bg-teal/20 animate-ping opacity-0 group-hover:opacity-100"></span>
   
   <UsersThree size={24} weight="duotone" color="#15C5D1" />
-  <span class="hidden sm:inline text-sm font-semibold text-teal-light">Meet The Traders</span>
+  <span class="hidden sm:inline text-sm font-semibold text-white">Meet The Traders</span>
 </button>
