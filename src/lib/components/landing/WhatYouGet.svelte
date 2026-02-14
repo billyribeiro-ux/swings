@@ -37,17 +37,17 @@
         subtitle="Every Sunday night, your watchlist drops with everything you need to trade the week ahead — no guessing, no scrambling Monday morning."
       />
 
-      <div class="grid md:grid-cols-2 gap-6">
+      <div class="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
         {#each features as feature, i}
           <div 
-            class="reveal-item flex gap-4 p-6 rounded-xl border border-grey-100 bg-off-white/50 {feature.fullWidth ? 'md:col-span-2' : ''}"
+            class="reveal-item flex gap-4 p-6 rounded-lg border border-grey-200 bg-off-white {feature.fullWidth ? 'md:col-span-2' : ''}"
             style="transition-delay: {i * 0.12}s"
           >
-            <div class="flex-shrink-0 w-10 h-10 bg-teal/10 rounded-lg flex items-center justify-center">
+            <div class="flex-shrink-0 w-6 h-6 flex items-center justify-center mt-0.5">
               <CheckCircle size={24} weight="fill" color="#0FA4AF" />
             </div>
             <div>
-              <h3 class="text-lg font-bold text-navy mb-2 font-heading">{feature.title}</h3>
+              <h3 class="text-base font-bold text-navy mb-2 font-heading">{feature.title}</h3>
               <p class="text-grey-600 text-sm leading-relaxed">{feature.description}</p>
             </div>
           </div>

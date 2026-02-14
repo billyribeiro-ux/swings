@@ -16,17 +16,17 @@
     <ScrollReveal>
       <SectionHeader
         eyebrow="Who This Is For"
-        title="If You Want Clarity Without Complexity, This Was Built for You"
+        title="If You Want Clarity Without Complexity,<br/>This Was Built for You"
       />
 
       <div class="grid md:grid-cols-2 gap-4 max-w-4xl mx-auto">
         {#each audience as item, i}
           <div 
-            class="reveal-item flex items-center gap-3 p-4 rounded-lg border border-grey-200 bg-white"
+            class="reveal-item flex items-start gap-3 p-5 rounded-lg border border-grey-200 bg-white"
             style="transition-delay: {i * 0.1}s"
           >
-            <CaretRight size={20} weight="bold" color="#0FA4AF" />
-            <p class="text-grey-800">{@html item}</p>
+            <CaretRight size={20} weight="bold" color="#0FA4AF" class="flex-shrink-0 mt-0.5" />
+            <p class="text-grey-800 text-left">{@html item}</p>
           </div>
         {/each}
       </div>

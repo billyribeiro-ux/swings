@@ -36,22 +36,17 @@
       <div class="grid md:grid-cols-3 gap-8">
         {#each features as feature, i}
           <div 
-            class="reveal-item group bg-white rounded-xl p-8 shadow-sm hover:shadow-lg transition-all duration-300 border border-grey-100 relative overflow-hidden"
+            class="reveal-item group bg-white rounded-xl p-8 shadow-sm hover:shadow-lg transition-all duration-300 border border-grey-100"
             style="transition-delay: {i * 0.15}s"
           >
-            <!-- Top Accent Bar -->
-            <div 
-              class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-teal to-teal-light transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"
-            ></div>
-            
             <!-- Icon -->
-            <div class="w-14 h-14 bg-teal/10 rounded-lg flex items-center justify-center mb-6">
-              <feature.icon size={28} weight="duotone" color="currentColor" class="w-7 h-7 text-teal" />
+            <div class="w-12 h-12 bg-teal/10 rounded-full flex items-center justify-center mb-6">
+              <feature.icon size={24} weight="duotone" color="#0FA4AF" />
             </div>
             
             <!-- Content -->
-            <h3 class="text-xl font-bold text-navy mb-3 font-heading">{feature.title}</h3>
-            <p class="text-grey-600 leading-relaxed">{feature.description}</p>
+            <h3 class="text-lg font-bold text-navy mb-3 font-heading">{feature.title}</h3>
+            <p class="text-grey-600 text-sm leading-relaxed">{feature.description}</p>
           </div>
         {/each}
       </div>
