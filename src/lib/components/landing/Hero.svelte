@@ -13,30 +13,39 @@
 
     const elements = ['.hero-badge', '.hero-title', '.hero-subtitle', '.hero-actions', '.hero-trust'];
 
-    // Set initial state — content visible in SSR, hidden only after JS loads
-    gsap.set(elements, { opacity: 0, y: 30 });
+    gsap.set(elements, {
+      opacity: 0,
+      y: 24,
+      willChange: 'transform, opacity',
+      force3D: true,
+    });
 
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
-        defaults: { ease: 'power3.out', duration: 0.9 },
-        delay: 0.2,
+        defaults: { ease: 'expo.out', duration: 1.6, force3D: true },
+        delay: 0.3,
       });
 
-      tl.to('.hero-badge', { opacity: 1, y: 0, duration: 0.7 })
-        .to('.hero-title', { opacity: 1, y: 0 }, '-=0.5')
-        .to('.hero-subtitle', { opacity: 1, y: 0 }, '-=0.6')
-        .to('.hero-actions', { opacity: 1, y: 0 }, '-=0.6')
-        .to('.hero-trust', { opacity: 1, y: 0 }, '-=0.6');
+      // Flowing cascade — each element glides in with heavy overlap
+      tl.to('.hero-badge', { opacity: 1, y: 0, duration: 1.2 })
+        .to('.hero-title', { opacity: 1, y: 0 }, '-=1.0')
+        .to('.hero-subtitle', { opacity: 1, y: 0 }, '-=1.2')
+        .to('.hero-actions', { opacity: 1, y: 0 }, '-=1.2')
+        .to('.hero-trust', { opacity: 1, y: 0 }, '-=1.2')
+        .call(() => {
+          gsap.set(elements, { willChange: 'auto' });
+        });
 
-      // Cinematic glow orb — slow breathing pulse
+      // Cinematic glow orb — ultra-slow breathing
       if (glowRef) {
         gsap.to(glowRef, {
-          scale: 1.15,
-          opacity: 0.8,
-          duration: 4,
+          scale: 1.12,
+          opacity: 0.75,
+          duration: 6,
           ease: 'sine.inOut',
           yoyo: true,
           repeat: -1,
+          force3D: true,
         });
       }
     }, heroRef as HTMLElement);

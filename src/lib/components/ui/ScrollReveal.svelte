@@ -17,11 +17,11 @@
   let {
     children,
     selector = '.reveal-item',
-    stagger = 0.15,
-    y = 60,
-    duration = 1,
+    stagger = 0.08,
+    y = 32,
+    duration = 1.4,
     delay = 0,
-    start = 'top 85%',
+    start = 'top 88%',
   }: Props = $props();
 
   let container: HTMLElement | undefined = $state();
@@ -32,14 +32,16 @@
     gsap.registerPlugin(ScrollTrigger);
 
     const targets = container.querySelectorAll(selector);
-
-    // If no .reveal-item children found, animate the container's direct children
     const animTargets = targets.length > 0 ? targets : container.children;
     if (!animTargets.length) return;
 
-    // Set initial state explicitly — elements start visible in DOM,
-    // GSAP sets them invisible only after JS loads (progressive enhancement)
-    gsap.set(animTargets, { opacity: 0, y });
+    // GPU-accelerated initial state
+    gsap.set(animTargets, {
+      opacity: 0,
+      y,
+      willChange: 'transform, opacity',
+      force3D: true,
+    });
 
     const ctx = gsap.context(() => {
       gsap.to(animTargets, {
@@ -48,18 +50,22 @@
         duration,
         delay,
         stagger,
-        ease: 'power2.out',
+        ease: 'expo.out',
+        force3D: true,
         scrollTrigger: {
           trigger: container,
           start,
           once: true,
+        },
+        onComplete() {
+          // Release GPU layers after animation settles
+          gsap.set(animTargets, { willChange: 'auto' });
         },
       });
     }, container as HTMLElement);
 
     return () => {
       ctx.revert();
-      // Ensure elements are visible after cleanup (navigation, HMR)
       gsap.set(animTargets, { clearProps: 'all' });
     };
   });

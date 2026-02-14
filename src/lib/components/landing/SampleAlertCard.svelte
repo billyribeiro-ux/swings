@@ -15,16 +15,26 @@
     if (!cardRef) return;
     const element = cardRef;
 
-    gsap.set(element, { opacity: 0, x: 80, scale: 0.95 });
+    gsap.set(element, {
+      opacity: 0,
+      x: 40,
+      scale: 0.97,
+      willChange: 'transform, opacity',
+      force3D: true,
+    });
 
     const ctx = gsap.context(() => {
       gsap.to(element, {
         opacity: 1,
         x: 0,
         scale: 1,
-        duration: 1.2,
+        duration: 1.8,
         delay,
-        ease: 'power3.out',
+        ease: 'expo.out',
+        force3D: true,
+        onComplete() {
+          gsap.set(element, { willChange: 'auto' });
+        },
       });
     }, element);
 

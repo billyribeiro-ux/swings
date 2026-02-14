@@ -15,32 +15,41 @@
 
     gsap.registerPlugin(ScrollTrigger);
 
-    // Set initial state for content elements
     const contentEls = section.querySelectorAll('.final-cta-content > *');
-    gsap.set(contentEls, { opacity: 0, y: 40 });
+    gsap.set(contentEls, {
+      opacity: 0,
+      y: 24,
+      willChange: 'transform, opacity',
+      force3D: true,
+    });
 
     const ctx = gsap.context(() => {
-      // Cinematic glow orb — slow breathing pulse
+      // Ultra-slow cinematic glow breathing
       gsap.to(glow, {
-        scale: 1.2,
-        opacity: 0.7,
-        duration: 4.5,
+        scale: 1.1,
+        opacity: 0.65,
+        duration: 7,
         ease: 'sine.inOut',
         yoyo: true,
         repeat: -1,
+        force3D: true,
       });
 
-      // Staggered content reveal on scroll
+      // Silky staggered content reveal
       gsap.to(contentEls, {
         opacity: 1,
         y: 0,
-        duration: 1,
-        stagger: 0.2,
-        ease: 'power2.out',
+        duration: 1.4,
+        stagger: 0.1,
+        ease: 'expo.out',
+        force3D: true,
         scrollTrigger: {
           trigger: section,
-          start: 'top 75%',
+          start: 'top 80%',
           once: true,
+        },
+        onComplete() {
+          gsap.set(contentEls, { willChange: 'auto' });
         },
       });
     }, section);
