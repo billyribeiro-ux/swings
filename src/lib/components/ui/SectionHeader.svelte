@@ -8,8 +8,8 @@
 
   let { eyebrow, title, subtitle, dark = false }: Props = $props();
 
-  const textColor = dark ? 'text-white' : 'text-navy';
-  const subtitleColor = dark ? 'text-grey-400' : 'text-grey-600';
+  const textColor = $derived(dark ? 'text-white' : 'text-navy');
+  const subtitleColor = $derived(dark ? 'text-grey-400' : 'text-grey-600');
 </script>
 
 <div class="text-center max-w-3xl mx-auto mb-12">

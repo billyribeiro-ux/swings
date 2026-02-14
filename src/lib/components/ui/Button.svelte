@@ -18,7 +18,7 @@
     outline: 'bg-transparent text-navy border-2 border-navy hover:bg-navy hover:text-white',
   };
 
-  const classes = `${baseClasses} ${variantClasses[variant]}`;
+  const classes = $derived(`${baseClasses} ${variantClasses[variant]}`);
 </script>
 
 {#if href}

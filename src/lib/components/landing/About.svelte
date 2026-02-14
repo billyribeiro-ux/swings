@@ -6,7 +6,7 @@
     { value: '18K+', label: 'Active Traders' },
     { value: '600%', label: 'OXY Overnight Return' },
     { value: '573x', label: '0DTE SPX Return' },
-    { value: '5–7', label: 'Picks Per Week' },
+    { value: '5-7', label: 'Picks Per Week' },
   ];
 </script>
 
