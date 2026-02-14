@@ -48,7 +48,7 @@
           once: true,
         },
       });
-    }, container);
+    }, container as HTMLElement);
 
     return () => ctx.revert();
   });

@@ -12,16 +12,17 @@
 
   $effect(() => {
     if (!cardRef) return;
+    const element = cardRef;
 
     const ctx = gsap.context(() => {
-      gsap.from(cardRef, {
+      gsap.from(element, {
         x: 60,
         opacity: 0,
         duration: 0.8,
         delay,
         ease: 'power3.out',
       });
-    }, cardRef);
+    }, element);
 
     return () => ctx.revert();
   });

@@ -8,9 +8,11 @@
 
   $effect(() => {
     if (!sectionRef || !glowRef) return;
+    const section = sectionRef;
+    const glow = glowRef;
 
     const ctx = gsap.context(() => {
-      gsap.to(glowRef, {
+      gsap.to(glow, {
         scale: 1.08,
         opacity: 1,
         duration: 3,
@@ -18,7 +20,7 @@
         yoyo: true,
         repeat: -1,
       });
-    }, sectionRef);
+    }, section);
 
     return () => ctx.revert();
   });

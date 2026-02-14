@@ -30,7 +30,7 @@
           repeat: -1,
         });
       }
-    }, heroRef);
+    }, heroRef as HTMLElement);
 
     return () => ctx.revert();
   });
