@@ -1,26 +1,26 @@
-// Svelte 5 reactive module state
-let isOpen = $state(false);
-let activeView = $state<'grid' | 'profile'>('grid');
-let activeTrader = $state<string | null>(null);
+import { writable } from 'svelte/store';
+
+// Use standard Svelte stores for cross-component state
+export const isOpen = writable(false);
+export const activeView = writable<'grid' | 'profile'>('grid');
+export const activeTrader = writable<string | null>(null);
 
 export function openModal(): void {
-  isOpen = true;
-  activeView = 'grid';
-  activeTrader = null;
+  isOpen.set(true);
+  activeView.set('grid');
+  activeTrader.set(null);
 }
 
 export function closeModal(): void {
-  isOpen = false;
+  isOpen.set(false);
 }
 
 export function showProfile(traderId: string): void {
-  activeTrader = traderId;
-  activeView = 'profile';
+  activeTrader.set(traderId);
+  activeView.set('profile');
 }
 
 export function backToGrid(): void {
-  activeView = 'grid';
-  activeTrader = null;
+  activeView.set('grid');
+  activeTrader.set(null);
 }
-
-export { isOpen, activeView, activeTrader };

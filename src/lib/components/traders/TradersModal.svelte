@@ -8,11 +8,11 @@
   import X from 'phosphor-svelte/lib/X';
 
   $effect(() => {
-    if (!isOpen) return;
+    if (!$isOpen) return;
 
     function handleKeydown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        if (activeView === 'profile') {
+        if ($activeView === 'profile') {
           backToGrid();
         } else {
           closeModal();
@@ -30,11 +30,11 @@
   });
 
   const activeTraderData = $derived(
-    activeTrader ? traders.find(t => t.id === activeTrader) : null
+    $activeTrader ? traders.find(t => t.id === $activeTrader) : null
   );
 </script>
 
-{#if isOpen}
+{#if $isOpen}
   <!-- Overlay -->
   <div 
     class="fixed inset-0 z-50 bg-navy/85 backdrop-blur-lg"
@@ -61,7 +61,7 @@
 
       <!-- Content -->
       <div class="h-full overflow-y-auto p-6 md:p-12">
-        {#if activeView === 'grid'}
+        {#if $activeView === 'grid'}
           <div in:fly={{ y: 20, duration: 300, delay: 100 }}>
             <h2 class="text-3xl md:text-4xl font-bold text-white text-center mb-4 font-heading">Meet The Traders</h2>
             <p class="text-grey-400 text-center max-w-2xl mx-auto mb-12">
@@ -74,7 +74,7 @@
               {/each}
             </div>
           </div>
-        {:else if activeView === 'profile' && activeTraderData}
+        {:else if $activeView === 'profile' && activeTraderData}
           <div in:fly={{ y: 20, duration: 300 }}>
             <TraderProfile trader={activeTraderData} />
           </div>
