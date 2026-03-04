@@ -24,20 +24,17 @@
 			'.success-steps',
 			'.success-cta'
 		];
-		gsap.set(els, { opacity: 0, y: 24, willChange: 'transform, opacity', force3D: true });
+		gsap.set(els, { opacity: 0, y: 24, willChange: 'transform, opacity' });
 
 		const ctx = gsap.context(() => {
-			const tl = gsap.timeline({
-				defaults: { ease: 'expo.out', duration: 1.4, force3D: true },
-				delay: 0.2
-			});
-			tl.to('.success-icon', { opacity: 1, y: 0, scale: 1, duration: 1.0 })
-				.to('.success-title', { opacity: 1, y: 0 }, '-=0.8')
-				.to('.success-subtitle', { opacity: 1, y: 0 }, '-=1.0')
-				.to('.success-steps', { opacity: 1, y: 0 }, '-=1.0')
-				.to('.success-cta', { opacity: 1, y: 0 }, '-=1.0')
+			const tl = gsap.timeline({ delay: 0.15 });
+			tl.to('.success-icon', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' })
+				.to('.success-title', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.35')
+				.to('.success-subtitle', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.4')
+				.to('.success-steps', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.4')
+				.to('.success-cta', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, '-=0.35')
 				.call(() => {
-					gsap.set(els, { willChange: 'auto' });
+					gsap.set(els, { willChange: 'auto', clearProps: 'transform' });
 				});
 		}, containerRef as HTMLElement);
 

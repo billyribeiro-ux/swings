@@ -15,18 +15,15 @@
 		if (!heroRef) return;
 
 		const els = ['.about-badge', '.about-title', '.about-subtitle'];
-		gsap.set(els, { opacity: 0, y: 24, willChange: 'transform, opacity', force3D: true });
+		gsap.set(els, { opacity: 0, y: 24, willChange: 'transform, opacity' });
 
 		const ctx = gsap.context(() => {
-			const tl = gsap.timeline({
-				defaults: { ease: 'expo.out', duration: 1.4, force3D: true },
-				delay: 0.2
-			});
-			tl.to('.about-badge', { opacity: 1, y: 0, duration: 1.0 })
-				.to('.about-title', { opacity: 1, y: 0 }, '-=0.9')
-				.to('.about-subtitle', { opacity: 1, y: 0 }, '-=1.0')
+			const tl = gsap.timeline({ delay: 0.15 });
+			tl.to('.about-badge', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' })
+				.to('.about-title', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.35')
+				.to('.about-subtitle', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.4')
 				.call(() => {
-					gsap.set(els, { willChange: 'auto' });
+					gsap.set(els, { willChange: 'auto', clearProps: 'transform' });
 				});
 		}, heroRef as HTMLElement);
 
@@ -266,12 +263,11 @@
 				<!-- Freddie Ferber -->
 				<div class="reveal-item bg-off-white ring-grey-200/80 rounded-2xl p-8 ring-1 sm:p-10">
 					<div class="mb-6 flex items-center gap-4">
-						<div
-							class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-bold text-white"
-							style="background: linear-gradient(135deg, #D4A843 0%, #0FA4AF 100%);"
-						>
-							FF
-						</div>
+						<img
+							src="/images/freddie-ferber.jpg"
+							alt="Freddie Ferber"
+							class="ring-gold/30 h-16 w-16 shrink-0 rounded-full object-cover ring-2"
+						/>
 						<div>
 							<h3 class="text-navy font-heading text-xl font-bold">Freddie Ferber</h3>
 							<p class="text-grey-600 text-sm">Co-Founder</p>

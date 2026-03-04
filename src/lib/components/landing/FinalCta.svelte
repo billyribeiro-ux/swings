@@ -19,37 +19,34 @@
 		gsap.set(contentEls, {
 			opacity: 0,
 			y: 24,
-			willChange: 'transform, opacity',
-			force3D: true
+			willChange: 'transform, opacity'
 		});
 
 		const ctx = gsap.context(() => {
-			// Ultra-slow cinematic glow breathing
+			// Glow breathing
 			gsap.to(glow, {
-				scale: 1.1,
-				opacity: 0.65,
-				duration: 7,
+				scale: 1.08,
+				opacity: 0.6,
+				duration: 6,
 				ease: 'sine.inOut',
 				yoyo: true,
-				repeat: -1,
-				force3D: true
+				repeat: -1
 			});
 
-			// Silky staggered content reveal
+			// Staggered content reveal
 			gsap.to(contentEls, {
 				opacity: 1,
 				y: 0,
-				duration: 1.4,
+				duration: 0.8,
 				stagger: 0.1,
-				ease: 'expo.out',
-				force3D: true,
+				ease: 'power3.out',
 				scrollTrigger: {
 					trigger: section,
 					start: 'top 80%',
 					once: true
 				},
 				onComplete() {
-					gsap.set(contentEls, { willChange: 'auto' });
+					gsap.set(contentEls, { willChange: 'auto', clearProps: 'transform' });
 				}
 			});
 		}, section);

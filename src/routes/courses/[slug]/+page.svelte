@@ -41,23 +41,20 @@
 			'.cd-cta',
 			'.cd-icon-box'
 		];
-		gsap.set(els, { opacity: 0, y: 20, willChange: 'transform, opacity', force3D: true });
+		gsap.set(els, { opacity: 0, y: 20, willChange: 'transform, opacity' });
 
 		const ctx = gsap.context(() => {
-			const tl = gsap.timeline({
-				defaults: { ease: 'expo.out', duration: 1.4, force3D: true },
-				delay: 0.15
-			});
-			tl.to('.cd-back', { opacity: 1, y: 0, duration: 0.8 })
-				.to('.cd-badge', { opacity: 1, y: 0, duration: 1.0 }, '-=0.6')
-				.to('.cd-title', { opacity: 1, y: 0 }, '-=0.9')
-				.to('.cd-desc', { opacity: 1, y: 0 }, '-=1.0')
-				.to('.cd-meta', { opacity: 1, y: 0 }, '-=1.1')
-				.to('.cd-price', { opacity: 1, y: 0 }, '-=1.1')
-				.to('.cd-cta', { opacity: 1, y: 0 }, '-=1.1')
-				.to('.cd-icon-box', { opacity: 1, y: 0, scale: 1, duration: 1.6 }, '-=1.4')
+			const tl = gsap.timeline({ delay: 0.15 });
+			tl.to('.cd-back', { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' })
+				.to('.cd-badge', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, '-=0.3')
+				.to('.cd-title', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.35')
+				.to('.cd-desc', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.4')
+				.to('.cd-meta', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, '-=0.4')
+				.to('.cd-price', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, '-=0.35')
+				.to('.cd-cta', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, '-=0.35')
+				.to('.cd-icon-box', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.5')
 				.call(() => {
-					gsap.set(els, { willChange: 'auto' });
+					gsap.set(els, { willChange: 'auto', clearProps: 'transform' });
 				});
 		}, heroRef as HTMLElement);
 

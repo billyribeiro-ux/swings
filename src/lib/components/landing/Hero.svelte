@@ -21,84 +21,34 @@
 
 		gsap.set(elements, {
 			opacity: 0,
-			y: 40,
-			scale: 0.95,
-			rotationX: -5,
-			willChange: 'transform, opacity',
-			force3D: true
+			y: 28,
+			willChange: 'transform, opacity'
 		});
 
 		const ctx = gsap.context(() => {
-			const tl = gsap.timeline({
-				defaults: { ease: 'expo.out', duration: 1.8, force3D: true },
-				delay: 0.2
-			});
+			// Clean cascade — each element fades up with consistent spacing
+			const tl = gsap.timeline({ delay: 0.15 });
 
-			// Cinematic cascade with scale + rotation
-			tl.to('.hero-badge', { opacity: 1, y: 0, scale: 1, rotationX: 0, duration: 1.2 })
-				.to('.hero-title', { opacity: 1, y: 0, scale: 1, rotationX: 0, duration: 1.4 }, '-=0.9')
-				.to('.hero-subtitle', { opacity: 1, y: 0, scale: 1, rotationX: 0, duration: 1.4 }, '-=1.1')
-				.to('.hero-actions', { opacity: 1, y: 0, scale: 1, rotationX: 0, duration: 1.2 }, '-=1.1')
-				.to('.hero-trust', { opacity: 1, y: 0, scale: 1, rotationX: 0, duration: 1.0 }, '-=1.0')
+			tl.to('.hero-badge', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' })
+				.to('.hero-title', { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, '-=0.45')
+				.to('.hero-subtitle', { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, '-=0.5')
+				.to('.hero-actions', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.5')
+				.to('.hero-trust', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.45')
 				.call(() => {
-					gsap.set(elements, { willChange: 'auto' });
+					gsap.set(elements, { willChange: 'auto', clearProps: 'transform' });
 				});
 
-			// Cinematic glow orb — ultra-slow breathing
+			// Glow orb — slow breathing
 			if (glowRef) {
 				gsap.to(glowRef, {
-					scale: 1.15,
-					opacity: 0.8,
-					duration: 7,
+					scale: 1.08,
+					opacity: 0.7,
+					duration: 6,
 					ease: 'sine.inOut',
 					yoyo: true,
-					repeat: -1,
-					force3D: true
+					repeat: -1
 				});
 			}
-
-			// Magnetic button effect
-			const buttons = heroRef.querySelectorAll('a, button');
-			buttons.forEach((btn) => {
-				btn.addEventListener('mouseenter', (e) => {
-					gsap.to(btn, {
-						scale: 1.05,
-						duration: 0.3,
-						ease: 'back.out(2)'
-					});
-				});
-
-				btn.addEventListener('mouseleave', () => {
-					gsap.to(btn, {
-						scale: 1,
-						duration: 0.3,
-						ease: 'power2.out'
-					});
-				});
-
-				btn.addEventListener('mousemove', (e: Event) => {
-					const mouseEvent = e as MouseEvent;
-					const rect = (btn as HTMLElement).getBoundingClientRect();
-					const x = mouseEvent.clientX - rect.left - rect.width / 2;
-					const y = mouseEvent.clientY - rect.top - rect.height / 2;
-
-					gsap.to(btn, {
-						x: x * 0.15,
-						y: y * 0.15,
-						duration: 0.3,
-						ease: 'power2.out'
-					});
-				});
-
-				btn.addEventListener('mouseleave', () => {
-					gsap.to(btn, {
-						x: 0,
-						y: 0,
-						duration: 0.5,
-						ease: 'elastic.out(1, 0.5)'
-					});
-				});
-			});
 		}, heroRef as HTMLElement);
 
 		return () => {

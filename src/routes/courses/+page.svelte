@@ -20,18 +20,15 @@
 
 		const els = ['.courses-badge', '.courses-title', '.courses-subtitle'];
 
-		gsap.set(els, { opacity: 0, y: 24, willChange: 'transform, opacity', force3D: true });
+		gsap.set(els, { opacity: 0, y: 24, willChange: 'transform, opacity' });
 
 		const ctx = gsap.context(() => {
-			const tl = gsap.timeline({
-				defaults: { ease: 'expo.out', duration: 1.4, force3D: true },
-				delay: 0.2
-			});
-			tl.to('.courses-badge', { opacity: 1, y: 0, duration: 1.0 })
-				.to('.courses-title', { opacity: 1, y: 0 }, '-=0.9')
-				.to('.courses-subtitle', { opacity: 1, y: 0 }, '-=1.0')
+			const tl = gsap.timeline({ delay: 0.15 });
+			tl.to('.courses-badge', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' })
+				.to('.courses-title', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.35')
+				.to('.courses-subtitle', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.4')
 				.call(() => {
-					gsap.set(els, { willChange: 'auto' });
+					gsap.set(els, { willChange: 'auto', clearProps: 'transform' });
 				});
 		}, heroRef as HTMLElement);
 

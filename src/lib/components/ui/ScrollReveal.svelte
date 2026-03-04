@@ -8,26 +8,20 @@
 		children: Snippet;
 		selector?: string;
 		y?: number;
-		scale?: number;
-		rotation?: number;
 		duration?: number;
 		delay?: number;
 		stagger?: number;
 		start?: string;
-		parallax?: boolean;
 	}
 
 	let {
 		children,
 		selector = '.reveal-item',
-		y = 40,
-		scale = 0.95,
-		rotation = 0,
-		duration = 1.4,
+		y = 32,
+		duration = 0.9,
 		delay = 0,
-		stagger = 0.08,
-		start = 'top 80%',
-		parallax = false
+		stagger = 0.1,
+		start = 'top 85%'
 	}: Props = $props();
 
 	let container: HTMLElement | undefined = $state();
@@ -44,50 +38,26 @@
 		gsap.set(animTargets, {
 			opacity: 0,
 			y,
-			scale,
-			rotation,
-			willChange: 'transform, opacity',
-			force3D: true
+			willChange: 'transform, opacity'
 		});
 
 		const ctx = gsap.context(() => {
 			gsap.to(animTargets, {
 				opacity: 1,
 				y: 0,
-				scale: 1,
-				rotation: 0,
 				duration,
 				delay,
-				stagger: {
-					each: stagger,
-					ease: 'power2.out'
-				},
-				ease: 'expo.out',
-				force3D: true,
+				stagger,
+				ease: 'power3.out',
 				scrollTrigger: {
 					trigger: container,
 					start,
 					once: true
 				},
 				onComplete: () => {
-					gsap.set(animTargets, { willChange: 'auto' });
+					gsap.set(animTargets, { willChange: 'auto', clearProps: 'transform' });
 				}
 			});
-
-			// Optional parallax effect
-			if (parallax) {
-				animTargets.forEach((target, i) => {
-					gsap.to(target, {
-						y: i % 2 === 0 ? -20 : 20,
-						scrollTrigger: {
-							trigger: target,
-							start: 'top bottom',
-							end: 'bottom top',
-							scrub: 1.5
-						}
-					});
-				});
-			}
 		}, container as HTMLElement);
 
 		return () => {
