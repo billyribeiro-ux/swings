@@ -4,10 +4,6 @@ import Stripe from 'stripe';
 import { env } from '$env/dynamic/private';
 import { env as publicEnv } from '$env/dynamic/public';
 
-const stripe = new Stripe(env.STRIPE_SECRET_KEY || '', {
-	apiVersion: '2026-02-25.clover'
-});
-
 export const POST: RequestHandler = async ({ request }) => {
 	try {
 		const { priceId } = await request.json();
@@ -15,6 +11,14 @@ export const POST: RequestHandler = async ({ request }) => {
 		if (!priceId) {
 			return json({ error: 'Price ID is required' }, { status: 400 });
 		}
+
+		if (!env.STRIPE_SECRET_KEY) {
+			return json({ error: 'Stripe is not configured' }, { status: 500 });
+		}
+
+		const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
+			apiVersion: '2026-02-25.clover'
+		});
 
 		const session = await stripe.checkout.sessions.create({
 			mode: 'subscription',
