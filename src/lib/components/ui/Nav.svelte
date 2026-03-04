@@ -57,7 +57,14 @@
 		</a>
 
 		<!-- Desktop Nav -->
-		<div class="hidden items-center gap-8 md:flex">
+		<div class="hidden items-center gap-6 md:flex">
+			<a
+				href="/about"
+				class="text-grey-300 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-white/5 hover:text-white"
+			>
+				About
+			</a>
+
 			<!-- Courses Dropdown -->
 			<div class="relative" bind:this={dropdownRef}>
 				<button
@@ -133,6 +140,13 @@
 			</div>
 
 			<a
+				href="/blog"
+				class="text-grey-300 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-white/5 hover:text-white"
+			>
+				Blog
+			</a>
+
+			<a
 				href="/#pricing"
 				class="text-grey-300 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-white/5 hover:text-white"
 			>
@@ -206,11 +220,25 @@
 				<!-- Links -->
 				<div class="border-t border-white/8 pt-4">
 					<a
+						href="/about"
+						class="text-grey-300 flex items-center gap-2 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 hover:bg-white/6 hover:text-white"
+						onclick={closeAll}
+					>
+						About
+					</a>
+					<a
 						href="/courses"
 						class="text-grey-300 flex items-center gap-2 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 hover:bg-white/6 hover:text-white"
 						onclick={closeAll}
 					>
 						All Courses
+					</a>
+					<a
+						href="/blog"
+						class="text-grey-300 flex items-center gap-2 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 hover:bg-white/6 hover:text-white"
+						onclick={closeAll}
+					>
+						Blog
 					</a>
 					<a
 						href="/#pricing"
