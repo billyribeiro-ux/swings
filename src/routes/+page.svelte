@@ -4,6 +4,7 @@
 	import WhatYouGet from '$lib/components/landing/WhatYouGet.svelte';
 	import WhoItsFor from '$lib/components/landing/WhoItsFor.svelte';
 	import Pricing from '$lib/components/landing/Pricing.svelte';
+	import Testimonials from '$lib/components/landing/Testimonials.svelte';
 	import Courses from '$lib/components/landing/Courses.svelte';
 	import GreeksPdfCta from '$lib/components/landing/GreeksPdfCta.svelte';
 	import About from '$lib/components/landing/About.svelte';
@@ -30,6 +31,7 @@
 <WhatYouGet />
 <WhoItsFor />
 <Pricing />
+<Testimonials />
 <Courses />
 <GreeksPdfCta />
 <About />

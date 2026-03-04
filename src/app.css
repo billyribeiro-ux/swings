@@ -143,10 +143,34 @@ html {
 
 body {
 	font-family: var(--font-ui);
-	font-size: var(--fs-sm);
-	font-weight: var(--w-regular);
-	line-height: var(--lh-normal);
+	font-size: 1rem;
+	font-weight: 450;
+	line-height: 1.7;
 	color: var(--grey-800);
+	letter-spacing: -0.01em;
+}
+
+p {
+	font-size: 1rem;
+	font-weight: 450;
+	line-height: 1.7;
+	letter-spacing: -0.01em;
+}
+
+@media (min-width: 48rem) {
+	body,
+	p {
+		font-size: 1.0625rem;
+		line-height: 1.75;
+	}
+}
+
+@media (min-width: 64rem) {
+	body,
+	p {
+		font-size: 1.125rem;
+		line-height: 1.8;
+	}
 }
 
 h1,

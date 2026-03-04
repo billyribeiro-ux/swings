@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { courses } from '$lib/data/courses';
 	import { fade, fly, slide } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
@@ -15,6 +16,8 @@
 	let isCoursesOpen = $state(false);
 	let isMobileOpen = $state(false);
 	let dropdownRef: HTMLDivElement | undefined = $state();
+	let scrolled = $state(false);
+	let navRef: HTMLElement | undefined = $state();
 
 	function toggleCourses() {
 		isCoursesOpen = !isCoursesOpen;
@@ -41,11 +44,26 @@
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') closeAll();
 	}
+
+	// Scroll-based effects
+	onMount(() => {
+		function handleScroll() {
+			scrolled = window.scrollY > 20;
+		}
+
+		window.addEventListener('scroll', handleScroll, { passive: true });
+		return () => window.removeEventListener('scroll', handleScroll);
+	});
 </script>
 
 <svelte:window onclick={handleWindowClick} onkeydown={handleKeydown} />
 
-<nav class="bg-navy/92 fixed top-0 right-0 left-0 z-50 border-b border-white/10 backdrop-blur-xl">
+<nav
+	bind:this={navRef}
+	class="fixed top-0 right-0 left-0 z-50 border-b transition-all duration-500 ease-out {scrolled
+		? 'bg-navy/98 shadow-navy/50 border-white/20 shadow-2xl backdrop-blur-2xl'
+		: 'bg-navy/92 border-white/10 backdrop-blur-xl'}"
+>
 	<div class="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-4 sm:px-6 lg:px-8">
 		<!-- Logo -->
 		<a
