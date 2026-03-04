@@ -1,42 +1,175 @@
-# sv
+# Explosive Swings — SvelteKit Landing Page
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Premium stock alert service landing page built with **SvelteKit** (Svelte 5), **TailwindCSS v4**, **GSAP**, and **Stripe** integration.
 
-## Creating a project
+## 🚀 Features
 
-If you're seeing this, you've probably already done this step. Congrats!
+- ✅ **Svelte 5 Runes** — Modern reactive patterns (`$state`, `$derived`, `$effect`, `$props`)
+- ✅ **Stripe Checkout** — Subscription payments for monthly/annual plans
+- ✅ **Courses System** — Full course listing and detail pages
+- ✅ **GSAP Animations** — Cinematic scroll-triggered animations
+- ✅ **Responsive Design** — Mobile-first with TailwindCSS v4
+- ✅ **TypeScript Strict Mode** — Zero `any`, full type safety
+- ✅ **Traders Modal** — Interactive modal with grid and profile views
+- ✅ **SEO Optimized** — Meta tags, semantic HTML, accessibility
 
-```sh
-# create a new project
-npx sv create my-app
+## 📋 Prerequisites
+
+- **Node.js** 18+
+- **pnpm** (required — not npm or yarn)
+- **Stripe Account** (for payment processing)
+
+## 🛠️ Setup
+
+### 1. Install Dependencies
+
+```bash
+pnpm install
 ```
 
-To recreate this project with the same configuration:
+### 2. Configure Environment Variables
 
-```sh
-# recreate this project
-pnpm dlx sv create --template minimal --types ts --add prettier eslint vitest="usages:unit,component" playwright tailwindcss="plugins:typography,forms" devtools-json mcp="ide:claude-code,vscode+setup:local" --install pnpm ./
+Create a `.env` file in the root directory:
+
+```bash
+cp .env.example .env
 ```
 
-## Developing
+Edit `.env` and add your Stripe keys:
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+```env
+# Stripe API Keys (get from https://dashboard.stripe.com/apikeys)
+STRIPE_SECRET_KEY=sk_test_your_secret_key_here
+PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key_here
 
-```sh
-npm run dev
+# Stripe Price IDs (create products in Stripe Dashboard)
+STRIPE_MONTHLY_PRICE_ID=price_monthly_id_here
+STRIPE_ANNUAL_PRICE_ID=price_annual_id_here
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+# App URL (for Stripe redirects)
+PUBLIC_APP_URL=http://localhost:5173
 ```
 
-## Building
+### 3. Set Up Stripe Products
 
-To create a production version of your app:
+1. Go to [Stripe Dashboard](https://dashboard.stripe.com/)
+2. Create two **Products**:
+   - **Monthly Plan** — $49/month recurring
+   - **Annual Plan** — $399/year recurring
+3. Copy the **Price IDs** and add them to your `.env` file
 
-```sh
-npm run build
+### 4. Run Development Server
+
+```bash
+pnpm run dev
 ```
 
-You can preview the production build with `npm run preview`.
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+## 📁 Project Structure
+
+```
+src/
+├── routes/
+│   ├── +page.svelte              # Landing page
+│   ├── +layout.svelte            # Root layout (nav + footer)
+│   ├── success/+page.svelte      # Stripe success page
+│   ├── courses/+page.svelte      # Courses listing
+│   ├── courses/[slug]/+page.svelte  # Individual course pages
+│   └── api/
+│       └── create-checkout-session/+server.ts  # Stripe API
+├── lib/
+│   ├── components/
+│   │   ├── landing/              # Landing page sections
+│   │   ├── traders/              # Traders modal system
+│   │   └── ui/                   # Reusable UI components
+│   ├── data/                     # Static data (traders, courses, pricing)
+│   ├── stores/                   # Svelte 5 reactive stores
+│   └── utils/                    # Utilities (Stripe helpers)
+└── app.css                       # Global styles + Tailwind
+```
+
+## 🎨 Tech Stack
+
+- **Framework**: SvelteKit (Svelte 5)
+- **Styling**: TailwindCSS v4
+- **Animations**: GSAP + ScrollTrigger
+- **Icons**: Phosphor Icons
+- **Payments**: Stripe
+- **Fonts**: Montserrat + Inter (Google Fonts)
+- **Package Manager**: pnpm
+
+## 🧪 Testing
+
+```bash
+# Type checking
+pnpm run check
+
+# Build for production
+pnpm run build
+
+# Preview production build
+pnpm run preview
+```
+
+## 🚢 Deployment
+
+### Environment Variables (Production)
+
+Set these in your deployment platform (Vercel, Netlify, etc.):
+
+```
+STRIPE_SECRET_KEY=sk_live_...
+PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
+STRIPE_MONTHLY_PRICE_ID=price_...
+STRIPE_ANNUAL_PRICE_ID=price_...
+PUBLIC_APP_URL=https://your-domain.com
+```
+
+### Build Command
+
+```bash
+pnpm run build
+```
+
+### Recommended Adapters
+
+- **Vercel**: `@sveltejs/adapter-vercel`
+- **Netlify**: `@sveltejs/adapter-netlify`
+- **Node**: `@sveltejs/adapter-node`
+
+## 📝 Key Pages
+
+- `/` — Landing page with all sections
+- `/courses` — Course listing
+- `/courses/beginning-options-trading` — Beginner course
+- `/courses/options-trading-101` — Intermediate course
+- `/success` — Post-checkout success page
+
+## 🎯 Stripe Webhook Setup (Optional)
+
+For production, set up webhooks to handle subscription events:
+
+1. Go to Stripe Dashboard → Developers → Webhooks
+2. Add endpoint: `https://your-domain.com/api/webhooks/stripe`
+3. Select events: `checkout.session.completed`, `customer.subscription.updated`, etc.
+4. Add webhook secret to `.env`: `STRIPE_WEBHOOK_SECRET=whsec_...`
+
+## 🔒 Security Notes
+
+- Never commit `.env` to version control
+- Use Stripe test keys in development
+- Switch to live keys only in production
+- Validate all webhook signatures
+
+## 📚 Documentation
+
+- [SvelteKit Docs](https://svelte.dev/docs/kit)
+- [Svelte 5 Runes](https://svelte.dev/docs/svelte/$state)
+- [Stripe Checkout](https://stripe.com/docs/payments/checkout)
+- [GSAP ScrollTrigger](https://greensock.com/docs/v3/Plugins/ScrollTrigger)
+- [TailwindCSS v4](https://tailwindcss.com/docs)
+
+## 📄 License
+
+Private — All Rights Reserved
