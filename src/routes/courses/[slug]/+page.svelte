@@ -73,57 +73,40 @@
 <!-- Hero Section -->
 <section
 	bind:this={heroRef}
-	class="relative overflow-hidden pt-16"
+	class="cd-hero"
 	style="background: linear-gradient(145deg, {course.gradient.from} 0%, {course.gradient.to} 100%);"
 >
-	<!-- Grid Pattern -->
-	<div
-		class="absolute inset-0 opacity-[0.05]"
-		style="background-image: linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px); background-size: 60px 60px;"
-	></div>
+	<div class="cd-hero__grid-overlay"></div>
 
-	<div class="relative z-10 mx-auto max-w-[1200px] px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-24">
+	<div class="cd-hero__inner">
 		<!-- Back Link -->
-		<a
-			href="/courses"
-			class="cd-back mb-8 inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition-all duration-200 hover:bg-white/10 hover:text-white"
-		>
+		<a href="/courses" class="cd-back cd-hero__back">
 			<ArrowLeft size={16} weight="bold" />
 			All Courses
 		</a>
 
-		<div class="grid items-center gap-10 lg:grid-cols-[1fr_auto] lg:gap-16">
+		<div class="cd-hero__layout">
 			<!-- Left Column -->
 			<div>
-				<div
-					class="cd-badge mb-5 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-4 py-1.5 backdrop-blur-sm"
-				>
+				<div class="cd-badge cd-hero__badge">
 					<GraduationCap size={16} weight="bold" color="white" />
-					<span class="text-[11px] font-semibold tracking-wide text-white uppercase"
-						>{course.level}</span
-					>
+					<span class="cd-hero__badge-text">{course.level}</span>
 				</div>
 
-				<h1
-					class="cd-title font-heading mb-5 text-3xl leading-tight font-bold text-white sm:text-4xl md:text-5xl lg:text-[3.5rem]"
-				>
-					{course.title}
-				</h1>
+				<h1 class="cd-title cd-hero__title">{course.title}</h1>
 
-				<p class="cd-desc mb-8 max-w-xl text-base leading-relaxed text-white/85 sm:text-lg">
-					{course.description}
-				</p>
+				<p class="cd-desc cd-hero__desc">{course.description}</p>
 
-				<div class="cd-meta mb-8 flex flex-wrap items-center gap-5 text-sm text-white/70">
-					<div class="flex items-center gap-2">
+				<div class="cd-meta cd-hero__meta">
+					<div class="cd-hero__meta-item">
 						<Clock size={18} weight="bold" />
 						<span>{course.duration}</span>
 					</div>
-					<div class="flex items-center gap-2">
+					<div class="cd-hero__meta-item">
 						<PlayCircle size={18} weight="bold" />
 						<span>{course.modules} modules</span>
 					</div>
-					<div class="flex items-center gap-2">
+					<div class="cd-hero__meta-item">
 						{#if Icon}
 							<Icon size={18} weight="bold" />
 						{/if}
@@ -131,10 +114,9 @@
 					</div>
 				</div>
 
-				<div class="cd-price mb-8 flex items-baseline gap-2">
-					<span class="font-heading text-4xl font-bold text-white sm:text-5xl">${course.price}</span
-					>
-					<span class="text-base text-white/60">one-time</span>
+				<div class="cd-price cd-hero__price-row">
+					<span class="cd-hero__price">${course.price}</span>
+					<span class="cd-hero__price-label">one-time</span>
 				</div>
 
 				<div class="cd-cta">
@@ -146,10 +128,8 @@
 			</div>
 
 			<!-- Right Column - Icon -->
-			<div class="cd-icon-box hidden lg:flex">
-				<div
-					class="flex h-56 w-56 items-center justify-center rounded-3xl border border-white/15 bg-white/8 backdrop-blur-sm xl:h-64 xl:w-64"
-				>
+			<div class="cd-icon-box cd-hero__icon-col">
+				<div class="cd-hero__icon-box">
 					{#if Icon}
 						<Icon size={100} weight="duotone" color="white" />
 					{:else}
@@ -162,23 +142,16 @@
 </section>
 
 <!-- What You'll Learn -->
-<section class="bg-white py-16 sm:py-20 lg:py-28">
-	<div class="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+<section class="page-section page-section--white">
+	<div class="page-container">
 		<ScrollReveal>
-			<h2
-				class="text-navy font-heading mb-10 text-center text-2xl font-bold sm:text-3xl md:text-4xl"
-			>
-				What You'll Learn
-			</h2>
+			<h2 class="page-section__heading page-section__heading--center">What You'll Learn</h2>
 
-			<div class="mx-auto grid max-w-4xl gap-4 sm:grid-cols-2 sm:gap-5">
+			<div class="learn-grid">
 				{#each course.whatYouLearn as item, i}
-					<div
-						class="reveal-item border-grey-200/80 bg-off-white flex gap-4 rounded-xl border p-5 sm:p-6"
-						style="transition-delay: {i * 0.06}s"
-					>
-						<CheckCircle size={22} weight="fill" color="#0FA4AF" class="mt-0.5 shrink-0" />
-						<p class="text-grey-800 text-sm leading-relaxed sm:text-base">{item}</p>
+					<div class="reveal-item learn-grid__item" style="transition-delay: {i * 0.06}s">
+						<CheckCircle size={22} weight="fill" color="#0FA4AF" class="learn-grid__icon" />
+						<p class="learn-grid__text">{item}</p>
 					</div>
 				{/each}
 			</div>
@@ -187,30 +160,26 @@
 </section>
 
 <!-- Curriculum -->
-<section class="bg-off-white py-16 sm:py-20 lg:py-28">
-	<div class="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+<section class="page-section page-section--off-white">
+	<div class="page-container">
 		<ScrollReveal>
-			<h2
-				class="text-navy font-heading mb-10 text-center text-2xl font-bold sm:text-3xl md:text-4xl"
-			>
-				Course Curriculum
-			</h2>
+			<h2 class="page-section__heading page-section__heading--center">Course Curriculum</h2>
 
-			<div class="mx-auto max-w-3xl space-y-4 sm:space-y-5">
+			<div class="curriculum">
 				{#each course.curriculum as module, i}
-					<div
-						class="reveal-item border-grey-200/80 overflow-hidden rounded-xl border bg-white"
-						style="transition-delay: {i * 0.06}s"
-					>
-						<div class="border-grey-100 border-b px-6 py-5 sm:px-8 sm:py-6">
-							<h3 class="text-navy font-heading text-base font-bold sm:text-lg">{module.title}</h3>
+					<div class="reveal-item curriculum__module" style="transition-delay: {i * 0.06}s">
+						<div class="curriculum__module-header">
+							<h3 class="curriculum__module-title">{module.title}</h3>
 						</div>
-						<ul class="divide-grey-100 divide-y">
+						<ul class="curriculum__lesson-list">
 							{#each module.lessons as lesson}
-								<li
-									class="text-grey-700 flex items-center gap-3 px-6 py-3.5 text-sm sm:px-8 sm:text-base"
-								>
-									<PlayCircle size={18} weight="fill" color="#0FA4AF" class="shrink-0" />
+								<li class="curriculum__lesson">
+									<PlayCircle
+										size={18}
+										weight="fill"
+										color="#0FA4AF"
+										class="curriculum__lesson-icon"
+									/>
 									<span>{lesson}</span>
 								</li>
 							{/each}
@@ -223,23 +192,16 @@
 </section>
 
 <!-- Features -->
-<section class="bg-white py-16 sm:py-20 lg:py-28">
-	<div class="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+<section class="page-section page-section--white">
+	<div class="page-container">
 		<ScrollReveal>
-			<h2
-				class="text-navy font-heading mb-10 text-center text-2xl font-bold sm:text-3xl md:text-4xl"
-			>
-				What's Included
-			</h2>
+			<h2 class="page-section__heading page-section__heading--center">What's Included</h2>
 
-			<div class="mx-auto grid max-w-4xl gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+			<div class="features-grid">
 				{#each course.features as feature, i}
-					<div
-						class="reveal-item border-grey-200/80 bg-off-white flex gap-3 rounded-xl border p-5"
-						style="transition-delay: {i * 0.06}s"
-					>
-						<CheckCircle size={22} weight="fill" color="#0FA4AF" class="shrink-0" />
-						<p class="text-grey-800 text-sm leading-relaxed">{feature}</p>
+					<div class="reveal-item features-grid__item" style="transition-delay: {i * 0.06}s">
+						<CheckCircle size={22} weight="fill" color="#0FA4AF" class="features-grid__icon" />
+						<p class="features-grid__text">{feature}</p>
 					</div>
 				{/each}
 			</div>
@@ -248,25 +210,16 @@
 </section>
 
 <!-- Enroll CTA -->
-<section
-	id="enroll"
-	class="from-navy via-navy-mid to-deep-blue bg-linear-to-br py-16 sm:py-20 lg:py-28"
->
-	<div class="mx-auto max-w-[1200px] px-4 text-center sm:px-6 lg:px-8">
+<section id="enroll" class="page-section page-section--dark">
+	<div class="page-container page-container--center">
 		<ScrollReveal>
-			<h2
-				class="reveal-item font-heading mb-5 text-2xl font-bold text-white sm:text-3xl md:text-4xl lg:text-5xl"
-			>
-				Ready to Start Learning?
-			</h2>
+			<h2 class="reveal-item page-dark-heading">Ready to Start Learning?</h2>
 
-			<p
-				class="reveal-item text-grey-300 mx-auto mb-10 max-w-2xl text-base leading-relaxed sm:text-lg"
-			>
+			<p class="reveal-item page-dark-subtitle">
 				Get lifetime access to {course.title} for a one-time payment of ${course.price}.
 			</p>
 
-			<div class="reveal-item flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+			<div class="reveal-item page-cta__actions">
 				<Button variant="primary" href="#">
 					Enroll Now — ${course.price}
 					<ArrowRight size={18} weight="bold" />
@@ -276,3 +229,478 @@
 		</ScrollReveal>
 	</div>
 </section>
+
+<style>
+	/* Course detail hero */
+	.cd-hero {
+		position: relative;
+		overflow: hidden;
+		padding-top: 4rem;
+	}
+
+	.cd-hero__grid-overlay {
+		position: absolute;
+		inset: 0;
+		opacity: 0.05;
+		background-image:
+			linear-gradient(to right, white 1px, transparent 1px),
+			linear-gradient(to bottom, white 1px, transparent 1px);
+		background-size: 60px 60px;
+	}
+
+	.cd-hero__inner {
+		position: relative;
+		z-index: var(--z-10);
+		max-width: var(--container-max);
+		margin: 0 auto;
+		padding: 3rem 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.cd-hero__inner {
+			padding: 4rem 1.5rem;
+		}
+	}
+	@media (min-width: 1024px) {
+		.cd-hero__inner {
+			padding: 6rem 2rem;
+		}
+	}
+
+	.cd-hero__back {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		border-radius: var(--radius-lg);
+		padding: 0.5rem 0.75rem;
+		font-size: var(--fs-sm);
+		font-weight: var(--w-medium);
+		color: rgba(255, 255, 255, 0.7);
+		transition: all 200ms var(--ease-out);
+		margin-bottom: 2rem;
+	}
+
+	.cd-hero__back:hover {
+		background-color: rgba(255, 255, 255, 0.1);
+		color: var(--color-white);
+	}
+
+	.cd-hero__layout {
+		display: grid;
+		gap: 2.5rem;
+		align-items: center;
+	}
+
+	@media (min-width: 1024px) {
+		.cd-hero__layout {
+			grid-template-columns: 1fr auto;
+			gap: 4rem;
+		}
+	}
+
+	.cd-hero__badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		border-radius: var(--radius-full);
+		border: 1px solid rgba(255, 255, 255, 0.25);
+		background-color: rgba(255, 255, 255, 0.15);
+		padding: 0.375rem 1rem;
+		margin-bottom: 1.25rem;
+		backdrop-filter: blur(4px);
+	}
+
+	.cd-hero__badge-text {
+		font-size: 11px;
+		font-weight: var(--w-semibold);
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--color-white);
+	}
+
+	.cd-hero__title {
+		font-family: var(--font-heading);
+		font-size: var(--fs-3xl);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+		line-height: 1.15;
+		margin-bottom: 1.25rem;
+	}
+
+	@media (min-width: 640px) {
+		.cd-hero__title {
+			font-size: var(--fs-4xl);
+		}
+	}
+	@media (min-width: 768px) {
+		.cd-hero__title {
+			font-size: clamp(2.5rem, 5vw, 3rem);
+		}
+	}
+	@media (min-width: 1024px) {
+		.cd-hero__title {
+			font-size: 3.5rem;
+		}
+	}
+
+	.cd-hero__desc {
+		max-width: 36rem;
+		font-size: 1rem;
+		line-height: 1.65;
+		color: rgba(255, 255, 255, 0.85);
+		margin-bottom: 2rem;
+	}
+
+	@media (min-width: 640px) {
+		.cd-hero__desc {
+			font-size: var(--fs-lg);
+		}
+	}
+
+	.cd-hero__meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 1.25rem;
+		font-size: var(--fs-sm);
+		color: rgba(255, 255, 255, 0.7);
+		margin-bottom: 2rem;
+	}
+
+	.cd-hero__meta-item {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.cd-hero__price-row {
+		display: flex;
+		align-items: baseline;
+		gap: 0.5rem;
+		margin-bottom: 2rem;
+	}
+
+	.cd-hero__price {
+		font-family: var(--font-heading);
+		font-size: clamp(2.25rem, 5vw, 3rem);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+	}
+
+	.cd-hero__price-label {
+		font-size: 1rem;
+		color: rgba(255, 255, 255, 0.6);
+	}
+
+	.cd-hero__icon-col {
+		display: none;
+	}
+
+	@media (min-width: 1024px) {
+		.cd-hero__icon-col {
+			display: flex;
+		}
+	}
+
+	.cd-hero__icon-box {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 14rem;
+		height: 14rem;
+		border-radius: 1.5rem;
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		background-color: rgba(255, 255, 255, 0.08);
+		backdrop-filter: blur(4px);
+	}
+
+	@media (min-width: 1280px) {
+		.cd-hero__icon-box {
+			width: 16rem;
+			height: 16rem;
+		}
+	}
+
+	/* Shared page patterns */
+	.page-section {
+		padding: 4rem 0;
+	}
+	@media (min-width: 640px) {
+		.page-section {
+			padding: 5rem 0;
+		}
+	}
+	@media (min-width: 1024px) {
+		.page-section {
+			padding: 7rem 0;
+		}
+	}
+
+	.page-section--white {
+		background-color: var(--color-white);
+	}
+	.page-section--off-white {
+		background-color: var(--color-off-white);
+	}
+	.page-section--dark {
+		background: linear-gradient(
+			to bottom right,
+			var(--color-navy),
+			var(--color-navy-mid),
+			var(--color-deep-blue)
+		);
+	}
+
+	.page-container {
+		max-width: var(--container-max);
+		margin: 0 auto;
+		padding: 0 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.page-container {
+			padding: 0 1.5rem;
+		}
+	}
+	@media (min-width: 1024px) {
+		.page-container {
+			padding: 0 2rem;
+		}
+	}
+
+	.page-container--center {
+		text-align: center;
+	}
+
+	.page-section__heading {
+		color: var(--color-navy);
+		font-family: var(--font-heading);
+		font-size: var(--fs-2xl);
+		font-weight: var(--w-bold);
+		margin-bottom: 2.5rem;
+	}
+
+	@media (min-width: 640px) {
+		.page-section__heading {
+			font-size: var(--fs-3xl);
+		}
+	}
+	@media (min-width: 768px) {
+		.page-section__heading {
+			font-size: var(--fs-4xl);
+		}
+	}
+
+	.page-section__heading--center {
+		text-align: center;
+	}
+
+	/* Learn grid */
+	.learn-grid {
+		max-width: 56rem;
+		margin: 0 auto;
+		display: grid;
+		gap: 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.learn-grid {
+			grid-template-columns: repeat(2, 1fr);
+			gap: 1.25rem;
+		}
+	}
+
+	.learn-grid__item {
+		display: flex;
+		gap: 1rem;
+		border: 1px solid rgba(216, 220, 228, 0.8);
+		background-color: var(--color-off-white);
+		border-radius: var(--radius-xl);
+		padding: 1.25rem;
+	}
+
+	@media (min-width: 640px) {
+		.learn-grid__item {
+			padding: 1.5rem;
+		}
+	}
+
+	:global(.learn-grid__icon) {
+		flex-shrink: 0;
+		margin-top: 0.125rem;
+	}
+
+	.learn-grid__text {
+		color: var(--color-grey-800);
+		font-size: var(--fs-sm);
+		line-height: 1.65;
+	}
+
+	@media (min-width: 640px) {
+		.learn-grid__text {
+			font-size: 1rem;
+		}
+	}
+
+	/* Curriculum */
+	.curriculum {
+		max-width: 48rem;
+		margin: 0 auto;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.curriculum {
+			gap: 1.25rem;
+		}
+	}
+
+	.curriculum__module {
+		border: 1px solid rgba(216, 220, 228, 0.8);
+		overflow: hidden;
+		border-radius: var(--radius-xl);
+		background-color: var(--color-white);
+	}
+
+	.curriculum__module-header {
+		border-bottom: 1px solid var(--color-grey-100);
+		padding: 1.25rem 1.5rem;
+	}
+
+	@media (min-width: 640px) {
+		.curriculum__module-header {
+			padding: 1.5rem 2rem;
+		}
+	}
+
+	.curriculum__module-title {
+		color: var(--color-navy);
+		font-family: var(--font-heading);
+		font-size: 1rem;
+		font-weight: var(--w-bold);
+	}
+
+	@media (min-width: 640px) {
+		.curriculum__module-title {
+			font-size: var(--fs-lg);
+		}
+	}
+
+	.curriculum__lesson-list > * + * {
+		border-top: 1px solid var(--color-grey-100);
+	}
+
+	.curriculum__lesson {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		color: var(--color-grey-700);
+		font-size: var(--fs-sm);
+		padding: 0.875rem 1.5rem;
+	}
+
+	@media (min-width: 640px) {
+		.curriculum__lesson {
+			padding: 0.875rem 2rem;
+			font-size: 1rem;
+		}
+	}
+
+	:global(.curriculum__lesson-icon) {
+		flex-shrink: 0;
+	}
+
+	/* Features grid */
+	.features-grid {
+		max-width: 56rem;
+		margin: 0 auto;
+		display: grid;
+		gap: 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.features-grid {
+			grid-template-columns: repeat(2, 1fr);
+			gap: 1.25rem;
+		}
+	}
+	@media (min-width: 1024px) {
+		.features-grid {
+			grid-template-columns: repeat(3, 1fr);
+		}
+	}
+
+	.features-grid__item {
+		display: flex;
+		gap: 0.75rem;
+		border: 1px solid rgba(216, 220, 228, 0.8);
+		background-color: var(--color-off-white);
+		border-radius: var(--radius-xl);
+		padding: 1.25rem;
+	}
+
+	:global(.features-grid__icon) {
+		flex-shrink: 0;
+	}
+
+	.features-grid__text {
+		color: var(--color-grey-800);
+		font-size: var(--fs-sm);
+		line-height: 1.65;
+	}
+
+	/* Dark CTA */
+	.page-dark-heading {
+		font-family: var(--font-heading);
+		font-size: var(--fs-2xl);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+		margin-bottom: 1.25rem;
+	}
+
+	@media (min-width: 640px) {
+		.page-dark-heading {
+			font-size: var(--fs-3xl);
+		}
+	}
+	@media (min-width: 768px) {
+		.page-dark-heading {
+			font-size: var(--fs-4xl);
+		}
+	}
+	@media (min-width: 1024px) {
+		.page-dark-heading {
+			font-size: clamp(2.5rem, 4vw, 3rem);
+		}
+	}
+
+	.page-dark-subtitle {
+		color: var(--color-grey-300);
+		max-width: 42rem;
+		margin: 0 auto 2.5rem;
+		font-size: 1rem;
+		line-height: 1.65;
+	}
+
+	@media (min-width: 640px) {
+		.page-dark-subtitle {
+			font-size: var(--fs-lg);
+		}
+	}
+
+	.page-cta__actions {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.page-cta__actions {
+			flex-direction: row;
+			justify-content: center;
+		}
+	}
+</style>

@@ -58,24 +58,16 @@
 	});
 </script>
 
-<section bind:this={sectionRef} class="relative overflow-hidden py-20 lg:py-32">
+<section bind:this={sectionRef} class="final-cta">
 	<!-- Background -->
-	<div class="from-navy via-navy-mid to-deep-blue absolute inset-0 bg-linear-to-br"></div>
+	<div class="final-cta__bg"></div>
 
 	<!-- Centered Glow Orb -->
-	<div
-		bind:this={glowRef}
-		class="pointer-events-none absolute top-1/2 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-40"
-		style="background: radial-gradient(circle, rgba(15, 164, 175, 0.4) 0%, transparent 70%);"
-	></div>
+	<div bind:this={glowRef} class="final-cta__glow"></div>
 
-	<div
-		class="final-cta-content relative z-10 mx-auto max-w-[1200px] px-4 text-center sm:px-6 lg:px-8"
-	>
-		<h2 class="font-heading mb-6 text-3xl font-bold text-white md:text-4xl lg:text-5xl">
-			Trade with Clarity. Trade with Confidence.
-		</h2>
-		<p class="text-grey-300 mx-auto mb-8 max-w-2xl text-lg">
+	<div class="final-cta-content final-cta__container">
+		<h2 class="final-cta__heading">Trade with Clarity. Trade with Confidence.</h2>
+		<p class="final-cta__desc">
 			Get your weekly watchlist every Sunday night — detailed entries, targets, exits, and stops so
 			you're prepared before the market opens.
 		</p>
@@ -85,3 +77,88 @@
 		</Button>
 	</div>
 </section>
+
+<style>
+	.final-cta {
+		position: relative;
+		overflow: hidden;
+		padding: 5rem 0;
+	}
+
+	@media (min-width: 1024px) {
+		.final-cta {
+			padding: 8rem 0;
+		}
+	}
+
+	.final-cta__bg {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			to bottom right,
+			var(--color-navy),
+			var(--color-navy-mid),
+			var(--color-deep-blue)
+		);
+	}
+
+	.final-cta__glow {
+		pointer-events: none;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 600px;
+		height: 600px;
+		transform: translate(-50%, -50%);
+		border-radius: var(--radius-full);
+		opacity: 0.4;
+		background: radial-gradient(circle, rgba(15, 164, 175, 0.4) 0%, transparent 70%);
+	}
+
+	.final-cta__container {
+		position: relative;
+		z-index: var(--z-10);
+		max-width: var(--container-max);
+		margin: 0 auto;
+		padding: 0 1rem;
+		text-align: center;
+	}
+
+	@media (min-width: 640px) {
+		.final-cta__container {
+			padding: 0 1.5rem;
+		}
+	}
+	@media (min-width: 1024px) {
+		.final-cta__container {
+			padding: 0 2rem;
+		}
+	}
+
+	.final-cta__heading {
+		font-family: var(--font-heading);
+		font-size: var(--fs-3xl);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+		margin-bottom: 1.5rem;
+	}
+
+	@media (min-width: 768px) {
+		.final-cta__heading {
+			font-size: var(--fs-4xl);
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.final-cta__heading {
+			font-size: clamp(2.5rem, 4vw, 3rem);
+		}
+	}
+
+	.final-cta__desc {
+		color: var(--color-grey-300);
+		max-width: 42rem;
+		margin: 0 auto 2rem;
+		font-size: var(--fs-lg);
+	}
+</style>

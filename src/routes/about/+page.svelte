@@ -43,32 +43,20 @@
 </svelte:head>
 
 <!-- Hero -->
-<section
-	bind:this={heroRef}
-	class="from-navy via-navy-mid to-deep-blue relative overflow-hidden bg-linear-to-br pt-16"
->
-	<div
-		class="absolute inset-0 opacity-[0.02]"
-		style="background-image: linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px); background-size: 60px 60px;"
-	></div>
+<section bind:this={heroRef} class="page-hero">
+	<div class="page-hero__grid-overlay"></div>
 
-	<div class="relative z-10 mx-auto max-w-[1200px] px-4 py-20 text-center sm:px-6 lg:px-8 lg:py-28">
-		<div
-			class="about-badge border-teal/30 bg-teal/10 mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-2"
-		>
+	<div class="page-hero__inner page-hero__inner--center">
+		<div class="about-badge page-badge">
 			<Users size={18} weight="duotone" color="#15C5D1" />
-			<span class="text-teal-light text-xs font-semibold tracking-wide uppercase">About Us</span>
+			<span class="page-badge__text">About Us</span>
 		</div>
 
-		<h1
-			class="about-title font-heading mb-6 text-3xl leading-tight font-bold text-white sm:text-4xl md:text-5xl lg:text-6xl"
-		>
+		<h1 class="about-title page-hero__title">
 			Most Trading Services Give You Fish.<br />We Teach You to Read the Water.
 		</h1>
 
-		<p
-			class="about-subtitle text-grey-300 mx-auto max-w-3xl text-base leading-relaxed sm:text-lg lg:text-xl"
-		>
+		<p class="about-subtitle page-hero__subtitle page-hero__subtitle--wide">
 			Founded by Billy Ribeiro and Freddie Ferber, Explosive Swings was built on a single
 			conviction: traders don't fail because of bad alerts — they fail because no one ever explained
 			the <em>why</em> behind the trade.
@@ -77,17 +65,15 @@
 </section>
 
 <!-- Story -->
-<section class="bg-white py-16 sm:py-20 lg:py-28">
-	<div class="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+<section class="page-section page-section--white">
+	<div class="page-container">
 		<ScrollReveal>
-			<div class="mx-auto max-w-3xl">
-				<h2
-					class="reveal-item text-navy font-heading mb-8 text-center text-2xl font-bold sm:text-3xl md:text-4xl"
-				>
+			<div class="page-narrow">
+				<h2 class="reveal-item page-section__heading page-section__heading--center">
 					This Isn't a Signal Service. It's a Methodology.
 				</h2>
 
-				<div class="reveal-item text-grey-700 space-y-6 leading-relaxed">
+				<div class="reveal-item page-prose">
 					<p>
 						Billy brings over a decade of institutional-grade market experience, including his time
 						as head trader at ZMC Capital and mentorship under <strong>Mark McGoldrick</strong>,
@@ -122,8 +108,8 @@
 </section>
 
 <!-- What Separates Us -->
-<section class="bg-off-white py-16 sm:py-20 lg:py-28">
-	<div class="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+<section class="page-section page-section--off-white">
+	<div class="page-container">
 		<ScrollReveal>
 			<SectionHeader
 				eyebrow="Our Approach"
@@ -131,65 +117,55 @@
 				subtitle="Quality over quantity. Education over noise. Methodology over signals."
 			/>
 
-			<div class="mx-auto grid max-w-4xl gap-6 sm:gap-8 md:grid-cols-2">
-				<div
-					class="reveal-item ring-grey-200/80 flex flex-col rounded-2xl bg-white p-6 ring-1 sm:p-8"
-				>
-					<div class="bg-teal/10 mb-5 flex h-14 w-14 items-center justify-center rounded-2xl">
+			<div class="about-features-grid">
+				<div class="reveal-item about-feature-card">
+					<div class="about-feature-card__icon">
 						<Target size={28} weight="duotone" color="#0FA4AF" />
 					</div>
-					<h3 class="text-navy font-heading mb-2 text-lg font-bold">Fewer, Better Setups</h3>
-					<p class="text-grey-600 leading-relaxed">
+					<h3 class="about-feature-card__title">Fewer, Better Setups</h3>
+					<p class="about-feature-card__desc">
 						5–7 per week, not 50 per day. Every setup meets institutional-grade criteria before it
 						reaches you.
 					</p>
 				</div>
 
-				<div
-					class="reveal-item ring-grey-200/80 flex flex-col rounded-2xl bg-white p-6 ring-1 sm:p-8"
-				>
-					<div class="bg-teal/10 mb-5 flex h-14 w-14 items-center justify-center rounded-2xl">
+				<div class="reveal-item about-feature-card">
+					<div class="about-feature-card__icon">
 						<ChartLineUp size={28} weight="duotone" color="#0FA4AF" />
 					</div>
-					<h3 class="text-navy font-heading mb-2 text-lg font-bold">Full Trade Structure</h3>
-					<p class="text-grey-600 leading-relaxed">
+					<h3 class="about-feature-card__title">Full Trade Structure</h3>
+					<p class="about-feature-card__desc">
 						Entry zones, profit targets, and defined stop losses on every setup. No guesswork.
 					</p>
 				</div>
 
-				<div
-					class="reveal-item ring-grey-200/80 flex flex-col rounded-2xl bg-white p-6 ring-1 sm:p-8"
-				>
-					<div class="bg-teal/10 mb-5 flex h-14 w-14 items-center justify-center rounded-2xl">
+				<div class="reveal-item about-feature-card">
+					<div class="about-feature-card__icon">
 						<TrendUp size={28} weight="duotone" color="#0FA4AF" />
 					</div>
-					<h3 class="text-navy font-heading mb-2 text-lg font-bold">Institutional Pedigree</h3>
-					<p class="text-grey-600 leading-relaxed">
+					<h3 class="about-feature-card__title">Institutional Pedigree</h3>
+					<p class="about-feature-card__desc">
 						Built by traders who've operated at the highest levels of the market — Goldman Sachs,
 						ZMC Capital.
 					</p>
 				</div>
 
-				<div
-					class="reveal-item ring-grey-200/80 flex flex-col rounded-2xl bg-white p-6 ring-1 sm:p-8"
-				>
-					<div class="bg-teal/10 mb-5 flex h-14 w-14 items-center justify-center rounded-2xl">
+				<div class="reveal-item about-feature-card">
+					<div class="about-feature-card__icon">
 						<Users size={28} weight="duotone" color="#0FA4AF" />
 					</div>
-					<h3 class="text-navy font-heading mb-2 text-lg font-bold">Education Embedded</h3>
-					<p class="text-grey-600 leading-relaxed">
+					<h3 class="about-feature-card__title">Education Embedded</h3>
+					<p class="about-feature-card__desc">
 						You'll understand <em>why</em> the setup qualifies, not just what to click. Learn the methodology.
 					</p>
 				</div>
 
-				<div
-					class="reveal-item ring-grey-200/80 flex flex-col rounded-2xl bg-white p-6 ring-1 sm:p-8 md:col-span-2"
-				>
-					<div class="bg-teal/10 mb-5 flex h-14 w-14 items-center justify-center rounded-2xl">
+				<div class="reveal-item about-feature-card about-feature-card--full">
+					<div class="about-feature-card__icon">
 						<CheckCircle size={28} weight="duotone" color="#0FA4AF" />
 					</div>
-					<h3 class="text-navy font-heading mb-2 text-lg font-bold">Designed for Real Schedules</h3>
-					<p class="text-grey-600 leading-relaxed">
+					<h3 class="about-feature-card__title">Designed for Real Schedules</h3>
+					<p class="about-feature-card__desc">
 						Sunday delivery means you're prepared before the week begins, not chasing it. Trade on
 						your terms.
 					</p>
@@ -200,60 +176,48 @@
 </section>
 
 <!-- Team -->
-<section class="bg-white py-16 sm:py-20 lg:py-28">
-	<div class="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+<section class="page-section page-section--white">
+	<div class="page-container">
 		<ScrollReveal>
 			<h2
-				class="reveal-item text-navy font-heading mb-12 text-center text-2xl font-bold sm:text-3xl md:text-4xl"
+				class="reveal-item page-section__heading page-section__heading--center page-section__heading--mb-lg"
 			>
 				Meet the Founders
 			</h2>
 
-			<div class="mx-auto grid max-w-5xl gap-8 md:grid-cols-2">
+			<div class="founders-grid">
 				<!-- Billy Ribeiro -->
-				<div class="reveal-item bg-off-white ring-grey-200/80 rounded-2xl p-8 ring-1 sm:p-10">
-					<div class="mb-6 flex items-center gap-4">
-						<div
-							class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-bold text-white"
-							style="background: linear-gradient(135deg, #0FA4AF 0%, #1A3A6B 100%);"
-						>
-							BR
-						</div>
+				<div class="reveal-item founder-card">
+					<div class="founder-card__header">
+						<div class="founder-card__avatar founder-card__avatar--teal">BR</div>
 						<div>
-							<h3 class="text-navy font-heading text-xl font-bold">Billy Ribeiro</h3>
-							<p class="text-grey-600 text-sm">Co-Founder</p>
+							<h3 class="founder-card__name">Billy Ribeiro</h3>
+							<p class="founder-card__role">Co-Founder</p>
 						</div>
 					</div>
 
-					<div class="text-grey-700 space-y-4 leading-relaxed">
+					<div class="founder-card__bio">
 						<p>
 							Over a decade of institutional-grade market experience, including head trader at ZMC
 							Capital. Mentored by Mark McGoldrick, Goldman Sachs' former Global Head of Proprietary
 							Trading.
 						</p>
-
 						<p>
 							Billy's approach: focus on high-probability setups, manage risk religiously, and never
 							chase trades. That philosophy is the foundation of Explosive Swings.
 						</p>
 					</div>
 
-					<div class="mt-6 flex flex-wrap gap-3">
-						<span
-							class="bg-teal/10 text-teal inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
-						>
+					<div class="founder-card__tags">
+						<span class="founder-tag founder-tag--teal">
 							<CheckCircle size={14} weight="fill" />
 							10+ Years Trading
 						</span>
-						<span
-							class="bg-teal/10 text-teal inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
-						>
+						<span class="founder-tag founder-tag--teal">
 							<CheckCircle size={14} weight="fill" />
 							ZMC Capital
 						</span>
-						<span
-							class="bg-teal/10 text-teal inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
-						>
+						<span class="founder-tag founder-tag--teal">
 							<CheckCircle size={14} weight="fill" />
 							Goldman Sachs Mentored
 						</span>
@@ -261,48 +225,41 @@
 				</div>
 
 				<!-- Freddie Ferber -->
-				<div class="reveal-item bg-off-white ring-grey-200/80 rounded-2xl p-8 ring-1 sm:p-10">
-					<div class="mb-6 flex items-center gap-4">
+				<div class="reveal-item founder-card">
+					<div class="founder-card__header">
 						<img
 							src="/images/freddie-ferber.jpg"
 							alt="Freddie Ferber"
-							class="ring-gold/30 h-16 w-16 shrink-0 rounded-full object-cover ring-2"
+							class="founder-card__photo"
 						/>
 						<div>
-							<h3 class="text-navy font-heading text-xl font-bold">Freddie Ferber</h3>
-							<p class="text-grey-600 text-sm">Co-Founder</p>
+							<h3 class="founder-card__name">Freddie Ferber</h3>
+							<p class="founder-card__role">Co-Founder</p>
 						</div>
 					</div>
 
-					<div class="text-grey-700 space-y-4 leading-relaxed">
+					<div class="founder-card__bio">
 						<p>
 							A longtime student who became a world-class trader in his own right. Freddie brings a
 							practitioner's perspective — the kind of clarity that only comes from learning the
 							hard lessons firsthand.
 						</p>
-
 						<p>
 							His focus on building real, consistent edge from experience complements Billy's
 							institutional approach, creating a complete methodology for traders at every level.
 						</p>
 					</div>
 
-					<div class="mt-6 flex flex-wrap gap-3">
-						<span
-							class="bg-gold/10 text-gold inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
-						>
+					<div class="founder-card__tags">
+						<span class="founder-tag founder-tag--gold">
 							<CheckCircle size={14} weight="fill" />
 							World-Class Trader
 						</span>
-						<span
-							class="bg-gold/10 text-gold inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
-						>
+						<span class="founder-tag founder-tag--gold">
 							<CheckCircle size={14} weight="fill" />
 							Practitioner's Edge
 						</span>
-						<span
-							class="bg-gold/10 text-gold inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
-						>
+						<span class="founder-tag founder-tag--gold">
 							<CheckCircle size={14} weight="fill" />
 							Educator
 						</span>
@@ -314,27 +271,18 @@
 </section>
 
 <!-- CTA -->
-<section class="from-navy via-navy-mid to-deep-blue bg-linear-to-br py-16 sm:py-20 lg:py-28">
-	<div class="mx-auto max-w-[1200px] px-4 text-center sm:px-6 lg:px-8">
+<section class="page-section page-section--dark">
+	<div class="page-container page-container--center">
 		<ScrollReveal>
-			<h2
-				class="reveal-item font-heading mb-5 text-2xl font-bold text-white sm:text-3xl md:text-4xl lg:text-5xl"
-			>
-				Ready to Join Us?
-			</h2>
+			<h2 class="reveal-item page-dark-heading">Ready to Join Us?</h2>
 
-			<p
-				class="reveal-item text-grey-300 mx-auto mb-10 max-w-2xl text-base leading-relaxed sm:text-lg"
-			>
+			<p class="reveal-item page-dark-subtitle">
 				Get weekly watchlists, structured courses, and join a community of traders who are serious
 				about results.
 			</p>
 
 			<div class="reveal-item">
-				<a
-					href="/#pricing"
-					class="bg-teal shadow-teal/25 hover:bg-teal-light hover:shadow-teal/30 inline-flex items-center justify-center gap-2 rounded-xl px-8 py-4 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-px hover:shadow-xl active:scale-[0.97]"
-				>
+				<a href="/#pricing" class="page-cta-btn">
 					Get Instant Access
 					<ChartLineUp size={18} weight="bold" />
 				</a>
@@ -342,3 +290,451 @@
 		</ScrollReveal>
 	</div>
 </section>
+
+<style>
+	/* ---- Shared page patterns ---- */
+	.page-hero {
+		position: relative;
+		overflow: hidden;
+		padding-top: 4rem;
+		background: linear-gradient(
+			to bottom right,
+			var(--color-navy),
+			var(--color-navy-mid),
+			var(--color-deep-blue)
+		);
+	}
+
+	.page-hero__grid-overlay {
+		position: absolute;
+		inset: 0;
+		opacity: 0.02;
+		background-image:
+			linear-gradient(to right, white 1px, transparent 1px),
+			linear-gradient(to bottom, white 1px, transparent 1px);
+		background-size: 60px 60px;
+	}
+
+	.page-hero__inner {
+		position: relative;
+		z-index: var(--z-10);
+		max-width: var(--container-max);
+		margin: 0 auto;
+		padding: 5rem 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.page-hero__inner {
+			padding: 5rem 1.5rem;
+		}
+	}
+	@media (min-width: 1024px) {
+		.page-hero__inner {
+			padding: 7rem 2rem;
+		}
+	}
+
+	.page-hero__inner--center {
+		text-align: center;
+	}
+
+	.page-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		border-radius: var(--radius-full);
+		border: 1px solid rgba(15, 164, 175, 0.3);
+		background-color: rgba(15, 164, 175, 0.1);
+		padding: 0.5rem 1rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.page-badge__text {
+		color: var(--color-teal-light);
+		font-size: var(--fs-xs);
+		font-weight: var(--w-semibold);
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+	}
+
+	.page-hero__title {
+		font-family: var(--font-heading);
+		font-size: var(--fs-3xl);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+		line-height: 1.15;
+		margin-bottom: 1.5rem;
+	}
+
+	@media (min-width: 640px) {
+		.page-hero__title {
+			font-size: var(--fs-4xl);
+		}
+	}
+	@media (min-width: 768px) {
+		.page-hero__title {
+			font-size: clamp(2.5rem, 5vw, 3rem);
+		}
+	}
+	@media (min-width: 1024px) {
+		.page-hero__title {
+			font-size: clamp(3rem, 5vw, 3.75rem);
+		}
+	}
+
+	.page-hero__subtitle {
+		color: var(--color-grey-300);
+		font-size: 1rem;
+		line-height: 1.65;
+		max-width: 42rem;
+		margin: 0 auto;
+	}
+
+	@media (min-width: 640px) {
+		.page-hero__subtitle {
+			font-size: var(--fs-lg);
+		}
+	}
+	@media (min-width: 1024px) {
+		.page-hero__subtitle {
+			font-size: var(--fs-xl);
+		}
+	}
+
+	.page-hero__subtitle--wide {
+		max-width: 48rem;
+	}
+
+	/* ---- Page sections ---- */
+	.page-section {
+		padding: 4rem 0;
+	}
+
+	@media (min-width: 640px) {
+		.page-section {
+			padding: 5rem 0;
+		}
+	}
+	@media (min-width: 1024px) {
+		.page-section {
+			padding: 7rem 0;
+		}
+	}
+
+	.page-section--white {
+		background-color: var(--color-white);
+	}
+	.page-section--off-white {
+		background-color: var(--color-off-white);
+	}
+	.page-section--dark {
+		background: linear-gradient(
+			to bottom right,
+			var(--color-navy),
+			var(--color-navy-mid),
+			var(--color-deep-blue)
+		);
+	}
+
+	.page-container {
+		max-width: var(--container-max);
+		margin: 0 auto;
+		padding: 0 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.page-container {
+			padding: 0 1.5rem;
+		}
+	}
+	@media (min-width: 1024px) {
+		.page-container {
+			padding: 0 2rem;
+		}
+	}
+
+	.page-container--center {
+		text-align: center;
+	}
+
+	.page-narrow {
+		max-width: 48rem;
+		margin: 0 auto;
+	}
+
+	.page-section__heading {
+		color: var(--color-navy);
+		font-family: var(--font-heading);
+		font-size: var(--fs-2xl);
+		font-weight: var(--w-bold);
+		margin-bottom: 2rem;
+	}
+
+	@media (min-width: 640px) {
+		.page-section__heading {
+			font-size: var(--fs-3xl);
+		}
+	}
+	@media (min-width: 768px) {
+		.page-section__heading {
+			font-size: var(--fs-4xl);
+		}
+	}
+
+	.page-section__heading--center {
+		text-align: center;
+	}
+	.page-section__heading--mb-lg {
+		margin-bottom: 3rem;
+	}
+
+	.page-prose {
+		color: var(--color-grey-700);
+		line-height: 1.65;
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	/* ---- About feature cards ---- */
+	.about-features-grid {
+		max-width: 56rem;
+		margin: 0 auto;
+		display: grid;
+		gap: 1.5rem;
+	}
+
+	@media (min-width: 640px) {
+		.about-features-grid {
+			gap: 2rem;
+		}
+	}
+	@media (min-width: 768px) {
+		.about-features-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	.about-feature-card {
+		display: flex;
+		flex-direction: column;
+		border-radius: var(--radius-2xl);
+		background-color: var(--color-white);
+		padding: 1.5rem;
+		outline: 1px solid rgba(216, 220, 228, 0.8);
+		outline-offset: -1px;
+	}
+
+	@media (min-width: 640px) {
+		.about-feature-card {
+			padding: 2rem;
+		}
+	}
+
+	@media (min-width: 768px) {
+		.about-feature-card--full {
+			grid-column: span 2;
+		}
+	}
+
+	.about-feature-card__icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 3.5rem;
+		height: 3.5rem;
+		border-radius: var(--radius-2xl);
+		background-color: rgba(15, 164, 175, 0.1);
+		margin-bottom: 1.25rem;
+	}
+
+	.about-feature-card__title {
+		color: var(--color-navy);
+		font-family: var(--font-heading);
+		font-size: var(--fs-lg);
+		font-weight: var(--w-bold);
+		margin-bottom: 0.5rem;
+	}
+
+	.about-feature-card__desc {
+		color: var(--color-grey-600);
+		line-height: 1.65;
+	}
+
+	/* ---- Founder cards ---- */
+	.founders-grid {
+		max-width: 64rem;
+		margin: 0 auto;
+		display: grid;
+		gap: 2rem;
+	}
+
+	@media (min-width: 768px) {
+		.founders-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	.founder-card {
+		background-color: var(--color-off-white);
+		border-radius: var(--radius-2xl);
+		padding: 2rem;
+		outline: 1px solid rgba(216, 220, 228, 0.8);
+		outline-offset: -1px;
+	}
+
+	@media (min-width: 640px) {
+		.founder-card {
+			padding: 2.5rem;
+		}
+	}
+
+	.founder-card__header {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.founder-card__avatar {
+		width: 4rem;
+		height: 4rem;
+		flex-shrink: 0;
+		border-radius: var(--radius-full);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: var(--fs-xl);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+	}
+
+	.founder-card__avatar--teal {
+		background: linear-gradient(135deg, #0fa4af 0%, #1a3a6b 100%);
+	}
+
+	.founder-card__photo {
+		width: 4rem;
+		height: 4rem;
+		flex-shrink: 0;
+		border-radius: var(--radius-full);
+		object-fit: cover;
+		outline: 2px solid rgba(212, 168, 67, 0.3);
+		outline-offset: -2px;
+	}
+
+	.founder-card__name {
+		color: var(--color-navy);
+		font-family: var(--font-heading);
+		font-size: var(--fs-xl);
+		font-weight: var(--w-bold);
+	}
+
+	.founder-card__role {
+		color: var(--color-grey-600);
+		font-size: var(--fs-sm);
+	}
+
+	.founder-card__bio {
+		color: var(--color-grey-700);
+		line-height: 1.65;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.founder-card__tags {
+		margin-top: 1.5rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+	}
+
+	.founder-tag {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		border-radius: var(--radius-lg);
+		padding: 0.375rem 0.75rem;
+		font-size: var(--fs-xs);
+		font-weight: var(--w-semibold);
+	}
+
+	.founder-tag--teal {
+		background-color: rgba(15, 164, 175, 0.1);
+		color: var(--color-teal);
+	}
+
+	.founder-tag--gold {
+		background-color: rgba(212, 168, 67, 0.1);
+		color: var(--color-gold);
+	}
+
+	/* ---- Dark section CTA ---- */
+	.page-dark-heading {
+		font-family: var(--font-heading);
+		font-size: var(--fs-2xl);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+		margin-bottom: 1.25rem;
+	}
+
+	@media (min-width: 640px) {
+		.page-dark-heading {
+			font-size: var(--fs-3xl);
+		}
+	}
+	@media (min-width: 768px) {
+		.page-dark-heading {
+			font-size: var(--fs-4xl);
+		}
+	}
+	@media (min-width: 1024px) {
+		.page-dark-heading {
+			font-size: clamp(2.5rem, 4vw, 3rem);
+		}
+	}
+
+	.page-dark-subtitle {
+		color: var(--color-grey-300);
+		max-width: 42rem;
+		margin: 0 auto 2.5rem;
+		font-size: 1rem;
+		line-height: 1.65;
+	}
+
+	@media (min-width: 640px) {
+		.page-dark-subtitle {
+			font-size: var(--fs-lg);
+		}
+	}
+
+	.page-cta-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		border-radius: var(--radius-xl);
+		padding: 1rem 2rem;
+		font-size: var(--fs-sm);
+		font-weight: var(--w-semibold);
+		color: var(--color-white);
+		background-color: var(--color-teal);
+		box-shadow:
+			var(--shadow-lg),
+			0 4px 14px rgba(15, 164, 175, 0.25);
+		transition: all 300ms var(--ease-out);
+	}
+
+	.page-cta-btn:hover {
+		background-color: var(--color-teal-light);
+		transform: translateY(-1px);
+		box-shadow:
+			var(--shadow-xl),
+			0 8px 20px rgba(15, 164, 175, 0.3);
+	}
+
+	.page-cta-btn:active {
+		transform: scale(0.97);
+	}
+</style>

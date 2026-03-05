@@ -1,89 +1,187 @@
 <script lang="ts">
-  import { isOpen, activeView, activeTrader, closeModal, backToGrid } from '$lib/stores/modal.svelte';
-  import { traders } from '$lib/data/traders';
-  import TraderCard from './TraderCard.svelte';
-  import TraderProfile from './TraderProfile.svelte';
-  import { fade, fly } from 'svelte/transition';
-  import { cubicOut } from 'svelte/easing';
-  import X from 'phosphor-svelte/lib/X';
+	import {
+		isOpen,
+		activeView,
+		activeTrader,
+		closeModal,
+		backToGrid
+	} from '$lib/stores/modal.svelte';
+	import { traders } from '$lib/data/traders';
+	import TraderCard from './TraderCard.svelte';
+	import TraderProfile from './TraderProfile.svelte';
+	import { fade, fly } from 'svelte/transition';
+	import { cubicOut } from 'svelte/easing';
+	import X from 'phosphor-svelte/lib/X';
 
-  $effect(() => {
-    if (!$isOpen) return;
+	$effect(() => {
+		if (!$isOpen) return;
 
-    function handleKeydown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        if ($activeView === 'profile') {
-          backToGrid();
-        } else {
-          closeModal();
-        }
-      }
-    }
+		function handleKeydown(event: KeyboardEvent) {
+			if (event.key === 'Escape') {
+				if ($activeView === 'profile') {
+					backToGrid();
+				} else {
+					closeModal();
+				}
+			}
+		}
 
-    document.addEventListener('keydown', handleKeydown);
-    document.body.style.overflow = 'hidden';
+		document.addEventListener('keydown', handleKeydown);
+		document.body.style.overflow = 'hidden';
 
-    return () => {
-      document.removeEventListener('keydown', handleKeydown);
-      document.body.style.overflow = '';
-    };
-  });
+		return () => {
+			document.removeEventListener('keydown', handleKeydown);
+			document.body.style.overflow = '';
+		};
+	});
 
-  const activeTraderData = $derived(
-    $activeTrader ? traders.find(t => t.id === $activeTrader) : null
-  );
+	const activeTraderData = $derived(
+		$activeTrader ? traders.find((t) => t.id === $activeTrader) : null
+	);
 </script>
 
 {#if $isOpen}
-  <!-- Overlay -->
-  <div 
-    class="fixed inset-0 z-50 bg-navy/85 backdrop-blur-lg"
-    transition:fade={{ duration: 300 }}
-    onclick={() => closeModal()}
-    onkeydown={(e) => e.key === 'Enter' && closeModal()}
-    tabindex="0"
-    role="button"
-    aria-label="Close modal overlay"
-  >
-    <!-- Modal Container -->
-    <div 
-      class="absolute inset-4 md:inset-8 lg:inset-16 bg-navy rounded-2xl overflow-hidden"
-      transition:fly={{ y: 30, duration: 400, easing: cubicOut }}
-      onclick={(e) => e.stopPropagation()}
-      onkeydown={(e) => e.stopPropagation()}
-      role="presentation"
-      tabindex="-1"
-    >
-      <!-- Close Button -->
-      <button 
-        onclick={closeModal}
-        class="absolute top-4 right-4 z-10 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
-        aria-label="Close modal"
-      >
-        <X size={24} />
-      </button>
+	<!-- Overlay -->
+	<div
+		class="modal-overlay"
+		transition:fade={{ duration: 300 }}
+		onclick={() => closeModal()}
+		onkeydown={(e) => e.key === 'Enter' && closeModal()}
+		tabindex="0"
+		role="button"
+		aria-label="Close modal overlay"
+	>
+		<!-- Modal Container -->
+		<div
+			class="modal-container"
+			transition:fly={{ y: 30, duration: 400, easing: cubicOut }}
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={(e) => e.stopPropagation()}
+			role="presentation"
+			tabindex="-1"
+		>
+			<!-- Close Button -->
+			<button onclick={closeModal} class="modal-close" aria-label="Close modal">
+				<X size={24} />
+			</button>
 
-      <!-- Content -->
-      <div class="h-full overflow-y-auto p-6 md:p-12">
-        {#if $activeView === 'grid'}
-          <div in:fly={{ y: 20, duration: 300, delay: 100 }}>
-            <h2 class="text-3xl md:text-4xl font-bold text-white text-center mb-4 font-heading">Meet The Traders</h2>
-            <p class="text-grey-400 text-center max-w-2xl mx-auto mb-12">
-              Get to know the experts behind Explosive Swings and their trading methodologies.
-            </p>
+			<!-- Content -->
+			<div class="modal-content">
+				{#if $activeView === 'grid'}
+					<div in:fly={{ y: 20, duration: 300, delay: 100 }}>
+						<h2 class="modal-title">Meet The Traders</h2>
+						<p class="modal-subtitle">
+							Get to know the experts behind Explosive Swings and their trading methodologies.
+						</p>
 
-            <div class="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-              {#each traders as trader (trader.id)}
-                <TraderCard {trader} />
-              {/each}
-            </div>
-          </div>
-        {:else if $activeView === 'profile' && activeTraderData}
-          <div in:fly={{ y: 20, duration: 300 }}>
-            <TraderProfile trader={activeTraderData} />
-          </div>
-        {/if}
-      </div>
-    </div>
-  </div>
+						<div class="modal-grid">
+							{#each traders as trader (trader.id)}
+								<TraderCard {trader} />
+							{/each}
+						</div>
+					</div>
+				{:else if $activeView === 'profile' && activeTraderData}
+					<div in:fly={{ y: 20, duration: 300 }}>
+						<TraderProfile trader={activeTraderData} />
+					</div>
+				{/if}
+			</div>
+		</div>
+	</div>
 {/if}
+
+<style>
+	.modal-overlay {
+		position: fixed;
+		inset: 0;
+		z-index: var(--z-50);
+		background-color: rgba(11, 29, 58, 0.85);
+		backdrop-filter: blur(12px);
+	}
+
+	.modal-container {
+		position: absolute;
+		inset: 1rem;
+		background-color: var(--color-navy);
+		border-radius: var(--radius-2xl);
+		overflow: hidden;
+	}
+
+	@media (min-width: 768px) {
+		.modal-container {
+			inset: 2rem;
+		}
+	}
+	@media (min-width: 1024px) {
+		.modal-container {
+			inset: 4rem;
+		}
+	}
+
+	.modal-close {
+		position: absolute;
+		top: 1rem;
+		right: 1rem;
+		z-index: var(--z-10);
+		width: 2.5rem;
+		height: 2.5rem;
+		background-color: rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-full);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--color-white);
+		transition: background-color 200ms var(--ease-out);
+	}
+
+	.modal-close:hover {
+		background-color: rgba(255, 255, 255, 0.2);
+	}
+
+	.modal-content {
+		height: 100%;
+		overflow-y: auto;
+		padding: 1.5rem;
+	}
+
+	@media (min-width: 768px) {
+		.modal-content {
+			padding: 3rem;
+		}
+	}
+
+	.modal-title {
+		font-size: var(--fs-3xl);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+		text-align: center;
+		margin-bottom: 1rem;
+		font-family: var(--font-heading);
+	}
+
+	@media (min-width: 768px) {
+		.modal-title {
+			font-size: var(--fs-4xl);
+		}
+	}
+
+	.modal-subtitle {
+		color: var(--color-grey-400);
+		text-align: center;
+		max-width: 42rem;
+		margin: 0 auto 3rem;
+	}
+
+	.modal-grid {
+		display: grid;
+		gap: 1.5rem;
+		max-width: 56rem;
+		margin: 0 auto;
+	}
+
+	@media (min-width: 768px) {
+		.modal-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+</style>

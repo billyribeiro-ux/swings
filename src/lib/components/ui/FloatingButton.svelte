@@ -3,16 +3,58 @@
 	import UsersThree from 'phosphor-svelte/lib/UsersThree';
 </script>
 
-<button
-	onclick={openModal}
-	aria-label="Meet the traders"
-	class="group from-navy to-navy-mid border-teal/30 fixed right-8 bottom-8 z-40 flex items-center gap-2 rounded-full border bg-linear-to-r px-4 py-3 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
->
-	<!-- Pulse Animation -->
-	<span
-		class="bg-teal/20 absolute inset-0 animate-ping rounded-full opacity-0 group-hover:opacity-100"
-	></span>
-
+<button onclick={openModal} aria-label="Meet the traders" class="floating-btn">
+	<span class="floating-btn__ping"></span>
 	<UsersThree size={24} weight="duotone" color="#15C5D1" />
-	<span class="hidden text-sm font-semibold text-white sm:inline">Meet The Traders</span>
+	<span class="floating-btn__label">Meet The Traders</span>
 </button>
+
+<style>
+	.floating-btn {
+		position: fixed;
+		right: 2rem;
+		bottom: 2rem;
+		z-index: var(--z-40);
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		border-radius: var(--radius-full);
+		border: 1px solid rgba(15, 164, 175, 0.3);
+		background: linear-gradient(to right, var(--color-navy), var(--color-navy-mid));
+		padding: 0.75rem 1rem;
+		box-shadow: var(--shadow-lg);
+		transition: all 300ms var(--ease-out);
+	}
+
+	.floating-btn:hover {
+		transform: translateY(-0.25rem);
+		box-shadow: var(--shadow-xl);
+	}
+
+	.floating-btn__ping {
+		position: absolute;
+		inset: 0;
+		border-radius: var(--radius-full);
+		background-color: rgba(15, 164, 175, 0.2);
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.floating-btn:hover .floating-btn__ping {
+		opacity: 1;
+		animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+	}
+
+	.floating-btn__label {
+		display: none;
+		font-size: var(--fs-sm);
+		font-weight: var(--w-semibold);
+		color: var(--color-white);
+	}
+
+	@media (min-width: 640px) {
+		.floating-btn__label {
+			display: inline;
+		}
+	}
+</style>

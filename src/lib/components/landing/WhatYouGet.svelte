@@ -33,8 +33,8 @@
 	];
 </script>
 
-<section class="bg-white py-20 lg:py-32">
-	<div class="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+<section class="what-you-get">
+	<div class="what-you-get__container">
 		<ScrollReveal>
 			<SectionHeader
 				eyebrow="What's Included"
@@ -42,20 +42,19 @@
 				subtitle="Every Sunday night, your watchlist drops with everything you need to trade the week ahead — no guessing, no scrambling Monday morning."
 			/>
 
-			<div class="mx-auto grid max-w-5xl gap-6 md:grid-cols-2">
+			<div class="what-you-get__grid">
 				{#each features as feature, i}
 					<div
-						class="reveal-item border-grey-200 bg-off-white flex gap-4 rounded-lg border p-6 {feature.fullWidth
-							? 'md:col-span-2'
-							: ''}"
+						class="reveal-item what-you-get__item"
+						class:what-you-get__item--full={feature.fullWidth}
 						style="transition-delay: {i * 0.12}s"
 					>
-						<div class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center">
+						<div class="what-you-get__icon">
 							<CheckCircle size={24} weight="fill" color="#0FA4AF" />
 						</div>
 						<div>
-							<h3 class="text-navy font-heading mb-2 text-base font-bold">{feature.title}</h3>
-							<p class="text-grey-600 text-sm leading-relaxed">{feature.description}</p>
+							<h3 class="what-you-get__title">{feature.title}</h3>
+							<p class="what-you-get__desc">{feature.description}</p>
 						</div>
 					</div>
 				{/each}
@@ -63,3 +62,85 @@
 		</ScrollReveal>
 	</div>
 </section>
+
+<style>
+	.what-you-get {
+		background-color: var(--color-white);
+		padding: 5rem 0;
+	}
+
+	@media (min-width: 1024px) {
+		.what-you-get {
+			padding: 8rem 0;
+		}
+	}
+
+	.what-you-get__container {
+		max-width: var(--container-max);
+		margin: 0 auto;
+		padding: 0 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.what-you-get__container {
+			padding: 0 1.5rem;
+		}
+	}
+	@media (min-width: 1024px) {
+		.what-you-get__container {
+			padding: 0 2rem;
+		}
+	}
+
+	.what-you-get__grid {
+		max-width: 64rem;
+		margin: 0 auto;
+		display: grid;
+		gap: 1.5rem;
+	}
+
+	@media (min-width: 768px) {
+		.what-you-get__grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	.what-you-get__item {
+		display: flex;
+		gap: 1rem;
+		border: 1px solid var(--color-grey-200);
+		background-color: var(--color-off-white);
+		border-radius: var(--radius-lg);
+		padding: 1.5rem;
+	}
+
+	@media (min-width: 768px) {
+		.what-you-get__item--full {
+			grid-column: span 2;
+		}
+	}
+
+	.what-you-get__icon {
+		margin-top: 0.125rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.5rem;
+		height: 1.5rem;
+		flex-shrink: 0;
+	}
+
+	.what-you-get__title {
+		color: var(--color-navy);
+		font-family: var(--font-heading);
+		font-size: 1rem;
+		font-weight: var(--w-bold);
+		margin-bottom: 0.5rem;
+	}
+
+	.what-you-get__desc {
+		color: var(--color-grey-600);
+		font-size: var(--fs-sm);
+		line-height: 1.65;
+	}
+</style>

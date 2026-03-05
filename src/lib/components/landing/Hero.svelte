@@ -65,76 +65,227 @@
 	}
 </script>
 
-<section bind:this={heroRef} class="relative min-h-screen overflow-hidden pt-16">
+<section bind:this={heroRef} class="hero">
 	<!-- Background -->
-	<div class="from-navy via-navy-mid to-deep-blue absolute inset-0 bg-linear-to-br"></div>
+	<div class="hero__bg"></div>
 
 	<!-- Grid Overlay -->
-	<div
-		class="absolute inset-0 opacity-[0.02]"
-		style="background-image: linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px); background-size: 60px 60px;"
-	></div>
+	<div class="hero__grid-overlay"></div>
 
 	<!-- Glow Orb -->
-	<div
-		bind:this={glowRef}
-		class="pointer-events-none absolute top-20 right-10 h-[700px] w-[700px] rounded-full opacity-60"
-		style="background: radial-gradient(circle, rgba(15, 164, 175, 0.3) 0%, transparent 70%);"
-	></div>
+	<div bind:this={glowRef} class="hero__glow"></div>
 
-	<div class="relative z-10 mx-auto max-w-[1200px] px-4 py-20 sm:px-6 lg:px-8 lg:py-32">
-		<div class="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+	<div class="hero__container">
+		<div class="hero__layout">
 			<!-- Left Column -->
-			<div class="space-y-8">
+			<div class="hero__content">
 				<!-- Eyebrow Badge -->
-				<div
-					class="hero-badge border-teal/30 bg-teal/10 inline-flex items-center gap-2 rounded-full border px-4 py-2"
-				>
-					<span class="bg-teal h-2 w-2 animate-pulse rounded-full"></span>
-					<span class="text-teal-light text-xs font-semibold tracking-wide uppercase">
-						Weekly watchlist delivered every Sunday night
-					</span>
+				<div class="hero-badge hero__badge">
+					<span class="hero__badge-dot animate-pulse"></span>
+					<span class="hero__badge-text"> Weekly watchlist delivered every Sunday night </span>
 				</div>
 
 				<!-- Title -->
-				<h1 class="hero-title text-white">
-					Simple, Early Stock Alerts <span class="text-teal-light">You Can Actually Use</span>
+				<h1 class="hero-title hero__title">
+					Simple, Early Stock Alerts <span class="hero__title-accent">You Can Actually Use</span>
 				</h1>
 
 				<!-- Subtitle -->
-				<p class="hero-subtitle text-grey-300">
+				<p class="hero-subtitle hero__subtitle">
 					Every Sunday night, get a detailed watchlist of 5–7 top stock picks with defined entries,
 					targets, exits, and stops — so you're ready before the market opens.
 				</p>
 
 				<!-- Actions -->
-				<div class="hero-actions flex flex-wrap gap-4">
+				<div class="hero-actions hero__actions">
 					<Button variant="primary" href="#pricing">
 						Get Instant Access
-						<ArrowRight size={20} weight="bold" class="h-5 w-5" />
+						<ArrowRight size={20} weight="bold" />
 					</Button>
 					<Button variant="ghost" onclick={scrollToHowItWorks}>See How It Works</Button>
 				</div>
 
 				<!-- Trust Line -->
-				<div class="hero-trust flex items-center gap-3 pt-4">
-					<div
-						class="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white"
-						style="background: linear-gradient(135deg, #0FA4AF 0%, #1A3A6B 100%);"
-					>
-						BR
-					</div>
-					<p class="text-grey-400 text-sm">
-						Created by <span class="font-semibold text-white">Billy Ribeiro</span> — former lead trader
-						at Simpler Trading, mentored by Goldman Sachs' Mark McGoldrick
+				<div class="hero-trust hero__trust">
+					<div class="hero__trust-avatar">BR</div>
+					<p class="hero__trust-text">
+						Created by <span class="hero__trust-name">Billy Ribeiro</span> — former lead trader at Simpler
+						Trading, mentored by Goldman Sachs' Mark McGoldrick
 					</p>
 				</div>
 			</div>
 
 			<!-- Right Column -->
-			<div class="flex justify-center lg:justify-end">
+			<div class="hero__card-col">
 				<SampleAlertCard delay={0.6} />
 			</div>
 		</div>
 	</div>
 </section>
+
+<style>
+	.hero {
+		position: relative;
+		min-height: 100vh;
+		overflow: hidden;
+		padding-top: 4rem;
+	}
+
+	.hero__bg {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			to bottom right,
+			var(--color-navy),
+			var(--color-navy-mid),
+			var(--color-deep-blue)
+		);
+	}
+
+	.hero__grid-overlay {
+		position: absolute;
+		inset: 0;
+		opacity: 0.02;
+		background-image:
+			linear-gradient(to right, white 1px, transparent 1px),
+			linear-gradient(to bottom, white 1px, transparent 1px);
+		background-size: 60px 60px;
+	}
+
+	.hero__glow {
+		pointer-events: none;
+		position: absolute;
+		top: 5rem;
+		right: 2.5rem;
+		width: 700px;
+		height: 700px;
+		border-radius: var(--radius-full);
+		opacity: 0.6;
+		background: radial-gradient(circle, rgba(15, 164, 175, 0.3) 0%, transparent 70%);
+	}
+
+	.hero__container {
+		position: relative;
+		z-index: var(--z-10);
+		max-width: var(--container-max);
+		margin: 0 auto;
+		padding: 5rem 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.hero__container {
+			padding: 5rem 1.5rem;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.hero__container {
+			padding: 8rem 2rem;
+		}
+	}
+
+	.hero__layout {
+		display: grid;
+		align-items: center;
+		gap: 3rem;
+	}
+
+	@media (min-width: 1024px) {
+		.hero__layout {
+			grid-template-columns: 1fr 1fr;
+			gap: 4rem;
+		}
+	}
+
+	.hero__content {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+	}
+
+	.hero__badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		border-radius: var(--radius-full);
+		border: 1px solid rgba(15, 164, 175, 0.3);
+		background-color: rgba(15, 164, 175, 0.1);
+		padding: 0.5rem 1rem;
+		align-self: flex-start;
+	}
+
+	.hero__badge-dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: var(--radius-full);
+		background-color: var(--color-teal);
+	}
+
+	.hero__badge-text {
+		color: var(--color-teal-light);
+		font-size: var(--fs-xs);
+		font-weight: var(--w-semibold);
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+	}
+
+	.hero__title {
+		color: var(--color-white);
+	}
+
+	.hero__title-accent {
+		color: var(--color-teal-light);
+	}
+
+	.hero__subtitle {
+		color: var(--color-grey-300);
+	}
+
+	.hero__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+	}
+
+	.hero__trust {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding-top: 1rem;
+	}
+
+	.hero__trust-avatar {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.5rem;
+		height: 2.5rem;
+		border-radius: var(--radius-full);
+		font-size: var(--fs-sm);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+		background: linear-gradient(135deg, #0fa4af 0%, #1a3a6b 100%);
+		flex-shrink: 0;
+	}
+
+	.hero__trust-text {
+		color: var(--color-grey-400);
+		font-size: var(--fs-sm);
+	}
+
+	.hero__trust-name {
+		font-weight: var(--w-semibold);
+		color: var(--color-white);
+	}
+
+	.hero__card-col {
+		display: flex;
+		justify-content: center;
+	}
+
+	@media (min-width: 1024px) {
+		.hero__card-col {
+			justify-content: flex-end;
+		}
+	}
+</style>

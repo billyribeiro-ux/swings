@@ -11,8 +11,8 @@
 	const iconMap: Record<string, typeof BookOpen> = { BookOpen, Pulse };
 </script>
 
-<section class="bg-off-white py-16 sm:py-20 lg:py-28">
-	<div class="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+<section class="courses-section">
+	<div class="courses-section__container">
 		<ScrollReveal>
 			<SectionHeader
 				eyebrow="Education"
@@ -20,39 +20,27 @@
 				subtitle="Structured courses designed to take you from the basics to confidently trading options — at your own pace."
 			/>
 
-			<div class="mx-auto grid max-w-[960px] gap-6 sm:gap-8 md:grid-cols-2">
+			<div class="courses-section__grid">
 				{#each courses as course, i}
 					{@const Icon = iconMap[course.icon]}
 					<a
 						href="/courses/{course.slug}"
-						class="reveal-item group ring-grey-200/80 hover:ring-teal/30 flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-xl"
+						class="reveal-item course-card"
 						style="transition-delay: {i * 0.08}s"
 					>
 						<!-- Visual Header -->
 						<div
-							class="relative flex h-40 items-center justify-center overflow-hidden sm:h-44"
+							class="course-card__header"
 							style="background: linear-gradient(145deg, {course.gradient.from} 0%, {course.gradient
 								.to} 100%);"
 						>
-							<!-- Grid Pattern -->
-							<div
-								class="absolute inset-0 opacity-[0.06]"
-								style="background-image: linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px); background-size: 32px 32px;"
-							></div>
+							<div class="course-card__grid-pattern"></div>
 
-							<!-- Level Badge -->
-							<div class="absolute top-4 left-4">
-								<span
-									class="rounded-full border border-white/25 bg-white/15 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-sm"
-								>
-									{course.level}
-								</span>
+							<div class="course-card__level-badge">
+								<span class="course-card__level-text">{course.level}</span>
 							</div>
 
-							<!-- Icon -->
-							<div
-								class="relative z-10 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/20 bg-white/10 backdrop-blur-sm transition-transform duration-500 ease-out group-hover:scale-105"
-							>
+							<div class="course-card__icon-box">
 								{#if Icon}
 									<Icon size={32} weight="duotone" color="white" />
 								{:else}
@@ -62,26 +50,22 @@
 						</div>
 
 						<!-- Body -->
-						<div class="flex flex-1 flex-col p-6">
-							<h3 class="text-navy font-heading mb-2 text-lg font-bold sm:text-xl">
-								{course.title}
-							</h3>
-							<p class="text-grey-600 mb-5 text-sm leading-relaxed">{course.description}</p>
+						<div class="course-card__body">
+							<h3 class="course-card__title">{course.title}</h3>
+							<p class="course-card__desc">{course.description}</p>
 
-							<div class="mt-auto flex items-center justify-between">
-								<div class="text-grey-500 flex items-center gap-3 text-xs">
-									<span class="flex items-center gap-1">
-										<Clock size={13} weight="bold" class="text-grey-400" />
+							<div class="course-card__footer">
+								<div class="course-card__meta">
+									<span class="course-card__meta-item">
+										<Clock size={13} weight="bold" class="course-card__meta-icon" />
 										{course.duration}
 									</span>
-									<span class="flex items-center gap-1">
-										<GraduationCap size={13} weight="bold" class="text-grey-400" />
+									<span class="course-card__meta-item">
+										<GraduationCap size={13} weight="bold" class="course-card__meta-icon" />
 										{course.level}
 									</span>
 								</div>
-								<span
-									class="text-teal group-hover:text-teal-light inline-flex items-center gap-1 text-sm font-semibold transition-all duration-300 group-hover:translate-x-0.5"
-								>
+								<span class="course-card__link">
 									Learn More
 									<ArrowRight size={14} weight="bold" />
 								</span>
@@ -93,3 +77,203 @@
 		</ScrollReveal>
 	</div>
 </section>
+
+<style>
+	.courses-section {
+		background-color: var(--color-off-white);
+		padding: 4rem 0;
+	}
+
+	@media (min-width: 640px) {
+		.courses-section {
+			padding: 5rem 0;
+		}
+	}
+	@media (min-width: 1024px) {
+		.courses-section {
+			padding: 7rem 0;
+		}
+	}
+
+	.courses-section__container {
+		max-width: var(--container-max);
+		margin: 0 auto;
+		padding: 0 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.courses-section__container {
+			padding: 0 1.5rem;
+		}
+	}
+	@media (min-width: 1024px) {
+		.courses-section__container {
+			padding: 0 2rem;
+		}
+	}
+
+	.courses-section__grid {
+		max-width: 960px;
+		margin: 0 auto;
+		display: grid;
+		gap: 1.5rem;
+	}
+
+	@media (min-width: 640px) {
+		.courses-section__grid {
+			gap: 2rem;
+		}
+	}
+	@media (min-width: 768px) {
+		.courses-section__grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	.course-card {
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		border-radius: var(--radius-2xl);
+		background-color: var(--color-white);
+		box-shadow: var(--shadow-sm);
+		outline: 1px solid rgba(216, 220, 228, 0.8);
+		outline-offset: -1px;
+		transition: all 500ms var(--ease-out);
+	}
+
+	.course-card:hover {
+		transform: translateY(-0.25rem);
+		box-shadow: var(--shadow-xl);
+		outline-color: rgba(15, 164, 175, 0.3);
+	}
+
+	.course-card__header {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 10rem;
+		overflow: hidden;
+	}
+
+	@media (min-width: 640px) {
+		.course-card__header {
+			height: 11rem;
+		}
+	}
+
+	.course-card__grid-pattern {
+		position: absolute;
+		inset: 0;
+		opacity: 0.06;
+		background-image:
+			linear-gradient(to right, white 1px, transparent 1px),
+			linear-gradient(to bottom, white 1px, transparent 1px);
+		background-size: 32px 32px;
+	}
+
+	.course-card__level-badge {
+		position: absolute;
+		top: 1rem;
+		left: 1rem;
+	}
+
+	.course-card__level-text {
+		border-radius: var(--radius-full);
+		border: 1px solid rgba(255, 255, 255, 0.25);
+		background-color: rgba(255, 255, 255, 0.15);
+		padding: 0.25rem 0.75rem;
+		font-size: 11px;
+		font-weight: var(--w-semibold);
+		color: var(--color-white);
+		backdrop-filter: blur(4px);
+	}
+
+	.course-card__icon-box {
+		position: relative;
+		z-index: var(--z-10);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 4rem;
+		height: 4rem;
+		border-radius: var(--radius-2xl);
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		background-color: rgba(255, 255, 255, 0.1);
+		backdrop-filter: blur(4px);
+		transition: transform 500ms var(--ease-out);
+	}
+
+	.course-card:hover .course-card__icon-box {
+		transform: scale(1.05);
+	}
+
+	.course-card__body {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		padding: 1.5rem;
+	}
+
+	.course-card__title {
+		color: var(--color-navy);
+		font-family: var(--font-heading);
+		font-size: var(--fs-lg);
+		font-weight: var(--w-bold);
+		margin-bottom: 0.5rem;
+	}
+
+	@media (min-width: 640px) {
+		.course-card__title {
+			font-size: var(--fs-xl);
+		}
+	}
+
+	.course-card__desc {
+		color: var(--color-grey-600);
+		font-size: var(--fs-sm);
+		line-height: 1.65;
+		margin-bottom: 1.25rem;
+	}
+
+	.course-card__footer {
+		margin-top: auto;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.course-card__meta {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		color: var(--color-grey-500);
+		font-size: var(--fs-xs);
+	}
+
+	.course-card__meta-item {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
+
+	:global(.course-card__meta-icon) {
+		color: var(--color-grey-400) !important;
+	}
+
+	.course-card__link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		color: var(--color-teal);
+		font-size: var(--fs-sm);
+		font-weight: var(--w-semibold);
+		transition: all 300ms var(--ease-out);
+	}
+
+	.course-card:hover .course-card__link {
+		color: var(--color-teal-light);
+		transform: translateX(2px);
+	}
+</style>

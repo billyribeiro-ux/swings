@@ -15,7 +15,8 @@
 			avatar: 'MC',
 			rating: 5,
 			text: "Billy's watchlists have completely transformed my trading. The entry zones are spot-on, and the risk management is exactly what I needed. I've gone from guessing to executing with confidence.",
-			gradient: 'from-teal to-teal-light'
+			gradientFrom: 'var(--color-teal)',
+			gradientTo: 'var(--color-teal-light)'
 		},
 		{
 			name: 'Sarah Martinez',
@@ -23,7 +24,8 @@
 			avatar: 'SM',
 			rating: 5,
 			text: "I've tried dozens of trading services, and Explosive Swings is the only one I trust. No fluff, no spam—just high-quality setups delivered every Sunday night. The Discord community is gold.",
-			gradient: 'from-gold to-gold-light'
+			gradientFrom: 'var(--color-gold)',
+			gradientTo: 'var(--color-gold-light)'
 		},
 		{
 			name: 'David Thompson',
@@ -31,7 +33,8 @@
 			avatar: 'DT',
 			rating: 5,
 			text: 'The courses alone are worth 10x the subscription price. Billy breaks down complex strategies in a way that actually makes sense. My win rate has improved dramatically since joining.',
-			gradient: 'from-deep-blue to-teal'
+			gradientFrom: 'var(--color-deep-blue)',
+			gradientTo: 'var(--color-teal)'
 		}
 	];
 
@@ -89,51 +92,48 @@
 	});
 </script>
 
-<section
-	bind:this={containerRef}
-	class="bg-off-white relative overflow-hidden py-16 sm:py-20 lg:py-32"
->
-	<div class="relative z-10 mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+<section bind:this={containerRef} class="testimonials">
+	<div class="testimonials__container">
 		<SectionHeader
 			eyebrow="Testimonials"
 			title="Trusted by Thousands of Traders"
 			subtitle="See what our members are saying about their experience with Explosive Swings."
 		/>
 
-		<div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+		<div class="testimonials__grid">
 			{#each testimonials as testimonial, i}
-				<div
-					class="testimonial-card group ring-grey-200/60 hover:ring-teal/20 relative flex flex-col overflow-hidden rounded-2xl bg-white p-8 shadow-sm ring-1 transition-shadow duration-300 hover:shadow-lg"
-				>
+				<div class="testimonial-card">
 					<!-- Quote icon -->
 					<div
-						class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br {testimonial.gradient} shadow-sm"
+						class="testimonial-card__quote-icon"
+						style="background: linear-gradient(to bottom right, {testimonial.gradientFrom}, {testimonial.gradientTo});"
 					>
 						<Quotes size={24} weight="fill" color="white" />
 					</div>
 
 					<!-- Rating -->
-					<div class="mb-4 flex gap-0.5">
+					<div class="testimonial-card__rating">
 						{#each Array(testimonial.rating) as _, j}
 							<Star size={16} weight="fill" color="#D4A843" />
 						{/each}
 					</div>
 
 					<!-- Text -->
-					<p class="text-grey-700 mb-6 flex-1 leading-relaxed">
+					<p class="testimonial-card__text">
 						"{testimonial.text}"
 					</p>
 
 					<!-- Author -->
-					<div class="border-grey-100 flex items-center gap-3 border-t pt-6">
+					<div class="testimonial-card__author">
 						<div
-							class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br {testimonial.gradient} text-xs font-bold text-white"
+							class="testimonial-card__avatar"
+							style="background: linear-gradient(to bottom right, {testimonial.gradientFrom}, {testimonial.gradientTo});"
 						>
 							{testimonial.avatar}
 						</div>
 						<div>
-							<h4 class="text-navy text-sm font-bold">{testimonial.name}</h4>
-							<p class="text-grey-500 text-xs">{testimonial.role}</p>
+							<h4 class="testimonial-card__name">{testimonial.name}</h4>
+							<p class="testimonial-card__role">{testimonial.role}</p>
 						</div>
 					</div>
 				</div>
@@ -141,19 +141,184 @@
 		</div>
 
 		<!-- Social proof stats -->
-		<div class="mt-16 grid gap-6 sm:grid-cols-3">
-			<div class="stat-item border-grey-200 rounded-2xl border bg-white p-6 text-center">
-				<div class="text-teal font-heading mb-2 text-4xl font-bold">18,000+</div>
-				<p class="text-grey-600 text-sm">Active Traders</p>
+		<div class="testimonials__stats">
+			<div class="stat-item">
+				<div class="stat-item__value">18,000+</div>
+				<p class="stat-item__label">Active Traders</p>
 			</div>
-			<div class="stat-item border-grey-200 rounded-2xl border bg-white p-6 text-center">
-				<div class="text-teal font-heading mb-2 text-4xl font-bold">4.9/5</div>
-				<p class="text-grey-600 text-sm">Average Rating</p>
+			<div class="stat-item">
+				<div class="stat-item__value">4.9/5</div>
+				<p class="stat-item__label">Average Rating</p>
 			</div>
-			<div class="stat-item border-grey-200 rounded-2xl border bg-white p-6 text-center">
-				<div class="text-teal font-heading mb-2 text-4xl font-bold">95%</div>
-				<p class="text-grey-600 text-sm">Renewal Rate</p>
+			<div class="stat-item">
+				<div class="stat-item__value">95%</div>
+				<p class="stat-item__label">Renewal Rate</p>
 			</div>
 		</div>
 	</div>
 </section>
+
+<style>
+	.testimonials {
+		background-color: var(--color-off-white);
+		position: relative;
+		overflow: hidden;
+		padding: 4rem 0;
+	}
+
+	@media (min-width: 640px) {
+		.testimonials {
+			padding: 5rem 0;
+		}
+	}
+	@media (min-width: 1024px) {
+		.testimonials {
+			padding: 8rem 0;
+		}
+	}
+
+	.testimonials__container {
+		position: relative;
+		z-index: var(--z-10);
+		max-width: var(--container-max);
+		margin: 0 auto;
+		padding: 0 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.testimonials__container {
+			padding: 0 1.5rem;
+		}
+	}
+	@media (min-width: 1024px) {
+		.testimonials__container {
+			padding: 0 2rem;
+		}
+	}
+
+	.testimonials__grid {
+		display: grid;
+		gap: 2rem;
+	}
+
+	@media (min-width: 768px) {
+		.testimonials__grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+	@media (min-width: 1024px) {
+		.testimonials__grid {
+			grid-template-columns: repeat(3, 1fr);
+		}
+	}
+
+	.testimonial-card {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		border-radius: var(--radius-2xl);
+		background-color: var(--color-white);
+		padding: 2rem;
+		box-shadow: var(--shadow-sm);
+		outline: 1px solid rgba(216, 220, 228, 0.6);
+		outline-offset: -1px;
+		transition:
+			box-shadow 300ms var(--ease-out),
+			outline-color 300ms var(--ease-out);
+	}
+
+	.testimonial-card:hover {
+		box-shadow: var(--shadow-lg);
+		outline-color: rgba(15, 164, 175, 0.2);
+	}
+
+	.testimonial-card__quote-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 3rem;
+		height: 3rem;
+		border-radius: var(--radius-xl);
+		margin-bottom: 1.5rem;
+		box-shadow: var(--shadow-sm);
+	}
+
+	.testimonial-card__rating {
+		display: flex;
+		gap: 0.125rem;
+		margin-bottom: 1rem;
+	}
+
+	.testimonial-card__text {
+		color: var(--color-grey-700);
+		margin-bottom: 1.5rem;
+		flex: 1;
+		line-height: 1.65;
+	}
+
+	.testimonial-card__author {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		border-top: 1px solid var(--color-grey-100);
+		padding-top: 1.5rem;
+	}
+
+	.testimonial-card__avatar {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.5rem;
+		height: 2.5rem;
+		flex-shrink: 0;
+		border-radius: var(--radius-full);
+		font-size: var(--fs-xs);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+	}
+
+	.testimonial-card__name {
+		color: var(--color-navy);
+		font-size: var(--fs-sm);
+		font-weight: var(--w-bold);
+	}
+
+	.testimonial-card__role {
+		color: var(--color-grey-500);
+		font-size: var(--fs-xs);
+	}
+
+	.testimonials__stats {
+		margin-top: 4rem;
+		display: grid;
+		gap: 1.5rem;
+	}
+
+	@media (min-width: 640px) {
+		.testimonials__stats {
+			grid-template-columns: repeat(3, 1fr);
+		}
+	}
+
+	.stat-item {
+		border: 1px solid var(--color-grey-200);
+		border-radius: var(--radius-2xl);
+		background-color: var(--color-white);
+		padding: 1.5rem;
+		text-align: center;
+	}
+
+	.stat-item__value {
+		color: var(--color-teal);
+		font-family: var(--font-heading);
+		font-size: var(--fs-4xl);
+		font-weight: var(--w-bold);
+		margin-bottom: 0.5rem;
+	}
+
+	.stat-item__label {
+		color: var(--color-grey-600);
+		font-size: var(--fs-sm);
+	}
+</style>

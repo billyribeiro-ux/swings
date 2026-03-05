@@ -41,80 +41,156 @@
 	});
 </script>
 
-<div
-	bind:this={cardRef}
-	class="max-w-sm rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm"
->
+<div bind:this={cardRef} class="alert-card">
 	<!-- Header -->
-	<div class="mb-4 flex items-center justify-between">
-		<span class="text-grey-400 text-xs font-semibold tracking-wider uppercase">Sample Alert</span>
-		<div class="flex items-center gap-2">
-			<span class="bg-green h-2 w-2 animate-pulse rounded-full"></span>
-			<span class="text-green text-xs font-medium">Live Format</span>
+	<div class="alert-card__header">
+		<span class="alert-card__label">Sample Alert</span>
+		<div class="alert-card__status">
+			<span class="alert-card__status-dot animate-pulse"></span>
+			<span class="alert-card__status-text">Live Format</span>
 		</div>
 	</div>
 
 	<!-- Ticker -->
-	<div class="mb-4">
-		<span
-			class="font-ui text-3xl font-bold tracking-tight text-white"
-			style="font-variant-numeric: tabular-nums;"
-		>
-			{sampleAlert.ticker}
-		</span>
-	</div>
+	<div class="alert-card__ticker">{sampleAlert.ticker}</div>
 
 	<!-- Data Rows -->
-	<div class="space-y-3">
-		<div class="flex items-center justify-between">
-			<span class="text-grey-400 text-sm">Entry Zone</span>
-			<span
-				class="text-teal-light font-ui text-sm font-semibold"
-				style="font-variant-numeric: tabular-nums;"
-			>
-				{sampleAlert.entryZone}
-			</span>
+	<div class="alert-card__rows">
+		<div class="alert-card__row">
+			<span class="alert-card__row-label">Entry Zone</span>
+			<span class="alert-card__row-value alert-card__row-value--teal">{sampleAlert.entryZone}</span>
 		</div>
-		<div class="flex items-center justify-between">
-			<span class="text-grey-400 text-sm">Invalidation</span>
-			<span
-				class="text-red font-ui text-sm font-semibold"
-				style="font-variant-numeric: tabular-nums;"
+		<div class="alert-card__row">
+			<span class="alert-card__row-label">Invalidation</span>
+			<span class="alert-card__row-value alert-card__row-value--red"
+				>{sampleAlert.invalidation}</span
 			>
-				{sampleAlert.invalidation}
-			</span>
 		</div>
-		<div class="flex items-center justify-between">
-			<span class="text-grey-400 text-sm">Profit Zone 1</span>
-			<span
-				class="text-green font-ui text-sm font-semibold"
-				style="font-variant-numeric: tabular-nums;"
+		<div class="alert-card__row">
+			<span class="alert-card__row-label">Profit Zone 1</span>
+			<span class="alert-card__row-value alert-card__row-value--green"
+				>{sampleAlert.profitZones[0]}</span
 			>
-				{sampleAlert.profitZones[0]}
-			</span>
 		</div>
-		<div class="flex items-center justify-between">
-			<span class="text-grey-400 text-sm">Profit Zone 2</span>
-			<span
-				class="text-green font-ui text-sm font-semibold"
-				style="font-variant-numeric: tabular-nums;"
+		<div class="alert-card__row">
+			<span class="alert-card__row-label">Profit Zone 2</span>
+			<span class="alert-card__row-value alert-card__row-value--green"
+				>{sampleAlert.profitZones[1]}</span
 			>
-				{sampleAlert.profitZones[1]}
-			</span>
 		</div>
-		<div class="flex items-center justify-between">
-			<span class="text-grey-400 text-sm">Profit Zone 3</span>
-			<span
-				class="text-green font-ui text-sm font-semibold"
-				style="font-variant-numeric: tabular-nums;"
+		<div class="alert-card__row">
+			<span class="alert-card__row-label">Profit Zone 3</span>
+			<span class="alert-card__row-value alert-card__row-value--green"
+				>{sampleAlert.profitZones[2]}</span
 			>
-				{sampleAlert.profitZones[2]}
-			</span>
 		</div>
 	</div>
 
 	<!-- Notes -->
-	<div class="bg-teal/10 border-teal mt-4 rounded-r-lg border-l-2 p-3">
-		<p class="text-grey-200 text-xs leading-relaxed">{sampleAlert.notes}</p>
+	<div class="alert-card__notes">
+		<p class="alert-card__notes-text">{sampleAlert.notes}</p>
 	</div>
 </div>
+
+<style>
+	.alert-card {
+		max-width: 24rem;
+		border-radius: var(--radius-2xl);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		background-color: rgba(255, 255, 255, 0.05);
+		padding: 1.5rem;
+		backdrop-filter: blur(4px);
+	}
+
+	.alert-card__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 1rem;
+	}
+
+	.alert-card__label {
+		color: var(--color-grey-400);
+		font-size: var(--fs-xs);
+		font-weight: var(--w-semibold);
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+	}
+
+	.alert-card__status {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.alert-card__status-dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: var(--radius-full);
+		background-color: var(--color-green);
+	}
+
+	.alert-card__status-text {
+		color: var(--color-green);
+		font-size: var(--fs-xs);
+		font-weight: var(--w-medium);
+	}
+
+	.alert-card__ticker {
+		margin-bottom: 1rem;
+		font-family: var(--font-ui);
+		font-size: 1.875rem;
+		font-weight: var(--w-bold);
+		letter-spacing: -0.025em;
+		color: var(--color-white);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.alert-card__rows {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.alert-card__row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.alert-card__row-label {
+		color: var(--color-grey-400);
+		font-size: var(--fs-sm);
+	}
+
+	.alert-card__row-value {
+		font-family: var(--font-ui);
+		font-size: var(--fs-sm);
+		font-weight: var(--w-semibold);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.alert-card__row-value--teal {
+		color: var(--color-teal-light);
+	}
+	.alert-card__row-value--red {
+		color: var(--color-red);
+	}
+	.alert-card__row-value--green {
+		color: var(--color-green);
+	}
+
+	.alert-card__notes {
+		margin-top: 1rem;
+		background-color: rgba(15, 164, 175, 0.1);
+		border-left: 2px solid var(--color-teal);
+		border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+		padding: 0.75rem;
+	}
+
+	.alert-card__notes-text {
+		color: var(--color-grey-200);
+		font-size: var(--fs-xs);
+		line-height: 1.65;
+	}
+</style>

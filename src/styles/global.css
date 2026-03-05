@@ -1,0 +1,183 @@
+/* ===========================================
+   GLOBAL STYLES
+   Imports reset + tokens, provides base styles
+   =========================================== */
+
+@import './reset.css';
+@import './tokens.css';
+
+/* ---- Selection ---- */
+::selection {
+	background-color: rgba(15, 164, 175, 0.25);
+	color: inherit;
+}
+
+/* ---- Body ---- */
+body {
+	font-family: var(--font-ui);
+	font-size: 1rem;
+	font-weight: 450;
+	line-height: 1.7;
+	color: var(--color-grey-800);
+	letter-spacing: -0.01em;
+}
+
+p {
+	font-size: 1rem;
+	font-weight: 450;
+	line-height: 1.7;
+	letter-spacing: -0.01em;
+}
+
+@media (min-width: 768px) {
+	body,
+	p {
+		font-size: 1.0625rem;
+		line-height: 1.75;
+	}
+}
+
+@media (min-width: 1024px) {
+	body,
+	p {
+		font-size: 1.125rem;
+		line-height: 1.8;
+	}
+}
+
+/* ---- Headings ---- */
+h1,
+h2,
+h3 {
+	font-family: var(--font-heading);
+	letter-spacing: var(--ls-tight);
+	line-height: var(--lh-snug);
+}
+
+h1 {
+	font-size: var(--fs-3xl);
+	font-weight: var(--w-extrabold);
+}
+h2 {
+	font-size: var(--fs-2xl);
+	font-weight: var(--w-bold);
+}
+h3 {
+	font-size: var(--fs-xl);
+	font-weight: var(--w-bold);
+}
+
+h4,
+h5,
+h6 {
+	font-family: var(--font-ui);
+	line-height: var(--lh-snug);
+}
+h4 {
+	font-size: var(--fs-lg);
+	font-weight: var(--w-semibold);
+}
+h5 {
+	font-size: var(--fs-md);
+	font-weight: var(--w-semibold);
+}
+h6 {
+	font-size: var(--fs-sm);
+	font-weight: var(--w-semibold);
+}
+
+/* ---- Financial UI roles ---- */
+.kpi-value {
+	font-family: var(--font-ui);
+	font-size: var(--fs-2xl);
+	font-weight: var(--w-bold);
+	line-height: var(--lh-tight);
+	font-variant-numeric: tabular-nums lining-nums;
+}
+
+.kpi-label {
+	font-size: var(--fs-xs);
+	font-weight: var(--w-medium);
+	text-transform: uppercase;
+	letter-spacing: var(--ls-wide);
+}
+
+/* ---- Hero typography (used by GSAP via class selectors) ---- */
+.hero-eyebrow {
+	font-family: var(--font-ui);
+	font-size: var(--fs-xs);
+	font-weight: var(--w-semibold);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.hero-title {
+	font-family: var(--font-heading);
+	font-size: clamp(1.875rem, 5vw, 3.75rem);
+	font-weight: var(--w-extrabold);
+	line-height: 1.05;
+	letter-spacing: -0.025em;
+}
+
+.hero-subtitle {
+	font-size: var(--fs-md);
+	line-height: var(--lh-relaxed);
+	max-width: 65ch;
+}
+
+/* ---- Form base styles (replaces @tailwindcss/forms) ---- */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="url"],
+input[type="search"],
+input[type="tel"],
+textarea,
+select {
+	appearance: none;
+	border: 1px solid var(--color-grey-300);
+	border-radius: var(--radius-lg);
+	padding: 0.5rem 0.75rem;
+	font-size: var(--fs-sm);
+	line-height: 1.5;
+	background-color: var(--color-white);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+	outline: none;
+	border-color: var(--color-teal);
+	box-shadow: 0 0 0 2px rgba(15, 164, 175, 0.3);
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* ---- Keyframe animations (replaces Tailwind animate-*) ---- */
+@keyframes pulse {
+	50% {
+		opacity: 0.5;
+	}
+}
+
+@keyframes ping {
+	75%,
+	100% {
+		transform: scale(2);
+		opacity: 0;
+	}
+}
+
+.animate-pulse {
+	animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-ping {
+	animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}

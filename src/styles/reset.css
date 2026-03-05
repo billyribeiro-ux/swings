@@ -1,0 +1,127 @@
+/* ===========================================
+   MODERN CSS RESET
+   Replaces Tailwind's preflight/base layer
+   =========================================== */
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+}
+
+html {
+	-webkit-text-size-adjust: 100%;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	scroll-behavior: smooth;
+	tab-size: 4;
+	line-height: 1.5;
+}
+
+body {
+	min-height: 100vh;
+	line-height: inherit;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+	display: block;
+	max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+	font: inherit;
+	color: inherit;
+}
+
+button {
+	cursor: pointer;
+	background: none;
+	border: none;
+}
+
+a {
+	color: inherit;
+	text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	overflow-wrap: break-word;
+	font-size: inherit;
+	font-weight: inherit;
+}
+
+p {
+	overflow-wrap: break-word;
+}
+
+ol,
+ul {
+	list-style: none;
+}
+
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+hr {
+	border: none;
+	border-top: 1px solid;
+	color: inherit;
+	height: 0;
+}
+
+img {
+	border-style: none;
+}
+
+textarea {
+	resize: vertical;
+}
+
+input::placeholder,
+textarea::placeholder {
+	opacity: 1;
+}
+
+[hidden] {
+	display: none !important;
+}
+
+:focus-visible {
+	outline: 2px solid var(--color-teal);
+	outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}

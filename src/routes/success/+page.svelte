@@ -68,50 +68,39 @@
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
-<div
-	bind:this={containerRef}
-	class="from-navy via-navy-mid to-deep-blue flex min-h-screen items-center justify-center bg-linear-to-br px-4 py-24 pt-28"
->
-	<div class="mx-auto w-full max-w-2xl text-center">
+<div bind:this={containerRef} class="success-page">
+	<div class="success-page__inner">
 		<!-- Success Icon -->
-		<div class="success-icon mb-8 flex justify-center">
-			<div
-				class="bg-green/15 ring-green/10 flex h-20 w-20 items-center justify-center rounded-full ring-4 sm:h-24 sm:w-24"
-			>
+		<div class="success-icon success-page__icon-wrap">
+			<div class="success-page__icon-circle">
 				<CheckCircle size={48} weight="fill" color="#22B573" />
 			</div>
 		</div>
 
 		<!-- Title -->
-		<h1
-			class="success-title font-heading mb-4 text-3xl font-bold text-white sm:text-4xl md:text-5xl"
-		>
-			Welcome to Explosive Swings!
-		</h1>
+		<h1 class="success-title success-page__title">Welcome to Explosive Swings!</h1>
 
 		<!-- Subtitle -->
-		<p class="success-subtitle text-grey-300 mb-10 text-base leading-relaxed sm:text-lg">
+		<p class="success-subtitle success-page__subtitle">
 			Your subscription is confirmed. Check your email for access details and your first Sunday
 			night watchlist.
 		</p>
 
 		<!-- Steps -->
-		<div
-			class="success-steps mb-10 overflow-hidden rounded-2xl border border-white/10 bg-white/4 text-left backdrop-blur-sm"
-		>
-			<div class="border-b border-white/8 px-6 py-5 sm:px-8">
-				<h2 class="font-heading text-lg font-bold text-white sm:text-xl">What Happens Next?</h2>
+		<div class="success-steps success-page__steps">
+			<div class="success-page__steps-header">
+				<h2 class="success-page__steps-title">What Happens Next?</h2>
 			</div>
 
-			<div class="divide-y divide-white/8">
+			<div class="success-page__steps-list">
 				{#each steps as step, i}
-					<div class="flex gap-4 px-6 py-5 sm:px-8 sm:py-6">
-						<div class="bg-teal/15 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+					<div class="success-page__step">
+						<div class="success-page__step-icon">
 							<step.icon size={20} weight="duotone" color="#15C5D1" />
 						</div>
 						<div>
-							<h3 class="mb-1 text-sm font-semibold text-white sm:text-base">{step.title}</h3>
-							<p class="text-grey-400 text-xs leading-relaxed sm:text-sm">{step.desc}</p>
+							<h3 class="success-page__step-title">{step.title}</h3>
+							<p class="success-page__step-desc">{step.desc}</p>
 						</div>
 					</div>
 				{/each}
@@ -119,7 +108,7 @@
 		</div>
 
 		<!-- CTA -->
-		<div class="success-cta flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+		<div class="success-cta success-page__cta">
 			<Button variant="primary" href="/">
 				Back to Home
 				<ArrowRight size={18} weight="bold" />
@@ -127,9 +116,194 @@
 		</div>
 
 		{#if sessionId}
-			<p class="text-grey-600 mt-10 text-xs">
+			<p class="success-page__session">
 				Session: {sessionId}
 			</p>
 		{/if}
 	</div>
 </div>
+
+<style>
+	.success-page {
+		display: flex;
+		min-height: 100vh;
+		align-items: center;
+		justify-content: center;
+		background: linear-gradient(
+			to bottom right,
+			var(--color-navy),
+			var(--color-navy-mid),
+			var(--color-deep-blue)
+		);
+		padding: 6rem 1rem 7rem;
+	}
+
+	.success-page__inner {
+		width: 100%;
+		max-width: 42rem;
+		margin: 0 auto;
+		text-align: center;
+	}
+
+	.success-page__icon-wrap {
+		display: flex;
+		justify-content: center;
+		margin-bottom: 2rem;
+	}
+
+	.success-page__icon-circle {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 5rem;
+		height: 5rem;
+		border-radius: var(--radius-full);
+		background-color: rgba(34, 181, 115, 0.15);
+		box-shadow: 0 0 0 4px rgba(34, 181, 115, 0.1);
+	}
+
+	@media (min-width: 640px) {
+		.success-page__icon-circle {
+			width: 6rem;
+			height: 6rem;
+		}
+	}
+
+	.success-page__title {
+		font-family: var(--font-heading);
+		font-size: var(--fs-3xl);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+		margin-bottom: 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.success-page__title {
+			font-size: var(--fs-4xl);
+		}
+	}
+	@media (min-width: 768px) {
+		.success-page__title {
+			font-size: clamp(2.5rem, 5vw, 3rem);
+		}
+	}
+
+	.success-page__subtitle {
+		color: var(--color-grey-300);
+		font-size: 1rem;
+		line-height: 1.65;
+		margin-bottom: 2.5rem;
+	}
+
+	@media (min-width: 640px) {
+		.success-page__subtitle {
+			font-size: var(--fs-lg);
+		}
+	}
+
+	.success-page__steps {
+		margin-bottom: 2.5rem;
+		overflow: hidden;
+		border-radius: var(--radius-2xl);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		background-color: rgba(255, 255, 255, 0.04);
+		text-align: left;
+		backdrop-filter: blur(4px);
+	}
+
+	.success-page__steps-header {
+		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+		padding: 1.25rem 1.5rem;
+	}
+
+	@media (min-width: 640px) {
+		.success-page__steps-header {
+			padding: 1.25rem 2rem;
+		}
+	}
+
+	.success-page__steps-title {
+		font-family: var(--font-heading);
+		font-size: var(--fs-lg);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+	}
+
+	@media (min-width: 640px) {
+		.success-page__steps-title {
+			font-size: var(--fs-xl);
+		}
+	}
+
+	.success-page__steps-list > * + * {
+		border-top: 1px solid rgba(255, 255, 255, 0.08);
+	}
+
+	.success-page__step {
+		display: flex;
+		gap: 1rem;
+		padding: 1.25rem 1.5rem;
+	}
+
+	@media (min-width: 640px) {
+		.success-page__step {
+			padding: 1.5rem 2rem;
+		}
+	}
+
+	.success-page__step-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.5rem;
+		height: 2.5rem;
+		flex-shrink: 0;
+		border-radius: var(--radius-xl);
+		background-color: rgba(15, 164, 175, 0.15);
+	}
+
+	.success-page__step-title {
+		font-size: var(--fs-sm);
+		font-weight: var(--w-semibold);
+		color: var(--color-white);
+		margin-bottom: 0.25rem;
+	}
+
+	@media (min-width: 640px) {
+		.success-page__step-title {
+			font-size: 1rem;
+		}
+	}
+
+	.success-page__step-desc {
+		color: var(--color-grey-400);
+		font-size: var(--fs-xs);
+		line-height: 1.65;
+	}
+
+	@media (min-width: 640px) {
+		.success-page__step-desc {
+			font-size: var(--fs-sm);
+		}
+	}
+
+	.success-page__cta {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.success-page__cta {
+			flex-direction: row;
+			justify-content: center;
+		}
+	}
+
+	.success-page__session {
+		color: var(--color-grey-600);
+		margin-top: 2.5rem;
+		font-size: var(--fs-xs);
+	}
+</style>

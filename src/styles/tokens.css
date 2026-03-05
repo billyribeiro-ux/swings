@@ -1,0 +1,150 @@
+/* ===========================================
+   DESIGN TOKENS
+   1:1 mapping from Tailwind theme + defaults
+   =========================================== */
+
+:root {
+	/* ---- COLORS ---- */
+	--color-navy: #0b1d3a;
+	--color-navy-mid: #132b50;
+	--color-deep-blue: #1a3a6b;
+	--color-teal: #0fa4af;
+	--color-teal-light: #15c5d1;
+	--color-teal-glow: rgba(15, 164, 175, 0.15);
+	--color-gold: #d4a843;
+	--color-gold-light: #e8c76a;
+	--color-white: #ffffff;
+	--color-off-white: #f7f8fa;
+	--color-grey-100: #eef0f4;
+	--color-grey-200: #d8dce4;
+	--color-grey-300: #b8bec9;
+	--color-grey-400: #8b95a8;
+	--color-grey-500: #6f7a8c;
+	--color-grey-600: #5a6478;
+	--color-grey-700: #3f4a5e;
+	--color-grey-800: #2e3749;
+	--color-red: #e04848;
+	--color-green: #22b573;
+
+	/* ---- TYPOGRAPHY ---- */
+	--font-heading: 'Montserrat', 'Inter', 'Segoe UI', Roboto, Arial, sans-serif;
+	--font-ui: 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+	--w-regular: 400;
+	--w-medium: 500;
+	--w-semibold: 600;
+	--w-bold: 700;
+	--w-extrabold: 800;
+
+	--lh-tight: 1.1;
+	--lh-snug: 1.25;
+	--lh-normal: 1.5;
+	--lh-relaxed: 1.65;
+
+	--ls-tight: -0.02em;
+	--ls-normal: 0;
+	--ls-wide: 0.01em;
+
+	/* MOBILE TYPE SCALE (default) */
+	--fs-2xs: 0.6875rem;
+	--fs-xs: 0.75rem;
+	--fs-sm: 0.875rem;
+	--fs-md: 1rem;
+	--fs-lg: 1.125rem;
+	--fs-xl: 1.25rem;
+	--fs-2xl: 1.5rem;
+	--fs-3xl: 1.875rem;
+	--fs-4xl: 2.25rem;
+
+	/* ---- SPACING (Tailwind default scale, only values used) ---- */
+	--space-0: 0;
+	--space-px: 1px;
+	--space-0-5: 0.125rem;
+	--space-1: 0.25rem;
+	--space-1-5: 0.375rem;
+	--space-2: 0.5rem;
+	--space-2-5: 0.625rem;
+	--space-3: 0.75rem;
+	--space-3-5: 0.875rem;
+	--space-4: 1rem;
+	--space-5: 1.25rem;
+	--space-6: 1.5rem;
+	--space-7: 1.75rem;
+	--space-8: 2rem;
+	--space-10: 2.5rem;
+	--space-12: 3rem;
+	--space-16: 4rem;
+	--space-20: 5rem;
+	--space-24: 6rem;
+	--space-28: 7rem;
+	--space-32: 8rem;
+
+	/* ---- BORDER RADIUS ---- */
+	--radius-none: 0;
+	--radius-sm: 0.125rem;
+	--radius-default: 0.25rem;
+	--radius-md: 0.375rem;
+	--radius-lg: 0.5rem;
+	--radius-xl: 0.75rem;
+	--radius-2xl: 1rem;
+	--radius-3xl: 1.5rem;
+	--radius-full: 9999px;
+
+	/* ---- SHADOWS ---- */
+	--shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+	--shadow-default: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+	--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+	--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+	--shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+	--shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+	/* ---- Z-INDEX ---- */
+	--z-0: 0;
+	--z-10: 10;
+	--z-20: 20;
+	--z-30: 30;
+	--z-40: 40;
+	--z-50: 50;
+
+	/* ---- TRANSITIONS ---- */
+	--duration-150: 150ms;
+	--duration-200: 200ms;
+	--duration-300: 300ms;
+	--duration-500: 500ms;
+	--ease-out: cubic-bezier(0, 0, 0.2, 1);
+	--ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+	/* ---- CONTAINER ---- */
+	--container-max: 1200px;
+	--container-md: 960px;
+	--container-sm: 820px;
+	--container-xs: 340px;
+}
+
+/* Responsive type scale — tablet */
+@media (min-width: 768px) {
+	:root {
+		--fs-xs: 0.8125rem;
+		--fs-sm: 0.9375rem;
+		--fs-md: 1rem;
+		--fs-lg: 1.1875rem;
+		--fs-xl: 1.375rem;
+		--fs-2xl: 1.75rem;
+		--fs-3xl: 2.125rem;
+		--fs-4xl: 2.75rem;
+	}
+}
+
+/* Responsive type scale — desktop */
+@media (min-width: 1024px) {
+	:root {
+		--fs-xs: 0.875rem;
+		--fs-sm: 1rem;
+		--fs-md: 1.0625rem;
+		--fs-lg: 1.25rem;
+		--fs-xl: 1.5rem;
+		--fs-2xl: 2rem;
+		--fs-3xl: 2.5rem;
+		--fs-4xl: 3.25rem;
+	}
+}

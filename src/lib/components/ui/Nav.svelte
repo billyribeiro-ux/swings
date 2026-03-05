@@ -58,96 +58,67 @@
 
 <svelte:window onclick={handleWindowClick} onkeydown={handleKeydown} />
 
-<nav
-	bind:this={navRef}
-	class="fixed top-0 right-0 left-0 z-50 border-b transition-all duration-500 ease-out {scrolled
-		? 'bg-navy/98 shadow-navy/50 border-white/20 shadow-2xl backdrop-blur-2xl'
-		: 'bg-navy/92 border-white/10 backdrop-blur-xl'}"
->
-	<div class="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-4 sm:px-6 lg:px-8">
+<nav bind:this={navRef} class="nav" class:nav--scrolled={scrolled}>
+	<div class="nav__inner">
 		<!-- Logo -->
-		<a
-			href="/"
-			class="font-heading relative z-10 flex items-center gap-0.5 text-xl font-bold tracking-tight"
-		>
-			<span class="text-white">Explosive</span>
-			<span class="text-teal-light">Swings</span>
+		<a href="/" class="nav__logo">
+			<span class="nav__logo-brand">Explosive</span>
+			<span class="nav__logo-accent">Swings</span>
 		</a>
 
 		<!-- Desktop Nav -->
-		<div class="hidden items-center gap-6 md:flex">
-			<a
-				href="/about"
-				class="text-grey-300 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-white/5 hover:text-white"
-			>
-				About
-			</a>
+		<div class="nav__desktop">
+			<a href="/about" class="nav__link">About</a>
 
 			<!-- Courses Dropdown -->
-			<div class="relative" bind:this={dropdownRef}>
+			<div class="nav__dropdown" bind:this={dropdownRef}>
 				<button
 					onclick={toggleCourses}
 					aria-expanded={isCoursesOpen}
 					aria-haspopup="true"
-					class="text-grey-300 flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 hover:text-white {isCoursesOpen
-						? 'bg-white/5 text-white'
-						: ''}"
+					class="nav__link nav__link--dropdown"
+					class:nav__link--active={isCoursesOpen}
 				>
 					Courses
 					<CaretDown
 						size={14}
 						weight="bold"
-						class="transition-transform duration-300 ease-out {isCoursesOpen ? 'rotate-180' : ''}"
+						class="nav__caret {isCoursesOpen ? 'nav__caret--open' : ''}"
 					/>
 				</button>
 
 				{#if isCoursesOpen}
-					<div
-						class="bg-navy/98 absolute top-full right-0 mt-3 w-[340px] origin-top-right overflow-hidden rounded-2xl border border-white/10 shadow-2xl backdrop-blur-2xl"
-						transition:fly={{ y: -8, duration: 250, easing: cubicOut }}
-					>
-						<div class="p-3">
+					<div class="dropdown-panel" transition:fly={{ y: -8, duration: 250, easing: cubicOut }}>
+						<div class="dropdown-panel__inner">
 							{#each courses as course, i}
 								{@const Icon = iconMap[course.icon]}
-								<a
-									href="/courses/{course.slug}"
-									class="group flex items-start gap-4 rounded-xl p-4 transition-all duration-200 hover:bg-white/6"
-									onclick={closeAll}
-								>
+								<a href="/courses/{course.slug}" class="dropdown-item" onclick={closeAll}>
 									<div
-										class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-105"
+										class="dropdown-item__icon"
 										style="background: linear-gradient(135deg, {course.gradient.from}, {course
 											.gradient.to});"
 									>
 										{#if Icon}
 											<Icon size={22} weight="duotone" color="white" />
 										{:else}
-											<span class="text-xs font-bold text-white">{course.level.charAt(0)}</span>
+											<span class="dropdown-item__icon-fallback">{course.level.charAt(0)}</span>
 										{/if}
 									</div>
-									<div class="min-w-0 flex-1">
-										<h4 class="text-[13px] font-semibold text-white">{course.title}</h4>
-										<p class="text-grey-400 mt-0.5 line-clamp-1 text-xs">{course.description}</p>
-										<div class="mt-1.5 flex items-center gap-2">
-											<span class="text-teal-light text-xs font-semibold">${course.price}</span>
-											<span class="text-grey-600">·</span>
-											<span class="text-grey-500 text-xs">{course.level}</span>
+									<div class="dropdown-item__content">
+										<h4 class="dropdown-item__title">{course.title}</h4>
+										<p class="dropdown-item__desc">{course.description}</p>
+										<div class="dropdown-item__meta">
+											<span class="dropdown-item__price">${course.price}</span>
+											<span class="dropdown-item__sep">·</span>
+											<span class="dropdown-item__level">{course.level}</span>
 										</div>
 									</div>
-									<ArrowRight
-										size={14}
-										weight="bold"
-										class="text-grey-600 group-hover:text-teal-light mt-1 shrink-0 transition-all duration-200 group-hover:translate-x-0.5"
-									/>
+									<ArrowRight size={14} weight="bold" class="dropdown-item__arrow" />
 								</a>
 							{/each}
 
-							<div class="mt-1 border-t border-white/8 pt-1">
-								<a
-									href="/courses"
-									class="text-teal-light flex items-center justify-center gap-1.5 rounded-xl p-3 text-sm font-semibold transition-all duration-200 hover:bg-white/6 hover:text-white"
-									onclick={closeAll}
-								>
+							<div class="dropdown-panel__footer">
+								<a href="/courses" class="dropdown-panel__view-all" onclick={closeAll}>
 									View All Courses
 									<ArrowRight size={14} weight="bold" />
 								</a>
@@ -157,24 +128,13 @@
 				{/if}
 			</div>
 
-			<a
-				href="/blog"
-				class="text-grey-300 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-white/5 hover:text-white"
-			>
-				Blog
-			</a>
-
-			<a
-				href="/#pricing"
-				class="text-grey-300 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-white/5 hover:text-white"
-			>
-				Pricing
-			</a>
+			<a href="/blog" class="nav__link">Blog</a>
+			<a href="/#pricing" class="nav__link">Pricing</a>
 		</div>
 
 		<!-- Right: CTA + Mobile toggle -->
-		<div class="flex items-center gap-3">
-			<div class="hidden sm:block">
+		<div class="nav__right">
+			<div class="nav__cta-desktop">
 				<Button variant="primary" href="#pricing">Get Instant Access</Button>
 			</div>
 
@@ -183,7 +143,7 @@
 				onclick={toggleMobile}
 				aria-label={isMobileOpen ? 'Close menu' : 'Open menu'}
 				aria-expanded={isMobileOpen}
-				class="relative z-10 flex h-10 w-10 items-center justify-center rounded-lg text-white transition-all duration-200 hover:bg-white/10 md:hidden"
+				class="nav__hamburger"
 			>
 				{#if isMobileOpen}
 					<X size={24} weight="bold" />
@@ -196,84 +156,47 @@
 
 	<!-- Mobile Menu -->
 	{#if isMobileOpen}
-		<div
-			class="bg-navy/98 border-t border-white/10 backdrop-blur-2xl md:hidden"
-			transition:slide={{ duration: 300, easing: cubicOut }}
-		>
-			<div class="mx-auto max-w-[1200px] px-4 pt-4 pb-6">
+		<div class="mobile-menu" transition:slide={{ duration: 300, easing: cubicOut }}>
+			<div class="mobile-menu__inner">
 				<!-- Courses Section -->
-				<div class="mb-2">
-					<p class="text-grey-500 mb-3 text-[11px] font-semibold tracking-widest uppercase">
-						Courses
-					</p>
-					<div class="space-y-1">
+				<div class="mobile-menu__section">
+					<p class="mobile-menu__label">Courses</p>
+					<div class="mobile-menu__courses">
 						{#each courses as course}
 							{@const Icon = iconMap[course.icon]}
-							<a
-								href="/courses/{course.slug}"
-								class="flex items-center gap-3 rounded-xl px-3 py-3 transition-all duration-200 hover:bg-white/6"
-								onclick={closeAll}
-							>
+							<a href="/courses/{course.slug}" class="mobile-course-item" onclick={closeAll}>
 								<div
-									class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+									class="mobile-course-item__icon"
 									style="background: linear-gradient(135deg, {course.gradient.from}, {course
 										.gradient.to});"
 								>
 									{#if Icon}
 										<Icon size={20} weight="duotone" color="white" />
 									{:else}
-										<span class="text-xs font-bold text-white">{course.level.charAt(0)}</span>
+										<span class="mobile-course-item__icon-fallback">{course.level.charAt(0)}</span>
 									{/if}
 								</div>
-								<div class="min-w-0 flex-1">
-									<h4 class="text-sm font-semibold text-white">{course.title}</h4>
-									<p class="text-grey-500 text-xs">{course.level} · ${course.price}</p>
+								<div class="mobile-course-item__content">
+									<h4 class="mobile-course-item__title">{course.title}</h4>
+									<p class="mobile-course-item__meta">{course.level} · ${course.price}</p>
 								</div>
-								<ArrowRight size={16} weight="bold" class="text-grey-600 shrink-0" />
+								<ArrowRight size={16} weight="bold" class="mobile-course-item__arrow" />
 							</a>
 						{/each}
 					</div>
 				</div>
 
 				<!-- Links -->
-				<div class="border-t border-white/8 pt-4">
-					<a
-						href="/about"
-						class="text-grey-300 flex items-center gap-2 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 hover:bg-white/6 hover:text-white"
-						onclick={closeAll}
-					>
-						About
-					</a>
-					<a
-						href="/courses"
-						class="text-grey-300 flex items-center gap-2 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 hover:bg-white/6 hover:text-white"
-						onclick={closeAll}
-					>
-						All Courses
-					</a>
-					<a
-						href="/blog"
-						class="text-grey-300 flex items-center gap-2 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 hover:bg-white/6 hover:text-white"
-						onclick={closeAll}
-					>
-						Blog
-					</a>
-					<a
-						href="/#pricing"
-						class="text-grey-300 flex items-center gap-2 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 hover:bg-white/6 hover:text-white"
-						onclick={closeAll}
-					>
-						Pricing
-					</a>
+				<div class="mobile-menu__links">
+					<a href="/about" class="mobile-menu__link" onclick={closeAll}>About</a>
+					<a href="/courses" class="mobile-menu__link" onclick={closeAll}>All Courses</a>
+					<a href="/blog" class="mobile-menu__link" onclick={closeAll}>Blog</a>
+					<a href="/#pricing" class="mobile-menu__link" onclick={closeAll}>Pricing</a>
 				</div>
 
 				<!-- Mobile CTA -->
-				<div class="mt-4 sm:hidden">
-					<a
-						href="#pricing"
-						class="bg-teal shadow-teal/20 hover:bg-teal-light flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-semibold text-white shadow-lg transition-all duration-200"
-						onclick={closeAll}
-					>
+				<div class="mobile-menu__cta">
+					<a href="#pricing" class="mobile-menu__cta-btn" onclick={closeAll}>
 						Get Instant Access
 						<ArrowRight size={16} weight="bold" />
 					</a>
@@ -282,3 +205,433 @@
 		</div>
 	{/if}
 </nav>
+
+<style>
+	/* ---- Nav bar ---- */
+	.nav {
+		position: fixed;
+		top: 0;
+		right: 0;
+		left: 0;
+		z-index: var(--z-50);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		background-color: rgba(11, 29, 58, 0.92);
+		backdrop-filter: blur(16px);
+		transition: all 500ms var(--ease-out);
+	}
+
+	.nav--scrolled {
+		background-color: rgba(11, 29, 58, 0.98);
+		border-bottom-color: rgba(255, 255, 255, 0.2);
+		box-shadow:
+			var(--shadow-2xl),
+			0 8px 32px rgba(11, 29, 58, 0.5);
+		backdrop-filter: blur(40px);
+	}
+
+	.nav__inner {
+		max-width: var(--container-max);
+		margin: 0 auto;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		height: 4rem;
+		padding: 0 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.nav__inner {
+			padding: 0 1.5rem;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.nav__inner {
+			padding: 0 2rem;
+		}
+	}
+
+	/* ---- Logo ---- */
+	.nav__logo {
+		position: relative;
+		z-index: var(--z-10);
+		display: flex;
+		align-items: center;
+		gap: 0.125rem;
+		font-family: var(--font-heading);
+		font-size: 1.25rem;
+		font-weight: var(--w-bold);
+		letter-spacing: -0.025em;
+	}
+
+	.nav__logo-brand {
+		color: var(--color-white);
+	}
+	.nav__logo-accent {
+		color: var(--color-teal-light);
+	}
+
+	/* ---- Desktop nav links ---- */
+	.nav__desktop {
+		display: none;
+		align-items: center;
+		gap: 1.5rem;
+	}
+
+	@media (min-width: 768px) {
+		.nav__desktop {
+			display: flex;
+		}
+	}
+
+	.nav__link {
+		color: var(--color-grey-300);
+		border-radius: var(--radius-lg);
+		padding: 0.5rem 0.75rem;
+		font-size: var(--fs-sm);
+		font-weight: var(--w-medium);
+		transition: all 200ms var(--ease-out);
+	}
+
+	.nav__link:hover {
+		background-color: rgba(255, 255, 255, 0.05);
+		color: var(--color-white);
+	}
+
+	.nav__link--dropdown {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+	}
+
+	.nav__link--active {
+		background-color: rgba(255, 255, 255, 0.05);
+		color: var(--color-white);
+	}
+
+	/* ---- Dropdown ---- */
+	.nav__dropdown {
+		position: relative;
+	}
+
+	:global(.nav__caret) {
+		transition: transform 300ms var(--ease-out) !important;
+	}
+
+	:global(.nav__caret--open) {
+		transform: rotate(180deg) !important;
+	}
+
+	.dropdown-panel {
+		position: absolute;
+		top: 100%;
+		right: 0;
+		margin-top: 0.75rem;
+		width: 340px;
+		transform-origin: top right;
+		overflow: hidden;
+		border-radius: var(--radius-2xl);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		background-color: rgba(11, 29, 58, 0.98);
+		box-shadow: var(--shadow-2xl);
+		backdrop-filter: blur(40px);
+	}
+
+	.dropdown-panel__inner {
+		padding: 0.75rem;
+	}
+
+	.dropdown-item {
+		display: flex;
+		align-items: flex-start;
+		gap: 1rem;
+		border-radius: var(--radius-xl);
+		padding: 1rem;
+		transition: all 200ms var(--ease-out);
+	}
+
+	.dropdown-item:hover {
+		background-color: rgba(255, 255, 255, 0.06);
+	}
+
+	.dropdown-item__icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.75rem;
+		height: 2.75rem;
+		flex-shrink: 0;
+		border-radius: var(--radius-xl);
+		transition: transform 300ms var(--ease-out);
+	}
+
+	.dropdown-item:hover .dropdown-item__icon {
+		transform: scale(1.05);
+	}
+
+	.dropdown-item__icon-fallback {
+		font-size: var(--fs-xs);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+	}
+
+	.dropdown-item__content {
+		min-width: 0;
+		flex: 1;
+	}
+
+	.dropdown-item__title {
+		font-size: 13px;
+		font-weight: var(--w-semibold);
+		color: var(--color-white);
+	}
+
+	.dropdown-item__desc {
+		color: var(--color-grey-400);
+		margin-top: 0.125rem;
+		font-size: var(--fs-xs);
+		overflow: hidden;
+		display: -webkit-box;
+		-webkit-line-clamp: 1;
+		-webkit-box-orient: vertical;
+	}
+
+	.dropdown-item__meta {
+		margin-top: 0.375rem;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.dropdown-item__price {
+		color: var(--color-teal-light);
+		font-size: var(--fs-xs);
+		font-weight: var(--w-semibold);
+	}
+
+	.dropdown-item__sep {
+		color: var(--color-grey-600);
+	}
+	.dropdown-item__level {
+		color: var(--color-grey-500);
+		font-size: var(--fs-xs);
+	}
+
+	:global(.dropdown-item__arrow) {
+		color: var(--color-grey-600) !important;
+		flex-shrink: 0;
+		margin-top: 0.25rem;
+		transition: all 200ms var(--ease-out) !important;
+	}
+
+	.dropdown-item:hover :global(.dropdown-item__arrow) {
+		color: var(--color-teal-light) !important;
+		transform: translateX(2px) !important;
+	}
+
+	.dropdown-panel__footer {
+		margin-top: 0.25rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.08);
+		padding-top: 0.25rem;
+	}
+
+	.dropdown-panel__view-all {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.375rem;
+		border-radius: var(--radius-xl);
+		padding: 0.75rem;
+		color: var(--color-teal-light);
+		font-size: var(--fs-sm);
+		font-weight: var(--w-semibold);
+		transition: all 200ms var(--ease-out);
+	}
+
+	.dropdown-panel__view-all:hover {
+		background-color: rgba(255, 255, 255, 0.06);
+		color: var(--color-white);
+	}
+
+	/* ---- Right section ---- */
+	.nav__right {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.nav__cta-desktop {
+		display: none;
+	}
+
+	@media (min-width: 640px) {
+		.nav__cta-desktop {
+			display: block;
+		}
+	}
+
+	.nav__hamburger {
+		position: relative;
+		z-index: var(--z-10);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.5rem;
+		height: 2.5rem;
+		border-radius: var(--radius-lg);
+		color: var(--color-white);
+		transition: all 200ms var(--ease-out);
+	}
+
+	.nav__hamburger:hover {
+		background-color: rgba(255, 255, 255, 0.1);
+	}
+
+	@media (min-width: 768px) {
+		.nav__hamburger {
+			display: none;
+		}
+	}
+
+	/* ---- Mobile menu ---- */
+	.mobile-menu {
+		background-color: rgba(11, 29, 58, 0.98);
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+		backdrop-filter: blur(40px);
+	}
+
+	@media (min-width: 768px) {
+		.mobile-menu {
+			display: none;
+		}
+	}
+
+	.mobile-menu__inner {
+		max-width: var(--container-max);
+		margin: 0 auto;
+		padding: 1rem 1rem 1.5rem;
+	}
+
+	.mobile-menu__section {
+		margin-bottom: 0.5rem;
+	}
+
+	.mobile-menu__label {
+		color: var(--color-grey-500);
+		margin-bottom: 0.75rem;
+		font-size: 11px;
+		font-weight: var(--w-semibold);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+	}
+
+	.mobile-menu__courses {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.mobile-course-item {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		border-radius: var(--radius-xl);
+		padding: 0.75rem;
+		transition: all 200ms var(--ease-out);
+	}
+
+	.mobile-course-item:hover {
+		background-color: rgba(255, 255, 255, 0.06);
+	}
+
+	.mobile-course-item__icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.5rem;
+		height: 2.5rem;
+		flex-shrink: 0;
+		border-radius: var(--radius-lg);
+	}
+
+	.mobile-course-item__icon-fallback {
+		font-size: var(--fs-xs);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+	}
+
+	.mobile-course-item__content {
+		min-width: 0;
+		flex: 1;
+	}
+
+	.mobile-course-item__title {
+		font-size: var(--fs-sm);
+		font-weight: var(--w-semibold);
+		color: var(--color-white);
+	}
+
+	.mobile-course-item__meta {
+		color: var(--color-grey-500);
+		font-size: var(--fs-xs);
+	}
+
+	:global(.mobile-course-item__arrow) {
+		color: var(--color-grey-600) !important;
+		flex-shrink: 0;
+	}
+
+	.mobile-menu__links {
+		border-top: 1px solid rgba(255, 255, 255, 0.08);
+		padding-top: 1rem;
+	}
+
+	.mobile-menu__link {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		color: var(--color-grey-300);
+		border-radius: var(--radius-xl);
+		padding: 0.75rem;
+		font-size: var(--fs-sm);
+		font-weight: var(--w-medium);
+		transition: all 200ms var(--ease-out);
+	}
+
+	.mobile-menu__link:hover {
+		background-color: rgba(255, 255, 255, 0.06);
+		color: var(--color-white);
+	}
+
+	.mobile-menu__cta {
+		margin-top: 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.mobile-menu__cta {
+			display: none;
+		}
+	}
+
+	.mobile-menu__cta-btn {
+		display: flex;
+		width: 100%;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		border-radius: var(--radius-xl);
+		padding: 0.875rem 1.5rem;
+		font-size: var(--fs-sm);
+		font-weight: var(--w-semibold);
+		color: var(--color-white);
+		background-color: var(--color-teal);
+		box-shadow:
+			var(--shadow-lg),
+			0 4px 14px rgba(15, 164, 175, 0.2);
+		transition: all 200ms var(--ease-out);
+	}
+
+	.mobile-menu__cta-btn:hover {
+		background-color: var(--color-teal-light);
+	}
+</style>

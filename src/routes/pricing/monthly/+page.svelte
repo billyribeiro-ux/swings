@@ -65,60 +65,39 @@
 </svelte:head>
 
 <!-- Hero -->
-<section
-	bind:this={heroRef}
-	class="from-navy via-navy-mid to-deep-blue relative overflow-hidden bg-linear-to-br pt-16"
->
-	<div
-		class="absolute inset-0 opacity-[0.02]"
-		style="background-image: linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px); background-size: 60px 60px;"
-	></div>
+<section bind:this={heroRef} class="page-hero">
+	<div class="page-hero__grid-overlay"></div>
 
-	<div class="relative z-10 mx-auto max-w-[1200px] px-4 py-20 sm:px-6 lg:px-8 lg:py-32">
-		<div class="mx-auto max-w-3xl text-center">
-			<div
-				class="price-badge border-teal/30 bg-teal/10 mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-2"
-			>
-				<CurrencyDollar size={18} weight="duotone" color="#15C5D1" />
-				<span class="text-teal-light text-xs font-semibold tracking-wide uppercase"
-					>Monthly Plan</span
-				>
+	<div class="page-hero__inner">
+		<div class="price-badge page-badge">
+			<CurrencyDollar size={18} weight="duotone" color="#15C5D1" />
+			<span class="page-badge__text">Monthly Plan</span>
+		</div>
+
+		<h1 class="price-title page-hero__title">Weekly Watchlists, Month-to-Month</h1>
+
+		<div class="price-amount price-hero__amount">
+			<div class="price-hero__price-row">
+				<span class="price-hero__price">$97</span>
+				<span class="price-hero__suffix">/month</span>
 			</div>
-
-			<h1
-				class="price-title font-heading mb-6 text-3xl leading-tight font-bold text-white sm:text-4xl md:text-5xl lg:text-6xl"
-			>
-				Weekly Watchlists, Month-to-Month
-			</h1>
-
-			<div class="price-amount mb-8">
-				<div class="flex items-baseline justify-center gap-2">
-					<span class="font-heading text-5xl font-bold text-white sm:text-6xl">$97</span>
-					<span class="text-grey-300 text-xl">/month</span>
-				</div>
-				<p class="text-grey-400 mt-3 text-sm">Billed monthly. Cancel anytime.</p>
-			</div>
+			<p class="price-hero__note">Billed monthly. Cancel anytime.</p>
 		</div>
 	</div>
 </section>
 
 <!-- Features -->
-<section class="bg-white py-16 sm:py-20 lg:py-28">
-	<div class="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+<section class="page-section page-section--white">
+	<div class="page-container">
 		<ScrollReveal>
-			<div class="price-features mx-auto max-w-2xl">
-				<h2 class="text-navy font-heading mb-10 text-center text-2xl font-bold sm:text-3xl">
-					What's Included
-				</h2>
+			<div class="price-features page-narrow">
+				<h2 class="page-section__heading page-section__heading--center">What's Included</h2>
 
-				<div class="space-y-4">
+				<div class="feature-list">
 					{#each features as feature, i}
-						<div
-							class="reveal-item border-grey-200/80 bg-off-white flex items-start gap-4 rounded-xl border p-5"
-							style="transition-delay: {i * 0.06}s"
-						>
-							<CheckCircle size={24} weight="fill" color="#0FA4AF" class="mt-0.5 shrink-0" />
-							<p class="text-grey-800 leading-relaxed">{feature}</p>
+						<div class="reveal-item feature-list__item" style="transition-delay: {i * 0.06}s">
+							<CheckCircle size={24} weight="fill" color="#0FA4AF" class="feature-list__icon" />
+							<p class="feature-list__text">{feature}</p>
 						</div>
 					{/each}
 				</div>
@@ -128,26 +107,20 @@
 </section>
 
 <!-- CTA -->
-<section class="bg-off-white py-16 sm:py-20 lg:py-28">
-	<div class="mx-auto max-w-[1200px] px-4 text-center sm:px-6 lg:px-8">
+<section class="page-section page-section--off-white">
+	<div class="page-container page-container--center">
 		<ScrollReveal>
-			<div class="price-cta mx-auto max-w-2xl">
-				<h2
-					class="reveal-item text-navy font-heading mb-5 text-2xl font-bold sm:text-3xl md:text-4xl"
-				>
+			<div class="price-cta page-narrow">
+				<h2 class="reveal-item page-section__heading page-section__heading--center">
 					Ready to Get Started?
 				</h2>
 
-				<p class="reveal-item text-grey-700 mb-10 leading-relaxed">
+				<p class="reveal-item page-cta__desc">
 					Join hundreds of traders who trust Explosive Swings for their weekly options watchlists.
 				</p>
 
-				<div class="reveal-item flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-					<button
-						onclick={handleCheckout}
-						disabled={isLoading}
-						class="bg-teal shadow-teal/25 hover:bg-teal-light hover:shadow-teal/30 inline-flex items-center justify-center gap-2 rounded-xl px-8 py-4 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-px hover:shadow-xl active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
-					>
+				<div class="reveal-item page-cta__actions">
+					<button onclick={handleCheckout} disabled={isLoading} class="page-cta-btn">
 						{#if isLoading}
 							Processing...
 						{:else}
@@ -156,19 +129,309 @@
 						{/if}
 					</button>
 
-					<a
-						href="/pricing/annual"
-						class="text-teal hover:text-teal-light inline-flex items-center gap-2 text-sm font-semibold transition-colors duration-200"
-					>
+					<a href="/pricing/annual" class="page-cta__link">
 						View Annual Plan (Save 20%)
 						<ArrowRight size={14} weight="bold" />
 					</a>
 				</div>
 
-				<p class="reveal-item text-grey-500 mt-8 text-xs">
+				<p class="reveal-item page-cta__fine-print">
 					Cancel anytime. No long-term commitment required.
 				</p>
 			</div>
 		</ScrollReveal>
 	</div>
 </section>
+
+<style>
+	.page-hero {
+		position: relative;
+		overflow: hidden;
+		padding-top: 4rem;
+		background: linear-gradient(
+			to bottom right,
+			var(--color-navy),
+			var(--color-navy-mid),
+			var(--color-deep-blue)
+		);
+	}
+
+	.page-hero__grid-overlay {
+		position: absolute;
+		inset: 0;
+		opacity: 0.02;
+		background-image:
+			linear-gradient(to right, white 1px, transparent 1px),
+			linear-gradient(to bottom, white 1px, transparent 1px);
+		background-size: 60px 60px;
+	}
+
+	.page-hero__inner {
+		position: relative;
+		z-index: var(--z-10);
+		max-width: var(--container-max);
+		margin: 0 auto;
+		padding: 5rem 1rem;
+		text-align: center;
+	}
+
+	@media (min-width: 640px) {
+		.page-hero__inner {
+			padding: 5rem 1.5rem;
+		}
+	}
+	@media (min-width: 1024px) {
+		.page-hero__inner {
+			padding: 8rem 2rem;
+		}
+	}
+
+	.page-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		border-radius: var(--radius-full);
+		border: 1px solid rgba(15, 164, 175, 0.3);
+		background-color: rgba(15, 164, 175, 0.1);
+		padding: 0.5rem 1rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.page-badge__text {
+		color: var(--color-teal-light);
+		font-size: var(--fs-xs);
+		font-weight: var(--w-semibold);
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+	}
+
+	.page-hero__title {
+		font-family: var(--font-heading);
+		font-size: var(--fs-3xl);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+		line-height: 1.15;
+		margin-bottom: 1.5rem;
+		max-width: 48rem;
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	@media (min-width: 640px) {
+		.page-hero__title {
+			font-size: var(--fs-4xl);
+		}
+	}
+	@media (min-width: 768px) {
+		.page-hero__title {
+			font-size: clamp(2.5rem, 5vw, 3rem);
+		}
+	}
+	@media (min-width: 1024px) {
+		.page-hero__title {
+			font-size: clamp(3rem, 5vw, 3.75rem);
+		}
+	}
+
+	.price-hero__amount {
+		margin-bottom: 2rem;
+	}
+
+	.price-hero__price-row {
+		display: flex;
+		align-items: baseline;
+		justify-content: center;
+		gap: 0.5rem;
+	}
+
+	.price-hero__price {
+		font-family: var(--font-heading);
+		font-size: clamp(3rem, 6vw, 3.75rem);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+	}
+
+	.price-hero__suffix {
+		color: var(--color-grey-300);
+		font-size: var(--fs-xl);
+	}
+
+	.price-hero__note {
+		color: var(--color-grey-400);
+		font-size: var(--fs-sm);
+		margin-top: 0.75rem;
+	}
+
+	/* Sections */
+	.page-section {
+		padding: 4rem 0;
+	}
+	@media (min-width: 640px) {
+		.page-section {
+			padding: 5rem 0;
+		}
+	}
+	@media (min-width: 1024px) {
+		.page-section {
+			padding: 7rem 0;
+		}
+	}
+
+	.page-section--white {
+		background-color: var(--color-white);
+	}
+	.page-section--off-white {
+		background-color: var(--color-off-white);
+	}
+
+	.page-container {
+		max-width: var(--container-max);
+		margin: 0 auto;
+		padding: 0 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.page-container {
+			padding: 0 1.5rem;
+		}
+	}
+	@media (min-width: 1024px) {
+		.page-container {
+			padding: 0 2rem;
+		}
+	}
+
+	.page-container--center {
+		text-align: center;
+	}
+	.page-narrow {
+		max-width: 42rem;
+		margin: 0 auto;
+	}
+
+	.page-section__heading {
+		color: var(--color-navy);
+		font-family: var(--font-heading);
+		font-size: var(--fs-2xl);
+		font-weight: var(--w-bold);
+		margin-bottom: 2.5rem;
+	}
+
+	@media (min-width: 640px) {
+		.page-section__heading {
+			font-size: var(--fs-3xl);
+		}
+	}
+	@media (min-width: 768px) {
+		.page-section__heading {
+			font-size: var(--fs-4xl);
+		}
+	}
+
+	.page-section__heading--center {
+		text-align: center;
+	}
+
+	/* Feature list */
+	.feature-list {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.feature-list__item {
+		display: flex;
+		align-items: flex-start;
+		gap: 1rem;
+		border: 1px solid rgba(216, 220, 228, 0.8);
+		background-color: var(--color-off-white);
+		border-radius: var(--radius-xl);
+		padding: 1.25rem;
+	}
+
+	:global(.feature-list__icon) {
+		flex-shrink: 0;
+		margin-top: 0.125rem;
+	}
+
+	.feature-list__text {
+		color: var(--color-grey-800);
+		line-height: 1.65;
+	}
+
+	/* CTA section */
+	.page-cta__desc {
+		color: var(--color-grey-700);
+		line-height: 1.65;
+		margin-bottom: 2.5rem;
+	}
+
+	.page-cta__actions {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.page-cta__actions {
+			flex-direction: row;
+			justify-content: center;
+		}
+	}
+
+	.page-cta-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		border-radius: var(--radius-xl);
+		padding: 1rem 2rem;
+		font-size: var(--fs-sm);
+		font-weight: var(--w-semibold);
+		color: var(--color-white);
+		background-color: var(--color-teal);
+		box-shadow:
+			var(--shadow-lg),
+			0 4px 14px rgba(15, 164, 175, 0.25);
+		transition: all 300ms var(--ease-out);
+		cursor: pointer;
+		border: none;
+	}
+
+	.page-cta-btn:hover {
+		background-color: var(--color-teal-light);
+		transform: translateY(-1px);
+		box-shadow:
+			var(--shadow-xl),
+			0 8px 20px rgba(15, 164, 175, 0.3);
+	}
+
+	.page-cta-btn:active {
+		transform: scale(0.97);
+	}
+	.page-cta-btn:disabled {
+		pointer-events: none;
+		opacity: 0.5;
+	}
+
+	.page-cta__link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		color: var(--color-teal);
+		font-size: var(--fs-sm);
+		font-weight: var(--w-semibold);
+		transition: color 200ms var(--ease-out);
+	}
+
+	.page-cta__link:hover {
+		color: var(--color-teal-light);
+	}
+
+	.page-cta__fine-print {
+		color: var(--color-grey-500);
+		margin-top: 2rem;
+		font-size: var(--fs-xs);
+	}
+</style>
