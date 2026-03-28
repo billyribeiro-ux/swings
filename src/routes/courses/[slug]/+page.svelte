@@ -66,7 +66,7 @@
 </script>
 
 <svelte:head>
-	<title>{course.title} — Explosive Swings</title>
+	<title>{course.title} -- Explosive Swings</title>
 	<meta name="description" content={course.description} />
 </svelte:head>
 
@@ -221,7 +221,7 @@
 
 			<div class="reveal-item page-cta__actions">
 				<Button variant="primary" href="#">
-					Enroll Now — ${course.price}
+					Enroll Now -- ${course.price}
 					<ArrowRight size={18} weight="bold" />
 				</Button>
 				<Button variant="ghost" href="/courses">View All Courses</Button>

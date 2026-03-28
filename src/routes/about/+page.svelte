@@ -35,7 +35,7 @@
 </script>
 
 <svelte:head>
-	<title>About — Explosive Swings</title>
+	<title>About -- Explosive Swings</title>
 	<meta
 		name="description"
 		content="Learn about Explosive Swings, our mission to empower options traders, and the team behind the weekly watchlists."
@@ -58,8 +58,8 @@
 
 		<p class="about-subtitle page-hero__subtitle page-hero__subtitle--wide">
 			Founded by Billy Ribeiro and Freddie Ferber, Explosive Swings was built on a single
-			conviction: traders don't fail because of bad alerts — they fail because no one ever explained
-			the <em>why</em> behind the trade.
+			conviction: traders don't fail because of bad alerts -- they fail because no one ever
+			explained the <em>why</em> behind the trade.
 		</p>
 	</div>
 </section>
@@ -79,7 +79,7 @@
 						as head trader at ZMC Capital and mentorship under <strong>Mark McGoldrick</strong>,
 						Goldman Sachs' former Global Head of Proprietary Trading. Freddie Ferber, a longtime
 						student who became a world-class trader in his own right, brings a practitioner's
-						perspective — the kind of clarity that only comes from learning the hard lessons
+						perspective -- the kind of clarity that only comes from learning the hard lessons
 						firsthand and building real, consistent edge from them.
 					</p>
 
@@ -91,7 +91,7 @@
 
 					<p>
 						Every Sunday night, members receive a curated watchlist of 5–7 high-probability options
-						setups — each one hand-selected and fully structured with entry zones, profit targets,
+						setups -- each one hand-selected and fully structured with entry zones, profit targets,
 						and defined stop losses. No noise. No filler. Just setups that meet an
 						institutional-grade threshold before they ever reach your inbox.
 					</p>
@@ -145,7 +145,7 @@
 					</div>
 					<h3 class="about-feature-card__title">Institutional Pedigree</h3>
 					<p class="about-feature-card__desc">
-						Built by traders who've operated at the highest levels of the market — Goldman Sachs,
+						Built by traders who've operated at the highest levels of the market -- Goldman Sachs,
 						ZMC Capital.
 					</p>
 				</div>
@@ -241,7 +241,7 @@
 					<div class="founder-card__bio">
 						<p>
 							A longtime student who became a world-class trader in his own right. Freddie brings a
-							practitioner's perspective — the kind of clarity that only comes from learning the
+							practitioner's perspective -- the kind of clarity that only comes from learning the
 							hard lessons firsthand.
 						</p>
 						<p>

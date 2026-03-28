@@ -26,20 +26,20 @@
 							>
 							known for his precision, discipline, and consistency. During his time at
 							<strong class="about-section__strong">Simpler Trading</strong>, he quickly became
-							their <strong class="about-section__strong">lead trader</strong> — at one point generating
+							their <strong class="about-section__strong">lead trader</strong> -- at one point generating
 							more winning trades in a single week than the entire staff combined.
 						</p>
 						<p>
 							Mentored by <strong class="about-section__strong"
 								>Mark McGoldrick of Goldman Sachs</strong
 							>, Billy developed his proprietary
-							<strong class="about-section__strong">"Move Prior to The Move"</strong> methodology — a
+							<strong class="about-section__strong">"Move Prior to The Move"</strong> methodology -- a
 							framework for identifying institutional-quality setups before the crowd catches on.
 						</p>
 						<p>
 							After recovering from cancer, Billy shifted his focus toward sustainable, high-impact
 							trading education. This alert service allows him to share his expertise without the
-							stress of daily live trading — and gives members access to <strong
+							stress of daily live trading -- and gives members access to <strong
 								class="about-section__strong">clean, early, high-probability setups</strong
 							>.
 						</p>

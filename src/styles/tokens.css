@@ -121,7 +121,7 @@
 	--container-xs: 340px;
 }
 
-/* Responsive type scale — tablet */
+/* Responsive type scale -- tablet */
 @media (min-width: 768px) {
 	:root {
 		--fs-xs: 0.8125rem;
@@ -135,7 +135,7 @@
 	}
 }
 
-/* Responsive type scale — desktop */
+/* Responsive type scale -- desktop */
 @media (min-width: 1024px) {
 	:root {
 		--fs-xs: 0.875rem;

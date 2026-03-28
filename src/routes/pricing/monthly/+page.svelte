@@ -60,7 +60,7 @@
 </script>
 
 <svelte:head>
-	<title>Monthly Plan — Explosive Swings</title>
+	<title>Monthly Plan -- Explosive Swings</title>
 	<meta name="description" content="Get weekly options watchlists for $97/month. Cancel anytime." />
 </svelte:head>
 
@@ -124,7 +124,7 @@
 						{#if isLoading}
 							Processing...
 						{:else}
-							Start Monthly Plan — $97/mo
+							Start Monthly Plan -- $97/mo
 							<ArrowRight size={18} weight="bold" />
 						{/if}
 					</button>

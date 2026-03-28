@@ -17,7 +17,7 @@
 			<SectionHeader
 				eyebrow="Education"
 				title="Level Up Your Options Game"
-				subtitle="Structured courses designed to take you from the basics to confidently trading options — at your own pace."
+				subtitle="Structured courses designed to take you from the basics to confidently trading options -- at your own pace."
 			/>
 
 			<div class="courses-section__grid">

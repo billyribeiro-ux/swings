@@ -40,10 +40,10 @@
 </script>
 
 <svelte:head>
-	<title>Options Trading Courses — Explosive Swings</title>
+	<title>Options Trading Courses -- Explosive Swings</title>
 	<meta
 		name="description"
-		content="Structured courses designed to take you from the basics to confidently trading options — at your own pace."
+		content="Structured courses designed to take you from the basics to confidently trading options -- at your own pace."
 	/>
 </svelte:head>
 
@@ -60,7 +60,7 @@
 		<h1 class="courses-title page-hero__title">Level Up Your Options Game</h1>
 
 		<p class="courses-subtitle page-hero__subtitle">
-			Structured courses designed to take you from the basics to confidently trading options — at
+			Structured courses designed to take you from the basics to confidently trading options -- at
 			your own pace.
 		</p>
 	</div>
@@ -140,7 +140,7 @@
 			<SectionHeader
 				eyebrow="Why Learn Options?"
 				title="Build Skills That Last a Lifetime"
-				subtitle="Options trading gives you leverage, flexibility, and the ability to profit in any market condition — but only if you know what you're doing."
+				subtitle="Options trading gives you leverage, flexibility, and the ability to profit in any market condition -- but only if you know what you're doing."
 			/>
 
 			<div class="why-grid">

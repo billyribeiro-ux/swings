@@ -62,7 +62,7 @@
 </script>
 
 <svelte:head>
-	<title>Annual Plan — Explosive Swings</title>
+	<title>Annual Plan -- Explosive Swings</title>
 	<meta
 		name="description"
 		content="Get weekly options watchlists for $932/year. Save 20% vs monthly."
@@ -79,7 +79,7 @@
 			<span class="page-badge__text page-badge__text--gold">Best Value</span>
 		</div>
 
-		<h1 class="price-title page-hero__title">Annual Plan — Save 20%</h1>
+		<h1 class="price-title page-hero__title">Annual Plan -- Save 20%</h1>
 
 		<div class="price-amount price-hero__amount">
 			<div class="price-hero__price-row">
@@ -159,7 +159,7 @@
 						{#if isLoading}
 							Processing...
 						{:else}
-							Start Annual Plan — $932/year
+							Start Annual Plan -- $932/year
 							<ArrowRight size={18} weight="bold" />
 						{/if}
 					</button>

@@ -7,7 +7,7 @@
 		{
 			title: '5–7 Top Picks Every Sunday Night',
 			description:
-				"A detailed watchlist delivered before the week starts — complete with entries, targets, exits, and stops so you're fully prepared before Monday's open."
+				"A detailed watchlist delivered before the week starts -- complete with entries, targets, exits, and stops so you're fully prepared before Monday's open."
 		},
 		{
 			title: 'Charts with Marked Zones',
@@ -17,17 +17,17 @@
 		{
 			title: 'Entries, Targets, Exits & Stops',
 			description:
-				'Every pick comes with precise levels — no ambiguity. You know exactly where to get in, where to take profit, and where to cut it.'
+				'Every pick comes with precise levels -- no ambiguity. You know exactly where to get in, where to take profit, and where to cut it.'
 		},
 		{
 			title: 'Detailed Weekly Video Walkthrough',
 			description:
-				'A thorough breakdown of every pick on the watchlist — so you understand the setup, the levels, and can set your alerts ahead of time with confidence.'
+				'A thorough breakdown of every pick on the watchlist -- so you understand the setup, the levels, and can set your alerts ahead of time with confidence.'
 		},
 		{
 			title: 'Multi-Channel Delivery',
 			description:
-				'Watchlist delivered via email, SMS, and your members-only dashboard every Sunday night — so you never miss a week.',
+				'Watchlist delivered via email, SMS, and your members-only dashboard every Sunday night -- so you never miss a week.',
 			fullWidth: true
 		}
 	];
@@ -39,7 +39,7 @@
 			<SectionHeader
 				eyebrow="What's Included"
 				title="Your Sunday Night Watchlist"
-				subtitle="Every Sunday night, your watchlist drops with everything you need to trade the week ahead — no guessing, no scrambling Monday morning."
+				subtitle="Every Sunday night, your watchlist drops with everything you need to trade the week ahead -- no guessing, no scrambling Monday morning."
 			/>
 
 			<div class="what-you-get__grid">

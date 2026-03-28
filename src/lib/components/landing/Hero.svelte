@@ -26,7 +26,7 @@
 		});
 
 		const ctx = gsap.context(() => {
-			// Clean cascade — each element fades up with consistent spacing
+			// Clean cascade -- each element fades up with consistent spacing
 			const tl = gsap.timeline({ delay: 0.15 });
 
 			tl.to('.hero-badge', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' })
@@ -38,7 +38,7 @@
 					gsap.set(elements, { willChange: 'auto', clearProps: 'transform' });
 				});
 
-			// Glow orb — slow breathing
+			// Glow orb -- slow breathing
 			if (glowRef) {
 				gsap.to(glowRef, {
 					scale: 1.08,
@@ -93,7 +93,7 @@
 				<!-- Subtitle -->
 				<p class="hero-subtitle hero__subtitle">
 					Every Sunday night, get a detailed watchlist of 5–7 top stock picks with defined entries,
-					targets, exits, and stops — so you're ready before the market opens.
+					targets, exits, and stops -- so you're ready before the market opens.
 				</p>
 
 				<!-- Actions -->
@@ -109,7 +109,7 @@
 				<div class="hero-trust hero__trust">
 					<div class="hero__trust-avatar">BR</div>
 					<p class="hero__trust-text">
-						Created by <span class="hero__trust-name">Billy Ribeiro</span> — former lead trader at Simpler
+						Created by <span class="hero__trust-name">Billy Ribeiro</span> -- former lead trader at Simpler
 						Trading, mentored by Goldman Sachs' Mark McGoldrick
 					</p>
 				</div>

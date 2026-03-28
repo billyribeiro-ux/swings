@@ -23,7 +23,7 @@
 			role: 'Portfolio Manager',
 			avatar: 'SM',
 			rating: 5,
-			text: "I've tried dozens of trading services, and Explosive Swings is the only one I trust. No fluff, no spam—just high-quality setups delivered every Sunday night. The Discord community is gold.",
+			text: "I've tried dozens of trading services, and Explosive Swings is the only one I trust. No fluff, no spam--just high-quality setups delivered every Sunday night. The Discord community is gold.",
 			gradientFrom: 'var(--color-gold)',
 			gradientTo: 'var(--color-gold-light)'
 		},

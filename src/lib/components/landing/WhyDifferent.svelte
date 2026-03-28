@@ -10,19 +10,19 @@
 			icon: Clock,
 			title: 'Early Entry Alerts',
 			description:
-				"Most services notify you after the move has already happened. We send alerts before the breakout, with the exact price level we're watching — giving you time to plan, not chase."
+				"Most services notify you after the move has already happened. We send alerts before the breakout, with the exact price level we're watching -- giving you time to plan, not chase."
 		},
 		{
 			icon: ShieldCheck,
 			title: 'Clear Invalidation Levels',
 			description:
-				"Every alert includes a simple 'no longer valid' level. If price breaks below it, the setup is done — no confusion, no guessing, no hoping. You always know where you stand."
+				"Every alert includes a simple 'no longer valid' level. If price breaks below it, the setup is done -- no confusion, no guessing, no hoping. You always know where you stand."
 		},
 		{
 			icon: CurrencyDollar,
 			title: 'Simple Profit-Taking Guidance',
 			description:
-				"We highlight logical profit zones so you can scale out with confidence, even if you're not an experienced trader. No complicated calculations — just clear, actionable targets."
+				"We highlight logical profit zones so you can scale out with confidence, even if you're not an experienced trader. No complicated calculations -- just clear, actionable targets."
 		}
 	];
 </script>
@@ -33,7 +33,7 @@
 			<SectionHeader
 				eyebrow="Why We're Different"
 				title="Most Alert Services Tell You <em>After</em> the Move. We Tell You <em>Before</em>."
-				subtitle="Built on the proprietary 'Move Prior to The Move' methodology — your watchlist arrives Sunday night so you can set alerts and be positioned before the action starts."
+				subtitle="Built on the proprietary 'Move Prior to The Move' methodology -- your watchlist arrives Sunday night so you can set alerts and be positioned before the action starts."
 			/>
 
 			<div class="why-different__grid">
