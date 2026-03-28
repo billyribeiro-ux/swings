@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Trader } from '$lib/data/traders';
-	import { showProfile } from '$lib/stores/modal.svelte';
+	import { modal } from '$lib/stores/modal.svelte';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
 
 	interface Props {
@@ -10,7 +10,7 @@
 	let { trader }: Props = $props();
 </script>
 
-<button onclick={() => showProfile(trader.id)} class="trader-card">
+<button onclick={() => modal.showProfile(trader.id)} class="trader-card">
 	<!-- Avatar -->
 	<div
 		class="trader-card__avatar"

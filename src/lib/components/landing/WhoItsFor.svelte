@@ -20,7 +20,7 @@
 			/>
 
 			<div class="who-its-for__grid">
-				{#each audience as item, i}
+				{#each audience as item, i (item)}
 					<div class="reveal-item who-its-for__item" style="transition-delay: {i * 0.1}s">
 						<CaretRight size={20} weight="bold" color="#0FA4AF" class="who-its-for__icon" />
 						<p class="who-its-for__text">{@html item}</p>

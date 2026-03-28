@@ -33,9 +33,8 @@
 							Mentored by <strong class="about-section__strong"
 								>Mark McGoldrick of Goldman Sachs</strong
 							>, Billy developed his proprietary
-							<strong class="about-section__strong">"Move Prior to The Move"</strong> methodology -- a
-							framework for identifying institutional quality setups before the crowdactches on. framework
-							for identifying institutional-quality setups before the crowd catches on.
+							<strong class="about-section__strong">"Move Prior to The Move"</strong> methodology - a
+							framework for identifying institutional-quality setups before the crowd catches on.
 						</p>
 						<p>
 							After recovering from cancer, Billy shifted his focus toward sustainable, high-impact
@@ -49,7 +48,7 @@
 
 				<!-- Right Column - Stats Grid -->
 				<div class="reveal-item about-section__stats">
-					{#each stats as stat, i}
+					{#each stats as stat, i (stat.label)}
 						<div class="about-section__stat-card" style="transition-delay: {i * 0.1}s">
 							<div class="kpi-value about-section__stat-value">{stat.value}</div>
 							<div class="kpi-label about-section__stat-label">{stat.label}</div>

@@ -21,7 +21,7 @@
 			/>
 
 			<div class="courses-section__grid">
-				{#each courses as course, i}
+				{#each courses as course, i (course.id)}
 					{@const Icon = iconMap[course.icon]}
 					<a
 						href="/courses/{course.slug}"

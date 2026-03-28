@@ -9,15 +9,17 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" href="/src/lib/assets/favicon.svg" type="image/svg+xml" />
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 </svelte:head>
 
-<Nav />
+<div data-sveltekit-preload-data="hover">
+	<Nav />
 
-<main>
-	{@render children()}
-</main>
+	<main>
+		{@render children()}
+	</main>
 
-<Footer />
+	<Footer />
+</div>
 <FloatingButton />
 <TradersModal />

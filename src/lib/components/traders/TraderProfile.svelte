@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Trader } from '$lib/data/traders';
-	import { backToGrid } from '$lib/stores/modal.svelte';
+	import { modal } from '$lib/stores/modal.svelte';
 	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
 	import Star from 'phosphor-svelte/lib/Star';
 	import Pulse from 'phosphor-svelte/lib/Pulse';
@@ -43,14 +43,14 @@
 
 	<!-- Bio -->
 	<div class="profile__bio">
-		{#each trader.bio as paragraph, i (i)}
+		{#each trader.bio as paragraph (paragraph)}
 			<p class="profile__bio-text">{@html paragraph}</p>
 		{/each}
 	</div>
 
 	<!-- Highlights -->
 	<div class="profile__highlights">
-		{#each trader.highlights as highlight, i (i)}
+		{#each trader.highlights as highlight (highlight.label)}
 			<div class="profile__highlight-card">
 				<div class="kpi-value profile__highlight-value">{highlight.value}</div>
 				<div class="kpi-label profile__highlight-label">{highlight.label}</div>
@@ -60,12 +60,15 @@
 
 	<!-- Action Buttons -->
 	<div class="profile__actions">
-		{#each trader.actions as action, i (i)}
+		{#each trader.actions as action (action.label)}
 			{@const IconComponent = iconMap[action.icon as keyof typeof iconMap]}
 			<button
-				class="profile__action-btn"
-				class:profile__action-btn--primary={action.variant === 'primary'}
-				class:profile__action-btn--outline={action.variant !== 'primary'}
+				class={[
+					'profile__action-btn',
+					action.variant === 'primary'
+						? 'profile__action-btn--primary'
+						: 'profile__action-btn--outline'
+				]}
 			>
 				<IconComponent size={18} weight={action.icon === 'Star' ? 'fill' : 'regular'} />
 				{action.label}

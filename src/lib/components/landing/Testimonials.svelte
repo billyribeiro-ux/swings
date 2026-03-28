@@ -107,7 +107,7 @@
 		/>
 
 		<div class="testimonials__grid">
-			{#each testimonials as testimonial, i}
+			{#each testimonials as testimonial, i (testimonial.name)}
 				<div class="testimonial-card">
 					<!-- Quote icon -->
 					<div

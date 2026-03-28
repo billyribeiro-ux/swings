@@ -37,10 +37,9 @@
 			/>
 
 			<div class="pricing-section__grid">
-				{#each pricingPlans as plan, i}
+				{#each pricingPlans as plan, i (plan.id)}
 					<div
-						class="reveal-item pricing-card"
-						class:pricing-card--featured={plan.featured}
+						class={['reveal-item pricing-card', plan.featured && 'pricing-card--featured']}
 						style="transition-delay: {i * 0.08}s"
 					>
 						<!-- Badge -->
@@ -51,7 +50,7 @@
 						{/if}
 
 						<!-- Plan Name -->
-						<h3 class="pricing-card__name" class:pricing-card__name--spaced={plan.badge}>
+						<h3 class={['pricing-card__name', plan.badge && 'pricing-card__name--spaced']}>
 							{plan.name}
 						</h3>
 
@@ -76,9 +75,12 @@
 							onclick={() =>
 								handleCheckout(plan.id === 'monthly' ? monthlyPriceId : annualPriceId, plan.id)}
 							disabled={isLoading === plan.id}
-							class="pricing-card__cta"
-							class:pricing-card__cta--primary={plan.variant === 'primary'}
-							class:pricing-card__cta--outline={plan.variant !== 'primary'}
+							class={[
+								'pricing-card__cta',
+								plan.variant === 'primary'
+									? 'pricing-card__cta--primary'
+									: 'pricing-card__cta--outline'
+							]}
 						>
 							{isLoading === plan.id ? 'Loading...' : plan.cta}
 						</button>

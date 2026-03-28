@@ -37,7 +37,7 @@
 			/>
 
 			<div class="why-different__grid">
-				{#each features as feature, i}
+				{#each features as feature, i (feature.title)}
 					<div class="reveal-item why-different__card" style="transition-delay: {i * 0.15}s">
 						<div class="why-different__icon-wrap">
 							<feature.icon size={24} weight="duotone" color="#0FA4AF" />

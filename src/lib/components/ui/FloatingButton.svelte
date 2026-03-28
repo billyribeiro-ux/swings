@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { openModal } from '$lib/stores/modal.svelte';
+	import { modal } from '$lib/stores/modal.svelte';
 	import UsersThree from 'phosphor-svelte/lib/UsersThree';
 </script>
 
-<button onclick={openModal} aria-label="Meet the traders" class="floating-btn">
+<button onclick={modal.open} aria-label="Meet the traders" class="floating-btn">
 	<span class="floating-btn__ping"></span>
 	<UsersThree size={24} weight="duotone" color="#15C5D1" />
 	<span class="floating-btn__label">Meet The Traders</span>

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { courses } from '$lib/data/courses';
 	import { fade, fly, slide } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
@@ -45,20 +44,14 @@
 		if (e.key === 'Escape') closeAll();
 	}
 
-	// Scroll-based effects
-	onMount(() => {
-		function handleScroll() {
-			scrolled = window.scrollY > 20;
-		}
-
-		window.addEventListener('scroll', handleScroll, { passive: true });
-		return () => window.removeEventListener('scroll', handleScroll);
-	});
+	function handleScroll() {
+		scrolled = window.scrollY > 20;
+	}
 </script>
 
-<svelte:window onclick={handleWindowClick} onkeydown={handleKeydown} />
+<svelte:window onclick={handleWindowClick} onkeydown={handleKeydown} onscroll={handleScroll} />
 
-<nav bind:this={navRef} class="nav" class:nav--scrolled={scrolled}>
+<nav bind:this={navRef} class={['nav', scrolled && 'nav--scrolled']}>
 	<div class="nav__inner">
 		<!-- Logo -->
 		<a href="/" class="nav__logo">
@@ -76,21 +69,20 @@
 					onclick={toggleCourses}
 					aria-expanded={isCoursesOpen}
 					aria-haspopup="true"
-					class="nav__link nav__link--dropdown"
-					class:nav__link--active={isCoursesOpen}
+					class={['nav__link', 'nav__link--dropdown', isCoursesOpen && 'nav__link--active']}
 				>
 					Courses
 					<CaretDown
 						size={14}
 						weight="bold"
-						class="nav__caret {isCoursesOpen ? 'nav__caret--open' : ''}"
+						class={['nav__caret', isCoursesOpen && 'nav__caret--open']}
 					/>
 				</button>
 
 				{#if isCoursesOpen}
 					<div class="dropdown-panel" transition:fly={{ y: -8, duration: 250, easing: cubicOut }}>
 						<div class="dropdown-panel__inner">
-							{#each courses as course, i}
+							{#each courses as course, i (course.id)}
 								{@const Icon = iconMap[course.icon]}
 								<a href="/courses/{course.slug}" class="dropdown-item" onclick={closeAll}>
 									<div
@@ -162,7 +154,7 @@
 				<div class="mobile-menu__section">
 					<p class="mobile-menu__label">Courses</p>
 					<div class="mobile-menu__courses">
-						{#each courses as course}
+						{#each courses as course (course.id)}
 							{@const Icon = iconMap[course.icon]}
 							<a href="/courses/{course.slug}" class="mobile-course-item" onclick={closeAll}>
 								<div

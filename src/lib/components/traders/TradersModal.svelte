@@ -1,11 +1,5 @@
 <script lang="ts">
-	import {
-		isOpen,
-		activeView,
-		activeTrader,
-		closeModal,
-		backToGrid
-	} from '$lib/stores/modal.svelte';
+	import { modal } from '$lib/stores/modal.svelte';
 	import { traders } from '$lib/data/traders';
 	import TraderCard from './TraderCard.svelte';
 	import TraderProfile from './TraderProfile.svelte';
@@ -14,14 +8,14 @@
 	import X from 'phosphor-svelte/lib/X';
 
 	$effect(() => {
-		if (!$isOpen) return;
+		if (!modal.isOpen) return;
 
 		function handleKeydown(event: KeyboardEvent) {
 			if (event.key === 'Escape') {
-				if ($activeView === 'profile') {
-					backToGrid();
+				if (modal.activeView === 'profile') {
+					modal.backToGrid();
 				} else {
-					closeModal();
+					modal.close();
 				}
 			}
 		}
@@ -36,17 +30,17 @@
 	});
 
 	const activeTraderData = $derived(
-		$activeTrader ? traders.find((t) => t.id === $activeTrader) : null
+		modal.activeTrader ? traders.find((t) => t.id === modal.activeTrader) : null
 	);
 </script>
 
-{#if $isOpen}
+{#if modal.isOpen}
 	<!-- Overlay -->
 	<div
 		class="modal-overlay"
 		transition:blur={{ duration: 400, amount: 8 }}
-		onclick={() => closeModal()}
-		onkeydown={(e) => e.key === 'Enter' && closeModal()}
+		onclick={() => modal.close()}
+		onkeydown={(e) => e.key === 'Enter' && modal.close()}
 		tabindex="0"
 		role="button"
 		aria-label="Close modal overlay"
@@ -61,13 +55,13 @@
 			tabindex="-1"
 		>
 			<!-- Close Button -->
-			<button onclick={closeModal} class="modal-close" aria-label="Close modal">
+			<button onclick={modal.close} class="modal-close" aria-label="Close modal">
 				<X size={24} />
 			</button>
 
 			<!-- Content -->
 			<div class="modal-content">
-				{#if $activeView === 'grid'}
+				{#if modal.activeView === 'grid'}
 					<div in:fly={{ y: 24, duration: 450, delay: 120, easing: expoOut }}>
 						<h2 class="modal-title">Meet The Traders</h2>
 						<p class="modal-subtitle">
@@ -80,7 +74,7 @@
 							{/each}
 						</div>
 					</div>
-				{:else if $activeView === 'profile' && activeTraderData}
+				{:else if modal.activeView === 'profile' && activeTraderData}
 					<div in:fly={{ y: 24, duration: 400, easing: expoOut }}>
 						<TraderProfile trader={activeTraderData} />
 					</div>

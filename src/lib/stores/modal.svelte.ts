@@ -1,26 +1,28 @@
-import { writable } from 'svelte/store';
+// Svelte 5 reactive state class for modal management
+class ModalState {
+	isOpen = $state(false);
+	activeView = $state<'grid' | 'profile'>('grid');
+	activeTrader = $state<string | null>(null);
 
-// Use standard Svelte stores for cross-component state
-export const isOpen = writable(false);
-export const activeView = writable<'grid' | 'profile'>('grid');
-export const activeTrader = writable<string | null>(null);
+	open = () => {
+		this.isOpen = true;
+		this.activeView = 'grid';
+		this.activeTrader = null;
+	};
 
-export function openModal(): void {
-  isOpen.set(true);
-  activeView.set('grid');
-  activeTrader.set(null);
+	close = () => {
+		this.isOpen = false;
+	};
+
+	showProfile = (traderId: string) => {
+		this.activeTrader = traderId;
+		this.activeView = 'profile';
+	};
+
+	backToGrid = () => {
+		this.activeView = 'grid';
+		this.activeTrader = null;
+	};
 }
 
-export function closeModal(): void {
-  isOpen.set(false);
-}
-
-export function showProfile(traderId: string): void {
-  activeTrader.set(traderId);
-  activeView.set('profile');
-}
-
-export function backToGrid(): void {
-  activeView.set('grid');
-  activeTrader.set(null);
-}
+export const modal = new ModalState();

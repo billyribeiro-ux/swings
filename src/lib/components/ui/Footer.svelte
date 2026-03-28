@@ -25,7 +25,7 @@
 			<div>
 				<h4 class="footer__heading">Courses</h4>
 				<ul class="footer__list">
-					{#each courses as course}
+					{#each courses as course (course.id)}
 						<li>
 							<a href="/courses/{course.slug}" class="footer__link">{course.title}</a>
 						</li>
