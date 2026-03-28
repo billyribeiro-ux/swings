@@ -2,42 +2,45 @@
 	import { onMount } from 'svelte';
 	import { sampleAlert } from '$lib/data/alerts';
 	import { gsap } from 'gsap';
+	import { EASE, DURATION, isReducedMotion } from '$lib/utils/animations';
 
 	interface Props {
 		delay?: number;
 	}
 
-	let { delay = 0.6 }: Props = $props();
+	let { delay = 0.8 }: Props = $props();
 
 	let cardRef: HTMLElement | undefined = $state();
 
 	onMount(() => {
 		if (!cardRef) return;
-		const element = cardRef;
+		const el = cardRef;
+		const reduced = isReducedMotion();
 
-		gsap.set(element, {
+		gsap.set(el, {
 			opacity: 0,
-			x: 30,
-			willChange: 'transform, opacity'
+			x: reduced ? 0 : 60,
+			scale: reduced ? 1 : 0.92,
+			filter: reduced ? 'none' : 'blur(12px)',
+			willChange: 'transform, opacity, filter'
 		});
 
 		const ctx = gsap.context(() => {
-			gsap.to(element, {
+			gsap.to(el, {
 				opacity: 1,
 				x: 0,
-				duration: 0.9,
-				delay,
-				ease: 'power3.out',
+				scale: 1,
+				filter: 'blur(0px)',
+				duration: reduced ? 0.01 : DURATION.cinematic,
+				delay: reduced ? 0 : delay,
+				ease: reduced ? 'none' : EASE.cinematic,
 				onComplete() {
-					gsap.set(element, { willChange: 'auto', clearProps: 'transform' });
+					gsap.set(el, { willChange: 'auto', clearProps: 'filter,transform' });
 				}
 			});
-		}, element);
+		}, el);
 
-		return () => {
-			ctx.revert();
-			gsap.set(element, { clearProps: 'all' });
-		};
+		return () => ctx.revert();
 	});
 </script>
 

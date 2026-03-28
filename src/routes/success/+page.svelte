@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
+	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
 	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
 	import Envelope from 'phosphor-svelte/lib/Envelope';
 	import BrowsersIcon from 'phosphor-svelte/lib/Browsers';
@@ -17,31 +18,61 @@
 
 		if (!containerRef) return;
 
-		const els = [
-			'.success-icon',
-			'.success-title',
-			'.success-subtitle',
-			'.success-steps',
-			'.success-cta'
-		];
-		gsap.set(els, { opacity: 0, y: 24, willChange: 'transform, opacity' });
-
 		const ctx = gsap.context(() => {
-			const tl = gsap.timeline({ delay: 0.15 });
-			tl.to('.success-icon', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' })
-				.to('.success-title', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.35')
-				.to('.success-subtitle', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.4')
-				.to('.success-steps', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.4')
-				.to('.success-cta', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, '-=0.35')
-				.call(() => {
-					gsap.set(els, { willChange: 'auto', clearProps: 'transform' });
-				});
+			createCinematicCascade(
+				containerRef!,
+				[
+					{
+						selector: '.success-icon',
+						duration: DURATION.fast,
+						ease: EASE.elastic,
+						y: 16,
+						blur: 8,
+						scale: 0.7,
+						overlap: 0
+					},
+					{
+						selector: '.success-title',
+						duration: DURATION.cinematic,
+						ease: EASE.cinematic,
+						y: 36,
+						blur: 10,
+						scale: 0.95,
+						overlap: 0.55
+					},
+					{
+						selector: '.success-subtitle',
+						duration: DURATION.slow,
+						ease: EASE.soft,
+						y: 28,
+						blur: 8,
+						scale: 0.98,
+						overlap: 0.6
+					},
+					{
+						selector: '.success-steps',
+						duration: DURATION.slow,
+						ease: EASE.cinematic,
+						y: 40,
+						blur: 8,
+						scale: 0.96,
+						overlap: 0.55
+					},
+					{
+						selector: '.success-cta',
+						duration: DURATION.normal,
+						ease: EASE.snappy,
+						y: 24,
+						blur: 6,
+						scale: 0.96,
+						overlap: 0.5
+					}
+				],
+				{ delay: 0.2 }
+			);
 		}, containerRef as HTMLElement);
 
-		return () => {
-			ctx.revert();
-			gsap.set(els, { clearProps: 'all' });
-		};
+		return () => ctx.revert();
 	});
 
 	const steps = [

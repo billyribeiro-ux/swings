@@ -3,7 +3,13 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
 	import { gsap } from 'gsap';
-	import { ScrollTrigger } from 'gsap/ScrollTrigger';
+	import {
+		createCinematicReveal,
+		createGlowBreathing,
+		EASE,
+		DURATION,
+		isReducedMotion
+	} from '$lib/utils/animations';
 
 	let sectionRef: HTMLElement | undefined = $state();
 	let glowRef: HTMLElement | undefined = $state();
@@ -11,50 +17,26 @@
 	onMount(() => {
 		if (!sectionRef || !glowRef) return;
 		const section = sectionRef;
-		const glow = glowRef;
-
-		gsap.registerPlugin(ScrollTrigger);
 
 		const contentEls = section.querySelectorAll('.final-cta-content > *');
-		gsap.set(contentEls, {
-			opacity: 0,
-			y: 24,
-			willChange: 'transform, opacity'
-		});
 
 		const ctx = gsap.context(() => {
-			// Glow breathing
-			gsap.to(glow, {
-				scale: 1.08,
-				opacity: 0.6,
-				duration: 6,
-				ease: 'sine.inOut',
-				yoyo: true,
-				repeat: -1
-			});
+			createGlowBreathing(glowRef!, { scale: 1.15, opacity: 0.55, duration: 8 });
 
-			// Staggered content reveal
-			gsap.to(contentEls, {
-				opacity: 1,
-				y: 0,
-				duration: 0.8,
-				stagger: 0.1,
-				ease: 'power3.out',
-				scrollTrigger: {
-					trigger: section,
-					start: 'top 80%',
-					once: true
-				},
-				onComplete() {
-					gsap.set(contentEls, { willChange: 'auto', clearProps: 'transform' });
-				}
+			createCinematicReveal({
+				targets: contentEls,
+				trigger: section,
+				y: 36,
+				blur: 10,
+				scale: 0.95,
+				duration: DURATION.cinematic,
+				stagger: 0.14,
+				ease: EASE.cinematic,
+				start: 'top 78%'
 			});
 		}, section);
 
-		return () => {
-			ctx.revert();
-			gsap.set(contentEls, { clearProps: 'all' });
-		};
+		return () => ctx.revert();
 	});
 </script>
 

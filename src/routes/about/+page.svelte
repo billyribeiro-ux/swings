@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
+	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
 	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
@@ -14,23 +15,39 @@
 	onMount(() => {
 		if (!heroRef) return;
 
-		const els = ['.about-badge', '.about-title', '.about-subtitle'];
-		gsap.set(els, { opacity: 0, y: 24, willChange: 'transform, opacity' });
-
 		const ctx = gsap.context(() => {
-			const tl = gsap.timeline({ delay: 0.15 });
-			tl.to('.about-badge', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' })
-				.to('.about-title', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.35')
-				.to('.about-subtitle', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.4')
-				.call(() => {
-					gsap.set(els, { willChange: 'auto', clearProps: 'transform' });
-				});
+			createCinematicCascade(heroRef!, [
+				{
+					selector: '.about-badge',
+					duration: DURATION.fast,
+					ease: EASE.snappy,
+					y: 20,
+					blur: 6,
+					scale: 0.9,
+					overlap: 0
+				},
+				{
+					selector: '.about-title',
+					duration: DURATION.cinematic,
+					ease: EASE.cinematic,
+					y: 36,
+					blur: 10,
+					scale: 0.95,
+					overlap: 0.6
+				},
+				{
+					selector: '.about-subtitle',
+					duration: DURATION.slow,
+					ease: EASE.soft,
+					y: 28,
+					blur: 8,
+					scale: 0.98,
+					overlap: 0.6
+				}
+			]);
 		}, heroRef as HTMLElement);
 
-		return () => {
-			ctx.revert();
-			gsap.set(els, { clearProps: 'all' });
-		};
+		return () => ctx.revert();
 	});
 </script>
 
@@ -90,7 +107,7 @@
 					</p>
 
 					<p>
-						Every Sunday night, members receive a curated watchlist of 5–7 high-probability options
+						Every Sunday night, members receive a curated watchlist of 5-7 high-probability options
 						setups -- each one hand-selected and fully structured with entry zones, profit targets,
 						and defined stop losses. No noise. No filler. Just setups that meet an
 						institutional-grade threshold before they ever reach your inbox.

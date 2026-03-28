@@ -1,6 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
+	import {
+		createCinematicCascade,
+		createGlowBreathing,
+		EASE,
+		DURATION,
+		isReducedMotion
+	} from '$lib/utils/animations';
 	import Button from '$lib/components/ui/Button.svelte';
 	import SampleAlertCard from './SampleAlertCard.svelte';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
@@ -11,50 +18,65 @@
 	onMount(() => {
 		if (!heroRef) return;
 
-		const elements = [
-			'.hero-badge',
-			'.hero-title',
-			'.hero-subtitle',
-			'.hero-actions',
-			'.hero-trust'
-		];
-
-		gsap.set(elements, {
-			opacity: 0,
-			y: 28,
-			willChange: 'transform, opacity'
-		});
-
 		const ctx = gsap.context(() => {
-			// Clean cascade -- each element fades up with consistent spacing
-			const tl = gsap.timeline({ delay: 0.15 });
+			createCinematicCascade(
+				heroRef!,
+				[
+					{
+						selector: '.hero-badge',
+						duration: DURATION.fast,
+						ease: EASE.snappy,
+						y: 20,
+						blur: 6,
+						scale: 0.9,
+						overlap: 0
+					},
+					{
+						selector: '.hero-title',
+						duration: DURATION.cinematic,
+						ease: EASE.cinematic,
+						y: 40,
+						blur: 12,
+						scale: 0.95,
+						overlap: 0.6
+					},
+					{
+						selector: '.hero-subtitle',
+						duration: DURATION.slow,
+						ease: EASE.soft,
+						y: 30,
+						blur: 8,
+						scale: 0.98,
+						overlap: 0.65
+					},
+					{
+						selector: '.hero-actions',
+						duration: DURATION.normal,
+						ease: EASE.snappy,
+						y: 24,
+						blur: 6,
+						scale: 0.96,
+						overlap: 0.6
+					},
+					{
+						selector: '.hero-trust',
+						duration: DURATION.normal,
+						ease: EASE.soft,
+						y: 20,
+						blur: 4,
+						scale: 0.98,
+						overlap: 0.55
+					}
+				],
+				{ delay: 0.25 }
+			);
 
-			tl.to('.hero-badge', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' })
-				.to('.hero-title', { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, '-=0.45')
-				.to('.hero-subtitle', { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, '-=0.5')
-				.to('.hero-actions', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.5')
-				.to('.hero-trust', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.45')
-				.call(() => {
-					gsap.set(elements, { willChange: 'auto', clearProps: 'transform' });
-				});
-
-			// Glow orb -- slow breathing
 			if (glowRef) {
-				gsap.to(glowRef, {
-					scale: 1.08,
-					opacity: 0.7,
-					duration: 6,
-					ease: 'sine.inOut',
-					yoyo: true,
-					repeat: -1
-				});
+				createGlowBreathing(glowRef, { scale: 1.15, opacity: 0.6, duration: 8 });
 			}
 		}, heroRef as HTMLElement);
 
-		return () => {
-			ctx.revert();
-			gsap.set(elements, { clearProps: 'all' });
-		};
+		return () => ctx.revert();
 	});
 
 	function scrollToHowItWorks() {

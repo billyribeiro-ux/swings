@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
-	import { ScrollTrigger } from 'gsap/ScrollTrigger';
+	import { EASE, DURATION, isReducedMotion } from '$lib/utils/animations';
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
 	import Star from 'phosphor-svelte/lib/Star';
 	import Quotes from 'phosphor-svelte/lib/Quotes';
@@ -41,54 +41,60 @@
 	onMount(() => {
 		if (!containerRef) return;
 
-		gsap.registerPlugin(ScrollTrigger);
-
 		const cards = containerRef.querySelectorAll('.testimonial-card');
 		const stats = containerRef.querySelectorAll('.stat-item');
+		const reduced = isReducedMotion();
 
-		gsap.set(cards, { opacity: 0, y: 32, willChange: 'transform, opacity' });
-		gsap.set(stats, { opacity: 0, y: 20, willChange: 'transform, opacity' });
+		gsap.set(cards, {
+			opacity: 0,
+			y: reduced ? 0 : 50,
+			scale: reduced ? 1 : 0.92,
+			filter: reduced ? 'none' : 'blur(8px)',
+			willChange: 'transform, opacity, filter'
+		});
+		gsap.set(stats, {
+			opacity: 0,
+			y: reduced ? 0 : 24,
+			scale: reduced ? 1 : 0.95,
+			filter: reduced ? 'none' : 'blur(4px)',
+			willChange: 'transform, opacity, filter'
+		});
 
 		const ctx = gsap.context(() => {
-			// Cards: simple staggered fade-up
 			gsap.to(cards, {
 				opacity: 1,
 				y: 0,
-				duration: 0.8,
-				stagger: 0.12,
-				ease: 'power3.out',
-				scrollTrigger: {
-					trigger: containerRef,
-					start: 'top 80%',
-					once: true
-				},
+				scale: 1,
+				filter: 'blur(0px)',
+				duration: reduced ? 0.01 : DURATION.cinematic,
+				stagger: reduced ? 0 : 0.15,
+				ease: reduced ? 'none' : EASE.cinematic,
+				scrollTrigger: { trigger: containerRef, start: 'top 78%', once: true },
 				onComplete: () => {
-					gsap.set(cards, { willChange: 'auto', clearProps: 'transform' });
+					gsap.set(cards, { willChange: 'auto', clearProps: 'filter,transform' });
 				}
 			});
 
-			// Stats: fade up after cards
 			gsap.to(stats, {
 				opacity: 1,
 				y: 0,
-				duration: 0.7,
-				stagger: 0.08,
-				ease: 'power3.out',
+				scale: 1,
+				filter: 'blur(0px)',
+				duration: reduced ? 0.01 : DURATION.normal,
+				stagger: reduced ? 0 : 0.08,
+				ease: reduced ? 'none' : EASE.snappy,
 				scrollTrigger: {
 					trigger: stats[0]?.parentElement,
-					start: 'top 90%',
+					start: 'top 88%',
 					once: true
 				},
 				onComplete: () => {
-					gsap.set(stats, { willChange: 'auto', clearProps: 'transform' });
+					gsap.set(stats, { willChange: 'auto', clearProps: 'filter,transform' });
 				}
 			});
 		}, containerRef as HTMLElement);
 
-		return () => {
-			ctx.revert();
-			gsap.set([...cards, ...stats], { clearProps: 'all' });
-		};
+		return () => ctx.revert();
 	});
 </script>
 

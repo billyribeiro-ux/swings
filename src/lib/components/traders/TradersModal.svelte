@@ -9,8 +9,8 @@
 	import { traders } from '$lib/data/traders';
 	import TraderCard from './TraderCard.svelte';
 	import TraderProfile from './TraderProfile.svelte';
-	import { fade, fly } from 'svelte/transition';
-	import { cubicOut } from 'svelte/easing';
+	import { blur, fly } from 'svelte/transition';
+	import { quintOut, expoOut } from 'svelte/easing';
 	import X from 'phosphor-svelte/lib/X';
 
 	$effect(() => {
@@ -44,7 +44,7 @@
 	<!-- Overlay -->
 	<div
 		class="modal-overlay"
-		transition:fade={{ duration: 300 }}
+		transition:blur={{ duration: 400, amount: 8 }}
 		onclick={() => closeModal()}
 		onkeydown={(e) => e.key === 'Enter' && closeModal()}
 		tabindex="0"
@@ -54,7 +54,7 @@
 		<!-- Modal Container -->
 		<div
 			class="modal-container"
-			transition:fly={{ y: 30, duration: 400, easing: cubicOut }}
+			transition:fly={{ y: 40, duration: 500, easing: quintOut }}
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 			role="presentation"
@@ -68,7 +68,7 @@
 			<!-- Content -->
 			<div class="modal-content">
 				{#if $activeView === 'grid'}
-					<div in:fly={{ y: 20, duration: 300, delay: 100 }}>
+					<div in:fly={{ y: 24, duration: 450, delay: 120, easing: expoOut }}>
 						<h2 class="modal-title">Meet The Traders</h2>
 						<p class="modal-subtitle">
 							Get to know the experts behind Explosive Swings and their trading methodologies.
@@ -81,7 +81,7 @@
 						</div>
 					</div>
 				{:else if $activeView === 'profile' && activeTraderData}
-					<div in:fly={{ y: 20, duration: 300 }}>
+					<div in:fly={{ y: 24, duration: 400, easing: expoOut }}>
 						<TraderProfile trader={activeTraderData} />
 					</div>
 				{/if}

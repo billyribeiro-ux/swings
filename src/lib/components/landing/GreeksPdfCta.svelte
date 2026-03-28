@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
-	import { ScrollTrigger } from 'gsap/ScrollTrigger';
+	import { createCinematicReveal, EASE, DURATION, isReducedMotion } from '$lib/utils/animations';
 	import DownloadSimple from 'phosphor-svelte/lib/DownloadSimple';
 	import EnvelopeSimple from 'phosphor-svelte/lib/EnvelopeSimple';
 	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
@@ -16,35 +16,25 @@
 	onMount(() => {
 		if (!containerRef) return;
 
-		gsap.registerPlugin(ScrollTrigger);
-
 		const els = containerRef.querySelectorAll(
 			'.greeks-icon, .greeks-title, .greeks-desc, .greeks-form'
 		);
-		gsap.set(els, { opacity: 0, y: 24, willChange: 'transform, opacity' });
 
 		const ctx = gsap.context(() => {
-			gsap.to(els, {
-				opacity: 1,
-				y: 0,
-				duration: 0.8,
-				stagger: 0.1,
-				ease: 'power3.out',
-				scrollTrigger: {
-					trigger: containerRef,
-					start: 'top 80%',
-					once: true
-				},
-				onComplete: () => {
-					gsap.set(els, { willChange: 'auto', clearProps: 'transform' });
-				}
+			createCinematicReveal({
+				targets: els,
+				trigger: containerRef!,
+				y: 32,
+				blur: 8,
+				scale: 0.96,
+				duration: DURATION.slow,
+				stagger: 0.12,
+				ease: EASE.cinematic,
+				start: 'top 78%'
 			});
 		}, containerRef as HTMLElement);
 
-		return () => {
-			ctx.revert();
-			gsap.set(els, { clearProps: 'all' });
-		};
+		return () => ctx.revert();
 	});
 
 	async function handleSubmit(e: Event) {

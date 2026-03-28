@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
+	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
 	import Article from 'phosphor-svelte/lib/Article';
@@ -12,23 +13,39 @@
 	onMount(() => {
 		if (!heroRef) return;
 
-		const els = ['.blog-badge', '.blog-title', '.blog-subtitle'];
-		gsap.set(els, { opacity: 0, y: 24, willChange: 'transform, opacity' });
-
 		const ctx = gsap.context(() => {
-			const tl = gsap.timeline({ delay: 0.15 });
-			tl.to('.blog-badge', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' })
-				.to('.blog-title', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.35')
-				.to('.blog-subtitle', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.4')
-				.call(() => {
-					gsap.set(els, { willChange: 'auto', clearProps: 'transform' });
-				});
+			createCinematicCascade(heroRef!, [
+				{
+					selector: '.blog-badge',
+					duration: DURATION.fast,
+					ease: EASE.snappy,
+					y: 20,
+					blur: 6,
+					scale: 0.9,
+					overlap: 0
+				},
+				{
+					selector: '.blog-title',
+					duration: DURATION.cinematic,
+					ease: EASE.cinematic,
+					y: 36,
+					blur: 10,
+					scale: 0.95,
+					overlap: 0.6
+				},
+				{
+					selector: '.blog-subtitle',
+					duration: DURATION.slow,
+					ease: EASE.soft,
+					y: 28,
+					blur: 8,
+					scale: 0.98,
+					overlap: 0.6
+				}
+			]);
 		}, heroRef as HTMLElement);
 
-		return () => {
-			ctx.revert();
-			gsap.set(els, { clearProps: 'all' });
-		};
+		return () => ctx.revert();
 	});
 
 	const posts = [

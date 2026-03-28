@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
+	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
 	import { courses } from '$lib/data/courses';
 	import { error } from '@sveltejs/kit';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -31,37 +32,84 @@
 	onMount(() => {
 		if (!heroRef) return;
 
-		const els = [
-			'.cd-back',
-			'.cd-badge',
-			'.cd-title',
-			'.cd-desc',
-			'.cd-meta',
-			'.cd-price',
-			'.cd-cta',
-			'.cd-icon-box'
-		];
-		gsap.set(els, { opacity: 0, y: 20, willChange: 'transform, opacity' });
-
 		const ctx = gsap.context(() => {
-			const tl = gsap.timeline({ delay: 0.15 });
-			tl.to('.cd-back', { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' })
-				.to('.cd-badge', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, '-=0.3')
-				.to('.cd-title', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.35')
-				.to('.cd-desc', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.4')
-				.to('.cd-meta', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, '-=0.4')
-				.to('.cd-price', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, '-=0.35')
-				.to('.cd-cta', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, '-=0.35')
-				.to('.cd-icon-box', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.5')
-				.call(() => {
-					gsap.set(els, { willChange: 'auto', clearProps: 'transform' });
-				});
+			createCinematicCascade(heroRef!, [
+				{
+					selector: '.cd-back',
+					duration: DURATION.fast,
+					ease: EASE.soft,
+					y: 16,
+					blur: 4,
+					scale: 0.95,
+					overlap: 0
+				},
+				{
+					selector: '.cd-badge',
+					duration: DURATION.fast,
+					ease: EASE.snappy,
+					y: 20,
+					blur: 6,
+					scale: 0.9,
+					overlap: 0.5
+				},
+				{
+					selector: '.cd-title',
+					duration: DURATION.cinematic,
+					ease: EASE.cinematic,
+					y: 36,
+					blur: 10,
+					scale: 0.95,
+					overlap: 0.6
+				},
+				{
+					selector: '.cd-desc',
+					duration: DURATION.slow,
+					ease: EASE.soft,
+					y: 28,
+					blur: 8,
+					scale: 0.98,
+					overlap: 0.6
+				},
+				{
+					selector: '.cd-meta',
+					duration: DURATION.normal,
+					ease: EASE.snappy,
+					y: 20,
+					blur: 4,
+					scale: 0.97,
+					overlap: 0.55
+				},
+				{
+					selector: '.cd-price',
+					duration: DURATION.normal,
+					ease: EASE.cinematic,
+					y: 24,
+					blur: 6,
+					scale: 0.96,
+					overlap: 0.55
+				},
+				{
+					selector: '.cd-cta',
+					duration: DURATION.normal,
+					ease: EASE.snappy,
+					y: 20,
+					blur: 6,
+					scale: 0.96,
+					overlap: 0.5
+				},
+				{
+					selector: '.cd-icon-box',
+					duration: DURATION.slow,
+					ease: EASE.back,
+					y: 30,
+					blur: 10,
+					scale: 0.85,
+					overlap: 0.6
+				}
+			]);
 		}, heroRef as HTMLElement);
 
-		return () => {
-			ctx.revert();
-			gsap.set(els, { clearProps: 'all' });
-		};
+		return () => ctx.revert();
 	});
 </script>
 
