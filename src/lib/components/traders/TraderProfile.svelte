@@ -21,7 +21,7 @@
 
 <div class="profile">
 	<!-- Back Button -->
-	<button onclick={backToGrid} class="profile__back">
+	<button onclick={modal.backToGrid} class="profile__back">
 		<ArrowLeft size={20} />
 		<span>All Traders</span>
 	</button>
