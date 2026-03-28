@@ -114,7 +114,7 @@
 </script>
 
 <svelte:head>
-	<title>{course.title} -- Explosive Swings</title>
+	<title>{course.title} - Explosive Swings</title>
 	<meta name="description" content={course.description} />
 </svelte:head>
 

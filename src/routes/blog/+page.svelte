@@ -78,7 +78,7 @@
 </script>
 
 <svelte:head>
-	<title>Blog -- Explosive Swings</title>
+	<title>Blog - Explosive Swings</title>
 	<meta
 		name="description"
 		content="Options trading insights, strategies, and education from the Explosive Swings team."

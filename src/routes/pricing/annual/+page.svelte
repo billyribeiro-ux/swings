@@ -95,7 +95,7 @@
 </script>
 
 <svelte:head>
-	<title>Annual Plan -- Explosive Swings</title>
+	<title>Annual Plan - Explosive Swings</title>
 	<meta
 		name="description"
 		content="Get weekly options watchlists for $932/year. Save 20% vs monthly."

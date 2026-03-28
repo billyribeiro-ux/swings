@@ -52,7 +52,7 @@
 </script>
 
 <svelte:head>
-	<title>About -- Explosive Swings</title>
+	<title>About - Explosive Swings</title>
 	<meta
 		name="description"
 		content="Learn about Explosive Swings, our mission to empower options traders, and the team behind the weekly watchlists."

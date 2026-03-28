@@ -156,7 +156,7 @@
 			<SectionHeader
 				eyebrow="Why Learn Options?"
 				title="Build Skills That Last a Lifetime"
-				subtitle="Options trading gives you leverage, flexibility, and the ability to profit in any market condition -- but only if you know what you're doing."
+				subtitle="Options trading gives you leverage, flexibility, and the ability to profit in any market condition - but only if you know what you're doing."
 			/>
 
 			<div class="why-grid">

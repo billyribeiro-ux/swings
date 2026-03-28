@@ -50,7 +50,7 @@
 	<div class="final-cta-content final-cta__container">
 		<h2 class="final-cta__heading">Trade with Clarity. Trade with Confidence.</h2>
 		<p class="final-cta__desc">
-			Get your weekly watchlist every Sunday night -- detailed entries, targets, exits, and stops so
+			Get your weekly watchlist every Sunday night - detailed entries, targets, exits, and stops so
 			you're prepared before the market opens.
 		</p>
 		<Button variant="primary" href="#pricing">

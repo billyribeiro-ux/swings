@@ -22,7 +22,7 @@ export const courses: Course[] = [
 		title: 'Beginning to Options Trading',
 		level: 'Beginner',
 		description:
-			'Start from scratch. Learn what options are, how they work, and how to place your first trades with confidence -- no prior experience needed.',
+			'Start from scratch. Learn what options are, how they work, and how to place your first trades with confidence - no prior experience needed.',
 		meta: 'Self-Paced | All Levels',
 		icon: 'BookOpen',
 		gradient: { from: '#0B1D3A', to: '#1A3A6B' },

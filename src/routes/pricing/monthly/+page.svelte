@@ -93,7 +93,7 @@
 </script>
 
 <svelte:head>
-	<title>Monthly Plan -- Explosive Swings</title>
+	<title>Monthly Plan - Explosive Swings</title>
 	<meta name="description" content="Get weekly options watchlists for $97/month. Cancel anytime." />
 </svelte:head>
 

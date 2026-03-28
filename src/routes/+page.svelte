@@ -12,15 +12,15 @@
 </script>
 
 <svelte:head>
-	<title>Explosive Swings -- Early Stock Alerts You Can Actually Use</title>
+	<title>Explosive Swings - Early Stock Alerts You Can Actually Use</title>
 	<meta
 		name="description"
-		content="Every Sunday night, get 5–7 top stock picks with defined entries, targets, exits, and stops. Created by Billy Ribeiro, former lead trader at Simpler Trading."
+		content="Every Sunday night, get 5-7 top stock picks with defined entries, targets, exits, and stops. Created by Billy Ribeiro, former lead trader at Simpler Trading."
 	/>
-	<meta property="og:title" content="Explosive Swings -- Weekly Stock Watchlist" />
+	<meta property="og:title" content="Explosive Swings - Weekly Stock Watchlist" />
 	<meta
 		property="og:description"
-		content="Clear, actionable trade ideas delivered every Sunday night. 5–7 picks with entries, targets, exits, and stops."
+		content="Clear, actionable trade ideas delivered every Sunday night. 5-7 picks with entries, targets, exits, and stops."
 	/>
 	<meta property="og:type" content="website" />
 	<meta name="twitter:card" content="summary_large_image" />

@@ -10,7 +10,7 @@
 			icon: Clock,
 			title: 'Early Entry Alerts',
 			description:
-				"Most services notify you after the move has already happened. We send alerts before the breakout, with the exact price level we're watching -- giving you time to plan, not chase."
+				"Most services notify you after the move has already happened. We send alerts before the breakout, with the exact price level we're watching - giving you time to plan, not chase."
 		},
 		{
 			icon: ShieldCheck,
@@ -33,7 +33,7 @@
 			<SectionHeader
 				eyebrow="Why We're Different"
 				title="Most Alert Services Tell You <em>After</em> the Move. We Tell You <em>Before</em>."
-				subtitle="Built on the proprietary 'Move Prior to The Move' methodology -- your watchlist arrives Sunday night so you can set alerts and be positioned before the action starts."
+				subtitle="Built on the proprietary 'Move Prior to The Move' methodology - your watchlist arrives Sunday night so you can set alerts and be positioned before the action starts."
 			/>
 
 			<div class="why-different__grid">

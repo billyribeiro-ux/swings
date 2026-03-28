@@ -131,7 +131,7 @@
 				<div class="hero-trust hero__trust">
 					<div class="hero__trust-avatar">BR</div>
 					<p class="hero__trust-text">
-						Created by <span class="hero__trust-name">Billy Ribeiro</span> -- former lead trader at Simpler
+						Created by <span class="hero__trust-name">Billy Ribeiro</span> - former lead trader at Simpler
 						Trading, mentored by Goldman Sachs' Mark McGoldrick
 					</p>
 				</div>
