@@ -1,3 +1,10 @@
-# allow crawling everything by default
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /login
+Disallow: /register
+Disallow: /success
+Disallow: /api/
+
+Sitemap: https://explosiveswings.com/sitemap.xml

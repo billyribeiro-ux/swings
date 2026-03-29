@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
 	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
+	import Seo from '$lib/seo/Seo.svelte';
 	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
 	import Envelope from 'phosphor-svelte/lib/Envelope';
 	import BrowsersIcon from 'phosphor-svelte/lib/Browsers';
@@ -94,10 +95,11 @@
 	];
 </script>
 
-<svelte:head>
-	<title>Welcome to Explosive Swings!</title>
-	<meta name="robots" content="noindex" />
-</svelte:head>
+<Seo
+	title="Welcome to Explosive Swings!"
+	description="Welcome to Explosive Swings. Your subscription is active."
+	noindex={true}
+/>
 
 <div bind:this={containerRef} class="success-page">
 	<div class="success-page__inner">

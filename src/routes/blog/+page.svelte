@@ -3,6 +3,8 @@
 	import { gsap } from 'gsap';
 	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
+	import Seo from '$lib/seo/Seo.svelte';
+	import { webPageSchema, articleSchema, buildJsonLd } from '$lib/seo/jsonld';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
 	import Article from 'phosphor-svelte/lib/Article';
 	import CalendarBlank from 'phosphor-svelte/lib/CalendarBlank';
@@ -75,15 +77,32 @@
 			category: 'Risk Management'
 		}
 	];
+
+	const jsonLd = buildJsonLd([
+		webPageSchema({
+			path: '/blog',
+			title: 'Blog - Explosive Swings',
+			description:
+				'Options trading insights, strategies, and education from the Explosive Swings team.',
+			speakable: '.blog-title, .blog-subtitle'
+		}),
+		...posts.map((p) =>
+			articleSchema({
+				title: p.title,
+				description: p.excerpt,
+				path: `/blog/${p.slug}`,
+				datePublished: p.date
+			})
+		)
+	]);
 </script>
 
-<svelte:head>
-	<title>Blog - Explosive Swings</title>
-	<meta
-		name="description"
-		content="Options trading insights, strategies, and education from the Explosive Swings team."
-	/>
-</svelte:head>
+<Seo
+	title="Blog - Explosive Swings"
+	description="Options trading insights, strategies, and education from the Explosive Swings team."
+	ogTitle="Options Trading Blog - Explosive Swings"
+	{jsonLd}
+/>
 
 <!-- Hero -->
 <section bind:this={heroRef} class="page-hero">

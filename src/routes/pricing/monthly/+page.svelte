@@ -6,9 +6,22 @@
 	import { createCheckoutSession } from '$lib/utils/stripe';
 	import Button from '$lib/components/ui/Button.svelte';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
+	import Seo from '$lib/seo/Seo.svelte';
+	import { productSchema, buildJsonLd } from '$lib/seo/jsonld';
 	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
 	import CurrencyDollar from 'phosphor-svelte/lib/CurrencyDollar';
+
+	const jsonLd = buildJsonLd([
+		productSchema({
+			name: 'Explosive Swings Monthly Plan',
+			description:
+				'Weekly options watchlists with 5-7 high-probability setups, entry zones, profit targets, and stop losses.',
+			price: '97',
+			path: '/pricing/monthly',
+			billingPeriod: 'month'
+		})
+	]);
 
 	let heroRef: HTMLElement | undefined = $state();
 	let isLoading = $state(false);
@@ -92,10 +105,12 @@
 	];
 </script>
 
-<svelte:head>
-	<title>Monthly Plan - Explosive Swings</title>
-	<meta name="description" content="Get weekly options watchlists for $97/month. Cancel anytime." />
-</svelte:head>
+<Seo
+	title="Monthly Plan - Explosive Swings"
+	description="Get weekly options watchlists for $97/month. Cancel anytime. 5-7 high-probability setups with entries, targets, and stops."
+	ogTitle="Monthly Plan $97/mo - Explosive Swings"
+	{jsonLd}
+/>
 
 <!-- Hero -->
 <section bind:this={heroRef} class="page-hero">

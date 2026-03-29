@@ -9,22 +9,27 @@
 	import GreeksPdfCta from '$lib/components/landing/GreeksPdfCta.svelte';
 	import About from '$lib/components/landing/About.svelte';
 	import FinalCta from '$lib/components/landing/FinalCta.svelte';
+	import Seo from '$lib/seo/Seo.svelte';
+	import { webPageSchema, buildJsonLd } from '$lib/seo/jsonld';
+
+	const jsonLd = buildJsonLd([
+		webPageSchema({
+			path: '/',
+			title: 'Explosive Swings - Early Stock Alerts You Can Actually Use',
+			description:
+				'Every Sunday night, get 5-7 top stock picks with defined entries, targets, exits, and stops. Created by Billy Ribeiro, former lead trader at Simpler Trading.',
+			speakable: '.hero__title, .hero__subtitle'
+		})
+	]);
 </script>
 
-<svelte:head>
-	<title>Explosive Swings - Early Stock Alerts You Can Actually Use</title>
-	<meta
-		name="description"
-		content="Every Sunday night, get 5-7 top stock picks with defined entries, targets, exits, and stops. Created by Billy Ribeiro, former lead trader at Simpler Trading."
-	/>
-	<meta property="og:title" content="Explosive Swings - Weekly Stock Watchlist" />
-	<meta
-		property="og:description"
-		content="Clear, actionable trade ideas delivered every Sunday night. 5-7 picks with entries, targets, exits, and stops."
-	/>
-	<meta property="og:type" content="website" />
-	<meta name="twitter:card" content="summary_large_image" />
-</svelte:head>
+<Seo
+	title="Explosive Swings - Early Stock Alerts You Can Actually Use"
+	description="Every Sunday night, get 5-7 top stock picks with defined entries, targets, exits, and stops. Created by Billy Ribeiro, former lead trader at Simpler Trading."
+	ogTitle="Explosive Swings - Weekly Stock Watchlist"
+	ogDescription="Clear, actionable trade ideas delivered every Sunday night. 5-7 picks with entries, targets, exits, and stops."
+	{jsonLd}
+/>
 
 <Hero />
 <WhyDifferent />

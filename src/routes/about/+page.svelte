@@ -4,11 +4,23 @@
 	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
+	import Seo from '$lib/seo/Seo.svelte';
+	import { webPageSchema, buildJsonLd } from '$lib/seo/jsonld';
 	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
 	import TrendUp from 'phosphor-svelte/lib/TrendUp';
 	import Users from 'phosphor-svelte/lib/Users';
 	import ChartLineUp from 'phosphor-svelte/lib/ChartLineUp';
 	import Target from 'phosphor-svelte/lib/Target';
+
+	const jsonLd = buildJsonLd([
+		webPageSchema({
+			path: '/about',
+			title: 'About Explosive Swings - Our Mission & Team',
+			description:
+				'Learn about Explosive Swings, our mission to empower options traders, and the team behind the weekly watchlists.',
+			speakable: '.about-title, .about-subtitle, .founder-card__name, .founder-card__bio'
+		})
+	]);
 
 	let heroRef: HTMLElement | undefined = $state();
 
@@ -51,13 +63,12 @@
 	});
 </script>
 
-<svelte:head>
-	<title>About - Explosive Swings</title>
-	<meta
-		name="description"
-		content="Learn about Explosive Swings, our mission to empower options traders, and the team behind the weekly watchlists."
-	/>
-</svelte:head>
+<Seo
+	title="About - Explosive Swings"
+	description="Learn about Explosive Swings, our mission to empower options traders, and the team behind the weekly watchlists."
+	ogTitle="About Explosive Swings - Our Mission & Team"
+	{jsonLd}
+/>
 
 <!-- Hero -->
 <section bind:this={heroRef} class="page-hero">
@@ -248,6 +259,9 @@
 							src="/images/freddie-ferber.jpg"
 							alt="Freddie Ferber"
 							class="founder-card__photo"
+							loading="lazy"
+							width="64"
+							height="64"
 						/>
 						<div>
 							<h3 class="founder-card__name">Freddie Ferber</h3>

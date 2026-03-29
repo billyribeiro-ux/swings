@@ -7,6 +7,8 @@
 	import { error } from '@sveltejs/kit';
 	import Button from '$lib/components/ui/Button.svelte';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
+	import Seo from '$lib/seo/Seo.svelte';
+	import { courseSchema, buildJsonLd } from '$lib/seo/jsonld';
 	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
 	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
@@ -26,6 +28,17 @@
 	}
 
 	const Icon = iconMap[course.icon];
+
+	const jsonLd = buildJsonLd([
+		courseSchema({
+			name: course.title,
+			description: course.description,
+			slug: course.slug,
+			level: course.level,
+			duration: course.duration,
+			modules: course.modules
+		})
+	]);
 
 	let heroRef: HTMLElement | undefined = $state();
 
@@ -113,10 +126,12 @@
 	});
 </script>
 
-<svelte:head>
-	<title>{course.title} - Explosive Swings</title>
-	<meta name="description" content={course.description} />
-</svelte:head>
+<Seo
+	title="{course.title} - Explosive Swings"
+	description={course.description}
+	ogTitle="{course.title} - Options Trading Course"
+	{jsonLd}
+/>
 
 <!-- Hero Section -->
 <section

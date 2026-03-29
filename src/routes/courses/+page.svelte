@@ -5,12 +5,34 @@
 	import { courses } from '$lib/data/courses';
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
+	import Seo from '$lib/seo/Seo.svelte';
+	import { webPageSchema, courseSchema, buildJsonLd } from '$lib/seo/jsonld';
 	import BookOpen from 'phosphor-svelte/lib/BookOpen';
 	import Pulse from 'phosphor-svelte/lib/Pulse';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
 	import Clock from 'phosphor-svelte/lib/Clock';
 	import GraduationCap from 'phosphor-svelte/lib/GraduationCap';
 	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
+
+	const jsonLd = buildJsonLd([
+		webPageSchema({
+			path: '/courses',
+			title: 'Options Trading Courses - Explosive Swings',
+			description:
+				'Structured courses designed to take you from the basics to confidently trading options at your own pace.',
+			speakable: '.courses-title, .courses-subtitle'
+		}),
+		...courses.map((c) =>
+			courseSchema({
+				name: c.title,
+				description: c.description,
+				slug: c.slug,
+				level: c.level,
+				duration: c.duration,
+				modules: c.modules
+			})
+		)
+	]);
 
 	const iconMap: Record<string, typeof BookOpen> = { BookOpen, Pulse };
 
@@ -55,13 +77,12 @@
 	});
 </script>
 
-<svelte:head>
-	<title>Options Trading Courses -- Explosive Swings</title>
-	<meta
-		name="description"
-		content="Structured courses designed to take you from the basics to confidently trading options -- at your own pace."
-	/>
-</svelte:head>
+<Seo
+	title="Options Trading Courses - Explosive Swings"
+	description="Structured courses designed to take you from the basics to confidently trading options at your own pace."
+	ogTitle="Options Trading Courses - Explosive Swings"
+	{jsonLd}
+/>
 
 <!-- Hero Section -->
 <section bind:this={heroRef} class="page-hero">
