@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: swings
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-swings_secret}
+      POSTGRES_DB: swings
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U swings -d swings"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://swings:${POSTGRES_PASSWORD:-swings_secret}@db:5432/swings
+      JWT_SECRET: ${JWT_SECRET:-explosive-swings-jwt-secret-key-2026}
+      JWT_EXPIRATION_HOURS: 24
+      REFRESH_TOKEN_EXPIRATION_DAYS: 30
+      PORT: 3001
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      UPLOAD_DIR: /app/uploads
+      API_URL: ${API_URL:-http://localhost:3001}
+    ports:
+      - "3001:3001"
+    volumes:
+      - uploads:/app/uploads
+
+volumes:
+  pgdata:
+  uploads:
