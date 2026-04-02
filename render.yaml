@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: swings-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: swings-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRATION_HOURS
+        value: "24"
+      - key: REFRESH_TOKEN_EXPIRATION_DAYS
+        value: "30"
+      - key: PORT
+        value: "3001"
+      - key: FRONTEND_URL
+        value: "https://swings-gamma.vercel.app"
+      - key: UPLOAD_DIR
+        value: "./uploads"
+
+databases:
+  - name: swings-db
+    plan: free
+    databaseName: swings
+    user: swings
