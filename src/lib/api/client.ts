@@ -17,7 +17,11 @@ class ApiClient {
 		const { skipAuth, ...fetchOptions } = options;
 		const headers = new Headers(fetchOptions.headers);
 
-		if (!headers.has('Content-Type') && fetchOptions.body) {
+		if (
+			!headers.has('Content-Type') &&
+			fetchOptions.body &&
+			!(fetchOptions.body instanceof FormData)
+		) {
 			headers.set('Content-Type', 'application/json');
 		}
 
@@ -97,6 +101,18 @@ class ApiClient {
 
 	async del<T>(endpoint: string, options?: FetchOptions): Promise<T> {
 		return this.request<T>(endpoint, { ...options, method: 'DELETE' });
+	}
+
+	async delete<T>(endpoint: string, options?: FetchOptions): Promise<T> {
+		return this.del<T>(endpoint, options);
+	}
+
+	async upload<T>(endpoint: string, formData: FormData, options?: FetchOptions): Promise<T> {
+		return this.request<T>(endpoint, {
+			...options,
+			method: 'POST',
+			body: formData
+		});
 	}
 }
 

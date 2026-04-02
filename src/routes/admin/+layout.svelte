@@ -5,6 +5,7 @@
 	import ChartBar from 'phosphor-svelte/lib/ChartBar';
 	import Users from 'phosphor-svelte/lib/Users';
 	import ListChecks from 'phosphor-svelte/lib/ListChecks';
+	import Article from 'phosphor-svelte/lib/Article';
 	import SignOut from 'phosphor-svelte/lib/SignOut';
 	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
 
@@ -26,6 +27,14 @@
 		{ href: '/admin/members', label: 'Members', icon: Users },
 		{ href: '/admin/watchlists', label: 'Watchlists', icon: ListChecks }
 	];
+
+	const blogItems = [
+		{ href: '/admin/blog', label: 'All Posts' },
+		{ href: '/admin/blog/new', label: 'New Post' },
+		{ href: '/admin/blog/categories', label: 'Categories' },
+		{ href: '/admin/blog/tags', label: 'Tags' },
+		{ href: '/admin/blog/media', label: 'Media' }
+	];
 </script>
 
 {#if auth.isAdmin}
@@ -46,6 +55,18 @@
 						<span>{item.label}</span>
 					</a>
 				{/each}
+
+				<div class="admin__nav-section">
+					<div class="admin__nav-link admin__nav-link--header">
+						<Article size={20} weight="duotone" />
+						<span>Blog</span>
+					</div>
+					{#each blogItems as item (item.href)}
+						<a href={item.href} class="admin__nav-sublink">
+							{item.label}
+						</a>
+					{/each}
+				</div>
 			</nav>
 
 			<div class="admin__sidebar-footer">
@@ -151,6 +172,34 @@
 	.admin__nav-link--back {
 		color: var(--color-teal);
 		margin-bottom: 0.5rem;
+	}
+
+	.admin__nav-link--header {
+		cursor: default;
+		margin-top: 0.5rem;
+		color: var(--color-grey-300);
+		font-weight: var(--w-semibold);
+	}
+
+	.admin__nav-section {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.admin__nav-sublink {
+		display: block;
+		padding: 0.4rem 0.75rem 0.4rem 2.75rem;
+		color: var(--color-grey-400);
+		font-size: var(--fs-xs);
+		font-weight: var(--w-medium);
+		text-decoration: none;
+		border-radius: var(--radius-md);
+		transition: all 200ms var(--ease-out);
+	}
+
+	.admin__nav-sublink:hover {
+		color: var(--color-white);
+		background-color: rgba(255, 255, 255, 0.05);
 	}
 
 	.admin__sidebar-footer {
