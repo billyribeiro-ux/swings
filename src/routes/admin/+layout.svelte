@@ -34,7 +34,7 @@
 				{ skipAuth: true }
 			);
 
-			if (res.user.role !== 'admin') {
+			if (res.user.role.toLowerCase() !== 'admin') {
 				loginError = 'Access denied. Admin credentials required.';
 				loginLoading = false;
 				return;

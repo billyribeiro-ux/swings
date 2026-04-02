@@ -24,7 +24,7 @@
 
 			auth.setAuth(res.user, res.access_token, res.refresh_token);
 
-			if (res.user.role === 'admin') {
+			if (res.user.role.toLowerCase() === 'admin') {
 				goto('/admin');
 			} else {
 				goto('/dashboard');
