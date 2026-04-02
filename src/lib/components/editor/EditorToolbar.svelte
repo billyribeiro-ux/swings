@@ -32,9 +32,7 @@
 		CodeBlock,
 		FrameAll,
 		Frame,
-		CaretDown,
-		X,
-		XCircle
+		X
 	} from 'phosphor-svelte';
 
 	interface Props {
