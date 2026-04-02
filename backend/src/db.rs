@@ -127,6 +127,65 @@ pub async fn recent_members(pool: &PgPool, limit: i64) -> Result<Vec<User>, sqlx
     .await
 }
 
+// ── Password Reset Tokens ───────────────────────────────────────────────
+
+pub async fn create_password_reset_token(
+    pool: &PgPool,
+    user_id: Uuid,
+    token_hash: &str,
+    expires_at: DateTime<Utc>,
+) -> Result<(), sqlx::Error> {
+    // Invalidate any existing unused tokens for this user
+    sqlx::query("UPDATE password_reset_tokens SET used = TRUE WHERE user_id = $1 AND used = FALSE")
+        .bind(user_id)
+        .execute(pool)
+        .await?;
+
+    sqlx::query(
+        "INSERT INTO password_reset_tokens (id, user_id, token_hash, expires_at) VALUES ($1, $2, $3, $4)",
+    )
+    .bind(Uuid::new_v4())
+    .bind(user_id)
+    .bind(token_hash)
+    .bind(expires_at)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn find_password_reset_token(
+    pool: &PgPool,
+    token_hash: &str,
+) -> Result<Option<PasswordResetToken>, sqlx::Error> {
+    sqlx::query_as::<_, PasswordResetToken>(
+        "SELECT * FROM password_reset_tokens WHERE token_hash = $1 AND used = FALSE AND expires_at > NOW()"
+    )
+    .bind(token_hash)
+    .fetch_optional(pool)
+    .await
+}
+
+pub async fn mark_reset_token_used(pool: &PgPool, token_id: Uuid) -> Result<(), sqlx::Error> {
+    sqlx::query("UPDATE password_reset_tokens SET used = TRUE WHERE id = $1")
+        .bind(token_id)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
+pub async fn update_user_password(
+    pool: &PgPool,
+    user_id: Uuid,
+    password_hash: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query("UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2")
+        .bind(password_hash)
+        .bind(user_id)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
 // ── Refresh Tokens ──────────────────────────────────────────────────────
 
 pub async fn store_refresh_token(

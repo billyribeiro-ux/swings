@@ -84,6 +84,31 @@ pub struct TokenResponse {
     pub refresh_token: String,
 }
 
+// ── Password Reset ──────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct PasswordResetToken {
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub token_hash: String,
+    pub expires_at: DateTime<Utc>,
+    pub used: bool,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct ForgotPasswordRequest {
+    #[validate(email(message = "Invalid email address"))]
+    pub email: String,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct ResetPasswordRequest {
+    pub token: String,
+    #[validate(length(min = 8, message = "Password must be at least 8 characters"))]
+    pub new_password: String,
+}
+
 // ── Subscription ────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api, ApiError } from '$lib/api/client';
@@ -12,6 +13,9 @@
 	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
 
 	let { children } = $props();
+
+	const publicRoutes = ['/admin/forgot-password', '/admin/reset-password'];
+	const isPublicRoute = $derived(publicRoutes.some((r) => $page.url.pathname.startsWith(r)));
 
 	let email = $state('');
 	let password = $state('');
@@ -67,7 +71,9 @@
 	];
 </script>
 
-{#if !auth.isAuthenticated || !auth.isAdmin}
+{#if isPublicRoute}
+	{@render children()}
+{:else if !auth.isAuthenticated || !auth.isAdmin}
 	<div class="admin-login">
 		<div class="admin-login__card">
 			<div class="admin-login__header">
@@ -116,6 +122,7 @@
 				</button>
 			</form>
 
+			<a href="/admin/forgot-password" class="admin-login__forgot">Forgot password?</a>
 			<a href="/" class="admin-login__back">← Back to site</a>
 		</div>
 	</div>
@@ -495,10 +502,25 @@
 		cursor: not-allowed;
 	}
 
+	.admin-login__forgot {
+		display: block;
+		text-align: center;
+		margin-top: 1rem;
+		color: var(--color-teal);
+		font-size: var(--fs-sm);
+		text-decoration: none;
+		font-weight: var(--w-medium);
+		transition: opacity 200ms;
+	}
+
+	.admin-login__forgot:hover {
+		opacity: 0.8;
+	}
+
 	.admin-login__back {
 		display: block;
 		text-align: center;
-		margin-top: 1.5rem;
+		margin-top: 0.75rem;
 		color: var(--color-grey-400);
 		font-size: var(--fs-sm);
 		text-decoration: none;
