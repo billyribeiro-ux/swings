@@ -2,6 +2,7 @@ import { courses } from '$lib/data/courses';
 import type { RequestHandler } from './$types';
 
 const SITE_URL = 'https://explosiveswings.com';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 const staticPages = [
 	{ path: '/', priority: '1.0', changefreq: 'weekly' },
@@ -21,7 +22,23 @@ export const GET: RequestHandler = async () => {
 		changefreq: 'monthly'
 	}));
 
-	const allPages = [...staticPages, ...coursePages];
+	// Fetch blog post slugs for sitemap
+	let blogPages: { path: string; priority: string; changefreq: string }[] = [];
+	try {
+		const res = await fetch(`${API_BASE}/api/blog/slugs`);
+		if (res.ok) {
+			const slugs: string[] = await res.json();
+			blogPages = slugs.map((slug) => ({
+				path: `/blog/${slug}`,
+				priority: '0.7',
+				changefreq: 'weekly'
+			}));
+		}
+	} catch {
+		// API unavailable at build time — skip blog pages
+	}
+
+	const allPages = [...staticPages, ...coursePages, ...blogPages];
 
 	const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

@@ -16,7 +16,7 @@
 	interface Props {
 		mode: 'create' | 'edit';
 		post?: BlogPostResponse | null;
-		onSave: (payload: CreatePostPayload | UpdatePostPayload) => Promise<BlogPostResponse>;
+		onSave: (payload: any) => Promise<BlogPostResponse>;
 		onSaved?: (post: BlogPostResponse) => void;
 	}
 
@@ -253,7 +253,10 @@
 	}
 
 	async function restoreRevision(revId: string) {
-		if (!post || !confirm('Restore this revision? Current content will be saved as a new revision.'))
+		if (
+			!post ||
+			!confirm('Restore this revision? Current content will be saved as a new revision.')
+		)
 			return;
 		try {
 			const result = await api.post<BlogPostResponse>(
@@ -292,8 +295,8 @@
 		<!-- Editor -->
 		<BlogEditor
 			bind:this={editorComponent}
-			content={content}
-			contentJson={contentJson}
+			{content}
+			{contentJson}
 			onUpdate={handleEditorUpdate}
 			onWordCount={handleWordCount}
 			onInsertImage={openMediaForEditor}
@@ -365,11 +368,7 @@
 					{#if status === 'scheduled'}
 						<label class="sidebar-field">
 							<span class="sidebar-field__label">Schedule for</span>
-							<input
-								type="datetime-local"
-								class="sidebar-field__input"
-								bind:value={scheduledAt}
-							/>
+							<input type="datetime-local" class="sidebar-field__input" bind:value={scheduledAt} />
 						</label>
 					{/if}
 
@@ -565,10 +564,7 @@
 											})}
 										</span>
 									</div>
-									<button
-										class="revision-item__restore"
-										onclick={() => restoreRevision(rev.id)}
-									>
+									<button class="revision-item__restore" onclick={() => restoreRevision(rev.id)}>
 										Restore
 									</button>
 								</div>
