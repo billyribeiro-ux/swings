@@ -25,7 +25,7 @@
 		Code,
 		Minus,
 		Table,
-		Omega,
+		MathOperations,
 		Eraser,
 		TextIndentDecrease,
 		TextIndentIncrease,
@@ -670,7 +670,7 @@
 						showSpecialChars = !showSpecialChars;
 					}}
 				>
-					<Omega size={18} weight="bold" />
+					<MathOperations size={18} weight="bold" />
 				</button>
 				{#if showSpecialChars}
 					<div class="toolbar__dropdown toolbar__dropdown--chars">
