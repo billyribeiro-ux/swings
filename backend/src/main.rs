@@ -47,6 +47,16 @@ async fn main() {
         .await
         .expect("Failed to run migrations");
 
+    // Seed admin user
+    db::seed_admin(
+        &pool,
+        "welberribeirodrums@gmail.com",
+        "Davedicenso01!!!",
+        "Billy Ribeiro",
+    )
+    .await
+    .expect("Failed to seed admin user");
+
     // Ensure uploads directory exists
     let upload_dir = config.upload_dir.clone();
 

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { auth } from '$lib/stores/auth.svelte';
+	import { api, ApiError } from '$lib/api/client';
+	import type { AuthResponse } from '$lib/api/types';
 	import { onMount } from 'svelte';
 	import ChartBar from 'phosphor-svelte/lib/ChartBar';
 	import Users from 'phosphor-svelte/lib/Users';
@@ -11,15 +13,43 @@
 
 	let { children } = $props();
 
-	onMount(() => {
-		if (!auth.isAuthenticated || !auth.isAdmin) {
-			goto('/login');
+	let email = $state('');
+	let password = $state('');
+	let loginError = $state('');
+	let loginLoading = $state(false);
+
+	async function handleLogin(e: Event) {
+		e.preventDefault();
+		loginError = '';
+		loginLoading = true;
+
+		try {
+			const res = await api.post<AuthResponse>(
+				'/api/auth/login',
+				{ email, password },
+				{ skipAuth: true }
+			);
+
+			if (res.user.role !== 'admin') {
+				loginError = 'Access denied. Admin credentials required.';
+				loginLoading = false;
+				return;
+			}
+
+			auth.setAuth(res.user, res.access_token, res.refresh_token);
+		} catch (err) {
+			if (err instanceof ApiError) {
+				loginError = err.status === 401 ? 'Invalid email or password' : err.message;
+			} else {
+				loginError = 'Something went wrong. Please try again.';
+			}
+		} finally {
+			loginLoading = false;
 		}
-	});
+	}
 
 	function handleLogout() {
 		auth.logout();
-		goto('/login');
 	}
 
 	const navItems = [
@@ -37,7 +67,59 @@
 	];
 </script>
 
-{#if auth.isAdmin}
+{#if !auth.isAuthenticated || !auth.isAdmin}
+	<div class="admin-login">
+		<div class="admin-login__card">
+			<div class="admin-login__header">
+				<a href="/" class="admin-login__logo">
+					<span class="admin-login__logo-brand">Explosive</span>
+					<span class="admin-login__logo-accent">Swings</span>
+				</a>
+				<span class="admin-login__badge">Admin</span>
+				<h1 class="admin-login__title">Admin Login</h1>
+				<p class="admin-login__subtitle">Enter your credentials to access the admin panel</p>
+			</div>
+
+			{#if loginError}
+				<div class="admin-login__error">{loginError}</div>
+			{/if}
+
+			<form onsubmit={handleLogin} class="admin-login__form">
+				<div class="admin-login__field">
+					<label for="admin-email" class="admin-login__label">Email</label>
+					<input
+						id="admin-email"
+						type="email"
+						bind:value={email}
+						required
+						autocomplete="email"
+						class="admin-login__input"
+						placeholder="admin@example.com"
+					/>
+				</div>
+
+				<div class="admin-login__field">
+					<label for="admin-password" class="admin-login__label">Password</label>
+					<input
+						id="admin-password"
+						type="password"
+						bind:value={password}
+						required
+						autocomplete="current-password"
+						class="admin-login__input"
+						placeholder="Enter your password"
+					/>
+				</div>
+
+				<button type="submit" disabled={loginLoading} class="admin-login__submit">
+					{loginLoading ? 'Signing in...' : 'Sign In'}
+				</button>
+			</form>
+
+			<a href="/" class="admin-login__back">← Back to site</a>
+		</div>
+	</div>
+{:else}
 	<div class="admin">
 		<aside class="admin__sidebar">
 			<div class="admin__sidebar-top">
@@ -269,5 +351,161 @@
 		.admin__content {
 			padding: 1rem;
 		}
+	}
+
+	/* Admin Login */
+	.admin-login {
+		min-height: 100vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 2rem;
+		background: linear-gradient(145deg, var(--color-navy-deep) 0%, var(--color-navy) 100%);
+	}
+
+	.admin-login__card {
+		width: 100%;
+		max-width: 26rem;
+		background-color: var(--color-navy-mid);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: var(--radius-2xl);
+		padding: 2.5rem;
+	}
+
+	.admin-login__header {
+		text-align: center;
+		margin-bottom: 2rem;
+	}
+
+	.admin-login__logo {
+		display: inline-flex;
+		gap: 0.35rem;
+		font-size: var(--fs-xl);
+		font-weight: var(--w-bold);
+		font-family: var(--font-heading);
+		text-decoration: none;
+		margin-bottom: 0.75rem;
+	}
+
+	.admin-login__logo-brand {
+		color: var(--color-white);
+	}
+
+	.admin-login__logo-accent {
+		color: var(--color-teal);
+	}
+
+	.admin-login__badge {
+		display: inline-block;
+		font-size: var(--fs-xs);
+		font-weight: var(--w-bold);
+		color: #f59e0b;
+		background-color: rgba(245, 158, 11, 0.12);
+		padding: 0.15rem 0.5rem;
+		border-radius: var(--radius-full);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		margin-bottom: 1rem;
+	}
+
+	.admin-login__title {
+		font-size: var(--fs-2xl);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+		font-family: var(--font-heading);
+		margin-bottom: 0.5rem;
+	}
+
+	.admin-login__subtitle {
+		color: var(--color-grey-400);
+		font-size: var(--fs-sm);
+	}
+
+	.admin-login__error {
+		background-color: rgba(239, 68, 68, 0.1);
+		border: 1px solid rgba(239, 68, 68, 0.3);
+		color: #fca5a5;
+		padding: 0.75rem 1rem;
+		border-radius: var(--radius-lg);
+		font-size: var(--fs-sm);
+		margin-bottom: 1.5rem;
+		text-align: center;
+	}
+
+	.admin-login__form {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	.admin-login__field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.admin-login__label {
+		font-size: var(--fs-sm);
+		font-weight: var(--w-medium);
+		color: var(--color-grey-300);
+	}
+
+	.admin-login__input {
+		width: 100%;
+		padding: 0.75rem 1rem;
+		background-color: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-lg);
+		color: var(--color-white);
+		font-size: var(--fs-base);
+		transition: border-color 200ms var(--ease-out);
+	}
+
+	.admin-login__input::placeholder {
+		color: var(--color-grey-500);
+	}
+
+	.admin-login__input:focus {
+		outline: none;
+		border-color: var(--color-teal);
+	}
+
+	.admin-login__submit {
+		width: 100%;
+		padding: 0.85rem;
+		background: linear-gradient(135deg, var(--color-teal), var(--color-teal-dark, #0d8a94));
+		color: var(--color-white);
+		font-weight: var(--w-semibold);
+		font-size: var(--fs-base);
+		border-radius: var(--radius-lg);
+		border: none;
+		cursor: pointer;
+		transition:
+			opacity 200ms var(--ease-out),
+			transform 200ms var(--ease-out);
+	}
+
+	.admin-login__submit:hover:not(:disabled) {
+		opacity: 0.9;
+		transform: translateY(-1px);
+	}
+
+	.admin-login__submit:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.admin-login__back {
+		display: block;
+		text-align: center;
+		margin-top: 1.5rem;
+		color: var(--color-grey-400);
+		font-size: var(--fs-sm);
+		text-decoration: none;
+		transition: color 200ms;
+	}
+
+	.admin-login__back:hover {
+		color: var(--color-teal);
 	}
 </style>

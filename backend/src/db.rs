@@ -83,6 +83,41 @@ pub async fn delete_user(pool: &PgPool, user_id: Uuid) -> Result<(), sqlx::Error
     Ok(())
 }
 
+pub async fn seed_admin(pool: &PgPool, email: &str, password: &str, name: &str) -> Result<(), Box<dyn std::error::Error>> {
+    use argon2::{
+        password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
+        Argon2,
+    };
+
+    let existing = find_user_by_email(pool, email).await?;
+    if existing.is_some() {
+        tracing::info!("Admin user already exists, skipping seed");
+        return Ok(());
+    }
+
+    let salt = SaltString::generate(&mut OsRng);
+    let password_hash = Argon2::default()
+        .hash_password(password.as_bytes(), &salt)
+        .map_err(|e| format!("Password hash error: {e}"))?
+        .to_string();
+
+    sqlx::query(
+        r#"
+        INSERT INTO users (id, email, password_hash, name, role)
+        VALUES ($1, $2, $3, $4, 'admin')
+        "#,
+    )
+    .bind(Uuid::new_v4())
+    .bind(email)
+    .bind(&password_hash)
+    .bind(name)
+    .execute(pool)
+    .await?;
+
+    tracing::info!("Admin user seeded: {}", email);
+    Ok(())
+}
+
 pub async fn recent_members(pool: &PgPool, limit: i64) -> Result<Vec<User>, sqlx::Error> {
     sqlx::query_as::<_, User>(
         "SELECT * FROM users WHERE role = 'member' ORDER BY created_at DESC LIMIT $1",
