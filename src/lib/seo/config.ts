@@ -8,7 +8,7 @@ export const SITE = {
 	twitterHandle: '@explosiveswings',
 	logo: 'https://explosiveswings.com/favicon.svg',
 	ogImage: 'https://explosiveswings.com/og-image.png',
-	foundingDate: '2023',
+	foundingDate: '2022',
 	priceRange: '$49–$399'
 } as const;
 
@@ -17,12 +17,9 @@ export const FOUNDERS = {
 		name: 'Billy Ribeiro',
 		role: 'Co-Founder & Head Trader',
 		url: 'https://explosiveswings.com/about',
-		sameAs: [
-			'https://twitter.com/billyribeiro',
-			'https://www.linkedin.com/in/billyribeiro'
-		],
+		sameAs: ['https://twitter.com/billyribeiro', 'https://www.linkedin.com/in/billyribeiro'],
 		description:
-			'Over a decade of institutional-grade market experience, including head trader at ZMC Capital. Mentored by Mark McGoldrick, Goldman Sachs\' former Global Head of Proprietary Trading.',
+			"Over a decade of institutional-grade market experience, including head trader at ZMC Capital. Mentored by Mark McGoldrick, Goldman Sachs' former Global Head of Proprietary Trading.",
 		jobTitle: 'Head Trader & Options Strategist',
 		knowsAbout: [
 			'Options Trading',
@@ -41,11 +38,17 @@ export const FOUNDERS = {
 		description:
 			'A practitioner-turned-educator who brings real-world trading clarity to traders at every level.',
 		jobTitle: 'Lead Trading Educator',
-		knowsAbout: [
-			'Options Trading',
-			'Trading Education',
-			'Swing Trading',
-			'Technical Analysis'
-		]
+		knowsAbout: ['Options Trading', 'Trading Education', 'Swing Trading', 'Technical Analysis']
+	},
+	shaowan: {
+		name: 'Shao Wan',
+		role: 'Lead Educator',
+		url: 'https://explosiveswings.com/about',
+		image: 'https://explosiveswings.com/images/shao-wan.jpg',
+		sameAs: [] as string[],
+		description:
+			'A practitioner-turned-educator who brings real-world trading clarity to traders at every level.',
+		jobTitle: 'Lead Trading Educator',
+		knowsAbout: ['Options Trading', 'Trading Education', 'Swing Trading', 'Technical Analysis']
 	}
 } as const;

@@ -86,3 +86,160 @@ export interface PaginatedResponse<T> {
 	per_page: number;
 	total_pages: number;
 }
+
+// ── Blog ───────────────────────────────────────────────────────────────
+
+export type PostStatus =
+	| 'draft'
+	| 'pending_review'
+	| 'published'
+	| 'private'
+	| 'scheduled'
+	| 'trash';
+
+export interface BlogPostResponse {
+	id: string;
+	author_id: string;
+	author_name: string;
+	author_avatar: string | null;
+	title: string;
+	slug: string;
+	content: string;
+	content_json: Record<string, unknown> | null;
+	excerpt: string | null;
+	featured_image_url: string | null;
+	status: PostStatus;
+	visibility: string;
+	is_sticky: boolean;
+	allow_comments: boolean;
+	meta_title: string | null;
+	meta_description: string | null;
+	canonical_url: string | null;
+	og_image_url: string | null;
+	reading_time_minutes: number;
+	word_count: number;
+	categories: BlogCategory[];
+	tags: BlogTag[];
+	scheduled_at: string | null;
+	published_at: string | null;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface BlogPostListItem {
+	id: string;
+	author_id: string;
+	author_name: string;
+	title: string;
+	slug: string;
+	excerpt: string | null;
+	featured_image_url: string | null;
+	status: PostStatus;
+	is_sticky: boolean;
+	reading_time_minutes: number;
+	word_count: number;
+	published_at: string | null;
+	created_at: string;
+	updated_at: string;
+	categories: BlogCategory[];
+	tags: BlogTag[];
+}
+
+export interface CreatePostPayload {
+	title: string;
+	slug?: string;
+	content?: string;
+	content_json?: Record<string, unknown>;
+	excerpt?: string;
+	featured_image_id?: string;
+	status?: PostStatus;
+	visibility?: string;
+	is_sticky?: boolean;
+	allow_comments?: boolean;
+	meta_title?: string;
+	meta_description?: string;
+	canonical_url?: string;
+	og_image_url?: string;
+	category_ids?: string[];
+	tag_ids?: string[];
+	scheduled_at?: string;
+}
+
+export interface UpdatePostPayload {
+	title?: string;
+	slug?: string;
+	content?: string;
+	content_json?: Record<string, unknown>;
+	excerpt?: string;
+	featured_image_id?: string;
+	status?: PostStatus;
+	visibility?: string;
+	is_sticky?: boolean;
+	allow_comments?: boolean;
+	meta_title?: string;
+	meta_description?: string;
+	canonical_url?: string;
+	og_image_url?: string;
+	category_ids?: string[];
+	tag_ids?: string[];
+	scheduled_at?: string;
+}
+
+export interface AutosavePayload {
+	title?: string;
+	content?: string;
+	content_json?: Record<string, unknown>;
+}
+
+export interface BlogCategory {
+	id: string;
+	name: string;
+	slug: string;
+	description: string | null;
+	parent_id: string | null;
+	sort_order: number;
+	created_at: string;
+}
+
+export interface BlogTag {
+	id: string;
+	name: string;
+	slug: string;
+	created_at: string;
+}
+
+export interface BlogRevision {
+	id: string;
+	post_id: string;
+	author_id: string;
+	author_name: string;
+	title: string;
+	revision_number: number;
+	created_at: string;
+}
+
+export interface MediaItem {
+	id: string;
+	uploader_id: string;
+	filename: string;
+	original_filename: string;
+	mime_type: string;
+	file_size: number;
+	width: number | null;
+	height: number | null;
+	alt_text: string | null;
+	caption: string | null;
+	storage_path: string;
+	url: string;
+	created_at: string;
+}
+
+export interface PostListFilters {
+	page?: number;
+	per_page?: number;
+	status?: PostStatus;
+	author_id?: string;
+	category_slug?: string;
+	tag_slug?: string;
+	search?: string;
+}

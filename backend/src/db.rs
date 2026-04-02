@@ -502,3 +502,683 @@ pub async fn count_enrollments(pool: &PgPool) -> Result<i64, sqlx::Error> {
         .await?;
     Ok(row.0)
 }
+
+// ── Blog Posts ─────────────────────────────────────────────────────────
+
+fn slugify(s: &str) -> String {
+    s.to_lowercase()
+        .chars()
+        .map(|c| if c.is_alphanumeric() { c } else { '-' })
+        .collect::<String>()
+        .split('-')
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<_>>()
+        .join("-")
+}
+
+fn compute_word_count(html: &str) -> i32 {
+    let text: String = html
+        .chars()
+        .fold((String::new(), false), |(mut out, in_tag), c| {
+            if c == '<' { (out, true) }
+            else if c == '>' { out.push(' '); (out, false) }
+            else if !in_tag { out.push(c); (out, false) }
+            else { (out, true) }
+        })
+        .0;
+    text.split_whitespace().count() as i32
+}
+
+fn compute_reading_time(word_count: i32) -> i32 {
+    (word_count as f64 / 238.0).ceil() as i32
+}
+
+pub async fn create_blog_post(
+    pool: &PgPool,
+    author_id: Uuid,
+    req: &CreatePostRequest,
+) -> Result<BlogPost, sqlx::Error> {
+    let slug = req.slug.as_deref()
+        .map(|s| slugify(s))
+        .unwrap_or_else(|| slugify(&req.title));
+    let content = req.content.as_deref().unwrap_or("");
+    let wc = compute_word_count(content);
+    let rt = compute_reading_time(wc);
+    let status = req.status.clone().unwrap_or(PostStatus::Draft);
+    let published_at = if status == PostStatus::Published { Some(Utc::now()) } else { None };
+
+    sqlx::query_as::<_, BlogPost>(
+        r#"
+        INSERT INTO blog_posts (
+            id, author_id, title, slug, content, content_json, excerpt,
+            featured_image_id, status, visibility, is_sticky, allow_comments,
+            meta_title, meta_description, canonical_url, og_image_url,
+            reading_time_minutes, word_count, scheduled_at, published_at
+        ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7,
+            $8, $9, $10, $11, $12,
+            $13, $14, $15, $16,
+            $17, $18, $19, $20
+        ) RETURNING *
+        "#,
+    )
+    .bind(Uuid::new_v4())
+    .bind(author_id)
+    .bind(&req.title)
+    .bind(&slug)
+    .bind(content)
+    .bind(&req.content_json)
+    .bind(req.excerpt.as_deref().unwrap_or(""))
+    .bind(req.featured_image_id)
+    .bind(&status)
+    .bind(req.visibility.as_deref().unwrap_or("public"))
+    .bind(req.is_sticky.unwrap_or(false))
+    .bind(req.allow_comments.unwrap_or(true))
+    .bind(req.meta_title.as_deref().unwrap_or(""))
+    .bind(req.meta_description.as_deref().unwrap_or(""))
+    .bind(req.canonical_url.as_deref().unwrap_or(""))
+    .bind(req.og_image_url.as_deref().unwrap_or(""))
+    .bind(rt)
+    .bind(wc)
+    .bind(req.scheduled_at)
+    .bind(published_at)
+    .fetch_one(pool)
+    .await
+}
+
+pub async fn update_blog_post(
+    pool: &PgPool,
+    post_id: Uuid,
+    req: &UpdatePostRequest,
+) -> Result<BlogPost, sqlx::Error> {
+    let existing = sqlx::query_as::<_, BlogPost>("SELECT * FROM blog_posts WHERE id = $1")
+        .bind(post_id)
+        .fetch_one(pool)
+        .await?;
+
+    let title = req.title.as_deref().unwrap_or(&existing.title);
+    let slug = req.slug.as_deref()
+        .map(|s| slugify(s))
+        .unwrap_or_else(|| existing.slug.clone());
+    let content = req.content.as_deref().unwrap_or(&existing.content);
+    let wc = compute_word_count(content);
+    let rt = compute_reading_time(wc);
+    let status = req.status.clone().unwrap_or(existing.status.clone());
+    let published_at = if status == PostStatus::Published && existing.published_at.is_none() {
+        Some(Utc::now())
+    } else {
+        existing.published_at
+    };
+
+    sqlx::query_as::<_, BlogPost>(
+        r#"
+        UPDATE blog_posts SET
+            title = $1, slug = $2, content = $3, content_json = $4, excerpt = $5,
+            featured_image_id = $6, status = $7, visibility = $8, is_sticky = $9,
+            allow_comments = $10, meta_title = $11, meta_description = $12,
+            canonical_url = $13, og_image_url = $14, reading_time_minutes = $15,
+            word_count = $16, scheduled_at = $17, published_at = $18, updated_at = NOW()
+        WHERE id = $19 RETURNING *
+        "#,
+    )
+    .bind(title)
+    .bind(&slug)
+    .bind(content)
+    .bind(req.content_json.as_ref().or(existing.content_json.as_ref()))
+    .bind(req.excerpt.as_deref().unwrap_or(existing.excerpt.as_deref().unwrap_or("")))
+    .bind(req.featured_image_id.or(existing.featured_image_id))
+    .bind(&status)
+    .bind(req.visibility.as_deref().unwrap_or(&existing.visibility))
+    .bind(req.is_sticky.unwrap_or(existing.is_sticky))
+    .bind(req.allow_comments.unwrap_or(existing.allow_comments))
+    .bind(req.meta_title.as_deref().unwrap_or(existing.meta_title.as_deref().unwrap_or("")))
+    .bind(req.meta_description.as_deref().unwrap_or(existing.meta_description.as_deref().unwrap_or("")))
+    .bind(req.canonical_url.as_deref().unwrap_or(existing.canonical_url.as_deref().unwrap_or("")))
+    .bind(req.og_image_url.as_deref().unwrap_or(existing.og_image_url.as_deref().unwrap_or("")))
+    .bind(rt)
+    .bind(wc)
+    .bind(req.scheduled_at.or(existing.scheduled_at))
+    .bind(published_at)
+    .bind(post_id)
+    .fetch_one(pool)
+    .await
+}
+
+pub async fn autosave_blog_post(
+    pool: &PgPool,
+    post_id: Uuid,
+    req: &AutosaveRequest,
+) -> Result<BlogPost, sqlx::Error> {
+    let existing = sqlx::query_as::<_, BlogPost>("SELECT * FROM blog_posts WHERE id = $1")
+        .bind(post_id)
+        .fetch_one(pool)
+        .await?;
+
+    let title = req.title.as_deref().unwrap_or(&existing.title);
+    let content = req.content.as_deref().unwrap_or(&existing.content);
+    let wc = compute_word_count(content);
+    let rt = compute_reading_time(wc);
+
+    sqlx::query_as::<_, BlogPost>(
+        r#"
+        UPDATE blog_posts SET title = $1, content = $2, content_json = $3,
+            reading_time_minutes = $4, word_count = $5, updated_at = NOW()
+        WHERE id = $6 RETURNING *
+        "#,
+    )
+    .bind(title)
+    .bind(content)
+    .bind(req.content_json.as_ref().or(existing.content_json.as_ref()))
+    .bind(rt)
+    .bind(wc)
+    .bind(post_id)
+    .fetch_one(pool)
+    .await
+}
+
+pub async fn update_post_status(
+    pool: &PgPool,
+    post_id: Uuid,
+    status: &PostStatus,
+) -> Result<BlogPost, sqlx::Error> {
+    let published_at_expr = if *status == PostStatus::Published {
+        "COALESCE(published_at, NOW())"
+    } else {
+        "published_at"
+    };
+
+    let q = format!(
+        "UPDATE blog_posts SET status = $1, published_at = {}, updated_at = NOW() WHERE id = $2 RETURNING *",
+        published_at_expr
+    );
+
+    sqlx::query_as::<_, BlogPost>(&q)
+        .bind(status)
+        .bind(post_id)
+        .fetch_one(pool)
+        .await
+}
+
+pub async fn delete_blog_post(pool: &PgPool, post_id: Uuid) -> Result<(), sqlx::Error> {
+    sqlx::query("DELETE FROM blog_posts WHERE id = $1")
+        .bind(post_id)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
+pub async fn get_blog_post(pool: &PgPool, post_id: Uuid) -> Result<Option<BlogPost>, sqlx::Error> {
+    sqlx::query_as::<_, BlogPost>("SELECT * FROM blog_posts WHERE id = $1")
+        .bind(post_id)
+        .fetch_optional(pool)
+        .await
+}
+
+pub async fn get_blog_post_by_slug(pool: &PgPool, slug: &str) -> Result<Option<BlogPost>, sqlx::Error> {
+    sqlx::query_as::<_, BlogPost>(
+        "SELECT * FROM blog_posts WHERE slug = $1 AND status = 'published'"
+    )
+    .bind(slug)
+    .fetch_optional(pool)
+    .await
+}
+
+pub async fn list_blog_posts_admin(
+    pool: &PgPool,
+    offset: i64,
+    limit: i64,
+    status: Option<&PostStatus>,
+    author_id: Option<Uuid>,
+    search: Option<&str>,
+) -> Result<(Vec<BlogPost>, i64), sqlx::Error> {
+    let mut where_clauses = vec!["1=1".to_string()];
+    if status.is_some() { where_clauses.push("status = $3".to_string()); }
+    if author_id.is_some() { where_clauses.push("author_id = $4".to_string()); }
+    if search.is_some() { where_clauses.push("(title ILIKE $5 OR content ILIKE $5)".to_string()); }
+    let where_clause = where_clauses.join(" AND ");
+
+    let query_str = format!(
+        "SELECT * FROM blog_posts WHERE {} ORDER BY updated_at DESC LIMIT $1 OFFSET $2",
+        where_clause
+    );
+    let count_str = format!("SELECT COUNT(*) FROM blog_posts WHERE {}", where_clause);
+
+    let mut q = sqlx::query_as::<_, BlogPost>(&query_str)
+        .bind(limit)
+        .bind(offset);
+    let mut cq = sqlx::query_as::<_, (i64,)>(&count_str);
+
+    if let Some(s) = status { q = q.bind(s); cq = cq.bind(s); }
+    if let Some(a) = author_id { q = q.bind(a); cq = cq.bind(a); }
+    if let Some(s) = search {
+        let pattern = format!("%{}%", s);
+        q = q.bind(pattern.clone());
+        cq = cq.bind(pattern);
+    }
+
+    let posts = q.fetch_all(pool).await?;
+    let total = cq.fetch_one(pool).await?.0;
+    Ok((posts, total))
+}
+
+pub async fn list_published_posts(
+    pool: &PgPool,
+    offset: i64,
+    limit: i64,
+) -> Result<(Vec<BlogPost>, i64), sqlx::Error> {
+    let posts = sqlx::query_as::<_, BlogPost>(
+        "SELECT * FROM blog_posts WHERE status = 'published' ORDER BY is_sticky DESC, published_at DESC LIMIT $1 OFFSET $2"
+    )
+    .bind(limit)
+    .bind(offset)
+    .fetch_all(pool)
+    .await?;
+
+    let total: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM blog_posts WHERE status = 'published'")
+        .fetch_one(pool)
+        .await?;
+    Ok((posts, total.0))
+}
+
+pub async fn list_published_posts_by_category(
+    pool: &PgPool,
+    category_slug: &str,
+    offset: i64,
+    limit: i64,
+) -> Result<(Vec<BlogPost>, i64), sqlx::Error> {
+    let posts = sqlx::query_as::<_, BlogPost>(
+        r#"
+        SELECT bp.* FROM blog_posts bp
+        JOIN blog_post_categories bpc ON bp.id = bpc.post_id
+        JOIN blog_categories bc ON bpc.category_id = bc.id
+        WHERE bp.status = 'published' AND bc.slug = $1
+        ORDER BY bp.is_sticky DESC, bp.published_at DESC LIMIT $2 OFFSET $3
+        "#,
+    )
+    .bind(category_slug)
+    .bind(limit)
+    .bind(offset)
+    .fetch_all(pool)
+    .await?;
+
+    let total: (i64,) = sqlx::query_as(
+        r#"
+        SELECT COUNT(*) FROM blog_posts bp
+        JOIN blog_post_categories bpc ON bp.id = bpc.post_id
+        JOIN blog_categories bc ON bpc.category_id = bc.id
+        WHERE bp.status = 'published' AND bc.slug = $1
+        "#,
+    )
+    .bind(category_slug)
+    .fetch_one(pool)
+    .await?;
+    Ok((posts, total.0))
+}
+
+pub async fn list_published_posts_by_tag(
+    pool: &PgPool,
+    tag_slug: &str,
+    offset: i64,
+    limit: i64,
+) -> Result<(Vec<BlogPost>, i64), sqlx::Error> {
+    let posts = sqlx::query_as::<_, BlogPost>(
+        r#"
+        SELECT bp.* FROM blog_posts bp
+        JOIN blog_post_tags bpt ON bp.id = bpt.post_id
+        JOIN blog_tags bt ON bpt.tag_id = bt.id
+        WHERE bp.status = 'published' AND bt.slug = $1
+        ORDER BY bp.is_sticky DESC, bp.published_at DESC LIMIT $2 OFFSET $3
+        "#,
+    )
+    .bind(tag_slug)
+    .bind(limit)
+    .bind(offset)
+    .fetch_all(pool)
+    .await?;
+
+    let total: (i64,) = sqlx::query_as(
+        r#"
+        SELECT COUNT(*) FROM blog_posts bp
+        JOIN blog_post_tags bpt ON bp.id = bpt.post_id
+        JOIN blog_tags bt ON bpt.tag_id = bt.id
+        WHERE bp.status = 'published' AND bt.slug = $1
+        "#,
+    )
+    .bind(tag_slug)
+    .fetch_one(pool)
+    .await?;
+    Ok((posts, total.0))
+}
+
+pub async fn list_all_published_slugs(pool: &PgPool) -> Result<Vec<String>, sqlx::Error> {
+    let rows: Vec<(String,)> = sqlx::query_as(
+        "SELECT slug FROM blog_posts WHERE status = 'published' ORDER BY published_at DESC"
+    )
+    .fetch_all(pool)
+    .await?;
+    Ok(rows.into_iter().map(|r| r.0).collect())
+}
+
+// ── Post ↔ Category / Tag junctions ───────────────────────────────────
+
+pub async fn set_post_categories(
+    pool: &PgPool,
+    post_id: Uuid,
+    category_ids: &[Uuid],
+) -> Result<(), sqlx::Error> {
+    sqlx::query("DELETE FROM blog_post_categories WHERE post_id = $1")
+        .bind(post_id)
+        .execute(pool)
+        .await?;
+
+    for cid in category_ids {
+        sqlx::query("INSERT INTO blog_post_categories (post_id, category_id) VALUES ($1, $2) ON CONFLICT DO NOTHING")
+            .bind(post_id)
+            .bind(cid)
+            .execute(pool)
+            .await?;
+    }
+    Ok(())
+}
+
+pub async fn set_post_tags(
+    pool: &PgPool,
+    post_id: Uuid,
+    tag_ids: &[Uuid],
+) -> Result<(), sqlx::Error> {
+    sqlx::query("DELETE FROM blog_post_tags WHERE post_id = $1")
+        .bind(post_id)
+        .execute(pool)
+        .await?;
+
+    for tid in tag_ids {
+        sqlx::query("INSERT INTO blog_post_tags (post_id, tag_id) VALUES ($1, $2) ON CONFLICT DO NOTHING")
+            .bind(post_id)
+            .bind(tid)
+            .execute(pool)
+            .await?;
+    }
+    Ok(())
+}
+
+pub async fn get_categories_for_post(
+    pool: &PgPool,
+    post_id: Uuid,
+) -> Result<Vec<BlogCategory>, sqlx::Error> {
+    sqlx::query_as::<_, BlogCategory>(
+        r#"
+        SELECT bc.* FROM blog_categories bc
+        JOIN blog_post_categories bpc ON bc.id = bpc.category_id
+        WHERE bpc.post_id = $1 ORDER BY bc.sort_order, bc.name
+        "#,
+    )
+    .bind(post_id)
+    .fetch_all(pool)
+    .await
+}
+
+pub async fn get_tags_for_post(
+    pool: &PgPool,
+    post_id: Uuid,
+) -> Result<Vec<BlogTag>, sqlx::Error> {
+    sqlx::query_as::<_, BlogTag>(
+        r#"
+        SELECT bt.* FROM blog_tags bt
+        JOIN blog_post_tags bpt ON bt.id = bpt.tag_id
+        WHERE bpt.post_id = $1 ORDER BY bt.name
+        "#,
+    )
+    .bind(post_id)
+    .fetch_all(pool)
+    .await
+}
+
+// ── Blog Categories ───────────────────────────────────────────────────
+
+pub async fn create_blog_category(
+    pool: &PgPool,
+    req: &CreateCategoryRequest,
+) -> Result<BlogCategory, sqlx::Error> {
+    let slug = req.slug.as_deref()
+        .map(|s| slugify(s))
+        .unwrap_or_else(|| slugify(&req.name));
+
+    sqlx::query_as::<_, BlogCategory>(
+        r#"
+        INSERT INTO blog_categories (id, name, slug, description, parent_id, sort_order)
+        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *
+        "#,
+    )
+    .bind(Uuid::new_v4())
+    .bind(&req.name)
+    .bind(&slug)
+    .bind(req.description.as_deref().unwrap_or(""))
+    .bind(req.parent_id)
+    .bind(req.sort_order.unwrap_or(0))
+    .fetch_one(pool)
+    .await
+}
+
+pub async fn update_blog_category(
+    pool: &PgPool,
+    id: Uuid,
+    req: &UpdateCategoryRequest,
+) -> Result<BlogCategory, sqlx::Error> {
+    let existing = sqlx::query_as::<_, BlogCategory>("SELECT * FROM blog_categories WHERE id = $1")
+        .bind(id)
+        .fetch_one(pool)
+        .await?;
+
+    let name = req.name.as_deref().unwrap_or(&existing.name);
+    let slug = req.slug.as_deref()
+        .map(|s| slugify(s))
+        .unwrap_or_else(|| existing.slug.clone());
+
+    sqlx::query_as::<_, BlogCategory>(
+        r#"
+        UPDATE blog_categories SET name = $1, slug = $2, description = $3, parent_id = $4, sort_order = $5
+        WHERE id = $6 RETURNING *
+        "#,
+    )
+    .bind(name)
+    .bind(&slug)
+    .bind(req.description.as_deref().unwrap_or(existing.description.as_deref().unwrap_or("")))
+    .bind(req.parent_id.or(existing.parent_id))
+    .bind(req.sort_order.unwrap_or(existing.sort_order))
+    .bind(id)
+    .fetch_one(pool)
+    .await
+}
+
+pub async fn delete_blog_category(pool: &PgPool, id: Uuid) -> Result<(), sqlx::Error> {
+    sqlx::query("DELETE FROM blog_categories WHERE id = $1")
+        .bind(id)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
+pub async fn list_blog_categories(pool: &PgPool) -> Result<Vec<BlogCategory>, sqlx::Error> {
+    sqlx::query_as::<_, BlogCategory>(
+        "SELECT * FROM blog_categories ORDER BY sort_order, name"
+    )
+    .fetch_all(pool)
+    .await
+}
+
+// ── Blog Tags ─────────────────────────────────────────────────────────
+
+pub async fn create_blog_tag(
+    pool: &PgPool,
+    req: &CreateTagRequest,
+) -> Result<BlogTag, sqlx::Error> {
+    let slug = req.slug.as_deref()
+        .map(|s| slugify(s))
+        .unwrap_or_else(|| slugify(&req.name));
+
+    sqlx::query_as::<_, BlogTag>(
+        "INSERT INTO blog_tags (id, name, slug) VALUES ($1, $2, $3) RETURNING *",
+    )
+    .bind(Uuid::new_v4())
+    .bind(&req.name)
+    .bind(&slug)
+    .fetch_one(pool)
+    .await
+}
+
+pub async fn delete_blog_tag(pool: &PgPool, id: Uuid) -> Result<(), sqlx::Error> {
+    sqlx::query("DELETE FROM blog_tags WHERE id = $1")
+        .bind(id)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
+pub async fn list_blog_tags(pool: &PgPool) -> Result<Vec<BlogTag>, sqlx::Error> {
+    sqlx::query_as::<_, BlogTag>("SELECT * FROM blog_tags ORDER BY name")
+        .fetch_all(pool)
+        .await
+}
+
+// ── Blog Revisions ────────────────────────────────────────────────────
+
+pub async fn create_blog_revision(
+    pool: &PgPool,
+    post_id: Uuid,
+    author_id: Uuid,
+    title: &str,
+    content: &str,
+    content_json: Option<&serde_json::Value>,
+) -> Result<BlogRevision, sqlx::Error> {
+    let next_rev: (i64,) = sqlx::query_as(
+        "SELECT COALESCE(MAX(revision_number), 0) + 1 FROM blog_revisions WHERE post_id = $1"
+    )
+    .bind(post_id)
+    .fetch_one(pool)
+    .await?;
+
+    sqlx::query_as::<_, BlogRevision>(
+        r#"
+        INSERT INTO blog_revisions (id, post_id, author_id, title, content, content_json, revision_number)
+        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *
+        "#,
+    )
+    .bind(Uuid::new_v4())
+    .bind(post_id)
+    .bind(author_id)
+    .bind(title)
+    .bind(content)
+    .bind(content_json)
+    .bind(next_rev.0 as i32)
+    .fetch_one(pool)
+    .await
+}
+
+pub async fn list_blog_revisions(
+    pool: &PgPool,
+    post_id: Uuid,
+) -> Result<Vec<BlogRevision>, sqlx::Error> {
+    sqlx::query_as::<_, BlogRevision>(
+        "SELECT * FROM blog_revisions WHERE post_id = $1 ORDER BY revision_number DESC"
+    )
+    .bind(post_id)
+    .fetch_all(pool)
+    .await
+}
+
+pub async fn get_blog_revision(
+    pool: &PgPool,
+    revision_id: Uuid,
+) -> Result<Option<BlogRevision>, sqlx::Error> {
+    sqlx::query_as::<_, BlogRevision>("SELECT * FROM blog_revisions WHERE id = $1")
+        .bind(revision_id)
+        .fetch_optional(pool)
+        .await
+}
+
+// ── Media ─────────────────────────────────────────────────────────────
+
+pub async fn create_media(
+    pool: &PgPool,
+    uploader_id: Uuid,
+    filename: &str,
+    original_filename: &str,
+    mime_type: &str,
+    file_size: i64,
+    width: Option<i32>,
+    height: Option<i32>,
+    storage_path: &str,
+    url: &str,
+) -> Result<Media, sqlx::Error> {
+    sqlx::query_as::<_, Media>(
+        r#"
+        INSERT INTO media (id, uploader_id, filename, original_filename, mime_type, file_size, width, height, storage_path, url)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *
+        "#,
+    )
+    .bind(Uuid::new_v4())
+    .bind(uploader_id)
+    .bind(filename)
+    .bind(original_filename)
+    .bind(mime_type)
+    .bind(file_size)
+    .bind(width)
+    .bind(height)
+    .bind(storage_path)
+    .bind(url)
+    .fetch_one(pool)
+    .await
+}
+
+pub async fn update_media(
+    pool: &PgPool,
+    id: Uuid,
+    req: &UpdateMediaRequest,
+) -> Result<Media, sqlx::Error> {
+    let existing = sqlx::query_as::<_, Media>("SELECT * FROM media WHERE id = $1")
+        .bind(id)
+        .fetch_one(pool)
+        .await?;
+
+    sqlx::query_as::<_, Media>(
+        "UPDATE media SET alt_text = $1, caption = $2 WHERE id = $3 RETURNING *",
+    )
+    .bind(req.alt_text.as_deref().unwrap_or(existing.alt_text.as_deref().unwrap_or("")))
+    .bind(req.caption.as_deref().unwrap_or(existing.caption.as_deref().unwrap_or("")))
+    .bind(id)
+    .fetch_one(pool)
+    .await
+}
+
+pub async fn delete_media(pool: &PgPool, id: Uuid) -> Result<Option<Media>, sqlx::Error> {
+    sqlx::query_as::<_, Media>("DELETE FROM media WHERE id = $1 RETURNING *")
+        .bind(id)
+        .fetch_optional(pool)
+        .await
+}
+
+pub async fn get_media(pool: &PgPool, id: Uuid) -> Result<Option<Media>, sqlx::Error> {
+    sqlx::query_as::<_, Media>("SELECT * FROM media WHERE id = $1")
+        .bind(id)
+        .fetch_optional(pool)
+        .await
+}
+
+pub async fn list_media(
+    pool: &PgPool,
+    offset: i64,
+    limit: i64,
+) -> Result<(Vec<Media>, i64), sqlx::Error> {
+    let items = sqlx::query_as::<_, Media>(
+        "SELECT * FROM media ORDER BY created_at DESC LIMIT $1 OFFSET $2"
+    )
+    .bind(limit)
+    .bind(offset)
+    .fetch_all(pool)
+    .await?;
+
+    let total: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM media")
+        .fetch_one(pool)
+        .await?;
+    Ok((items, total.0))
+}

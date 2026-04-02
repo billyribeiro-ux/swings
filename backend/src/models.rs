@@ -244,6 +244,261 @@ pub struct AdminStats {
     pub recent_members: Vec<UserResponse>,
 }
 
+// ── Blog Post ──────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, PartialEq)]
+#[sqlx(type_name = "post_status", rename_all = "snake_case")]
+pub enum PostStatus {
+    Draft,
+    PendingReview,
+    Published,
+    Private,
+    Scheduled,
+    Trash,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct BlogPost {
+    pub id: Uuid,
+    pub author_id: Uuid,
+    pub title: String,
+    pub slug: String,
+    pub content: String,
+    pub content_json: Option<serde_json::Value>,
+    pub excerpt: Option<String>,
+    pub featured_image_id: Option<Uuid>,
+    pub status: PostStatus,
+    pub visibility: String,
+    pub password_hash: Option<String>,
+    pub is_sticky: bool,
+    pub allow_comments: bool,
+    pub meta_title: Option<String>,
+    pub meta_description: Option<String>,
+    pub canonical_url: Option<String>,
+    pub og_image_url: Option<String>,
+    pub reading_time_minutes: i32,
+    pub word_count: i32,
+    pub scheduled_at: Option<DateTime<Utc>>,
+    pub published_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct BlogPostResponse {
+    pub id: Uuid,
+    pub author_id: Uuid,
+    pub author_name: String,
+    pub author_avatar: Option<String>,
+    pub title: String,
+    pub slug: String,
+    pub content: String,
+    pub content_json: Option<serde_json::Value>,
+    pub excerpt: Option<String>,
+    pub featured_image_url: Option<String>,
+    pub status: PostStatus,
+    pub visibility: String,
+    pub is_sticky: bool,
+    pub allow_comments: bool,
+    pub meta_title: Option<String>,
+    pub meta_description: Option<String>,
+    pub canonical_url: Option<String>,
+    pub og_image_url: Option<String>,
+    pub reading_time_minutes: i32,
+    pub word_count: i32,
+    pub categories: Vec<BlogCategory>,
+    pub tags: Vec<BlogTag>,
+    pub scheduled_at: Option<DateTime<Utc>>,
+    pub published_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct BlogPostListItem {
+    pub id: Uuid,
+    pub author_id: Uuid,
+    pub author_name: String,
+    pub title: String,
+    pub slug: String,
+    pub excerpt: Option<String>,
+    pub featured_image_url: Option<String>,
+    pub status: PostStatus,
+    pub is_sticky: bool,
+    pub reading_time_minutes: i32,
+    pub word_count: i32,
+    pub published_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+    pub categories: Vec<BlogCategory>,
+    pub tags: Vec<BlogTag>,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct CreatePostRequest {
+    #[validate(length(min = 1, message = "Title is required"))]
+    pub title: String,
+    pub slug: Option<String>,
+    pub content: Option<String>,
+    pub content_json: Option<serde_json::Value>,
+    pub excerpt: Option<String>,
+    pub featured_image_id: Option<Uuid>,
+    pub status: Option<PostStatus>,
+    pub visibility: Option<String>,
+    pub is_sticky: Option<bool>,
+    pub allow_comments: Option<bool>,
+    pub meta_title: Option<String>,
+    pub meta_description: Option<String>,
+    pub canonical_url: Option<String>,
+    pub og_image_url: Option<String>,
+    pub category_ids: Option<Vec<Uuid>>,
+    pub tag_ids: Option<Vec<Uuid>>,
+    pub scheduled_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdatePostRequest {
+    pub title: Option<String>,
+    pub slug: Option<String>,
+    pub content: Option<String>,
+    pub content_json: Option<serde_json::Value>,
+    pub excerpt: Option<String>,
+    pub featured_image_id: Option<Uuid>,
+    pub status: Option<PostStatus>,
+    pub visibility: Option<String>,
+    pub is_sticky: Option<bool>,
+    pub allow_comments: Option<bool>,
+    pub meta_title: Option<String>,
+    pub meta_description: Option<String>,
+    pub canonical_url: Option<String>,
+    pub og_image_url: Option<String>,
+    pub category_ids: Option<Vec<Uuid>>,
+    pub tag_ids: Option<Vec<Uuid>>,
+    pub scheduled_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdatePostStatusRequest {
+    pub status: PostStatus,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PostListParams {
+    pub page: Option<i64>,
+    pub per_page: Option<i64>,
+    pub status: Option<PostStatus>,
+    pub author_id: Option<Uuid>,
+    pub category_slug: Option<String>,
+    pub tag_slug: Option<String>,
+    pub search: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AutosaveRequest {
+    pub title: Option<String>,
+    pub content: Option<String>,
+    pub content_json: Option<serde_json::Value>,
+}
+
+// ── Blog Category ──────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct BlogCategory {
+    pub id: Uuid,
+    pub name: String,
+    pub slug: String,
+    pub description: Option<String>,
+    pub parent_id: Option<Uuid>,
+    pub sort_order: i32,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct CreateCategoryRequest {
+    #[validate(length(min = 1, message = "Name is required"))]
+    pub name: String,
+    pub slug: Option<String>,
+    pub description: Option<String>,
+    pub parent_id: Option<Uuid>,
+    pub sort_order: Option<i32>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateCategoryRequest {
+    pub name: Option<String>,
+    pub slug: Option<String>,
+    pub description: Option<String>,
+    pub parent_id: Option<Uuid>,
+    pub sort_order: Option<i32>,
+}
+
+// ── Blog Tag ───────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct BlogTag {
+    pub id: Uuid,
+    pub name: String,
+    pub slug: String,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct CreateTagRequest {
+    #[validate(length(min = 1, message = "Name is required"))]
+    pub name: String,
+    pub slug: Option<String>,
+}
+
+// ── Blog Revision ──────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct BlogRevision {
+    pub id: Uuid,
+    pub post_id: Uuid,
+    pub author_id: Uuid,
+    pub title: String,
+    pub content: String,
+    pub content_json: Option<serde_json::Value>,
+    pub revision_number: i32,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct RevisionResponse {
+    pub id: Uuid,
+    pub post_id: Uuid,
+    pub author_id: Uuid,
+    pub author_name: String,
+    pub title: String,
+    pub revision_number: i32,
+    pub created_at: DateTime<Utc>,
+}
+
+// ── Media ──────────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct Media {
+    pub id: Uuid,
+    pub uploader_id: Uuid,
+    pub filename: String,
+    pub original_filename: String,
+    pub mime_type: String,
+    pub file_size: i64,
+    pub width: Option<i32>,
+    pub height: Option<i32>,
+    pub alt_text: Option<String>,
+    pub caption: Option<String>,
+    pub storage_path: String,
+    pub url: String,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateMediaRequest {
+    pub alt_text: Option<String>,
+    pub caption: Option<String>,
+}
+
 // ── Pagination ──────────────────────────────────────────────────────────
 
 #[derive(Debug, Deserialize)]

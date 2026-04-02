@@ -3,6 +3,7 @@ use std::sync::Arc;
 use axum::Router;
 use sqlx::postgres::PgPoolOptions;
 use tower_http::cors::{Any, CorsLayer};
+use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -46,6 +47,9 @@ async fn main() {
         .await
         .expect("Failed to run migrations");
 
+    // Ensure uploads directory exists
+    let upload_dir = config.upload_dir.clone();
+
     let state = AppState {
         db: pool,
         config: Arc::new(config),
@@ -55,12 +59,18 @@ async fn main() {
         .allow_origin(Any)
         .allow_methods(Any)
         .allow_headers(Any);
+    tokio::fs::create_dir_all(&upload_dir)
+        .await
+        .expect("Failed to create uploads directory");
 
     let app = Router::new()
         .nest("/api/auth", handlers::auth::router())
         .nest("/api/admin", handlers::admin::router())
+        .nest("/api/admin/blog", handlers::blog::admin_router())
+        .nest("/api/blog", handlers::blog::public_router())
         .nest("/api/member", handlers::member::router())
         .nest("/api/webhooks", handlers::webhooks::router())
+        .nest_service("/uploads", ServeDir::new(&upload_dir))
         .layer(cors)
         .layer(TraceLayer::new_for_http())
         .with_state(state);

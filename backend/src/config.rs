@@ -10,6 +10,8 @@ pub struct Config {
     pub frontend_url: String,
     pub stripe_secret_key: String,
     pub stripe_webhook_secret: String,
+    pub upload_dir: String,
+    pub api_url: String,
 }
 
 impl Config {
@@ -37,6 +39,10 @@ impl Config {
                 .unwrap_or_default(),
             stripe_webhook_secret: env::var("STRIPE_WEBHOOK_SECRET")
                 .unwrap_or_default(),
+            upload_dir: env::var("UPLOAD_DIR")
+                .unwrap_or_else(|_| "./uploads".to_string()),
+            api_url: env::var("API_URL")
+                .unwrap_or_else(|_| "http://localhost:3001".to_string()),
         }
     }
 }
