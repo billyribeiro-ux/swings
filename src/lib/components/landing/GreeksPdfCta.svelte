@@ -116,10 +116,13 @@
 								<div class="greeks-section__input-wrap">
 									<EnvelopeSimple size={18} weight="bold" class="greeks-section__input-icon" />
 									<input
+										id="greeks-email"
+										name="email"
 										type="email"
 										bind:value={email}
 										placeholder="Enter your email"
 										required
+										autocomplete="email"
 										disabled={isSubmitting}
 										class="greeks-section__input"
 									/>
