@@ -30,8 +30,8 @@
 		TextOutdent,
 		TextIndent,
 		CodeBlock,
-		FrameAll,
-		Frame,
+		CornersIn,
+		CornersOut,
 		X
 	} from 'phosphor-svelte';
 
@@ -732,9 +732,9 @@
 				onclick={onToggleFullscreen}
 			>
 				{#if isFullscreen}
-					<FrameAll size={18} weight="bold" />
+					<CornersIn size={18} weight="bold" />
 				{:else}
-					<Frame size={18} weight="bold" />
+					<CornersOut size={18} weight="bold" />
 				{/if}
 			</button>
 		</div>
