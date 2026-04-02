@@ -60,6 +60,7 @@
 					<label for="reset-email" class="forgot-form__label">Email</label>
 					<input
 						id="reset-email"
+						name="email"
 						type="email"
 						bind:value={email}
 						required
@@ -113,8 +114,12 @@
 		margin-bottom: 0.75rem;
 	}
 
-	.forgot-card__logo-brand { color: var(--color-white); }
-	.forgot-card__logo-accent { color: var(--color-teal); }
+	.forgot-card__logo-brand {
+		color: var(--color-white);
+	}
+	.forgot-card__logo-accent {
+		color: var(--color-teal);
+	}
 
 	.forgot-card__badge {
 		display: inline-block;
@@ -201,8 +206,13 @@
 		transition: border-color 200ms var(--ease-out);
 	}
 
-	.forgot-form__input::placeholder { color: var(--color-grey-500); }
-	.forgot-form__input:focus { outline: none; border-color: var(--color-teal); }
+	.forgot-form__input::placeholder {
+		color: var(--color-grey-500);
+	}
+	.forgot-form__input:focus {
+		outline: none;
+		border-color: var(--color-teal);
+	}
 
 	.forgot-form__submit {
 		width: 100%;
@@ -214,11 +224,19 @@
 		border-radius: var(--radius-lg);
 		border: none;
 		cursor: pointer;
-		transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
+		transition:
+			opacity 200ms var(--ease-out),
+			transform 200ms var(--ease-out);
 	}
 
-	.forgot-form__submit:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
-	.forgot-form__submit:disabled { opacity: 0.5; cursor: not-allowed; }
+	.forgot-form__submit:hover:not(:disabled) {
+		opacity: 0.9;
+		transform: translateY(-1px);
+	}
+	.forgot-form__submit:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
 
 	.forgot-card__back,
 	.forgot-card__back-btn {
@@ -232,5 +250,7 @@
 	}
 
 	.forgot-card__back:hover,
-	.forgot-card__back-btn:hover { color: var(--color-teal); }
+	.forgot-card__back-btn:hover {
+		color: var(--color-teal);
+	}
 </style>

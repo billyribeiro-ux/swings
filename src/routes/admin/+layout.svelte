@@ -95,6 +95,7 @@
 					<label for="admin-email" class="admin-login__label">Email</label>
 					<input
 						id="admin-email"
+						name="email"
 						type="email"
 						bind:value={email}
 						required
@@ -108,6 +109,7 @@
 					<label for="admin-password" class="admin-login__label">Password</label>
 					<input
 						id="admin-password"
+						name="password"
 						type="password"
 						bind:value={password}
 						required

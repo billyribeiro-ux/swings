@@ -72,6 +72,7 @@
 				<label for="name" class="auth-form__label">Full Name</label>
 				<input
 					id="name"
+					name="name"
 					type="text"
 					bind:value={name}
 					required
@@ -85,6 +86,7 @@
 				<label for="email" class="auth-form__label">Email</label>
 				<input
 					id="email"
+					name="email"
 					type="email"
 					bind:value={email}
 					required
@@ -98,6 +100,7 @@
 				<label for="password" class="auth-form__label">Password</label>
 				<input
 					id="password"
+					name="password"
 					type="password"
 					bind:value={password}
 					required
@@ -111,6 +114,7 @@
 				<label for="confirm" class="auth-form__label">Confirm Password</label>
 				<input
 					id="confirm"
+					name="confirm-password"
 					type="password"
 					bind:value={confirmPassword}
 					required
@@ -244,7 +248,9 @@
 		font-weight: var(--w-semibold);
 		font-size: var(--fs-base);
 		border-radius: var(--radius-lg);
-		transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
+		transition:
+			opacity 200ms var(--ease-out),
+			transform 200ms var(--ease-out);
 		cursor: pointer;
 	}
 

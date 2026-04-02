@@ -68,17 +68,13 @@
 		</div>
 
 		{#if !token}
-			<div class="reset-card__error">
-				Invalid reset link. Please request a new password reset.
-			</div>
+			<div class="reset-card__error">Invalid reset link. Please request a new password reset.</div>
 			<a href="/admin/forgot-password" class="reset-card__back-btn">Request new reset link</a>
 		{:else if success}
 			<div class="reset-card__success">
 				<p>Your password has been reset successfully!</p>
 			</div>
-			<button onclick={() => goto('/admin')} class="reset-card__login-btn">
-				Go to Login
-			</button>
+			<button onclick={() => goto('/admin')} class="reset-card__login-btn"> Go to Login </button>
 		{:else}
 			{#if error}
 				<div class="reset-card__error">{error}</div>
@@ -89,6 +85,7 @@
 					<label for="new-password" class="reset-form__label">New Password</label>
 					<input
 						id="new-password"
+						name="new-password"
 						type="password"
 						bind:value={newPassword}
 						required
@@ -103,6 +100,7 @@
 					<label for="confirm-password" class="reset-form__label">Confirm Password</label>
 					<input
 						id="confirm-password"
+						name="confirm-password"
 						type="password"
 						bind:value={confirmPassword}
 						required
@@ -157,8 +155,12 @@
 		margin-bottom: 0.75rem;
 	}
 
-	.reset-card__logo-brand { color: var(--color-white); }
-	.reset-card__logo-accent { color: var(--color-teal); }
+	.reset-card__logo-brand {
+		color: var(--color-white);
+	}
+	.reset-card__logo-accent {
+		color: var(--color-teal);
+	}
 
 	.reset-card__badge {
 		display: inline-block;
@@ -238,8 +240,13 @@
 		transition: border-color 200ms var(--ease-out);
 	}
 
-	.reset-form__input::placeholder { color: var(--color-grey-500); }
-	.reset-form__input:focus { outline: none; border-color: var(--color-teal); }
+	.reset-form__input::placeholder {
+		color: var(--color-grey-500);
+	}
+	.reset-form__input:focus {
+		outline: none;
+		border-color: var(--color-teal);
+	}
 
 	.reset-form__submit,
 	.reset-card__login-btn {
@@ -252,15 +259,23 @@
 		border-radius: var(--radius-lg);
 		border: none;
 		cursor: pointer;
-		transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
+		transition:
+			opacity 200ms var(--ease-out),
+			transform 200ms var(--ease-out);
 		text-align: center;
 		text-decoration: none;
 		display: block;
 	}
 
 	.reset-form__submit:hover:not(:disabled),
-	.reset-card__login-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-	.reset-form__submit:disabled { opacity: 0.5; cursor: not-allowed; }
+	.reset-card__login-btn:hover {
+		opacity: 0.9;
+		transform: translateY(-1px);
+	}
+	.reset-form__submit:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
 
 	.reset-card__back,
 	.reset-card__back-btn {
@@ -274,5 +289,7 @@
 	}
 
 	.reset-card__back:hover,
-	.reset-card__back-btn:hover { color: var(--color-teal); }
+	.reset-card__back-btn:hover {
+		color: var(--color-teal);
+	}
 </style>
