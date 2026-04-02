@@ -27,8 +27,8 @@
 		Table,
 		MathOperations,
 		Eraser,
-		TextIndentDecrease,
-		TextIndentIncrease,
+		TextOutdent,
+		TextIndent,
 		CodeBlock,
 		FrameAll,
 		Frame,
@@ -699,7 +699,7 @@
 				onclick={() => editor.chain().focus().liftListItem('listItem').run()}
 				disabled={!editor.can().liftListItem('listItem')}
 			>
-				<TextIndentDecrease size={18} weight="bold" />
+				<TextOutdent size={18} weight="bold" />
 			</button>
 
 			<button
@@ -708,7 +708,7 @@
 				onclick={() => editor.chain().focus().sinkListItem('listItem').run()}
 				disabled={!editor.can().sinkListItem('listItem')}
 			>
-				<TextIndentIncrease size={18} weight="bold" />
+				<TextIndent size={18} weight="bold" />
 			</button>
 		</div>
 
