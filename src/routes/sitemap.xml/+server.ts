@@ -10,7 +10,9 @@ const staticPages = [
 	{ path: '/courses', priority: '0.9', changefreq: 'weekly' },
 	{ path: '/blog', priority: '0.8', changefreq: 'weekly' },
 	{ path: '/pricing/monthly', priority: '0.7', changefreq: 'monthly' },
-	{ path: '/pricing/annual', priority: '0.7', changefreq: 'monthly' }
+	{ path: '/pricing/annual', priority: '0.7', changefreq: 'monthly' },
+	{ path: '/terms', priority: '0.3', changefreq: 'yearly' },
+	{ path: '/privacy', priority: '0.3', changefreq: 'yearly' }
 ];
 
 export const GET: RequestHandler = async () => {
