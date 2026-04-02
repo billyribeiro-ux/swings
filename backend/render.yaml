@@ -18,10 +18,6 @@ services:
         value: https://swings-gamma.vercel.app
       - key: UPLOAD_DIR
         value: ./uploads
-      - key: API_URL
-        fromService:
-          name: swings-api
-          property: url
 
 databases:
   - name: swings-db
