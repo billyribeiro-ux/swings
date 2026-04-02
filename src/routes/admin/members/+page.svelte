@@ -78,6 +78,49 @@
 	{#if loading}
 		<p class="members-page__loading">Loading members...</p>
 	{:else}
+		<!-- Mobile: Card view -->
+		<div class="members-page__cards">
+			{#each members as member (member.id)}
+				<div class="member-card">
+					<div class="member-card__header">
+						<span class="member-card__name">{member.name}</span>
+						<span
+							class={[
+								'member-card__role',
+								member.role === 'admin' ? 'member-card__role--admin' : 'member-card__role--member'
+							]}
+						>
+							{member.role}
+						</span>
+					</div>
+					<div class="member-card__row">
+						<span class="member-card__label">Email</span>
+						<span class="member-card__value">{member.email}</span>
+					</div>
+					<div class="member-card__row">
+						<span class="member-card__label">Joined</span>
+						<span class="member-card__value">{formatDate(member.created_at)}</span>
+					</div>
+					<div class="member-card__actions">
+						<button
+							onclick={() => toggleRole(member)}
+							class="member-card__btn member-card__btn--role"
+						>
+							<ShieldCheck size={18} weight="bold" />
+							<span>{member.role === 'admin' ? 'Make Member' : 'Make Admin'}</span>
+						</button>
+						<button
+							onclick={() => deleteMember(member)}
+							class="member-card__btn member-card__btn--delete"
+						>
+							<Trash size={18} weight="bold" />
+							<span>Delete</span>
+						</button>
+					</div>
+				</div>
+			{/each}
+		</div>
+		<!-- Tablet+: Table view -->
 		<div class="members-page__table-wrap">
 			<table class="m-table">
 				<thead>
@@ -98,9 +141,7 @@
 								<span
 									class={[
 										'm-table__role',
-										member.role === 'admin'
-											? 'm-table__role--admin'
-											: 'm-table__role--member'
+										member.role === 'admin' ? 'm-table__role--admin' : 'm-table__role--member'
 									]}
 								>
 									{member.role}
@@ -133,11 +174,25 @@
 
 		{#if totalPages > 1}
 			<div class="members-page__pagination">
-				<button onclick={() => { page--; loadMembers(); }} disabled={page <= 1} class="members-page__page-btn">
+				<button
+					onclick={() => {
+						page--;
+						loadMembers();
+					}}
+					disabled={page <= 1}
+					class="members-page__page-btn"
+				>
 					<CaretLeft size={16} weight="bold" /> Prev
 				</button>
 				<span class="members-page__page-info">Page {page} of {totalPages}</span>
-				<button onclick={() => { page++; loadMembers(); }} disabled={page >= totalPages} class="members-page__page-btn">
+				<button
+					onclick={() => {
+						page++;
+						loadMembers();
+					}}
+					disabled={page >= totalPages}
+					class="members-page__page-btn"
+				>
 					Next <CaretRight size={16} weight="bold" />
 				</button>
 			</div>
@@ -146,121 +201,139 @@
 </div>
 
 <style>
+	/* Mobile-first base styles */
 	.members-page__header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		margin-bottom: 1.5rem;
+		margin-bottom: 1rem;
 	}
 
 	.members-page__title {
-		font-size: var(--fs-2xl);
+		font-size: var(--fs-xl);
 		font-weight: var(--w-bold);
 		color: var(--color-white);
 		font-family: var(--font-heading);
 	}
 
 	.members-page__count {
-		font-size: var(--fs-sm);
+		font-size: var(--fs-xs);
 		color: var(--color-grey-400);
-		margin-top: 0.25rem;
+		margin-top: 0.15rem;
 	}
 
 	.members-page__loading {
 		color: var(--color-grey-400);
 		text-align: center;
-		padding: 3rem;
+		padding: 2rem;
+	}
+
+	/* Mobile: Card view */
+	.members-page__cards {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
 	}
 
 	.members-page__table-wrap {
-		overflow-x: auto;
+		display: none;
+	}
+
+	.member-card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: 0.75rem 1rem;
 		background-color: var(--color-navy-mid);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-lg);
 	}
 
-	.m-table {
-		width: 100%;
-		border-collapse: collapse;
+	.member-card__header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.5rem;
 	}
 
-	.m-table th {
-		text-align: left;
-		font-size: var(--fs-xs);
-		font-weight: var(--w-semibold);
-		color: var(--color-grey-400);
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		padding: 0.85rem 1rem;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-	}
-
-	.m-table td {
-		padding: 0.85rem 1rem;
-		font-size: var(--fs-sm);
-		color: var(--color-grey-300);
-		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-	}
-
-	.m-table tbody tr:hover {
-		background-color: rgba(255, 255, 255, 0.02);
-	}
-
-	.m-table__name {
+	.member-card__name {
 		font-weight: var(--w-semibold);
 		color: var(--color-white);
+		font-size: var(--fs-base);
 	}
 
-	.m-table__role {
+	.member-card__row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.member-card__label {
+		font-size: var(--fs-xs);
+		color: var(--color-grey-400);
+	}
+
+	.member-card__value {
+		font-size: var(--fs-sm);
+		color: var(--color-grey-300);
+		text-align: right;
+		word-break: break-all;
+	}
+
+	.member-card__role {
 		font-size: var(--fs-xs);
 		font-weight: var(--w-semibold);
-		padding: 0.15rem 0.55rem;
+		padding: 0.2rem 0.6rem;
 		border-radius: var(--radius-full);
 		text-transform: capitalize;
 	}
 
-	.m-table__role--admin {
+	.member-card__role--admin {
 		background-color: rgba(245, 158, 11, 0.12);
 		color: #f59e0b;
 	}
 
-	.m-table__role--member {
+	.member-card__role--member {
 		background-color: rgba(15, 164, 175, 0.12);
 		color: var(--color-teal);
 	}
 
-	.m-table__actions {
+	.member-card__actions {
 		display: flex;
 		gap: 0.5rem;
+		margin-top: 0.5rem;
+		padding-top: 0.5rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.06);
 	}
 
-	.m-table__btn {
-		width: 2rem;
-		height: 2rem;
+	.member-card__btn {
+		flex: 1;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		gap: 0.4rem;
+		padding: 0.6rem 0.75rem;
 		border-radius: var(--radius-lg);
 		border: none;
 		cursor: pointer;
+		font-size: var(--fs-xs);
+		font-weight: var(--w-medium);
 		transition: background-color 200ms var(--ease-out);
 	}
 
-	.m-table__btn--role {
+	.member-card__btn--role {
 		background-color: rgba(15, 164, 175, 0.1);
 		color: var(--color-teal);
 	}
 
-	.m-table__btn--role:hover {
+	.member-card__btn--role:hover {
 		background-color: rgba(15, 164, 175, 0.25);
 	}
 
-	.m-table__btn--delete {
+	.member-card__btn--delete {
 		background-color: rgba(239, 68, 68, 0.08);
 		color: #ef4444;
 	}
 
-	.m-table__btn--delete:hover {
+	.member-card__btn--delete:hover {
 		background-color: rgba(239, 68, 68, 0.2);
 	}
 
@@ -268,20 +341,20 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: 1rem;
-		margin-top: 1.5rem;
+		gap: 0.75rem;
+		margin-top: 1rem;
 	}
 
 	.members-page__page-btn {
 		display: flex;
 		align-items: center;
-		gap: 0.35rem;
-		padding: 0.5rem 1rem;
+		gap: 0.25rem;
+		padding: 0.5rem 0.75rem;
 		background-color: var(--color-navy-mid);
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		border-radius: var(--radius-lg);
 		color: var(--color-white);
-		font-size: var(--fs-sm);
+		font-size: var(--fs-xs);
 		cursor: pointer;
 		transition: border-color 200ms var(--ease-out);
 	}
@@ -296,7 +369,135 @@
 	}
 
 	.members-page__page-info {
-		font-size: var(--fs-sm);
+		font-size: var(--fs-xs);
 		color: var(--color-grey-400);
+	}
+
+	/* Tablet+: Show table, hide cards */
+	@media (min-width: 768px) {
+		.members-page__header {
+			margin-bottom: 1.5rem;
+		}
+
+		.members-page__title {
+			font-size: var(--fs-2xl);
+		}
+
+		.members-page__count {
+			font-size: var(--fs-sm);
+			margin-top: 0.25rem;
+		}
+
+		.members-page__cards {
+			display: none;
+		}
+
+		.members-page__table-wrap {
+			display: block;
+			overflow-x: auto;
+			background-color: var(--color-navy-mid);
+			border: 1px solid rgba(255, 255, 255, 0.06);
+			border-radius: var(--radius-xl);
+		}
+
+		.m-table {
+			width: 100%;
+			border-collapse: collapse;
+		}
+
+		.m-table th {
+			text-align: left;
+			font-size: var(--fs-xs);
+			font-weight: var(--w-semibold);
+			color: var(--color-grey-400);
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			padding: 0.85rem 1rem;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+		}
+
+		.m-table td {
+			padding: 0.85rem 1rem;
+			font-size: var(--fs-sm);
+			color: var(--color-grey-300);
+			border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+		}
+
+		.m-table tbody tr:hover {
+			background-color: rgba(255, 255, 255, 0.02);
+		}
+
+		.m-table__name {
+			font-weight: var(--w-semibold);
+			color: var(--color-white);
+		}
+
+		.m-table__role {
+			font-size: var(--fs-xs);
+			font-weight: var(--w-semibold);
+			padding: 0.15rem 0.55rem;
+			border-radius: var(--radius-full);
+			text-transform: capitalize;
+		}
+
+		.m-table__role--admin {
+			background-color: rgba(245, 158, 11, 0.12);
+			color: #f59e0b;
+		}
+
+		.m-table__role--member {
+			background-color: rgba(15, 164, 175, 0.12);
+			color: var(--color-teal);
+		}
+
+		.m-table__actions {
+			display: flex;
+			gap: 0.5rem;
+		}
+
+		.m-table__btn {
+			width: 2rem;
+			height: 2rem;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: var(--radius-lg);
+			border: none;
+			cursor: pointer;
+			transition: background-color 200ms var(--ease-out);
+		}
+
+		.m-table__btn--role {
+			background-color: rgba(15, 164, 175, 0.1);
+			color: var(--color-teal);
+		}
+
+		.m-table__btn--role:hover {
+			background-color: rgba(15, 164, 175, 0.25);
+		}
+
+		.m-table__btn--delete {
+			background-color: rgba(239, 68, 68, 0.08);
+			color: #ef4444;
+		}
+
+		.m-table__btn--delete:hover {
+			background-color: rgba(239, 68, 68, 0.2);
+		}
+
+		.members-page__pagination {
+			gap: 1rem;
+			margin-top: 1.5rem;
+		}
+
+		.members-page__page-btn {
+			gap: 0.35rem;
+			padding: 0.5rem 1rem;
+			font-size: var(--fs-sm);
+		}
+
+		.members-page__page-info {
+			font-size: var(--fs-sm);
+		}
 	}
 </style>

@@ -12,6 +12,21 @@
 	} from '$lib/api/types';
 	import BlogEditor from './BlogEditor.svelte';
 	import MediaLibrary from './MediaLibrary.svelte';
+	import {
+		ArrowLeft,
+		CaretRight,
+		CaretLeft,
+		FloppyDisk,
+		PaperPlane,
+		Clock,
+		Globe,
+		Lock,
+		Image,
+		Trash,
+		Plus,
+		X,
+		ArrowCounterClockwise
+	} from 'phosphor-svelte';
 
 	interface Props {
 		mode: 'create' | 'edit';
@@ -280,7 +295,10 @@
 	<!-- Main content area -->
 	<div class="post-editor__main">
 		<div class="post-editor__back">
-			<a href="/admin/blog">← Back to posts</a>
+			<a href="/admin/blog">
+				<ArrowLeft size={16} weight="bold" />
+				<span>Back to posts</span>
+			</a>
 		</div>
 
 		<!-- Title -->
@@ -314,7 +332,12 @@
 	<!-- Settings sidebar -->
 	<aside class="post-editor__sidebar" class:post-editor__sidebar--collapsed={!sidebarOpen}>
 		<button class="sidebar-toggle" onclick={() => (sidebarOpen = !sidebarOpen)}>
-			{sidebarOpen ? '▶' : '◀'} Settings
+			{#if sidebarOpen}
+				<CaretRight size={16} weight="bold" />
+			{:else}
+				<CaretLeft size={16} weight="bold" />
+			{/if}
+			<span>Settings</span>
 		</button>
 
 		{#if sidebarOpen}
@@ -328,14 +351,16 @@
 							onclick={() => handleSave('draft')}
 							disabled={saving}
 						>
-							Save Draft
+							<FloppyDisk size={16} weight="bold" />
+							<span>Save Draft</span>
 						</button>
 						<button
 							class="publish-btn publish-btn--publish"
 							onclick={() => handleSave('published')}
 							disabled={saving}
 						>
-							{mode === 'edit' && post?.status === 'published' ? 'Update' : 'Publish'}
+							<PaperPlane size={16} weight="bold" />
+							<span>{mode === 'edit' && post?.status === 'published' ? 'Update' : 'Publish'}</span>
 						</button>
 					</div>
 				</div>
@@ -428,7 +453,9 @@
 							placeholder="New category"
 							onkeydown={(e) => e.key === 'Enter' && addCategory()}
 						/>
-						<button class="add-taxonomy__btn" onclick={addCategory}>+</button>
+						<button class="add-taxonomy__btn" onclick={addCategory}>
+							<Plus size={14} weight="bold" />
+						</button>
 					</div>
 				</div>
 			</div>
@@ -444,8 +471,10 @@
 								class:tag-pill--selected={selectedTagIds.includes(tag.id)}
 								onclick={() => toggleTag(tag.id)}
 							>
-								{tag.name}
-								{#if selectedTagIds.includes(tag.id)}×{/if}
+								<span>{tag.name}</span>
+								{#if selectedTagIds.includes(tag.id)}
+									<X size={12} weight="bold" />
+								{/if}
 							</button>
 						{/each}
 					</div>
@@ -457,7 +486,9 @@
 							placeholder="New tag"
 							onkeydown={(e) => e.key === 'Enter' && addTag()}
 						/>
-						<button class="add-taxonomy__btn" onclick={addTag}>+</button>
+						<button class="add-taxonomy__btn" onclick={addTag}>
+							<Plus size={14} weight="bold" />
+						</button>
 					</div>
 				</div>
 			</div>
@@ -469,11 +500,15 @@
 					{#if featuredImageUrl}
 						<div class="featured-preview">
 							<img src={featuredImageUrl} alt="Featured" />
-							<button class="featured-remove" onclick={removeFeaturedImage}>Remove</button>
+							<button class="featured-remove" onclick={removeFeaturedImage}>
+								<Trash size={14} weight="bold" />
+								<span>Remove</span>
+							</button>
 						</div>
 					{:else}
 						<button class="featured-set" onclick={openMediaForFeatured}>
-							Set featured image
+							<Image size={18} weight="bold" />
+							<span>Set featured image</span>
 						</button>
 					{/if}
 				</div>
@@ -565,7 +600,8 @@
 										</span>
 									</div>
 									<button class="revision-item__restore" onclick={() => restoreRevision(rev.id)}>
-										Restore
+										<ArrowCounterClockwise size={14} weight="bold" />
+										<span>Restore</span>
 									</button>
 								</div>
 							{/each}
@@ -599,6 +635,9 @@
 	}
 
 	.post-editor__back a {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
 		color: var(--color-grey-400, #64748b);
 		text-decoration: none;
 		font-size: 0.8rem;
@@ -655,7 +694,9 @@
 	}
 
 	.sidebar-toggle {
-		display: block;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
 		width: 100%;
 		padding: 0.5rem 0.75rem;
 		border: 1px solid rgba(255, 255, 255, 0.08);
@@ -704,6 +745,10 @@
 
 	.publish-btn {
 		flex: 1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.35rem;
 		padding: 0.5rem;
 		border: none;
 		border-radius: 0.375rem;
@@ -825,6 +870,9 @@
 	}
 
 	.tag-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
 		padding: 0.2rem 0.5rem;
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		border-radius: 1rem;
@@ -891,6 +939,9 @@
 		position: absolute;
 		top: 0.5rem;
 		right: 0.5rem;
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
 		padding: 0.2rem 0.5rem;
 		border: none;
 		border-radius: 0.25rem;
@@ -901,6 +952,10 @@
 	}
 
 	.featured-set {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
 		width: 100%;
 		padding: 0.75rem;
 		border: 2px dashed rgba(255, 255, 255, 0.1);
@@ -955,6 +1010,9 @@
 	}
 
 	.revision-item__restore {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
 		padding: 0.2rem 0.5rem;
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		border-radius: 0.25rem;

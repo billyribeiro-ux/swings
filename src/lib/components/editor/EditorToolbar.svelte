@@ -1,5 +1,41 @@
 <script lang="ts">
 	import type { Editor } from '@tiptap/core';
+	import {
+		TextB,
+		TextItalic,
+		TextUnderline,
+		TextStrikethrough,
+		TextSubscript,
+		TextSuperscript,
+		ListBullets,
+		ListNumbers,
+		CheckSquare,
+		TextAlignLeft,
+		TextAlignCenter,
+		TextAlignRight,
+		TextAlignJustify,
+		ArrowCounterClockwise,
+		ArrowClockwise,
+		Link,
+		Image,
+		YoutubeLogo,
+		PaintBrush,
+		HighlighterCircle,
+		Quotes,
+		Code,
+		Minus,
+		Table,
+		Omega,
+		Eraser,
+		TextIndentDecrease,
+		TextIndentIncrease,
+		CodeBlock,
+		FrameAll,
+		Frame,
+		CaretDown,
+		X,
+		XCircle
+	} from 'phosphor-svelte';
 
 	interface Props {
 		editor: Editor;
@@ -31,32 +67,83 @@
 	let youtubeUrl = $state('');
 
 	const colors = [
-		'#ffffff', '#94a3b8', '#ef4444', '#f97316', '#eab308',
-		'#22c55e', '#0fa4af', '#3b82f6', '#8b5cf6', '#ec4899'
+		'#ffffff',
+		'#94a3b8',
+		'#ef4444',
+		'#f97316',
+		'#eab308',
+		'#22c55e',
+		'#0fa4af',
+		'#3b82f6',
+		'#8b5cf6',
+		'#ec4899'
 	];
 
 	const specialChars = [
-		'&amp;', '&copy;', '&reg;', '&trade;', '&euro;', '&pound;', '&yen;',
-		'&deg;', '&plusmn;', '&times;', '&divide;', '&frac12;', '&frac14;',
-		'&frac34;', '&laquo;', '&raquo;', '&bull;', '&mdash;', '&ndash;',
-		'&hellip;', '&larr;', '&rarr;', '&uarr;', '&darr;'
+		'&amp;',
+		'&copy;',
+		'&reg;',
+		'&trade;',
+		'&euro;',
+		'&pound;',
+		'&yen;',
+		'&deg;',
+		'&plusmn;',
+		'&times;',
+		'&divide;',
+		'&frac12;',
+		'&frac14;',
+		'&frac34;',
+		'&laquo;',
+		'&raquo;',
+		'&bull;',
+		'&mdash;',
+		'&ndash;',
+		'&hellip;',
+		'&larr;',
+		'&rarr;',
+		'&uarr;',
+		'&darr;'
 	];
 
 	const specialCharDisplay: Record<string, string> = {
-		'&amp;': '&', '&copy;': '©', '&reg;': '®', '&trade;': '™',
-		'&euro;': '€', '&pound;': '£', '&yen;': '¥', '&deg;': '°',
-		'&plusmn;': '±', '&times;': '×', '&divide;': '÷', '&frac12;': '½',
-		'&frac14;': '¼', '&frac34;': '¾', '&laquo;': '«', '&raquo;': '»',
-		'&bull;': '•', '&mdash;': '—', '&ndash;': '–', '&hellip;': '…',
-		'&larr;': '←', '&rarr;': '→', '&uarr;': '↑', '&darr;': '↓'
+		'&amp;': '&',
+		'&copy;': '©',
+		'&reg;': '®',
+		'&trade;': '™',
+		'&euro;': '€',
+		'&pound;': '£',
+		'&yen;': '¥',
+		'&deg;': '°',
+		'&plusmn;': '±',
+		'&times;': '×',
+		'&divide;': '÷',
+		'&frac12;': '½',
+		'&frac14;': '¼',
+		'&frac34;': '¾',
+		'&laquo;': '«',
+		'&raquo;': '»',
+		'&bull;': '•',
+		'&mdash;': '—',
+		'&ndash;': '–',
+		'&hellip;': '…',
+		'&larr;': '←',
+		'&rarr;': '→',
+		'&uarr;': '↑',
+		'&darr;': '↓'
 	};
 
 	function setLink() {
 		if (linkUrl) {
-			editor.chain().focus().extendMarkRange('link').setLink({
-				href: linkUrl,
-				target: linkTarget
-			}).run();
+			editor
+				.chain()
+				.focus()
+				.extendMarkRange('link')
+				.setLink({
+					href: linkUrl,
+					target: linkTarget
+				})
+				.run();
 		}
 		showLinkModal = false;
 		linkUrl = '';
@@ -131,7 +218,10 @@
 				<button
 					class="toolbar__btn toolbar__btn--dropdown"
 					title="Block type"
-					onclick={() => { closeAllDropdowns(); showHeadingMenu = !showHeadingMenu; }}
+					onclick={() => {
+						closeAllDropdowns();
+						showHeadingMenu = !showHeadingMenu;
+					}}
 				>
 					{getCurrentHeadingLabel()} ▾
 				</button>
@@ -158,42 +248,54 @@
 				class:toolbar__btn--active={editor.isActive('bold')}
 				title="Bold (Ctrl+B)"
 				onclick={() => editor.chain().focus().toggleBold().run()}
-			><b>B</b></button>
+			>
+				<TextB size={18} weight="bold" />
+			</button>
 
 			<button
 				class="toolbar__btn"
 				class:toolbar__btn--active={editor.isActive('italic')}
 				title="Italic (Ctrl+I)"
 				onclick={() => editor.chain().focus().toggleItalic().run()}
-			><i>I</i></button>
+			>
+				<TextItalic size={18} weight="bold" />
+			</button>
 
 			<button
 				class="toolbar__btn"
 				class:toolbar__btn--active={editor.isActive('underline')}
 				title="Underline (Ctrl+U)"
 				onclick={() => editor.chain().focus().toggleUnderline().run()}
-			><u>U</u></button>
+			>
+				<TextUnderline size={18} weight="bold" />
+			</button>
 
 			<button
 				class="toolbar__btn"
 				class:toolbar__btn--active={editor.isActive('strike')}
 				title="Strikethrough"
 				onclick={() => editor.chain().focus().toggleStrike().run()}
-			><s>S</s></button>
+			>
+				<TextStrikethrough size={18} weight="bold" />
+			</button>
 
 			<button
 				class="toolbar__btn"
 				class:toolbar__btn--active={editor.isActive('subscript')}
 				title="Subscript"
 				onclick={() => editor.chain().focus().toggleSubscript().run()}
-			>X<sub>2</sub></button>
+			>
+				<TextSubscript size={18} weight="bold" />
+			</button>
 
 			<button
 				class="toolbar__btn"
 				class:toolbar__btn--active={editor.isActive('superscript')}
 				title="Superscript"
 				onclick={() => editor.chain().focus().toggleSuperscript().run()}
-			>X<sup>2</sup></button>
+			>
+				<TextSuperscript size={18} weight="bold" />
+			</button>
 		</div>
 
 		<div class="toolbar__sep"></div>
@@ -205,21 +307,27 @@
 				class:toolbar__btn--active={editor.isActive('bulletList')}
 				title="Bullet list"
 				onclick={() => editor.chain().focus().toggleBulletList().run()}
-			>⊙</button>
+			>
+				<ListBullets size={18} weight="bold" />
+			</button>
 
 			<button
 				class="toolbar__btn"
 				class:toolbar__btn--active={editor.isActive('orderedList')}
 				title="Numbered list"
 				onclick={() => editor.chain().focus().toggleOrderedList().run()}
-			>1.</button>
+			>
+				<ListNumbers size={18} weight="bold" />
+			</button>
 
 			<button
 				class="toolbar__btn"
 				class:toolbar__btn--active={editor.isActive('taskList')}
 				title="Task list"
 				onclick={() => editor.chain().focus().toggleTaskList().run()}
-			>☑</button>
+			>
+				<CheckSquare size={18} weight="bold" />
+			</button>
 		</div>
 
 		<div class="toolbar__sep"></div>
@@ -231,28 +339,36 @@
 				class:toolbar__btn--active={editor.isActive({ textAlign: 'left' })}
 				title="Align left"
 				onclick={() => editor.chain().focus().setTextAlign('left').run()}
-			>⫷</button>
+			>
+				<TextAlignLeft size={18} weight="bold" />
+			</button>
 
 			<button
 				class="toolbar__btn"
 				class:toolbar__btn--active={editor.isActive({ textAlign: 'center' })}
 				title="Align center"
 				onclick={() => editor.chain().focus().setTextAlign('center').run()}
-			>⫸</button>
+			>
+				<TextAlignCenter size={18} weight="bold" />
+			</button>
 
 			<button
 				class="toolbar__btn"
 				class:toolbar__btn--active={editor.isActive({ textAlign: 'right' })}
 				title="Align right"
 				onclick={() => editor.chain().focus().setTextAlign('right').run()}
-			>⫸</button>
+			>
+				<TextAlignRight size={18} weight="bold" />
+			</button>
 
 			<button
 				class="toolbar__btn"
 				class:toolbar__btn--active={editor.isActive({ textAlign: 'justify' })}
 				title="Justify"
 				onclick={() => editor.chain().focus().setTextAlign('justify').run()}
-			>☰</button>
+			>
+				<TextAlignJustify size={18} weight="bold" />
+			</button>
 		</div>
 
 		<div class="toolbar__sep"></div>
@@ -264,14 +380,18 @@
 				title="Undo (Ctrl+Z)"
 				disabled={!editor.can().undo()}
 				onclick={() => editor.chain().focus().undo().run()}
-			>↩</button>
+			>
+				<ArrowCounterClockwise size={18} weight="bold" />
+			</button>
 
 			<button
 				class="toolbar__btn"
 				title="Redo (Ctrl+Shift+Z)"
 				disabled={!editor.can().redo()}
 				onclick={() => editor.chain().focus().redo().run()}
-			>↪</button>
+			>
+				<ArrowClockwise size={18} weight="bold" />
+			</button>
 		</div>
 	</div>
 
@@ -285,8 +405,9 @@
 					class:toolbar__btn--active={editor.isActive('link')}
 					title="Insert/Edit link (Ctrl+K)"
 					onclick={openLinkModal}
-				>🔗</button>
-
+				>
+					<Link size={18} weight="bold" />
+				</button>
 				{#if showLinkModal}
 					<div class="toolbar__dropdown toolbar__dropdown--wide">
 						<label class="toolbar__dropdown-label">
@@ -308,9 +429,14 @@
 						<div class="toolbar__dropdown-actions">
 							<button class="toolbar__dropdown-btn" onclick={setLink}>Apply</button>
 							{#if editor.isActive('link')}
-								<button class="toolbar__dropdown-btn toolbar__dropdown-btn--danger" onclick={removeLink}>Remove</button>
+								<button
+									class="toolbar__dropdown-btn toolbar__dropdown-btn--danger"
+									onclick={removeLink}>Remove</button
+								>
 							{/if}
-							<button class="toolbar__dropdown-btn" onclick={() => showLinkModal = false}>Cancel</button>
+							<button class="toolbar__dropdown-btn" onclick={() => (showLinkModal = false)}
+								>Cancel</button
+							>
 						</div>
 					</div>
 				{/if}
@@ -322,19 +448,22 @@
 		<!-- Media -->
 		<div class="toolbar__group">
 			{#if onInsertImage}
-				<button
-					class="toolbar__btn"
-					title="Add media"
-					onclick={onInsertImage}
-				>🖼</button>
+				<button class="toolbar__btn" title="Add media" onclick={onInsertImage}>
+					<Image size={18} weight="bold" />
+				</button>
 			{/if}
 
 			<div class="toolbar__dropdown-wrap">
 				<button
 					class="toolbar__btn"
 					title="Embed YouTube"
-					onclick={() => { closeAllDropdowns(); showYoutubeModal = !showYoutubeModal; }}
-				>▶</button>
+					onclick={() => {
+						closeAllDropdowns();
+						showYoutubeModal = !showYoutubeModal;
+					}}
+				>
+					<YoutubeLogo size={18} weight="bold" />
+				</button>
 				{#if showYoutubeModal}
 					<div class="toolbar__dropdown toolbar__dropdown--wide">
 						<label class="toolbar__dropdown-label">
@@ -348,7 +477,9 @@
 						</label>
 						<div class="toolbar__dropdown-actions">
 							<button class="toolbar__dropdown-btn" onclick={insertYoutube}>Embed</button>
-							<button class="toolbar__dropdown-btn" onclick={() => showYoutubeModal = false}>Cancel</button>
+							<button class="toolbar__dropdown-btn" onclick={() => (showYoutubeModal = false)}
+								>Cancel</button
+							>
 						</div>
 					</div>
 				{/if}
@@ -363,9 +494,12 @@
 				<button
 					class="toolbar__btn"
 					title="Text color"
-					onclick={() => { closeAllDropdowns(); showColorPicker = !showColorPicker; }}
+					onclick={() => {
+						closeAllDropdowns();
+						showColorPicker = !showColorPicker;
+					}}
 				>
-					<span class="toolbar__color-icon" style="border-bottom-color: {editor.getAttributes('textStyle').color || '#fff'}">A</span>
+					<PaintBrush size={18} weight="bold" />
 				</button>
 				{#if showColorPicker}
 					<div class="toolbar__dropdown toolbar__dropdown--colors">
@@ -374,14 +508,22 @@
 								class="toolbar__color-swatch"
 								style="background: {c}"
 								title={c}
-								onclick={() => { editor.chain().focus().setColor(c).run(); showColorPicker = false; }}
+								onclick={() => {
+									editor.chain().focus().setColor(c).run();
+									showColorPicker = false;
+								}}
 							></button>
 						{/each}
 						<button
 							class="toolbar__color-swatch toolbar__color-swatch--clear"
 							title="Remove color"
-							onclick={() => { editor.chain().focus().unsetColor().run(); showColorPicker = false; }}
-						>✕</button>
+							onclick={() => {
+								editor.chain().focus().unsetColor().run();
+								showColorPicker = false;
+							}}
+						>
+							<X size={14} weight="bold" />
+						</button>
 					</div>
 				{/if}
 			</div>
@@ -391,9 +533,12 @@
 					class="toolbar__btn"
 					class:toolbar__btn--active={editor.isActive('highlight')}
 					title="Highlight"
-					onclick={() => { closeAllDropdowns(); showHighlightPicker = !showHighlightPicker; }}
+					onclick={() => {
+						closeAllDropdowns();
+						showHighlightPicker = !showHighlightPicker;
+					}}
 				>
-					<span class="toolbar__highlight-icon">H</span>
+					<HighlighterCircle size={18} weight="bold" />
 				</button>
 				{#if showHighlightPicker}
 					<div class="toolbar__dropdown toolbar__dropdown--colors">
@@ -402,14 +547,22 @@
 								class="toolbar__color-swatch"
 								style="background: {c}"
 								title={c}
-								onclick={() => { editor.chain().focus().toggleHighlight({ color: c }).run(); showHighlightPicker = false; }}
+								onclick={() => {
+									editor.chain().focus().toggleHighlight({ color: c }).run();
+									showHighlightPicker = false;
+								}}
 							></button>
 						{/each}
 						<button
 							class="toolbar__color-swatch toolbar__color-swatch--clear"
 							title="Remove highlight"
-							onclick={() => { editor.chain().focus().unsetHighlight().run(); showHighlightPicker = false; }}
-						>✕</button>
+							onclick={() => {
+								editor.chain().focus().unsetHighlight().run();
+								showHighlightPicker = false;
+							}}
+						>
+							<X size={14} weight="bold" />
+						</button>
 					</div>
 				{/if}
 			</div>
@@ -424,20 +577,26 @@
 				class:toolbar__btn--active={editor.isActive('blockquote')}
 				title="Blockquote"
 				onclick={() => editor.chain().focus().toggleBlockquote().run()}
-			>❝</button>
+			>
+				<Quotes size={18} weight="bold" />
+			</button>
 
 			<button
 				class="toolbar__btn"
 				class:toolbar__btn--active={editor.isActive('codeBlock')}
 				title="Code block"
 				onclick={() => editor.chain().focus().toggleCodeBlock().run()}
-			>{'</>'}</button>
+			>
+				<Code size={18} weight="bold" />
+			</button>
 
 			<button
 				class="toolbar__btn"
 				title="Horizontal rule"
 				onclick={() => editor.chain().focus().setHorizontalRule().run()}
-			>—</button>
+			>
+				<Minus size={18} weight="bold" />
+			</button>
 		</div>
 
 		<div class="toolbar__sep"></div>
@@ -448,17 +607,52 @@
 				<button
 					class="toolbar__btn"
 					title="Table"
-					onclick={() => { closeAllDropdowns(); showTableMenu = !showTableMenu; }}
-				>⊞</button>
+					onclick={() => {
+						closeAllDropdowns();
+						showTableMenu = !showTableMenu;
+					}}
+				>
+					<Table size={18} weight="bold" />
+				</button>
 				{#if showTableMenu}
 					<div class="toolbar__dropdown">
 						<button class="toolbar__dropdown-item" onclick={insertTable}>Insert 3×3 table</button>
 						{#if editor.isActive('table')}
-							<button class="toolbar__dropdown-item" onclick={() => { editor.chain().focus().addColumnAfter().run(); showTableMenu = false; }}>Add column after</button>
-							<button class="toolbar__dropdown-item" onclick={() => { editor.chain().focus().addRowAfter().run(); showTableMenu = false; }}>Add row after</button>
-							<button class="toolbar__dropdown-item" onclick={() => { editor.chain().focus().deleteColumn().run(); showTableMenu = false; }}>Delete column</button>
-							<button class="toolbar__dropdown-item" onclick={() => { editor.chain().focus().deleteRow().run(); showTableMenu = false; }}>Delete row</button>
-							<button class="toolbar__dropdown-item" onclick={() => { editor.chain().focus().deleteTable().run(); showTableMenu = false; }}>Delete table</button>
+							<button
+								class="toolbar__dropdown-item"
+								onclick={() => {
+									editor.chain().focus().addColumnAfter().run();
+									showTableMenu = false;
+								}}>Add column after</button
+							>
+							<button
+								class="toolbar__dropdown-item"
+								onclick={() => {
+									editor.chain().focus().addRowAfter().run();
+									showTableMenu = false;
+								}}>Add row after</button
+							>
+							<button
+								class="toolbar__dropdown-item"
+								onclick={() => {
+									editor.chain().focus().deleteColumn().run();
+									showTableMenu = false;
+								}}>Delete column</button
+							>
+							<button
+								class="toolbar__dropdown-item"
+								onclick={() => {
+									editor.chain().focus().deleteRow().run();
+									showTableMenu = false;
+								}}>Delete row</button
+							>
+							<button
+								class="toolbar__dropdown-item"
+								onclick={() => {
+									editor.chain().focus().deleteTable().run();
+									showTableMenu = false;
+								}}>Delete table</button
+							>
 						{/if}
 					</div>
 				{/if}
@@ -473,16 +667,19 @@
 				<button
 					class="toolbar__btn"
 					title="Special characters"
-					onclick={() => { closeAllDropdowns(); showSpecialChars = !showSpecialChars; }}
-				>Ω</button>
+					onclick={() => {
+						closeAllDropdowns();
+						showSpecialChars = !showSpecialChars;
+					}}
+				>
+					<Omega size={18} weight="bold" />
+				</button>
 				{#if showSpecialChars}
 					<div class="toolbar__dropdown toolbar__dropdown--chars">
 						{#each specialChars as ch}
-							<button
-								class="toolbar__char-btn"
-								title={ch}
-								onclick={() => insertSpecialChar(ch)}
-							>{specialCharDisplay[ch] || ch}</button>
+							<button class="toolbar__char-btn" title={ch} onclick={() => insertSpecialChar(ch)}>
+								{specialCharDisplay[ch] || ch}
+							</button>
 						{/each}
 					</div>
 				{/if}
@@ -493,11 +690,9 @@
 
 		<!-- Clear formatting -->
 		<div class="toolbar__group">
-			<button
-				class="toolbar__btn"
-				title="Clear formatting"
-				onclick={clearFormatting}
-			>⌧</button>
+			<button class="toolbar__btn" title="Clear formatting" onclick={clearFormatting}>
+				<Eraser size={18} weight="bold" />
+			</button>
 
 			<!-- Indent / Outdent for lists -->
 			<button
@@ -505,14 +700,18 @@
 				title="Decrease indent"
 				onclick={() => editor.chain().focus().liftListItem('listItem').run()}
 				disabled={!editor.can().liftListItem('listItem')}
-			>⇤</button>
+			>
+				<TextIndentDecrease size={18} weight="bold" />
+			</button>
 
 			<button
 				class="toolbar__btn"
 				title="Increase indent"
 				onclick={() => editor.chain().focus().sinkListItem('listItem').run()}
 				disabled={!editor.can().sinkListItem('listItem')}
-			>⇥</button>
+			>
+				<TextIndentIncrease size={18} weight="bold" />
+			</button>
 		</div>
 
 		<!-- Right-side: view controls -->
@@ -524,14 +723,22 @@
 				class:toolbar__btn--active={showSource}
 				title="Toggle HTML source"
 				onclick={onToggleSource}
-			>HTML</button>
+			>
+				<CodeBlock size={18} weight="bold" />
+			</button>
 
 			<button
 				class="toolbar__btn"
 				class:toolbar__btn--active={isFullscreen}
 				title="Toggle fullscreen"
 				onclick={onToggleFullscreen}
-			>{isFullscreen ? '⊠' : '⊡'}</button>
+			>
+				{#if isFullscreen}
+					<FrameAll size={18} weight="bold" />
+				{:else}
+					<Frame size={18} weight="bold" />
+				{/if}
+			</button>
 		</div>
 	</div>
 </div>
@@ -586,7 +793,9 @@
 		color: var(--color-grey-300, #94a3b8);
 		font-size: 0.8rem;
 		cursor: pointer;
-		transition: background 0.15s, color 0.15s;
+		transition:
+			background 0.15s,
+			color 0.15s;
 		white-space: nowrap;
 	}
 
