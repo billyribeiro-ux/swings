@@ -2,6 +2,7 @@ services:
   - type: web
     name: swings-api
     runtime: docker
+    dockerContext: .
     dockerfilePath: ./Dockerfile
     envVars:
       - key: DATABASE_URL
