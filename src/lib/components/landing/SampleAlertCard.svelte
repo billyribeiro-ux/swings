@@ -3,6 +3,7 @@
 	import { sampleAlert } from '$lib/data/alerts';
 	import { gsap } from 'gsap';
 	import { EASE, DURATION, isReducedMotion } from '$lib/utils/animations';
+	import MiniChart from '$lib/components/charts/MiniChart.svelte';
 
 	interface Props {
 		delay?: number;
@@ -56,6 +57,11 @@
 
 	<!-- Ticker -->
 	<div class="alert-card__ticker">{sampleAlert.ticker}</div>
+
+	<!-- Mini Chart -->
+	<div class="alert-card__chart">
+		<MiniChart ticker={sampleAlert.ticker} trend="up" height={60} days={14} />
+	</div>
 
 	<!-- Data Rows -->
 	<div class="alert-card__rows">
@@ -140,13 +146,20 @@
 	}
 
 	.alert-card__ticker {
-		margin-bottom: 1rem;
+		margin-bottom: 0.75rem;
 		font-family: var(--font-ui);
 		font-size: 1.875rem;
 		font-weight: var(--w-bold);
 		letter-spacing: -0.025em;
 		color: var(--color-white);
 		font-variant-numeric: tabular-nums;
+	}
+
+	.alert-card__chart {
+		margin-bottom: 1rem;
+		border-radius: var(--radius-md);
+		overflow: hidden;
+		background: rgba(0, 0, 0, 0.2);
 	}
 
 	.alert-card__rows {

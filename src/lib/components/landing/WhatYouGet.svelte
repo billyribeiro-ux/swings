@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { gsap } from 'gsap';
+	import { ScrollTrigger } from 'gsap/ScrollTrigger';
+	import { isReducedMotion } from '$lib/utils/animations';
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
-	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
-	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
 
 	const features = [
 		{
@@ -31,37 +33,91 @@
 			fullWidth: true
 		}
 	];
+
+	let sectionRef: HTMLElement | undefined = $state();
+	let itemsRef: HTMLElement[] = [];
+	let checksRef: SVGPathElement[] = [];
+
+	onMount(() => {
+		if (!sectionRef || isReducedMotion()) return;
+
+		const ctx = gsap.context(() => {
+			// Animate items with staggered entrance
+			itemsRef.forEach((item, i) => {
+				gsap.set(item, { opacity: 0, x: -30 });
+
+				ScrollTrigger.create({
+					trigger: item,
+					start: 'top 85%',
+					once: true,
+					onEnter: () => {
+						// Item slides in
+						gsap.to(item, {
+							opacity: 1,
+							x: 0,
+							duration: 0.7,
+							delay: i * 0.1,
+							ease: 'power3.out'
+						});
+
+						// Checkmark draws
+						const check = checksRef[i];
+						if (check) {
+							const length = check.getTotalLength();
+							gsap.set(check, {
+								strokeDasharray: length,
+								strokeDashoffset: length,
+								stroke: '#0FA4AF',
+								strokeWidth: 2,
+								fill: 'none'
+							});
+
+							gsap.to(check, {
+								strokeDashoffset: 0,
+								duration: 0.5,
+								delay: i * 0.1 + 0.3,
+								ease: 'power2.out'
+							});
+						}
+					}
+				});
+			});
+		}, sectionRef);
+
+		return () => ctx.revert();
+	});
 </script>
 
-<section class="what-you-get">
+<section bind:this={sectionRef} class="what-you-get">
 	<div class="what-you-get__container">
-		<ScrollReveal>
-			<SectionHeader
-				eyebrow="What's Included"
-				title="Your Sunday Night Watchlist"
-				subtitle="Every Sunday night, your watchlist drops with everything you need to trade the week ahead - no guessing, no scrambling Monday morning."
-			/>
+		<SectionHeader
+			eyebrow="What's Included"
+			title="Your Sunday Night Watchlist"
+			subtitle="Every Sunday night, your watchlist drops with everything you need to trade the week ahead - no guessing, no scrambling Monday morning."
+		/>
 
-			<div class="what-you-get__grid">
-				{#each features as feature, i (feature.title)}
-					<div
-						class={[
-							'reveal-item what-you-get__item',
-							feature.fullWidth && 'what-you-get__item--full'
-						]}
-						style="transition-delay: {i * 0.12}s"
-					>
-						<div class="what-you-get__icon">
-							<CheckCircle size={24} weight="fill" color="#0FA4AF" />
-						</div>
-						<div>
-							<h3 class="what-you-get__title">{feature.title}</h3>
-							<p class="what-you-get__desc">{feature.description}</p>
-						</div>
+		<div class="what-you-get__grid">
+			{#each features as feature, i (feature.title)}
+				<div
+					bind:this={itemsRef[i]}
+					class={['what-you-get__item', feature.fullWidth && 'what-you-get__item--full']}
+				>
+					<svg class="what-you-get__check" viewBox="0 0 24 24" width="24" height="24">
+						<circle cx="12" cy="12" r="10" fill="rgba(15, 164, 175, 0.1)" />
+						<path
+							bind:this={checksRef[i]}
+							d="M9 12l2 2 4-4"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						/>
+					</svg>
+					<div>
+						<h3 class="what-you-get__title">{feature.title}</h3>
+						<p class="what-you-get__desc">{feature.description}</p>
 					</div>
-				{/each}
-			</div>
-		</ScrollReveal>
+				</div>
+			{/each}
+		</div>
 	</div>
 </section>
 
@@ -130,6 +186,21 @@
 		width: 1.5rem;
 		height: 1.5rem;
 		flex-shrink: 0;
+	}
+
+	.what-you-get__check {
+		margin-top: 0.125rem;
+		width: 1.5rem;
+		height: 1.5rem;
+		flex-shrink: 0;
+	}
+
+	.what-you-get__check path {
+		stroke: #0fa4af;
+		stroke-width: 2;
+		fill: none;
+		stroke-linecap: round;
+		stroke-linejoin: round;
 	}
 
 	.what-you-get__title {

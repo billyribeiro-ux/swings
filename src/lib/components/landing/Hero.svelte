@@ -10,6 +10,8 @@
 	} from '$lib/utils/animations';
 	import Button from '$lib/components/ui/Button.svelte';
 	import SampleAlertCard from './SampleAlertCard.svelte';
+	import HeroChart from '$lib/components/charts/HeroChart.svelte';
+	import LivePriceTicker from '$lib/components/ui/LivePriceTicker.svelte';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
 
 	let heroRef: HTMLElement | undefined = $state();
@@ -88,6 +90,9 @@
 </script>
 
 <section bind:this={heroRef} class="hero">
+	<!-- Background Chart -->
+	<HeroChart height={500} days={60} />
+
 	<!-- Background -->
 	<div class="hero__bg"></div>
 
@@ -120,11 +125,11 @@
 
 				<!-- Actions -->
 				<div class="hero-actions hero__actions">
-					<Button variant="primary" href="#pricing">
+					<Button variant="primary" href="#pricing" magnetic>
 						Get Instant Access
 						<ArrowRight size={20} weight="bold" />
 					</Button>
-					<Button variant="ghost" onclick={scrollToHowItWorks}>See How It Works</Button>
+					<Button variant="ghost" onclick={scrollToHowItWorks} magnetic>See How It Works</Button>
 				</div>
 
 				<!-- Trust Line -->

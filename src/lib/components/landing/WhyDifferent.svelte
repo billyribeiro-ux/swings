@@ -1,6 +1,9 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { gsap } from 'gsap';
+	import { ScrollTrigger } from 'gsap/ScrollTrigger';
+	import { isReducedMotion } from '$lib/utils/animations';
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
-	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import Clock from 'phosphor-svelte/lib/Clock';
 	import ShieldCheck from 'phosphor-svelte/lib/ShieldCheck';
 	import CurrencyDollar from 'phosphor-svelte/lib/CurrencyDollar';
@@ -25,29 +28,71 @@
 				"We highlight logical profit zones so you can scale out with confidence, even if you're not an experienced trader. No complicated calculations -- just clear, actionable targets."
 		}
 	];
+
+	let sectionRef: HTMLElement | undefined = $state();
+	let cardsRef: HTMLElement[] = [];
+
+	onMount(() => {
+		if (!sectionRef || isReducedMotion()) return;
+
+		const ctx = gsap.context(() => {
+			// Animate cards with 3D flip effect
+			cardsRef.forEach((card, i) => {
+				gsap.set(card, {
+					opacity: 0,
+					rotateX: -15,
+					rotateY: i === 0 ? -10 : i === 2 ? 10 : 0,
+					z: -50,
+					transformPerspective: 1000
+				});
+
+				ScrollTrigger.create({
+					trigger: card,
+					start: 'top 85%',
+					once: true,
+					onEnter: () => {
+						gsap.to(card, {
+							opacity: 1,
+							rotateX: 0,
+							rotateY: 0,
+							z: 0,
+							duration: 0.9,
+							delay: i * 0.15,
+							ease: 'expo.out',
+							clearProps: 'transform'
+						});
+					}
+				});
+			});
+		}, sectionRef);
+
+		return () => ctx.revert();
+	});
 </script>
 
-<section id="how-it-works" class="why-different">
+<section bind:this={sectionRef} id="how-it-works" class="why-different">
 	<div class="why-different__container">
-		<ScrollReveal>
-			<SectionHeader
-				eyebrow="Why We're Different"
-				title="Most Alert Services Tell You <em>After</em> the Move. We Tell You <em>Before</em>."
-				subtitle="Built on the proprietary 'Move Prior to The Move' methodology - your watchlist arrives Sunday night so you can set alerts and be positioned before the action starts."
-			/>
+		<SectionHeader
+			eyebrow="Why We're Different"
+			title="Most Alert Services Tell You <em>After</em> the Move. We Tell You <em>Before</em>."
+			subtitle="Built on the proprietary 'Move Prior to The Move' methodology - your watchlist arrives Sunday night so you can set alerts and be positioned before the action starts."
+		/>
 
-			<div class="why-different__grid">
-				{#each features as feature, i (feature.title)}
-					<div class="reveal-item why-different__card" style="transition-delay: {i * 0.15}s">
-						<div class="why-different__icon-wrap">
-							<feature.icon size={24} weight="duotone" color="#0FA4AF" />
-						</div>
-						<h3 class="why-different__title">{feature.title}</h3>
-						<p class="why-different__desc">{feature.description}</p>
+		<div class="why-different__grid">
+			{#each features as feature, i (feature.title)}
+				<div
+					bind:this={cardsRef[i]}
+					class="why-different__card"
+					style="transform-style: preserve-3d;"
+				>
+					<div class="why-different__icon-wrap">
+						<feature.icon size={24} weight="duotone" color="#0FA4AF" />
 					</div>
-				{/each}
-			</div>
-		</ScrollReveal>
+					<h3 class="why-different__title">{feature.title}</h3>
+					<p class="why-different__desc">{feature.description}</p>
+				</div>
+			{/each}
+		</div>
 	</div>
 </section>
 
@@ -83,6 +128,7 @@
 	.why-different__grid {
 		display: grid;
 		gap: 2rem;
+		perspective: 1000px;
 	}
 
 	@media (min-width: 768px) {
@@ -97,11 +143,13 @@
 		padding: 2rem;
 		box-shadow: var(--shadow-sm);
 		border: 1px solid var(--color-grey-100);
-		transition: all 300ms var(--ease-out);
+		transition: all 400ms var(--ease-out);
+		will-change: transform;
 	}
 
 	.why-different__card:hover {
-		box-shadow: var(--shadow-lg);
+		box-shadow: var(--shadow-xl);
+		transform: translateY(-8px) scale(1.02);
 	}
 
 	.why-different__icon-wrap {
@@ -113,6 +161,11 @@
 		align-items: center;
 		justify-content: center;
 		margin-bottom: 1.5rem;
+		transition: transform 300ms ease;
+	}
+
+	.why-different__card:hover .why-different__icon-wrap {
+		transform: scale(1.1);
 	}
 
 	.why-different__title {
