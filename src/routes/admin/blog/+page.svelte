@@ -9,6 +9,45 @@
 	let loading = $state(true);
 	let statusFilter: PostStatus | '' = $state('');
 	let search = $state('');
+
+	// Bulk selection
+	let selectedIds: string[] = $state([]);
+	let bulkActionValue = $state('');
+	const allSelected = $derived(posts.length > 0 && posts.every((p) => selectedIds.includes(p.id)));
+
+	function toggleSelect(id: string) {
+		if (selectedIds.includes(id)) {
+			selectedIds = selectedIds.filter((x) => x !== id);
+		} else {
+			selectedIds = [...selectedIds, id];
+		}
+	}
+
+	function toggleSelectAll() {
+		if (allSelected) {
+			selectedIds = [];
+		} else {
+			selectedIds = posts.map((p) => p.id);
+		}
+	}
+
+	async function executeBulkAction() {
+		if (!bulkActionValue || selectedIds.length === 0) return;
+		const action = bulkActionValue;
+		bulkActionValue = '';
+
+		if (action === 'delete') {
+			if (!confirm(`Permanently delete ${selectedIds.length} post(s)?`)) return;
+			await Promise.allSettled(selectedIds.map((id) => api.delete(`/api/admin/blog/posts/${id}`)));
+		} else {
+			const status = action === 'trash' ? 'trash' : action === 'publish' ? 'published' : 'draft';
+			await Promise.allSettled(
+				selectedIds.map((id) => api.put(`/api/admin/blog/posts/${id}/status`, { status }))
+			);
+		}
+		selectedIds = [];
+		loadPosts();
+	}
 	let searchTimeout: ReturnType<typeof setTimeout>;
 
 	$effect(() => {
@@ -65,6 +104,15 @@
 			loadPosts();
 		} catch (e) {
 			console.error('Failed to delete post', e);
+		}
+	}
+
+	async function restorePost(id: string) {
+		try {
+			await api.put(`/api/admin/blog/posts/${id}/status`, { status: 'draft' });
+			loadPosts();
+		} catch (e) {
+			console.error('Failed to restore post', e);
 		}
 	}
 
@@ -144,6 +192,24 @@
 		/>
 	</div>
 
+	<!-- Bulk action bar -->
+	{#if selectedIds.length > 0}
+		<div class="bulk-bar">
+			<span class="bulk-bar__count">{selectedIds.length} selected</span>
+			<select class="bulk-bar__select" bind:value={bulkActionValue}>
+				<option value="">Bulk Actions…</option>
+				<option value="publish">Publish</option>
+				<option value="draft">Set to Draft</option>
+				<option value="trash">Move to Trash</option>
+				<option value="delete">Delete Permanently</option>
+			</select>
+			<button class="bulk-bar__apply" onclick={executeBulkAction} disabled={!bulkActionValue}>
+				Apply
+			</button>
+			<button class="bulk-bar__clear" onclick={() => (selectedIds = [])}>✕</button>
+		</div>
+	{/if}
+
 	<!-- Posts table -->
 	{#if loading}
 		<div class="blog-admin__loading">Loading...</div>
@@ -212,6 +278,9 @@
 			<table class="blog-admin__table">
 				<thead>
 					<tr>
+						<th class="th-check">
+							<input type="checkbox" checked={allSelected} onchange={toggleSelectAll} />
+						</th>
 						<th>Title</th>
 						<th>Author</th>
 						<th>Categories</th>
@@ -222,7 +291,14 @@
 				</thead>
 				<tbody>
 					{#each posts as post (post.id)}
-						<tr>
+						<tr class:tr--selected={selectedIds.includes(post.id)}>
+							<td class="td-check">
+								<input
+									type="checkbox"
+									checked={selectedIds.includes(post.id)}
+									onchange={() => toggleSelect(post.id)}
+								/>
+							</td>
 							<td>
 								<a href="/admin/blog/{post.id}" class="post-title-link">
 									{post.title}
@@ -253,6 +329,7 @@
 							<td class="td-actions">
 								<a href="/admin/blog/{post.id}" class="action-link">Edit</a>
 								{#if post.status === 'trash'}
+									<button class="action-btn" onclick={() => restorePost(post.id)}>Restore</button>
 									<button class="action-btn action-btn--danger" onclick={() => hardDelete(post.id)}
 										>Delete</button
 									>
@@ -721,5 +798,70 @@
 		.blog-admin__pagination span {
 			font-size: var(--fs-xs, 0.8rem);
 		}
+	}
+
+	/* Bulk action bar */
+	.bulk-bar {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.6rem 1rem;
+		background: rgba(15, 164, 175, 0.08);
+		border: 1px solid rgba(15, 164, 175, 0.25);
+		border-radius: 0.5rem;
+		margin-bottom: 0.75rem;
+	}
+
+	.bulk-bar__count {
+		font-size: 0.8rem;
+		font-weight: 600;
+		color: var(--color-teal-light, #15c5d1);
+		white-space: nowrap;
+	}
+
+	.bulk-bar__select {
+		padding: 0.3rem 0.5rem;
+		background: rgba(255, 255, 255, 0.06);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		border-radius: 0.3rem;
+		color: var(--color-grey-200, #e2e8f0);
+		font-size: 0.8rem;
+		cursor: pointer;
+	}
+
+	.bulk-bar__apply {
+		padding: 0.3rem 0.75rem;
+		background: rgba(15, 164, 175, 0.2);
+		border: 1px solid rgba(15, 164, 175, 0.4);
+		border-radius: 0.3rem;
+		color: var(--color-teal-light, #15c5d1);
+		font-size: 0.8rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.bulk-bar__apply:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	.bulk-bar__clear {
+		margin-left: auto;
+		background: transparent;
+		border: none;
+		color: var(--color-grey-500, #475569);
+		cursor: pointer;
+		font-size: 0.9rem;
+	}
+
+	/* Checkbox columns */
+	.th-check,
+	.td-check {
+		width: 2rem;
+		text-align: center;
+	}
+
+	.tr--selected {
+		background: rgba(15, 164, 175, 0.05);
 	}
 </style>

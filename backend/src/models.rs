@@ -318,6 +318,7 @@ pub struct BlogPost {
     pub status: PostStatus,
     pub visibility: String,
     pub password_hash: Option<String>,
+    pub format: String,
     pub is_sticky: bool,
     pub allow_comments: bool,
     pub meta_title: Option<String>,
@@ -352,6 +353,8 @@ pub struct BlogPostResponse {
     pub featured_image_url: Option<String>,
     pub status: PostStatus,
     pub visibility: String,
+    pub is_password_protected: bool,
+    pub format: String,
     pub is_sticky: bool,
     pub allow_comments: bool,
     pub meta_title: Option<String>,
@@ -362,6 +365,7 @@ pub struct BlogPostResponse {
     pub word_count: i32,
     pub categories: Vec<BlogCategory>,
     pub tags: Vec<BlogTag>,
+    pub meta: Vec<PostMeta>,
     pub scheduled_at: Option<DateTime<Utc>>,
     pub published_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
@@ -378,6 +382,7 @@ pub struct BlogPostListItem {
     pub excerpt: Option<String>,
     pub featured_image_url: Option<String>,
     pub status: PostStatus,
+    pub format: String,
     pub is_sticky: bool,
     pub reading_time_minutes: i32,
     pub word_count: i32,
@@ -408,6 +413,9 @@ pub struct CreatePostRequest {
     pub category_ids: Option<Vec<Uuid>>,
     pub tag_ids: Option<Vec<Uuid>>,
     pub scheduled_at: Option<DateTime<Utc>>,
+    pub post_password: Option<String>,
+    pub author_id: Option<Uuid>,
+    pub format: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -429,11 +437,37 @@ pub struct UpdatePostRequest {
     pub category_ids: Option<Vec<Uuid>>,
     pub tag_ids: Option<Vec<Uuid>>,
     pub scheduled_at: Option<DateTime<Utc>>,
+    pub post_password: Option<String>,
+    pub author_id: Option<Uuid>,
+    pub format: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct UpdatePostStatusRequest {
     pub status: PostStatus,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct VerifyPostPasswordRequest {
+    pub password: String,
+}
+
+// ── Post Meta ──────────────────────────────────────────────────────────────
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, Clone)]
+pub struct PostMeta {
+    pub id: Uuid,
+    pub post_id: Uuid,
+    pub meta_key: String,
+    pub meta_value: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpsertPostMetaRequest {
+    pub meta_key: String,
+    pub meta_value: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -547,6 +581,8 @@ pub struct Media {
     pub caption: Option<String>,
     pub storage_path: String,
     pub url: String,
+    pub focal_x: f64,
+    pub focal_y: f64,
     pub created_at: DateTime<Utc>,
 }
 
@@ -555,6 +591,8 @@ pub struct UpdateMediaRequest {
     pub title: Option<String>,
     pub alt_text: Option<String>,
     pub caption: Option<String>,
+    pub focal_x: Option<f64>,
+    pub focal_y: Option<f64>,
 }
 
 // ── Pagination ──────────────────────────────────────────────────────────

@@ -18,6 +18,10 @@
 	let post: BlogPostResponse | null = $state(null);
 	let loading = $state(true);
 	let error = $state('');
+	let passwordRequired = $state(false);
+	let passwordInput = $state('');
+	let passwordError = $state('');
+	let unlocking = $state(false);
 
 	const slug = $derived($page.params.slug);
 
@@ -31,7 +35,13 @@
 		try {
 			const res = await fetch(`${API_BASE}/api/blog/posts/${slug}`);
 			if (res.ok) {
-				post = await res.json();
+				const data: BlogPostResponse = await res.json();
+				if (data.is_password_protected) {
+					post = data;
+					passwordRequired = true;
+				} else {
+					post = data;
+				}
 			} else if (res.status === 404) {
 				error = 'Post not found';
 			} else {
@@ -42,6 +52,32 @@
 			console.error(e);
 		} finally {
 			loading = false;
+		}
+	}
+
+	async function unlockPost() {
+		if (!passwordInput.trim()) return;
+		unlocking = true;
+		passwordError = '';
+		try {
+			const res = await fetch(`${API_BASE}/api/blog/posts/${slug}/unlock`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ password: passwordInput })
+			});
+			if (res.ok) {
+				post = await res.json();
+				passwordRequired = false;
+			} else if (res.status === 401) {
+				passwordError = 'Incorrect password. Please try again.';
+			} else {
+				passwordError = 'Something went wrong. Please try again.';
+			}
+		} catch (e) {
+			passwordError = 'Failed to verify password.';
+			console.error(e);
+		} finally {
+			unlocking = false;
 		}
 	}
 
@@ -81,6 +117,37 @@
 	<div class="post-error">
 		<h1>{error}</h1>
 		<a href="/blog">← Back to blog</a>
+	</div>
+{:else if post && passwordRequired}
+	<div class="post-password-gate">
+		<div class="post-password-gate__inner">
+			<h1 class="post-password-gate__title">{post.title}</h1>
+			<p class="post-password-gate__notice">
+				This post is password protected. Enter the password to read it.
+			</p>
+			<form
+				class="post-password-gate__form"
+				onsubmit={(e) => {
+					e.preventDefault();
+					unlockPost();
+				}}
+			>
+				<input
+					type="password"
+					class="post-password-gate__input"
+					placeholder="Password"
+					bind:value={passwordInput}
+					autocomplete="current-password"
+					aria-label="Post password"
+				/>
+				<button class="post-password-gate__btn" type="submit" disabled={unlocking}>
+					{unlocking ? 'Verifying…' : 'Enter'}
+				</button>
+			</form>
+			{#if passwordError}
+				<p class="post-password-gate__error">{passwordError}</p>
+			{/if}
+		</div>
 	</div>
 {:else if post}
 	<!-- Hero -->
@@ -680,5 +747,77 @@
 
 	.post-footer__link:hover {
 		color: var(--color-teal-light);
+	}
+
+	/* Password gate */
+	.post-password-gate {
+		min-height: 60vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 4rem 1.5rem;
+	}
+
+	.post-password-gate__inner {
+		width: 100%;
+		max-width: 420px;
+		text-align: center;
+	}
+
+	.post-password-gate__title {
+		font-size: var(--fs-2xl);
+		font-weight: var(--w-bold);
+		color: var(--color-grey-900);
+		margin-bottom: 0.75rem;
+	}
+
+	.post-password-gate__notice {
+		font-size: var(--fs-sm);
+		color: var(--color-grey-500);
+		margin-bottom: 1.5rem;
+	}
+
+	.post-password-gate__form {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.post-password-gate__input {
+		flex: 1;
+		padding: 0.625rem 0.875rem;
+		border: 1px solid var(--color-grey-300);
+		border-radius: var(--radius-md);
+		font-size: var(--fs-sm);
+		background: var(--color-surface);
+		color: var(--color-grey-900);
+		outline: none;
+		transition: border-color 150ms;
+	}
+
+	.post-password-gate__input:focus {
+		border-color: var(--color-teal);
+	}
+
+	.post-password-gate__btn {
+		padding: 0.625rem 1.25rem;
+		background: var(--color-teal);
+		color: #fff;
+		border: none;
+		border-radius: var(--radius-md);
+		font-size: var(--fs-sm);
+		font-weight: var(--w-semibold);
+		cursor: pointer;
+		transition: opacity 150ms;
+	}
+
+	.post-password-gate__btn:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+
+	.post-password-gate__error {
+		margin-top: 0.75rem;
+		font-size: var(--fs-sm);
+		color: var(--color-red, #ef4444);
 	}
 </style>

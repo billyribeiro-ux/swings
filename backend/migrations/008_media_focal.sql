@@ -1,0 +1,4 @@
+-- Add focal point coordinates to media items
+ALTER TABLE media
+    ADD COLUMN IF NOT EXISTS focal_x DOUBLE PRECISION NOT NULL DEFAULT 0.5,
+    ADD COLUMN IF NOT EXISTS focal_y DOUBLE PRECISION NOT NULL DEFAULT 0.5;

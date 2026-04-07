@@ -630,6 +630,7 @@ pub async fn create_blog_post(
     pool: &PgPool,
     author_id: Uuid,
     req: &CreatePostRequest,
+    password_hash: Option<&str>,
 ) -> Result<BlogPost, sqlx::Error> {
     let slug = req.slug.as_deref()
         .map(|s| slugify(s))
@@ -644,14 +645,14 @@ pub async fn create_blog_post(
         r#"
         INSERT INTO blog_posts (
             id, author_id, title, slug, content, content_json, excerpt,
-            featured_image_id, status, visibility, is_sticky, allow_comments,
+            featured_image_id, status, visibility, password_hash, format, is_sticky, allow_comments,
             meta_title, meta_description, canonical_url, og_image_url,
             reading_time_minutes, word_count, scheduled_at, published_at
         ) VALUES (
             $1, $2, $3, $4, $5, $6, $7,
-            $8, $9, $10, $11, $12,
-            $13, $14, $15, $16,
-            $17, $18, $19, $20
+            $8, $9, $10, $11, $12, $13, $14,
+            $15, $16, $17, $18,
+            $19, $20, $21, $22
         ) RETURNING *
         "#,
     )
@@ -665,6 +666,8 @@ pub async fn create_blog_post(
     .bind(req.featured_image_id)
     .bind(&status)
     .bind(req.visibility.as_deref().unwrap_or("public"))
+    .bind(password_hash)
+    .bind(req.format.as_deref().unwrap_or("standard"))
     .bind(req.is_sticky.unwrap_or(false))
     .bind(req.allow_comments.unwrap_or(true))
     .bind(req.meta_title.as_deref().unwrap_or(""))
@@ -683,6 +686,8 @@ pub async fn update_blog_post(
     pool: &PgPool,
     post_id: Uuid,
     req: &UpdatePostRequest,
+    password_hash_update: Option<Option<String>>,
+    author_id_update: Option<Uuid>,
 ) -> Result<BlogPost, sqlx::Error> {
     let existing = sqlx::query_as::<_, BlogPost>("SELECT * FROM blog_posts WHERE id = $1")
         .bind(post_id)
@@ -702,16 +707,22 @@ pub async fn update_blog_post(
     } else {
         existing.published_at
     };
+    let new_password_hash = match password_hash_update {
+        Some(v) => v,
+        None => existing.password_hash.clone(),
+    };
+    let new_author_id = author_id_update.unwrap_or(existing.author_id);
 
     sqlx::query_as::<_, BlogPost>(
         r#"
         UPDATE blog_posts SET
             title = $1, slug = $2, content = $3, content_json = $4, excerpt = $5,
-            featured_image_id = $6, status = $7, visibility = $8, is_sticky = $9,
-            allow_comments = $10, meta_title = $11, meta_description = $12,
-            canonical_url = $13, og_image_url = $14, reading_time_minutes = $15,
-            word_count = $16, scheduled_at = $17, published_at = $18, updated_at = NOW()
-        WHERE id = $19 RETURNING *
+            featured_image_id = $6, status = $7, visibility = $8, password_hash = $9,
+            format = $10, is_sticky = $11, allow_comments = $12, meta_title = $13,
+            meta_description = $14, canonical_url = $15, og_image_url = $16,
+            reading_time_minutes = $17, word_count = $18, scheduled_at = $19, published_at = $20,
+            author_id = $21, updated_at = NOW()
+        WHERE id = $22 RETURNING *
         "#,
     )
     .bind(title)
@@ -722,6 +733,8 @@ pub async fn update_blog_post(
     .bind(req.featured_image_id.or(existing.featured_image_id))
     .bind(&status)
     .bind(req.visibility.as_deref().unwrap_or(&existing.visibility))
+    .bind(new_password_hash.as_deref())
+    .bind(req.format.as_deref().unwrap_or(&existing.format))
     .bind(req.is_sticky.unwrap_or(existing.is_sticky))
     .bind(req.allow_comments.unwrap_or(existing.allow_comments))
     .bind(req.meta_title.as_deref().unwrap_or(existing.meta_title.as_deref().unwrap_or("")))
@@ -732,6 +745,7 @@ pub async fn update_blog_post(
     .bind(wc)
     .bind(req.scheduled_at.or(existing.scheduled_at))
     .bind(published_at)
+    .bind(new_author_id)
     .bind(post_id)
     .fetch_one(pool)
     .await
@@ -1236,11 +1250,13 @@ pub async fn update_media(
         .await?;
 
     sqlx::query_as::<_, Media>(
-        "UPDATE media SET title = $1, alt_text = $2, caption = $3 WHERE id = $4 RETURNING *",
+        "UPDATE media SET title = $1, alt_text = $2, caption = $3, focal_x = $4, focal_y = $5 WHERE id = $6 RETURNING *",
     )
     .bind(req.title.as_deref().or(existing.title.as_deref()))
     .bind(req.alt_text.as_deref().or(existing.alt_text.as_deref()))
     .bind(req.caption.as_deref().or(existing.caption.as_deref()))
+    .bind(req.focal_x.unwrap_or(existing.focal_x))
+    .bind(req.focal_y.unwrap_or(existing.focal_y))
     .bind(id)
     .fetch_one(pool)
     .await
@@ -1277,4 +1293,50 @@ pub async fn list_media(
         .fetch_one(pool)
         .await?;
     Ok((items, total.0))
+}
+
+// ── Post Meta ──────────────────────────────────────────────────────────────
+
+pub async fn list_post_meta(pool: &PgPool, post_id: Uuid) -> Result<Vec<PostMeta>, sqlx::Error> {
+    sqlx::query_as::<_, PostMeta>(
+        "SELECT * FROM post_meta WHERE post_id = $1 ORDER BY meta_key ASC",
+    )
+    .bind(post_id)
+    .fetch_all(pool)
+    .await
+}
+
+pub async fn upsert_post_meta(
+    pool: &PgPool,
+    post_id: Uuid,
+    meta_key: &str,
+    meta_value: &str,
+) -> Result<PostMeta, sqlx::Error> {
+    sqlx::query_as::<_, PostMeta>(
+        r#"
+        INSERT INTO post_meta (id, post_id, meta_key, meta_value)
+        VALUES (gen_random_uuid(), $1, $2, $3)
+        ON CONFLICT (post_id, meta_key)
+        DO UPDATE SET meta_value = EXCLUDED.meta_value, updated_at = NOW()
+        RETURNING *
+        "#,
+    )
+    .bind(post_id)
+    .bind(meta_key)
+    .bind(meta_value)
+    .fetch_one(pool)
+    .await
+}
+
+pub async fn delete_post_meta(
+    pool: &PgPool,
+    post_id: Uuid,
+    meta_key: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query("DELETE FROM post_meta WHERE post_id = $1 AND meta_key = $2")
+        .bind(post_id)
+        .bind(meta_key)
+        .execute(pool)
+        .await?;
+    Ok(())
 }

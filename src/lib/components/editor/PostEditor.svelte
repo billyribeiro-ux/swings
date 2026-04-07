@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 	import { api } from '$lib/api/client';
 	import type {
 		BlogPostResponse,
@@ -9,7 +10,10 @@
 		MediaItem,
 		CreatePostPayload,
 		UpdatePostPayload,
-		PostStatus
+		PostStatus,
+		UserResponse,
+		PaginatedResponse,
+		PostMeta
 	} from '$lib/api/types';
 	import BlogEditor from './BlogEditor.svelte';
 	import MediaLibrary from './MediaLibrary.svelte';
@@ -50,6 +54,8 @@
 	let excerpt = $state(p?.excerpt || '');
 	let status: PostStatus = $state((p?.status as PostStatus) || 'draft');
 	let visibility = $state(p?.visibility || 'public');
+	let postPassword = $state('');
+	let postFormat = $state(p?.format || 'standard');
 	let isSticky = $state(p?.is_sticky || false);
 	let allowComments = $state(p?.allow_comments ?? true);
 	let metaTitle = $state(p?.meta_title || '');
@@ -59,22 +65,64 @@
 	let scheduledAt = $state(p?.scheduled_at || '');
 	let featuredImageId: string | undefined = $state(undefined);
 	let featuredImageUrl = $state(p?.featured_image_url || '');
+	let focalX = $state(0.5);
+	let focalY = $state(0.5);
 
 	// Taxonomy
 	let allCategories: BlogCategory[] = $state([]);
 	let allTags: BlogTag[] = $state([]);
-	let selectedCategoryIds: string[] = $state(p?.categories?.map((c) => c.id) || []);
-	let selectedTagIds: string[] = $state(p?.tags?.map((t) => t.id) || []);
+	let allAdmins: UserResponse[] = $state([]);
+	let authorId = $state(p?.author_id || '');
+	const selectedCategoryIds = new SvelteSet<string>(p?.categories?.map((c) => c.id));
+	const selectedTagIds = new SvelteSet<string>(p?.tags?.map((t) => t.id));
 	let newCategoryName = $state('');
 	let newTagName = $state('');
 
 	// Revisions
 	let revisions: BlogRevision[] = $state([]);
 
+	// Custom fields (post meta)
+	let postMeta: PostMeta[] = $state(p?.meta || []);
+	let newMetaKey = $state('');
+	let newMetaValue = $state('');
+
 	// UI state
 	let saving = $state(false);
 	let saveMessage = $state('');
+	let autosaveStatus: 'idle' | 'pending' | 'saving' | 'saved' | 'error' = $state('idle');
 	let wordCount = $state(p?.word_count || 0);
+
+	// SEO analysis (derived — must be after wordCount)
+	const seoChecks = $derived([
+		{
+			label: 'Title length (50–60 chars)',
+			pass: metaTitle.length >= 40 && metaTitle.length <= 60,
+			warn: metaTitle.length > 0 && (metaTitle.length < 40 || metaTitle.length > 60),
+			value: `${metaTitle.length} chars`
+		},
+		{
+			label: 'Meta description (120–160 chars)',
+			pass: metaDescription.length >= 120 && metaDescription.length <= 160,
+			warn:
+				metaDescription.length > 0 &&
+				(metaDescription.length < 120 || metaDescription.length > 160),
+			value: `${metaDescription.length} chars`
+		},
+		{
+			label: 'Word count (300+)',
+			pass: wordCount >= 300,
+			warn: wordCount >= 150 && wordCount < 300,
+			value: `${wordCount} words`
+		},
+		{ label: 'Has featured image', pass: !!featuredImageUrl, warn: false, value: '' },
+		{ label: 'Has excerpt', pass: excerpt.length > 0, warn: false, value: '' },
+		{
+			label: 'Has focus keyword in title',
+			pass: metaTitle.toLowerCase().includes(title.split(' ')[0]?.toLowerCase() ?? ''),
+			warn: false,
+			value: ''
+		}
+	]);
 	let charCount = $state(0);
 	let showMediaLibrary = $state(false);
 	let mediaInsertTarget: 'editor' | 'featured' = $state('editor');
@@ -89,17 +137,56 @@
 		loadTaxonomy();
 		if (mode === 'edit' && post) {
 			loadRevisions();
+			loadMeta();
 		}
 	});
 
+	async function loadMeta() {
+		if (!post) return;
+		try {
+			postMeta = await api.get<PostMeta[]>(`/api/admin/blog/posts/${post.id}/meta`);
+		} catch (e) {
+			console.error('Failed to load post meta', e);
+		}
+	}
+
+	async function addMeta() {
+		if (!newMetaKey.trim() || !post) return;
+		try {
+			const item = await api.post<PostMeta>(`/api/admin/blog/posts/${post.id}/meta`, {
+				meta_key: newMetaKey.trim(),
+				meta_value: newMetaValue
+			});
+			const idx = postMeta.findIndex((m) => m.meta_key === item.meta_key);
+			if (idx >= 0) postMeta[idx] = item;
+			else postMeta = [...postMeta, item];
+			newMetaKey = '';
+			newMetaValue = '';
+		} catch (e) {
+			console.error('Failed to save meta', e);
+		}
+	}
+
+	async function deleteMeta(key: string) {
+		if (!post) return;
+		try {
+			await api.delete(`/api/admin/blog/posts/${post.id}/meta/${encodeURIComponent(key)}`);
+			postMeta = postMeta.filter((m) => m.meta_key !== key);
+		} catch (e) {
+			console.error('Failed to delete meta', e);
+		}
+	}
+
 	async function loadTaxonomy() {
 		try {
-			const [cats, tags] = await Promise.all([
+			const [cats, tags, members] = await Promise.all([
 				api.get<BlogCategory[]>('/api/admin/blog/categories'),
-				api.get<BlogTag[]>('/api/admin/blog/tags')
+				api.get<BlogTag[]>('/api/admin/blog/tags'),
+				api.get<PaginatedResponse<UserResponse>>('/api/admin/members?per_page=100')
 			]);
 			allCategories = cats;
 			allTags = tags;
+			allAdmins = members.data;
 		} catch (e) {
 			console.error('Failed to load taxonomy', e);
 		}
@@ -146,16 +233,23 @@
 
 	function scheduleAutosave() {
 		if (mode !== 'edit' || !post) return;
+		autosaveStatus = 'pending';
 		clearTimeout(autosaveTimer);
 		autosaveTimer = setTimeout(async () => {
+			autosaveStatus = 'saving';
 			try {
 				await api.post(`/api/admin/blog/posts/${post!.id}/autosave`, {
 					title,
 					content,
 					content_json: contentJson
 				});
+				autosaveStatus = 'saved';
+				setTimeout(() => {
+					if (autosaveStatus === 'saved') autosaveStatus = 'idle';
+				}, 4000);
 			} catch (e) {
 				console.error('Autosave failed', e);
+				autosaveStatus = 'error';
 			}
 		}, 30000);
 	}
@@ -176,9 +270,12 @@
 			meta_description: metaDescription || undefined,
 			canonical_url: canonicalUrl || undefined,
 			og_image_url: ogImageUrl || undefined,
-			category_ids: selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
-			tag_ids: selectedTagIds.length > 0 ? selectedTagIds : undefined,
-			scheduled_at: status === 'scheduled' ? scheduledAt || undefined : undefined
+			category_ids: selectedCategoryIds.size > 0 ? [...selectedCategoryIds] : undefined,
+			tag_ids: selectedTagIds.size > 0 ? [...selectedTagIds] : undefined,
+			scheduled_at: status === 'scheduled' ? scheduledAt || undefined : undefined,
+			post_password: visibility === 'password' ? postPassword || undefined : undefined,
+			author_id: authorId || undefined,
+			format: postFormat
 		};
 	}
 
@@ -223,6 +320,20 @@
 		} else {
 			featuredImageId = media.id;
 			featuredImageUrl = media.url;
+			focalX = media.focal_x ?? 0.5;
+			focalY = media.focal_y ?? 0.5;
+		}
+	}
+
+	function handleFocalClick(e: MouseEvent) {
+		const target = e.currentTarget as HTMLElement;
+		const rect = target.getBoundingClientRect();
+		focalX = Math.round(((e.clientX - rect.left) / rect.width) * 100) / 100;
+		focalY = Math.round(((e.clientY - rect.top) / rect.height) * 100) / 100;
+		if (featuredImageId) {
+			api
+				.put(`/api/admin/media/${featuredImageId}`, { focal_x: focalX, focal_y: focalY })
+				.catch(() => {});
 		}
 	}
 
@@ -232,18 +343,18 @@
 	}
 
 	function toggleCategory(id: string) {
-		if (selectedCategoryIds.includes(id)) {
-			selectedCategoryIds = selectedCategoryIds.filter((c) => c !== id);
+		if (selectedCategoryIds.has(id)) {
+			selectedCategoryIds.delete(id);
 		} else {
-			selectedCategoryIds = [...selectedCategoryIds, id];
+			selectedCategoryIds.add(id);
 		}
 	}
 
 	function toggleTag(id: string) {
-		if (selectedTagIds.includes(id)) {
-			selectedTagIds = selectedTagIds.filter((t) => t !== id);
+		if (selectedTagIds.has(id)) {
+			selectedTagIds.delete(id);
 		} else {
-			selectedTagIds = [...selectedTagIds, id];
+			selectedTagIds.add(id);
 		}
 	}
 
@@ -254,7 +365,7 @@
 				name: newCategoryName
 			});
 			allCategories = [...allCategories, cat];
-			selectedCategoryIds = [...selectedCategoryIds, cat.id];
+			selectedCategoryIds.add(cat.id);
 			newCategoryName = '';
 		} catch (e) {
 			console.error('Failed to create category', e);
@@ -266,7 +377,7 @@
 		try {
 			const tag = await api.post<BlogTag>('/api/admin/blog/tags', { name: newTagName });
 			allTags = [...allTags, tag];
-			selectedTagIds = [...selectedTagIds, tag.id];
+			selectedTagIds.add(tag.id);
 			newTagName = '';
 		} catch (e) {
 			console.error('Failed to create tag', e);
@@ -331,6 +442,19 @@
 		<!-- Status bar -->
 		<div class="post-editor__statusbar">
 			<span>{wordCount} words · {charCount} characters</span>
+			<span
+				class="post-editor__autosave"
+				class:post-editor__autosave--pending={autosaveStatus === 'pending'}
+				class:post-editor__autosave--saving={autosaveStatus === 'saving'}
+				class:post-editor__autosave--saved={autosaveStatus === 'saved'}
+				class:post-editor__autosave--error={autosaveStatus === 'error'}
+			>
+				{#if autosaveStatus === 'pending'}Draft unsaved
+				{:else if autosaveStatus === 'saving'}Saving draft…
+				{:else if autosaveStatus === 'saved'}Draft saved ✓
+				{:else if autosaveStatus === 'error'}Autosave failed
+				{/if}
+			</span>
 			{#if saveMessage}
 				<span class="post-editor__save-msg">{saveMessage}</span>
 			{/if}
@@ -374,6 +498,33 @@
 				</div>
 			</div>
 
+			<!-- Post Format -->
+			<div class="sidebar-section">
+				<h3 class="sidebar-section__title">Format</h3>
+				<div class="sidebar-section__content">
+					<label class="sidebar-field">
+						<span class="sidebar-field__label">Post Format</span>
+						<select
+							id="post-format"
+							name="post-format"
+							class="sidebar-field__select"
+							bind:value={postFormat}
+						>
+							<option value="standard">Standard</option>
+							<option value="aside">Aside</option>
+							<option value="image">Image</option>
+							<option value="video">Video</option>
+							<option value="quote">Quote</option>
+							<option value="link">Link</option>
+							<option value="gallery">Gallery</option>
+							<option value="audio">Audio</option>
+							<option value="status">Status</option>
+							<option value="chat">Chat</option>
+						</select>
+					</label>
+				</div>
+			</div>
+
 			<!-- Status & Visibility -->
 			<div class="sidebar-section">
 				<h3 class="sidebar-section__title">Status & Visibility</h3>
@@ -408,6 +559,21 @@
 						</select>
 					</label>
 
+					{#if visibility === 'password'}
+						<label class="sidebar-field">
+							<span class="sidebar-field__label">Post Password</span>
+							<input
+								id="post-password"
+								name="post-password"
+								type="password"
+								class="sidebar-field__input"
+								bind:value={postPassword}
+								placeholder="Enter password…"
+								autocomplete="new-password"
+							/>
+						</label>
+					{/if}
+
 					{#if status === 'scheduled'}
 						<label class="sidebar-field">
 							<span class="sidebar-field__label">Schedule for</span>
@@ -437,6 +603,29 @@
 					</label>
 				</div>
 			</div>
+
+			<!-- Author -->
+			{#if allAdmins.length > 0}
+				<div class="sidebar-section">
+					<h3 class="sidebar-section__title">Author</h3>
+					<div class="sidebar-section__content">
+						<label class="sidebar-field">
+							<span class="sidebar-field__label">Assign to</span>
+							<select
+								id="post-author"
+								name="post-author"
+								class="sidebar-field__select"
+								bind:value={authorId}
+							>
+								<option value="">— Current user —</option>
+								{#each allAdmins as user (user.id)}
+									<option value={user.id}>{user.name} ({user.role})</option>
+								{/each}
+							</select>
+						</label>
+					</div>
+				</div>
+			{/if}
 
 			<!-- Permalink -->
 			<div class="sidebar-section">
@@ -471,7 +660,7 @@
 									id="post-cat-{cat.id}"
 									name="post-cat-{cat.id}"
 									type="checkbox"
-									checked={selectedCategoryIds.includes(cat.id)}
+									checked={selectedCategoryIds.has(cat.id)}
 									onchange={() => toggleCategory(cat.id)}
 								/>
 								<span>{cat.name}</span>
@@ -503,11 +692,11 @@
 						{#each allTags as tag (tag.id)}
 							<button
 								class="tag-pill"
-								class:tag-pill--selected={selectedTagIds.includes(tag.id)}
+								class:tag-pill--selected={selectedTagIds.has(tag.id)}
 								onclick={() => toggleTag(tag.id)}
 							>
 								<span>{tag.name}</span>
-								{#if selectedTagIds.includes(tag.id)}
+								{#if selectedTagIds.has(tag.id)}
 									<X size={12} weight="bold" />
 								{/if}
 							</button>
@@ -530,13 +719,76 @@
 				</div>
 			</div>
 
+			<!-- Custom Fields -->
+			{#if mode === 'edit' && post}
+				<div class="sidebar-section">
+					<h3 class="sidebar-section__title">Custom Fields</h3>
+					<div class="sidebar-section__content">
+						{#if postMeta.length > 0}
+							<ul class="meta-list">
+								{#each postMeta as m (m.id)}
+									<li class="meta-item">
+										<span class="meta-item__key">{m.meta_key}</span>
+										<span class="meta-item__value">{m.meta_value}</span>
+										<button
+											class="meta-item__del"
+											title="Delete"
+											onclick={() => deleteMeta(m.meta_key)}
+										>
+											<X size={12} weight="bold" />
+										</button>
+									</li>
+								{/each}
+							</ul>
+						{/if}
+						<div class="meta-add">
+							<input
+								id="new-meta-key"
+								name="new-meta-key"
+								type="text"
+								class="meta-add__input"
+								bind:value={newMetaKey}
+								placeholder="Key"
+							/>
+							<input
+								id="new-meta-value"
+								name="new-meta-value"
+								type="text"
+								class="meta-add__input"
+								bind:value={newMetaValue}
+								placeholder="Value"
+								onkeydown={(e) => e.key === 'Enter' && addMeta()}
+							/>
+							<button class="add-taxonomy__btn" onclick={addMeta} title="Add field">
+								<Plus size={14} weight="bold" />
+							</button>
+						</div>
+					</div>
+				</div>
+			{/if}
+
 			<!-- Featured Image -->
 			<div class="sidebar-section">
 				<h3 class="sidebar-section__title">Featured Image</h3>
 				<div class="sidebar-section__content">
 					{#if featuredImageUrl}
 						<div class="featured-preview">
-							<img src={featuredImageUrl} alt="Featured" />
+							<!-- svelte-ignore a11y_click_events_have_key_events -->
+							<!-- svelte-ignore a11y_no_static_element_interactions -->
+							<div
+								class="focal-picker"
+								role="presentation"
+								onclick={handleFocalClick}
+								title="Click to set focal point"
+							>
+								<img
+									src={featuredImageUrl}
+									alt="Featured"
+									style="object-position: {focalX * 100}% {focalY * 100}%"
+								/>
+								<span class="focal-dot" style="left:{focalX * 100}%;top:{focalY * 100}%"></span>
+							</div>
+							<p class="focal-hint">Click image to set focal point</p>
 							<button class="featured-remove" onclick={removeFeaturedImage}>
 								<Trash size={14} weight="bold" />
 								<span>Remove</span>
@@ -623,6 +875,48 @@
 							placeholder="https://..."
 						/>
 					</label>
+				</div>
+			</div>
+
+			<!-- SEO Analysis -->
+			<div class="sidebar-section">
+				<h3 class="sidebar-section__title">SEO Analysis</h3>
+				<div class="sidebar-section__content">
+					<ul class="seo-list">
+						{#each seoChecks as c}
+							<li
+								class="seo-item"
+								class:seo-item--pass={c.pass}
+								class:seo-item--warn={!c.pass && c.warn}
+								class:seo-item--fail={!c.pass && !c.warn}
+							>
+								<span class="seo-item__dot"></span>
+								<span class="seo-item__label">{c.label}</span>
+								{#if c.value}<span class="seo-item__value">{c.value}</span>{/if}
+							</li>
+						{/each}
+					</ul>
+				</div>
+			</div>
+
+			<!-- Social Card Preview -->
+			<div class="sidebar-section">
+				<h3 class="sidebar-section__title">Social Card Preview</h3>
+				<div class="sidebar-section__content">
+					<div class="social-card">
+						{#if featuredImageUrl || ogImageUrl}
+							<img class="social-card__img" src={ogImageUrl || featuredImageUrl} alt="" />
+						{:else}
+							<div class="social-card__placeholder">No image set</div>
+						{/if}
+						<div class="social-card__body">
+							<p class="social-card__domain">yoursite.com</p>
+							<p class="social-card__title">{metaTitle || title || 'Post title'}</p>
+							<p class="social-card__desc">
+								{metaDescription || excerpt || 'Post description will appear here.'}
+							</p>
+						</div>
+					</div>
 				</div>
 			</div>
 
@@ -726,6 +1020,28 @@
 	.post-editor__save-msg {
 		color: var(--color-teal-light, #15c5d1);
 		font-weight: 600;
+	}
+
+	.post-editor__autosave {
+		font-size: 0.75rem;
+		color: transparent;
+		transition: color 0.2s;
+	}
+
+	.post-editor__autosave--pending {
+		color: var(--color-grey-500, #64748b);
+	}
+
+	.post-editor__autosave--saving {
+		color: var(--color-grey-400, #94a3b8);
+	}
+
+	.post-editor__autosave--saved {
+		color: #22c55e;
+	}
+
+	.post-editor__autosave--error {
+		color: #ef4444;
 	}
 
 	/* Sidebar */
@@ -998,6 +1314,42 @@
 		cursor: pointer;
 	}
 
+	/* Focal point picker */
+	.focal-picker {
+		position: relative;
+		cursor: crosshair;
+		border-radius: 0.375rem;
+		overflow: hidden;
+		aspect-ratio: 16 / 9;
+	}
+
+	.focal-picker img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+		pointer-events: none;
+	}
+
+	.focal-dot {
+		position: absolute;
+		width: 14px;
+		height: 14px;
+		border-radius: 50%;
+		background: rgba(15, 164, 175, 0.9);
+		border: 2px solid #fff;
+		box-shadow: 0 0 0 2px rgba(15, 164, 175, 0.5);
+		transform: translate(-50%, -50%);
+		pointer-events: none;
+	}
+
+	.focal-hint {
+		font-size: 0.65rem;
+		color: var(--color-grey-500, #475569);
+		margin: 0.25rem 0 0;
+		text-align: center;
+	}
+
 	.featured-set {
 		display: flex;
 		align-items: center;
@@ -1071,6 +1423,192 @@
 
 	.revision-item__restore:hover {
 		background: rgba(15, 164, 175, 0.1);
+	}
+
+	/* Custom Fields */
+	.meta-list {
+		list-style: none;
+		padding: 0;
+		margin: 0 0 0.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+	}
+
+	.meta-item {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.75rem;
+		padding: 0.2rem 0;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+	}
+
+	.meta-item__key {
+		font-weight: 600;
+		color: var(--color-teal-light, #15c5d1);
+		min-width: 4rem;
+		flex-shrink: 0;
+	}
+
+	.meta-item__value {
+		flex: 1;
+		color: var(--color-grey-300, #cbd5e1);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.meta-item__del {
+		background: transparent;
+		border: none;
+		color: var(--color-grey-500, #475569);
+		cursor: pointer;
+		padding: 0.1rem;
+		display: flex;
+		border-radius: 0.2rem;
+		flex-shrink: 0;
+	}
+
+	.meta-item__del:hover {
+		color: #ef4444;
+	}
+
+	.meta-add {
+		display: flex;
+		gap: 0.3rem;
+		align-items: center;
+	}
+
+	.meta-add__input {
+		flex: 1;
+		min-width: 0;
+		padding: 0.3rem 0.5rem;
+		background: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 0.3rem;
+		color: var(--color-grey-200, #e2e8f0);
+		font-size: 0.75rem;
+		outline: none;
+	}
+
+	.meta-add__input:focus {
+		border-color: rgba(15, 164, 175, 0.5);
+	}
+
+	/* SEO Analysis */
+	.seo-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
+
+	.seo-item {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.75rem;
+		color: var(--color-grey-400, #94a3b8);
+	}
+
+	.seo-item__dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		flex-shrink: 0;
+		background: rgba(255, 255, 255, 0.2);
+	}
+
+	.seo-item--pass .seo-item__dot {
+		background: #22c55e;
+	}
+	.seo-item--pass {
+		color: var(--color-grey-300, #cbd5e1);
+	}
+	.seo-item--warn .seo-item__dot {
+		background: #f59e0b;
+	}
+	.seo-item--warn {
+		color: #f59e0b;
+	}
+	.seo-item--fail .seo-item__dot {
+		background: rgba(255, 255, 255, 0.15);
+	}
+
+	.seo-item__label {
+		flex: 1;
+	}
+	.seo-item__value {
+		font-size: 0.7rem;
+		color: var(--color-grey-500, #475569);
+		white-space: nowrap;
+	}
+
+	/* Social Card Preview */
+	.social-card {
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 0.5rem;
+		overflow: hidden;
+		font-size: 0.75rem;
+	}
+
+	.social-card__img {
+		width: 100%;
+		aspect-ratio: 1.91 / 1;
+		object-fit: cover;
+		display: block;
+	}
+
+	.social-card__placeholder {
+		width: 100%;
+		aspect-ratio: 1.91 / 1;
+		background: rgba(255, 255, 255, 0.04);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--color-grey-500, #475569);
+		font-size: 0.7rem;
+	}
+
+	.social-card__body {
+		padding: 0.6rem 0.75rem;
+		background: rgba(255, 255, 255, 0.03);
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+	}
+
+	.social-card__domain {
+		font-size: 0.65rem;
+		color: var(--color-grey-500, #475569);
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+		margin: 0;
+	}
+
+	.social-card__title {
+		font-weight: 600;
+		color: var(--color-white, #fff);
+		margin: 0;
+		line-height: 1.3;
+		overflow: hidden;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		-webkit-box-orient: vertical;
+	}
+
+	.social-card__desc {
+		color: var(--color-grey-400, #94a3b8);
+		margin: 0;
+		overflow: hidden;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		-webkit-box-orient: vertical;
 	}
 
 	@media (max-width: 768px) {

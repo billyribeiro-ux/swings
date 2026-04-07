@@ -32,7 +32,10 @@
 		CodeBlock,
 		CornersIn,
 		CornersOut,
-		X
+		X,
+		ClipboardText,
+		Scissors,
+		Question
 	} from 'phosphor-svelte';
 
 	interface Props {
@@ -42,6 +45,7 @@
 		onToggleFullscreen: () => void;
 		onToggleSource: () => void;
 		onInsertImage?: () => void;
+		onInsertReadMore?: () => void;
 	}
 
 	let {
@@ -50,7 +54,8 @@
 		showSource,
 		onToggleFullscreen,
 		onToggleSource,
-		onInsertImage
+		onInsertImage,
+		onInsertReadMore
 	}: Props = $props();
 
 	let showLinkModal = $state(false);
@@ -204,6 +209,36 @@
 		showHighlightPicker = false;
 		showTableMenu = false;
 		showSpecialChars = false;
+	}
+
+	let showShortcuts = $state(false);
+
+	const shortcuts = [
+		{ keys: 'Ctrl+B', label: 'Bold' },
+		{ keys: 'Ctrl+I', label: 'Italic' },
+		{ keys: 'Ctrl+U', label: 'Underline' },
+		{ keys: 'Ctrl+K', label: 'Insert / Edit link' },
+		{ keys: 'Ctrl+Z', label: 'Undo' },
+		{ keys: 'Ctrl+Shift+Z', label: 'Redo' },
+		{ keys: 'Ctrl+Alt+1–6', label: 'Heading 1–6' },
+		{ keys: 'Ctrl+Shift+8', label: 'Bullet list' },
+		{ keys: 'Ctrl+Shift+9', label: 'Ordered list' },
+		{ keys: 'Ctrl+Shift+B', label: 'Blockquote' },
+		{ keys: 'Ctrl+`', label: 'Inline code' },
+		{ keys: 'Ctrl+Alt+C', label: 'Code block' },
+		{ keys: 'Tab', label: 'Indent list item' },
+		{ keys: 'Shift+Tab', label: 'Outdent list item' },
+		{ keys: 'Enter (in list)', label: 'New list item' },
+		{ keys: 'Backspace (empty item)', label: 'Exit list' }
+	];
+
+	async function pasteAsPlainText() {
+		try {
+			const text = await navigator.clipboard.readText();
+			editor.chain().focus().insertContent({ type: 'text', text }).run();
+		} catch (e) {
+			console.warn('Clipboard access denied', e);
+		}
 	}
 </script>
 
@@ -695,6 +730,20 @@
 
 		<div class="toolbar__sep"></div>
 
+		<!-- Paste / Read More -->
+		<div class="toolbar__group">
+			<button class="toolbar__btn" title="Paste as plain text" onclick={pasteAsPlainText}>
+				<ClipboardText size={18} weight="bold" />
+			</button>
+			{#if onInsertReadMore}
+				<button class="toolbar__btn" title="Insert Read More break" onclick={onInsertReadMore}>
+					<Scissors size={18} weight="bold" />
+				</button>
+			{/if}
+		</div>
+
+		<div class="toolbar__sep"></div>
+
 		<!-- Clear formatting -->
 		<div class="toolbar__group">
 			<button class="toolbar__btn" title="Clear formatting" onclick={clearFormatting}>
@@ -746,9 +795,51 @@
 					<CornersOut size={18} weight="bold" />
 				{/if}
 			</button>
+
+			<button
+				class="toolbar__btn"
+				title="Keyboard shortcuts"
+				onclick={() => (showShortcuts = !showShortcuts)}
+			>
+				<Question size={18} weight="bold" />
+			</button>
 		</div>
 	</div>
 </div>
+
+{#if showShortcuts}
+	<div
+		class="shortcuts-overlay"
+		role="dialog"
+		aria-modal="true"
+		aria-label="Keyboard shortcuts"
+		onclick={() => (showShortcuts = false)}
+		onkeydown={(e) => e.key === 'Escape' && (showShortcuts = false)}
+		tabindex="-1"
+	>
+		<div
+			class="shortcuts-modal"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={(e) => e.stopPropagation()}
+			role="presentation"
+		>
+			<div class="shortcuts-modal__header">
+				<h3 class="shortcuts-modal__title">Keyboard Shortcuts</h3>
+				<button class="shortcuts-modal__close" onclick={() => (showShortcuts = false)}>
+					<X size={16} weight="bold" />
+				</button>
+			</div>
+			<ul class="shortcuts-modal__list">
+				{#each shortcuts as s}
+					<li class="shortcuts-modal__item">
+						<kbd class="shortcuts-modal__kbd">{s.keys}</kbd>
+						<span class="shortcuts-modal__label">{s.label}</span>
+					</li>
+				{/each}
+			</ul>
+		</div>
+	</div>
+{/if}
 
 <style>
 	.toolbar {
@@ -987,5 +1078,89 @@
 
 	.toolbar__char-btn:hover {
 		background: rgba(255, 255, 255, 0.08);
+	}
+
+	/* Keyboard shortcuts modal */
+	.shortcuts-overlay {
+		position: fixed;
+		inset: 0;
+		z-index: 10000;
+		background: rgba(0, 0, 0, 0.55);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+	}
+
+	.shortcuts-modal {
+		background: var(--color-navy-deep, #0a0e1a);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		border-radius: 0.75rem;
+		padding: 1.5rem;
+		width: 100%;
+		max-width: 420px;
+		max-height: 80vh;
+		overflow-y: auto;
+	}
+
+	.shortcuts-modal__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 1.25rem;
+	}
+
+	.shortcuts-modal__title {
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--color-white, #fff);
+		margin: 0;
+	}
+
+	.shortcuts-modal__close {
+		background: transparent;
+		border: none;
+		color: var(--color-grey-400, #94a3b8);
+		cursor: pointer;
+		padding: 0.25rem;
+		display: flex;
+		border-radius: 0.25rem;
+	}
+
+	.shortcuts-modal__close:hover {
+		color: var(--color-white, #fff);
+	}
+
+	.shortcuts-modal__list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.shortcuts-modal__item {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.shortcuts-modal__kbd {
+		display: inline-block;
+		min-width: 9rem;
+		padding: 0.2rem 0.5rem;
+		background: rgba(255, 255, 255, 0.07);
+		border: 1px solid rgba(255, 255, 255, 0.14);
+		border-radius: 0.3rem;
+		font-family: 'Courier New', monospace;
+		font-size: 0.75rem;
+		color: var(--color-teal-light, #15c5d1);
+		white-space: nowrap;
+	}
+
+	.shortcuts-modal__label {
+		font-size: 0.85rem;
+		color: var(--color-grey-300, #cbd5e1);
 	}
 </style>

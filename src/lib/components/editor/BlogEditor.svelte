@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { Editor } from '@tiptap/core';
+	import { Editor, Node } from '@tiptap/core';
 	import StarterKit from '@tiptap/starter-kit';
 	import Image from '@tiptap/extension-image';
 	import { Table } from '@tiptap/extension-table';
@@ -25,6 +25,88 @@
 	import { common, createLowlight } from 'lowlight';
 
 	import EditorToolbar from './EditorToolbar.svelte';
+	import SlashMenu from './SlashMenu.svelte';
+
+	const ResizableImage = Image.extend({
+		addAttributes() {
+			return {
+				...this.parent?.(),
+				width: {
+					default: null,
+					renderHTML: (attrs: Record<string, unknown>) =>
+						attrs.width ? { style: `width:${attrs.width}` } : {}
+				}
+			};
+		},
+		addNodeView() {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			return (({
+				node,
+				updateAttributes
+			}: {
+				node: { attrs: Record<string, string> };
+				updateAttributes: (a: Record<string, string>) => void;
+			}) => {
+				const container = document.createElement('div');
+				container.className = 'resizable-image-wrap';
+
+				const img = document.createElement('img');
+				img.src = node.attrs.src || '';
+				img.alt = node.attrs.alt || '';
+				img.className = 'resizable-image';
+				if (node.attrs.width) img.style.width = node.attrs.width;
+
+				const handle = document.createElement('div');
+				handle.className = 'resize-handle';
+				handle.contentEditable = 'false';
+
+				let startX = 0;
+				let startW = 0;
+
+				handle.addEventListener('mousedown', (e: MouseEvent) => {
+					e.preventDefault();
+					startX = e.clientX;
+					startW = img.offsetWidth;
+					const onMove = (ev: MouseEvent) => {
+						img.style.width = `${Math.max(48, startW + ev.clientX - startX)}px`;
+					};
+					const onUp = () => {
+						updateAttributes({ width: img.style.width });
+						document.removeEventListener('mousemove', onMove);
+						document.removeEventListener('mouseup', onUp);
+					};
+					document.addEventListener('mousemove', onMove);
+					document.addEventListener('mouseup', onUp);
+				});
+
+				container.appendChild(img);
+				container.appendChild(handle);
+
+				return {
+					dom: container,
+					update(updated: { type: unknown; attrs: Record<string, string> }) {
+						if (updated.type !== (node as unknown as { type: unknown }).type) return false;
+						img.src = updated.attrs.src || '';
+						img.alt = updated.attrs.alt || '';
+						if (updated.attrs.width) img.style.width = updated.attrs.width;
+						return true;
+					}
+				};
+			}) as unknown as any;
+		}
+	});
+
+	const ReadMore = Node.create({
+		name: 'readMore',
+		group: 'block',
+		atom: true,
+		parseHTML() {
+			return [{ tag: 'div[data-read-more]' }];
+		},
+		renderHTML() {
+			return ['div', { 'data-read-more': 'true', class: 'read-more-break' }];
+		}
+	});
 
 	interface Props {
 		content?: string;
@@ -50,6 +132,37 @@
 	let showSource = $state(false);
 	let sourceHtml = $state('');
 
+	// Slash command state
+	let slashActive = $state(false);
+	let slashX = $state(0);
+	let slashY = $state(0);
+	let slashQuery = $state('');
+	let slashAnchorPos = $state(0);
+
+	function checkSlash(e: Editor) {
+		const { from } = e.state.selection;
+		const resolvedFrom = e.state.doc.resolve(from);
+		const nodeStart = from - resolvedFrom.parentOffset;
+		const textBeforeCursor = e.state.doc.textBetween(nodeStart, from, '\n', '\0');
+
+		const match = textBeforeCursor.match(/(?:^|\s)(\/(\w*)$)/);
+		if (match) {
+			const slashPart = match[1];
+			slashQuery = match[2];
+			slashAnchorPos = from - slashPart.length;
+			try {
+				const coords = e.view.coordsAtPos(from);
+				slashX = coords.left;
+				slashY = coords.bottom + 6;
+				slashActive = true;
+			} catch {
+				slashActive = false;
+			}
+		} else {
+			slashActive = false;
+		}
+	}
+
 	const lowlight = createLowlight(common);
 
 	onMount(() => {
@@ -64,7 +177,7 @@
 					link: false,
 					underline: false
 				}),
-				Image.configure({ inline: false, allowBase64: true }),
+				ResizableImage.configure({ inline: false, allowBase64: true }),
 				Table.configure({ resizable: true }),
 				TableRow,
 				TableCell,
@@ -86,7 +199,8 @@
 				CharacterCount,
 				Placeholder.configure({ placeholder }),
 				Typography,
-				Youtube.configure({ inline: false, ccLanguage: 'en' })
+				Youtube.configure({ inline: false, ccLanguage: 'en' }),
+				ReadMore
 			],
 			content: contentJson || content || '',
 			editorProps: {
@@ -100,6 +214,10 @@
 				onUpdate?.(html, json as Record<string, unknown>);
 				const storage = e.storage.characterCount;
 				onWordCount?.(storage.words(), storage.characters());
+				checkSlash(e);
+			},
+			onSelectionUpdate: ({ editor: e }) => {
+				if (slashActive) checkSlash(e);
 			}
 		});
 
@@ -144,6 +262,10 @@
 	export function insertImage(src: string, alt: string = '') {
 		editor?.chain().focus().setImage({ src, alt }).run();
 	}
+
+	export function insertReadMore() {
+		editor?.chain().focus().insertContent({ type: 'readMore' }).run();
+	}
 </script>
 
 <div class="blog-editor" class:blog-editor--fullscreen={isFullscreen}>
@@ -155,6 +277,7 @@
 			onToggleFullscreen={toggleFullscreen}
 			onToggleSource={toggleSource}
 			{onInsertImage}
+			onInsertReadMore={insertReadMore}
 		/>
 	{/if}
 
@@ -171,6 +294,19 @@
 		<div class="blog-editor__wrapper" bind:this={editorElement}></div>
 	{/if}
 </div>
+
+{#if editor && slashActive}
+	<SlashMenu
+		{editor}
+		visible={slashActive}
+		x={slashX}
+		y={slashY}
+		query={slashQuery}
+		anchorPos={slashAnchorPos}
+		onClose={() => (slashActive = false)}
+		{onInsertImage}
+	/>
+{/if}
 
 <style>
 	.blog-editor {
@@ -331,11 +467,60 @@
 		margin: 1.5rem 0;
 	}
 
+	.blog-editor :global(.blog-editor__content .read-more-break) {
+		position: relative;
+		border: 1.5px dashed rgba(255, 193, 7, 0.6);
+		border-radius: 0.25rem;
+		margin: 1.5rem 0;
+		text-align: center;
+		padding: 0.25rem 0;
+		color: rgba(255, 193, 7, 0.8);
+		font-size: 0.75rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		cursor: default;
+		user-select: none;
+	}
+
+	.blog-editor :global(.blog-editor__content .read-more-break::before) {
+		content: '✂ Read More Break';
+	}
+
 	.blog-editor :global(.blog-editor__content img) {
 		max-width: 100%;
 		height: auto;
 		border-radius: 0.5rem;
 		margin: 1rem 0;
+	}
+
+	.blog-editor :global(.resizable-image-wrap) {
+		position: relative;
+		display: inline-block;
+		max-width: 100%;
+	}
+
+	.blog-editor :global(.resizable-image) {
+		display: block;
+		max-width: 100%;
+		height: auto;
+		border-radius: 0.5rem;
+	}
+
+	.blog-editor :global(.resize-handle) {
+		position: absolute;
+		bottom: 4px;
+		right: 4px;
+		width: 12px;
+		height: 12px;
+		background: rgba(15, 164, 175, 0.85);
+		border-radius: 2px;
+		cursor: se-resize;
+		opacity: 0;
+		transition: opacity 0.15s;
+	}
+
+	.blog-editor :global(.resizable-image-wrap:hover .resize-handle) {
+		opacity: 1;
 	}
 
 	.blog-editor :global(.blog-editor__content table) {

@@ -4,7 +4,7 @@
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api, ApiError } from '$lib/api/client';
 	import type { AuthResponse } from '$lib/api/types';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import ChartBar from 'phosphor-svelte/lib/ChartBar';
 	import Users from 'phosphor-svelte/lib/Users';
 	import ListChecks from 'phosphor-svelte/lib/ListChecks';
@@ -15,8 +15,21 @@
 	import List from 'phosphor-svelte/lib/List';
 	import X from 'phosphor-svelte/lib/X';
 	import CaretDown from 'phosphor-svelte/lib/CaretDown';
+	import CommandPalette from '$lib/components/admin/CommandPalette.svelte';
 
 	let { children } = $props();
+
+	let paletteOpen = $state(false);
+
+	function handleGlobalKey(e: KeyboardEvent) {
+		if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+			e.preventDefault();
+			paletteOpen = !paletteOpen;
+		}
+	}
+
+	onMount(() => window.addEventListener('keydown', handleGlobalKey));
+	onDestroy(() => window.removeEventListener('keydown', handleGlobalKey));
 
 	let mobileMenuOpen = $state(false);
 	let blogSubmenuOpen = $state(false);
@@ -240,6 +253,7 @@
 				{@render children()}
 			</div>
 		</div>
+		<CommandPalette open={paletteOpen} onClose={() => (paletteOpen = false)} />
 	</div>
 {/if}
 

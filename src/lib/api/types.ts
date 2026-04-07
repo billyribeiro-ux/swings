@@ -96,6 +96,15 @@ export interface PaginatedResponse<T> {
 
 // ── Blog ───────────────────────────────────────────────────────────────
 
+export interface PostMeta {
+	id: string;
+	post_id: string;
+	meta_key: string;
+	meta_value: string;
+	created_at: string;
+	updated_at: string;
+}
+
 export type PostStatus =
 	| 'draft'
 	| 'pending_review'
@@ -123,6 +132,8 @@ export interface BlogPostResponse {
 	featured_image_url: string | null;
 	status: PostStatus;
 	visibility: string;
+	is_password_protected: boolean;
+	format: string;
 	is_sticky: boolean;
 	allow_comments: boolean;
 	meta_title: string | null;
@@ -133,6 +144,7 @@ export interface BlogPostResponse {
 	word_count: number;
 	categories: BlogCategory[];
 	tags: BlogTag[];
+	meta: PostMeta[];
 	scheduled_at: string | null;
 	published_at: string | null;
 	created_at: string;
@@ -176,6 +188,9 @@ export interface CreatePostPayload {
 	category_ids?: string[];
 	tag_ids?: string[];
 	scheduled_at?: string;
+	post_password?: string;
+	author_id?: string;
+	format?: string;
 }
 
 export interface UpdatePostPayload {
@@ -196,6 +211,9 @@ export interface UpdatePostPayload {
 	category_ids?: string[];
 	tag_ids?: string[];
 	scheduled_at?: string;
+	post_password?: string;
+	author_id?: string;
+	format?: string;
 }
 
 export interface AutosavePayload {
@@ -245,6 +263,8 @@ export interface MediaItem {
 	caption: string | null;
 	storage_path: string;
 	url: string;
+	focal_x: number;
+	focal_y: number;
 	created_at: string;
 }
 

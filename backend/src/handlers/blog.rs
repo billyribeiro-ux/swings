@@ -1,3 +1,7 @@
+use argon2::{
+    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
+    Argon2,
+};
 use axum::{
     extract::{Multipart, Path, Query, State},
     routing::{delete, get, post, put},
@@ -28,6 +32,9 @@ pub fn admin_router() -> Router<AppState> {
         .route("/posts/{id}/autosave", post(admin_autosave_post))
         .route("/posts/{id}/revisions", get(admin_list_revisions))
         .route("/posts/{id}/revisions/{rev_id}/restore", post(admin_restore_revision))
+        .route("/posts/{id}/meta", get(admin_list_post_meta))
+        .route("/posts/{id}/meta", post(admin_upsert_post_meta))
+        .route("/posts/{id}/meta/{key}", delete(admin_delete_post_meta))
         // Categories
         .route("/categories", get(admin_list_categories))
         .route("/categories", post(admin_create_category))
@@ -50,6 +57,7 @@ pub fn public_router() -> Router<AppState> {
     Router::new()
         .route("/posts", get(public_list_posts))
         .route("/posts/{slug}", get(public_get_post))
+        .route("/posts/{slug}/unlock", post(public_unlock_post))
         .route("/categories", get(public_list_categories))
         .route("/tags", get(public_list_tags))
         .route("/posts/category/{slug}", get(public_posts_by_category))
@@ -68,6 +76,7 @@ async fn build_post_response(
         .ok_or(AppError::NotFound("Author not found".to_string()))?;
     let categories = db::get_categories_for_post(pool, post.id).await?;
     let tags = db::get_tags_for_post(pool, post.id).await?;
+    let meta = db::list_post_meta(pool, post.id).await?;
     let featured_image_url = if let Some(img_id) = post.featured_image_id {
         db::get_media(pool, img_id).await?.map(|m| m.url)
     } else {
@@ -92,7 +101,9 @@ async fn build_post_response(
         excerpt: post.excerpt,
         featured_image_url,
         status: post.status,
-        visibility: post.visibility,
+        visibility: post.visibility.clone(),
+        is_password_protected: post.password_hash.is_some(),
+        format: post.format.clone(),
         is_sticky: post.is_sticky,
         allow_comments: post.allow_comments,
         meta_title: post.meta_title,
@@ -103,6 +114,7 @@ async fn build_post_response(
         word_count: post.word_count,
         categories,
         tags,
+        meta,
         scheduled_at: post.scheduled_at,
         published_at: post.published_at,
         created_at: post.created_at,
@@ -133,6 +145,7 @@ async fn build_post_list_item(
         excerpt: post.excerpt,
         featured_image_url,
         status: post.status,
+        format: post.format,
         is_sticky: post.is_sticky,
         reading_time_minutes: post.reading_time_minutes,
         word_count: post.word_count,
@@ -183,6 +196,14 @@ async fn admin_list_posts(
     }))
 }
 
+fn hash_post_password(plain: &str) -> AppResult<String> {
+    let salt = SaltString::generate(&mut OsRng);
+    Argon2::default()
+        .hash_password(plain.as_bytes(), &salt)
+        .map(|h| h.to_string())
+        .map_err(|e| AppError::BadRequest(format!("Password hash error: {e}")))
+}
+
 async fn admin_create_post(
     State(state): State<AppState>,
     admin: AdminUser,
@@ -191,7 +212,14 @@ async fn admin_create_post(
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
 
-    let post = db::create_blog_post(&state.db, admin.user_id, &req).await?;
+    let password_hash = if req.visibility.as_deref() == Some("password") {
+        if let Some(ref pw) = req.post_password {
+            if !pw.is_empty() { Some(hash_post_password(pw)?) } else { None }
+        } else { None }
+    } else { None };
+
+    let effective_author = req.author_id.unwrap_or(admin.user_id);
+    let post = db::create_blog_post(&state.db, effective_author, &req, password_hash.as_deref()).await?;
 
     // Set categories/tags if provided
     if let Some(ref cat_ids) = req.category_ids {
@@ -239,7 +267,20 @@ async fn admin_update_post(
     )
     .await?;
 
-    let post = db::update_blog_post(&state.db, id, &req).await?;
+    let password_hash_update: Option<Option<String>> =
+        if let Some(vis) = req.visibility.as_deref() {
+            if vis == "password" {
+                if let Some(ref pw) = req.post_password {
+                    if !pw.is_empty() { Some(Some(hash_post_password(pw)?)) } else { None }
+                } else { None }
+            } else {
+                Some(None)
+            }
+        } else if let Some(ref pw) = req.post_password {
+            if !pw.is_empty() { Some(Some(hash_post_password(pw)?)) } else { None }
+        } else { None };
+
+    let post = db::update_blog_post(&state.db, id, &req, password_hash_update, req.author_id).await?;
 
     // Update categories/tags if provided
     if let Some(ref cat_ids) = req.category_ids {
@@ -346,6 +387,7 @@ async fn admin_restore_revision(
         featured_image_id: None,
         status: None,
         visibility: None,
+        post_password: None,
         is_sticky: None,
         allow_comments: None,
         meta_title: None,
@@ -355,9 +397,11 @@ async fn admin_restore_revision(
         category_ids: None,
         tag_ids: None,
         scheduled_at: None,
+        author_id: None,
+        format: None,
     };
 
-    let post = db::update_blog_post(&state.db, path.id, &req).await?;
+    let post = db::update_blog_post(&state.db, path.id, &req, None, None).await?;
     let response = build_post_response(&state.db, post).await?;
     Ok(Json(response))
 }
@@ -625,6 +669,33 @@ async fn public_get_post(
         .await?
         .ok_or(AppError::NotFound("Post not found".to_string()))?;
 
+    let mut response = build_post_response(&state.db, post).await?;
+    if response.is_password_protected {
+        response.content = String::new();
+        response.content_json = None;
+    }
+    Ok(Json(response))
+}
+
+async fn public_unlock_post(
+    State(state): State<AppState>,
+    Path(slug): Path<String>,
+    Json(req): Json<VerifyPostPasswordRequest>,
+) -> AppResult<Json<BlogPostResponse>> {
+    let post = db::get_blog_post_by_slug(&state.db, &slug)
+        .await?
+        .ok_or(AppError::NotFound("Post not found".to_string()))?;
+
+    let hash_str = post.password_hash.as_deref()
+        .ok_or_else(|| AppError::BadRequest("Post is not password protected".to_string()))?;
+
+    let parsed = PasswordHash::new(hash_str)
+        .map_err(|_| AppError::BadRequest("Invalid password hash".to_string()))?;
+
+    Argon2::default()
+        .verify_password(req.password.as_bytes(), &parsed)
+        .map_err(|_| AppError::Unauthorized)?;
+
     let response = build_post_response(&state.db, post).await?;
     Ok(Json(response))
 }
@@ -704,4 +775,36 @@ async fn public_all_slugs(
 ) -> AppResult<Json<Vec<String>>> {
     let slugs = db::list_all_published_slugs(&state.db).await?;
     Ok(Json(slugs))
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ADMIN POST META HANDLERS
+// ══════════════════════════════════════════════════════════════════════
+
+async fn admin_list_post_meta(
+    State(state): State<AppState>,
+    _admin: AdminUser,
+    Path(id): Path<Uuid>,
+) -> AppResult<Json<Vec<PostMeta>>> {
+    let items = db::list_post_meta(&state.db, id).await?;
+    Ok(Json(items))
+}
+
+async fn admin_upsert_post_meta(
+    State(state): State<AppState>,
+    _admin: AdminUser,
+    Path(id): Path<Uuid>,
+    Json(req): Json<UpsertPostMetaRequest>,
+) -> AppResult<Json<PostMeta>> {
+    let item = db::upsert_post_meta(&state.db, id, &req.meta_key, &req.meta_value).await?;
+    Ok(Json(item))
+}
+
+async fn admin_delete_post_meta(
+    State(state): State<AppState>,
+    _admin: AdminUser,
+    Path((id, key)): Path<(Uuid, String)>,
+) -> AppResult<axum::http::StatusCode> {
+    db::delete_post_meta(&state.db, id, &key).await?;
+    Ok(axum::http::StatusCode::NO_CONTENT)
 }
