@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { gsap } from 'gsap';
 	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
@@ -9,99 +10,60 @@
 	import Article from 'phosphor-svelte/lib/Article';
 	import CalendarBlank from 'phosphor-svelte/lib/CalendarBlank';
 	import Clock from 'phosphor-svelte/lib/Clock';
-	import type { BlogPostListItem, BlogCategory, PaginatedResponse } from '$lib/api/types';
+	import type { PageData } from './$types';
 
-	const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+	let { data }: { data: PageData } = $props();
 
 	let heroRef: HTMLElement | undefined = $state();
-	let posts: BlogPostListItem[] = $state([]);
-	let categories: BlogCategory[] = $state([]);
-	let total = $state(0);
-	let page = $state(1);
-	let totalPages = $state(1);
-	let loading = $state(true);
+
+	const posts = $derived(data.posts);
+	const categories = $derived(data.categories);
+	const total = $derived(data.total);
+	const page = $derived(data.page);
+	const totalPages = $derived(data.totalPages);
 
 	onMount(() => {
-		let ctx: ReturnType<typeof gsap.context> | undefined;
-
-		if (heroRef) {
-			ctx = gsap.context(() => {
-				createCinematicCascade(heroRef!, [
-					{
-						selector: '.blog-badge',
-						duration: DURATION.fast,
-						ease: EASE.snappy,
-						y: 20,
-						blur: 6,
-						scale: 0.9,
-						overlap: 0
-					},
-					{
-						selector: '.blog-title',
-						duration: DURATION.cinematic,
-						ease: EASE.cinematic,
-						y: 36,
-						blur: 10,
-						scale: 0.95,
-						overlap: 0.6
-					},
-					{
-						selector: '.blog-subtitle',
-						duration: DURATION.slow,
-						ease: EASE.soft,
-						y: 28,
-						blur: 8,
-						scale: 0.98,
-						overlap: 0.6
-					}
-				]);
-			}, heroRef as HTMLElement);
-		}
-
-		loadPosts();
-		loadCategories();
-
-		return () => ctx?.revert();
+		if (!heroRef) return;
+		const ctx = gsap.context(() => {
+			createCinematicCascade(heroRef!, [
+				{
+					selector: '.blog-badge',
+					duration: DURATION.fast,
+					ease: EASE.snappy,
+					y: 20,
+					blur: 6,
+					scale: 0.9,
+					overlap: 0
+				},
+				{
+					selector: '.blog-title',
+					duration: DURATION.cinematic,
+					ease: EASE.cinematic,
+					y: 36,
+					blur: 10,
+					scale: 0.95,
+					overlap: 0.6
+				},
+				{
+					selector: '.blog-subtitle',
+					duration: DURATION.slow,
+					ease: EASE.soft,
+					y: 28,
+					blur: 8,
+					scale: 0.98,
+					overlap: 0.6
+				}
+			]);
+		}, heroRef as HTMLElement);
+		return () => ctx.revert();
 	});
 
-	async function loadPosts() {
-		loading = true;
-		try {
-			const res = await fetch(`${API_BASE}/api/blog/posts?page=${page}&per_page=12`);
-			if (res.ok) {
-				const data: PaginatedResponse<BlogPostListItem> = await res.json();
-				posts = data.data;
-				total = data.total;
-				totalPages = data.total_pages;
-			}
-		} catch (e) {
-			console.error('Failed to load blog posts', e);
-		} finally {
-			loading = false;
-		}
-	}
-
-	async function loadCategories() {
-		try {
-			const res = await fetch(`${API_BASE}/api/blog/categories`);
-			if (res.ok) categories = await res.json();
-		} catch (e) {
-			console.error('Failed to load categories', e);
-		}
-	}
-
 	function nextPage() {
-		if (page < totalPages) {
-			page++;
-			loadPosts();
-		}
+		if (page < totalPages) goto(`?page=${page + 1}`);
 	}
 
 	function prevPage() {
-		if (page > 1) {
-			page--;
-			loadPosts();
-		}
+		if (page > 1) goto(`?page=${page - 1}`);
 	}
 
 	const jsonLd = $derived(
@@ -168,9 +130,7 @@
 <!-- Posts Grid -->
 <section class="page-section page-section--off-white">
 	<div class="page-container">
-		{#if loading}
-			<div class="blog-loading">Loading posts...</div>
-		{:else if posts.length === 0}
+		{#if posts.length === 0}
 			<div class="blog-empty">
 				<Article size={48} weight="duotone" color="#0FA4AF" class="blog-coming-soon__icon" />
 				<h3 class="blog-coming-soon__title">No Posts Yet</h3>
@@ -555,14 +515,7 @@
 		transform: scale(1.04);
 	}
 
-	/* Loading / empty */
-	.blog-loading {
-		text-align: center;
-		padding: 4rem;
-		color: var(--color-grey-500);
-		font-size: var(--fs-lg);
-	}
-
+	/* Empty state */
 	.blog-empty {
 		max-width: 42rem;
 		margin: 0 auto;

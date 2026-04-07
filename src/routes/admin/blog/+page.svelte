@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { api } from '$lib/api/client';
-	import type { BlogPostListItem, PaginatedResponse, PostStatus } from '$lib/api/types';
+	import type {
+		BlogPostListItem,
+		PaginatedResponse,
+		PostStatus,
+		UserResponse
+	} from '$lib/api/types';
 
 	let posts: BlogPostListItem[] = $state([]);
 	let total = $state(0);
@@ -147,6 +152,54 @@
 			day: 'numeric',
 			year: 'numeric'
 		});
+	}
+
+	// Quick Edit
+	let qePostId: string | null = $state(null);
+	let qeTitle = $state('');
+	let qeStatus: PostStatus = $state('draft');
+	let qeAuthorId = $state('');
+	let qeSaving = $state(false);
+	let admins: UserResponse[] = $state([]);
+
+	async function loadAdmins() {
+		if (admins.length > 0) return;
+		try {
+			const res = await api.get<UserResponse[]>('/api/admin/users?role=admin&per_page=50');
+			admins = Array.isArray(res) ? res : [];
+		} catch {
+			admins = [];
+		}
+	}
+
+	function openQuickEdit(post: BlogPostListItem) {
+		qePostId = post.id;
+		qeTitle = post.title;
+		qeStatus = post.status;
+		qeAuthorId = post.author_id || '';
+		loadAdmins();
+	}
+
+	function closeQuickEdit() {
+		qePostId = null;
+	}
+
+	async function saveQuickEdit() {
+		if (!qePostId) return;
+		qeSaving = true;
+		try {
+			await api.put(`/api/admin/blog/posts/${qePostId}`, {
+				title: qeTitle,
+				status: qeStatus,
+				author_id: qeAuthorId || undefined
+			});
+			closeQuickEdit();
+			loadPosts();
+		} catch (e) {
+			console.error('Quick edit save failed', e);
+		} finally {
+			qeSaving = false;
+		}
 	}
 </script>
 
@@ -328,6 +381,12 @@
 							</td>
 							<td class="td-actions">
 								<a href="/admin/blog/{post.id}" class="action-link">Edit</a>
+								<button
+									class="action-btn"
+									class:action-btn--active={qePostId === post.id}
+									onclick={() => (qePostId === post.id ? closeQuickEdit() : openQuickEdit(post))}
+									>Quick Edit</button
+								>
 								{#if post.status === 'trash'}
 									<button class="action-btn" onclick={() => restorePost(post.id)}>Restore</button>
 									<button class="action-btn action-btn--danger" onclick={() => hardDelete(post.id)}
@@ -340,6 +399,46 @@
 								{/if}
 							</td>
 						</tr>
+						{#if qePostId === post.id}
+							<tr class="qe-row">
+								<td colspan="7" class="qe-cell">
+									<div class="qe-form">
+										<div class="qe-form__fields">
+											<label class="qe-label">
+												Title
+												<input class="qe-input" type="text" bind:value={qeTitle} />
+											</label>
+											<label class="qe-label">
+												Status
+												<select class="qe-select" bind:value={qeStatus}>
+													<option value="draft">Draft</option>
+													<option value="pending_review">Pending Review</option>
+													<option value="published">Published</option>
+													<option value="private">Private</option>
+													<option value="scheduled">Scheduled</option>
+												</select>
+											</label>
+											{#if admins.length > 0}
+												<label class="qe-label">
+													Author
+													<select class="qe-select" bind:value={qeAuthorId}>
+														{#each admins as a}
+															<option value={a.id}>{a.name || a.email}</option>
+														{/each}
+													</select>
+												</label>
+											{/if}
+										</div>
+										<div class="qe-form__actions">
+											<button class="qe-save" onclick={saveQuickEdit} disabled={qeSaving}>
+												{qeSaving ? 'Saving…' : 'Update'}
+											</button>
+											<button class="qe-cancel" onclick={closeQuickEdit}>Cancel</button>
+										</div>
+									</div>
+								</td>
+							</tr>
+						{/if}
 					{/each}
 				</tbody>
 			</table>
@@ -863,5 +962,88 @@
 
 	.tr--selected {
 		background: rgba(15, 164, 175, 0.05);
+	}
+
+	/* Quick Edit */
+	.action-btn--active {
+		background: rgba(15, 164, 175, 0.2);
+		border-color: var(--color-teal, #0fa4af);
+		color: var(--color-teal-light, #15c5d1);
+	}
+
+	.qe-row td {
+		padding: 0;
+	}
+
+	.qe-cell {
+		background: rgba(15, 164, 175, 0.04);
+		border-top: 1px solid rgba(15, 164, 175, 0.2);
+		border-bottom: 1px solid rgba(15, 164, 175, 0.2);
+	}
+
+	.qe-form {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-end;
+		gap: 0.75rem;
+		padding: 0.75rem 1rem;
+	}
+
+	.qe-form__fields {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		flex: 1;
+	}
+
+	.qe-label {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+		font-size: 0.7rem;
+		color: var(--color-grey-400, #64748b);
+		min-width: 10rem;
+		flex: 1;
+	}
+
+	.qe-input,
+	.qe-select {
+		padding: 0.3rem 0.5rem;
+		background: rgba(255, 255, 255, 0.06);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		border-radius: 0.3rem;
+		color: var(--color-grey-200, #e2e8f0);
+		font-size: 0.8rem;
+	}
+
+	.qe-form__actions {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.qe-save {
+		padding: 0.35rem 0.9rem;
+		background: var(--color-teal, #0fa4af);
+		border: none;
+		border-radius: 0.3rem;
+		color: #fff;
+		font-size: 0.8rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.qe-save:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.qe-cancel {
+		padding: 0.35rem 0.75rem;
+		background: transparent;
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		border-radius: 0.3rem;
+		color: var(--color-grey-400, #64748b);
+		font-size: 0.8rem;
+		cursor: pointer;
 	}
 </style>

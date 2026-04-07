@@ -140,11 +140,45 @@
 		if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
 		return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 	}
+
+	const FOCUSABLE =
+		'button:not([disabled]), input:not([disabled]), [href], select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+	function focusTrap(node: HTMLElement) {
+		const firstFocusable = node.querySelector<HTMLElement>(FOCUSABLE);
+		firstFocusable?.focus();
+
+		function onKeydown(e: KeyboardEvent) {
+			if (e.key !== 'Tab') return;
+			const focusable = [...node.querySelectorAll<HTMLElement>(FOCUSABLE)];
+			if (!focusable.length) return;
+			const first = focusable[0];
+			const last = focusable[focusable.length - 1];
+			if (e.shiftKey && document.activeElement === first) {
+				e.preventDefault();
+				last.focus();
+			} else if (!e.shiftKey && document.activeElement === last) {
+				e.preventDefault();
+				first.focus();
+			}
+		}
+
+		node.addEventListener('keydown', onKeydown);
+		return () => node.removeEventListener('keydown', onKeydown);
+	}
+
+	function escapeClose(node: HTMLElement) {
+		function onKeydown(e: KeyboardEvent) {
+			if (e.key === 'Escape') onClose();
+		}
+		node.addEventListener('keydown', onKeydown);
+		return () => node.removeEventListener('keydown', onKeydown);
+	}
 </script>
 
 {#if open}
 	<div class="media-overlay" role="dialog" aria-modal="true" aria-label="Media Library">
-		<div class="media-modal">
+		<div class="media-modal" {@attach focusTrap} {@attach escapeClose}>
 			<div class="media-modal__header">
 				<h2 class="media-modal__title">Media Library</h2>
 				<button class="media-modal__close" onclick={onClose}>✕</button>

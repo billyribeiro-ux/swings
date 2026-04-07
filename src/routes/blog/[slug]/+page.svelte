@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
 	import Seo from '$lib/seo/Seo.svelte';
 	import { articleSchema, buildJsonLd } from '$lib/seo/jsonld';
 	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
@@ -12,48 +10,20 @@
 	import YoutubeLogo from 'phosphor-svelte/lib/YoutubeLogo';
 	import Globe from 'phosphor-svelte/lib/Globe';
 	import type { BlogPostResponse } from '$lib/api/types';
+	import type { PageData } from './$types';
 
 	const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-	let post: BlogPostResponse | null = $state(null);
-	let loading = $state(true);
-	let error = $state('');
-	let passwordRequired = $state(false);
+	let { data }: { data: PageData } = $props();
+
+	let unlockedPost: BlogPostResponse | null = $state(null);
+	const post = $derived(unlockedPost ?? data.post);
+	const passwordRequired = $derived(unlockedPost ? false : data.post.is_password_protected);
 	let passwordInput = $state('');
 	let passwordError = $state('');
 	let unlocking = $state(false);
 
-	const slug = $derived($page.params.slug);
-
-	onMount(async () => {
-		await loadPost();
-	});
-
-	async function loadPost() {
-		loading = true;
-		error = '';
-		try {
-			const res = await fetch(`${API_BASE}/api/blog/posts/${slug}`);
-			if (res.ok) {
-				const data: BlogPostResponse = await res.json();
-				if (data.is_password_protected) {
-					post = data;
-					passwordRequired = true;
-				} else {
-					post = data;
-				}
-			} else if (res.status === 404) {
-				error = 'Post not found';
-			} else {
-				error = 'Failed to load post';
-			}
-		} catch (e) {
-			error = 'Failed to load post';
-			console.error(e);
-		} finally {
-			loading = false;
-		}
-	}
+	const slug = $derived(post.slug);
 
 	async function unlockPost() {
 		if (!passwordInput.trim()) return;
@@ -66,8 +36,7 @@
 				body: JSON.stringify({ password: passwordInput })
 			});
 			if (res.ok) {
-				post = await res.json();
-				passwordRequired = false;
+				unlockedPost = await res.json();
 			} else if (res.status === 401) {
 				passwordError = 'Incorrect password. Please try again.';
 			} else {
@@ -95,30 +64,19 @@
 		]);
 	}
 
-	const jsonLd = $derived(post ? buildPostJsonLd(post) : '');
+	const jsonLd = $derived(buildPostJsonLd(post));
 </script>
 
-{#if post}
-	<Seo
-		title="{post.meta_title || post.title} - Explosive Swings"
-		description={post.meta_description || post.excerpt || ''}
-		ogTitle={post.meta_title || post.title}
-		ogImage={post.og_image_url || post.featured_image_url || undefined}
-		canonical={post.canonical_url || undefined}
-		{jsonLd}
-	/>
-{/if}
+<Seo
+	title="{post.meta_title || post.title} - Explosive Swings"
+	description={post.meta_description || post.excerpt || ''}
+	ogTitle={post.meta_title || post.title}
+	ogImage={post.og_image_url || post.featured_image_url || undefined}
+	canonical={post.canonical_url || undefined}
+	{jsonLd}
+/>
 
-{#if loading}
-	<div class="post-loading">
-		<div class="post-loading__spinner">Loading...</div>
-	</div>
-{:else if error}
-	<div class="post-error">
-		<h1>{error}</h1>
-		<a href="/blog">← Back to blog</a>
-	</div>
-{:else if post && passwordRequired}
+{#if passwordRequired}
 	<div class="post-password-gate">
 		<div class="post-password-gate__inner">
 			<h1 class="post-password-gate__title">{post.title}</h1>
@@ -406,33 +364,6 @@
 	}
 
 	/* End Author Box */
-
-	.post-loading,
-	.post-error {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		min-height: 60vh;
-		gap: 1rem;
-		text-align: center;
-	}
-
-	.post-error h1 {
-		font-size: var(--fs-2xl);
-		color: var(--color-navy);
-	}
-
-	.post-error a {
-		color: var(--color-teal);
-		text-decoration: none;
-		font-weight: var(--w-semibold);
-	}
-
-	.post-loading__spinner {
-		color: var(--color-grey-500);
-		font-size: var(--fs-lg);
-	}
 
 	/* Header */
 	.post-header {
