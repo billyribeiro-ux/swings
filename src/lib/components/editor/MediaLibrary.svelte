@@ -31,7 +31,7 @@
 		loading = true;
 		try {
 			const res = await api.get<PaginatedResponse<MediaItem>>(
-				`/admin/blog/media?page=${page}&per_page=20`
+				`/api/admin/blog/media?page=${page}&per_page=20`
 			);
 			items = res.data;
 			total = res.total;
@@ -48,7 +48,7 @@
 		try {
 			const formData = new FormData();
 			formData.append('file', file);
-			const media = await api.upload<MediaItem>('/admin/blog/media/upload', formData);
+			const media = await api.upload<MediaItem>('/api/admin/blog/media/upload', formData);
 			items = [media, ...items];
 			total += 1;
 			selected = media;
@@ -95,7 +95,7 @@
 		// Save alt/caption if changed
 		if (editAlt !== (selected.alt_text || '') || editCaption !== (selected.caption || '')) {
 			try {
-				await api.put(`/admin/blog/media/${selected.id}`, {
+				await api.put(`/api/admin/blog/media/${selected.id}`, {
 					alt_text: editAlt,
 					caption: editCaption
 				});
@@ -112,7 +112,7 @@
 		if (!selected) return;
 		if (!confirm('Delete this media file?')) return;
 		try {
-			await api.delete(`/admin/blog/media/${selected.id}`);
+			await api.delete(`/api/admin/blog/media/${selected.id}`);
 			items = items.filter((i) => i.id !== selected!.id);
 			total -= 1;
 			selected = null;
@@ -156,7 +156,12 @@
 								Drag & drop files here, or
 								<label class="media-upload__label">
 									browse
-									<input type="file" accept="image/*,application/pdf" hidden onchange={handleFileInput} />
+									<input
+										type="file"
+										accept="image/*,application/pdf"
+										hidden
+										onchange={handleFileInput}
+									/>
 								</label>
 							</p>
 						{/if}
@@ -176,7 +181,11 @@
 									onclick={() => selectItem(item)}
 								>
 									{#if item.mime_type.startsWith('image/')}
-										<img src={item.url} alt={item.alt_text || item.original_filename} loading="lazy" />
+										<img
+											src={item.url}
+											alt={item.alt_text || item.original_filename}
+											loading="lazy"
+										/>
 									{:else}
 										<div class="media-grid__file-icon">📄</div>
 									{/if}
@@ -187,9 +196,21 @@
 						<!-- Pagination -->
 						{#if totalPages > 1}
 							<div class="media-pagination">
-								<button disabled={page <= 1} onclick={() => { page--; loadMedia(); }}>← Prev</button>
+								<button
+									disabled={page <= 1}
+									onclick={() => {
+										page--;
+										loadMedia();
+									}}>← Prev</button
+								>
 								<span>Page {page} of {totalPages}</span>
-								<button disabled={page >= totalPages} onclick={() => { page++; loadMedia(); }}>Next →</button>
+								<button
+									disabled={page >= totalPages}
+									onclick={() => {
+										page++;
+										loadMedia();
+									}}>Next →</button
+								>
 							</div>
 						{/if}
 					{/if}
@@ -208,7 +229,9 @@
 
 						<div class="media-details__info">
 							<p class="media-details__filename">{selected.original_filename}</p>
-							<p class="media-details__meta">{formatSize(selected.file_size)} · {selected.mime_type}</p>
+							<p class="media-details__meta">
+								{formatSize(selected.file_size)} · {selected.mime_type}
+							</p>
 							{#if selected.width && selected.height}
 								<p class="media-details__meta">{selected.width} × {selected.height}px</p>
 							{/if}
@@ -245,7 +268,10 @@
 							<button class="media-details__btn media-details__btn--insert" onclick={saveAndInsert}>
 								Insert into post
 							</button>
-							<button class="media-details__btn media-details__btn--delete" onclick={deleteSelected}>
+							<button
+								class="media-details__btn media-details__btn--delete"
+								onclick={deleteSelected}
+							>
 								Delete
 							</button>
 						</div>
@@ -329,7 +355,9 @@
 		border-radius: 0.5rem;
 		padding: 1.5rem;
 		text-align: center;
-		transition: border-color 0.2s, background 0.2s;
+		transition:
+			border-color 0.2s,
+			background 0.2s;
 	}
 
 	.media-upload--drag {
