@@ -35,8 +35,8 @@
 	];
 
 	let sectionRef: HTMLElement | undefined = $state();
-	let itemsRef: HTMLElement[] = [];
-	let checksRef: SVGPathElement[] = [];
+	let itemsRef: HTMLElement[] = $state([]);
+	let checksRef: SVGPathElement[] = $state([]);
 
 	onMount(() => {
 		if (!sectionRef || isReducedMotion()) return;
