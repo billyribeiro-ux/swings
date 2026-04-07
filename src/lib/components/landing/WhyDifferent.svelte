@@ -30,12 +30,12 @@
 	];
 
 	let sectionRef: HTMLElement | undefined = $state();
-	let cardsRef: HTMLElement[] = [];
-
 	onMount(() => {
 		if (!sectionRef || isReducedMotion()) return;
 
 		const ctx = gsap.context(() => {
+			const cardsRef = [...sectionRef!.querySelectorAll<HTMLElement>('.why-different__card')];
+
 			// Animate cards with 3D flip effect
 			cardsRef.forEach((card, i) => {
 				gsap.set(card, {
@@ -80,11 +80,7 @@
 
 		<div class="why-different__grid">
 			{#each features as feature, i (feature.title)}
-				<div
-					bind:this={cardsRef[i]}
-					class="why-different__card"
-					style="transform-style: preserve-3d;"
-				>
+				<div class="why-different__card" style="transform-style: preserve-3d;">
 					<div class="why-different__icon-wrap">
 						<feature.icon size={24} weight="duotone" color="#0FA4AF" />
 					</div>
