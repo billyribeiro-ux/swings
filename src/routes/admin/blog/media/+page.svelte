@@ -18,7 +18,7 @@
 		loading = true;
 		try {
 			const res = await api.get<PaginatedResponse<MediaItem>>(
-				`/admin/blog/media?page=${page}&per_page=30`
+				`/api/admin/blog/media?page=${page}&per_page=30`
 			);
 			items = res.data;
 			total = res.total;
@@ -39,7 +39,7 @@
 			try {
 				const formData = new FormData();
 				formData.append('file', file);
-				const media = await api.upload<MediaItem>('/admin/blog/media/upload', formData);
+				const media = await api.upload<MediaItem>('/api/admin/blog/media/upload', formData);
 				items = [media, ...items];
 				total += 1;
 			} catch (err) {
@@ -53,7 +53,7 @@
 	async function deleteItem(id: string) {
 		if (!confirm('Delete this media file permanently?')) return;
 		try {
-			await api.delete(`/admin/blog/media/${id}`);
+			await api.delete(`/api/admin/blog/media/${id}`);
 			items = items.filter((i) => i.id !== id);
 			total -= 1;
 			if (selected?.id === id) selected = null;
@@ -147,9 +147,21 @@
 
 		{#if totalPages > 1}
 			<div class="media-admin__pagination">
-				<button disabled={page <= 1} onclick={() => { page--; loadMedia(); }}>← Prev</button>
+				<button
+					disabled={page <= 1}
+					onclick={() => {
+						page--;
+						loadMedia();
+					}}>← Prev</button
+				>
 				<span>Page {page} of {totalPages}</span>
-				<button disabled={page >= totalPages} onclick={() => { page++; loadMedia(); }}>Next →</button>
+				<button
+					disabled={page >= totalPages}
+					onclick={() => {
+						page++;
+						loadMedia();
+					}}>Next →</button
+				>
 			</div>
 		{/if}
 	{/if}
@@ -181,7 +193,9 @@
 		cursor: pointer;
 	}
 
-	.btn-upload:hover { opacity: 0.9; }
+	.btn-upload:hover {
+		opacity: 0.9;
+	}
 
 	.media-admin__empty {
 		text-align: center;
@@ -212,8 +226,12 @@
 		flex-direction: column;
 	}
 
-	.media-grid__item:hover { border-color: rgba(255, 255, 255, 0.15); }
-	.media-grid__item--selected { border-color: var(--color-teal, #0fa4af); }
+	.media-grid__item:hover {
+		border-color: rgba(255, 255, 255, 0.15);
+	}
+	.media-grid__item--selected {
+		border-color: var(--color-teal, #0fa4af);
+	}
 
 	.media-grid__item img {
 		width: 100%;
@@ -230,7 +248,8 @@
 		white-space: nowrap;
 	}
 
-	.file-icon, .file-icon-lg {
+	.file-icon,
+	.file-icon-lg {
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -238,7 +257,10 @@
 		font-size: 2rem;
 	}
 
-	.file-icon-lg { font-size: 4rem; padding: 1rem; }
+	.file-icon-lg {
+		font-size: 4rem;
+		padding: 1rem;
+	}
 
 	/* Detail sidebar */
 	.media-detail {
@@ -309,7 +331,9 @@
 		cursor: pointer;
 	}
 
-	.btn-delete:hover { background: rgba(239, 68, 68, 0.08); }
+	.btn-delete:hover {
+		background: rgba(239, 68, 68, 0.08);
+	}
 
 	.media-admin__pagination {
 		display: flex;
@@ -329,7 +353,10 @@
 		cursor: pointer;
 	}
 
-	.media-admin__pagination button:disabled { opacity: 0.3; cursor: not-allowed; }
+	.media-admin__pagination button:disabled {
+		opacity: 0.3;
+		cursor: not-allowed;
+	}
 
 	.media-admin__pagination span {
 		font-size: 0.8rem;

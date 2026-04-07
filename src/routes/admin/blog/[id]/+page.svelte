@@ -18,7 +18,7 @@
 		loading = true;
 		error = '';
 		try {
-			postData = await api.get<BlogPostResponse>(`/admin/blog/posts/${postId}`);
+			postData = await api.get<BlogPostResponse>(`/api/admin/blog/posts/${postId}`);
 		} catch (e) {
 			error = 'Failed to load post';
 			console.error(e);
@@ -28,7 +28,7 @@
 	}
 
 	async function updatePost(payload: UpdatePostPayload): Promise<BlogPostResponse> {
-		return api.put<BlogPostResponse>(`/admin/blog/posts/${postId}`, payload);
+		return api.put<BlogPostResponse>(`/api/admin/blog/posts/${postId}`, payload);
 	}
 </script>
 
@@ -41,11 +41,7 @@
 {:else if error}
 	<div class="editor-error">{error}</div>
 {:else if postData}
-	<PostEditor
-		mode="edit"
-		post={postData}
-		onSave={updatePost}
-	/>
+	<PostEditor mode="edit" post={postData} onSave={updatePost} />
 {/if}
 
 <style>

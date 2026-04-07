@@ -60,7 +60,9 @@
 			extensions: [
 				StarterKit.configure({
 					codeBlock: false,
-					heading: { levels: [1, 2, 3, 4, 5, 6] }
+					heading: { levels: [1, 2, 3, 4, 5, 6] },
+					link: false,
+					underline: false
 				}),
 				Image.configure({ inline: false, allowBase64: true }),
 				Table.configure({ resizable: true }),

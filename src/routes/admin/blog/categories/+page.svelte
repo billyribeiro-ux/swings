@@ -17,7 +17,7 @@
 	async function loadCategories() {
 		loading = true;
 		try {
-			categories = await api.get<BlogCategory[]>('/admin/blog/categories');
+			categories = await api.get<BlogCategory[]>('/api/admin/blog/categories');
 		} catch (e) {
 			console.error('Failed to load categories', e);
 		} finally {
@@ -28,7 +28,7 @@
 	async function addCategory() {
 		if (!newName.trim()) return;
 		try {
-			const cat = await api.post<BlogCategory>('/admin/blog/categories', {
+			const cat = await api.post<BlogCategory>('/api/admin/blog/categories', {
 				name: newName,
 				description: newDescription || undefined
 			});
@@ -49,7 +49,7 @@
 	async function saveEdit() {
 		if (!editingId || !editName.trim()) return;
 		try {
-			const updated = await api.put<BlogCategory>(`/admin/blog/categories/${editingId}`, {
+			const updated = await api.put<BlogCategory>(`/api/admin/blog/categories/${editingId}`, {
 				name: editName,
 				description: editDescription || undefined
 			});
@@ -63,7 +63,7 @@
 	async function deleteCategory(id: string) {
 		if (!confirm('Delete this category? Posts will be moved to Uncategorized.')) return;
 		try {
-			await api.delete(`/admin/blog/categories/${id}`);
+			await api.delete(`/api/admin/blog/categories/${id}`);
 			categories = categories.filter((c) => c.id !== id);
 		} catch (e) {
 			console.error('Failed to delete category', e);
@@ -88,7 +88,8 @@
 			</label>
 			<label class="field">
 				<span>Description</span>
-				<textarea bind:value={newDescription} placeholder="Optional description" rows="3"></textarea>
+				<textarea bind:value={newDescription} placeholder="Optional description" rows="3"
+				></textarea>
 			</label>
 			<button class="btn-add" onclick={addCategory}>Add Category</button>
 		</div>
@@ -130,7 +131,10 @@
 									<td class="desc-cell">{cat.description || '—'}</td>
 									<td class="actions-cell">
 										<button class="action-link" onclick={() => startEdit(cat)}>Edit</button>
-										<button class="action-link action-link--danger" onclick={() => deleteCategory(cat.id)}>Delete</button>
+										<button
+											class="action-link action-link--danger"
+											onclick={() => deleteCategory(cat.id)}>Delete</button
+										>
 									</td>
 								{/if}
 							</tr>
@@ -246,10 +250,20 @@
 		color: var(--color-grey-200, #e2e8f0);
 	}
 
-	.name-cell { font-weight: 600; }
-	.slug-cell { color: var(--color-grey-400, #64748b); font-size: 0.8rem; }
-	.desc-cell { color: var(--color-grey-400, #64748b); font-size: 0.8rem; }
-	.actions-cell { white-space: nowrap; }
+	.name-cell {
+		font-weight: 600;
+	}
+	.slug-cell {
+		color: var(--color-grey-400, #64748b);
+		font-size: 0.8rem;
+	}
+	.desc-cell {
+		color: var(--color-grey-400, #64748b);
+		font-size: 0.8rem;
+	}
+	.actions-cell {
+		white-space: nowrap;
+	}
 
 	.edit-input {
 		width: 100%;
@@ -272,8 +286,12 @@
 		margin-right: 0.75rem;
 	}
 
-	.action-link:hover { text-decoration: underline; }
-	.action-link--danger { color: #ef4444; }
+	.action-link:hover {
+		text-decoration: underline;
+	}
+	.action-link--danger {
+		color: #ef4444;
+	}
 
 	@media (max-width: 768px) {
 		.cats-admin__layout {

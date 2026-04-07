@@ -13,7 +13,7 @@
 	async function loadTags() {
 		loading = true;
 		try {
-			tags = await api.get<BlogTag[]>('/admin/blog/tags');
+			tags = await api.get<BlogTag[]>('/api/admin/blog/tags');
 		} catch (e) {
 			console.error('Failed to load tags', e);
 		} finally {
@@ -24,7 +24,7 @@
 	async function addTag() {
 		if (!newName.trim()) return;
 		try {
-			const tag = await api.post<BlogTag>('/admin/blog/tags', { name: newName });
+			const tag = await api.post<BlogTag>('/api/admin/blog/tags', { name: newName });
 			tags = [...tags, tag];
 			newName = '';
 		} catch (e) {
@@ -35,7 +35,7 @@
 	async function deleteTag(id: string) {
 		if (!confirm('Delete this tag?')) return;
 		try {
-			await api.delete(`/admin/blog/tags/${id}`);
+			await api.delete(`/api/admin/blog/tags/${id}`);
 			tags = tags.filter((t) => t.id !== id);
 		} catch (e) {
 			console.error('Failed to delete tag', e);
@@ -92,7 +92,9 @@
 									})}
 								</td>
 								<td>
-									<button class="action-link action-link--danger" onclick={() => deleteTag(tag.id)}>Delete</button>
+									<button class="action-link action-link--danger" onclick={() => deleteTag(tag.id)}
+										>Delete</button
+									>
 								</td>
 							</tr>
 						{/each}
@@ -192,9 +194,18 @@
 		color: var(--color-grey-200, #e2e8f0);
 	}
 
-	.name-cell { font-weight: 600; }
-	.slug-cell { color: var(--color-grey-400, #64748b); font-size: 0.8rem; }
-	.date-cell { color: var(--color-grey-400, #64748b); font-size: 0.8rem; white-space: nowrap; }
+	.name-cell {
+		font-weight: 600;
+	}
+	.slug-cell {
+		color: var(--color-grey-400, #64748b);
+		font-size: 0.8rem;
+	}
+	.date-cell {
+		color: var(--color-grey-400, #64748b);
+		font-size: 0.8rem;
+		white-space: nowrap;
+	}
 
 	.action-link {
 		border: none;
@@ -204,8 +215,12 @@
 		padding: 0;
 	}
 
-	.action-link--danger { color: #ef4444; }
-	.action-link--danger:hover { text-decoration: underline; }
+	.action-link--danger {
+		color: #ef4444;
+	}
+	.action-link--danger:hover {
+		text-decoration: underline;
+	}
 
 	@media (max-width: 768px) {
 		.tags-admin__layout {

@@ -18,7 +18,7 @@
 	async function loadPosts() {
 		loading = true;
 		try {
-			let url = `/admin/blog/posts?page=${page}&per_page=20`;
+			let url = `/api/admin/blog/posts?page=${page}&per_page=20`;
 			if (statusFilter) url += `&status=${statusFilter}`;
 			if (search) url += `&search=${encodeURIComponent(search)}`;
 			const res = await api.get<PaginatedResponse<BlogPostListItem>>(url);
@@ -51,7 +51,7 @@
 	async function deletePost(id: string) {
 		if (!confirm('Move this post to trash?')) return;
 		try {
-			await api.put(`/admin/blog/posts/${id}/status`, { status: 'trash' });
+			await api.put(`/api/admin/blog/posts/${id}/status`, { status: 'trash' });
 			loadPosts();
 		} catch (e) {
 			console.error('Failed to trash post', e);
@@ -61,7 +61,7 @@
 	async function hardDelete(id: string) {
 		if (!confirm('Permanently delete this post? This cannot be undone.')) return;
 		try {
-			await api.delete(`/admin/blog/posts/${id}`);
+			await api.delete(`/api/admin/blog/posts/${id}`);
 			loadPosts();
 		} catch (e) {
 			console.error('Failed to delete post', e);

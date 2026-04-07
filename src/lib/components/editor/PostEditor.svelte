@@ -95,8 +95,8 @@
 	async function loadTaxonomy() {
 		try {
 			const [cats, tags] = await Promise.all([
-				api.get<BlogCategory[]>('/admin/blog/categories'),
-				api.get<BlogTag[]>('/admin/blog/tags')
+				api.get<BlogCategory[]>('/api/admin/blog/categories'),
+				api.get<BlogTag[]>('/api/admin/blog/tags')
 			]);
 			allCategories = cats;
 			allTags = tags;
@@ -108,7 +108,7 @@
 	async function loadRevisions() {
 		if (!post) return;
 		try {
-			revisions = await api.get<BlogRevision[]>(`/admin/blog/posts/${post.id}/revisions`);
+			revisions = await api.get<BlogRevision[]>(`/api/admin/blog/posts/${post.id}/revisions`);
 		} catch (e) {
 			console.error('Failed to load revisions', e);
 		}
@@ -149,7 +149,7 @@
 		clearTimeout(autosaveTimer);
 		autosaveTimer = setTimeout(async () => {
 			try {
-				await api.post(`/admin/blog/posts/${post!.id}/autosave`, {
+				await api.post(`/api/admin/blog/posts/${post!.id}/autosave`, {
 					title,
 					content,
 					content_json: contentJson
@@ -250,7 +250,9 @@
 	async function addCategory() {
 		if (!newCategoryName.trim()) return;
 		try {
-			const cat = await api.post<BlogCategory>('/admin/blog/categories', { name: newCategoryName });
+			const cat = await api.post<BlogCategory>('/api/admin/blog/categories', {
+				name: newCategoryName
+			});
 			allCategories = [...allCategories, cat];
 			selectedCategoryIds = [...selectedCategoryIds, cat.id];
 			newCategoryName = '';
@@ -262,7 +264,7 @@
 	async function addTag() {
 		if (!newTagName.trim()) return;
 		try {
-			const tag = await api.post<BlogTag>('/admin/blog/tags', { name: newTagName });
+			const tag = await api.post<BlogTag>('/api/admin/blog/tags', { name: newTagName });
 			allTags = [...allTags, tag];
 			selectedTagIds = [...selectedTagIds, tag.id];
 			newTagName = '';
@@ -279,7 +281,7 @@
 			return;
 		try {
 			const result = await api.post<BlogPostResponse>(
-				`/admin/blog/posts/${post.id}/revisions/${revId}/restore`
+				`/api/admin/blog/posts/${post.id}/revisions/${revId}/restore`
 			);
 			// Reload
 			content = result.content;

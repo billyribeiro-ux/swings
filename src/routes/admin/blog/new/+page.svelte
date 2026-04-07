@@ -5,7 +5,7 @@
 	import PostEditor from '$lib/components/editor/PostEditor.svelte';
 
 	async function createPost(payload: CreatePostPayload): Promise<BlogPostResponse> {
-		return api.post<BlogPostResponse>('/admin/blog/posts', payload);
+		return api.post<BlogPostResponse>('/api/admin/blog/posts', payload);
 	}
 
 	async function handleSave(post: BlogPostResponse) {
@@ -17,8 +17,4 @@
 	<title>New Post — Admin</title>
 </svelte:head>
 
-<PostEditor
-	mode="create"
-	onSave={createPost}
-	onSaved={handleSave}
-/>
+<PostEditor mode="create" onSave={createPost} onSaved={handleSave} />
