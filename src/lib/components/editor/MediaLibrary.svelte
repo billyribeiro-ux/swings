@@ -18,6 +18,7 @@
 	let uploading = $state(false);
 	let dragOver = $state(false);
 	let selected: MediaItem | null = $state(null);
+	let editTitle = $state('');
 	let editAlt = $state('');
 	let editCaption = $state('');
 
@@ -43,15 +44,17 @@
 		}
 	}
 
-	async function uploadFile(file: File) {
+	async function uploadFile(file: File, providedTitle?: string) {
 		uploading = true;
 		try {
 			const formData = new FormData();
 			formData.append('file', file);
+			if (providedTitle?.trim()) formData.append('title', providedTitle.trim());
 			const media = await api.upload<MediaItem>('/api/admin/blog/media/upload', formData);
 			items = [media, ...items];
 			total += 1;
 			selected = media;
+			editTitle = media.title || '';
 			editAlt = media.alt_text || '';
 			editCaption = media.caption || '';
 		} catch (e) {
@@ -86,20 +89,31 @@
 
 	function selectItem(item: MediaItem) {
 		selected = item;
+		editTitle = item.title || '';
 		editAlt = item.alt_text || '';
 		editCaption = item.caption || '';
 	}
 
 	async function saveAndInsert() {
 		if (!selected) return;
-		// Save alt/caption if changed
-		if (editAlt !== (selected.alt_text || '') || editCaption !== (selected.caption || '')) {
+		// Save title/alt/caption if changed
+		if (
+			editTitle !== (selected.title || '') ||
+			editAlt !== (selected.alt_text || '') ||
+			editCaption !== (selected.caption || '')
+		) {
 			try {
 				await api.put(`/api/admin/blog/media/${selected.id}`, {
-					alt_text: editAlt,
-					caption: editCaption
+					title: editTitle || undefined,
+					alt_text: editAlt || undefined,
+					caption: editCaption || undefined
 				});
-				selected = { ...selected, alt_text: editAlt, caption: editCaption };
+				selected = {
+					...selected,
+					title: editTitle || null,
+					alt_text: editAlt || null,
+					caption: editCaption || null
+				};
 			} catch (e) {
 				console.error('Failed to update media', e);
 			}
@@ -157,6 +171,8 @@
 								<label class="media-upload__label">
 									browse
 									<input
+										id="media-lib-file"
+										name="file"
 										type="file"
 										accept="image/*,application/pdf"
 										hidden
@@ -238,8 +254,22 @@
 						</div>
 
 						<label class="media-details__label">
+							Title
+							<input
+								id="media-lib-title"
+								name="media-title"
+								type="text"
+								class="media-details__input"
+								bind:value={editTitle}
+								placeholder="Human-readable title..."
+							/>
+						</label>
+
+						<label class="media-details__label">
 							Alt text
 							<input
+								id="media-lib-alt"
+								name="media-alt-text"
 								type="text"
 								class="media-details__input"
 								bind:value={editAlt}
@@ -250,6 +280,8 @@
 						<label class="media-details__label">
 							Caption
 							<input
+								id="media-lib-caption"
+								name="media-caption"
 								type="text"
 								class="media-details__input"
 								bind:value={editCaption}
@@ -260,7 +292,14 @@
 						<div class="media-details__url">
 							<label class="media-details__label">
 								URL
-								<input type="text" class="media-details__input" value={selected.url} readonly />
+								<input
+									id="media-lib-url"
+									name="media-url"
+									type="text"
+									class="media-details__input"
+									value={selected.url}
+									readonly
+								/>
 							</label>
 						</div>
 

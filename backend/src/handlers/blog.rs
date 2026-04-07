@@ -77,8 +77,14 @@ async fn build_post_response(
     Ok(BlogPostResponse {
         id: post.id,
         author_id: post.author_id,
-        author_name: author.name,
-        author_avatar: author.avatar_url,
+        author_name: author.name.clone(),
+        author_avatar: author.avatar_url.clone(),
+        author_position: author.position.clone(),
+        author_bio: author.bio.clone(),
+        author_website: author.website_url.clone(),
+        author_twitter: author.twitter_url.clone(),
+        author_linkedin: author.linkedin_url.clone(),
+        author_youtube: author.youtube_url.clone(),
         title: post.title,
         slug: post.slug,
         content: post.content,
@@ -471,6 +477,7 @@ async fn admin_upload_media(
     let mut file_data: Option<Vec<u8>> = None;
     let mut original_filename = String::new();
     let mut content_type = String::new();
+    let mut title: Option<String> = None;
 
     while let Some(field) = multipart.next_field().await.map_err(|e| {
         AppError::BadRequest(format!("Multipart error: {}", e))
@@ -489,6 +496,13 @@ async fn admin_upload_media(
                 AppError::BadRequest(format!("Failed to read file: {}", e))
             })?;
             file_data = Some(data.to_vec());
+        } else if name == "title" {
+            let text = field.text().await.map_err(|e| {
+                AppError::BadRequest(format!("Failed to read title: {}", e))
+            })?;
+            if !text.trim().is_empty() {
+                title = Some(text.trim().to_string());
+            }
         }
     }
 
@@ -535,6 +549,7 @@ async fn admin_upload_media(
         admin.user_id,
         &unique_name,
         &original_filename,
+        title.as_deref(),
         &content_type,
         file_size,
         width,

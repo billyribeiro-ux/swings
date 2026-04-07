@@ -15,6 +15,13 @@ pub struct User {
     pub name: String,
     pub role: UserRole,
     pub avatar_url: Option<String>,
+    pub bio: Option<String>,
+    pub position: Option<String>,
+    pub website_url: Option<String>,
+    pub twitter_url: Option<String>,
+    pub linkedin_url: Option<String>,
+    pub youtube_url: Option<String>,
+    pub instagram_url: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -33,6 +40,13 @@ pub struct UserResponse {
     pub name: String,
     pub role: UserRole,
     pub avatar_url: Option<String>,
+    pub bio: Option<String>,
+    pub position: Option<String>,
+    pub website_url: Option<String>,
+    pub twitter_url: Option<String>,
+    pub linkedin_url: Option<String>,
+    pub youtube_url: Option<String>,
+    pub instagram_url: Option<String>,
     pub created_at: DateTime<Utc>,
 }
 
@@ -44,6 +58,13 @@ impl From<User> for UserResponse {
             name: u.name,
             role: u.role,
             avatar_url: u.avatar_url,
+            bio: u.bio,
+            position: u.position,
+            website_url: u.website_url,
+            twitter_url: u.twitter_url,
+            linkedin_url: u.linkedin_url,
+            youtube_url: u.youtube_url,
+            instagram_url: u.instagram_url,
             created_at: u.created_at,
         }
     }
@@ -317,6 +338,12 @@ pub struct BlogPostResponse {
     pub author_id: Uuid,
     pub author_name: String,
     pub author_avatar: Option<String>,
+    pub author_position: Option<String>,
+    pub author_bio: Option<String>,
+    pub author_website: Option<String>,
+    pub author_twitter: Option<String>,
+    pub author_linkedin: Option<String>,
+    pub author_youtube: Option<String>,
     pub title: String,
     pub slug: String,
     pub content: String,
@@ -511,6 +538,7 @@ pub struct Media {
     pub uploader_id: Uuid,
     pub filename: String,
     pub original_filename: String,
+    pub title: Option<String>,
     pub mime_type: String,
     pub file_size: i64,
     pub width: Option<i32>,
@@ -524,6 +552,7 @@ pub struct Media {
 
 #[derive(Debug, Deserialize)]
 pub struct UpdateMediaRequest {
+    pub title: Option<String>,
     pub alt_text: Option<String>,
     pub caption: Option<String>,
 }

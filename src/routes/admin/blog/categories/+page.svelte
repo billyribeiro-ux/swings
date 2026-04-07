@@ -84,11 +84,22 @@
 			<h3>Add New Category</h3>
 			<label class="field">
 				<span>Name</span>
-				<input type="text" bind:value={newName} placeholder="Category name" />
+				<input
+					id="new-category-name"
+					name="category-name"
+					type="text"
+					bind:value={newName}
+					placeholder="Category name"
+				/>
 			</label>
 			<label class="field">
 				<span>Description</span>
-				<textarea bind:value={newDescription} placeholder="Optional description" rows="3"
+				<textarea
+					id="new-category-description"
+					name="category-description"
+					bind:value={newDescription}
+					placeholder="Optional description"
+					rows="3"
 				></textarea>
 			</label>
 			<button class="btn-add" onclick={addCategory}>Add Category</button>
@@ -115,11 +126,23 @@
 							<tr>
 								{#if editingId === cat.id}
 									<td>
-										<input type="text" class="edit-input" bind:value={editName} />
+										<input
+											id="edit-cat-{cat.id}-name"
+											name="edit-category-name"
+											type="text"
+											class="edit-input"
+											bind:value={editName}
+										/>
 									</td>
 									<td class="slug-cell">{cat.slug}</td>
 									<td>
-										<input type="text" class="edit-input" bind:value={editDescription} />
+										<input
+											id="edit-cat-{cat.id}-description"
+											name="edit-category-description"
+											type="text"
+											class="edit-input"
+											bind:value={editDescription}
+										/>
 									</td>
 									<td class="actions-cell">
 										<button class="action-link" onclick={saveEdit}>Save</button>

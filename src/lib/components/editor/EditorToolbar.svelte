@@ -411,6 +411,8 @@
 						<label class="toolbar__dropdown-label">
 							URL
 							<input
+								id="toolbar-link-url"
+								name="link-url"
 								type="url"
 								class="toolbar__dropdown-input"
 								bind:value={linkUrl}
@@ -419,7 +421,12 @@
 						</label>
 						<label class="toolbar__dropdown-label">
 							Target
-							<select class="toolbar__dropdown-input" bind:value={linkTarget}>
+							<select
+								id="toolbar-link-target"
+								name="link-target"
+								class="toolbar__dropdown-input"
+								bind:value={linkTarget}
+							>
 								<option value="_blank">New tab</option>
 								<option value="_self">Same tab</option>
 							</select>
@@ -467,6 +474,8 @@
 						<label class="toolbar__dropdown-label">
 							YouTube URL
 							<input
+								id="toolbar-youtube-url"
+								name="youtube-url"
 								type="url"
 								class="toolbar__dropdown-input"
 								bind:value={youtubeUrl}

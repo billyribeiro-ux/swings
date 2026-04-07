@@ -7,6 +7,10 @@
 	import CalendarBlank from 'phosphor-svelte/lib/CalendarBlank';
 	import Clock from 'phosphor-svelte/lib/Clock';
 	import User from 'phosphor-svelte/lib/User';
+	import TwitterLogo from 'phosphor-svelte/lib/TwitterLogo';
+	import LinkedinLogo from 'phosphor-svelte/lib/LinkedinLogo';
+	import YoutubeLogo from 'phosphor-svelte/lib/YoutubeLogo';
+	import Globe from 'phosphor-svelte/lib/Globe';
 	import type { BlogPostResponse } from '$lib/api/types';
 
 	const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -141,6 +145,75 @@
 				</div>
 			{/if}
 
+			<!-- Author Box -->
+			<div class="author-box">
+				<div class="author-box__avatar">
+					{#if post.author_avatar}
+						<img src={post.author_avatar} alt={post.author_name} class="author-box__img" />
+					{:else}
+						<div class="author-box__placeholder"><User size={36} weight="thin" /></div>
+					{/if}
+				</div>
+				<div class="author-box__info">
+					<p class="author-box__label">Written by</p>
+					<h3 class="author-box__name">{post.author_name}</h3>
+					{#if post.author_position}
+						<p class="author-box__position">{post.author_position}</p>
+					{/if}
+					{#if post.author_bio}
+						<p class="author-box__bio">{post.author_bio}</p>
+					{/if}
+					{#if post.author_twitter || post.author_linkedin || post.author_youtube || post.author_website}
+						<div class="author-box__social">
+							{#if post.author_twitter}
+								<a
+									href={post.author_twitter}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="author-box__social-link"
+									aria-label="Twitter / X"
+								>
+									<TwitterLogo size={18} weight="bold" />
+								</a>
+							{/if}
+							{#if post.author_linkedin}
+								<a
+									href={post.author_linkedin}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="author-box__social-link"
+									aria-label="LinkedIn"
+								>
+									<LinkedinLogo size={18} weight="bold" />
+								</a>
+							{/if}
+							{#if post.author_youtube}
+								<a
+									href={post.author_youtube}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="author-box__social-link"
+									aria-label="YouTube"
+								>
+									<YoutubeLogo size={18} weight="bold" />
+								</a>
+							{/if}
+							{#if post.author_website}
+								<a
+									href={post.author_website}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="author-box__social-link"
+									aria-label="Website"
+								>
+									<Globe size={18} weight="bold" />
+								</a>
+							{/if}
+						</div>
+					{/if}
+				</div>
+			</div>
+
 			<div class="post-footer">
 				<a href="/blog" class="post-footer__link">
 					<ArrowLeft size={16} weight="bold" />
@@ -152,6 +225,121 @@
 {/if}
 
 <style>
+	/* Author Box */
+	.author-box {
+		display: flex;
+		gap: 1.25rem;
+		padding: 1.75rem;
+		border: 1px solid var(--color-grey-200);
+		border-radius: 1rem;
+		margin: 2rem 0;
+		background: var(--color-grey-50, #f8fafc);
+		align-items: flex-start;
+	}
+
+	.author-box__avatar {
+		width: 72px;
+		height: 72px;
+		border-radius: 50%;
+		overflow: hidden;
+		flex-shrink: 0;
+		border: 2px solid var(--color-grey-200);
+		background: var(--color-grey-100, #f1f5f9);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--color-grey-400);
+	}
+
+	.author-box__img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.author-box__placeholder {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 100%;
+	}
+
+	.author-box__info {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.author-box__label {
+		font-size: var(--fs-xs);
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--color-teal);
+		font-weight: var(--w-semibold);
+		margin: 0 0 0.25rem;
+	}
+
+	.author-box__name {
+		font-size: var(--fs-lg);
+		font-weight: var(--w-bold);
+		color: var(--color-navy);
+		margin: 0 0 0.125rem;
+	}
+
+	.author-box__position {
+		font-size: var(--fs-sm);
+		color: var(--color-grey-500);
+		font-weight: var(--w-medium);
+		margin: 0 0 0.625rem;
+	}
+
+	.author-box__bio {
+		font-size: var(--fs-sm);
+		color: var(--color-grey-600, #4b5563);
+		line-height: 1.7;
+		margin: 0 0 0.75rem;
+	}
+
+	.author-box__social {
+		display: flex;
+		gap: 0.625rem;
+		align-items: center;
+	}
+
+	.author-box__social-link {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 34px;
+		height: 34px;
+		border-radius: 50%;
+		background: var(--color-grey-200);
+		color: var(--color-navy);
+		transition:
+			background 0.15s,
+			color 0.15s;
+		text-decoration: none;
+	}
+
+	.author-box__social-link:hover {
+		background: var(--color-teal);
+		color: #fff;
+	}
+
+	@media (max-width: 600px) {
+		.author-box {
+			flex-direction: column;
+			align-items: center;
+			text-align: center;
+		}
+
+		.author-box__social {
+			justify-content: center;
+		}
+	}
+
+	/* End Author Box */
+
 	.post-loading,
 	.post-error {
 		display: flex;

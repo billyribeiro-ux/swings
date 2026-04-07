@@ -1196,6 +1196,7 @@ pub async fn create_media(
     uploader_id: Uuid,
     filename: &str,
     original_filename: &str,
+    title: Option<&str>,
     mime_type: &str,
     file_size: i64,
     width: Option<i32>,
@@ -1205,14 +1206,15 @@ pub async fn create_media(
 ) -> Result<Media, sqlx::Error> {
     sqlx::query_as::<_, Media>(
         r#"
-        INSERT INTO media (id, uploader_id, filename, original_filename, mime_type, file_size, width, height, storage_path, url)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *
+        INSERT INTO media (id, uploader_id, filename, original_filename, title, mime_type, file_size, width, height, storage_path, url)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *
         "#,
     )
     .bind(Uuid::new_v4())
     .bind(uploader_id)
     .bind(filename)
     .bind(original_filename)
+    .bind(title)
     .bind(mime_type)
     .bind(file_size)
     .bind(width)
@@ -1234,10 +1236,11 @@ pub async fn update_media(
         .await?;
 
     sqlx::query_as::<_, Media>(
-        "UPDATE media SET alt_text = $1, caption = $2 WHERE id = $3 RETURNING *",
+        "UPDATE media SET title = $1, alt_text = $2, caption = $3 WHERE id = $4 RETURNING *",
     )
-    .bind(req.alt_text.as_deref().unwrap_or(existing.alt_text.as_deref().unwrap_or("")))
-    .bind(req.caption.as_deref().unwrap_or(existing.caption.as_deref().unwrap_or("")))
+    .bind(req.title.as_deref().or(existing.title.as_deref()))
+    .bind(req.alt_text.as_deref().or(existing.alt_text.as_deref()))
+    .bind(req.caption.as_deref().or(existing.caption.as_deref()))
     .bind(id)
     .fetch_one(pool)
     .await

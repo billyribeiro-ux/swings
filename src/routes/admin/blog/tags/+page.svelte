@@ -55,6 +55,8 @@
 			<h3>Add New Tag</h3>
 			<div class="add-row">
 				<input
+					id="new-tag-name"
+					name="tag-name"
 					type="text"
 					bind:value={newName}
 					placeholder="Tag name"

@@ -9,6 +9,8 @@
 	let loading = $state(true);
 	let uploading = $state(false);
 	let selected: MediaItem | null = $state(null);
+	let editTitle = $state('');
+	let savingMeta = $state(false);
 
 	$effect(() => {
 		loadMedia();
@@ -68,6 +70,27 @@
 		return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 	}
 
+	function selectItem(item: MediaItem) {
+		selected = item;
+		editTitle = item.title || '';
+	}
+
+	async function saveMetadata() {
+		if (!selected) return;
+		savingMeta = true;
+		try {
+			const updated = await api.put<MediaItem>(`/api/admin/blog/media/${selected.id}`, {
+				title: editTitle || undefined
+			});
+			selected = updated;
+			items = items.map((i) => (i.id === updated.id ? updated : i));
+		} catch (e) {
+			console.error('Failed to update metadata', e);
+		} finally {
+			savingMeta = false;
+		}
+	}
+
 	function copyUrl(url: string) {
 		navigator.clipboard.writeText(url);
 	}
@@ -82,7 +105,15 @@
 		<h1>Media Library</h1>
 		<label class="btn-upload">
 			{uploading ? 'Uploading...' : 'Upload Files'}
-			<input type="file" accept="image/*,application/pdf" multiple hidden onchange={uploadFiles} />
+			<input
+				id="media-upload-input"
+				name="file"
+				type="file"
+				accept="image/*,application/pdf"
+				multiple
+				hidden
+				onchange={uploadFiles}
+			/>
 		</label>
 	</div>
 
@@ -97,7 +128,7 @@
 					<button
 						class="media-grid__item"
 						class:media-grid__item--selected={selected?.id === item.id}
-						onclick={() => (selected = item)}
+						onclick={() => selectItem(item)}
 					>
 						{#if item.mime_type.startsWith('image/')}
 							<img src={item.url} alt={item.alt_text || item.original_filename} loading="lazy" />
@@ -132,8 +163,28 @@
 					</p>
 
 					<div class="media-detail__url">
-						<input type="text" value={selected.url} readonly />
+						<input
+							id="media-selected-url"
+							name="media-url"
+							type="text"
+							value={selected.url}
+							readonly
+						/>
 						<button onclick={() => copyUrl(selected!.url)}>Copy</button>
+					</div>
+
+					<div class="media-detail__title">
+						<label class="media-detail__label" for="media-selected-title">Title</label>
+						<input
+							id="media-selected-title"
+							name="media-title"
+							type="text"
+							bind:value={editTitle}
+							placeholder="Human-readable title..."
+						/>
+						<button onclick={saveMetadata} disabled={savingMeta} class="btn-save-meta">
+							{savingMeta ? 'Saving...' : 'Save'}
+						</button>
 					</div>
 
 					<div class="media-detail__actions">

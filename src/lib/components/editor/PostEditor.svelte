@@ -309,6 +309,8 @@
 
 		<!-- Title -->
 		<input
+			id="post-title"
+			name="post-title"
 			type="text"
 			class="post-editor__title"
 			value={title}
@@ -378,7 +380,12 @@
 				<div class="sidebar-section__content">
 					<label class="sidebar-field">
 						<span class="sidebar-field__label">Status</span>
-						<select class="sidebar-field__select" bind:value={status}>
+						<select
+							id="post-status"
+							name="post-status"
+							class="sidebar-field__select"
+							bind:value={status}
+						>
 							<option value="draft">Draft</option>
 							<option value="pending_review">Pending Review</option>
 							<option value="published">Published</option>
@@ -389,7 +396,12 @@
 
 					<label class="sidebar-field">
 						<span class="sidebar-field__label">Visibility</span>
-						<select class="sidebar-field__select" bind:value={visibility}>
+						<select
+							id="post-visibility"
+							name="post-visibility"
+							class="sidebar-field__select"
+							bind:value={visibility}
+						>
 							<option value="public">Public</option>
 							<option value="private">Private</option>
 							<option value="password">Password Protected</option>
@@ -399,17 +411,28 @@
 					{#if status === 'scheduled'}
 						<label class="sidebar-field">
 							<span class="sidebar-field__label">Schedule for</span>
-							<input type="datetime-local" class="sidebar-field__input" bind:value={scheduledAt} />
+							<input
+								id="post-scheduled-at"
+								name="post-scheduled-at"
+								type="datetime-local"
+								class="sidebar-field__input"
+								bind:value={scheduledAt}
+							/>
 						</label>
 					{/if}
 
 					<label class="sidebar-field sidebar-field--inline">
-						<input type="checkbox" bind:checked={isSticky} />
+						<input id="post-sticky" name="post-sticky" type="checkbox" bind:checked={isSticky} />
 						<span>Sticky post</span>
 					</label>
 
 					<label class="sidebar-field sidebar-field--inline">
-						<input type="checkbox" bind:checked={allowComments} />
+						<input
+							id="post-allow-comments"
+							name="post-allow-comments"
+							type="checkbox"
+							bind:checked={allowComments}
+						/>
 						<span>Allow comments</span>
 					</label>
 				</div>
@@ -422,6 +445,8 @@
 					<label class="sidebar-field">
 						<span class="sidebar-field__label">Slug</span>
 						<input
+							id="post-slug"
+							name="post-slug"
 							type="text"
 							class="sidebar-field__input"
 							value={slug}
@@ -443,6 +468,8 @@
 						{#each allCategories as cat (cat.id)}
 							<label class="category-item">
 								<input
+									id="post-cat-{cat.id}"
+									name="post-cat-{cat.id}"
 									type="checkbox"
 									checked={selectedCategoryIds.includes(cat.id)}
 									onchange={() => toggleCategory(cat.id)}
@@ -453,6 +480,8 @@
 					</div>
 					<div class="add-taxonomy">
 						<input
+							id="new-category-name"
+							name="new-category-name"
 							type="text"
 							class="add-taxonomy__input"
 							bind:value={newCategoryName}
@@ -486,6 +515,8 @@
 					</div>
 					<div class="add-taxonomy">
 						<input
+							id="new-tag-name"
+							name="new-tag-name"
 							type="text"
 							class="add-taxonomy__input"
 							bind:value={newTagName}
@@ -525,6 +556,8 @@
 				<h3 class="sidebar-section__title">Excerpt</h3>
 				<div class="sidebar-section__content">
 					<textarea
+						id="post-excerpt"
+						name="post-excerpt"
 						class="sidebar-field__textarea"
 						bind:value={excerpt}
 						placeholder="Write a short excerpt..."
@@ -542,6 +575,8 @@
 							Meta title <span class="char-count">({metaTitle.length}/60)</span>
 						</span>
 						<input
+							id="post-meta-title"
+							name="post-meta-title"
 							type="text"
 							class="sidebar-field__input"
 							bind:value={metaTitle}
@@ -555,6 +590,8 @@
 							Meta description <span class="char-count">({metaDescription.length}/160)</span>
 						</span>
 						<textarea
+							id="post-meta-description"
+							name="post-meta-description"
 							class="sidebar-field__textarea"
 							bind:value={metaDescription}
 							placeholder="SEO description"
@@ -566,6 +603,8 @@
 					<label class="sidebar-field">
 						<span class="sidebar-field__label">Canonical URL</span>
 						<input
+							id="post-canonical-url"
+							name="post-canonical-url"
 							type="url"
 							class="sidebar-field__input"
 							bind:value={canonicalUrl}
@@ -576,6 +615,8 @@
 					<label class="sidebar-field">
 						<span class="sidebar-field__label">OG Image URL</span>
 						<input
+							id="post-og-image"
+							name="post-og-image"
 							type="url"
 							class="sidebar-field__input"
 							bind:value={ogImageUrl}

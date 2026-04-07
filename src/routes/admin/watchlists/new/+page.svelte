@@ -65,13 +65,7 @@
 
 		<div class="new-wl__field">
 			<label for="weekOf" class="new-wl__label">Week Of</label>
-			<input
-				id="weekOf"
-				type="date"
-				bind:value={weekOf}
-				required
-				class="new-wl__input"
-			/>
+			<input id="weekOf" type="date" bind:value={weekOf} required class="new-wl__input" />
 		</div>
 
 		<div class="new-wl__field">
@@ -97,7 +91,7 @@
 		</div>
 
 		<label class="new-wl__checkbox">
-			<input type="checkbox" bind:checked={published} />
+			<input id="watchlist-published" name="published" type="checkbox" bind:checked={published} />
 			<span>Publish immediately</span>
 		</label>
 

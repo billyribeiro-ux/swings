@@ -9,6 +9,7 @@
 	import Users from 'phosphor-svelte/lib/Users';
 	import ListChecks from 'phosphor-svelte/lib/ListChecks';
 	import Article from 'phosphor-svelte/lib/Article';
+	import UserCircle from 'phosphor-svelte/lib/UserCircle';
 	import SignOut from 'phosphor-svelte/lib/SignOut';
 	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
 	import List from 'phosphor-svelte/lib/List';
@@ -65,7 +66,8 @@
 	const navItems = [
 		{ href: '/admin', label: 'Dashboard', icon: ChartBar },
 		{ href: '/admin/members', label: 'Members', icon: Users },
-		{ href: '/admin/watchlists', label: 'Watchlists', icon: ListChecks }
+		{ href: '/admin/watchlists', label: 'Watchlists', icon: ListChecks },
+		{ href: '/admin/author', label: 'Author Profile', icon: UserCircle }
 	];
 
 	const blogItems = [

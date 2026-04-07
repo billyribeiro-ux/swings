@@ -181,7 +181,12 @@
 
 			<div class="edit-wl__row">
 				<label class="edit-wl__checkbox">
-					<input type="checkbox" bind:checked={published} />
+					<input
+						id="watchlist-published"
+						name="published"
+						type="checkbox"
+						bind:checked={published}
+					/>
 					<span>Published</span>
 				</label>
 

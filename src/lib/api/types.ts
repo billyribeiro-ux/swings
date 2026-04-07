@@ -10,6 +10,13 @@ export interface UserResponse {
 	name: string;
 	role: 'member' | 'admin';
 	avatar_url: string | null;
+	bio: string | null;
+	position: string | null;
+	website_url: string | null;
+	twitter_url: string | null;
+	linkedin_url: string | null;
+	youtube_url: string | null;
+	instagram_url: string | null;
 	created_at: string;
 }
 
@@ -102,6 +109,12 @@ export interface BlogPostResponse {
 	author_id: string;
 	author_name: string;
 	author_avatar: string | null;
+	author_position: string | null;
+	author_bio: string | null;
+	author_website: string | null;
+	author_twitter: string | null;
+	author_linkedin: string | null;
+	author_youtube: string | null;
 	title: string;
 	slug: string;
 	content: string;
@@ -223,6 +236,7 @@ export interface MediaItem {
 	uploader_id: string;
 	filename: string;
 	original_filename: string;
+	title: string | null;
 	mime_type: string;
 	file_size: number;
 	width: number | null;

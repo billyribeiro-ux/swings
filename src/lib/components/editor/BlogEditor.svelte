@@ -160,6 +160,8 @@
 
 	{#if showSource}
 		<textarea
+			id="blog-source-editor"
+			name="blog-source"
 			class="blog-editor__source"
 			value={sourceHtml}
 			oninput={handleSourceInput}

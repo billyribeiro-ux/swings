@@ -44,6 +44,13 @@ async fn get_profile(
 struct UpdateProfileRequest {
     name: Option<String>,
     avatar_url: Option<String>,
+    bio: Option<String>,
+    position: Option<String>,
+    website_url: Option<String>,
+    twitter_url: Option<String>,
+    linkedin_url: Option<String>,
+    youtube_url: Option<String>,
+    instagram_url: Option<String>,
 }
 
 async fn update_profile(
@@ -57,12 +64,30 @@ async fn update_profile(
 
     let name = req.name.as_deref().unwrap_or(&user.name);
     let avatar_url = req.avatar_url.as_deref().or(user.avatar_url.as_deref());
+    let bio = req.bio.as_deref().or(user.bio.as_deref());
+    let position = req.position.as_deref().or(user.position.as_deref());
+    let website_url = req.website_url.as_deref().or(user.website_url.as_deref());
+    let twitter_url = req.twitter_url.as_deref().or(user.twitter_url.as_deref());
+    let linkedin_url = req.linkedin_url.as_deref().or(user.linkedin_url.as_deref());
+    let youtube_url = req.youtube_url.as_deref().or(user.youtube_url.as_deref());
+    let instagram_url = req.instagram_url.as_deref().or(user.instagram_url.as_deref());
 
     let updated = sqlx::query_as::<_, crate::models::User>(
-        "UPDATE users SET name = $1, avatar_url = $2, updated_at = NOW() WHERE id = $3 RETURNING *",
+        r#"UPDATE users SET
+            name = $1, avatar_url = $2, bio = $3, position = $4,
+            website_url = $5, twitter_url = $6, linkedin_url = $7,
+            youtube_url = $8, instagram_url = $9, updated_at = NOW()
+           WHERE id = $10 RETURNING *"#,
     )
     .bind(name)
     .bind(avatar_url)
+    .bind(bio)
+    .bind(position)
+    .bind(website_url)
+    .bind(twitter_url)
+    .bind(linkedin_url)
+    .bind(youtube_url)
+    .bind(instagram_url)
     .bind(auth.user_id)
     .fetch_one(&state.db)
     .await?;

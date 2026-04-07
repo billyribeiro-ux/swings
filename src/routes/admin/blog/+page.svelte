@@ -135,6 +135,8 @@
 		</div>
 
 		<input
+			id="post-search"
+			name="search"
 			type="search"
 			class="blog-admin__search"
 			placeholder="Search posts..."
