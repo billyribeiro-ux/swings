@@ -35,13 +35,15 @@
 	];
 
 	let sectionRef: HTMLElement | undefined = $state();
-	let itemsRef: HTMLElement[] = $state([]);
-	let checksRef: SVGPathElement[] = $state([]);
-
 	onMount(() => {
 		if (!sectionRef || isReducedMotion()) return;
 
 		const ctx = gsap.context(() => {
+			const itemsRef = [...sectionRef!.querySelectorAll<HTMLElement>('.what-you-get__item')];
+			const checksRef = [
+				...sectionRef!.querySelectorAll<SVGPathElement>('.what-you-get__check path')
+			];
+
 			// Animate items with staggered entrance
 			itemsRef.forEach((item, i) => {
 				gsap.set(item, { opacity: 0, x: -30 });
@@ -98,18 +100,10 @@
 
 		<div class="what-you-get__grid">
 			{#each features as feature, i (feature.title)}
-				<div
-					bind:this={itemsRef[i]}
-					class={['what-you-get__item', feature.fullWidth && 'what-you-get__item--full']}
-				>
+				<div class={['what-you-get__item', feature.fullWidth && 'what-you-get__item--full']}>
 					<svg class="what-you-get__check" viewBox="0 0 24 24" width="24" height="24">
 						<circle cx="12" cy="12" r="10" fill="rgba(15, 164, 175, 0.1)" />
-						<path
-							bind:this={checksRef[i]}
-							d="M9 12l2 2 4-4"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						/>
+						<path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" />
 					</svg>
 					<div>
 						<h3 class="what-you-get__title">{feature.title}</h3>
