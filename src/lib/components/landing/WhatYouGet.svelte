@@ -178,16 +178,6 @@
 		}
 	}
 
-	.what-you-get__icon {
-		margin-top: 0.125rem;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 1.5rem;
-		height: 1.5rem;
-		flex-shrink: 0;
-	}
-
 	.what-you-get__check {
 		margin-top: 0.125rem;
 		width: 1.5rem;
