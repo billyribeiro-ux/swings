@@ -947,14 +947,14 @@
 		justify-content: center;
 	}
 
-	/* Color icon underline indicator */
-	.toolbar__color-icon {
+	/* Color icon underline indicator — applied dynamically by JS */
+	:global(.toolbar__color-icon) {
 		border-bottom: 2px solid;
 		padding-bottom: 1px;
 		font-weight: 700;
 	}
 
-	.toolbar__highlight-icon {
+	:global(.toolbar__highlight-icon) {
 		background: rgba(255, 255, 0, 0.25);
 		padding: 0 0.2rem;
 		border-radius: 0.15rem;

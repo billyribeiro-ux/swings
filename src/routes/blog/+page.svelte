@@ -390,10 +390,6 @@
 		}
 	}
 
-	.page-container--center {
-		text-align: center;
-	}
-
 	/* Blog grid */
 	.blog-grid {
 		display: grid;

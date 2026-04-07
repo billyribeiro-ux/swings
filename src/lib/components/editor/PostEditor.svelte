@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { api } from '$lib/api/client';
 	import type {
 		BlogPostResponse,
@@ -37,30 +38,33 @@
 
 	let { mode, post = null, onSave, onSaved }: Props = $props();
 
+	// Snapshot initial post value — untrack opts out of reactive dependency on the prop
+	const p = untrack(() => post);
+
 	// Post fields
-	let title = $state(post?.title || '');
-	let slug = $state(post?.slug || '');
+	let title = $state(p?.title || '');
+	let slug = $state(p?.slug || '');
 	let slugManual = $state(false);
-	let content = $state(post?.content || '');
-	let contentJson: Record<string, unknown> | null = $state(post?.content_json || null);
-	let excerpt = $state(post?.excerpt || '');
-	let status: PostStatus = $state((post?.status as PostStatus) || 'draft');
-	let visibility = $state(post?.visibility || 'public');
-	let isSticky = $state(post?.is_sticky || false);
-	let allowComments = $state(post?.allow_comments ?? true);
-	let metaTitle = $state(post?.meta_title || '');
-	let metaDescription = $state(post?.meta_description || '');
-	let canonicalUrl = $state(post?.canonical_url || '');
-	let ogImageUrl = $state(post?.og_image_url || '');
-	let scheduledAt = $state(post?.scheduled_at || '');
+	let content = $state(p?.content || '');
+	let contentJson: Record<string, unknown> | null = $state(p?.content_json || null);
+	let excerpt = $state(p?.excerpt || '');
+	let status: PostStatus = $state((p?.status as PostStatus) || 'draft');
+	let visibility = $state(p?.visibility || 'public');
+	let isSticky = $state(p?.is_sticky || false);
+	let allowComments = $state(p?.allow_comments ?? true);
+	let metaTitle = $state(p?.meta_title || '');
+	let metaDescription = $state(p?.meta_description || '');
+	let canonicalUrl = $state(p?.canonical_url || '');
+	let ogImageUrl = $state(p?.og_image_url || '');
+	let scheduledAt = $state(p?.scheduled_at || '');
 	let featuredImageId: string | undefined = $state(undefined);
-	let featuredImageUrl = $state(post?.featured_image_url || '');
+	let featuredImageUrl = $state(p?.featured_image_url || '');
 
 	// Taxonomy
 	let allCategories: BlogCategory[] = $state([]);
 	let allTags: BlogTag[] = $state([]);
-	let selectedCategoryIds: string[] = $state(post?.categories?.map((c) => c.id) || []);
-	let selectedTagIds: string[] = $state(post?.tags?.map((t) => t.id) || []);
+	let selectedCategoryIds: string[] = $state(p?.categories?.map((c) => c.id) || []);
+	let selectedTagIds: string[] = $state(p?.tags?.map((t) => t.id) || []);
 	let newCategoryName = $state('');
 	let newTagName = $state('');
 
@@ -70,7 +74,7 @@
 	// UI state
 	let saving = $state(false);
 	let saveMessage = $state('');
-	let wordCount = $state(post?.word_count || 0);
+	let wordCount = $state(p?.word_count || 0);
 	let charCount = $state(0);
 	let showMediaLibrary = $state(false);
 	let mediaInsertTarget: 'editor' | 'featured' = $state('editor');

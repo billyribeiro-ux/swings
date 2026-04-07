@@ -239,6 +239,7 @@ pub struct CourseEnrollment {
 // ── Refresh Token ───────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, FromRow)]
+#[allow(dead_code)]
 pub struct RefreshToken {
     pub id: Uuid,
     pub user_id: Uuid,
@@ -413,7 +414,9 @@ pub struct PostListParams {
     pub per_page: Option<i64>,
     pub status: Option<PostStatus>,
     pub author_id: Option<Uuid>,
+    #[allow(dead_code)]
     pub category_slug: Option<String>,
+    #[allow(dead_code)]
     pub tag_slug: Option<String>,
     pub search: Option<String>,
 }

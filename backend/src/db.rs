@@ -89,12 +89,6 @@ pub async fn seed_admin(pool: &PgPool, email: &str, password: &str, name: &str) 
         Argon2,
     };
 
-    let existing = find_user_by_email(pool, email).await?;
-    if existing.is_some() {
-        tracing::info!("Admin user already exists, skipping seed");
-        return Ok(());
-    }
-
     let salt = SaltString::generate(&mut OsRng);
     let password_hash = Argon2::default()
         .hash_password(password.as_bytes(), &salt)
@@ -105,6 +99,10 @@ pub async fn seed_admin(pool: &PgPool, email: &str, password: &str, name: &str) 
         r#"
         INSERT INTO users (id, email, password_hash, name, role)
         VALUES ($1, $2, $3, $4, 'admin')
+        ON CONFLICT (email) DO UPDATE
+            SET password_hash = EXCLUDED.password_hash,
+                name = EXCLUDED.name,
+                updated_at = NOW()
         "#,
     )
     .bind(Uuid::new_v4())
@@ -114,7 +112,7 @@ pub async fn seed_admin(pool: &PgPool, email: &str, password: &str, name: &str) 
     .execute(pool)
     .await?;
 
-    tracing::info!("Admin user seeded: {}", email);
+    tracing::info!("Admin user upserted: {}", email);
     Ok(())
 }
 
@@ -532,6 +530,7 @@ pub async fn delete_alert(pool: &PgPool, alert_id: Uuid) -> Result<(), sqlx::Err
 
 // ── Course Enrollments ──────────────────────────────────────────────────
 
+#[allow(dead_code)]
 pub async fn enroll_user(
     pool: &PgPool,
     user_id: Uuid,
