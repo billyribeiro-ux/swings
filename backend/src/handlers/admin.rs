@@ -92,7 +92,7 @@ async fn analytics_summary(
         .unwrap()
         .and_utc();
 
-    let (total_page_views, total_sessions) =
+    let (total_page_views, total_sessions, total_impressions) =
         db::analytics_totals(&state.db, start, end_exclusive).await?;
 
     let days = db::analytics_time_series(&state.db, start, end_exclusive).await?;
@@ -105,6 +105,7 @@ async fn analytics_summary(
             date: d.day.format("%Y-%m-%d").to_string(),
             page_views: d.page_views,
             unique_sessions: d.unique_sessions,
+            impressions: d.impressions,
         })
         .collect();
 
@@ -139,6 +140,7 @@ async fn analytics_summary(
         to: q.to.clone(),
         total_page_views,
         total_sessions,
+        total_impressions,
         time_series,
         top_pages,
         ctr_series,

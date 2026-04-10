@@ -1390,6 +1390,7 @@ pub struct AnalyticsDayRow {
     pub day: NaiveDate,
     pub page_views: i64,
     pub unique_sessions: i64,
+    pub impressions: i64,
 }
 
 pub async fn analytics_time_series(
@@ -1402,7 +1403,8 @@ pub async fn analytics_time_series(
         SELECT
             (date_trunc('day', created_at AT TIME ZONE 'UTC'))::date AS day,
             SUM(CASE WHEN event_type = 'page_view' THEN 1 ELSE 0 END)::bigint AS page_views,
-            COUNT(DISTINCT CASE WHEN event_type = 'page_view' THEN session_id END)::bigint AS unique_sessions
+            COUNT(DISTINCT CASE WHEN event_type = 'page_view' THEN session_id END)::bigint AS unique_sessions,
+            SUM(CASE WHEN event_type = 'impression' THEN 1 ELSE 0 END)::bigint AS impressions
         FROM analytics_events
         WHERE created_at >= $1 AND created_at < $2
         GROUP BY 1
@@ -1482,12 +1484,13 @@ pub async fn analytics_totals(
     pool: &PgPool,
     start: DateTime<Utc>,
     end_exclusive: DateTime<Utc>,
-) -> Result<(i64, i64), sqlx::Error> {
-    let row: (i64, i64) = sqlx::query_as(
+) -> Result<(i64, i64, i64), sqlx::Error> {
+    let row: (i64, i64, i64) = sqlx::query_as(
         r#"
         SELECT
             COUNT(*) FILTER (WHERE event_type = 'page_view')::bigint,
-            COUNT(DISTINCT session_id) FILTER (WHERE event_type = 'page_view')::bigint
+            COUNT(DISTINCT session_id) FILTER (WHERE event_type = 'page_view')::bigint,
+            COUNT(*) FILTER (WHERE event_type = 'impression')::bigint
         FROM analytics_events
         WHERE created_at >= $1 AND created_at < $2
         "#,

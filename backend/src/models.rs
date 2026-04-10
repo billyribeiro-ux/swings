@@ -662,6 +662,7 @@ pub struct AnalyticsTimeBucket {
     pub date: String,
     pub page_views: i64,
     pub unique_sessions: i64,
+    pub impressions: i64,
 }
 
 #[derive(Debug, Serialize)]
@@ -685,6 +686,7 @@ pub struct AnalyticsSummary {
     pub to: String,
     pub total_page_views: i64,
     pub total_sessions: i64,
+    pub total_impressions: i64,
     pub time_series: Vec<AnalyticsTimeBucket>,
     pub top_pages: Vec<AnalyticsTopPage>,
     pub ctr_series: Vec<AnalyticsCtrPoint>,

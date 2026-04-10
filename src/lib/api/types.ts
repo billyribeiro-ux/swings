@@ -97,6 +97,7 @@ export interface AnalyticsTimeBucket {
 	date: string;
 	page_views: number;
 	unique_sessions: number;
+	impressions: number;
 }
 
 export interface AnalyticsTopPage {
@@ -117,6 +118,7 @@ export interface AnalyticsSummary {
 	to: string;
 	total_page_views: number;
 	total_sessions: number;
+	total_impressions: number;
 	time_series: AnalyticsTimeBucket[];
 	top_pages: AnalyticsTopPage[];
 	ctr_series: AnalyticsCtrPoint[];

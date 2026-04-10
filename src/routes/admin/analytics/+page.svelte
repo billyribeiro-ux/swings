@@ -50,7 +50,7 @@
 	<div class="analytics-page__header">
 		<div>
 			<h1 class="analytics-page__title">Analytics</h1>
-			<p class="analytics-page__sub">Site traffic, top pages, and CTA performance (Three.js)</p>
+			<p class="analytics-page__sub">Site traffic, impressions, top pages, and CTA performance (Three.js)</p>
 		</div>
 		<form
 			class="analytics-page__filters"
@@ -98,6 +98,10 @@
 			<div class="analytics-page__kpi">
 				<span class="analytics-page__kpi-label">Sessions</span>
 				<span class="analytics-page__kpi-value">{summary.total_sessions}</span>
+			</div>
+			<div class="analytics-page__kpi">
+				<span class="analytics-page__kpi-label">Impressions</span>
+				<span class="analytics-page__kpi-value">{summary.total_impressions}</span>
 			</div>
 			<div class="analytics-page__kpi analytics-page__kpi--muted">
 				<span class="analytics-page__kpi-label">Range</span>
