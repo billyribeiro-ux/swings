@@ -13,6 +13,12 @@
 	let elTop = $state<HTMLDivElement | undefined>();
 	let elCtr = $state<HTMLDivElement | undefined>();
 
+	/** Keeps Three.js bar heights finite (undefined/NaN in API data → 0). */
+	function safeNonNeg(n: unknown): number {
+		const v = typeof n === 'number' ? n : Number(n);
+		return Number.isFinite(v) && v >= 0 ? v : 0;
+	}
+
 	function mountBarChart(container: HTMLDivElement, values: number[], color: number) {
 		const width = container.clientWidth || 600;
 		const height = 280;
@@ -31,8 +37,9 @@
 		dir.position.set(4, 10, 6);
 		scene.add(dir);
 
-		const maxV = Math.max(1, ...values);
-		const n = values.length || 1;
+		const vals = values.map(safeNonNeg);
+		const maxV = Math.max(1, ...vals);
+		const n = vals.length || 1;
 		const spacing = 1.1;
 		const totalW = (n - 1) * spacing;
 		const mat = new THREE.MeshStandardMaterial({ color, metalness: 0.2, roughness: 0.45 });
@@ -44,7 +51,7 @@
 		scene.add(base);
 
 		const meshes: THREE.Mesh[] = [];
-		values.forEach((v, i) => {
+		vals.forEach((v, i) => {
 			const h = (v / maxV) * 5 + 0.05;
 			const geo = new THREE.BoxGeometry(0.7, h, 0.7);
 			const mesh = new THREE.Mesh(geo, mat);
@@ -107,8 +114,10 @@
 		dir.position.set(4, 10, 6);
 		scene.add(dir);
 
-		const maxV = Math.max(1, ...pageViews, ...impressions);
-		const n = pageViews.length || 1;
+		const pvs = pageViews.map(safeNonNeg);
+		const ims = impressions.map(safeNonNeg);
+		const maxV = Math.max(1, ...pvs, ...ims);
+		const n = Math.max(pvs.length, ims.length, 1);
 		const spacing = 1.1;
 		const totalW = (n - 1) * spacing;
 		const matPv = new THREE.MeshStandardMaterial({
@@ -131,8 +140,8 @@
 		const meshes: THREE.Mesh[] = [];
 		for (let i = 0; i < n; i++) {
 			const x = -totalW / 2 + i * spacing;
-			const pv = pageViews[i] ?? 0;
-			const imp = impressions[i] ?? 0;
+			const pv = pvs[i] ?? 0;
+			const imp = ims[i] ?? 0;
 			const hPv = (pv / maxV) * 5 + 0.05;
 			const hImp = (imp / maxV) * 5 + 0.05;
 			const gPv = new THREE.Mesh(new THREE.BoxGeometry(0.35, hPv, 0.35), matPv);
@@ -203,8 +212,8 @@
 			byDay.set(k, cur);
 		}
 		const keys = [...byDay.keys()].sort();
-		const imps = keys.map((k) => byDay.get(k)!.imp);
-		const clks = keys.map((k) => byDay.get(k)!.clk);
+		const imps = keys.map((k) => safeNonNeg(byDay.get(k)!.imp));
+		const clks = keys.map((k) => safeNonNeg(byDay.get(k)!.clk));
 		const maxY = Math.max(1, ...imps, ...clks);
 		const n = keys.length || 1;
 		const spacing = 1.0;
