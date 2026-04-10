@@ -382,6 +382,9 @@
 		z-index: 50;
 		transform: translateX(-100%);
 		transition: transform 300ms var(--ease-out);
+		overflow-x: hidden;
+		overflow-y: auto;
+		box-sizing: border-box;
 	}
 
 	.admin__sidebar--open {
@@ -394,17 +397,21 @@
 
 	.admin__sidebar-top {
 		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.35rem;
+		flex-direction: column;
+		align-items: stretch;
+		gap: 0.65rem;
 		margin-bottom: 2rem;
-		padding: 0 0.5rem;
+		padding: 0 0.25rem;
+		min-width: 0;
 	}
 
 	.admin__sidebar-top-actions {
 		display: flex;
 		align-items: center;
-		gap: 0.35rem;
+		justify-content: flex-end;
+		gap: 0.5rem;
+		flex-wrap: nowrap;
+		min-width: 0;
 	}
 
 	.admin__sidebar-pin {
@@ -419,6 +426,7 @@
 		background: rgba(255, 255, 255, 0.05);
 		color: var(--color-grey-400);
 		cursor: pointer;
+		flex-shrink: 0;
 		transition:
 			background-color 200ms var(--ease-out),
 			color 200ms var(--ease-out);
@@ -435,11 +443,14 @@
 
 	.admin__logo {
 		display: flex;
+		flex-wrap: wrap;
 		gap: 0.3rem;
 		font-size: var(--fs-lg);
 		font-weight: var(--w-bold);
 		font-family: var(--font-heading);
 		text-decoration: none;
+		min-width: 0;
+		line-height: 1.2;
 	}
 
 	.admin__logo-brand {
@@ -459,6 +470,8 @@
 		border-radius: var(--radius-full);
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
+		white-space: nowrap;
+		flex-shrink: 0;
 	}
 
 	.admin__badge--mobile {
@@ -570,7 +583,8 @@
 	}
 
 	.admin__main {
-		flex: 1;
+		flex: 1 1 auto;
+		min-width: 0;
 		overflow-y: auto;
 	}
 
@@ -590,8 +604,16 @@
 
 		.admin__sidebar {
 			position: sticky;
+			top: 0;
+			align-self: flex-start;
+			height: 100vh;
+			flex: 0 0 16rem;
+			max-width: 16rem;
+			width: 16rem;
 			transform: translateX(0);
 			transition:
+				flex-basis 240ms var(--ease-out),
+				max-width 240ms var(--ease-out),
 				width 240ms var(--ease-out),
 				padding 240ms var(--ease-out);
 		}
@@ -601,15 +623,21 @@
 		}
 
 		.admin__sidebar--collapsed {
+			flex: 0 0 4.35rem;
+			max-width: 4.35rem;
 			width: 4.35rem;
 			padding: 1rem 0.4rem;
 			align-items: center;
 		}
 
 		.admin__sidebar--collapsed .admin__sidebar-top {
-			flex-direction: column;
 			align-items: center;
-			justify-content: flex-start;
+			padding: 0;
+		}
+
+		.admin__sidebar--collapsed .admin__sidebar-top-actions {
+			justify-content: center;
+			width: 100%;
 		}
 
 		.admin__sidebar--collapsed .admin__logo-accent,

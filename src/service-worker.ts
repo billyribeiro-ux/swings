@@ -109,6 +109,17 @@ self.addEventListener('fetch', (e) => {
 		return;
 	}
 
+	// Other origins (e.g. API on :3001 while the app is on :5173): never intercept — avoids bogus
+	// 503 from our offline fallback when the SW fetch fails or CORS differs from the page fetch.
+	if (url.origin !== self.location.origin) {
+		return;
+	}
+
+	// Same-origin API (e.g. Vite proxy): let the network handle JSON; don't cache offline shell as API.
+	if (request.method === 'GET' && url.pathname.startsWith('/api/')) {
+		return;
+	}
+
 	if (request.method !== 'GET') return;
 
 	const isAsset = ASSETS.includes(url.pathname) || url.pathname.startsWith('/immutable/');
