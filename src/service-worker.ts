@@ -1,3 +1,9 @@
+/**
+ * Service worker: precache build output, offline blog autosave PUTs, and **only** intercept static
+ * asset GETs. App routes must not use `respondWith` (SvelteKit uses `fetch()` for navigations).
+ *
+ * Registration is off in `vite dev` unless `PUBLIC_SERVICE_WORKER_IN_DEV` is set — see `svelte.config.js`.
+ */
 /// <reference lib="webworker" />
 /// <reference types="@sveltejs/kit" />
 import { build, files, version } from '$service-worker';
