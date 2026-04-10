@@ -5,12 +5,23 @@
 	import Footer from '$lib/components/ui/Footer.svelte';
 	import FloatingButton from '$lib/components/ui/FloatingButton.svelte';
 	import TradersModal from '$lib/components/traders/TradersModal.svelte';
+	import AnalyticsBeacon from '$lib/analytics/AnalyticsBeacon.svelte';
+	import AdminSiteBar from '$lib/components/admin/AdminSiteBar.svelte';
+	import { auth } from '$lib/stores/auth.svelte';
 	import { organizationSchema, webSiteSchema, buildJsonLd } from '$lib/seo/jsonld';
 
 	let { children } = $props();
 
 	const appRoutes = ['/dashboard', '/admin', '/login', '/register'];
 	const isAppRoute = $derived(appRoutes.some((r) => $page.url.pathname.startsWith(r)));
+
+	/** Offset nav when WordPress-style admin bar is visible */
+	const wpAdminOffset = $derived(
+		!isAppRoute &&
+			auth.isAuthenticated &&
+			auth.isAdmin &&
+			!['/dashboard', '/login', '/register'].some((p) => $page.url.pathname.startsWith(p))
+	);
 
 	const globalJsonLd = buildJsonLd([organizationSchema(), webSiteSchema()]);
 </script>
@@ -22,10 +33,17 @@
 	{@html `<script type="application/ld+json">${globalJsonLd}</script>`}
 </svelte:head>
 
+<AnalyticsBeacon />
+
 {#if isAppRoute}
 	{@render children()}
 {:else}
-	<div data-sveltekit-preload-data="hover">
+	<div
+		class="public-shell"
+		class:public-shell--wp-admin={wpAdminOffset}
+		data-sveltekit-preload-data="hover"
+	>
+		<AdminSiteBar />
 		<Nav />
 
 		<main>
@@ -37,3 +55,9 @@
 	<FloatingButton />
 	<TradersModal />
 {/if}
+
+<style>
+	:global(.public-shell--wp-admin .nav) {
+		top: 2.5rem;
+	}
+</style>

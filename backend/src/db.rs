@@ -1340,3 +1340,161 @@ pub async fn delete_post_meta(
         .await?;
     Ok(())
 }
+
+// ── Analytics ─────────────────────────────────────────────────────────────
+
+pub async fn ingest_analytics_events(
+    pool: &PgPool,
+    session_id: Uuid,
+    user_id: Option<Uuid>,
+    events: Vec<(String, String, Option<String>, serde_json::Value)>,
+) -> Result<(), sqlx::Error> {
+    let mut tx = pool.begin().await?;
+
+    sqlx::query(
+        r#"
+        INSERT INTO analytics_sessions (id, user_id)
+        VALUES ($1, $2)
+        ON CONFLICT (id) DO UPDATE SET
+            user_id = COALESCE(EXCLUDED.user_id, analytics_sessions.user_id),
+            updated_at = NOW()
+        "#,
+    )
+    .bind(session_id)
+    .bind(user_id)
+    .execute(&mut *tx)
+    .await?;
+
+    for (event_type, path, referrer, metadata) in events {
+        sqlx::query(
+            r#"
+            INSERT INTO analytics_events (session_id, event_type, path, referrer, metadata)
+            VALUES ($1, $2, $3, $4, $5)
+            "#,
+        )
+        .bind(session_id)
+        .bind(&event_type)
+        .bind(&path)
+        .bind(referrer.as_deref())
+        .bind(&metadata)
+        .execute(&mut *tx)
+        .await?;
+    }
+
+    tx.commit().await?;
+    Ok(())
+}
+
+#[derive(Debug, sqlx::FromRow)]
+pub struct AnalyticsDayRow {
+    pub day: NaiveDate,
+    pub page_views: i64,
+    pub unique_sessions: i64,
+}
+
+pub async fn analytics_time_series(
+    pool: &PgPool,
+    start: DateTime<Utc>,
+    end_exclusive: DateTime<Utc>,
+) -> Result<Vec<AnalyticsDayRow>, sqlx::Error> {
+    sqlx::query_as::<_, AnalyticsDayRow>(
+        r#"
+        SELECT
+            (date_trunc('day', created_at AT TIME ZONE 'UTC'))::date AS day,
+            SUM(CASE WHEN event_type = 'page_view' THEN 1 ELSE 0 END)::bigint AS page_views,
+            COUNT(DISTINCT CASE WHEN event_type = 'page_view' THEN session_id END)::bigint AS unique_sessions
+        FROM analytics_events
+        WHERE created_at >= $1 AND created_at < $2
+        GROUP BY 1
+        ORDER BY 1 ASC
+        "#,
+    )
+    .bind(start)
+    .bind(end_exclusive)
+    .fetch_all(pool)
+    .await
+}
+
+#[derive(Debug, sqlx::FromRow)]
+pub struct AnalyticsTopPageRow {
+    pub path: String,
+    pub views: i64,
+}
+
+pub async fn analytics_top_pages(
+    pool: &PgPool,
+    start: DateTime<Utc>,
+    end_exclusive: DateTime<Utc>,
+    limit: i64,
+) -> Result<Vec<AnalyticsTopPageRow>, sqlx::Error> {
+    sqlx::query_as::<_, AnalyticsTopPageRow>(
+        r#"
+        SELECT path, COUNT(*)::bigint AS views
+        FROM analytics_events
+        WHERE event_type = 'page_view' AND created_at >= $1 AND created_at < $2
+        GROUP BY path
+        ORDER BY views DESC
+        LIMIT $3
+        "#,
+    )
+    .bind(start)
+    .bind(end_exclusive)
+    .bind(limit)
+    .fetch_all(pool)
+    .await
+}
+
+#[derive(Debug, sqlx::FromRow)]
+pub struct AnalyticsCtrRow {
+    pub day: NaiveDate,
+    pub cta_id: String,
+    pub impressions: i64,
+    pub clicks: i64,
+}
+
+pub async fn analytics_ctr_breakdown(
+    pool: &PgPool,
+    start: DateTime<Utc>,
+    end_exclusive: DateTime<Utc>,
+) -> Result<Vec<AnalyticsCtrRow>, sqlx::Error> {
+    sqlx::query_as::<_, AnalyticsCtrRow>(
+        r#"
+        SELECT
+            (date_trunc('day', created_at AT TIME ZONE 'UTC'))::date AS day,
+            COALESCE(metadata->>'cta_id', '') AS cta_id,
+            SUM(CASE WHEN event_type = 'impression' THEN 1 ELSE 0 END)::bigint AS impressions,
+            SUM(CASE WHEN event_type = 'click' THEN 1 ELSE 0 END)::bigint AS clicks
+        FROM analytics_events
+        WHERE created_at >= $1 AND created_at < $2
+          AND event_type IN ('impression', 'click')
+          AND COALESCE(metadata->>'cta_id', '') <> ''
+        GROUP BY 1, 2
+        ORDER BY 1 ASC, 2 ASC
+        "#,
+    )
+    .bind(start)
+    .bind(end_exclusive)
+    .fetch_all(pool)
+    .await
+}
+
+pub async fn analytics_totals(
+    pool: &PgPool,
+    start: DateTime<Utc>,
+    end_exclusive: DateTime<Utc>,
+) -> Result<(i64, i64), sqlx::Error> {
+    let row: (i64, i64) = sqlx::query_as(
+        r#"
+        SELECT
+            COUNT(*) FILTER (WHERE event_type = 'page_view')::bigint,
+            COUNT(DISTINCT session_id) FILTER (WHERE event_type = 'page_view')::bigint
+        FROM analytics_events
+        WHERE created_at >= $1 AND created_at < $2
+        "#,
+    )
+    .bind(start)
+    .bind(end_exclusive)
+    .fetch_one(pool)
+    .await?;
+    Ok(row)
+}

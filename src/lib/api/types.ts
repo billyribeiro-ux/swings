@@ -33,9 +33,16 @@ export interface Subscription {
 	updated_at: string;
 }
 
-export interface SubscriptionResponse {
+export interface SubscriptionStatusResponse {
 	subscription: Subscription | null;
 	is_active: boolean;
+}
+
+/** @deprecated use SubscriptionStatusResponse */
+export type SubscriptionResponse = SubscriptionStatusResponse;
+
+export interface BillingPortalResponse {
+	url: string;
 }
 
 export interface Watchlist {
@@ -84,6 +91,35 @@ export interface AdminStats {
 	total_watchlists: number;
 	total_enrollments: number;
 	recent_members: UserResponse[];
+}
+
+export interface AnalyticsTimeBucket {
+	date: string;
+	page_views: number;
+	unique_sessions: number;
+}
+
+export interface AnalyticsTopPage {
+	path: string;
+	views: number;
+}
+
+export interface AnalyticsCtrPoint {
+	date: string;
+	cta_id: string;
+	impressions: number;
+	clicks: number;
+	ctr: number;
+}
+
+export interface AnalyticsSummary {
+	from: string;
+	to: string;
+	total_page_views: number;
+	total_sessions: number;
+	time_series: AnalyticsTimeBucket[];
+	top_pages: AnalyticsTopPage[];
+	ctr_series: AnalyticsCtrPoint[];
 }
 
 export interface PaginatedResponse<T> {

@@ -2,13 +2,13 @@
 	import { onMount } from 'svelte';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api } from '$lib/api/client';
-	import type { SubscriptionResponse, Watchlist, CourseEnrollment, PaginatedResponse } from '$lib/api/types';
+	import type { SubscriptionStatusResponse, Watchlist, CourseEnrollment, PaginatedResponse } from '$lib/api/types';
 	import ListChecks from 'phosphor-svelte/lib/ListChecks';
 	import BookOpen from 'phosphor-svelte/lib/BookOpen';
 	import CalendarCheck from 'phosphor-svelte/lib/CalendarCheck';
 	import Lightning from 'phosphor-svelte/lib/Lightning';
 
-	let subscription = $state<SubscriptionResponse | null>(null);
+	let subscription = $state<SubscriptionStatusResponse | null>(null);
 	let recentWatchlists = $state<Watchlist[]>([]);
 	let enrollments = $state<CourseEnrollment[]>([]);
 	let loading = $state(true);
@@ -16,7 +16,7 @@
 	onMount(async () => {
 		try {
 			const [subRes, wlRes, enrollRes] = await Promise.all([
-				api.get<SubscriptionResponse>('/api/member/subscription'),
+				api.get<SubscriptionStatusResponse>('/api/member/subscription'),
 				api.get<PaginatedResponse<Watchlist>>('/api/member/watchlists?per_page=3'),
 				api.get<CourseEnrollment[]>('/api/member/courses')
 			]);

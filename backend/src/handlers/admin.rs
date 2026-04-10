@@ -3,6 +3,7 @@ use axum::{
     routing::{delete, get, post, put},
     Json, Router,
 };
+use chrono::{Duration, NaiveDate};
 use uuid::Uuid;
 use validator::Validate;
 
@@ -11,6 +12,7 @@ use crate::{
     error::{AppError, AppResult},
     extractors::AdminUser,
     models::*,
+    stripe_api,
     AppState,
 };
 
@@ -18,9 +20,14 @@ pub fn router() -> Router<AppState> {
     Router::new()
         // Dashboard
         .route("/stats", get(dashboard_stats))
+        .route("/analytics/summary", get(analytics_summary))
         // Members
         .route("/members", get(list_members))
         .route("/members/{id}", get(get_member))
+        .route("/members/{id}/subscription", get(get_member_subscription_admin))
+        .route("/members/{id}/billing-portal", post(admin_member_billing_portal))
+        .route("/members/{id}/subscription/cancel", post(admin_member_subscription_cancel))
+        .route("/members/{id}/subscription/resume", post(admin_member_subscription_resume))
         .route("/members/{id}/role", put(update_member_role))
         .route("/members/{id}", delete(delete_member))
         // Watchlists
@@ -62,6 +69,82 @@ async fn dashboard_stats(
     }))
 }
 
+async fn analytics_summary(
+    State(state): State<AppState>,
+    _admin: AdminUser,
+    Query(q): Query<AnalyticsSummaryQuery>,
+) -> AppResult<Json<AnalyticsSummary>> {
+    let from_date = NaiveDate::parse_from_str(&q.from, "%Y-%m-%d").map_err(|_| {
+        AppError::BadRequest("invalid from date (use YYYY-MM-DD)".to_string())
+    })?;
+    let to_date = NaiveDate::parse_from_str(&q.to, "%Y-%m-%d").map_err(|_| {
+        AppError::BadRequest("invalid to date (use YYYY-MM-DD)".to_string())
+    })?;
+    if to_date < from_date {
+        return Err(AppError::BadRequest(
+            "to must be on or after from".to_string(),
+        ));
+    }
+
+    let start = from_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
+    let end_exclusive = (to_date + Duration::days(1))
+        .and_hms_opt(0, 0, 0)
+        .unwrap()
+        .and_utc();
+
+    let (total_page_views, total_sessions) =
+        db::analytics_totals(&state.db, start, end_exclusive).await?;
+
+    let days = db::analytics_time_series(&state.db, start, end_exclusive).await?;
+    let tops = db::analytics_top_pages(&state.db, start, end_exclusive, 25).await?;
+    let ctr_rows = db::analytics_ctr_breakdown(&state.db, start, end_exclusive).await?;
+
+    let time_series = days
+        .into_iter()
+        .map(|d| AnalyticsTimeBucket {
+            date: d.day.format("%Y-%m-%d").to_string(),
+            page_views: d.page_views,
+            unique_sessions: d.unique_sessions,
+        })
+        .collect();
+
+    let top_pages = tops
+        .into_iter()
+        .map(|t| AnalyticsTopPage {
+            path: t.path,
+            views: t.views,
+        })
+        .collect();
+
+    let ctr_series = ctr_rows
+        .into_iter()
+        .map(|r| {
+            let ctr = if r.impressions > 0 {
+                r.clicks as f64 / r.impressions as f64
+            } else {
+                0.0
+            };
+            AnalyticsCtrPoint {
+                date: r.day.format("%Y-%m-%d").to_string(),
+                cta_id: r.cta_id,
+                impressions: r.impressions,
+                clicks: r.clicks,
+                ctr,
+            }
+        })
+        .collect();
+
+    Ok(Json(AnalyticsSummary {
+        from: q.from.clone(),
+        to: q.to.clone(),
+        total_page_views,
+        total_sessions,
+        time_series,
+        top_pages,
+        ctr_series,
+    }))
+}
+
 // ── Members ─────────────────────────────────────────────────────────────
 
 async fn list_members(
@@ -94,6 +177,93 @@ async fn get_member(
         .await?
         .ok_or(AppError::NotFound("Member not found".to_string()))?;
     Ok(Json(user.into()))
+}
+
+async fn get_member_subscription_admin(
+    State(state): State<AppState>,
+    _admin: AdminUser,
+    Path(user_id): Path<Uuid>,
+) -> AppResult<Json<SubscriptionStatusResponse>> {
+    db::find_user_by_id(&state.db, user_id)
+        .await?
+        .ok_or(AppError::NotFound("Member not found".to_string()))?;
+
+    let sub = db::find_subscription_by_user(&state.db, user_id).await?;
+    let is_active = sub
+        .as_ref()
+        .map(|s| {
+            s.status == SubscriptionStatus::Active || s.status == SubscriptionStatus::Trialing
+        })
+        .unwrap_or(false);
+
+    Ok(Json(SubscriptionStatusResponse {
+        subscription: sub,
+        is_active,
+    }))
+}
+
+async fn admin_member_billing_portal(
+    State(state): State<AppState>,
+    _admin: AdminUser,
+    Path(user_id): Path<Uuid>,
+    Json(req): Json<BillingPortalRequest>,
+) -> AppResult<Json<BillingPortalResponse>> {
+    db::find_user_by_id(&state.db, user_id)
+        .await?
+        .ok_or(AppError::NotFound("Member not found".to_string()))?;
+
+    let sub = db::find_subscription_by_user(&state.db, user_id)
+        .await?
+        .ok_or_else(|| AppError::BadRequest("Member has no subscription".to_string()))?;
+
+    let base = state.config.frontend_url.trim_end_matches('/');
+    let return_url = req
+        .return_url
+        .unwrap_or_else(|| format!("{base}/dashboard/account"));
+
+    let url =
+        stripe_api::create_billing_portal_session(&state, &sub.stripe_customer_id, &return_url)
+            .await?;
+
+    Ok(Json(BillingPortalResponse { url }))
+}
+
+async fn admin_member_subscription_cancel(
+    State(state): State<AppState>,
+    _admin: AdminUser,
+    Path(user_id): Path<Uuid>,
+) -> AppResult<Json<serde_json::Value>> {
+    db::find_user_by_id(&state.db, user_id)
+        .await?
+        .ok_or(AppError::NotFound("Member not found".to_string()))?;
+
+    let sub = db::find_subscription_by_user(&state.db, user_id)
+        .await?
+        .ok_or_else(|| AppError::BadRequest("Member has no subscription".to_string()))?;
+
+    stripe_api::set_subscription_cancel_at_period_end(&state, &sub.stripe_subscription_id, true)
+        .await?;
+
+    Ok(Json(serde_json::json!({ "ok": true, "cancel_at_period_end": true })))
+}
+
+async fn admin_member_subscription_resume(
+    State(state): State<AppState>,
+    _admin: AdminUser,
+    Path(user_id): Path<Uuid>,
+) -> AppResult<Json<serde_json::Value>> {
+    db::find_user_by_id(&state.db, user_id)
+        .await?
+        .ok_or(AppError::NotFound("Member not found".to_string()))?;
+
+    let sub = db::find_subscription_by_user(&state.db, user_id)
+        .await?
+        .ok_or_else(|| AppError::BadRequest("Member has no subscription".to_string()))?;
+
+    stripe_api::set_subscription_cancel_at_period_end(&state, &sub.stripe_subscription_id, false)
+        .await?;
+
+    Ok(Json(serde_json::json!({ "ok": true, "cancel_at_period_end": false })))
 }
 
 #[derive(serde::Deserialize)]

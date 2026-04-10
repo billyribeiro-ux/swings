@@ -16,6 +16,7 @@ mod extractors;
 mod handlers;
 mod models;
 mod middleware;
+mod stripe_api;
 
 use config::Config;
 
@@ -83,6 +84,7 @@ async fn main() {
 
     let app = Router::new()
         .nest("/api/auth", handlers::auth::router())
+        .nest("/api/analytics", handlers::analytics::router())
         .nest("/api/admin", handlers::admin::router())
         .nest("/api/admin/blog", handlers::blog::admin_router())
         .nest("/api/blog", handlers::blog::public_router())

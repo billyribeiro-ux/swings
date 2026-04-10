@@ -60,7 +60,7 @@
 
 	<!-- Mini Chart -->
 	<div class="alert-card__chart">
-		<MiniChart ticker={sampleAlert.ticker} trend="up" height={60} days={14} />
+		<MiniChart ticker={sampleAlert.ticker} trend="up" height={168} days={14} />
 	</div>
 
 	<!-- Data Rows -->
@@ -103,7 +103,7 @@
 
 <style>
 	.alert-card {
-		max-width: 24rem;
+		max-width: 28rem;
 		border-radius: var(--radius-2xl);
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		background-color: rgba(255, 255, 255, 0.05);

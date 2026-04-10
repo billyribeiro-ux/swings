@@ -6,12 +6,15 @@
 	import type { AuthResponse } from '$lib/api/types';
 	import { onMount, onDestroy } from 'svelte';
 	import ChartBar from 'phosphor-svelte/lib/ChartBar';
+	import PresentationChart from 'phosphor-svelte/lib/PresentationChart';
 	import Users from 'phosphor-svelte/lib/Users';
 	import ListChecks from 'phosphor-svelte/lib/ListChecks';
 	import Article from 'phosphor-svelte/lib/Article';
 	import UserCircle from 'phosphor-svelte/lib/UserCircle';
 	import SignOut from 'phosphor-svelte/lib/SignOut';
 	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
+	import CaretDoubleLeft from 'phosphor-svelte/lib/CaretDoubleLeft';
+	import CaretDoubleRight from 'phosphor-svelte/lib/CaretDoubleRight';
 	import List from 'phosphor-svelte/lib/List';
 	import X from 'phosphor-svelte/lib/X';
 	import CaretDown from 'phosphor-svelte/lib/CaretDown';
@@ -21,6 +24,9 @@
 
 	let paletteOpen = $state(false);
 
+	const SIDEBAR_COLLAPSE_KEY = 'admin-sidebar-collapsed';
+	let sidebarCollapsed = $state(false);
+
 	function handleGlobalKey(e: KeyboardEvent) {
 		if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
 			e.preventDefault();
@@ -28,11 +34,32 @@
 		}
 	}
 
-	onMount(() => window.addEventListener('keydown', handleGlobalKey));
+	onMount(() => {
+		window.addEventListener('keydown', handleGlobalKey);
+		if (typeof localStorage !== 'undefined') {
+			sidebarCollapsed = localStorage.getItem(SIDEBAR_COLLAPSE_KEY) === '1';
+		}
+	});
 	onDestroy(() => window.removeEventListener('keydown', handleGlobalKey));
 
 	let mobileMenuOpen = $state(false);
 	let blogSubmenuOpen = $state(false);
+
+	function toggleSidebarCollapsed() {
+		sidebarCollapsed = !sidebarCollapsed;
+		if (typeof localStorage !== 'undefined') {
+			localStorage.setItem(SIDEBAR_COLLAPSE_KEY, sidebarCollapsed ? '1' : '0');
+		}
+		if (sidebarCollapsed) {
+			blogSubmenuOpen = false;
+		}
+	}
+
+	$effect(() => {
+		if (sidebarCollapsed) {
+			blogSubmenuOpen = false;
+		}
+	});
 
 	const publicRoutes = ['/admin/forgot-password', '/admin/reset-password'];
 	const isPublicRoute = $derived(publicRoutes.some((r) => $page.url.pathname.startsWith(r)));
@@ -78,6 +105,7 @@
 
 	const navItems = [
 		{ href: '/admin', label: 'Dashboard', icon: ChartBar },
+		{ href: '/admin/analytics', label: 'Analytics', icon: PresentationChart },
 		{ href: '/admin/members', label: 'Members', icon: Users },
 		{ href: '/admin/watchlists', label: 'Watchlists', icon: ListChecks },
 		{ href: '/admin/author', label: 'Author Profile', icon: UserCircle }
@@ -179,13 +207,33 @@
 			<span class="admin__badge admin__badge--mobile">Admin</span>
 		</header>
 
-		<aside class="admin__sidebar" class:admin__sidebar--open={mobileMenuOpen}>
+		<aside
+			class="admin__sidebar"
+			class:admin__sidebar--open={mobileMenuOpen}
+			class:admin__sidebar--collapsed={sidebarCollapsed}
+		>
 			<div class="admin__sidebar-top">
-				<a href="/" class="admin__logo">
+				<a href="/" class="admin__logo" title="Explosive Swings">
 					<span class="admin__logo-brand">Explosive</span>
 					<span class="admin__logo-accent">Swings</span>
 				</a>
-				<span class="admin__badge">Admin</span>
+				<div class="admin__sidebar-top-actions">
+					<span class="admin__badge">Admin</span>
+					<button
+						type="button"
+						class="admin__sidebar-pin"
+						onclick={toggleSidebarCollapsed}
+						aria-pressed={sidebarCollapsed}
+						aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+						title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+					>
+						{#if sidebarCollapsed}
+							<CaretDoubleRight size={18} weight="bold" />
+						{:else}
+							<CaretDoubleLeft size={18} weight="bold" />
+						{/if}
+					</button>
+				</div>
 			</div>
 
 			<nav class="admin__nav">
@@ -249,6 +297,9 @@
 		</aside>
 
 		<div class="admin__main">
+			<header class="admin__main-topbar">
+				<a href="/" class="admin__view-site">View site</a>
+			</header>
 			<div class="admin__content">
 				{@render children()}
 			</div>
@@ -345,8 +396,41 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+		gap: 0.35rem;
 		margin-bottom: 2rem;
 		padding: 0 0.5rem;
+	}
+
+	.admin__sidebar-top-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+
+	.admin__sidebar-pin {
+		display: none;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		padding: 0;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-md);
+		background: rgba(255, 255, 255, 0.05);
+		color: var(--color-grey-400);
+		cursor: pointer;
+		transition:
+			background-color 200ms var(--ease-out),
+			color 200ms var(--ease-out);
+	}
+
+	.admin__sidebar-pin:hover {
+		background: rgba(255, 255, 255, 0.1);
+		color: var(--color-white);
+	}
+
+	.admin__main-topbar {
+		display: none;
 	}
 
 	.admin__logo {
@@ -507,10 +591,78 @@
 		.admin__sidebar {
 			position: sticky;
 			transform: translateX(0);
+			transition:
+				width 240ms var(--ease-out),
+				padding 240ms var(--ease-out);
+		}
+
+		.admin__sidebar-pin {
+			display: flex;
+		}
+
+		.admin__sidebar--collapsed {
+			width: 4.35rem;
+			padding: 1rem 0.4rem;
+			align-items: center;
+		}
+
+		.admin__sidebar--collapsed .admin__sidebar-top {
+			flex-direction: column;
+			align-items: center;
+			justify-content: flex-start;
+		}
+
+		.admin__sidebar--collapsed .admin__logo-accent,
+		.admin__sidebar--collapsed .admin__badge {
+			display: none;
+		}
+
+		.admin__sidebar--collapsed .admin__logo-brand {
+			font-size: 0.65rem;
+			line-height: 1.15;
+		}
+
+		.admin__sidebar--collapsed .admin__nav-link span,
+		.admin__sidebar--collapsed .admin__logout span,
+		.admin__sidebar--collapsed .admin__nav-link--back span {
+			display: none;
+		}
+
+		.admin__sidebar--collapsed .admin__nav-link,
+		.admin__sidebar--collapsed .admin__logout {
+			justify-content: center;
+		}
+
+		.admin__sidebar--collapsed :global(.admin__nav-caret) {
+			display: none;
+		}
+
+		.admin__sidebar--collapsed .admin__nav-submenu {
+			display: none;
 		}
 
 		.admin__overlay {
 			display: none !important;
+		}
+
+		.admin__main-topbar {
+			display: flex;
+			justify-content: flex-end;
+			align-items: center;
+			padding: 0.65rem 1.25rem;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+			background: rgba(0, 0, 0, 0.2);
+		}
+
+		.admin__view-site {
+			font-size: var(--fs-sm);
+			font-weight: var(--w-semibold);
+			color: var(--color-teal-light);
+			text-decoration: none;
+		}
+
+		.admin__view-site:hover {
+			text-decoration: underline;
 		}
 
 		.admin__content {

@@ -4,6 +4,7 @@
 	import {
 		MagnifyingGlass,
 		ChartBar,
+		PresentationChart,
 		Users,
 		Article,
 		PlusCircle,
@@ -31,6 +32,13 @@
 
 	const ITEMS: PaletteItem[] = [
 		{ label: 'Dashboard', description: 'Admin overview', icon: ChartBar, action: () => goto('/admin'), keywords: ['home', 'dash', 'overview', 'stats'] },
+		{
+			label: 'Analytics',
+			description: 'Traffic, pages, CTR',
+			icon: PresentationChart,
+			action: () => goto('/admin/analytics'),
+			keywords: ['analytics', 'traffic', 'views', 'ctr', 'charts', 'three']
+		},
 		{ label: 'Posts', description: 'Manage blog posts', icon: Article, action: () => goto('/admin/blog'), keywords: ['post', 'blog', 'articles'] },
 		{ label: 'New Post', description: 'Create a new blog post', icon: PlusCircle, action: () => goto('/admin/blog/new'), keywords: ['new', 'create', 'write', 'post'] },
 		{ label: 'Categories', description: 'Manage blog categories', icon: FolderOpen, action: () => goto('/admin/blog/categories'), keywords: ['category', 'categories', 'folder'] },

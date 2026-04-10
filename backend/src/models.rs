@@ -163,6 +163,22 @@ pub enum SubscriptionStatus {
     Unpaid,
 }
 
+#[derive(Debug, Serialize)]
+pub struct SubscriptionStatusResponse {
+    pub subscription: Option<Subscription>,
+    pub is_active: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct BillingPortalResponse {
+    pub url: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BillingPortalRequest {
+    pub return_url: Option<String>,
+}
+
 // ── Watchlist ───────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
@@ -622,4 +638,62 @@ pub struct PaginatedResponse<T: Serialize> {
     pub page: i64,
     pub per_page: i64,
     pub total_pages: i64,
+}
+
+// ── Analytics ───────────────────────────────────────────────────────────
+
+#[derive(Debug, Deserialize)]
+pub struct AnalyticsIngestEvent {
+    pub event_type: String,
+    pub path: String,
+    pub referrer: Option<String>,
+    #[serde(default)]
+    pub metadata: serde_json::Value,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AnalyticsIngestRequest {
+    pub session_id: Uuid,
+    pub events: Vec<AnalyticsIngestEvent>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AnalyticsTimeBucket {
+    pub date: String,
+    pub page_views: i64,
+    pub unique_sessions: i64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AnalyticsTopPage {
+    pub path: String,
+    pub views: i64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AnalyticsCtrPoint {
+    pub date: String,
+    pub cta_id: String,
+    pub impressions: i64,
+    pub clicks: i64,
+    pub ctr: f64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AnalyticsSummary {
+    pub from: String,
+    pub to: String,
+    pub total_page_views: i64,
+    pub total_sessions: i64,
+    pub time_series: Vec<AnalyticsTimeBucket>,
+    pub top_pages: Vec<AnalyticsTopPage>,
+    pub ctr_series: Vec<AnalyticsCtrPoint>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AnalyticsSummaryQuery {
+    /// Inclusive start date `YYYY-MM-DD` (UTC).
+    pub from: String,
+    /// Exclusive end date `YYYY-MM-DD` (UTC), or inclusive depending on interpretation — we use end-exclusive window [from, to).
+    pub to: String,
 }

@@ -47,6 +47,12 @@
 				<li>Pages visited, time spent, and navigation patterns</li>
 				<li>Cookies and similar tracking technologies</li>
 			</ul>
+			<p>
+				We also use first-party usage analytics (page views and optional CTA impressions/clicks) to
+				improve the site. You can turn this off anytime by setting
+				<code>localStorage.setItem('swings_analytics_opt_out', '1')</code> in your browser console, or
+				by enabling “Do Not Track” where supported.
+			</p>
 		</section>
 
 		<section class="legal__section">

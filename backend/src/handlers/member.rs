@@ -1,6 +1,6 @@
 use axum::{
     extract::{Path, Query, State},
-    routing::{get, put},
+    routing::{get, post, put},
     Json, Router,
 };
 use uuid::Uuid;
@@ -10,6 +10,7 @@ use crate::{
     error::{AppError, AppResult},
     extractors::AuthUser,
     models::*,
+    stripe_api,
     AppState,
 };
 
@@ -20,6 +21,9 @@ pub fn router() -> Router<AppState> {
         .route("/profile", put(update_profile))
         // Subscription
         .route("/subscription", get(get_subscription))
+        .route("/billing-portal", post(post_billing_portal))
+        .route("/subscription/cancel", post(post_subscription_cancel))
+        .route("/subscription/resume", post(post_subscription_resume))
         // Watchlists
         .route("/watchlists", get(list_watchlists))
         .route("/watchlists/{id}", get(get_watchlist))
@@ -97,26 +101,68 @@ async fn update_profile(
 
 // ── Subscription ────────────────────────────────────────────────────────
 
-#[derive(serde::Serialize)]
-struct SubscriptionResponse {
-    subscription: Option<Subscription>,
-    is_active: bool,
-}
-
 async fn get_subscription(
     State(state): State<AppState>,
     auth: AuthUser,
-) -> AppResult<Json<SubscriptionResponse>> {
+) -> AppResult<Json<SubscriptionStatusResponse>> {
     let sub = db::find_subscription_by_user(&state.db, auth.user_id).await?;
     let is_active = sub
         .as_ref()
         .map(|s| s.status == SubscriptionStatus::Active || s.status == SubscriptionStatus::Trialing)
         .unwrap_or(false);
 
-    Ok(Json(SubscriptionResponse {
+    Ok(Json(SubscriptionStatusResponse {
         subscription: sub,
         is_active,
     }))
+}
+
+async fn post_billing_portal(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    Json(req): Json<BillingPortalRequest>,
+) -> AppResult<Json<BillingPortalResponse>> {
+    let sub = db::find_subscription_by_user(&state.db, auth.user_id)
+        .await?
+        .ok_or_else(|| AppError::BadRequest("No subscription on file".to_string()))?;
+
+    let base = state.config.frontend_url.trim_end_matches('/');
+    let return_url = req
+        .return_url
+        .unwrap_or_else(|| format!("{base}/dashboard/account"));
+
+    let url = stripe_api::create_billing_portal_session(&state, &sub.stripe_customer_id, &return_url)
+        .await?;
+
+    Ok(Json(BillingPortalResponse { url }))
+}
+
+async fn post_subscription_cancel(
+    State(state): State<AppState>,
+    auth: AuthUser,
+) -> AppResult<Json<serde_json::Value>> {
+    let sub = db::find_subscription_by_user(&state.db, auth.user_id)
+        .await?
+        .ok_or_else(|| AppError::BadRequest("No subscription on file".to_string()))?;
+
+    stripe_api::set_subscription_cancel_at_period_end(&state, &sub.stripe_subscription_id, true)
+        .await?;
+
+    Ok(Json(serde_json::json!({ "ok": true, "cancel_at_period_end": true })))
+}
+
+async fn post_subscription_resume(
+    State(state): State<AppState>,
+    auth: AuthUser,
+) -> AppResult<Json<serde_json::Value>> {
+    let sub = db::find_subscription_by_user(&state.db, auth.user_id)
+        .await?
+        .ok_or_else(|| AppError::BadRequest("No subscription on file".to_string()))?;
+
+    stripe_api::set_subscription_cancel_at_period_end(&state, &sub.stripe_subscription_id, false)
+        .await?;
+
+    Ok(Json(serde_json::json!({ "ok": true, "cancel_at_period_end": false })))
 }
 
 // ── Watchlists ──────────────────────────────────────────────────────────

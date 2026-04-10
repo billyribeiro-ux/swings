@@ -1,3 +1,5 @@
+use std::convert::Infallible;
+
 use axum::{
     extract::FromRequestParts,
     http::request::Parts,
@@ -72,5 +74,36 @@ impl FromRequestParts<AppState> for AdminUser {
         Ok(AdminUser {
             user_id: auth_user.user_id,
         })
+    }
+}
+
+/// Bearer JWT if present and valid; otherwise `user_id: None` (for optional auth on public endpoints).
+pub struct OptionalAuthUser {
+    pub user_id: Option<Uuid>,
+}
+
+impl FromRequestParts<AppState> for OptionalAuthUser {
+    type Rejection = Infallible;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppState,
+    ) -> Result<Self, Self::Rejection> {
+        let user_id = parts
+            .headers
+            .get("Authorization")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|h| h.strip_prefix("Bearer "))
+            .and_then(|token| {
+                decode::<Claims>(
+                    token,
+                    &DecodingKey::from_secret(state.config.jwt_secret.as_bytes()),
+                    &Validation::default(),
+                )
+                .ok()
+                .map(|t| t.claims.sub)
+            });
+
+        Ok(OptionalAuthUser { user_id })
     }
 }

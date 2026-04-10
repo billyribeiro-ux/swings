@@ -116,7 +116,12 @@ self.addEventListener('fetch', (e) => {
 	e.respondWith(
 		isAsset
 			? caches.match(request).then((cached) => cached ?? fetch(request))
-			: fetch(request).catch(() => caches.match(request) as Promise<Response>)
+			: fetch(request).catch(async () => {
+					const cached = await caches.match(request);
+					if (cached) return cached;
+					// Cache miss: must return a Response or the SW throws (breaks all fetches).
+					return new Response(null, { status: 503, statusText: 'Unavailable' });
+				})
 	);
 });
 

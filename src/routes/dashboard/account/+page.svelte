@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api, ApiError } from '$lib/api/client';
-	import type { SubscriptionResponse } from '$lib/api/types';
+	import type { BillingPortalResponse, SubscriptionStatusResponse } from '$lib/api/types';
 	import UserCircle from 'phosphor-svelte/lib/UserCircle';
 	import Lightning from 'phosphor-svelte/lib/Lightning';
 
@@ -10,11 +10,14 @@
 	let saving = $state(false);
 	let saved = $state(false);
 	let error = $state('');
-	let subscription = $state<SubscriptionResponse | null>(null);
+	let subscription = $state<SubscriptionStatusResponse | null>(null);
+	let billingBusy = $state(false);
+	let subActionBusy = $state(false);
+	let subMessage = $state('');
 
 	onMount(async () => {
 		try {
-			subscription = await api.get<SubscriptionResponse>('/api/member/subscription');
+			subscription = await api.get<SubscriptionStatusResponse>('/api/member/subscription');
 		} catch {
 			// silently handle
 		}
@@ -54,6 +57,48 @@
 			day: 'numeric',
 			year: 'numeric'
 		});
+	}
+
+	async function openBillingPortal() {
+		subMessage = '';
+		billingBusy = true;
+		try {
+			const { url } = await api.post<BillingPortalResponse>('/api/member/billing-portal', {});
+			window.location.href = url;
+		} catch (e) {
+			subMessage = e instanceof ApiError ? e.message : 'Could not open billing portal';
+		} finally {
+			billingBusy = false;
+		}
+	}
+
+	async function cancelAtPeriodEnd() {
+		if (!confirm('Cancel renewal at the end of the current billing period?')) return;
+		subMessage = '';
+		subActionBusy = true;
+		try {
+			await api.post('/api/member/subscription/cancel', {});
+			subMessage = 'Cancellation scheduled. Stripe will email you; changes sync shortly.';
+			subscription = await api.get<SubscriptionStatusResponse>('/api/member/subscription');
+		} catch (e) {
+			subMessage = e instanceof ApiError ? e.message : 'Request failed';
+		} finally {
+			subActionBusy = false;
+		}
+	}
+
+	async function resumeSubscription() {
+		subMessage = '';
+		subActionBusy = true;
+		try {
+			await api.post('/api/member/subscription/resume', {});
+			subMessage = 'Subscription renewal resumed.';
+			subscription = await api.get<SubscriptionStatusResponse>('/api/member/subscription');
+		} catch (e) {
+			subMessage = e instanceof ApiError ? e.message : 'Request failed';
+		} finally {
+			subActionBusy = false;
+		}
 	}
 
 	function planLabel(plan: string): string {
@@ -141,6 +186,35 @@
 						{formatDate(sub.current_period_start)} - {formatDate(sub.current_period_end)}
 					</span>
 				</div>
+				<div class="sub-card__actions">
+					<button
+						type="button"
+						class="sub-card__btn sub-card__btn--primary"
+						disabled={billingBusy || subActionBusy}
+						onclick={openBillingPortal}
+					>
+						{billingBusy ? 'Opening…' : 'Manage billing'}
+					</button>
+					<button
+						type="button"
+						class="sub-card__btn"
+						disabled={subActionBusy || billingBusy}
+						onclick={cancelAtPeriodEnd}
+					>
+						Cancel at period end
+					</button>
+					<button
+						type="button"
+						class="sub-card__btn"
+						disabled={subActionBusy || billingBusy}
+						onclick={resumeSubscription}
+					>
+						Resume renewal
+					</button>
+				</div>
+				{#if subMessage}
+					<p class="sub-card__msg">{subMessage}</p>
+				{/if}
 			</div>
 		{:else}
 			<div class="sub-card sub-card--empty">
@@ -293,5 +367,41 @@
 		font-size: var(--fs-sm);
 		font-weight: var(--w-bold);
 		text-transform: capitalize;
+	}
+
+	.sub-card__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin-top: 0.5rem;
+	}
+
+	.sub-card__btn {
+		padding: 0.45rem 0.85rem;
+		font-size: var(--fs-xs);
+		font-weight: var(--w-semibold);
+		border-radius: var(--radius-md);
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		background: rgba(255, 255, 255, 0.06);
+		color: var(--color-grey-200);
+		cursor: pointer;
+	}
+
+	.sub-card__btn:disabled {
+		opacity: 0.45;
+		cursor: not-allowed;
+	}
+
+	.sub-card__btn--primary {
+		background: linear-gradient(135deg, var(--color-teal), #0d8a94);
+		border-color: transparent;
+		color: var(--color-white);
+	}
+
+	.sub-card__msg {
+		margin: 0.5rem 0 0;
+		font-size: var(--fs-xs);
+		color: var(--color-teal-light);
+		line-height: 1.45;
 	}
 </style>

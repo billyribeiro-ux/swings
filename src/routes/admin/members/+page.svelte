@@ -101,6 +101,9 @@
 						<span class="member-card__label">Joined</span>
 						<span class="member-card__value">{formatDate(member.created_at)}</span>
 					</div>
+					<div class="member-card__row">
+						<a href="/admin/members/{member.id}" class="member-card__profile">View subscription</a>
+					</div>
 					<div class="member-card__actions">
 						<button
 							onclick={() => toggleRole(member)}
@@ -129,6 +132,7 @@
 						<th>Email</th>
 						<th>Role</th>
 						<th>Joined</th>
+						<th>Profile</th>
 						<th>Actions</th>
 					</tr>
 				</thead>
@@ -148,6 +152,9 @@
 								</span>
 							</td>
 							<td>{formatDate(member.created_at)}</td>
+							<td>
+								<a href="/admin/members/{member.id}" class="m-table__link">View</a>
+							</td>
 							<td>
 								<div class="m-table__actions">
 									<button
@@ -276,6 +283,17 @@
 		color: var(--color-grey-300);
 		text-align: right;
 		word-break: break-all;
+	}
+
+	.member-card__profile {
+		font-size: var(--fs-sm);
+		font-weight: var(--w-semibold);
+		color: var(--color-teal-light);
+		text-decoration: none;
+	}
+
+	.member-card__profile:hover {
+		text-decoration: underline;
 	}
 
 	.member-card__role {
@@ -430,6 +448,16 @@
 		.m-table__name {
 			font-weight: var(--w-semibold);
 			color: var(--color-white);
+		}
+
+		.m-table__link {
+			color: var(--color-teal-light);
+			font-weight: var(--w-semibold);
+			text-decoration: none;
+		}
+
+		.m-table__link:hover {
+			text-decoration: underline;
 		}
 
 		.m-table__role {

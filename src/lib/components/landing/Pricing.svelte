@@ -5,14 +5,21 @@
 	import { pricingPlans } from '$lib/data/pricing';
 	import { createCheckoutSession } from '$lib/utils/stripe';
 	import { env } from '$env/dynamic/public';
+	import { ctaImpression, trackCtaEvent } from '$lib/analytics/cta';
 
 	let isLoading = $state<string | null>(null);
+
+	function ctaIdForPlan(planId: string): string {
+		return `pricing_${planId}`;
+	}
 
 	async function handleCheckout(priceId: string, planId: string) {
 		if (!priceId) {
 			alert('Stripe is not configured. Please add your Stripe Price IDs to the .env file.');
 			return;
 		}
+
+		trackCtaEvent('click', ctaIdForPlan(planId));
 
 		isLoading = planId;
 		try {
@@ -41,6 +48,7 @@
 					<div
 						class={['reveal-item pricing-card', plan.featured && 'pricing-card--featured']}
 						style="transition-delay: {i * 0.08}s"
+						use:ctaImpression={{ ctaId: ctaIdForPlan(plan.id) }}
 					>
 						<!-- Badge -->
 						{#if plan.badge}
