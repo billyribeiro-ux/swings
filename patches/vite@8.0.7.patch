@@ -1,0 +1,19 @@
+diff --git a/dist/client/client.mjs b/dist/client/client.mjs
+index f92005bfb926595b6d722ef4c4cc91da14dc5f31..d0ea950fc612da1d62dabd740e2de0ef65e5d58a 100644
+--- a/dist/client/client.mjs
++++ b/dist/client/client.mjs
+@@ -878,9 +878,11 @@ your current setup:
+ 	};
+ })());
+ let willUnload = false;
+-if (typeof window !== "undefined") window.addEventListener?.("beforeunload", () => {
+-	willUnload = true;
+-});
++if (typeof window !== "undefined") {
++	window.addEventListener?.("pagehide", (e) => {
++		if (!e.persisted) willUnload = true;
++	});
++}
+ function cleanUrl(pathname) {
+ 	const url = new URL(pathname, "http://vite.dev");
+ 	url.searchParams.delete("direct");

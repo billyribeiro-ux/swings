@@ -11,12 +11,15 @@
 			"allowedVersions": {
 				"vite-plugin-devtools-json>vite": "8"
 			}
+		},
+		"patchedDependencies": {
+			"vite@8.0.7": "patches/vite@8.0.7.patch"
 		}
 	},
 	"scripts": {
 		"dev": "vite dev",
-		"dev:api": "cargo run --manifest-path backend/Cargo.toml",
-		"dev:all": "concurrently -k -n web,api -c cyan,magenta \"pnpm dev\" \"pnpm dev:api\"",
+		"dev:api": "cd backend && cargo run",
+		"dev:all": "concurrently -k -n web,api -c cyan,magenta \"pnpm dev\" \"cd backend && cargo run\"",
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",

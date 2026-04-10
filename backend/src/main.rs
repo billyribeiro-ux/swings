@@ -20,6 +20,16 @@ mod stripe_api;
 
 use config::Config;
 
+/// `dotenvy::dotenv()` only reads `./.env` from the process CWD. When invoked as
+/// `cargo run --manifest-path backend/Cargo.toml` from the repo root, CWD is the root and env
+/// vars in `backend/.env` are missed — try that path as a fallback.
+fn load_dotenv() {
+    dotenvy::dotenv().ok();
+    if std::env::var("DATABASE_URL").is_err() {
+        let _ = dotenvy::from_filename("backend/.env");
+    }
+}
+
 #[derive(Clone)]
 pub struct AppState {
     pub db: sqlx::PgPool,
@@ -34,7 +44,7 @@ async fn main() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    dotenvy::dotenv().ok();
+    load_dotenv();
 
     let config = Config::from_env();
     let port = config.port;
