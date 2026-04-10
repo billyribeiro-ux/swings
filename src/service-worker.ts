@@ -109,6 +109,12 @@ self.addEventListener('fetch', (e) => {
 		return;
 	}
 
+	// Do not intercept top-level document loads. Let the browser (and Vite) handle HTML; otherwise
+	// failed fetches + Response.error() produce noisy DevTools warnings during dev / HMR.
+	if (request.mode === 'navigate') {
+		return;
+	}
+
 	// App origin for this registration — use scope, not `self.location` (SW global location is the
 	// worker script URL and is easy to get wrong vs the page origin).
 	let appOrigin: string;

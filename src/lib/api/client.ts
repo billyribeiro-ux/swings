@@ -9,6 +9,8 @@ interface FetchOptions extends RequestInit {
 
 class ApiClient {
 	private baseUrl: string;
+	/** Ensures parallel 401s share one refresh (avoids races invalidating the refresh token). */
+	private refreshInFlight: Promise<boolean> | null = null;
 
 	constructor(baseUrl: string) {
 		this.baseUrl = baseUrl;
@@ -63,6 +65,18 @@ class ApiClient {
 	}
 
 	private async refreshTokens(): Promise<boolean> {
+		if (this.refreshInFlight) {
+			return this.refreshInFlight;
+		}
+		this.refreshInFlight = this.performRefresh();
+		try {
+			return await this.refreshInFlight;
+		} finally {
+			this.refreshInFlight = null;
+		}
+	}
+
+	private async performRefresh(): Promise<boolean> {
 		try {
 			const res = await fetch(`${this.baseUrl}/api/auth/refresh`, {
 				method: 'POST',
