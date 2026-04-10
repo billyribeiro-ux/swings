@@ -59,13 +59,27 @@
 				load();
 			}}
 		>
-			<label class="analytics-page__label">
+			<label class="analytics-page__label" for="analytics-range-from">
 				<span>From</span>
-				<input type="date" bind:value={from} class="analytics-page__input" />
+				<input
+					id="analytics-range-from"
+					name="from"
+					type="date"
+					bind:value={from}
+					class="analytics-page__input"
+					autocomplete="off"
+				/>
 			</label>
-			<label class="analytics-page__label">
+			<label class="analytics-page__label" for="analytics-range-to">
 				<span>To</span>
-				<input type="date" bind:value={to} class="analytics-page__input" />
+				<input
+					id="analytics-range-to"
+					name="to"
+					type="date"
+					bind:value={to}
+					class="analytics-page__input"
+					autocomplete="off"
+				/>
 			</label>
 			<button type="submit" class="analytics-page__btn" disabled={loading}>Apply</button>
 		</form>
