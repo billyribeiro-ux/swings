@@ -1,6 +1,7 @@
 import { auth } from '$lib/stores/auth.svelte';
+import { getPublicApiBase } from '$lib/api/publicApiBase';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE = getPublicApiBase();
 
 interface FetchOptions extends RequestInit {
 	skipAuth?: boolean;

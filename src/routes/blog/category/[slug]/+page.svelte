@@ -8,9 +8,10 @@
 	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
 	import CalendarBlank from 'phosphor-svelte/lib/CalendarBlank';
 	import Clock from 'phosphor-svelte/lib/Clock';
+	import { getPublicApiBase } from '$lib/api/publicApiBase';
 	import type { BlogPostListItem, BlogCategory, PaginatedResponse } from '$lib/api/types';
 
-	const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+	const API_BASE = getPublicApiBase();
 
 	let posts: BlogPostListItem[] = $state([]);
 	let categories: BlogCategory[] = $state([]);

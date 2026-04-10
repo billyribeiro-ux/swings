@@ -1,8 +1,9 @@
+import { getPublicApiBase } from '$lib/api/publicApiBase';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { BlogPostResponse } from '$lib/api/types';
 
-const API = process.env.VITE_API_URL || 'http://localhost:3001';
+const API = getPublicApiBase();
 
 export const load: PageServerLoad = async ({ params, fetch }) => {
 	const res = await fetch(`${API}/api/blog/posts/${params.slug}`);

@@ -1,8 +1,9 @@
+import { getPublicApiBase } from '$lib/api/publicApiBase';
 import { courses } from '$lib/data/courses';
 import type { RequestHandler } from './$types';
 
 const SITE_URL = 'https://explosiveswings.com';
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE = getPublicApiBase();
 
 const staticPages = [
 	{ path: '/', priority: '1.0', changefreq: 'weekly' },

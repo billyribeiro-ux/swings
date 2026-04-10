@@ -5,6 +5,7 @@
 	import { onMount } from 'svelte';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { ANALYTICS_OPT_OUT_KEY, ANALYTICS_SESSION_KEY } from '$lib/analytics/constants';
+	import { getPublicApiBase } from '$lib/api/publicApiBase';
 
 	function getSessionId(): string {
 		if (!browser) return '';
@@ -28,7 +29,7 @@
 		const path = $page.url.pathname + $page.url.search;
 		if (!shouldTrack($page.url.pathname)) return;
 
-		const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+		const apiBase = getPublicApiBase();
 		const body = JSON.stringify({
 			session_id: getSessionId(),
 			events: [

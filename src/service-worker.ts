@@ -109,13 +109,21 @@ self.addEventListener('fetch', (e) => {
 		return;
 	}
 
-	// Other origins (e.g. API on :3001 while the app is on :5173): never intercept — avoids bogus
-	// 503 from our offline fallback when the SW fetch fails or CORS differs from the page fetch.
-	if (url.origin !== self.location.origin) {
+	// App origin for this registration — use scope, not `self.location` (SW global location is the
+	// worker script URL and is easy to get wrong vs the page origin).
+	let appOrigin: string;
+	try {
+		appOrigin = new URL(self.registration.scope).origin;
+	} catch {
 		return;
 	}
 
-	// Same-origin API (e.g. Vite proxy): let the network handle JSON; don't cache offline shell as API.
+	// Any request not same-origin as the SPA (e.g. API on :3001, CDN): do not intercept.
+	if (url.origin !== appOrigin) {
+		return;
+	}
+
+	// Same-origin API (e.g. Vite proxy /api): never cache or fake error responses.
 	if (request.method === 'GET' && url.pathname.startsWith('/api/')) {
 		return;
 	}
@@ -130,8 +138,8 @@ self.addEventListener('fetch', (e) => {
 			: fetch(request).catch(async () => {
 					const cached = await caches.match(request);
 					if (cached) return cached;
-					// Cache miss: must return a Response or the SW throws (breaks all fetches).
-					return new Response(null, { status: 503, statusText: 'Unavailable' });
+					// Network failure + no cache: surface as a real network error, not a fake 503.
+					return Response.error();
 				})
 	);
 });

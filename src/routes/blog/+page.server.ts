@@ -1,7 +1,8 @@
+import { getPublicApiBase } from '$lib/api/publicApiBase';
 import type { PageServerLoad } from './$types';
 import type { BlogPostListItem, BlogCategory, PaginatedResponse } from '$lib/api/types';
 
-const API = process.env.VITE_API_URL || 'http://localhost:3001';
+const API = getPublicApiBase();
 
 export const load: PageServerLoad = async ({ url, fetch }) => {
 	const page = Number(url.searchParams.get('page') || '1');

@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api, ApiError } from '$lib/api/client';
-	import type { AuthResponse } from '$lib/api/types';
+	import type { AuthResponse, UserResponse } from '$lib/api/types';
 	import { onMount, onDestroy } from 'svelte';
 	import ChartBar from 'phosphor-svelte/lib/ChartBar';
 	import PresentationChart from 'phosphor-svelte/lib/PresentationChart';
@@ -64,6 +64,38 @@
 	const publicRoutes = ['/admin/forgot-password', '/admin/reset-password'];
 	const isPublicRoute = $derived(publicRoutes.some((r) => $page.url.pathname.startsWith(r)));
 
+	/** True only after /api/auth/me succeeds — avoids child pages firing admin APIs with stale localStorage JWTs. */
+	let adminSessionReady = $state(false);
+	let adminSessionCheckInFlight = $state(false);
+
+	$effect(() => {
+		if (isPublicRoute) {
+			adminSessionReady = true;
+			return;
+		}
+		if (!auth.isAuthenticated || !auth.isAdmin) {
+			adminSessionReady = false;
+			adminSessionCheckInFlight = false;
+			return;
+		}
+		if (adminSessionReady) return;
+		if (adminSessionCheckInFlight) return;
+
+		adminSessionCheckInFlight = true;
+		void (async () => {
+			try {
+				const me = await api.get<UserResponse>('/api/auth/me');
+				auth.setUser(me);
+				adminSessionReady = true;
+			} catch {
+				auth.logout();
+				adminSessionReady = false;
+			} finally {
+				adminSessionCheckInFlight = false;
+			}
+		})();
+	});
+
 	let email = $state('');
 	let password = $state('');
 	let loginError = $state('');
@@ -88,6 +120,7 @@
 			}
 
 			auth.setAuth(res.user, res.access_token, res.refresh_token);
+			adminSessionReady = true;
 		} catch (err) {
 			if (err instanceof ApiError) {
 				loginError = err.status === 401 ? 'Invalid email or password' : err.message;
@@ -175,6 +208,12 @@
 
 			<a href="/admin/forgot-password" class="admin-login__forgot">Forgot password?</a>
 			<a href="/" class="admin-login__back">← Back to site</a>
+		</div>
+	</div>
+{:else if !adminSessionReady}
+	<div class="admin-login">
+		<div class="admin-login__card">
+			<p class="admin-login__subtitle">Validating session…</p>
 		</div>
 	</div>
 {:else}

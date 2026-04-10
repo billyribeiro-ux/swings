@@ -9,10 +9,11 @@
 	import LinkedinLogo from 'phosphor-svelte/lib/LinkedinLogo';
 	import YoutubeLogo from 'phosphor-svelte/lib/YoutubeLogo';
 	import Globe from 'phosphor-svelte/lib/Globe';
+	import { getPublicApiBase } from '$lib/api/publicApiBase';
 	import type { BlogPostResponse } from '$lib/api/types';
 	import type { PageData } from './$types';
 
-	const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+	const API_BASE = getPublicApiBase();
 
 	let { data }: { data: PageData } = $props();
 

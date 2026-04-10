@@ -1,5 +1,6 @@
 import { browser } from '$app/environment';
 import { auth } from '$lib/stores/auth.svelte';
+import { getPublicApiBase } from '$lib/api/publicApiBase';
 import { ANALYTICS_OPT_OUT_KEY, ANALYTICS_SESSION_KEY } from './constants';
 
 function getSessionId(): string {
@@ -32,7 +33,7 @@ export function trackCtaEvent(
 ): void {
 	if (!allowTracking() || !ctaId) return;
 
-	const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+	const apiBase = getPublicApiBase();
 	const path =
 		pathOverride ?? (typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/');
 
