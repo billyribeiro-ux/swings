@@ -109,12 +109,6 @@ self.addEventListener('fetch', (e) => {
 		return;
 	}
 
-	// Do not intercept top-level document loads. Let the browser (and Vite) handle HTML; otherwise
-	// failed fetches + Response.error() produce noisy DevTools warnings during dev / HMR.
-	if (request.mode === 'navigate') {
-		return;
-	}
-
 	// App origin for this registration — use scope, not `self.location` (SW global location is the
 	// worker script URL and is easy to get wrong vs the page origin).
 	let appOrigin: string;
@@ -136,18 +130,19 @@ self.addEventListener('fetch', (e) => {
 
 	if (request.method !== 'GET') return;
 
-	const isAsset = ASSETS.includes(url.pathname) || url.pathname.startsWith('/immutable/');
+	const isStaticAsset =
+		ASSETS.includes(url.pathname) ||
+		url.pathname.startsWith('/immutable/') ||
+		url.pathname.startsWith('/_app/');
 
-	e.respondWith(
-		isAsset
-			? caches.match(request).then((cached) => cached ?? fetch(request))
-			: fetch(request).catch(async () => {
-					const cached = await caches.match(request);
-					if (cached) return cached;
-					// Network failure + no cache: surface as a real network error, not a fake 503.
-					return Response.error();
-				})
-	);
+	// Only cache/intercept hashed build output. Do not intercept app routes like `/admin/...`:
+	// SvelteKit loads those via fetch() with mode `same-origin` (not `navigate`), so a blanket
+	// `fetch → Response.error()` path still ran and triggered DevTools "network error response".
+	if (!isStaticAsset) {
+		return;
+	}
+
+	e.respondWith(caches.match(request).then((cached) => cached ?? fetch(request)));
 });
 
 // ── Sync queued drafts when back online ──────────────────────────────
