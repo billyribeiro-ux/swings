@@ -60,15 +60,17 @@ async fn main() {
         .await
         .expect("Failed to run migrations");
 
-    // Seed admin user
-    db::seed_admin(
-        &pool,
-        "welberribeirodrums@gmail.com",
-        "Davedicenso01!!!",
-        "Billy Ribeiro",
-    )
-    .await
-    .expect("Failed to seed admin user");
+    // Seed admin (override via ADMIN_EMAIL / ADMIN_PASSWORD / ADMIN_NAME in backend/.env)
+    let admin_email = std::env::var("ADMIN_EMAIL").unwrap_or_else(|_| {
+        "welberribeirodrums@gmail.com".to_string()
+    });
+    let admin_password =
+        std::env::var("ADMIN_PASSWORD").unwrap_or_else(|_| "Davedicenso01!!!".to_string());
+    let admin_name =
+        std::env::var("ADMIN_NAME").unwrap_or_else(|_| "Billy Ribeiro".to_string());
+    db::seed_admin(&pool, &admin_email, &admin_password, &admin_name)
+        .await
+        .expect("Failed to seed admin user");
 
     // Ensure uploads directory exists
     let upload_dir = config.upload_dir.clone();

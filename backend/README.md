@@ -35,7 +35,7 @@ The API will start on `http://localhost:3001` by default.
 | `JWT_EXPIRATION_HOURS` | No | `24` | Access token lifetime |
 | `REFRESH_TOKEN_EXPIRATION_DAYS` | No | `30` | Refresh token lifetime |
 | `PORT` | No | `3001` | Server port |
-| `FRONTEND_URL` | No | `http://localhost:5180` | Frontend origin (password-reset links, member URLs; CORS allows any origin in dev) |
+| `FRONTEND_URL` | No | `http://localhost:5173` | Frontend URL for CORS |
 | `STRIPE_SECRET_KEY` | No | - | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | No | - | Stripe webhook signing secret |
 

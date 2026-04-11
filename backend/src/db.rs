@@ -4,6 +4,12 @@ use uuid::Uuid;
 
 use crate::models::*;
 
+/// Trim + lowercase so logins match Gmail-style case-insensitive addresses.
+#[must_use]
+pub fn normalize_email(email: &str) -> String {
+    email.trim().to_lowercase()
+}
+
 // ── Users ───────────────────────────────────────────────────────────────
 
 pub async fn create_user(
@@ -12,6 +18,7 @@ pub async fn create_user(
     password_hash: &str,
     name: &str,
 ) -> Result<User, sqlx::Error> {
+    let email = normalize_email(email);
     sqlx::query_as::<_, User>(
         r#"
         INSERT INTO users (id, email, password_hash, name, role)
@@ -20,7 +27,7 @@ pub async fn create_user(
         "#,
     )
     .bind(Uuid::new_v4())
-    .bind(email)
+    .bind(&email)
     .bind(password_hash)
     .bind(name)
     .fetch_one(pool)
@@ -28,7 +35,10 @@ pub async fn create_user(
 }
 
 pub async fn find_user_by_email(pool: &PgPool, email: &str) -> Result<Option<User>, sqlx::Error> {
-    sqlx::query_as::<_, User>("SELECT * FROM users WHERE email = $1")
+    let email = normalize_email(email);
+    sqlx::query_as::<_, User>(
+        "SELECT * FROM users WHERE lower(btrim(email)) = $1",
+    )
         .bind(email)
         .fetch_optional(pool)
         .await
@@ -95,24 +105,28 @@ pub async fn seed_admin(pool: &PgPool, email: &str, password: &str, name: &str) 
         .map_err(|e| format!("Password hash error: {e}"))?
         .to_string();
 
+    let email = normalize_email(email);
+
+    // New installs: insert with seeded password. Existing admin: keep their password — do not
+    // overwrite on every server start (that used to reset people back to ADMIN_PASSWORD / defaults).
     sqlx::query(
         r#"
         INSERT INTO users (id, email, password_hash, name, role)
         VALUES ($1, $2, $3, $4, 'admin')
         ON CONFLICT (email) DO UPDATE
-            SET password_hash = EXCLUDED.password_hash,
-                name = EXCLUDED.name,
+            SET name = EXCLUDED.name,
+                role = EXCLUDED.role,
                 updated_at = NOW()
         "#,
     )
     .bind(Uuid::new_v4())
-    .bind(email)
+    .bind(&email)
     .bind(&password_hash)
     .bind(name)
     .execute(pool)
     .await?;
 
-    tracing::info!("Admin user upserted: {}", email);
+    tracing::info!("Admin user seeded (password unchanged if email already existed): {}", email);
     Ok(())
 }
 

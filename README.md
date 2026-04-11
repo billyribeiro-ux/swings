@@ -47,7 +47,7 @@ STRIPE_MONTHLY_PRICE_ID=price_monthly_id_here
 STRIPE_ANNUAL_PRICE_ID=price_annual_id_here
 
 # App URL (for Stripe redirects)
-PUBLIC_APP_URL=http://localhost:5180
+PUBLIC_APP_URL=http://localhost:5173
 ```
 
 ### 3. Set Up Stripe Products
@@ -64,7 +64,7 @@ PUBLIC_APP_URL=http://localhost:5180
 pnpm run dev
 ```
 
-Open [http://localhost:5180](http://localhost:5180) in your browser.
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## 📁 Project Structure
 
