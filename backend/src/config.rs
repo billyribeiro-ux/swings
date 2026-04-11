@@ -34,7 +34,7 @@ impl Config {
                 .parse()
                 .expect("PORT must be a number"),
             frontend_url: env::var("FRONTEND_URL")
-                .unwrap_or_else(|_| "http://localhost:5173".to_string()),
+                .unwrap_or_else(|_| "http://localhost:5180".to_string()),
             stripe_secret_key: env::var("STRIPE_SECRET_KEY")
                 .unwrap_or_default(),
             stripe_webhook_secret: env::var("STRIPE_WEBHOOK_SECRET")

@@ -29,8 +29,8 @@ export const POST: RequestHandler = async ({ request }) => {
 					quantity: 1
 				}
 			],
-			success_url: `${publicEnv.PUBLIC_APP_URL || 'http://localhost:5173'}/success?session_id={CHECKOUT_SESSION_ID}`,
-			cancel_url: `${publicEnv.PUBLIC_APP_URL || 'http://localhost:5173'}/pricing?canceled=true`,
+			success_url: `${publicEnv.PUBLIC_APP_URL || 'http://localhost:5180'}/success?session_id={CHECKOUT_SESSION_ID}`,
+			cancel_url: `${publicEnv.PUBLIC_APP_URL || 'http://localhost:5180'}/pricing?canceled=true`,
 			allow_promotion_codes: true,
 			billing_address_collection: 'required'
 		});

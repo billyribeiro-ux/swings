@@ -10,7 +10,7 @@ services:
       - JWT_SECRET=explosive-swings-jwt-secret-key-2026
       - JWT_EXPIRATION_HOURS=24
       - PORT=3001
-      - FRONTEND_URL=http://localhost:5173
+      - FRONTEND_URL=http://localhost:5180
       - UPLOAD_DIR=./uploads
     depends_on:
       db:
