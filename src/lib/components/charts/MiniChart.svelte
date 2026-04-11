@@ -1,15 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { createChart, ColorType, CandlestickSeries } from 'lightweight-charts';
-	import { miniChartTheme } from '$lib/utils/chartThemes';
 	import { generateTrendData } from '$lib/utils/chartData';
+	import { ohlcToApexSeries, buildMiniCandleOptions } from '$lib/utils/apexCandlestick';
 
 	interface Props {
 		ticker?: string;
 		trend?: 'up' | 'down' | 'sideways';
 		height?: number;
 		days?: number;
-		/** Richer grid + margins for hero / marketing cards */
+		/** Richer grid for marketing cards */
 		showcase?: boolean;
 	}
 
@@ -22,60 +21,35 @@
 	}: Props = $props();
 
 	let chartContainer: HTMLElement | undefined = $state();
-	let chart: ReturnType<typeof createChart> | null = null;
 
 	onMount(() => {
 		if (!chartContainer) return;
 
-		const grid = showcase
-			? {
-					vertLines: { visible: false },
-					horzLines: {
-						color: 'rgba(255, 255, 255, 0.06)',
-						style: 1,
-						visible: true
-					}
-				}
-			: {
-					vertLines: { visible: false },
-					horzLines: { visible: false }
-				};
+		let cancelled = false;
+		let chart: { render(): Promise<unknown>; destroy(): void } | null = null;
 
-		chart = createChart(chartContainer, {
-			layout: {
-				background: { type: ColorType.Solid, color: 'transparent' },
-				textColor: 'rgba(148, 163, 184, 0.75)',
-				fontSize: showcase ? 11 : 10,
-				fontFamily: "ui-sans-serif, system-ui, sans-serif"
-			},
-			grid,
-			crosshair: { mode: 0 },
-			rightPriceScale: { visible: false },
-			timeScale: { visible: false },
-			handleScroll: false,
-			handleScale: false,
-			autoSize: true
-		});
+		void (async () => {
+			const ApexCharts = (await import('apexcharts')).default;
+			if (cancelled || !chartContainer) return;
 
-		const candleSeries = chart.addSeries(CandlestickSeries, {
-			upColor: miniChartTheme.candlestick.upColor,
-			downColor: miniChartTheme.candlestick.downColor,
-			borderUpColor: miniChartTheme.candlestick.borderUpColor,
-			borderDownColor: miniChartTheme.candlestick.borderDownColor,
-			wickUpColor: miniChartTheme.candlestick.wickUpColor,
-			wickDownColor: miniChartTheme.candlestick.wickDownColor
-		});
+			const raw = generateTrendData(days, 100, trend, showcase ? 0.75 : 0.6);
+			const series = [{ name: 'Price', data: ohlcToApexSeries(raw) }];
+			const options = buildMiniCandleOptions({ height, series, showcase });
 
-		const data = generateTrendData(days, 100, trend, showcase ? 0.75 : 0.6);
-		candleSeries.setData(data);
+			const apx = new ApexCharts(chartContainer, options);
+			chart = apx;
+			await apx.render();
 
-		chart.timeScale().fitContent();
-
-		return () => {
-			if (chart) {
-				chart.remove();
+			if (cancelled) {
+				apx.destroy();
 				chart = null;
 			}
+		})();
+
+		return () => {
+			cancelled = true;
+			chart?.destroy();
+			chart = null;
 		};
 	});
 </script>
@@ -101,7 +75,7 @@
 		border-radius: var(--radius-lg);
 	}
 
-	.mini-chart--showcase :global(canvas) {
+	.mini-chart--showcase :global(.apexcharts-canvas) {
 		filter: drop-shadow(0 1px 12px rgba(15, 164, 175, 0.12));
 	}
 </style>

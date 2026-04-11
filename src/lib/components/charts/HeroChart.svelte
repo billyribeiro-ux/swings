@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { createChart, ColorType, CandlestickSeries, type IChartApi } from 'lightweight-charts';
-	import { heroChartTheme } from '$lib/utils/chartThemes';
 	import { generateTrendData } from '$lib/utils/chartData';
+	import { ohlcToApexSeries, buildHeroCandleOptions } from '$lib/utils/apexCandlestick';
 
 	interface Props {
 		height?: number;
@@ -13,67 +12,40 @@
 	let { height = 400, days = 60, animationDelay = 0.5 }: Props = $props();
 
 	let chartContainer: HTMLElement | undefined = $state();
-	let chart: IChartApi | null = null;
 
 	onMount(() => {
 		if (!chartContainer) return;
 
-		chart = createChart(chartContainer, {
-			layout: {
-				background: { type: ColorType.Solid, color: 'transparent' },
-				textColor: 'rgba(139, 149, 168, 0.5)',
-				fontSize: 10,
-				fontFamily: "'Inter', sans-serif"
-			},
-			grid: {
-				vertLines: {
-					color: 'rgba(15, 164, 175, 0.06)',
-					visible: true
-				},
-				horzLines: {
-					color: 'rgba(15, 164, 175, 0.06)',
-					visible: true
-				}
-			},
-			crosshair: {
-				mode: 0,
-				vertLine: { visible: false },
-				horzLine: { visible: false }
-			},
-			rightPriceScale: { visible: false },
-			timeScale: { visible: false },
-			handleScroll: false,
-			handleScale: false,
-			autoSize: true
-		});
+		let cancelled = false;
+		let chart: { render(): Promise<unknown>; destroy(): void } | null = null;
 
-		const candleSeries = chart.addSeries(CandlestickSeries, {
-			upColor: heroChartTheme.candlestick.upColor,
-			downColor: heroChartTheme.candlestick.downColor,
-			borderUpColor: heroChartTheme.candlestick.borderUpColor,
-			borderDownColor: heroChartTheme.candlestick.borderDownColor,
-			wickUpColor: 'rgba(34, 181, 115, 0.3)',
-			wickDownColor: 'rgba(224, 72, 72, 0.3)'
-		});
+		void (async () => {
+			const ApexCharts = (await import('apexcharts')).default;
+			if (cancelled || !chartContainer) return;
 
-		// Generate bullish data
-		const data = generateTrendData(days, 100, 'up', 0.8);
-		candleSeries.setData(data);
+			const raw = generateTrendData(days, 100, 'up', 0.8);
+			const series = [{ name: 'Price', data: ohlcToApexSeries(raw) }];
+			const options = buildHeroCandleOptions({ height, series });
 
-		chart.timeScale().fitContent();
+			const apx = new ApexCharts(chartContainer, options);
+			chart = apx;
+			await apx.render();
 
-		// Animate chart appearance
-		setTimeout(() => {
-			if (chartContainer) {
-				chartContainer.style.opacity = '1';
+			if (cancelled) {
+				apx.destroy();
+				chart = null;
+				return;
 			}
-		}, animationDelay * 1000);
+
+			setTimeout(() => {
+				if (chartContainer) chartContainer.style.opacity = '1';
+			}, animationDelay * 1000);
+		})();
 
 		return () => {
-			if (chart) {
-				chart.remove();
-				chart = null;
-			}
+			cancelled = true;
+			chart?.destroy();
+			chart = null;
 		};
 	});
 </script>
@@ -93,7 +65,8 @@
 		pointer-events: none;
 	}
 
-	:global(.hero-chart canvas) {
+	:global(.hero-chart .apexcharts-canvas),
+	:global(.hero-chart .apexcharts-svg) {
 		opacity: 0.4 !important;
 	}
 </style>
