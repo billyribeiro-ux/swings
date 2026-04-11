@@ -55,7 +55,8 @@
 					{#if course}
 						<div
 							class="enroll-card__banner"
-							style="background: linear-gradient(145deg, {course.gradient.from}, {course.gradient.to});"
+							style="background: linear-gradient(145deg, {course.gradient.from}, {course.gradient
+								.to});"
 						>
 							<span class="enroll-card__level">{course.level}</span>
 						</div>
@@ -65,10 +66,7 @@
 
 							<div class="enroll-card__progress">
 								<div class="enroll-card__bar">
-									<div
-										class="enroll-card__fill"
-										style="width: {enrollment.progress}%"
-									></div>
+									<div class="enroll-card__fill" style="width: {enrollment.progress}%"></div>
 								</div>
 								<span class="enroll-card__pct">{enrollment.progress}%</span>
 							</div>

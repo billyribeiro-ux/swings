@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { untrack } from 'svelte';
 	import { generateTrendData } from '$lib/utils/chartData';
 	import { ohlcToApexSeries, buildHeroCandleOptions } from '$lib/utils/apexCandlestick';
 
@@ -12,22 +12,26 @@
 	let { height = 400, days = 60, animationDelay = 0.5 }: Props = $props();
 
 	let chartContainer: HTMLElement | undefined = $state();
+	let visible = $state(false);
 
-	onMount(() => {
+	$effect(() => {
 		if (!chartContainer) return;
+		const node = chartContainer;
+		const opts = untrack(() => ({ height, days, animationDelay }));
 
 		let cancelled = false;
 		let chart: { render(): Promise<unknown>; destroy(): void } | null = null;
+		let fadeTimer: ReturnType<typeof setTimeout> | undefined;
 
 		void (async () => {
 			const ApexCharts = (await import('apexcharts')).default;
-			if (cancelled || !chartContainer) return;
+			if (cancelled) return;
 
-			const raw = generateTrendData(days, 100, 'up', 0.8);
+			const raw = generateTrendData(opts.days, 100, 'up', 0.8);
 			const series = [{ name: 'Price', data: ohlcToApexSeries(raw) }];
-			const options = buildHeroCandleOptions({ height, series });
+			const options = buildHeroCandleOptions({ height: opts.height, series });
 
-			const apx = new ApexCharts(chartContainer, options);
+			const apx = new ApexCharts(node, options);
 			chart = apx;
 			await apx.render();
 
@@ -37,13 +41,14 @@
 				return;
 			}
 
-			setTimeout(() => {
-				if (chartContainer) chartContainer.style.opacity = '1';
-			}, animationDelay * 1000);
+			fadeTimer = setTimeout(() => {
+				visible = true;
+			}, opts.animationDelay * 1000);
 		})();
 
 		return () => {
 			cancelled = true;
+			clearTimeout(fadeTimer);
 			chart?.destroy();
 			chart = null;
 		};
@@ -52,8 +57,8 @@
 
 <div
 	bind:this={chartContainer}
-	class="hero-chart"
-	style="height: {height}px; opacity: 0; transition: opacity 1.5s ease-out;"
+	class={['hero-chart', { 'hero-chart--visible': visible }]}
+	style:height="{height}px"
 ></div>
 
 <style>
@@ -63,6 +68,12 @@
 		inset: 0;
 		z-index: 0;
 		pointer-events: none;
+		opacity: 0;
+		transition: opacity 1.5s ease-out;
+	}
+
+	.hero-chart--visible {
+		opacity: 1;
 	}
 
 	:global(.hero-chart .apexcharts-canvas),

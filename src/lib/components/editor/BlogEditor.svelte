@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
 	import { Editor, Node } from '@tiptap/core';
 	import StarterKit from '@tiptap/starter-kit';
 	import Image from '@tiptap/extension-image';
@@ -127,7 +126,10 @@
 	}: Props = $props();
 
 	let editorElement: HTMLElement | undefined = $state();
-	let editor: Editor | undefined = $state();
+	// Tiptap Editor is a heavy non-reactive instance — `$state.raw` skips the
+	// proxy wrapper, which is wasteful (and can confuse ProseMirror identity
+	// checks) for an opaque object that is only ever reassigned wholesale.
+	let editor: Editor | undefined = $state.raw();
 	let isFullscreen = $state(false);
 	let showSource = $state(false);
 	let sourceHtml = $state('');
@@ -165,10 +167,10 @@
 
 	const lowlight = createLowlight(common);
 
-	onMount(() => {
+	$effect(() => {
 		if (!editorElement) return;
 
-		editor = new Editor({
+		const e = new Editor({
 			element: editorElement,
 			extensions: [
 				StarterKit.configure({
@@ -208,28 +210,27 @@
 					class: 'blog-editor__content'
 				}
 			},
-			onUpdate: ({ editor: e }) => {
-				const html = e.getHTML();
-				const json = e.getJSON();
+			onUpdate: ({ editor: ed }) => {
+				const html = ed.getHTML();
+				const json = ed.getJSON();
 				onUpdate?.(html, json as Record<string, unknown>);
-				const storage = e.storage.characterCount;
+				const storage = ed.storage.characterCount;
 				onWordCount?.(storage.words(), storage.characters());
-				checkSlash(e);
+				checkSlash(ed);
 			},
-			onSelectionUpdate: ({ editor: e }) => {
-				if (slashActive) checkSlash(e);
+			onSelectionUpdate: ({ editor: ed }) => {
+				if (slashActive) checkSlash(ed);
 			}
 		});
+		editor = e;
 
 		// Initial word count
-		if (editor) {
-			const storage = editor.storage.characterCount;
-			onWordCount?.(storage.words(), storage.characters());
-		}
-	});
+		const storage = e.storage.characterCount;
+		onWordCount?.(storage.words(), storage.characters());
 
-	onDestroy(() => {
-		editor?.destroy();
+		return () => {
+			e.destroy();
+		};
 	});
 
 	function toggleFullscreen() {

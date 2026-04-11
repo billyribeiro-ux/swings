@@ -23,11 +23,7 @@
 			<div class="courses-section__grid">
 				{#each courses as course, i (course.id)}
 					{@const Icon = iconMap[course.icon]}
-					<a
-						href="/courses/{course.slug}"
-						class="reveal-item course-card"
-						style="transition-delay: {i * 0.08}s"
-					>
+					<a href="/courses/{course.slug}" class="reveal-item course-card" style="--i: {i};">
 						<!-- Visual Header -->
 						<div
 							class="course-card__header"
@@ -140,6 +136,13 @@
 		outline: 1px solid rgba(216, 220, 228, 0.8);
 		outline-offset: -1px;
 		transition: all 500ms var(--ease-out);
+		transition-delay: calc(var(--i, 0) * 0.08s);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.course-card {
+			transition-delay: 0s;
+		}
 	}
 
 	.course-card:hover {

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { sampleAlert } from '$lib/data/alerts';
 	import { gsap } from 'gsap';
 	import { EASE, DURATION, isReducedMotion } from '$lib/utils/animations';
@@ -15,7 +14,7 @@
 
 	let cardRef: HTMLElement | undefined = $state();
 
-	onMount(() => {
+	$effect(() => {
 		if (!cardRef) return;
 		const el = cardRef;
 		const reduced = isReducedMotion();
@@ -78,13 +77,7 @@
 				<span class="alert-card__chart-tag">Daily candles</span>
 			</div>
 			<div class="alert-card__chart-inner">
-				<MiniChart
-					ticker={sampleAlert.ticker}
-					trend="up"
-					height={188}
-					days={14}
-					showcase={true}
-				/>
+				<MiniChart ticker={sampleAlert.ticker} trend="up" height={188} days={14} showcase={true} />
 			</div>
 		</div>
 	</div>
@@ -95,11 +88,15 @@
 			<div class="alert-card__rows">
 				<div class="alert-card__row">
 					<span class="alert-card__row-label">Entry zone</span>
-					<span class="alert-card__row-value alert-card__row-value--teal">{sampleAlert.entryZone}</span>
+					<span class="alert-card__row-value alert-card__row-value--teal"
+						>{sampleAlert.entryZone}</span
+					>
 				</div>
 				<div class="alert-card__row">
 					<span class="alert-card__row-label">Invalidation</span>
-					<span class="alert-card__row-value alert-card__row-value--red">{sampleAlert.invalidation}</span>
+					<span class="alert-card__row-value alert-card__row-value--red"
+						>{sampleAlert.invalidation}</span
+					>
 				</div>
 			</div>
 		</section>
@@ -143,13 +140,12 @@
 		overflow: hidden;
 		border-radius: 1.25rem;
 		border: 1px solid rgba(255, 255, 255, 0.14);
-		background:
-			linear-gradient(
-				155deg,
-				rgba(15, 23, 42, 0.92) 0%,
-				rgba(15, 23, 42, 0.72) 45%,
-				rgba(15, 30, 55, 0.85) 100%
-			);
+		background: linear-gradient(
+			155deg,
+			rgba(15, 23, 42, 0.92) 0%,
+			rgba(15, 23, 42, 0.72) 45%,
+			rgba(15, 30, 55, 0.85) 100%
+		);
 		box-shadow:
 			0 0 0 1px rgba(0, 0, 0, 0.35) inset,
 			0 28px 56px -16px rgba(0, 0, 0, 0.55),
@@ -408,11 +404,7 @@
 		padding: 1rem 1rem 1rem 0.95rem;
 		border-radius: var(--radius-lg);
 		border: 1px solid rgba(15, 164, 175, 0.25);
-		background: linear-gradient(
-			120deg,
-			rgba(15, 164, 175, 0.12) 0%,
-			rgba(15, 23, 42, 0.5) 100%
-		);
+		background: linear-gradient(120deg, rgba(15, 164, 175, 0.12) 0%, rgba(15, 23, 42, 0.5) 100%);
 	}
 
 	:global(.alert-card__notes-icon) {

@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { api } from '$lib/api/client';
-	import type { CreatePostPayload, BlogPostResponse } from '$lib/api/types';
+	import type { CreatePostPayload, UpdatePostPayload, BlogPostResponse } from '$lib/api/types';
 	import PostEditor from '$lib/components/editor/PostEditor.svelte';
 
-	async function createPost(payload: CreatePostPayload): Promise<BlogPostResponse> {
+	async function createPost(
+		payload: CreatePostPayload | UpdatePostPayload
+	): Promise<BlogPostResponse> {
 		return api.post<BlogPostResponse>('/api/admin/blog/posts', payload);
 	}
 

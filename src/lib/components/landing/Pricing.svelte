@@ -47,15 +47,20 @@
 				{#each pricingPlans as plan, i (plan.id)}
 					{@const isFeatured = plan.featured}
 					<div
-						class="reveal-item pricing__card"
-						class:pricing__card--featured={isFeatured}
-						class:pricing__card--hovered={hoveredCard === plan.id}
+						class={[
+							'reveal-item',
+							'pricing__card',
+							{
+								'pricing__card--featured': isFeatured,
+								'pricing__card--hovered': hoveredCard === plan.id
+							}
+						]}
 						style="--card-delay: {i * 0.1}s"
 						role="article"
 						aria-label="{plan.name} plan"
 						onmouseenter={() => (hoveredCard = plan.id)}
 						onmouseleave={() => (hoveredCard = null)}
-						use:ctaImpression={{ ctaId: ctaIdForPlan(plan.id) }}
+						{@attach ctaImpression({ ctaId: ctaIdForPlan(plan.id) })}
 					>
 						<!-- Ambient light effect for featured -->
 						{#if isFeatured}
@@ -74,7 +79,7 @@
 
 						<!-- Plan header -->
 						<div class="pricing__header">
-							<h3 class="pricing__plan-name" class:pricing__plan-name--spaced={plan.badge}>
+							<h3 class={['pricing__plan-name', { 'pricing__plan-name--spaced': plan.badge }]}>
 								{plan.name}
 							</h3>
 						</div>
@@ -118,9 +123,13 @@
 							onclick={() =>
 								handleCheckout(plan.id === 'monthly' ? monthlyPriceId : annualPriceId, plan.id)}
 							disabled={isLoading === plan.id}
-							class="pricing__cta"
-							class:pricing__cta--primary={plan.variant === 'primary'}
-							class:pricing__cta--outline={plan.variant !== 'primary'}
+							class={[
+								'pricing__cta',
+								{
+									'pricing__cta--primary': plan.variant === 'primary',
+									'pricing__cta--outline': plan.variant !== 'primary'
+								}
+							]}
 							aria-busy={isLoading === plan.id}
 						>
 							{#if isLoading === plan.id}
@@ -128,12 +137,7 @@
 								<span>Processing…</span>
 							{:else}
 								<span>{plan.cta}</span>
-								<svg
-									class="pricing__cta-arrow"
-									viewBox="0 0 20 20"
-									fill="none"
-									aria-hidden="true"
-								>
+								<svg class="pricing__cta-arrow" viewBox="0 0 20 20" fill="none" aria-hidden="true">
 									<path
 										d="M4 10h12m0 0l-4-4m4 4l-4 4"
 										stroke="currentColor"
@@ -209,14 +213,13 @@
 		--_surface-section: oklch(0.985 0.003 250);
 
 		/* Shadows — layered for depth */
-		--_shadow-card: 0 1px 3px oklch(0.22 0.04 260 / 0.04),
-			0 4px 12px oklch(0.22 0.04 260 / 0.03);
-		--_shadow-card-hover: 0 4px 16px oklch(0.22 0.04 260 / 0.06),
-			0 12px 40px oklch(0.22 0.04 260 / 0.05);
-		--_shadow-featured: 0 4px 16px oklch(0.68 0.14 192 / 0.08),
-			0 12px 40px oklch(0.68 0.14 192 / 0.06);
-		--_shadow-featured-hover: 0 8px 24px oklch(0.68 0.14 192 / 0.12),
-			0 20px 60px oklch(0.68 0.14 192 / 0.08);
+		--_shadow-card: 0 1px 3px oklch(0.22 0.04 260 / 0.04), 0 4px 12px oklch(0.22 0.04 260 / 0.03);
+		--_shadow-card-hover:
+			0 4px 16px oklch(0.22 0.04 260 / 0.06), 0 12px 40px oklch(0.22 0.04 260 / 0.05);
+		--_shadow-featured:
+			0 4px 16px oklch(0.68 0.14 192 / 0.08), 0 12px 40px oklch(0.68 0.14 192 / 0.06);
+		--_shadow-featured-hover:
+			0 8px 24px oklch(0.68 0.14 192 / 0.12), 0 20px 60px oklch(0.68 0.14 192 / 0.08);
 
 		/* Timing */
 		--_dur-fast: 200ms;
@@ -237,16 +240,8 @@
 		position: absolute;
 		inset: 0;
 		background:
-			radial-gradient(
-				ellipse 80% 60% at 50% 0%,
-				oklch(0.68 0.14 192 / 0.03),
-				transparent 70%
-			),
-			radial-gradient(
-				ellipse 60% 50% at 80% 100%,
-				oklch(0.68 0.14 192 / 0.02),
-				transparent 60%
-			);
+			radial-gradient(ellipse 80% 60% at 50% 0%, oklch(0.68 0.14 192 / 0.03), transparent 70%),
+			radial-gradient(ellipse 60% 50% at 80% 100%, oklch(0.68 0.14 192 / 0.02), transparent 60%);
 		pointer-events: none;
 	}
 
@@ -315,11 +310,7 @@
 		inset-inline-start: -25%;
 		inline-size: 150%;
 		block-size: 150%;
-		background: radial-gradient(
-			ellipse 50% 40% at 50% 20%,
-			var(--_teal-glow),
-			transparent 70%
-		);
+		background: radial-gradient(ellipse 50% 40% at 50% 20%, var(--_teal-glow), transparent 70%);
 		pointer-events: none;
 		opacity: 0.6;
 		transition: opacity var(--_dur-slow) var(--_ease-out);

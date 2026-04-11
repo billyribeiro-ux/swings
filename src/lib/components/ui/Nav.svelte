@@ -60,7 +60,6 @@
 			document.body.style.overflow = '';
 		};
 	});
-
 </script>
 
 <svelte:window onclick={handleWindowClick} onkeydown={handleKeydown} onscroll={handleScroll} />
@@ -83,71 +82,71 @@
 			<div class="nav__pill">
 				<a href="/about" class="nav__link">About</a>
 
-			<!-- Courses Dropdown -->
-			<div class="nav__dropdown" bind:this={dropdownRef}>
-				<button
-					type="button"
-					onclick={toggleCourses}
-					aria-expanded={isCoursesOpen}
-					aria-haspopup="true"
-					class={['nav__link', 'nav__link--dropdown', isCoursesOpen && 'nav__link--active']}
-				>
-					Courses
-					<CaretDown
-						size={14}
-						weight="bold"
-						class={['nav__caret', isCoursesOpen && 'nav__caret--open']}
-					/>
-				</button>
-
-				{#if isCoursesOpen}
-					<div
-						class="dropdown-panel"
-						transition:fly={{
-							y: -12,
-							opacity: 0,
-							duration: tDur(300),
-							easing: quintOut
-						}}
+				<!-- Courses Dropdown -->
+				<div class="nav__dropdown" bind:this={dropdownRef}>
+					<button
+						type="button"
+						onclick={toggleCourses}
+						aria-expanded={isCoursesOpen}
+						aria-haspopup="true"
+						class={['nav__link', 'nav__link--dropdown', isCoursesOpen && 'nav__link--active']}
 					>
-						<div class="dropdown-panel__inner">
-							{#each courses as course, i (course.id)}
-								{@const Icon = iconMap[course.icon]}
-								<a href="/courses/{course.slug}" class="dropdown-item" onclick={closeAll}>
-									<div
-										class="dropdown-item__icon"
-										style="background: linear-gradient(135deg, {course.gradient.from}, {course
-											.gradient.to});"
-									>
-										{#if Icon}
-											<Icon size={22} weight="duotone" color="white" />
-										{:else}
-											<span class="dropdown-item__icon-fallback">{course.level.charAt(0)}</span>
-										{/if}
-									</div>
-									<div class="dropdown-item__content">
-										<h4 class="dropdown-item__title">{course.title}</h4>
-										<p class="dropdown-item__desc">{course.description}</p>
-										<div class="dropdown-item__meta">
-											<span class="dropdown-item__price">${course.price}</span>
-											<span class="dropdown-item__sep">·</span>
-											<span class="dropdown-item__level">{course.level}</span>
-										</div>
-									</div>
-									<ArrowRight size={14} weight="bold" class="dropdown-item__arrow" />
-								</a>
-							{/each}
+						Courses
+						<CaretDown
+							size={14}
+							weight="bold"
+							class={['nav__caret', isCoursesOpen && 'nav__caret--open']}
+						/>
+					</button>
 
-							<div class="dropdown-panel__footer">
-								<a href="/courses" class="dropdown-panel__view-all" onclick={closeAll}>
-									View All Courses
-									<ArrowRight size={14} weight="bold" />
-								</a>
+					{#if isCoursesOpen}
+						<div
+							class="dropdown-panel"
+							transition:fly={{
+								y: -12,
+								opacity: 0,
+								duration: tDur(300),
+								easing: quintOut
+							}}
+						>
+							<div class="dropdown-panel__inner">
+								{#each courses as course, i (course.id)}
+									{@const Icon = iconMap[course.icon]}
+									<a href="/courses/{course.slug}" class="dropdown-item" onclick={closeAll}>
+										<div
+											class="dropdown-item__icon"
+											style="background: linear-gradient(135deg, {course.gradient.from}, {course
+												.gradient.to});"
+										>
+											{#if Icon}
+												<Icon size={22} weight="duotone" color="white" />
+											{:else}
+												<span class="dropdown-item__icon-fallback">{course.level.charAt(0)}</span>
+											{/if}
+										</div>
+										<div class="dropdown-item__content">
+											<h4 class="dropdown-item__title">{course.title}</h4>
+											<p class="dropdown-item__desc">{course.description}</p>
+											<div class="dropdown-item__meta">
+												<span class="dropdown-item__price">${course.price}</span>
+												<span class="dropdown-item__sep">·</span>
+												<span class="dropdown-item__level">{course.level}</span>
+											</div>
+										</div>
+										<ArrowRight size={14} weight="bold" class="dropdown-item__arrow" />
+									</a>
+								{/each}
+
+								<div class="dropdown-panel__footer">
+									<a href="/courses" class="dropdown-panel__view-all" onclick={closeAll}>
+										View All Courses
+										<ArrowRight size={14} weight="bold" />
+									</a>
+								</div>
 							</div>
 						</div>
-					</div>
-				{/if}
-			</div>
+					{/if}
+				</div>
 
 				<a href="/blog" class="nav__link">Blog</a>
 				<a href="/#pricing" class="nav__link">Pricing</a>
@@ -181,10 +180,7 @@
 
 	<!-- Mobile Menu -->
 	{#if isMobileOpen}
-		<div
-			class="mobile-menu"
-			transition:slide={{ duration: tDur(360), easing: quintOut }}
-		>
+		<div class="mobile-menu" transition:slide={{ duration: tDur(360), easing: quintOut }}>
 			<div class="mobile-menu__inner">
 				<!-- Courses Section -->
 				<div
@@ -253,11 +249,7 @@
 		z-index: var(--z-50);
 		isolation: isolate;
 		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-		background: linear-gradient(
-			180deg,
-			rgba(11, 29, 58, 0.94) 0%,
-			rgba(11, 29, 58, 0.88) 100%
-		);
+		background: linear-gradient(180deg, rgba(11, 29, 58, 0.94) 0%, rgba(11, 29, 58, 0.88) 100%);
 		backdrop-filter: blur(20px) saturate(1.2);
 		-webkit-backdrop-filter: blur(20px) saturate(1.2);
 		transition:
@@ -272,12 +264,7 @@
 		position: absolute;
 		inset: 0 0 auto 0;
 		height: 1px;
-		background: linear-gradient(
-			90deg,
-			transparent,
-			rgba(15, 164, 175, 0.45) 50%,
-			transparent
-		);
+		background: linear-gradient(90deg, transparent, rgba(15, 164, 175, 0.45) 50%, transparent);
 		opacity: 0.9;
 		pointer-events: none;
 	}
@@ -300,11 +287,7 @@
 
 	.nav--scrolled {
 		border-bottom-color: rgba(255, 255, 255, 0.14);
-		background: linear-gradient(
-			180deg,
-			rgba(8, 22, 48, 0.97) 0%,
-			rgba(11, 29, 58, 0.96) 100%
-		);
+		background: linear-gradient(180deg, rgba(8, 22, 48, 0.97) 0%, rgba(11, 29, 58, 0.96) 100%);
 		box-shadow:
 			0 1px 0 rgba(15, 164, 175, 0.12),
 			0 18px 40px -12px rgba(0, 0, 0, 0.45),
@@ -503,11 +486,7 @@
 		overflow: hidden;
 		border-radius: var(--radius-2xl);
 		border: 1px solid rgba(255, 255, 255, 0.12);
-		background: linear-gradient(
-			165deg,
-			rgba(14, 32, 62, 0.98) 0%,
-			rgba(11, 29, 58, 0.97) 100%
-		);
+		background: linear-gradient(165deg, rgba(14, 32, 62, 0.98) 0%, rgba(11, 29, 58, 0.97) 100%);
 		box-shadow:
 			0 24px 48px -12px rgba(0, 0, 0, 0.55),
 			0 0 0 1px rgba(0, 0, 0, 0.2) inset,
@@ -767,11 +746,7 @@
 	/* ---- Mobile menu ---- */
 	.mobile-menu {
 		position: relative;
-		background: linear-gradient(
-			180deg,
-			rgba(11, 29, 58, 0.99) 0%,
-			rgba(8, 20, 42, 0.98) 100%
-		);
+		background: linear-gradient(180deg, rgba(11, 29, 58, 0.99) 0%, rgba(8, 20, 42, 0.98) 100%);
 		border-top: 1px solid rgba(255, 255, 255, 0.1);
 		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 		backdrop-filter: blur(24px);

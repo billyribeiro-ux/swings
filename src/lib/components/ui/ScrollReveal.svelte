@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { type Snippet } from 'svelte';
-	import { onMount } from 'svelte';
+	import { type Snippet, untrack } from 'svelte';
 	import { gsap } from 'gsap';
 	import { createCinematicReveal, isReducedMotion } from '$lib/utils/animations';
 
@@ -32,26 +31,31 @@
 
 	let container: HTMLElement | undefined = $state();
 
-	onMount(() => {
+	$effect(() => {
 		if (!container) return;
+		const root = container;
 
-		const targets = container.querySelectorAll(selector);
-		const animTargets = targets.length > 0 ? targets : container.children;
+		// Snapshot props once at mount so changing them post-mount doesn't tear the
+		// reveal animation down (matches the legacy onMount semantics).
+		const opts = untrack(() => ({ y, blur, scale, duration, stagger, start, ease, selector }));
+
+		const targets = root.querySelectorAll(opts.selector);
+		const animTargets = targets.length > 0 ? targets : root.children;
 		if (!animTargets.length) return;
 
 		const ctx = gsap.context(() => {
 			createCinematicReveal({
 				targets: animTargets,
-				trigger: container!,
-				y,
-				blur,
-				scale,
-				duration,
-				stagger,
-				ease,
-				start
+				trigger: root,
+				y: opts.y,
+				blur: opts.blur,
+				scale: opts.scale,
+				duration: opts.duration,
+				stagger: opts.stagger,
+				ease: opts.ease,
+				start: opts.start
 			});
-		}, container as HTMLElement);
+		}, root);
 
 		return () => {
 			ctx.revert();

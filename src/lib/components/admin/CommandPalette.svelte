@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { tick } from 'svelte';
 	import { goto } from '$app/navigation';
 	import {
 		MagnifyingGlass,
@@ -31,7 +31,13 @@
 	let { open, onClose }: Props = $props();
 
 	const ITEMS: PaletteItem[] = [
-		{ label: 'Dashboard', description: 'Admin overview', icon: ChartBar, action: () => goto('/admin'), keywords: ['home', 'dash', 'overview', 'stats'] },
+		{
+			label: 'Dashboard',
+			description: 'Admin overview',
+			icon: ChartBar,
+			action: () => goto('/admin'),
+			keywords: ['home', 'dash', 'overview', 'stats']
+		},
 		{
 			label: 'Analytics',
 			description: 'Traffic, pages, CTR',
@@ -39,14 +45,62 @@
 			action: () => goto('/admin/analytics'),
 			keywords: ['analytics', 'traffic', 'views', 'ctr', 'charts', 'three']
 		},
-		{ label: 'Posts', description: 'Manage blog posts', icon: Article, action: () => goto('/admin/blog'), keywords: ['post', 'blog', 'articles'] },
-		{ label: 'New Post', description: 'Create a new blog post', icon: PlusCircle, action: () => goto('/admin/blog/new'), keywords: ['new', 'create', 'write', 'post'] },
-		{ label: 'Categories', description: 'Manage blog categories', icon: FolderOpen, action: () => goto('/admin/blog/categories'), keywords: ['category', 'categories', 'folder'] },
-		{ label: 'Tags', description: 'Manage post tags', icon: Tag, action: () => goto('/admin/blog/tags'), keywords: ['tag', 'tags', 'label'] },
-		{ label: 'Media', description: 'Media library', icon: Image, action: () => goto('/admin/blog/media'), keywords: ['media', 'image', 'upload', 'library'] },
-		{ label: 'Members', description: 'Manage members', icon: Users, action: () => goto('/admin/members'), keywords: ['member', 'user', 'people'] },
-		{ label: 'Watchlists', description: 'Manage watchlists', icon: ListChecks, action: () => goto('/admin/watchlists'), keywords: ['watchlist', 'watch', 'list'] },
-		{ label: 'Author Profile', description: 'Edit your author profile', icon: UserCircle, action: () => goto('/admin/author'), keywords: ['author', 'profile', 'bio'] }
+		{
+			label: 'Posts',
+			description: 'Manage blog posts',
+			icon: Article,
+			action: () => goto('/admin/blog'),
+			keywords: ['post', 'blog', 'articles']
+		},
+		{
+			label: 'New Post',
+			description: 'Create a new blog post',
+			icon: PlusCircle,
+			action: () => goto('/admin/blog/new'),
+			keywords: ['new', 'create', 'write', 'post']
+		},
+		{
+			label: 'Categories',
+			description: 'Manage blog categories',
+			icon: FolderOpen,
+			action: () => goto('/admin/blog/categories'),
+			keywords: ['category', 'categories', 'folder']
+		},
+		{
+			label: 'Tags',
+			description: 'Manage post tags',
+			icon: Tag,
+			action: () => goto('/admin/blog/tags'),
+			keywords: ['tag', 'tags', 'label']
+		},
+		{
+			label: 'Media',
+			description: 'Media library',
+			icon: Image,
+			action: () => goto('/admin/blog/media'),
+			keywords: ['media', 'image', 'upload', 'library']
+		},
+		{
+			label: 'Members',
+			description: 'Manage members',
+			icon: Users,
+			action: () => goto('/admin/members'),
+			keywords: ['member', 'user', 'people']
+		},
+		{
+			label: 'Watchlists',
+			description: 'Manage watchlists',
+			icon: ListChecks,
+			action: () => goto('/admin/watchlists'),
+			keywords: ['watchlist', 'watch', 'list']
+		},
+		{
+			label: 'Author Profile',
+			description: 'Edit your author profile',
+			icon: UserCircle,
+			action: () => goto('/admin/author'),
+			keywords: ['author', 'profile', 'bio']
+		}
 	];
 
 	let query = $state('');
@@ -70,7 +124,9 @@
 		if (open) {
 			query = '';
 			activeIndex = 0;
-			setTimeout(() => inputEl?.focus(), 30);
+			// `await tick()` defers focus until after the DOM has been patched and
+			// the input element is mounted — replaces the legacy `setTimeout(..., 30)`.
+			tick().then(() => inputEl?.focus());
 		}
 	});
 
@@ -96,8 +152,10 @@
 		}
 	}
 
-	onMount(() => window.addEventListener('keydown', handleKeyDown, true));
-	onDestroy(() => window.removeEventListener('keydown', handleKeyDown, true));
+	$effect(() => {
+		window.addEventListener('keydown', handleKeyDown, true);
+		return () => window.removeEventListener('keydown', handleKeyDown, true);
+	});
 </script>
 
 {#if open}
@@ -229,8 +287,12 @@
 		font-size: 0.85rem;
 	}
 
-	.palette-item { border-radius: 0.4rem; }
-	.palette-item--active { background: rgba(15, 164, 175, 0.12); }
+	.palette-item {
+		border-radius: 0.4rem;
+	}
+	.palette-item--active {
+		background: rgba(15, 164, 175, 0.12);
+	}
 
 	.palette-item__btn {
 		display: flex;

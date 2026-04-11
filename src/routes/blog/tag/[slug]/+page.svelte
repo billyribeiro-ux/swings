@@ -19,7 +19,10 @@
 	let totalPages = $state(1);
 	let loading = $state(true);
 
-	const slug = $derived(page.params.slug ?? '');
+	// `[slug]` is a required dynamic segment so SvelteKit guarantees a value at
+	// runtime, but the generated `RouteParams` type widens to `string | undefined`.
+	// `!` documents the runtime invariant.
+	const slug = $derived(page.params.slug!);
 	const tagName = $derived(slug.replace(/-/g, ' '));
 
 	onMount(async () => {

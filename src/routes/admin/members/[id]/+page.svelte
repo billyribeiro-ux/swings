@@ -131,8 +131,14 @@
 			{#if subscription?.subscription}
 				{@const sub = subscription.subscription}
 				<div class="sub-grid">
-					<div><span class="sub-grid__l">Plan</span><span class="sub-grid__v">{planLabel(sub.plan)}</span></div>
-					<div><span class="sub-grid__l">Status</span><span class="sub-grid__v">{sub.status}</span></div>
+					<div>
+						<span class="sub-grid__l">Plan</span><span class="sub-grid__v"
+							>{planLabel(sub.plan)}</span
+						>
+					</div>
+					<div>
+						<span class="sub-grid__l">Status</span><span class="sub-grid__v">{sub.status}</span>
+					</div>
 					<div>
 						<span class="sub-grid__l">Period</span>
 						<span class="sub-grid__v"

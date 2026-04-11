@@ -50,7 +50,9 @@
 	<div class="analytics-page__header">
 		<div>
 			<h1 class="analytics-page__title">Analytics</h1>
-			<p class="analytics-page__sub">Site traffic, impressions, top pages, and CTA performance (Three.js)</p>
+			<p class="analytics-page__sub">
+				Site traffic, impressions, top pages, and CTA performance (Three.js)
+			</p>
 		</div>
 		<form
 			class="analytics-page__filters"

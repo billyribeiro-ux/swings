@@ -28,18 +28,20 @@
 			<h2>1. Acceptance of Terms</h2>
 			<p>
 				By accessing or using the Explosive Swings website, services, content, or any applications
-				(collectively, the "Service") made available by Explosive Swings ("we," "us," or "our"),
-				you agree to be bound by these Terms of Service. If you do not agree, do not use the Service.
+				(collectively, the "Service") made available by Explosive Swings ("we," "us," or "our"), you
+				agree to be bound by these Terms of Service. If you do not agree, do not use the Service.
 			</p>
 		</section>
 
 		<section class="legal__section">
 			<h2>2. Description of Service</h2>
 			<p>
-				Explosive Swings provides trading education content, weekly stock watchlists, options trading
-				courses, and related educational materials. Our Service is for informational and educational
-				purposes only. <strong>Nothing on this site constitutes financial advice, investment advice,
-				trading advice, or any other sort of advice.</strong>
+				Explosive Swings provides trading education content, weekly stock watchlists, options
+				trading courses, and related educational materials. Our Service is for informational and
+				educational purposes only. <strong
+					>Nothing on this site constitutes financial advice, investment advice, trading advice, or
+					any other sort of advice.</strong
+				>
 			</p>
 		</section>
 
@@ -47,8 +49,8 @@
 			<h2>3. No Financial Advice Disclaimer</h2>
 			<p>
 				All content provided by Explosive Swings, including but not limited to watchlists, alerts,
-				courses, articles, and any other materials, is for educational and informational purposes only.
-				We are not registered investment advisors, broker-dealers, or financial planners.
+				courses, articles, and any other materials, is for educational and informational purposes
+				only. We are not registered investment advisors, broker-dealers, or financial planners.
 			</p>
 			<p>
 				Trading stocks and options involves substantial risk of loss and is not suitable for every
@@ -60,19 +62,20 @@
 		<section class="legal__section">
 			<h2>4. Account Registration</h2>
 			<p>
-				To access certain features, you may need to create an account. You agree to provide accurate,
-				current, and complete information during registration and to keep your account information
-				updated. You are responsible for maintaining the confidentiality of your account credentials
-				and for all activities that occur under your account.
+				To access certain features, you may need to create an account. You agree to provide
+				accurate, current, and complete information during registration and to keep your account
+				information updated. You are responsible for maintaining the confidentiality of your account
+				credentials and for all activities that occur under your account.
 			</p>
 		</section>
 
 		<section class="legal__section">
 			<h2>5. Subscription & Payments</h2>
 			<p>
-				Certain features of the Service require a paid subscription. By subscribing, you agree to pay
-				the applicable fees. Subscriptions automatically renew unless canceled before the renewal date.
-				All fees are non-refundable except as required by law or as explicitly stated in our refund policy.
+				Certain features of the Service require a paid subscription. By subscribing, you agree to
+				pay the applicable fees. Subscriptions automatically renew unless canceled before the
+				renewal date. All fees are non-refundable except as required by law or as explicitly stated
+				in our refund policy.
 			</p>
 		</section>
 
@@ -80,9 +83,10 @@
 			<h2>6. Intellectual Property</h2>
 			<p>
 				All content, features, and functionality of the Service — including text, graphics, logos,
-				icons, images, audio, video, courses, watchlists, and software — are owned by Explosive Swings
-				and are protected by copyright, trademark, and other intellectual property laws. You may not
-				reproduce, distribute, modify, or create derivative works without our prior written consent.
+				icons, images, audio, video, courses, watchlists, and software — are owned by Explosive
+				Swings and are protected by copyright, trademark, and other intellectual property laws. You
+				may not reproduce, distribute, modify, or create derivative works without our prior written
+				consent.
 			</p>
 		</section>
 
@@ -101,36 +105,37 @@
 		<section class="legal__section">
 			<h2>8. Risk Acknowledgment</h2>
 			<p>
-				You acknowledge that trading in stocks, options, and other financial instruments carries a high
-				level of risk and may not be suitable for all investors. You could sustain a loss of some or all
-				of your investment. You should not trade with money you cannot afford to lose.
+				You acknowledge that trading in stocks, options, and other financial instruments carries a
+				high level of risk and may not be suitable for all investors. You could sustain a loss of
+				some or all of your investment. You should not trade with money you cannot afford to lose.
 			</p>
 		</section>
 
 		<section class="legal__section">
 			<h2>9. Limitation of Liability</h2>
 			<p>
-				To the fullest extent permitted by law, Explosive Swings shall not be liable for any indirect,
-				incidental, special, consequential, or punitive damages, including but not limited to loss of
-				profits, data, or trading losses, arising out of or related to your use of the Service.
+				To the fullest extent permitted by law, Explosive Swings shall not be liable for any
+				indirect, incidental, special, consequential, or punitive damages, including but not limited
+				to loss of profits, data, or trading losses, arising out of or related to your use of the
+				Service.
 			</p>
 		</section>
 
 		<section class="legal__section">
 			<h2>10. Termination</h2>
 			<p>
-				We reserve the right to suspend or terminate your account and access to the Service at our sole
-				discretion, without notice, for conduct that we believe violates these Terms or is harmful to
-				other users, us, or third parties.
+				We reserve the right to suspend or terminate your account and access to the Service at our
+				sole discretion, without notice, for conduct that we believe violates these Terms or is
+				harmful to other users, us, or third parties.
 			</p>
 		</section>
 
 		<section class="legal__section">
 			<h2>11. Changes to Terms</h2>
 			<p>
-				We may update these Terms from time to time. We will notify you of material changes by posting
-				the new Terms on this page with an updated date. Your continued use of the Service after changes
-				constitutes acceptance of the revised Terms.
+				We may update these Terms from time to time. We will notify you of material changes by
+				posting the new Terms on this page with an updated date. Your continued use of the Service
+				after changes constitutes acceptance of the revised Terms.
 			</p>
 		</section>
 

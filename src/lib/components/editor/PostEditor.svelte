@@ -36,13 +36,15 @@
 	interface Props {
 		mode: 'create' | 'edit';
 		post?: BlogPostResponse | null;
-		onSave: (payload: any) => Promise<BlogPostResponse>;
+		onSave: (payload: CreatePostPayload | UpdatePostPayload) => Promise<BlogPostResponse>;
 		onSaved?: (post: BlogPostResponse) => void;
 	}
 
 	let { mode, post = null, onSave, onSaved }: Props = $props();
 
-	// Snapshot initial post value — untrack opts out of reactive dependency on the prop
+	// Snapshot initial post value via `untrack` so this read is not registered
+	// as a reactive dependency — `$state` initialisers below should reflect the
+	// initial post and not the prop's later identity.
 	const p = untrack(() => post);
 
 	// Post fields
@@ -50,7 +52,9 @@
 	let slug = $state(p?.slug || '');
 	let slugManual = $state(false);
 	let content = $state(p?.content || '');
-	let contentJson: Record<string, unknown> | null = $state(p?.content_json || null);
+	// Opaque ProseMirror JSON tree — no nested fields are reactive consumers, so
+	// `$state.raw` skips the deep proxy and avoids per-keystroke proxy overhead.
+	let contentJson: Record<string, unknown> | null = $state.raw(p?.content_json || null);
 	let excerpt = $state(p?.excerpt || '');
 	let status: PostStatus = $state((p?.status as PostStatus) || 'draft');
 	let visibility = $state(p?.visibility || 'public');
@@ -127,18 +131,28 @@
 	let showMediaLibrary = $state(false);
 	let mediaInsertTarget: 'editor' | 'featured' = $state('editor');
 	let sidebarOpen = $state(true);
-	let autosaveTimer: ReturnType<typeof setTimeout>;
+	let autosaveTimer: ReturnType<typeof setTimeout> | undefined;
 
 	// Editor reference
-	let editorComponent: BlogEditor;
+	let editorComponent: BlogEditor | undefined = $state();
 
-	// Load categories, tags, revisions on mount
+	// Initial fetch of taxonomy + (in edit mode) revisions/meta. Wrapped in
+	// `untrack` so subsequent prop mutations to `post` don't re-fire these
+	// network calls — the load is mount-only by design.
 	$effect(() => {
-		loadTaxonomy();
-		if (mode === 'edit' && post) {
-			loadRevisions();
-			loadMeta();
-		}
+		untrack(() => {
+			loadTaxonomy();
+			if (mode === 'edit' && post) {
+				loadRevisions();
+				loadMeta();
+			}
+		});
+	});
+
+	// Cancel pending autosave on unmount so a stale callback doesn't fire
+	// against a destroyed component.
+	$effect(() => () => {
+		if (autosaveTimer) clearTimeout(autosaveTimer);
 	});
 
 	async function loadMeta() {
@@ -883,12 +897,16 @@
 				<h3 class="sidebar-section__title">SEO Analysis</h3>
 				<div class="sidebar-section__content">
 					<ul class="seo-list">
-						{#each seoChecks as c}
+						{#each seoChecks as c (c.label)}
 							<li
-								class="seo-item"
-								class:seo-item--pass={c.pass}
-								class:seo-item--warn={!c.pass && c.warn}
-								class:seo-item--fail={!c.pass && !c.warn}
+								class={[
+									'seo-item',
+									{
+										'seo-item--pass': c.pass,
+										'seo-item--warn': !c.pass && c.warn,
+										'seo-item--fail': !c.pass && !c.warn
+									}
+								]}
 							>
 								<span class="seo-item__dot"></span>
 								<span class="seo-item__label">{c.label}</span>

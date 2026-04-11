@@ -1,5 +1,4 @@
 <script lang="ts">
-	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 
 	const stats = [
@@ -49,7 +48,7 @@
 				<!-- Right Column - Stats Grid -->
 				<div class="reveal-item about-section__stats">
 					{#each stats as stat, i (stat.label)}
-						<div class="about-section__stat-card" style="transition-delay: {i * 0.1}s">
+						<div class="about-section__stat-card" style="--i: {i};">
 							<div class="kpi-value about-section__stat-value">{stat.value}</div>
 							<div class="kpi-label about-section__stat-label">{stat.label}</div>
 						</div>
@@ -150,6 +149,13 @@
 		border-radius: var(--radius-xl);
 		padding: 1.5rem;
 		text-align: center;
+		transition-delay: calc(var(--i, 0) * 0.1s);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.about-section__stat-card {
+			transition-delay: 0s;
+		}
 	}
 
 	.about-section__stat-value {

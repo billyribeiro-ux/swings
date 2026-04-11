@@ -2,7 +2,6 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { browser } from '$app/environment';
-	import { onMount } from 'svelte';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { ANALYTICS_OPT_OUT_KEY, ANALYTICS_SESSION_KEY } from '$lib/analytics/constants';
 	import { getPublicApiBase } from '$lib/api/publicApiBase';
@@ -18,8 +17,9 @@
 	}
 
 	function shouldTrack(path: string): boolean {
-		if (typeof navigator !== 'undefined' && navigator.doNotTrack === '1') return false;
-		if (browser && localStorage.getItem(ANALYTICS_OPT_OUT_KEY) === '1') return false;
+		if (!browser) return false;
+		if (navigator.doNotTrack === '1') return false;
+		if (localStorage.getItem(ANALYTICS_OPT_OUT_KEY) === '1') return false;
 		if (path.startsWith('/admin')) return false;
 		return true;
 	}
@@ -36,10 +36,7 @@
 				{
 					event_type: 'page_view',
 					path: path || '/',
-					referrer:
-						typeof document !== 'undefined' && document.referrer
-							? document.referrer.slice(0, 2048)
-							: null,
+					referrer: document.referrer ? document.referrer.slice(0, 2048) : null,
 					metadata: {}
 				}
 			]
@@ -58,6 +55,7 @@
 		}).catch(() => {});
 	}
 
+	// `afterNavigate` fires on initial load too — no need for an additional `onMount`,
+	// which would double-count the first page view.
 	afterNavigate(sendPageView);
-	onMount(sendPageView);
 </script>

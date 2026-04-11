@@ -1,4 +1,6 @@
 import { browser } from '$app/environment';
+import { untrack } from 'svelte';
+import type { Attachment } from 'svelte/attachments';
 import { auth } from '$lib/stores/auth.svelte';
 import { getPublicApiBase } from '$lib/api/publicApiBase';
 import { ANALYTICS_OPT_OUT_KEY, ANALYTICS_SESSION_KEY } from './constants';
@@ -15,10 +17,9 @@ function getSessionId(): string {
 
 function allowTracking(): boolean {
 	if (!browser) return false;
-	if (typeof navigator !== 'undefined' && navigator.doNotTrack === '1') return false;
+	if (navigator.doNotTrack === '1') return false;
 	if (localStorage.getItem(ANALYTICS_OPT_OUT_KEY) === '1') return false;
-	const p = window.location.pathname;
-	if (p.startsWith('/admin')) return false;
+	if (window.location.pathname.startsWith('/admin')) return false;
 	return true;
 }
 
@@ -35,7 +36,8 @@ export function trackCtaEvent(
 
 	const apiBase = getPublicApiBase();
 	const path =
-		pathOverride ?? (typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/');
+		pathOverride ??
+		(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/');
 
 	const body = JSON.stringify({
 		session_id: getSessionId(),
@@ -65,49 +67,40 @@ export function trackCtaEvent(
 	}).catch(() => {});
 }
 
-/** Svelte action: log one impression per card when it enters the viewport. */
-export function ctaImpression(
-	node: HTMLElement,
-	params: { ctaId: string; threshold?: number }
-): { update: (p: { ctaId: string; threshold?: number }) => void; destroy: () => void } {
-	if (!browser) {
-		return { update: () => {}, destroy: () => {} };
-	}
+/**
+ * Svelte 5.29+ attachment factory: log one impression per card when it enters the viewport.
+ *
+ * Usage: `<div {@attach ctaImpression({ ctaId: 'pricing_monthly' })}>...`
+ *
+ * `untrack` isolates the analytics call from the surrounding tracking context so that
+ * any reactive state read inside `trackCtaEvent` cannot accidentally re-trigger the
+ * factory and re-create the IntersectionObserver.
+ */
+export function ctaImpression(params: {
+	ctaId: string;
+	threshold?: number;
+}): Attachment<HTMLElement> {
+	return (node) => {
+		if (!browser) return;
+		const ctaId = params.ctaId;
+		if (!ctaId) return;
+		const threshold = params.threshold ?? 0.35;
+		let done = false;
 
-	let ctaId = params.ctaId;
-	let threshold = params.threshold ?? 0.35;
-	let done = false;
-	let io: IntersectionObserver | null = null;
-
-	function setup() {
-		io?.disconnect();
-		if (!ctaId || done) return;
-		io = new IntersectionObserver(
+		const io = new IntersectionObserver(
 			(entries) => {
 				for (const e of entries) {
 					if (e.isIntersecting && !done) {
 						done = true;
-						trackCtaEvent('impression', ctaId);
-						io?.disconnect();
+						untrack(() => trackCtaEvent('impression', ctaId));
+						io.disconnect();
 					}
 				}
 			},
 			{ threshold }
 		);
 		io.observe(node);
-	}
 
-	setup();
-
-	return {
-		update(p) {
-			ctaId = p.ctaId;
-			threshold = p.threshold ?? 0.35;
-			done = false;
-			setup();
-		},
-		destroy() {
-			io?.disconnect();
-		}
+		return () => io.disconnect();
 	};
 }

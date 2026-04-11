@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
 	import { ScrollTrigger } from 'gsap/ScrollTrigger';
 	import { isReducedMotion } from '$lib/utils/animations';
@@ -30,11 +29,12 @@
 	];
 
 	let sectionRef: HTMLElement | undefined = $state();
-	onMount(() => {
+	$effect(() => {
 		if (!sectionRef || isReducedMotion()) return;
+		const section = sectionRef;
 
 		const ctx = gsap.context(() => {
-			const cardsRef = [...sectionRef!.querySelectorAll<HTMLElement>('.why-different__card')];
+			const cardsRef = [...section.querySelectorAll<HTMLElement>('.why-different__card')];
 
 			// Animate cards with 3D flip effect
 			cardsRef.forEach((card, i) => {
@@ -64,7 +64,7 @@
 					}
 				});
 			});
-		}, sectionRef);
+		}, section);
 
 		return () => ctx.revert();
 	});
@@ -79,7 +79,7 @@
 		/>
 
 		<div class="why-different__grid">
-			{#each features as feature, i (feature.title)}
+			{#each features as feature (feature.title)}
 				<div class="why-different__card" style="transform-style: preserve-3d;">
 					<div class="why-different__icon-wrap">
 						<feature.icon size={24} weight="duotone" color="#0FA4AF" />

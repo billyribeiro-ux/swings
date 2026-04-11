@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
+	import { tick } from 'svelte';
 	import * as THREE from 'three';
 	import type { AnalyticsSummary } from '$lib/api/types';
 
@@ -62,11 +62,11 @@
 		});
 
 		let raf = 0;
-		const tick = () => {
-			raf = requestAnimationFrame(tick);
+		const animate = () => {
+			raf = requestAnimationFrame(animate);
 			renderer.render(scene, camera);
 		};
-		tick();
+		animate();
 
 		const ro = new ResizeObserver(() => {
 			const w = container.clientWidth || width;
@@ -155,11 +155,11 @@
 		}
 
 		let raf = 0;
-		const tick = () => {
-			raf = requestAnimationFrame(tick);
+		const animate = () => {
+			raf = requestAnimationFrame(animate);
 			renderer.render(scene, camera);
 		};
-		tick();
+		animate();
 
 		const ro = new ResizeObserver(() => {
 			const w = container.clientWidth || width;
@@ -246,11 +246,11 @@
 		});
 
 		let raf = 0;
-		const tick = () => {
-			raf = requestAnimationFrame(tick);
+		const animate = () => {
+			raf = requestAnimationFrame(animate);
 			renderer.render(scene, camera);
 		};
-		tick();
+		animate();
 
 		const ro = new ResizeObserver(() => {
 			const w = container.clientWidth || width;
@@ -273,29 +273,37 @@
 		};
 	}
 
-	onMount(() => {
+	// Re-runs whenever `summary.*` lists change so the Three.js scenes are torn
+	// down and re-created — fixes a latent bug where prop updates left stale
+	// renderers and DOM nodes attached to the chart containers.
+	$effect(() => {
+		// Read the props synchronously so the effect tracks them.
+		const timeSeries = summary.time_series;
+		const topPages = summary.top_pages;
+		const ctrSeries = summary.ctr_series;
+
 		const cleanups: (() => void)[] = [];
 		let cancelled = false;
 
 		void tick().then(() => {
 			if (cancelled) return;
-			if (elTime && summary.time_series.length) {
-				const pvs = summary.time_series.map((t) => t.page_views);
-				const imps = summary.time_series.map((t) => t.impressions);
+			if (elTime && timeSeries.length) {
+				const pvs = timeSeries.map((t) => t.page_views);
+				const imps = timeSeries.map((t) => t.impressions);
 				const c = mountTrafficChart(elTime, pvs, imps);
 				if (cancelled) c();
 				else cleanups.push(c);
 			}
 			if (cancelled) return;
-			if (elTop && summary.top_pages.length) {
-				const values = summary.top_pages.map((p) => p.views);
+			if (elTop && topPages.length) {
+				const values = topPages.map((p) => p.views);
 				const c = mountBarChart(elTop, values, 0x8b5cf6);
 				if (cancelled) c();
 				else cleanups.push(c);
 			}
 			if (cancelled) return;
-			if (elCtr && summary.ctr_series.length) {
-				const c = mountCtrChart(elCtr, summary.ctr_series);
+			if (elCtr && ctrSeries.length) {
+				const c = mountCtrChart(elCtr, ctrSeries);
 				if (cancelled) c();
 				else cleanups.push(c);
 			}

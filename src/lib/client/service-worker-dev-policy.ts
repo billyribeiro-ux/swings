@@ -23,9 +23,9 @@ export function applyServiceWorkerDevPolicy(input: ServiceWorkerDevPolicyInput):
 	if (!input.dev || input.optedIntoServiceWorkerInDev) return;
 	if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
 
-	void navigator.serviceWorker.getRegistrations().then((registrations) =>
-		Promise.all(registrations.map((r) => r.unregister()))
-	);
+	void navigator.serviceWorker
+		.getRegistrations()
+		.then((registrations) => Promise.all(registrations.map((r) => r.unregister())));
 }
 
 /** Pure helper for tests — mirrors the boolean gate above. */

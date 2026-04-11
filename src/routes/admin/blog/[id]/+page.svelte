@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { api } from '$lib/api/client';
-	import type { BlogPostResponse, UpdatePostPayload } from '$lib/api/types';
+	import type { BlogPostResponse, CreatePostPayload, UpdatePostPayload } from '$lib/api/types';
 	import PostEditor from '$lib/components/editor/PostEditor.svelte';
 
 	let postData: BlogPostResponse | null = $state(null);
@@ -27,8 +27,13 @@
 		}
 	}
 
-	async function updatePost(payload: UpdatePostPayload): Promise<BlogPostResponse> {
-		return api.put<BlogPostResponse>(`/api/admin/blog/posts/${postId}`, payload);
+	async function updatePost(
+		payload: CreatePostPayload | UpdatePostPayload
+	): Promise<BlogPostResponse> {
+		return api.put<BlogPostResponse>(
+			`/api/admin/blog/posts/${postId}`,
+			payload as UpdatePostPayload
+		);
 	}
 </script>
 

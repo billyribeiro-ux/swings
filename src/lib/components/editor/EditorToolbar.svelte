@@ -545,7 +545,7 @@
 				</button>
 				{#if showColorPicker}
 					<div class="toolbar__dropdown toolbar__dropdown--colors">
-						{#each colors as c}
+						{#each colors as c (c)}
 							<button
 								class="toolbar__color-swatch"
 								style="background: {c}"
@@ -584,7 +584,7 @@
 				</button>
 				{#if showHighlightPicker}
 					<div class="toolbar__dropdown toolbar__dropdown--colors">
-						{#each colors as c}
+						{#each colors as c (c)}
 							<button
 								class="toolbar__color-swatch"
 								style="background: {c}"
@@ -718,7 +718,7 @@
 				</button>
 				{#if showSpecialChars}
 					<div class="toolbar__dropdown toolbar__dropdown--chars">
-						{#each specialChars as ch}
+						{#each specialChars as ch (ch)}
 							<button class="toolbar__char-btn" title={ch} onclick={() => insertSpecialChar(ch)}>
 								{specialCharDisplay[ch] || ch}
 							</button>
@@ -830,7 +830,7 @@
 				</button>
 			</div>
 			<ul class="shortcuts-modal__list">
-				{#each shortcuts as s}
+				{#each shortcuts as s (s.keys)}
 					<li class="shortcuts-modal__item">
 						<kbd class="shortcuts-modal__kbd">{s.keys}</kbd>
 						<span class="shortcuts-modal__label">{s.label}</span>

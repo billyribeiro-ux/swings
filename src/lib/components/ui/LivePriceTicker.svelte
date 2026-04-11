@@ -1,7 +1,12 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
-	import { sampleTickers, generateLivePrice, formatPrice, formatPercent } from '$lib/utils/chartData';
-	
+	import { untrack } from 'svelte';
+	import {
+		sampleTickers,
+		generateLivePrice,
+		formatPrice,
+		formatPercent
+	} from '$lib/utils/chartData';
+
 	interface TickerItem {
 		symbol: string;
 		name: string;
@@ -9,20 +14,21 @@
 		change: number;
 		changePercent: number;
 	}
-	
+
 	let tickers = $state<TickerItem[]>([]);
-	let interval: ReturnType<typeof setInterval> | null = null;
-	
-	onMount(() => {
-		// Initialize with base prices
-		tickers = sampleTickers.map(t => ({
+
+	$effect(() => {
+		// Initialize with base prices.
+		tickers = sampleTickers.map((t) => ({
 			...t,
 			...generateLivePrice(t.basePrice)
 		}));
-		
-		// Update prices every 3 seconds
-		interval = setInterval(() => {
-			tickers = tickers.map(t => {
+
+		// Update prices every 3 seconds. `untrack` keeps the read of `tickers` from
+		// becoming a dependency of this effect — otherwise the assignment below would
+		// re-trigger the effect on every tick and create a tight loop.
+		const interval = setInterval(() => {
+			tickers = untrack(() => tickers).map((t) => {
 				const live = generateLivePrice(t.price);
 				return {
 					...t,
@@ -32,12 +38,10 @@
 				};
 			});
 		}, 3000);
+
+		return () => clearInterval(interval);
 	});
-	
-	onDestroy(() => {
-		if (interval) clearInterval(interval);
-	});
-	
+
 	function getChangeColor(change: number): string {
 		return change >= 0 ? 'var(--color-green)' : 'var(--color-red)';
 	}
@@ -77,18 +81,18 @@
 		border-bottom: 1px solid rgba(15, 164, 175, 0.2);
 		padding: 0.75rem 0;
 	}
-	
+
 	.ticker-content {
 		display: flex;
 		gap: 3rem;
 		animation: scroll 40s linear infinite;
 		width: max-content;
 	}
-	
+
 	.ticker-tape:hover .ticker-content {
 		animation-play-state: paused;
 	}
-	
+
 	.ticker-item {
 		display: flex;
 		align-items: center;
@@ -97,25 +101,25 @@
 		font-size: var(--fs-sm);
 		white-space: nowrap;
 	}
-	
+
 	.ticker-symbol {
 		font-weight: var(--w-bold);
 		color: var(--color-teal);
 		letter-spacing: 0.05em;
 	}
-	
+
 	.ticker-price {
 		font-weight: var(--w-semibold);
 		color: var(--color-white);
 		font-variant-numeric: tabular-nums;
 	}
-	
+
 	.ticker-change {
 		font-weight: var(--w-medium);
 		font-size: var(--fs-xs);
 		font-variant-numeric: tabular-nums;
 	}
-	
+
 	@keyframes scroll {
 		0% {
 			transform: translateX(0);
@@ -124,7 +128,7 @@
 			transform: translateX(-50%);
 		}
 	}
-	
+
 	@media (prefers-reduced-motion: reduce) {
 		.ticker-content {
 			animation: none;

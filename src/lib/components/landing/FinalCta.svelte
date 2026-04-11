@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
 	import { gsap } from 'gsap';
@@ -7,21 +6,21 @@
 		createCinematicReveal,
 		createGlowBreathing,
 		EASE,
-		DURATION,
-		isReducedMotion
+		DURATION
 	} from '$lib/utils/animations';
 
 	let sectionRef: HTMLElement | undefined = $state();
 	let glowRef: HTMLElement | undefined = $state();
 
-	onMount(() => {
+	$effect(() => {
 		if (!sectionRef || !glowRef) return;
 		const section = sectionRef;
+		const glow = glowRef;
 
 		const contentEls = section.querySelectorAll('.final-cta-content > *');
 
 		const ctx = gsap.context(() => {
-			createGlowBreathing(glowRef!, { scale: 1.15, opacity: 0.55, duration: 8 });
+			createGlowBreathing(glow, { scale: 1.15, opacity: 0.55, duration: 8 });
 
 			createCinematicReveal({
 				targets: contentEls,

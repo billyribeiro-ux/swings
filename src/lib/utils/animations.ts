@@ -1,6 +1,7 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import type { TransitionConfig } from 'svelte/transition';
+import type { Attachment } from 'svelte/attachments';
 import { cubicOut, quintOut, expoOut } from 'svelte/easing';
 import { prefersReducedMotion } from 'svelte/motion';
 
@@ -264,6 +265,64 @@ export function clipReveal(
 			}
 			return `clip-path: ${clip}; opacity: ${Math.min(t * 1.5, 1)};`;
 		}
+	};
+}
+
+// ---------------------------------------------------------------------------
+// Svelte 5.29+ attachment factories — modern replacement for Svelte actions.
+// Use as `<div {@attach cinematicReveal({ y: 40, blur: 6 })}>...</div>`. The
+// attachment runs once when the element is mounted, has access to the node,
+// and the returned cleanup is called automatically on unmount.
+// ---------------------------------------------------------------------------
+
+export interface CinematicRevealAttachOpts {
+	y?: number;
+	blur?: number;
+	scale?: number;
+	duration?: number;
+	stagger?: number;
+	ease?: string;
+	start?: string;
+	/** Optional CSS selector to animate within the host node; defaults to direct children */
+	selector?: string;
+}
+
+/** Attachment factory: wraps `createCinematicReveal` so any element can opt into the cinematic GSAP reveal without `bind:this` + `onMount` boilerplate. */
+export function cinematicReveal(opts: CinematicRevealAttachOpts = {}): Attachment<HTMLElement> {
+	return (node) => {
+		const targets = opts.selector ? node.querySelectorAll(opts.selector) : node.children;
+		if (!targets.length) return;
+
+		const ctx = gsap.context(() => {
+			createCinematicReveal({
+				targets,
+				trigger: node,
+				y: opts.y,
+				blur: opts.blur,
+				scale: opts.scale,
+				duration: opts.duration,
+				stagger: opts.stagger,
+				ease: opts.ease,
+				start: opts.start
+			});
+		}, node);
+
+		return () => {
+			ctx.revert();
+			if (!isReducedMotion()) gsap.set(targets, { clearProps: 'all' });
+		};
+	};
+}
+
+/** Attachment factory: wraps `createGlowBreathing` for ambient glow orbs. */
+export function glowBreathing(opts?: {
+	scale?: number;
+	opacity?: number;
+	duration?: number;
+}): Attachment<HTMLElement> {
+	return (node) => {
+		const tween = createGlowBreathing(node, opts);
+		return () => tween.kill();
 	};
 }
 
