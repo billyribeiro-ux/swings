@@ -9,9 +9,17 @@
 		trend?: 'up' | 'down' | 'sideways';
 		height?: number;
 		days?: number;
+		/** Richer grid + margins for hero / marketing cards */
+		showcase?: boolean;
 	}
 
-	let { ticker = 'STOCK', trend = 'up', height = 80, days = 14 }: Props = $props();
+	let {
+		ticker = 'STOCK',
+		trend = 'up',
+		height = 80,
+		days = 14,
+		showcase = false
+	}: Props = $props();
 
 	let chartContainer: HTMLElement | undefined = $state();
 	let chart: ReturnType<typeof createChart> | null = null;
@@ -19,18 +27,28 @@
 	onMount(() => {
 		if (!chartContainer) return;
 
-		// Create chart with compact theme
+		const grid = showcase
+			? {
+					vertLines: { visible: false },
+					horzLines: {
+						color: 'rgba(255, 255, 255, 0.06)',
+						style: 1,
+						visible: true
+					}
+				}
+			: {
+					vertLines: { visible: false },
+					horzLines: { visible: false }
+				};
+
 		chart = createChart(chartContainer, {
 			layout: {
 				background: { type: ColorType.Solid, color: 'transparent' },
-				textColor: '#8b95a8',
-				fontSize: 10,
-				fontFamily: "'Inter', sans-serif"
+				textColor: 'rgba(148, 163, 184, 0.75)',
+				fontSize: showcase ? 11 : 10,
+				fontFamily: "ui-sans-serif, system-ui, sans-serif"
 			},
-			grid: {
-				vertLines: { visible: false },
-				horzLines: { visible: false }
-			},
+			grid,
 			crosshair: { mode: 0 },
 			rightPriceScale: { visible: false },
 			timeScale: { visible: false },
@@ -39,7 +57,6 @@
 			autoSize: true
 		});
 
-		// Add candlestick series
 		const candleSeries = chart.addSeries(CandlestickSeries, {
 			upColor: miniChartTheme.candlestick.upColor,
 			downColor: miniChartTheme.candlestick.downColor,
@@ -49,11 +66,9 @@
 			wickDownColor: miniChartTheme.candlestick.wickDownColor
 		});
 
-		// Generate and set data
-		const data = generateTrendData(days, 100, trend, 0.6);
+		const data = generateTrendData(days, 100, trend, showcase ? 0.75 : 0.6);
 		candleSeries.setData(data);
 
-		// Fit content
 		chart.timeScale().fitContent();
 
 		return () => {
@@ -65,7 +80,14 @@
 	});
 </script>
 
-<div bind:this={chartContainer} class="mini-chart" style="height: {height}px;"></div>
+<div
+	bind:this={chartContainer}
+	class="mini-chart"
+	class:mini-chart--showcase={showcase}
+	style="height: {height}px;"
+	role="img"
+	aria-label="Price chart for {ticker}, last {days} sessions"
+></div>
 
 <style>
 	.mini-chart {
@@ -73,5 +95,13 @@
 		min-width: 120px;
 		border-radius: var(--radius-md);
 		overflow: hidden;
+	}
+
+	.mini-chart--showcase {
+		border-radius: var(--radius-lg);
+	}
+
+	.mini-chart--showcase :global(canvas) {
+		filter: drop-shadow(0 1px 12px rgba(15, 164, 175, 0.12));
 	}
 </style>
