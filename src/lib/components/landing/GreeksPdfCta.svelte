@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
-	import { createCinematicReveal, EASE, DURATION, isReducedMotion } from '$lib/utils/animations';
+	import { createCinematicReveal, EASE, DURATION } from '$lib/utils/animations';
 	import DownloadSimple from 'phosphor-svelte/lib/DownloadSimple';
 	import EnvelopeSimple from 'phosphor-svelte/lib/EnvelopeSimple';
 	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
@@ -13,17 +12,18 @@
 	let error = $state('');
 	let containerRef: HTMLElement | undefined = $state();
 
-	onMount(() => {
+	$effect(() => {
 		if (!containerRef) return;
+		const container = containerRef;
 
-		const els = containerRef.querySelectorAll(
+		const els = container.querySelectorAll(
 			'.greeks-icon, .greeks-title, .greeks-desc, .greeks-form'
 		);
 
 		const ctx = gsap.context(() => {
 			createCinematicReveal({
 				targets: els,
-				trigger: containerRef!,
+				trigger: container,
 				y: 32,
 				blur: 8,
 				scale: 0.96,
@@ -32,12 +32,12 @@
 				ease: EASE.cinematic,
 				start: 'top 78%'
 			});
-		}, containerRef as HTMLElement);
+		}, container);
 
 		return () => ctx.revert();
 	});
 
-	async function handleSubmit(e: Event) {
+	async function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
 		error = '';
 

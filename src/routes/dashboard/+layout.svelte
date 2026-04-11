@@ -48,9 +48,7 @@
 
 			<div class="dash__sidebar-footer">
 				{#if auth.isAdmin}
-					<a href="/admin" class="dash__nav-link dash__nav-link--admin">
-						Admin Panel
-					</a>
+					<a href="/admin" class="dash__nav-link dash__nav-link--admin"> Admin Panel </a>
 				{/if}
 				<button onclick={handleLogout} class="dash__logout">
 					<SignOut size={20} weight="duotone" />

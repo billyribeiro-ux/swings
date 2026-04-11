@@ -6,13 +6,15 @@
  */
 /// <reference lib="webworker" />
 /// <reference types="@sveltejs/kit" />
-import { build, files, version } from '$service-worker';
+import { build, files, prerendered, version } from '$service-worker';
 
 declare const self: ServiceWorkerGlobalScope;
 
 const CACHE = `swings-${version}`;
 
-const ASSETS = [...build, ...files];
+// Include prerendered HTML routes (e.g. `/`, `/about`, `/courses`, `/blog`, `/pricing/...`)
+// in the cache shell so the marketing surface works fully offline after first visit.
+const ASSETS = [...build, ...files, ...prerendered];
 
 // ── Install: cache app shell ──────────────────────────────────────────
 self.addEventListener('install', (e) => {

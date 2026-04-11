@@ -1,12 +1,10 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
 	import {
 		createCinematicCascade,
 		createGlowBreathing,
 		EASE,
-		DURATION,
-		isReducedMotion
+		DURATION
 	} from '$lib/utils/animations';
 	import Button from '$lib/components/ui/Button.svelte';
 	import SampleAlertCard from './SampleAlertCard.svelte';
@@ -17,7 +15,7 @@
 	let heroRef: HTMLElement | undefined = $state();
 	let glowRef: HTMLElement | undefined = $state();
 
-	onMount(() => {
+	$effect(() => {
 		if (!heroRef) return;
 
 		const ctx = gsap.context(() => {
@@ -76,7 +74,7 @@
 			if (glowRef) {
 				createGlowBreathing(glowRef, { scale: 1.15, opacity: 0.6, duration: 8 });
 			}
-		}, heroRef as HTMLElement);
+		}, heroRef);
 
 		return () => ctx.revert();
 	});

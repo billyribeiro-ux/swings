@@ -91,7 +91,10 @@ export function generateTrendData(
 }
 
 // Generate volume data matching candlesticks
-export function generateVolumeData(candleData: OhlcCandle[], baseVolume: number = 1000000): VolumeBar[] {
+export function generateVolumeData(
+	candleData: OhlcCandle[],
+	baseVolume: number = 1000000
+): VolumeBar[] {
 	return candleData.map((candle) => {
 		const volumeMultiplier = 0.5 + Math.random();
 		const volume = Math.floor(baseVolume * volumeMultiplier);

@@ -21,7 +21,7 @@
 
 			<div class="who-its-for__grid">
 				{#each audience as item, i (item)}
-					<div class="reveal-item who-its-for__item" style="transition-delay: {i * 0.1}s">
+					<div class="reveal-item who-its-for__item" style="--i: {i};">
 						<CaretRight size={20} weight="bold" color="#0FA4AF" class="who-its-for__icon" />
 						<p class="who-its-for__text">{@html item}</p>
 					</div>
@@ -81,6 +81,13 @@
 		border-radius: var(--radius-lg);
 		border: 1px solid var(--color-grey-200);
 		background-color: var(--color-white);
+		transition-delay: calc(var(--i, 0) * 0.1s);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.who-its-for__item {
+			transition-delay: 0s;
+		}
 	}
 
 	:global(.who-its-for__icon) {

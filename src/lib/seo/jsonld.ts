@@ -14,10 +14,7 @@ export function organizationSchema() {
 		},
 		foundingDate: SITE.foundingDate,
 		description: SITE.description,
-		sameAs: [
-			'https://twitter.com/explosiveswings',
-			'https://www.youtube.com/@explosiveswings'
-		],
+		sameAs: ['https://twitter.com/explosiveswings', 'https://www.youtube.com/@explosiveswings'],
 		founder: [
 			{
 				'@type': 'Person',
@@ -167,17 +164,18 @@ export function productSchema(opts: {
 			price: opts.price,
 			priceCurrency: opts.priceCurrency || 'USD',
 			availability: 'https://schema.org/InStock',
-			priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
-				.toISOString()
-				.split('T')[0],
+			priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
 			url: `${SITE.url}${opts.path}`
 		}
 	};
 }
 
 export function buildJsonLd(items: Record<string, unknown>[]) {
+	// Escape `</` to `<\/` so the serialized JSON cannot break out of the
+	// surrounding inline `<script type="application/ld+json">` tag if any field
+	// ever contains the literal substring `</script>`.
 	return JSON.stringify({
 		'@context': 'https://schema.org',
 		'@graph': items
-	});
+	}).replace(/</g, '\\u003c');
 }

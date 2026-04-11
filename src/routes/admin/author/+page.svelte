@@ -41,7 +41,7 @@
 			linkedinUrl = profile.linkedin_url || '';
 			youtubeUrl = profile.youtube_url || '';
 			instagramUrl = profile.instagram_url || '';
-		} catch (e) {
+		} catch {
 			error = 'Failed to load profile.';
 		} finally {
 			loading = false;

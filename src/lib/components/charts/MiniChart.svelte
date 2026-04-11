@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { untrack } from 'svelte';
 	import { generateTrendData } from '$lib/utils/chartData';
 	import { ohlcToApexSeries, buildMiniCandleOptions } from '$lib/utils/apexCandlestick';
 
@@ -22,21 +22,27 @@
 
 	let chartContainer: HTMLElement | undefined = $state();
 
-	onMount(() => {
+	$effect(() => {
 		if (!chartContainer) return;
+		const node = chartContainer;
+		const opts = untrack(() => ({ trend, height, days, showcase }));
 
 		let cancelled = false;
 		let chart: { render(): Promise<unknown>; destroy(): void } | null = null;
 
 		void (async () => {
 			const ApexCharts = (await import('apexcharts')).default;
-			if (cancelled || !chartContainer) return;
+			if (cancelled) return;
 
-			const raw = generateTrendData(days, 100, trend, showcase ? 0.75 : 0.6);
+			const raw = generateTrendData(opts.days, 100, opts.trend, opts.showcase ? 0.75 : 0.6);
 			const series = [{ name: 'Price', data: ohlcToApexSeries(raw) }];
-			const options = buildMiniCandleOptions({ height, series, showcase });
+			const options = buildMiniCandleOptions({
+				height: opts.height,
+				series,
+				showcase: opts.showcase
+			});
 
-			const apx = new ApexCharts(chartContainer, options);
+			const apx = new ApexCharts(node, options);
 			chart = apx;
 			await apx.render();
 
@@ -56,9 +62,8 @@
 
 <div
 	bind:this={chartContainer}
-	class="mini-chart"
-	class:mini-chart--showcase={showcase}
-	style="height: {height}px;"
+	class={['mini-chart', { 'mini-chart--showcase': showcase }]}
+	style:height="{height}px"
 	role="img"
 	aria-label="Price chart for {ticker}, last {days} sessions"
 ></div>

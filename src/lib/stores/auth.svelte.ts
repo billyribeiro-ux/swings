@@ -1,4 +1,6 @@
 // Svelte 5 reactive auth state class
+import { browser } from '$app/environment';
+
 export interface AuthUser {
 	id: string;
 	email: string;
@@ -19,11 +21,11 @@ class AuthState {
 	loading = $state(true);
 
 	isAuthenticated = $derived(!!this.user && !!this.accessToken);
-	isAdmin = $derived(this.user?.role?.toLowerCase() === 'admin');
-	isMember = $derived(this.user?.role?.toLowerCase() === 'member');
+	isAdmin = $derived(this.user?.role === 'admin');
+	isMember = $derived(this.user?.role === 'member');
 
 	constructor() {
-		if (typeof window !== 'undefined') {
+		if (browser) {
 			this.accessToken = localStorage.getItem(TOKEN_KEY);
 			this.refreshToken = localStorage.getItem(REFRESH_KEY);
 			const stored = localStorage.getItem(USER_KEY);
@@ -34,8 +36,10 @@ class AuthState {
 					this.user = null;
 				}
 			}
-			this.loading = false;
 		}
+		// Resolve loading on both server and client so SSR-rendered UI doesn't get
+		// stuck in a "loading" state forever.
+		this.loading = false;
 	}
 
 	setAuth = (user: AuthUser, accessToken: string, refreshToken: string) => {
@@ -43,7 +47,7 @@ class AuthState {
 		this.accessToken = accessToken;
 		this.refreshToken = refreshToken;
 
-		if (typeof window !== 'undefined') {
+		if (browser) {
 			localStorage.setItem(TOKEN_KEY, accessToken);
 			localStorage.setItem(REFRESH_KEY, refreshToken);
 			localStorage.setItem(USER_KEY, JSON.stringify(user));
@@ -54,7 +58,7 @@ class AuthState {
 		this.accessToken = accessToken;
 		this.refreshToken = refreshToken;
 
-		if (typeof window !== 'undefined') {
+		if (browser) {
 			localStorage.setItem(TOKEN_KEY, accessToken);
 			localStorage.setItem(REFRESH_KEY, refreshToken);
 		}
@@ -62,7 +66,7 @@ class AuthState {
 
 	setUser = (user: AuthUser) => {
 		this.user = user;
-		if (typeof window !== 'undefined') {
+		if (browser) {
 			localStorage.setItem(USER_KEY, JSON.stringify(user));
 		}
 	};
@@ -72,7 +76,7 @@ class AuthState {
 		this.accessToken = null;
 		this.refreshToken = null;
 
-		if (typeof window !== 'undefined') {
+		if (browser) {
 			localStorage.removeItem(TOKEN_KEY);
 			localStorage.removeItem(REFRESH_KEY);
 			localStorage.removeItem(USER_KEY);

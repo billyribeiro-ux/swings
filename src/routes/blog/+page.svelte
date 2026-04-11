@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { gsap } from 'gsap';
 	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
@@ -19,10 +18,11 @@
 	const posts = $derived(data.posts);
 	const categories = $derived(data.categories);
 	const total = $derived(data.total);
-	const page = $derived(data.page);
+	// Renamed from `page` to avoid shadowing the `page` import from `$app/state`.
+	const currentPage = $derived(data.page);
 	const totalPages = $derived(data.totalPages);
 
-	onMount(() => {
+	$effect(() => {
 		if (!heroRef) return;
 		const ctx = gsap.context(() => {
 			createCinematicCascade(heroRef!, [
@@ -54,16 +54,16 @@
 					overlap: 0.6
 				}
 			]);
-		}, heroRef as HTMLElement);
+		}, heroRef);
 		return () => ctx.revert();
 	});
 
 	function nextPage() {
-		if (page < totalPages) goto(`?page=${page + 1}`);
+		if (currentPage < totalPages) goto(`?page=${currentPage + 1}`);
 	}
 
 	function prevPage() {
-		if (page > 1) goto(`?page=${page - 1}`);
+		if (currentPage > 1) goto(`?page=${currentPage - 1}`);
 	}
 
 	const jsonLd = $derived(
@@ -193,12 +193,14 @@
 
 			{#if totalPages > 1}
 				<div class="blog-pagination">
-					<button class="blog-pagination__btn" disabled={page <= 1} onclick={prevPage}
+					<button class="blog-pagination__btn" disabled={currentPage <= 1} onclick={prevPage}
 						>← Previous</button
 					>
-					<span class="blog-pagination__info">Page {page} of {totalPages}</span>
-					<button class="blog-pagination__btn" disabled={page >= totalPages} onclick={nextPage}
-						>Next →</button
+					<span class="blog-pagination__info">Page {currentPage} of {totalPages}</span>
+					<button
+						class="blog-pagination__btn"
+						disabled={currentPage >= totalPages}
+						onclick={nextPage}>Next →</button
 					>
 				</div>
 			{/if}

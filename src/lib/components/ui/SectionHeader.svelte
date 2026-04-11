@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
 	import { EASE, DURATION, isReducedMotion } from '$lib/utils/animations';
 
@@ -19,8 +18,9 @@
 	let subtitleRef: HTMLElement | undefined = $state();
 	let lineRef: HTMLElement | undefined = $state();
 
-	onMount(() => {
+	$effect(() => {
 		if (!animated || !headerRef) return;
+		const header = headerRef;
 
 		const reduced = isReducedMotion();
 
@@ -45,7 +45,7 @@
 		const ctx = gsap.context(() => {
 			const tl = gsap.timeline({
 				scrollTrigger: {
-					trigger: headerRef,
+					trigger: header,
 					start: 'top 85%',
 					once: true
 				}
@@ -106,13 +106,10 @@
 					reduced ? 0 : 0.5
 				);
 			}
-		}, headerRef);
+		}, header);
 
 		return () => ctx.revert();
 	});
-
-	// Split title into words for animation if needed
-	const titleWords = $derived(title.split(' '));
 </script>
 
 <div bind:this={headerRef} class="section-header" data-dark={dark || undefined}>

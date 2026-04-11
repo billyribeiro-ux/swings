@@ -1,10 +1,10 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api, ApiError } from '$lib/api/client';
 	import type { AuthResponse, UserResponse } from '$lib/api/types';
-	import { onMount, onDestroy } from 'svelte';
 	import ChartBar from 'phosphor-svelte/lib/ChartBar';
 	import PresentationChart from 'phosphor-svelte/lib/PresentationChart';
 	import Users from 'phosphor-svelte/lib/Users';
@@ -34,13 +34,13 @@
 		}
 	}
 
-	onMount(() => {
+	$effect(() => {
 		window.addEventListener('keydown', handleGlobalKey);
-		if (typeof localStorage !== 'undefined') {
+		if (browser) {
 			sidebarCollapsed = localStorage.getItem(SIDEBAR_COLLAPSE_KEY) === '1';
 		}
+		return () => window.removeEventListener('keydown', handleGlobalKey);
 	});
-	onDestroy(() => window.removeEventListener('keydown', handleGlobalKey));
 
 	let mobileMenuOpen = $state(false);
 	let blogSubmenuOpen = $state(false);

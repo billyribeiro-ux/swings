@@ -58,6 +58,10 @@
 	}
 
 	function handleClick(e: MouseEvent) {
+		if (disabled) {
+			e.preventDefault();
+			return;
+		}
 		createRipple(e);
 		onclick?.();
 	}
@@ -65,13 +69,13 @@
 
 {#if href}
 	<a
-		{href}
+		href={disabled ? undefined : href}
 		class={classes}
 		aria-disabled={disabled || undefined}
 		bind:this={buttonRef}
 		onmousemove={handleMouseMove}
 		onmouseleave={handleMouseLeave}
-		onclick={createRipple}
+		onclick={handleClick}
 	>
 		{@render children()}
 	</a>

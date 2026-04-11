@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
 	import { ScrollTrigger } from 'gsap/ScrollTrigger';
 	import { isReducedMotion } from '$lib/utils/animations';
@@ -35,14 +34,13 @@
 	];
 
 	let sectionRef: HTMLElement | undefined = $state();
-	onMount(() => {
+	$effect(() => {
 		if (!sectionRef || isReducedMotion()) return;
+		const section = sectionRef;
 
 		const ctx = gsap.context(() => {
-			const itemsRef = [...sectionRef!.querySelectorAll<HTMLElement>('.what-you-get__item')];
-			const checksRef = [
-				...sectionRef!.querySelectorAll<SVGPathElement>('.what-you-get__check path')
-			];
+			const itemsRef = [...section.querySelectorAll<HTMLElement>('.what-you-get__item')];
+			const checksRef = [...section.querySelectorAll<SVGPathElement>('.what-you-get__check path')];
 
 			// Animate items with staggered entrance
 			itemsRef.forEach((item, i) => {
@@ -84,7 +82,7 @@
 					}
 				});
 			});
-		}, sectionRef);
+		}, section);
 
 		return () => ctx.revert();
 	});
@@ -99,8 +97,8 @@
 		/>
 
 		<div class="what-you-get__grid">
-			{#each features as feature, i (feature.title)}
-				<div class={['what-you-get__item', feature.fullWidth && 'what-you-get__item--full']}>
+			{#each features as feature (feature.title)}
+				<div class={['what-you-get__item', { 'what-you-get__item--full': feature.fullWidth }]}>
 					<svg class="what-you-get__check" viewBox="0 0 24 24" width="24" height="24">
 						<circle cx="12" cy="12" r="10" fill="rgba(15, 164, 175, 0.1)" />
 						<path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" />

@@ -26,7 +26,7 @@ export async function createCheckoutSession(priceId: string) {
 		}
 
 		const { url } = await response.json();
-		
+
 		if (url) {
 			window.location.href = url;
 		}

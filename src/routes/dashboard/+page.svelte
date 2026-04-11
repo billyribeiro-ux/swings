@@ -2,7 +2,12 @@
 	import { onMount } from 'svelte';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api } from '$lib/api/client';
-	import type { SubscriptionStatusResponse, Watchlist, CourseEnrollment, PaginatedResponse } from '$lib/api/types';
+	import type {
+		SubscriptionStatusResponse,
+		Watchlist,
+		CourseEnrollment,
+		PaginatedResponse
+	} from '$lib/api/types';
 	import ListChecks from 'phosphor-svelte/lib/ListChecks';
 	import BookOpen from 'phosphor-svelte/lib/BookOpen';
 	import CalendarCheck from 'phosphor-svelte/lib/CalendarCheck';
@@ -135,7 +140,9 @@
 		</div>
 
 		{#if enrollments.length === 0}
-			<p class="overview__empty">No course enrollments yet. <a href="/courses">Browse courses</a></p>
+			<p class="overview__empty">
+				No course enrollments yet. <a href="/courses">Browse courses</a>
+			</p>
 		{:else}
 			<div class="overview__list">
 				{#each enrollments as enrollment (enrollment.id)}

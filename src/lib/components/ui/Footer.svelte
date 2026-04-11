@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
-	import { onMount } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import { quintOut, cubicOut } from 'svelte/easing';
+	import { prefersReducedMotion } from 'svelte/motion';
 	import { courses } from '$lib/data/courses';
 	import EnvelopeSimple from 'phosphor-svelte/lib/EnvelopeSimple';
 	import TrendUp from 'phosphor-svelte/lib/TrendUp';
@@ -11,34 +10,32 @@
 	const currentYear = new Date().getFullYear();
 
 	let root: HTMLElement | undefined = $state();
-	/** When true, optional motion layers (decorative) may run */
-	let motionOk = $state(false);
+	/** When true, optional motion layers (decorative) may run. Reactively reflects the
+	 * user's `prefers-reduced-motion` preference (re-runs when toggled at runtime). */
+	const motionOk = $derived(!prefersReducedMotion.current);
 	/** Footer entered viewport — drives CSS stagger + decorative transitions */
 	let inView = $state(false);
 
-	onMount(() => {
-		if (!browser) return;
-		motionOk = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	$effect(() => {
+		// `$effect` only runs on the client, so no `browser` guard needed.
 		if (!motionOk) {
 			inView = true;
 			return;
 		}
-		const el = root;
-		if (!el) {
+		if (!root) {
 			inView = true;
 			return;
 		}
 		const io = new IntersectionObserver(
 			(entries) => {
-				const hit = entries.some((e) => e.isIntersecting);
-				if (hit) {
+				if (entries.some((e) => e.isIntersecting)) {
 					inView = true;
 					io.disconnect();
 				}
 			},
 			{ rootMargin: '12% 0px -8%', threshold: 0.05 }
 		);
-		io.observe(el);
+		io.observe(root);
 		return () => io.disconnect();
 	});
 </script>
@@ -56,7 +53,10 @@
 		<div class="footer__bg-grid"></div>
 		{#if inView && motionOk}
 			<div class="footer__glow footer__glow--a" in:fade={{ duration: 900, easing: cubicOut }}></div>
-			<div class="footer__glow footer__glow--b" in:fade={{ duration: 1100, delay: 80, easing: cubicOut }}></div>
+			<div
+				class="footer__glow footer__glow--b"
+				in:fade={{ duration: 1100, delay: 80, easing: cubicOut }}
+			></div>
 		{/if}
 	</div>
 
@@ -90,13 +90,16 @@
 					{#each courses as course, i (course.id)}
 						<li
 							class="footer__li"
-							style={motionOk && inView
-								? `--stagger: ${80 + i * 42}ms`
-								: undefined}
+							style={motionOk && inView ? `--stagger: ${80 + i * 42}ms` : undefined}
 						>
 							<a href="/courses/{course.slug}" class="footer__link">
 								<span class="footer__link-text">{course.title}</span>
-								<ArrowUpRight class="footer__link-icon" size={14} weight="bold" aria-hidden="true" />
+								<ArrowUpRight
+									class="footer__link-icon"
+									size={14}
+									weight="bold"
+									aria-hidden="true"
+								/>
 							</a>
 						</li>
 					{/each}

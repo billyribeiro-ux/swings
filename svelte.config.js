@@ -9,8 +9,7 @@ const allowServiceWorkerInDev =
 	process.env.PUBLIC_SERVICE_WORKER_IN_DEV === '1' ||
 	process.env.PUBLIC_SERVICE_WORKER_IN_DEV === 'true';
 
-const registerServiceWorker =
-	process.env.NODE_ENV === 'production' || allowServiceWorkerInDev;
+const registerServiceWorker = process.env.NODE_ENV === 'production' || allowServiceWorkerInDev;
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {

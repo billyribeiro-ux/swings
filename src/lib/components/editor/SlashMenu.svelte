@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
 	import type { Editor } from '@tiptap/core';
 	import {
 		TextT,
@@ -132,13 +131,14 @@
 			? COMMANDS
 			: COMMANDS.filter((c) => {
 					const q = query.toLowerCase();
-					return (
-						c.label.toLowerCase().includes(q) || c.keywords.some((k) => k.startsWith(q))
-					);
+					return c.label.toLowerCase().includes(q) || c.keywords.some((k) => k.startsWith(q));
 				})
 	);
 
 	$effect(() => {
+		// Reset highlight whenever the query changes — read it explicitly so the
+		// effect actually depends on it (the assignment alone is not a dep).
+		query;
 		activeIndex = 0;
 	});
 
@@ -147,11 +147,7 @@
 		const deleteFrom = anchorPos;
 		const deleteTo = from;
 
-		editor
-			.chain()
-			.focus()
-			.deleteRange({ from: deleteFrom, to: deleteTo })
-			.run();
+		editor.chain().focus().deleteRange({ from: deleteFrom, to: deleteTo }).run();
 
 		if (cmd.label === 'Image') {
 			onInsertImage?.();
@@ -182,15 +178,15 @@
 		}
 	}
 
-	onMount(() => {
+	$effect(() => {
 		window.addEventListener('keydown', handleKeyDown, true);
-	});
-
-	onDestroy(() => {
-		window.removeEventListener('keydown', handleKeyDown, true);
+		return () => window.removeEventListener('keydown', handleKeyDown, true);
 	});
 
 	$effect(() => {
+		// Re-run when activeIndex or visible change — DOM queries inside an effect are
+		// not tracked, so we read activeIndex explicitly to register the dep.
+		activeIndex;
 		if (visible && menuEl) {
 			const item = menuEl.querySelector<HTMLElement>('.slash-item--active');
 			item?.scrollIntoView({ block: 'nearest' });

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
 	import { EASE, DURATION, isReducedMotion } from '$lib/utils/animations';
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
@@ -38,11 +37,12 @@
 		}
 	];
 
-	onMount(() => {
+	$effect(() => {
 		if (!containerRef) return;
+		const container = containerRef;
 
-		const cards = containerRef.querySelectorAll('.testimonial-card');
-		const stats = containerRef.querySelectorAll('.stat-item');
+		const cards = container.querySelectorAll('.testimonial-card');
+		const stats = container.querySelectorAll('.stat-item');
 		const reduced = isReducedMotion();
 
 		gsap.set(cards, {
@@ -92,7 +92,7 @@
 					gsap.set(stats, { willChange: 'auto', clearProps: 'filter,transform' });
 				}
 			});
-		}, containerRef as HTMLElement);
+		}, container);
 
 		return () => ctx.revert();
 	});
@@ -107,7 +107,7 @@
 		/>
 
 		<div class="testimonials__grid">
-			{#each testimonials as testimonial, i (testimonial.name)}
+			{#each testimonials as testimonial (testimonial.name)}
 				<div class="testimonial-card">
 					<!-- Quote icon -->
 					<div
@@ -119,7 +119,7 @@
 
 					<!-- Rating -->
 					<div class="testimonial-card__rating">
-						{#each Array(testimonial.rating) as _, j}
+						{#each Array.from({ length: testimonial.rating }) as _, j (j)}
 							<Star size={16} weight="fill" color="#D4A843" />
 						{/each}
 					</div>

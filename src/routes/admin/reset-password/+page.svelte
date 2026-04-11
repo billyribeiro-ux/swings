@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { goto } from '$app/navigation';
 	import { api, ApiError } from '$lib/api/client';
 
 	const token = $derived(page.url.searchParams.get('token') || '');
@@ -74,7 +73,7 @@
 			<div class="reset-card__success">
 				<p>Your password has been reset successfully!</p>
 			</div>
-			<button onclick={() => goto('/admin')} class="reset-card__login-btn"> Go to Login </button>
+			<a href="/admin" class="reset-card__login-btn">Go to Login</a>
 		{:else}
 			{#if error}
 				<div class="reset-card__error">{error}</div>
