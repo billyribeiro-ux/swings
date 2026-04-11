@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { auth } from '$lib/stores/auth.svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import Gauge from 'phosphor-svelte/lib/Gauge';
 
 	const visible = $derived(
 		auth.isAuthenticated &&
 			auth.isAdmin &&
-			!$page.url.pathname.startsWith('/admin') &&
-			!$page.url.pathname.startsWith('/dashboard') &&
-			!$page.url.pathname.startsWith('/login') &&
-			!$page.url.pathname.startsWith('/register')
+			!page.url.pathname.startsWith('/admin') &&
+			!page.url.pathname.startsWith('/dashboard') &&
+			!page.url.pathname.startsWith('/login') &&
+			!page.url.pathname.startsWith('/register')
 	);
 </script>
 

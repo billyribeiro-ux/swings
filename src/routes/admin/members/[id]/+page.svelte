@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { api, ApiError } from '$lib/api/client';
 	import type {
 		BillingPortalResponse,
@@ -10,7 +10,7 @@
 	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
 	import Lightning from 'phosphor-svelte/lib/Lightning';
 
-	const memberId = $derived($page.params.id);
+	const memberId = $derived(page.params.id);
 
 	let user = $state<UserResponse | null>(null);
 	let subscription = $state<SubscriptionStatusResponse | null>(null);

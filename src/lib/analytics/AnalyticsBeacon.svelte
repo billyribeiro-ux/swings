@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
 	import { auth } from '$lib/stores/auth.svelte';
@@ -26,8 +26,8 @@
 
 	function sendPageView() {
 		if (!browser) return;
-		const path = $page.url.pathname + $page.url.search;
-		if (!shouldTrack($page.url.pathname)) return;
+		const path = page.url.pathname + page.url.search;
+		if (!shouldTrack(page.url.pathname)) return;
 
 		const apiBase = getPublicApiBase();
 		const body = JSON.stringify({

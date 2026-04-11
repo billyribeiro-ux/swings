@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { api } from '$lib/api/client';
 	import type { BlogPostResponse, UpdatePostPayload } from '$lib/api/types';
 	import PostEditor from '$lib/components/editor/PostEditor.svelte';
@@ -8,7 +8,7 @@
 	let loading = $state(true);
 	let error = $state('');
 
-	const postId = $derived($page.params.id);
+	const postId = $derived(page.params.id);
 
 	$effect(() => {
 		loadPost();

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import type { WatchlistWithAlerts } from '$lib/api/types';
@@ -13,7 +13,7 @@
 
 	onMount(async () => {
 		try {
-			const id = $page.params.id;
+			const id = page.params.id;
 			watchlist = await api.get<WatchlistWithAlerts>(`/api/member/watchlists/${id}`);
 		} catch {
 			error = 'Watchlist not found or unavailable.';

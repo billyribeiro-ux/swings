@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 	import { api, ApiError } from '$lib/api/client';
 	import type { WatchlistWithAlerts, WatchlistAlert } from '$lib/api/types';
@@ -34,7 +34,7 @@
 
 	onMount(async () => {
 		try {
-			const id = $page.params.id;
+			const id = page.params.id;
 			watchlist = await api.get<WatchlistWithAlerts>(`/api/admin/watchlists/${id}`);
 			title = watchlist.title;
 			weekOf = watchlist.week_of;
@@ -55,7 +55,7 @@
 		successMsg = '';
 
 		try {
-			await api.put(`/api/admin/watchlists/${$page.params.id}`, {
+			await api.put(`/api/admin/watchlists/${page.params.id}`, {
 				title,
 				week_of: weekOf,
 				video_url: videoUrl || null,
@@ -77,7 +77,7 @@
 
 		try {
 			const newAlert = await api.post<WatchlistAlert>(
-				`/api/admin/watchlists/${$page.params.id}/alerts`,
+				`/api/admin/watchlists/${page.params.id}/alerts`,
 				{
 					ticker: alertTicker.toUpperCase(),
 					direction: alertDirection,

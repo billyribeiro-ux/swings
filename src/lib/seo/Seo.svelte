@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { SITE } from './config';
 
 	interface Props {
@@ -26,7 +26,7 @@
 		jsonLd
 	}: Props = $props();
 
-	const resolvedCanonical = $derived(canonical || `${SITE.url}${$page.url.pathname}`);
+	const resolvedCanonical = $derived(canonical || `${SITE.url}${page.url.pathname}`);
 	const resolvedOgTitle = $derived(ogTitle || title);
 	const resolvedOgDesc = $derived(ogDescription || description);
 </script>

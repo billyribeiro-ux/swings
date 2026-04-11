@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api, ApiError } from '$lib/api/client';
@@ -62,7 +62,7 @@
 	});
 
 	const publicRoutes = ['/admin/forgot-password', '/admin/reset-password'];
-	const isPublicRoute = $derived(publicRoutes.some((r) => $page.url.pathname.startsWith(r)));
+	const isPublicRoute = $derived(publicRoutes.some((r) => page.url.pathname.startsWith(r)));
 
 	/** True only after /api/auth/me succeeds — avoids child pages firing admin APIs with stale localStorage JWTs. */
 	let adminSessionReady = $state(false);
@@ -280,7 +280,7 @@
 					<a
 						href={item.href}
 						class="admin__nav-link"
-						class:admin__nav-link--active={$page.url.pathname === item.href}
+						class:admin__nav-link--active={page.url.pathname === item.href}
 						onclick={() => (mobileMenuOpen = false)}
 					>
 						<item.icon size={20} weight="duotone" />

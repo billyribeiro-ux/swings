@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { api, ApiError } from '$lib/api/client';
 
-	const token = $derived($page.url.searchParams.get('token') || '');
+	const token = $derived(page.url.searchParams.get('token') || '');
 
 	let newPassword = $state('');
 	let confirmPassword = $state('');

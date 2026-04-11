@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import Seo from '$lib/seo/Seo.svelte';
@@ -20,7 +20,7 @@
 	let totalPages = $state(1);
 	let loading = $state(true);
 
-	const slug = $derived($page.params.slug ?? '');
+	const slug = $derived(page.params.slug ?? '');
 	const categoryName = $derived(
 		categories.find((c) => c.slug === slug)?.name || slug.replace(/-/g, ' ')
 	);

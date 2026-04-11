@@ -1,10 +1,7 @@
 <script lang="ts">
-	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
 	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
-	import { courses } from '$lib/data/courses';
-	import { error } from '@sveltejs/kit';
 	import Button from '$lib/components/ui/Button.svelte';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import Seo from '$lib/seo/Seo.svelte';
@@ -18,27 +15,27 @@
 	import BookOpen from 'phosphor-svelte/lib/BookOpen';
 	import Pulse from 'phosphor-svelte/lib/Pulse';
 
+	import type { PageProps } from './$types';
+
+	let { data }: PageProps = $props();
+
 	const iconMap: Record<string, typeof BookOpen> = { BookOpen, Pulse };
 
-	const slug = $page.params.slug;
-	const course = courses.find((c) => c.slug === slug);
+	const course = $derived(data.course);
+	const Icon = $derived(iconMap[course.icon]);
 
-	if (!course) {
-		error(404, 'Course not found');
-	}
-
-	const Icon = iconMap[course.icon];
-
-	const jsonLd = buildJsonLd([
-		courseSchema({
-			name: course.title,
-			description: course.description,
-			slug: course.slug,
-			level: course.level,
-			duration: course.duration,
-			modules: course.modules
-		})
-	]);
+	const jsonLd = $derived(
+		buildJsonLd([
+			courseSchema({
+				name: course.title,
+				description: course.description,
+				slug: course.slug,
+				level: course.level,
+				duration: course.duration,
+				modules: course.modules
+			})
+		])
+	);
 
 	let heroRef: HTMLElement | undefined = $state();
 

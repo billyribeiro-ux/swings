@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
 	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
@@ -15,7 +15,7 @@
 	let containerRef: HTMLElement | undefined = $state();
 
 	onMount(() => {
-		sessionId = $page.url.searchParams.get('session_id') || '';
+		sessionId = page.url.searchParams.get('session_id') || '';
 
 		if (!containerRef) return;
 

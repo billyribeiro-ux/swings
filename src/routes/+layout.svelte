@@ -1,6 +1,6 @@
 <script lang="ts">
 	import '../app.css';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import Nav from '$lib/components/ui/Nav.svelte';
 	import Footer from '$lib/components/ui/Footer.svelte';
 	import FloatingButton from '$lib/components/ui/FloatingButton.svelte';
@@ -13,14 +13,14 @@
 	let { children } = $props();
 
 	const appRoutes = ['/dashboard', '/admin', '/login', '/register'];
-	const isAppRoute = $derived(appRoutes.some((r) => $page.url.pathname.startsWith(r)));
+	const isAppRoute = $derived(appRoutes.some((r) => page.url.pathname.startsWith(r)));
 
 	/** Offset nav when WordPress-style admin bar is visible */
 	const wpAdminOffset = $derived(
 		!isAppRoute &&
 			auth.isAuthenticated &&
 			auth.isAdmin &&
-			!['/dashboard', '/login', '/register'].some((p) => $page.url.pathname.startsWith(p))
+			!['/dashboard', '/login', '/register'].some((p) => page.url.pathname.startsWith(p))
 	);
 
 	const globalJsonLd = buildJsonLd([organizationSchema(), webSiteSchema()]);
