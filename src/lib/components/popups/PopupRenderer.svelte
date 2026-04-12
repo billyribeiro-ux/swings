@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import type { Popup, PopupElement } from '$lib/api/types';
 	import X from 'phosphor-svelte/lib/X';
 
@@ -19,8 +20,7 @@
 	const elements = $derived(popup.content_json?.elements ?? []);
 	const isFormPopup = $derived(elements.some((el: PopupElement) => ['input', 'email', 'textarea', 'select', 'checkbox', 'radio'].includes(el.type)));
 
-	$effect(() => {
-		// Trigger entrance animation after mount
+	onMount(() => {
 		requestAnimationFrame(() => {
 			visible = true;
 		});
@@ -28,12 +28,6 @@
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape' && (popup.popup_type === 'modal' || popup.popup_type === 'fullscreen')) {
-			onclose?.();
-		}
-	}
-
-	function handleBackdropClick(e: MouseEvent) {
-		if ((e.target as HTMLElement)?.classList.contains('popup-backdrop')) {
 			onclose?.();
 		}
 	}
@@ -71,20 +65,10 @@
 		}
 	}
 
-	function getBannerPosition(): string {
-		const pos = popup.trigger_config?.position as string | undefined;
-		return pos === 'bottom' ? 'popup-banner--bottom' : 'popup-banner--top';
-	}
-
-	function getFloatingBarPosition(): string {
-		const pos = popup.trigger_config?.position as string | undefined;
-		return pos === 'bottom' ? 'popup-floating--bottom' : 'popup-floating--top';
-	}
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	class="popup-wrapper {getPositionClass(popup.popup_type)}"
 	class:popup-wrapper--visible={visible}
@@ -94,12 +78,13 @@
 	class:popup-floating--top={popup.popup_type === 'floating_bar' && popup.trigger_config?.position !== 'bottom'}
 >
 	{#if style.backdrop && (popup.popup_type === 'modal' || popup.popup_type === 'fullscreen')}
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div
+		<button
 			class="popup-backdrop"
 			style="background: {style.backdropColor || 'rgba(0,0,0,0.6)'}"
-			onclick={handleBackdropClick}
-		></div>
+			onclick={() => onclose?.()}
+			aria-label="Close popup"
+			tabindex="-1"
+		></button>
 	{/if}
 
 	<div
@@ -244,7 +229,7 @@
 								{#if props.placeholder}
 									<option value="" disabled selected>{props.placeholder}</option>
 								{/if}
-								{#each (props.options as Array<{label: string; value: string}>) || [] as opt}
+								{#each (props.options as Array<{label: string; value: string}>) || [] as opt (opt.value)}
 									<option value={opt.value}>{opt.label}</option>
 								{/each}
 							</select>
@@ -261,7 +246,7 @@
 								</legend>
 							{/if}
 							<div class="popup-field__checks">
-								{#each (props.options as Array<{label: string; value: string}>) || [] as opt}
+								{#each (props.options as Array<{label: string; value: string}>) || [] as opt (opt.value)}
 									<label class="popup-field__check-label" style="color: {style.textColor || '#ffffff'}">
 										<input
 											type="checkbox"
@@ -295,7 +280,7 @@
 								</legend>
 							{/if}
 							<div class="popup-field__checks">
-								{#each (props.options as Array<{label: string; value: string}>) || [] as opt}
+								{#each (props.options as Array<{label: string; value: string}>) || [] as opt (opt.value)}
 									<label class="popup-field__check-label" style="color: {style.textColor || '#ffffff'}">
 										<input
 											type="radio"
@@ -369,6 +354,12 @@
 		position: fixed;
 		inset: 0;
 		z-index: 9998;
+		border: none;
+		padding: 0;
+		margin: 0;
+		width: 100%;
+		height: 100%;
+		cursor: default;
 		animation: popup-backdrop-in 300ms ease-out forwards;
 	}
 

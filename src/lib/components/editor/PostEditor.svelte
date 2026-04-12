@@ -455,7 +455,7 @@
 			onInsertImage={openMediaForEditor}
 			{autosaveStatus}
 			{lastSavedAt}
-			{revisions}
+			revisions={revisions as any}
 			focusKeyword=""
 			{metaTitle}
 			{metaDescription}

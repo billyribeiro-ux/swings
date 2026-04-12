@@ -116,7 +116,7 @@
 		onInsertImage?: () => void;
 		autosaveStatus?: 'idle' | 'pending' | 'saving' | 'saved' | 'error';
 		lastSavedAt?: Date | null;
-		revisions?: Array<{ id: string; revision_number: number; content: string; created_at: string; author_name: string }>;
+		revisions?: Array<{ id: string; revision_number: number; title: string; created_at: string; author_name: string; content?: string }>;
 		focusKeyword?: string;
 		metaTitle?: string;
 		metaDescription?: string;
@@ -230,6 +230,7 @@
 	const selectedRevision = $derived(revisions.find(r => r.id === selectedRevisionId));
 	const diffHtml = $derived.by(() => {
 		if (!selectedRevision || !editor) return '';
+		if (!selectedRevision.content) return '<em>Revision content not available for inline comparison. Use the restore button in the sidebar to preview this revision.</em>';
 		const currentText = editor.getText();
 		const revText = stripHtml(selectedRevision.content);
 		return computeInlineDiff(revText, currentText);
