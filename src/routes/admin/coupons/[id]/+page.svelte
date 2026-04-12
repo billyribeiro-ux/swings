@@ -170,7 +170,7 @@
 				<div class="cpn-edit__usages">
 					<h3 class="cpn-edit__usages-label">Recent Usages</h3>
 					<div class="cpn-edit__usage-list">
-						{#each coupon.recent_usages as usage}
+						{#each coupon.recent_usages as usage (usage.user_email + usage.used_at)}
 							<div class="cpn-edit__usage-row">
 								<span class="cpn-edit__usage-email">{usage.user_email}</span>
 								<span class="cpn-edit__usage-amount">${usage.amount.toFixed(2)}</span>
