@@ -317,7 +317,7 @@
 							<p class="plan-card__trial">{plan.trial_days}-day free trial</p>
 						{/if}
 						<ul class="plan-card__features">
-							{#each plan.features as feature}
+							{#each plan.features as feature, fi (fi)}
 								<li class="plan-card__feature">
 									<CheckCircle size={15} weight="fill" />
 									<span>{feature}</span>
