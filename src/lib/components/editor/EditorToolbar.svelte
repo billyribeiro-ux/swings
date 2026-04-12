@@ -35,15 +35,23 @@
 		X,
 		ClipboardText,
 		Scissors,
-		Question
+		Question,
+		Eye,
+		ListDashes,
+		BracketsCurly
 	} from 'phosphor-svelte';
 
 	interface Props {
 		editor: Editor;
 		isFullscreen: boolean;
 		showSource: boolean;
+		isDistractionFree: boolean;
+		wordCount?: number;
+		charCount?: number;
 		onToggleFullscreen: () => void;
 		onToggleSource: () => void;
+		onToggleDistractionFree: () => void;
+		onInsertToc?: () => void;
 		onInsertImage?: () => void;
 		onInsertReadMore?: () => void;
 	}
@@ -52,8 +60,13 @@
 		editor,
 		isFullscreen,
 		showSource,
+		isDistractionFree = false,
+		wordCount = 0,
+		charCount = 0,
 		onToggleFullscreen,
 		onToggleSource,
+		onToggleDistractionFree,
+		onInsertToc,
 		onInsertImage,
 		onInsertReadMore
 	}: Props = $props();
@@ -209,6 +222,25 @@
 		showHighlightPicker = false;
 		showTableMenu = false;
 		showSpecialChars = false;
+		showShortcodeMenu = false;
+	}
+
+	let showShortcodeMenu = $state(false);
+
+	const readingTime = $derived(Math.max(1, Math.ceil(wordCount / 238)));
+
+	const shortcodes = [
+		{ label: 'Alert Box', code: '<div class="shortcode-alert" data-type="info">\n  <strong>Note:</strong> Your message here.\n</div>' },
+		{ label: 'Call to Action', code: '<div class="shortcode-cta">\n  <h3>Ready to get started?</h3>\n  <p>Sign up today and start your journey.</p>\n  <a href="#" class="cta-button">Get Started</a>\n</div>' },
+		{ label: 'Pricing Card', code: '<div class="shortcode-pricing">\n  <h4>Pro Plan</h4>\n  <p class="price">$29/mo</p>\n  <ul>\n    <li>Feature one</li>\n    <li>Feature two</li>\n    <li>Feature three</li>\n  </ul>\n  <a href="#" class="cta-button">Choose Plan</a>\n</div>' },
+		{ label: 'Warning Box', code: '<div class="shortcode-alert" data-type="warning">\n  <strong>Warning:</strong> Please be aware of this.\n</div>' },
+		{ label: 'Success Box', code: '<div class="shortcode-alert" data-type="success">\n  <strong>Success!</strong> Operation completed.\n</div>' },
+		{ label: 'Accordion', code: '<details class="shortcode-accordion">\n  <summary>Click to expand</summary>\n  <p>Accordion content goes here.</p>\n</details>' }
+	];
+
+	function insertShortcode(html: string) {
+		editor.chain().focus().insertContent(html).run();
+		showShortcodeMenu = false;
 	}
 
 	let showShortcuts = $state(false);
@@ -259,14 +291,14 @@
 					{getCurrentHeadingLabel()} ▾
 				</button>
 				{#if showHeadingMenu}
-					<div class="toolbar__dropdown">
-						<button class="toolbar__dropdown-item" onclick={setParagraph}>Paragraph</button>
-						<button class="toolbar__dropdown-item" onclick={() => setHeading(1)}>Heading 1</button>
-						<button class="toolbar__dropdown-item" onclick={() => setHeading(2)}>Heading 2</button>
-						<button class="toolbar__dropdown-item" onclick={() => setHeading(3)}>Heading 3</button>
-						<button class="toolbar__dropdown-item" onclick={() => setHeading(4)}>Heading 4</button>
-						<button class="toolbar__dropdown-item" onclick={() => setHeading(5)}>Heading 5</button>
-						<button class="toolbar__dropdown-item" onclick={() => setHeading(6)}>Heading 6</button>
+					<div class="toolbar__dropdown toolbar__dropdown--headings">
+						<button class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--p" onclick={setParagraph}>Paragraph</button>
+						<button class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--h1" onclick={() => setHeading(1)}>Heading 1</button>
+						<button class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--h2" onclick={() => setHeading(2)}>Heading 2</button>
+						<button class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--h3" onclick={() => setHeading(3)}>Heading 3</button>
+						<button class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--h4" onclick={() => setHeading(4)}>Heading 4</button>
+						<button class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--h5" onclick={() => setHeading(5)}>Heading 5</button>
+						<button class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--h6" onclick={() => setHeading(6)}>Heading 6</button>
 					</div>
 				{/if}
 			</div>
@@ -770,10 +802,61 @@
 			</button>
 		</div>
 
+		<div class="toolbar__sep"></div>
+
+		<!-- TOC + Shortcodes -->
+		<div class="toolbar__group">
+			{#if onInsertToc}
+				<button class="toolbar__btn" title="Insert Table of Contents" onclick={onInsertToc}>
+					<ListDashes size={18} weight="bold" />
+				</button>
+			{/if}
+
+			<div class="toolbar__dropdown-wrap">
+				<button
+					class="toolbar__btn"
+					title="Insert Shortcode"
+					onclick={() => {
+						closeAllDropdowns();
+						showShortcodeMenu = !showShortcodeMenu;
+					}}
+				>
+					<BracketsCurly size={18} weight="bold" />
+				</button>
+				{#if showShortcodeMenu}
+					<div class="toolbar__dropdown">
+						{#each shortcodes as sc (sc.label)}
+							<button class="toolbar__dropdown-item" onclick={() => insertShortcode(sc.code)}>
+								{sc.label}
+							</button>
+						{/each}
+					</div>
+				{/if}
+			</div>
+		</div>
+
 		<!-- Right-side: view controls -->
 		<div class="toolbar__spacer"></div>
 
+		<!-- Word count / reading time -->
 		<div class="toolbar__group">
+			<span class="toolbar__stats">
+				{wordCount} words &middot; {readingTime} min read
+			</span>
+		</div>
+
+		<div class="toolbar__sep"></div>
+
+		<div class="toolbar__group">
+			<button
+				class="toolbar__btn"
+				class:toolbar__btn--active={isDistractionFree}
+				title="Distraction-free mode"
+				onclick={onToggleDistractionFree}
+			>
+				<Eye size={18} weight="bold" />
+			</button>
+
 			<button
 				class="toolbar__btn"
 				class:toolbar__btn--active={showSource}
@@ -1162,5 +1245,65 @@
 	.shortcuts-modal__label {
 		font-size: 0.85rem;
 		color: var(--color-grey-300, #cbd5e1);
+	}
+
+	/* Word count / reading time stats */
+	.toolbar__stats {
+		font-size: 0.7rem;
+		color: var(--color-grey-400, #64748b);
+		white-space: nowrap;
+		padding: 0 0.35rem;
+		user-select: none;
+	}
+
+	/* Heading preview styles in dropdown */
+	.toolbar__dropdown--headings {
+		min-width: 14rem;
+	}
+
+	.toolbar__heading-preview {
+		font-weight: 400 !important;
+		line-height: 1.3;
+	}
+
+	.toolbar__heading-preview--p {
+		font-size: 0.85rem;
+		color: var(--color-grey-300, #cbd5e1);
+	}
+
+	.toolbar__heading-preview--h1 {
+		font-size: 1.4rem;
+		font-weight: 700 !important;
+		color: var(--color-white, #fff);
+	}
+
+	.toolbar__heading-preview--h2 {
+		font-size: 1.15rem;
+		font-weight: 700 !important;
+		color: var(--color-white, #fff);
+	}
+
+	.toolbar__heading-preview--h3 {
+		font-size: 1rem;
+		font-weight: 600 !important;
+		color: var(--color-white, #fff);
+	}
+
+	.toolbar__heading-preview--h4 {
+		font-size: 0.9rem;
+		font-weight: 600 !important;
+		color: var(--color-grey-200, #e2e8f0);
+	}
+
+	.toolbar__heading-preview--h5 {
+		font-size: 0.85rem;
+		font-weight: 600 !important;
+		color: var(--color-grey-300, #cbd5e1);
+	}
+
+	.toolbar__heading-preview--h6 {
+		font-size: 0.8rem;
+		font-weight: 600 !important;
+		color: var(--color-grey-400, #94a3b8);
 	}
 </style>

@@ -12,6 +12,12 @@ pub struct Config {
     pub stripe_webhook_secret: String,
     pub upload_dir: String,
     pub api_url: String,
+    pub smtp_host: String,
+    pub smtp_port: u16,
+    pub smtp_user: String,
+    pub smtp_password: String,
+    pub smtp_from: String,
+    pub app_url: String,
 }
 
 impl Config {
@@ -43,6 +49,12 @@ impl Config {
                 .unwrap_or_else(|_| "./uploads".to_string()),
             api_url: env::var("API_URL")
                 .unwrap_or_else(|_| "http://localhost:3001".to_string()),
+            smtp_host: std::env::var("SMTP_HOST").unwrap_or_else(|_| "smtp.gmail.com".to_string()),
+            smtp_port: std::env::var("SMTP_PORT").unwrap_or_else(|_| "587".to_string()).parse().unwrap_or(587),
+            smtp_user: std::env::var("SMTP_USER").unwrap_or_default(),
+            smtp_password: std::env::var("SMTP_PASSWORD").unwrap_or_default(),
+            smtp_from: std::env::var("SMTP_FROM").unwrap_or_else(|_| "noreply@explosiveswings.com".to_string()),
+            app_url: std::env::var("APP_URL").unwrap_or_else(|_| "http://localhost:5173".to_string()),
         }
     }
 }

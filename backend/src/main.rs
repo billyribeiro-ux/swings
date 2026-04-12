@@ -11,6 +11,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod config;
 mod db;
+mod email;
 mod error;
 mod extractors;
 mod handlers;
@@ -34,6 +35,7 @@ fn load_dotenv() {
 pub struct AppState {
     pub db: sqlx::PgPool,
     pub config: Arc<Config>,
+    pub email_service: Option<Arc<email::EmailService>>,
 }
 
 #[tokio::main]
@@ -75,9 +77,26 @@ async fn main() {
     // Ensure uploads directory exists
     let upload_dir = config.upload_dir.clone();
 
+    let email_service = if config.smtp_user.is_empty() {
+        tracing::warn!("SMTP_USER not configured — email sending is disabled");
+        None
+    } else {
+        match email::EmailService::new(&config) {
+            Ok(svc) => {
+                tracing::info!("Email service initialized (SMTP: {})", config.smtp_host);
+                Some(Arc::new(svc))
+            }
+            Err(e) => {
+                tracing::error!("Failed to initialize email service: {e}");
+                None
+            }
+        }
+    };
+
     let state = AppState {
         db: pool,
         config: Arc::new(config),
+        email_service,
     };
 
     let cors = CorsLayer::new()
@@ -95,12 +114,26 @@ async fn main() {
         .expect("Failed to create uploads directory");
 
     let app = Router::new()
+        // Auth & analytics
         .nest("/api/auth", handlers::auth::router())
         .nest("/api/analytics", handlers::analytics::router())
+        // Admin routes
         .nest("/api/admin", handlers::admin::router())
         .nest("/api/admin/blog", handlers::blog::admin_router())
+        .nest("/api/admin/courses", handlers::courses::admin_router())
+        .nest("/api/admin/pricing", handlers::pricing::admin_router())
+        .nest("/api/admin/coupons", handlers::coupons::admin_router())
+        .nest("/api/admin/popups", handlers::popups::admin_router())
+        // Public routes
         .nest("/api/blog", handlers::blog::public_router())
+        .nest("/api/courses", handlers::courses::public_router())
+        .nest("/api/pricing", handlers::pricing::public_router())
+        .nest("/api/coupons", handlers::coupons::public_router())
+        .nest("/api/popups", handlers::popups::public_router())
+        // Member routes
         .nest("/api/member", handlers::member::router())
+        .nest("/api/member", handlers::courses::member_router())
+        // Webhooks & uploads
         .nest("/api/webhooks", handlers::webhooks::router())
         .nest_service("/uploads", ServeDir::new(&upload_dir))
         .layer(cors)

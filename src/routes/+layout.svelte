@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '../app.css';
+	import { browser } from '$app/environment';
 	import { page } from '$app/state';
 	import Nav from '$lib/components/ui/Nav.svelte';
 	import Footer from '$lib/components/ui/Footer.svelte';
@@ -7,6 +8,7 @@
 	import TradersModal from '$lib/components/traders/TradersModal.svelte';
 	import AnalyticsBeacon from '$lib/analytics/AnalyticsBeacon.svelte';
 	import AdminSiteBar from '$lib/components/admin/AdminSiteBar.svelte';
+	import PopupEngine from '$lib/components/popups/PopupEngine.svelte';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { organizationSchema, webSiteSchema, buildJsonLd } from '$lib/seo/jsonld';
 
@@ -54,6 +56,10 @@
 	</div>
 	<FloatingButton />
 	<TradersModal />
+{/if}
+
+{#if browser}
+	<PopupEngine />
 {/if}
 
 <style>
