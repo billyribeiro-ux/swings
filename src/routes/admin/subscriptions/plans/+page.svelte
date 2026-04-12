@@ -3,7 +3,6 @@
 	import { api } from '$lib/api/client';
 	import Plus from 'phosphor-svelte/lib/Plus';
 	import PencilSimple from 'phosphor-svelte/lib/PencilSimple';
-	import X from 'phosphor-svelte/lib/X';
 	import FloppyDisk from 'phosphor-svelte/lib/FloppyDisk';
 	import Star from 'phosphor-svelte/lib/Star';
 	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';

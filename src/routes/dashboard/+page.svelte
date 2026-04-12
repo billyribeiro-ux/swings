@@ -11,11 +11,9 @@
 	} from '$lib/api/types';
 	import ListChecks from 'phosphor-svelte/lib/ListChecks';
 	import BookOpen from 'phosphor-svelte/lib/BookOpen';
-	import Lightning from 'phosphor-svelte/lib/Lightning';
 	import Gear from 'phosphor-svelte/lib/Gear';
 	import Play from 'phosphor-svelte/lib/Play';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
-	import Warning from 'phosphor-svelte/lib/Warning';
 
 	let subscription = $state<SubscriptionStatusResponse | null>(null);
 	let recentWatchlists = $state<Watchlist[]>([]);

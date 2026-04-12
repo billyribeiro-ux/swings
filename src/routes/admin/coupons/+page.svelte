@@ -1,612 +1,296 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
+	import type { Coupon, BulkCouponPayload, PaginatedResponse } from '$lib/api/types';
+	import CaretLeft from 'phosphor-svelte/lib/CaretLeft';
+	import CaretRight from 'phosphor-svelte/lib/CaretRight';
 	import MagnifyingGlass from 'phosphor-svelte/lib/MagnifyingGlass';
-	import Plus from 'phosphor-svelte/lib/Plus';
 	import Ticket from 'phosphor-svelte/lib/Ticket';
-	import PencilSimple from 'phosphor-svelte/lib/PencilSimple';
+	import ChartBar from 'phosphor-svelte/lib/ChartBar';
+	import CurrencyDollar from 'phosphor-svelte/lib/CurrencyDollar';
+	import Plus from 'phosphor-svelte/lib/Plus';
 	import ToggleLeft from 'phosphor-svelte/lib/ToggleLeft';
 	import ToggleRight from 'phosphor-svelte/lib/ToggleRight';
+	import Lightning from 'phosphor-svelte/lib/Lightning';
 
-	interface Coupon {
-		id: string;
-		code: string;
-		discount_type: 'percentage' | 'fixed' | 'free_trial';
-		value: number;
-		usage_count: number;
-		usage_limit: number | null;
-		active: boolean;
-		expiry_date: string | null;
-		created_at: string;
-	}
+	interface CouponStats { active_count: number; total_usages: number; total_discount_cents: number; }
+	type FilterTab = 'all' | 'active' | 'expired' | 'inactive';
 
-	interface CouponsResponse {
-		data: Coupon[];
-		total: number;
-		page: number;
-		per_page: number;
-		total_pages: number;
-	}
-
-	let coupons: Coupon[] = $state([]);
+	let coupons = $state<Coupon[]>([]);
+	let stats = $state<CouponStats | null>(null);
 	let total = $state(0);
-	let currentPage = $state(1);
+	let page = $state(1);
 	let totalPages = $state(1);
 	let loading = $state(true);
+	let statsLoading = $state(true);
 	let search = $state('');
-	let filter: 'all' | 'active' | 'expired' | 'inactive' = $state('all');
-	let togglingId = $state('');
+	let filter = $state<FilterTab>('all');
+	let togglingId = $state<string | null>(null);
+	let showBulkForm = $state(false);
+	let bulkLoading = $state(false);
+	let bulkCount = $state(10);
+	let bulkPrefix = $state('');
+	let bulkDiscountType = $state<'percentage' | 'fixed_amount'>('percentage');
+	let bulkDiscountValue = $state(10);
+	let bulkUsageLimit = $state<number | undefined>(undefined);
+	let bulkExpiresAt = $state('');
 	let searchTimeout: ReturnType<typeof setTimeout>;
 
-	$effect(() => {
-		loadCoupons();
-	});
+	const filters: { label: string; value: FilterTab }[] = [
+		{ label: 'All', value: 'all' }, { label: 'Active', value: 'active' },
+		{ label: 'Expired', value: 'expired' }, { label: 'Inactive', value: 'inactive' }
+	];
+
+	function handleSearchInput(value: string) {
+		search = value;
+		clearTimeout(searchTimeout);
+		searchTimeout = setTimeout(() => { page = 1; loadCoupons(); }, 300);
+	}
+
+	function setFilter(tab: FilterTab) { filter = tab; page = 1; loadCoupons(); }
+
+	async function loadStats() {
+		statsLoading = true;
+		try { stats = await api.get<CouponStats>('/api/admin/coupons/stats'); }
+		catch { /* silent */ } finally { statsLoading = false; }
+	}
 
 	async function loadCoupons() {
 		loading = true;
 		try {
-			let url = `/api/admin/coupons?page=${currentPage}&per_page=20`;
-			if (filter === 'active') url += '&active=true&expired=false';
-			else if (filter === 'expired') url += '&expired=true';
-			else if (filter === 'inactive') url += '&active=false';
-			if (search) url += `&search=${encodeURIComponent(search)}`;
-			const res = await api.get<CouponsResponse>(url);
-			coupons = res.data;
-			total = res.total;
-			totalPages = res.total_pages;
-		} catch (e) {
-			console.error('Failed to load coupons', e);
-		} finally {
-			loading = false;
-		}
-	}
-
-	function handleSearch(e: Event) {
-		const val = (e.target as HTMLInputElement).value;
-		clearTimeout(searchTimeout);
-		searchTimeout = setTimeout(() => {
-			search = val;
-			currentPage = 1;
-			loadCoupons();
-		}, 300);
-	}
-
-	function changeFilter(f: 'all' | 'active' | 'expired' | 'inactive') {
-		filter = f;
-		currentPage = 1;
-		loadCoupons();
+			const params = new URLSearchParams({ page: String(page), per_page: '15' });
+			if (search.trim()) params.set('search', search.trim());
+			if (filter !== 'all') params.set('status', filter);
+			const res = await api.get<PaginatedResponse<Coupon>>(`/api/admin/coupons?${params.toString()}`);
+			coupons = res.data; total = res.total; totalPages = res.total_pages;
+		} catch { /* silent */ } finally { loading = false; }
 	}
 
 	async function toggleActive(coupon: Coupon) {
 		togglingId = coupon.id;
 		try {
-			await api.put(`/api/admin/coupons/${coupon.id}`, { active: !coupon.active });
-			coupon.active = !coupon.active;
-			coupons = [...coupons];
-		} catch (e) {
-			console.error('Failed to toggle coupon', e);
-		} finally {
-			togglingId = '';
-		}
+			await api.put(`/api/admin/coupons/${coupon.id}`, { is_active: !coupon.is_active });
+			coupon.is_active = !coupon.is_active;
+			await loadStats();
+		} catch { alert('Failed to update coupon'); } finally { togglingId = null; }
 	}
+
+	async function submitBulk() {
+		bulkLoading = true;
+		try {
+			const payload: BulkCouponPayload = {
+				count: bulkCount, prefix: bulkPrefix || undefined, discount_type: bulkDiscountType,
+				discount_value: bulkDiscountValue, usage_limit: bulkUsageLimit, expires_at: bulkExpiresAt || undefined
+			};
+			await api.post('/api/admin/coupons/bulk', payload);
+			showBulkForm = false;
+			bulkCount = 10; bulkPrefix = ''; bulkDiscountValue = 10; bulkUsageLimit = undefined; bulkExpiresAt = '';
+			await Promise.all([loadCoupons(), loadStats()]);
+		} catch { alert('Failed to generate coupons'); } finally { bulkLoading = false; }
+	}
+
+	onMount(() => { loadStats(); loadCoupons(); });
 
 	function formatDiscount(c: Coupon): string {
-		if (c.discount_type === 'percentage') return `${c.value}%`;
-		if (c.discount_type === 'fixed') return `$${c.value.toFixed(2)}`;
-		return `${c.value} day trial`;
+		if (c.discount_type === 'percentage') return `${c.discount_value}% off`;
+		if (c.discount_type === 'fixed_amount') return `$${(c.discount_value / 100).toFixed(0)} off`;
+		return `${c.discount_value}-day trial`;
 	}
-
-	function statusLabel(c: Coupon): string {
-		if (c.expiry_date && new Date(c.expiry_date) < new Date()) return 'Expired';
-		return c.active ? 'Active' : 'Inactive';
+	function formatUsage(c: Coupon): string {
+		return c.usage_limit ? `${c.usage_count}/${c.usage_limit}` : `${c.usage_count}`;
 	}
-
-	function statusClass(c: Coupon): string {
-		const s = statusLabel(c);
-		if (s === 'Active') return 'badge--active';
-		if (s === 'Expired') return 'badge--expired';
-		return 'badge--inactive';
+	function couponStatus(c: Coupon): 'active' | 'expired' | 'inactive' {
+		if (!c.is_active) return 'inactive';
+		if (c.expires_at && new Date(c.expires_at) < new Date()) return 'expired';
+		return 'active';
+	}
+	function statusLabel(s: string): string { return s.charAt(0).toUpperCase() + s.slice(1); }
+	function formatMoney(cents: number): string {
+		return '$' + (cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 	}
 </script>
 
-<svelte:head>
-	<title>Coupons -- Admin -- Explosive Swings</title>
-</svelte:head>
+<svelte:head><title>Coupons - Admin - Explosive Swings</title></svelte:head>
 
-<div class="cpn-list">
-	<div class="cpn-list__header">
+<div class="cp">
+	<div class="cp__header">
 		<div>
-			<h1 class="cpn-list__title">Coupons</h1>
-			<p class="cpn-list__subtitle">Manage discount codes and promotions</p>
+			<h1 class="cp__title">Coupons</h1>
+			<p class="cp__count">{total} total coupons</p>
 		</div>
-		<a href="/admin/coupons/new" class="cpn-list__create-btn">
-			<Plus size={18} weight="bold" />
-			Create Coupon
-		</a>
+		<div class="cp__actions">
+			<button class="cp__bulk-btn" onclick={() => (showBulkForm = !showBulkForm)}>
+				<Lightning size={16} weight="bold" /> Bulk Generate
+			</button>
+			<a href="/admin/coupons/new" class="cp__cta"><Plus size={16} weight="bold" /> Create Coupon</a>
+		</div>
 	</div>
 
-	<div class="cpn-list__filters">
-		<div class="cpn-list__tabs">
-			{#each [['all', 'All'], ['active', 'Active'], ['expired', 'Expired'], ['inactive', 'Inactive']] as [key, label] (key)}
-				<button class:active={filter === key} onclick={() => changeFilter(key as typeof filter)}>
-					{label}
-				</button>
-			{/each}
+	{#if showBulkForm}
+		<form class="bf" onsubmit={(e) => { e.preventDefault(); submitBulk(); }}>
+			<h3 class="bf__title">Bulk Generate Coupons</h3>
+			<div class="bf__grid">
+				<label class="bf__field"><span class="bf__lbl">Count</span>
+					<input type="number" min="1" max="500" bind:value={bulkCount} class="bf__inp" required /></label>
+				<label class="bf__field"><span class="bf__lbl">Code Prefix</span>
+					<input type="text" placeholder="e.g. SUMMER" bind:value={bulkPrefix} class="bf__inp" /></label>
+				<label class="bf__field"><span class="bf__lbl">Discount Type</span>
+					<select bind:value={bulkDiscountType} class="bf__inp">
+						<option value="percentage">Percentage</option><option value="fixed_amount">Fixed Amount</option>
+					</select></label>
+				<label class="bf__field"><span class="bf__lbl">Value {bulkDiscountType === 'percentage' ? '(%)' : '(cents)'}</span>
+					<input type="number" min="1" bind:value={bulkDiscountValue} class="bf__inp" required /></label>
+				<label class="bf__field"><span class="bf__lbl">Usage Limit</span>
+					<input type="number" min="1" placeholder="Unlimited" bind:value={bulkUsageLimit} class="bf__inp" /></label>
+				<label class="bf__field"><span class="bf__lbl">Expires At</span>
+					<input type="date" bind:value={bulkExpiresAt} class="bf__inp" /></label>
+			</div>
+			<div class="bf__foot">
+				<button type="button" class="bf__cancel" onclick={() => (showBulkForm = false)}>Cancel</button>
+				<button type="submit" class="bf__submit" disabled={bulkLoading}>{bulkLoading ? 'Generating...' : `Generate ${bulkCount} Coupons`}</button>
+			</div>
+		</form>
+	{/if}
+
+	{#if statsLoading}
+		<div class="cp__kpis">{#each Array(3) as _, i (i)}<div class="kpi kpi--skel"><div class="kpi__iskel"></div><div class="kpi__tskel"><div class="skel skel--s"></div><div class="skel skel--l"></div></div></div>{/each}</div>
+	{:else if stats}
+		<div class="cp__kpis">
+			<div class="kpi"><div class="kpi__ic kpi__ic--green"><Ticket size={22} weight="fill" /></div><div><p class="kpi__lbl">Active Coupons</p><p class="kpi__val">{stats.active_count.toLocaleString()}</p></div></div>
+			<div class="kpi"><div class="kpi__ic kpi__ic--blue"><ChartBar size={22} weight="fill" /></div><div><p class="kpi__lbl">Total Usages</p><p class="kpi__val">{stats.total_usages.toLocaleString()}</p></div></div>
+			<div class="kpi"><div class="kpi__ic kpi__ic--teal"><CurrencyDollar size={22} weight="fill" /></div><div><p class="kpi__lbl">Total Discount</p><p class="kpi__val">{formatMoney(stats.total_discount_cents)}</p></div></div>
 		</div>
-		<div class="cpn-list__search-wrap">
-			<MagnifyingGlass size={16} weight="bold" class="cpn-search-icon" />
-			<input
-				type="search"
-				class="cpn-list__search"
-				placeholder="Search coupons..."
-				oninput={handleSearch}
-			/>
-		</div>
+	{/if}
+
+	<div class="cp__toolbar">
+		<div class="cp__tabs">{#each filters as tab (tab.value)}<button class="cp__tab" class:cp__tab--on={filter === tab.value} onclick={() => setFilter(tab.value)}>{tab.label}</button>{/each}</div>
+		<div class="cp__search"><MagnifyingGlass size={18} weight="bold" /><input type="text" placeholder="Search by code..." value={search} oninput={(e) => handleSearchInput(e.currentTarget.value)} class="cp__sinput" /></div>
 	</div>
 
 	{#if loading}
-		<div class="cpn-list__loading">
-			{#each Array(5) as _, i (i)}
-				<div class="skeleton-row"></div>
-			{/each}
-		</div>
+		<div class="cp__skel">{#each Array(6) as _, i (i)}<div class="skelrow"><div class="skel skel--f"></div></div>{/each}</div>
 	{:else if coupons.length === 0}
-		<div class="cpn-list__empty">
-			<div class="cpn-list__empty-icon">
-				<Ticket size={48} weight="duotone" />
-			</div>
-			<h2 class="cpn-list__empty-title">No coupons found</h2>
-			<p class="cpn-list__empty-desc">
-				{#if search || filter !== 'all'}
-					Try adjusting your search or filters.
-				{:else}
-					Create your first coupon to get started.
-				{/if}
-			</p>
-			{#if !search && filter === 'all'}
-				<a href="/admin/coupons/new" class="cpn-list__create-btn">
-					<Plus size={18} weight="bold" />
-					Create Coupon
-				</a>
-			{/if}
-		</div>
+		<div class="cp__empty"><p>No coupons found.</p></div>
 	{:else}
-		<!-- Mobile cards -->
-		<div class="cpn-list__cards">
-			{#each coupons as coupon (coupon.id)}
-				<div class="cpn-card">
-					<div class="cpn-card__top">
-						<span class="cpn-card__code">{coupon.code}</span>
-						<span class="cpn-badge {statusClass(coupon)}">{statusLabel(coupon)}</span>
-					</div>
-					<div class="cpn-card__info">
-						<span class="cpn-card__discount">{formatDiscount(coupon)}</span>
-						<span class="cpn-card__usage">
-							{coupon.usage_count}{coupon.usage_limit != null ? `/${coupon.usage_limit}` : ''} used
-						</span>
-					</div>
-					<div class="cpn-card__actions">
-						<button
-							class="cpn-card__toggle-btn"
-							disabled={togglingId === coupon.id}
-							onclick={() => toggleActive(coupon)}
-							title={coupon.active ? 'Deactivate' : 'Activate'}
-						>
-							{#if coupon.active}
-								<ToggleRight size={22} weight="fill" />
-							{:else}
-								<ToggleLeft size={22} />
-							{/if}
-						</button>
-						<a href="/admin/coupons/{coupon.id}" class="cpn-card__edit-link">
-							<PencilSimple size={16} />
-							Edit
-						</a>
-					</div>
+		<div class="cp__cards">{#each coupons as coupon (coupon.id)}{@const st = couponStatus(coupon)}
+			<div class="cc">
+				<div class="cc__top"><a href="/admin/coupons/{coupon.id}" class="cc__code">{coupon.code}</a><span class="badge badge--{st}">{statusLabel(st)}</span></div>
+				<div class="cc__row"><span class="cc__lbl">Discount</span><span class="cc__val">{formatDiscount(coupon)}</span></div>
+				<div class="cc__row"><span class="cc__lbl">Usage</span><span class="cc__val">{formatUsage(coupon)}</span></div>
+				<div class="cc__foot">
+					<button class="tgl" onclick={() => toggleActive(coupon)} disabled={togglingId === coupon.id} title={coupon.is_active ? 'Deactivate' : 'Activate'}>{#if coupon.is_active}<ToggleRight size={24} weight="fill" />{:else}<ToggleLeft size={24} weight="bold" />{/if}</button>
+					<a href="/admin/coupons/{coupon.id}" class="cc__edit">Edit</a>
 				</div>
-			{/each}
-		</div>
-
-		<!-- Desktop table -->
-		<div class="cpn-list__table-wrap">
-			<table class="cpn-list__table">
-				<thead>
+			</div>{/each}</div>
+		<div class="cp__twrap">
+			<table class="ct"><thead><tr><th>Code</th><th>Discount</th><th>Usage</th><th>Status</th><th>Active</th><th>Actions</th></tr></thead>
+				<tbody>{#each coupons as coupon (coupon.id)}{@const st = couponStatus(coupon)}
 					<tr>
-						<th>Code</th>
-						<th>Discount</th>
-						<th>Usage</th>
-						<th>Status</th>
-						<th>Toggle</th>
-						<th></th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each coupons as coupon (coupon.id)}
-						<tr>
-							<td>
-								<span class="cpn-code-cell">{coupon.code}</span>
-							</td>
-							<td class="cpn-discount-cell">{formatDiscount(coupon)}</td>
-							<td class="cpn-usage-cell">
-								{coupon.usage_count}{coupon.usage_limit != null ? ` / ${coupon.usage_limit}` : ''}
-							</td>
-							<td>
-								<span class="cpn-badge {statusClass(coupon)}">{statusLabel(coupon)}</span>
-							</td>
-							<td>
-								<button
-									class="cpn-toggle-btn"
-									class:cpn-toggle-btn--on={coupon.active}
-									disabled={togglingId === coupon.id}
-									onclick={() => toggleActive(coupon)}
-									title={coupon.active ? 'Deactivate' : 'Activate'}
-								>
-									{#if coupon.active}
-										<ToggleRight size={20} weight="fill" />
-									{:else}
-										<ToggleLeft size={20} />
-									{/if}
-								</button>
-							</td>
-							<td>
-								<a href="/admin/coupons/{coupon.id}" class="cpn-edit-link">
-									<PencilSimple size={14} />
-									Edit
-								</a>
-							</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</div>
+						<td><a href="/admin/coupons/{coupon.id}" class="ct__code">{coupon.code}</a></td>
+						<td>{formatDiscount(coupon)}</td><td>{formatUsage(coupon)}</td>
+						<td><span class="badge badge--{st}">{statusLabel(st)}</span></td>
+						<td><button class="tgl" onclick={() => toggleActive(coupon)} disabled={togglingId === coupon.id} title={coupon.is_active ? 'Deactivate' : 'Activate'}>{#if coupon.is_active}<ToggleRight size={22} weight="fill" />{:else}<ToggleLeft size={22} weight="bold" />{/if}</button></td>
+						<td><a href="/admin/coupons/{coupon.id}" class="ct__link">Edit</a></td>
+					</tr>{/each}</tbody></table></div>
+	{/if}
 
-		{#if totalPages > 1}
-			<div class="cpn-list__pagination">
-				<button
-					disabled={currentPage <= 1}
-					onclick={() => { currentPage--; loadCoupons(); }}
-				>Prev</button>
-				<span>Page {currentPage} of {totalPages} ({total} coupons)</span>
-				<button
-					disabled={currentPage >= totalPages}
-					onclick={() => { currentPage++; loadCoupons(); }}
-				>Next</button>
-			</div>
-		{/if}
+	{#if totalPages > 1}
+		<div class="cp__pag">
+			<button onclick={() => { page--; loadCoupons(); }} disabled={page <= 1} class="cp__pbtn"><CaretLeft size={16} weight="bold" /> Prev</button>
+			<span class="cp__pinfo">Page {page} of {totalPages}</span>
+			<button onclick={() => { page++; loadCoupons(); }} disabled={page >= totalPages} class="cp__pbtn">Next <CaretRight size={16} weight="bold" /></button>
+		</div>
 	{/if}
 </div>
 
 <style>
-	.cpn-list__header {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		margin-bottom: 1.5rem;
-	}
-	.cpn-list__title {
-		font-size: var(--fs-xl);
-		font-weight: var(--w-bold);
-		font-family: var(--font-heading);
-		color: var(--color-white);
-		margin: 0;
-	}
-	.cpn-list__subtitle {
-		font-size: var(--fs-sm);
-		color: var(--color-grey-400);
-		margin: 0.25rem 0 0;
-	}
-	.cpn-list__create-btn {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.4rem;
-		padding: 0.65rem 1.15rem;
-		border-radius: var(--radius-lg);
-		background: var(--color-teal);
-		color: #fff;
-		font-weight: var(--w-semibold);
-		font-size: var(--fs-sm);
-		text-decoration: none;
-		border: none;
-		cursor: pointer;
-		white-space: nowrap;
-		transition: opacity var(--duration-150) var(--ease-out), transform var(--duration-150) var(--ease-out);
-	}
-	.cpn-list__create-btn:hover {
-		opacity: 0.9;
-		transform: translateY(-1px);
-	}
-	/* Filters */
-	.cpn-list__filters {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		margin-bottom: 1.25rem;
-	}
-	.cpn-list__tabs {
-		display: flex;
-		gap: 0.25rem;
-	}
-	.cpn-list__tabs button {
-		padding: 0.4rem 0.75rem;
-		border: none;
-		border-radius: var(--radius-md);
-		background: transparent;
-		color: var(--color-grey-400);
-		font-size: var(--fs-xs);
-		cursor: pointer;
-		transition: all var(--duration-150) var(--ease-out);
-	}
-	.cpn-list__tabs button:hover { color: var(--color-white); }
-	.cpn-list__tabs button.active {
-		background: rgba(15, 164, 175, 0.15);
-		color: var(--color-teal-light);
-	}
-	.cpn-list__search-wrap { position: relative; }
-	:global(.cpn-search-icon) {
-		position: absolute;
-		left: 0.75rem;
-		top: 50%;
-		transform: translateY(-50%);
-		color: var(--color-grey-500) !important;
-		pointer-events: none;
-	}
-	.cpn-list__search {
-		width: 100%;
-		padding: 0.55rem 0.75rem 0.55rem 2.25rem;
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
-		background: rgba(0, 0, 0, 0.2);
-		color: var(--color-white);
-		font-size: var(--fs-sm);
-		outline: none;
-		transition: border-color var(--duration-200) var(--ease-out);
-	}
-	.cpn-list__search:focus { border-color: var(--color-teal); }
-	.cpn-list__search::placeholder { color: var(--color-grey-500); }
-	/* Loading */
-	.cpn-list__loading {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-	.skeleton-row {
-		height: 3rem;
-		background: rgba(255, 255, 255, 0.03);
-		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-lg);
-		animation: pulse 1.5s ease-in-out infinite;
-	}
-	@keyframes pulse {
-		0%, 100% { opacity: 1; }
-		50% { opacity: 0.5; }
-	}
-	/* Empty */
-	.cpn-list__empty {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		text-align: center;
-		padding: 4rem 2rem;
-	}
-	.cpn-list__empty-icon {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 5rem;
-		height: 5rem;
-		border-radius: var(--radius-2xl);
-		background: rgba(255, 255, 255, 0.04);
-		color: var(--color-grey-500);
-		margin-bottom: 1.5rem;
-	}
-	.cpn-list__empty-title {
-		font-size: var(--fs-lg);
-		font-weight: var(--w-semibold);
-		color: var(--color-white);
-		margin: 0 0 0.5rem;
-	}
-	.cpn-list__empty-desc {
-		font-size: var(--fs-sm);
-		color: var(--color-grey-400);
-		margin: 0 0 1.5rem;
-		max-width: 24rem;
-	}
-	/* Badges */
-	.cpn-badge {
-		display: inline-block;
-		padding: 0.15rem 0.55rem;
-		border-radius: var(--radius-md);
-		font-size: var(--fs-2xs);
-		font-weight: var(--w-semibold);
-		white-space: nowrap;
-	}
-	.badge--active {
-		background: rgba(34, 181, 115, 0.15);
-		color: var(--color-green);
-	}
-	.badge--expired {
-		background: rgba(212, 168, 67, 0.15);
-		color: var(--color-gold);
-	}
-	.badge--inactive {
-		background: rgba(148, 163, 184, 0.15);
-		color: #94a3b8;
-	}
-	/* Mobile cards */
-	.cpn-list__cards {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-	}
-	.cpn-list__table-wrap { display: none; }
-	.cpn-card {
-		padding: 1rem;
-		background: rgba(255, 255, 255, 0.03);
-		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
-	}
-	.cpn-card__top {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 0.5rem;
-	}
-	.cpn-card__code {
-		font-family: 'SF Mono', 'Fira Code', monospace;
-		font-size: var(--fs-sm);
-		font-weight: var(--w-bold);
-		color: var(--color-white);
-		letter-spacing: 0.05em;
-	}
-	.cpn-card__info {
-		display: flex;
-		gap: 1rem;
-		font-size: var(--fs-xs);
-		color: var(--color-grey-400);
-		margin-bottom: 0.75rem;
-	}
-	.cpn-card__discount { color: var(--color-teal-light); font-weight: var(--w-semibold); }
-	.cpn-card__actions {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-	.cpn-card__toggle-btn {
-		background: none;
-		border: none;
-		cursor: pointer;
-		color: var(--color-grey-400);
-		padding: 0.25rem;
-		transition: color 150ms var(--ease-out);
-	}
-	.cpn-card__toggle-btn:hover { color: var(--color-teal); }
-	.cpn-card__edit-link {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.35rem;
-		padding: 0.35rem 0.75rem;
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-md);
-		color: var(--color-grey-300);
-		font-size: var(--fs-xs);
-		text-decoration: none;
-		transition: all 150ms var(--ease-out);
-	}
-	.cpn-card__edit-link:hover {
-		border-color: var(--color-teal);
-		color: var(--color-teal-light);
-	}
-	/* Table */
-	.cpn-code-cell {
-		font-family: 'SF Mono', 'Fira Code', monospace;
-		font-weight: var(--w-bold);
-		color: var(--color-white);
-		letter-spacing: 0.04em;
-	}
-	.cpn-discount-cell {
-		color: var(--color-teal-light);
-		font-weight: var(--w-semibold);
-	}
-	.cpn-usage-cell {
-		color: var(--color-grey-300);
-	}
-	.cpn-toggle-btn {
-		background: none;
-		border: none;
-		cursor: pointer;
-		color: var(--color-grey-500);
-		padding: 0.25rem;
-		transition: color 150ms var(--ease-out);
-	}
-	.cpn-toggle-btn--on { color: var(--color-teal); }
-	.cpn-toggle-btn:hover { color: var(--color-teal-light); }
-	.cpn-toggle-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-	.cpn-edit-link {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.3rem;
-		color: var(--color-grey-400);
-		font-size: var(--fs-xs);
-		text-decoration: none;
-		transition: color 150ms var(--ease-out);
-	}
-	.cpn-edit-link:hover { color: var(--color-teal-light); }
-	/* Pagination */
-	.cpn-list__pagination {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.75rem;
-		margin-top: 1.5rem;
-	}
-	.cpn-list__pagination button {
-		padding: 0.4rem 0.85rem;
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-md);
-		background: transparent;
-		color: var(--color-grey-300);
-		font-size: var(--fs-xs);
-		cursor: pointer;
-		transition: all var(--duration-150) var(--ease-out);
-	}
-	.cpn-list__pagination button:hover:not(:disabled) {
-		background: rgba(255, 255, 255, 0.05);
-		border-color: rgba(255, 255, 255, 0.15);
-	}
-	.cpn-list__pagination button:disabled { opacity: 0.3; cursor: not-allowed; }
-	.cpn-list__pagination span {
-		font-size: var(--fs-xs);
-		color: var(--color-grey-400);
-	}
-
+	.cp__header { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem; }
+	.cp__title { font-size: var(--fs-xl); font-weight: var(--w-bold); color: var(--color-white); font-family: var(--font-heading); }
+	.cp__count { font-size: var(--fs-xs); color: var(--color-grey-400); margin-top: 0.15rem; }
+	.cp__actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+	.cp__cta, .cp__bulk-btn { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.55rem 1rem; font-size: var(--fs-xs); font-weight: var(--w-semibold); border-radius: var(--radius-lg); cursor: pointer; }
+	.cp__cta { color: var(--color-white); background: linear-gradient(135deg, var(--color-teal), #0d8a94); text-decoration: none; border: none; transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out); }
+	.cp__cta:hover { opacity: 0.9; transform: translateY(-1px); }
+	.cp__bulk-btn { color: var(--color-gold); background: rgba(212,168,67,0.1); border: 1px solid rgba(212,168,67,0.25); transition: background-color 200ms var(--ease-out), border-color 200ms var(--ease-out); }
+	.cp__bulk-btn:hover { background: rgba(212,168,67,0.2); border-color: rgba(212,168,67,0.4); }
+	.bf { padding: 1rem; margin-bottom: 1.25rem; background-color: var(--color-navy-mid); border: 1px solid rgba(212,168,67,0.2); border-radius: var(--radius-xl); }
+	.bf__title { font-size: var(--fs-sm); font-weight: var(--w-semibold); color: var(--color-gold); margin-bottom: 0.75rem; }
+	.bf__grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
+	.bf__field { display: flex; flex-direction: column; gap: 0.25rem; }
+	.bf__lbl { font-size: var(--fs-xs); color: var(--color-grey-400); }
+	.bf__inp { padding: 0.55rem 0.75rem; background-color: var(--color-navy); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-md); color: var(--color-white); font-size: var(--fs-sm); font-family: var(--font-ui); }
+	.bf__inp:focus { outline: none; border-color: var(--color-teal); }
+	.bf__foot { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }
+	.bf__cancel { padding: 0.5rem 1rem; font-size: var(--fs-xs); color: var(--color-grey-400); background: none; border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-lg); cursor: pointer; }
+	.bf__cancel:hover { border-color: rgba(255,255,255,0.2); color: var(--color-white); }
+	.bf__submit { padding: 0.5rem 1.25rem; font-size: var(--fs-xs); font-weight: var(--w-semibold); color: var(--color-white); background: linear-gradient(135deg, var(--color-gold), #b8912e); border: none; border-radius: var(--radius-lg); cursor: pointer; transition: opacity 200ms var(--ease-out); }
+	.bf__submit:hover { opacity: 0.9; } .bf__submit:disabled { opacity: 0.5; cursor: not-allowed; }
+	.cp__kpis { display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 1.25rem; }
+	.kpi { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background-color: var(--color-navy-mid); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-xl); }
+	.kpi--skel { min-height: 4rem; }
+	.kpi__iskel { width: 2.5rem; height: 2.5rem; border-radius: var(--radius-lg); background: rgba(255,255,255,0.06); animation: shimmer 1.5s infinite; flex-shrink: 0; }
+	.kpi__tskel { display: flex; flex-direction: column; gap: 0.4rem; flex: 1; }
+	.skel { height: 0.75rem; border-radius: var(--radius-sm); background: rgba(255,255,255,0.06); animation: shimmer 1.5s infinite; }
+	.skel--s { width: 40%; } .skel--l { width: 65%; height: 1rem; } .skel--f { width: 100%; height: 2.5rem; }
+	@keyframes shimmer { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
+	.kpi__ic { width: 2.5rem; height: 2.5rem; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+	.kpi__ic--green { background-color: rgba(34,197,94,0.15); color: #22c55e; }
+	.kpi__ic--blue { background-color: rgba(59,130,246,0.15); color: #3b82f6; }
+	.kpi__ic--teal { background-color: rgba(15,164,175,0.15); color: var(--color-teal); }
+	.kpi__lbl { font-size: var(--fs-xs); color: var(--color-grey-400); margin-bottom: 0.1rem; }
+	.kpi__val { font-size: var(--fs-md); font-weight: var(--w-bold); color: var(--color-white); }
+	.cp__toolbar { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem; }
+	.cp__tabs { display: flex; gap: 0.25rem; overflow-x: auto; }
+	.cp__tab { padding: 0.5rem 0.85rem; font-size: var(--fs-xs); font-weight: var(--w-medium); color: var(--color-grey-400); background: none; border: 1px solid transparent; border-radius: var(--radius-lg); cursor: pointer; white-space: nowrap; transition: color 200ms var(--ease-out), background-color 200ms var(--ease-out), border-color 200ms var(--ease-out); }
+	.cp__tab:hover { color: var(--color-white); background-color: rgba(255,255,255,0.04); }
+	.cp__tab--on { color: var(--color-teal-light); background-color: var(--color-teal-glow); border-color: rgba(15,164,175,0.3); }
+	.cp__search { display: flex; align-items: center; gap: 0.5rem; padding: 0.65rem 0.85rem; background-color: var(--color-navy-mid); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-lg); color: var(--color-grey-400); transition: border-color 200ms var(--ease-out); }
+	.cp__search:focus-within { border-color: var(--color-teal); }
+	.cp__sinput { flex: 1; background: none; border: none; outline: none; color: var(--color-white); font-size: var(--fs-sm); font-family: var(--font-ui); }
+	.cp__sinput::placeholder { color: var(--color-grey-500); }
+	.cp__skel { display: flex; flex-direction: column; gap: 0.5rem; }
+	.skelrow { padding: 1rem; background-color: var(--color-navy-mid); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-lg); }
+	.cp__empty { text-align: center; padding: 3rem 1rem; color: var(--color-grey-400); font-size: var(--fs-sm); background-color: var(--color-navy-mid); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-xl); }
+	.badge { display: inline-block; font-size: var(--fs-xs); font-weight: var(--w-semibold); padding: 0.15rem 0.55rem; border-radius: var(--radius-full); }
+	.badge--active { background-color: rgba(34,181,115,0.12); color: var(--color-green); }
+	.badge--expired { background-color: rgba(224,72,72,0.12); color: var(--color-red); }
+	.badge--inactive { background-color: rgba(255,255,255,0.06); color: var(--color-grey-400); }
+	.tgl { background: none; border: none; cursor: pointer; padding: 0.15rem; display: flex; align-items: center; transition: opacity 200ms var(--ease-out); }
+	.tgl:disabled { opacity: 0.4; cursor: not-allowed; } .tgl :global(svg) { color: var(--color-teal); }
+	.cp__cards { display: flex; flex-direction: column; gap: 0.5rem; }
+	.cp__twrap { display: none; }
+	.cc { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.85rem 1rem; background-color: var(--color-navy-mid); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-lg); }
+	.cc__top { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+	.cc__code, .ct__code { font-family: 'Courier New', Courier, monospace; font-weight: var(--w-semibold); color: var(--color-white); text-decoration: none; letter-spacing: 0.04em; }
+	.cc__code { font-size: var(--fs-sm); } .cc__code:hover, .ct__code:hover { color: var(--color-teal-light); }
+	.cc__row { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+	.cc__lbl { font-size: var(--fs-xs); color: var(--color-grey-400); }
+	.cc__val { font-size: var(--fs-sm); color: var(--color-grey-300); }
+	.cc__foot { display: flex; justify-content: space-between; align-items: center; padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.06); }
+	.cc__edit, .ct__link { font-size: var(--fs-sm); font-weight: var(--w-semibold); color: var(--color-teal-light); text-decoration: none; }
+	.cc__edit:hover, .ct__link:hover { text-decoration: underline; }
+	.cp__pag { display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-top: 1rem; }
+	.cp__pbtn { display: flex; align-items: center; gap: 0.25rem; padding: 0.5rem 0.75rem; background-color: var(--color-navy-mid); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-lg); color: var(--color-white); font-size: var(--fs-xs); cursor: pointer; transition: border-color 200ms var(--ease-out); }
+	.cp__pbtn:hover:not(:disabled) { border-color: var(--color-teal); }
+	.cp__pbtn:disabled { opacity: 0.4; cursor: not-allowed; }
+	.cp__pinfo { font-size: var(--fs-xs); color: var(--color-grey-400); }
+	@media (min-width: 480px) { .cp__kpis { grid-template-columns: repeat(3, 1fr); } .bf__grid { grid-template-columns: 1fr 1fr; } }
 	@media (min-width: 768px) {
-		.cpn-list__header {
-			flex-direction: row;
-			align-items: center;
-			justify-content: space-between;
-			margin-bottom: 2rem;
-		}
-		.cpn-list__title { font-size: var(--fs-2xl); }
-		.cpn-list__filters {
-			flex-direction: row;
-			align-items: center;
-			justify-content: space-between;
-			margin-bottom: 1.5rem;
-		}
-		.cpn-list__search-wrap { width: 16rem; }
-		.cpn-list__cards { display: none; }
-		.cpn-list__table-wrap {
-			display: block;
-			overflow-x: auto;
-			background: rgba(255, 255, 255, 0.02);
-			border: 1px solid rgba(255, 255, 255, 0.06);
-			border-radius: var(--radius-xl);
-		}
-		.cpn-list__table {
-			width: 100%;
-			border-collapse: collapse;
-		}
-		.cpn-list__table th {
-			text-align: left;
-			padding: 0.75rem 1rem;
-			font-size: var(--fs-xs);
-			font-weight: var(--w-semibold);
-			text-transform: uppercase;
-			letter-spacing: 0.05em;
-			color: var(--color-grey-400);
-			border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-		}
-		.cpn-list__table td {
-			padding: 0.85rem 1rem;
-			border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-			font-size: var(--fs-sm);
-			color: var(--color-grey-200);
-			vertical-align: middle;
-		}
-		.cpn-list__table tbody tr {
-			transition: background var(--duration-150) var(--ease-out);
-		}
-		.cpn-list__table tbody tr:hover {
-			background: rgba(255, 255, 255, 0.02);
-		}
+		.cp__header { flex-direction: row; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+		.cp__title { font-size: var(--fs-2xl); } .cp__count { font-size: var(--fs-sm); margin-top: 0.25rem; }
+		.cp__cta, .cp__bulk-btn { padding: 0.6rem 1.25rem; font-size: var(--fs-sm); }
+		.cp__kpis { gap: 1rem; margin-bottom: 2rem; } .kpi { padding: 1.15rem; gap: 1rem; }
+		.kpi__ic { width: 2.75rem; height: 2.75rem; } .kpi__val { font-size: var(--fs-lg); }
+		.cp__toolbar { flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+		.cp__search { min-width: 14rem; } .bf { padding: 1.25rem; }
+		.bf__grid { grid-template-columns: repeat(3, 1fr); } .bf__title { font-size: var(--fs-md); }
+		.cp__cards { display: none; }
+		.cp__twrap { display: block; overflow-x: auto; background-color: var(--color-navy-mid); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-xl); }
+		.ct { width: 100%; border-collapse: collapse; }
+		.ct th { text-align: left; font-size: var(--fs-xs); font-weight: var(--w-semibold); color: var(--color-grey-400); text-transform: uppercase; letter-spacing: 0.05em; padding: 0.85rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+		.ct td { padding: 0.85rem 1rem; font-size: var(--fs-sm); color: var(--color-grey-300); border-bottom: 1px solid rgba(255,255,255,0.04); }
+		.ct tbody tr:hover { background-color: rgba(255,255,255,0.02); }
+		.cp__pag { gap: 1rem; margin-top: 1.5rem; }
+		.cp__pbtn { gap: 0.35rem; padding: 0.5rem 1rem; font-size: var(--fs-sm); } .cp__pinfo { font-size: var(--fs-sm); }
 	}
 </style>
