@@ -240,6 +240,7 @@
 						onclick={() => (isFree = !isFree)}
 						role="switch"
 						aria-checked={isFree}
+						aria-label="Free course"
 					>
 						<span class="toggle__knob"></span>
 					</button>

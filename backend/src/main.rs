@@ -114,12 +114,26 @@ async fn main() {
         .expect("Failed to create uploads directory");
 
     let app = Router::new()
+        // Auth & analytics
         .nest("/api/auth", handlers::auth::router())
         .nest("/api/analytics", handlers::analytics::router())
+        // Admin routes
         .nest("/api/admin", handlers::admin::router())
         .nest("/api/admin/blog", handlers::blog::admin_router())
+        .nest("/api/admin/courses", handlers::courses::admin_router())
+        .nest("/api/admin/pricing", handlers::pricing::admin_router())
+        .nest("/api/admin/coupons", handlers::coupons::admin_router())
+        .nest("/api/admin/popups", handlers::popups::admin_router())
+        // Public routes
         .nest("/api/blog", handlers::blog::public_router())
+        .nest("/api/courses", handlers::courses::public_router())
+        .nest("/api/pricing", handlers::pricing::public_router())
+        .nest("/api/coupons", handlers::coupons::public_router())
+        .nest("/api/popups", handlers::popups::public_router())
+        // Member routes
         .nest("/api/member", handlers::member::router())
+        .nest("/api/member", handlers::courses::member_router())
+        // Webhooks & uploads
         .nest("/api/webhooks", handlers::webhooks::router())
         .nest_service("/uploads", ServeDir::new(&upload_dir))
         .layer(cors)
