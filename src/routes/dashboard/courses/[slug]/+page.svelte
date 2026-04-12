@@ -14,13 +14,13 @@
 	import X from 'phosphor-svelte/lib/X';
 
 	let course = $state<CourseWithModules | null>(null);
-	let progressMap = $state(new SvelteMap<string, LessonProgress>());
+	let progressMap = new SvelteMap<string, LessonProgress>();
 	let currentLesson = $state<CourseLesson | null>(null);
 	let currentModuleId = $state<string | null>(null);
 	let loading = $state(true);
 	let markingComplete = $state(false);
 	let sidebarOpen = $state(false);
-	let expandedModules = $state(new SvelteSet<string>());
+	let expandedModules = new SvelteSet<string>();
 	let slug = $derived($page.params.slug);
 
 	onMount(async () => {

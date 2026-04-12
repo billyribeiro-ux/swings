@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 	import { api, ApiError } from '$lib/api/client';
 	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
 	import FloppyDisk from 'phosphor-svelte/lib/FloppyDisk';
@@ -9,7 +10,6 @@
 	import Plus from 'phosphor-svelte/lib/Plus';
 	import CaretDown from 'phosphor-svelte/lib/CaretDown';
 	import CaretUp from 'phosphor-svelte/lib/CaretUp';
-	import PencilSimple from 'phosphor-svelte/lib/PencilSimple';
 	import VideoCamera from 'phosphor-svelte/lib/VideoCamera';
 	import Eye from 'phosphor-svelte/lib/Eye';
 	import EyeSlash from 'phosphor-svelte/lib/EyeSlash';
@@ -57,7 +57,7 @@
 	let price = $state('');
 	let thumbnailUrl = $state('');
 	let modules = $state<Module[]>([]);
-	let expandedModules = $state<Set<string>>(new Set());
+	let expandedModules = new SvelteSet<string>();
 
 	onMount(async () => {
 		try {
@@ -72,7 +72,7 @@
 			thumbnailUrl = data.thumbnail_url ?? '';
 			modules = data.modules ?? [];
 			if (modules.length > 0) {
-				expandedModules = new Set([modules[0].id]);
+				expandedModules.add(modules[0].id);
 			}
 		} catch {
 			error = 'Course not found';
@@ -82,13 +82,11 @@
 	});
 
 	function toggleModule(id: string) {
-		const next = new Set(expandedModules);
-		if (next.has(id)) {
-			next.delete(id);
+		if (expandedModules.has(id)) {
+			expandedModules.delete(id);
 		} else {
-			next.add(id);
+			expandedModules.add(id);
 		}
-		expandedModules = next;
 	}
 
 	function addModule() {
@@ -100,7 +98,7 @@
 			lessons: []
 		};
 		modules = [...modules, newMod];
-		expandedModules = new Set([...expandedModules, tempId]);
+		expandedModules.add(tempId);
 	}
 
 	function removeModule(idx: number) {
