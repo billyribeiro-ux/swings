@@ -3,6 +3,7 @@ pub mod analytics;
 pub mod auth;
 pub mod blog;
 pub mod coupons;
+pub mod courses;
 pub mod member;
 pub mod popups;
 pub mod pricing;

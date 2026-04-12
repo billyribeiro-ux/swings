@@ -802,10 +802,61 @@
 			</button>
 		</div>
 
+		<div class="toolbar__sep"></div>
+
+		<!-- TOC + Shortcodes -->
+		<div class="toolbar__group">
+			{#if onInsertToc}
+				<button class="toolbar__btn" title="Insert Table of Contents" onclick={onInsertToc}>
+					<ListDashes size={18} weight="bold" />
+				</button>
+			{/if}
+
+			<div class="toolbar__dropdown-wrap">
+				<button
+					class="toolbar__btn"
+					title="Insert Shortcode"
+					onclick={() => {
+						closeAllDropdowns();
+						showShortcodeMenu = !showShortcodeMenu;
+					}}
+				>
+					<BracketsCurly size={18} weight="bold" />
+				</button>
+				{#if showShortcodeMenu}
+					<div class="toolbar__dropdown">
+						{#each shortcodes as sc (sc.label)}
+							<button class="toolbar__dropdown-item" onclick={() => insertShortcode(sc.code)}>
+								{sc.label}
+							</button>
+						{/each}
+					</div>
+				{/if}
+			</div>
+		</div>
+
 		<!-- Right-side: view controls -->
 		<div class="toolbar__spacer"></div>
 
+		<!-- Word count / reading time -->
 		<div class="toolbar__group">
+			<span class="toolbar__stats">
+				{wordCount} words &middot; {readingTime} min read
+			</span>
+		</div>
+
+		<div class="toolbar__sep"></div>
+
+		<div class="toolbar__group">
+			<button
+				class="toolbar__btn"
+				class:toolbar__btn--active={isDistractionFree}
+				title="Distraction-free mode"
+				onclick={onToggleDistractionFree}
+			>
+				<Eye size={18} weight="bold" />
+			</button>
+
 			<button
 				class="toolbar__btn"
 				class:toolbar__btn--active={showSource}
@@ -1194,5 +1245,65 @@
 	.shortcuts-modal__label {
 		font-size: 0.85rem;
 		color: var(--color-grey-300, #cbd5e1);
+	}
+
+	/* Word count / reading time stats */
+	.toolbar__stats {
+		font-size: 0.7rem;
+		color: var(--color-grey-400, #64748b);
+		white-space: nowrap;
+		padding: 0 0.35rem;
+		user-select: none;
+	}
+
+	/* Heading preview styles in dropdown */
+	.toolbar__dropdown--headings {
+		min-width: 14rem;
+	}
+
+	.toolbar__heading-preview {
+		font-weight: 400 !important;
+		line-height: 1.3;
+	}
+
+	.toolbar__heading-preview--p {
+		font-size: 0.85rem;
+		color: var(--color-grey-300, #cbd5e1);
+	}
+
+	.toolbar__heading-preview--h1 {
+		font-size: 1.4rem;
+		font-weight: 700 !important;
+		color: var(--color-white, #fff);
+	}
+
+	.toolbar__heading-preview--h2 {
+		font-size: 1.15rem;
+		font-weight: 700 !important;
+		color: var(--color-white, #fff);
+	}
+
+	.toolbar__heading-preview--h3 {
+		font-size: 1rem;
+		font-weight: 600 !important;
+		color: var(--color-white, #fff);
+	}
+
+	.toolbar__heading-preview--h4 {
+		font-size: 0.9rem;
+		font-weight: 600 !important;
+		color: var(--color-grey-200, #e2e8f0);
+	}
+
+	.toolbar__heading-preview--h5 {
+		font-size: 0.85rem;
+		font-weight: 600 !important;
+		color: var(--color-grey-300, #cbd5e1);
+	}
+
+	.toolbar__heading-preview--h6 {
+		font-size: 0.8rem;
+		font-weight: 600 !important;
+		color: var(--color-grey-400, #94a3b8);
 	}
 </style>
