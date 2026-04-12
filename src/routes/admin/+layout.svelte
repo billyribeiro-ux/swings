@@ -18,6 +18,11 @@
 	import List from 'phosphor-svelte/lib/List';
 	import X from 'phosphor-svelte/lib/X';
 	import CaretDown from 'phosphor-svelte/lib/CaretDown';
+	import GraduationCap from 'phosphor-svelte/lib/GraduationCap';
+	import CreditCard from 'phosphor-svelte/lib/CreditCard';
+	import Tag from 'phosphor-svelte/lib/Tag';
+	import ChatCircleDots from 'phosphor-svelte/lib/ChatCircleDots';
+	import Gear from 'phosphor-svelte/lib/Gear';
 	import CommandPalette from '$lib/components/admin/CommandPalette.svelte';
 
 	let { children } = $props();
@@ -44,6 +49,10 @@
 
 	let mobileMenuOpen = $state(false);
 	let blogSubmenuOpen = $state(false);
+	let courseSubmenuOpen = $state(false);
+	let subscriptionSubmenuOpen = $state(false);
+	let couponSubmenuOpen = $state(false);
+	let popupSubmenuOpen = $state(false);
 
 	function toggleSidebarCollapsed() {
 		sidebarCollapsed = !sidebarCollapsed;
@@ -52,12 +61,20 @@
 		}
 		if (sidebarCollapsed) {
 			blogSubmenuOpen = false;
+			courseSubmenuOpen = false;
+			subscriptionSubmenuOpen = false;
+			couponSubmenuOpen = false;
+			popupSubmenuOpen = false;
 		}
 	}
 
 	$effect(() => {
 		if (sidebarCollapsed) {
 			blogSubmenuOpen = false;
+			courseSubmenuOpen = false;
+			subscriptionSubmenuOpen = false;
+			couponSubmenuOpen = false;
+			popupSubmenuOpen = false;
 		}
 	});
 
@@ -150,6 +167,26 @@
 		{ href: '/admin/blog/categories', label: 'Categories' },
 		{ href: '/admin/blog/tags', label: 'Tags' },
 		{ href: '/admin/blog/media', label: 'Media' }
+	];
+
+	const courseItems = [
+		{ href: '/admin/courses', label: 'All Courses' },
+		{ href: '/admin/courses/new', label: 'New Course' }
+	];
+
+	const subscriptionItems = [
+		{ href: '/admin/subscriptions', label: 'Overview' },
+		{ href: '/admin/subscriptions/plans', label: 'Pricing Plans' }
+	];
+
+	const couponItems = [
+		{ href: '/admin/coupons', label: 'All Coupons' },
+		{ href: '/admin/coupons/new', label: 'Create Coupon' }
+	];
+
+	const popupItems = [
+		{ href: '/admin/popups', label: 'All Popups' },
+		{ href: '/admin/popups/new', label: 'Create Popup' }
 	];
 </script>
 
@@ -317,6 +354,136 @@
 						</div>
 					{/if}
 				</div>
+
+				<div class="admin__nav-section">
+					<button
+						class="admin__nav-link admin__nav-link--header"
+						onclick={() => (courseSubmenuOpen = !courseSubmenuOpen)}
+					>
+						<GraduationCap size={20} weight="duotone" />
+						<span>Courses</span>
+						<CaretDown
+							size={16}
+							class="admin__nav-caret{courseSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+						/>
+					</button>
+					{#if courseSubmenuOpen}
+						<div class="admin__nav-submenu">
+							{#each courseItems as item (item.href)}
+								<a
+									href={item.href}
+									class="admin__nav-sublink"
+									onclick={() => {
+										mobileMenuOpen = false;
+										courseSubmenuOpen = false;
+									}}
+								>
+									{item.label}
+								</a>
+							{/each}
+						</div>
+					{/if}
+				</div>
+
+				<div class="admin__nav-section">
+					<button
+						class="admin__nav-link admin__nav-link--header"
+						onclick={() => (subscriptionSubmenuOpen = !subscriptionSubmenuOpen)}
+					>
+						<CreditCard size={20} weight="duotone" />
+						<span>Subscriptions</span>
+						<CaretDown
+							size={16}
+							class="admin__nav-caret{subscriptionSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+						/>
+					</button>
+					{#if subscriptionSubmenuOpen}
+						<div class="admin__nav-submenu">
+							{#each subscriptionItems as item (item.href)}
+								<a
+									href={item.href}
+									class="admin__nav-sublink"
+									onclick={() => {
+										mobileMenuOpen = false;
+										subscriptionSubmenuOpen = false;
+									}}
+								>
+									{item.label}
+								</a>
+							{/each}
+						</div>
+					{/if}
+				</div>
+
+				<div class="admin__nav-section">
+					<button
+						class="admin__nav-link admin__nav-link--header"
+						onclick={() => (couponSubmenuOpen = !couponSubmenuOpen)}
+					>
+						<Tag size={20} weight="duotone" />
+						<span>Coupons</span>
+						<CaretDown
+							size={16}
+							class="admin__nav-caret{couponSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+						/>
+					</button>
+					{#if couponSubmenuOpen}
+						<div class="admin__nav-submenu">
+							{#each couponItems as item (item.href)}
+								<a
+									href={item.href}
+									class="admin__nav-sublink"
+									onclick={() => {
+										mobileMenuOpen = false;
+										couponSubmenuOpen = false;
+									}}
+								>
+									{item.label}
+								</a>
+							{/each}
+						</div>
+					{/if}
+				</div>
+
+				<div class="admin__nav-section">
+					<button
+						class="admin__nav-link admin__nav-link--header"
+						onclick={() => (popupSubmenuOpen = !popupSubmenuOpen)}
+					>
+						<ChatCircleDots size={20} weight="duotone" />
+						<span>Popups</span>
+						<CaretDown
+							size={16}
+							class="admin__nav-caret{popupSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+						/>
+					</button>
+					{#if popupSubmenuOpen}
+						<div class="admin__nav-submenu">
+							{#each popupItems as item (item.href)}
+								<a
+									href={item.href}
+									class="admin__nav-sublink"
+									onclick={() => {
+										mobileMenuOpen = false;
+										popupSubmenuOpen = false;
+									}}
+								>
+									{item.label}
+								</a>
+							{/each}
+						</div>
+					{/if}
+				</div>
+
+				<a
+					href="/admin/settings"
+					class="admin__nav-link"
+					class:admin__nav-link--active={page.url.pathname === '/admin/settings'}
+					onclick={() => (mobileMenuOpen = false)}
+				>
+					<Gear size={20} weight="duotone" />
+					<span>Settings</span>
+				</a>
 			</nav>
 
 			<div class="admin__sidebar-footer">

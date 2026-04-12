@@ -11,6 +11,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod config;
 mod db;
+mod email;
 mod error;
 mod extractors;
 mod handlers;
@@ -34,6 +35,7 @@ fn load_dotenv() {
 pub struct AppState {
     pub db: sqlx::PgPool,
     pub config: Arc<Config>,
+    pub email_service: Option<Arc<email::EmailService>>,
 }
 
 #[tokio::main]
@@ -75,9 +77,26 @@ async fn main() {
     // Ensure uploads directory exists
     let upload_dir = config.upload_dir.clone();
 
+    let email_service = if config.smtp_user.is_empty() {
+        tracing::warn!("SMTP_USER not configured — email sending is disabled");
+        None
+    } else {
+        match email::EmailService::new(&config) {
+            Ok(svc) => {
+                tracing::info!("Email service initialized (SMTP: {})", config.smtp_host);
+                Some(Arc::new(svc))
+            }
+            Err(e) => {
+                tracing::error!("Failed to initialize email service: {e}");
+                None
+            }
+        }
+    };
+
     let state = AppState {
         db: pool,
         config: Arc::new(config),
+        email_service,
     };
 
     let cors = CorsLayer::new()

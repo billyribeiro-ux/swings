@@ -40,3 +40,11 @@ stripe-rust = { package = "async-stripe", version = "0.39", features = ["runtime
 axum_typed_multipart = "0.16"
 tempfile = "3"
 sanitize-filename = "0.6"
+
+# Email
+lettre = { version = "0.11", default-features = false, features = ["tokio1-rustls-tls", "builder", "smtp-transport", "tokio1"] }
+tera = "1"
+rand = "0.8"
+
+# Decimal
+rust_decimal = { version = "1", features = ["serde-with-str"] }

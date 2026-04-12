@@ -699,3 +699,536 @@ pub struct AnalyticsSummaryQuery {
     /// Exclusive end date `YYYY-MM-DD` (UTC), or inclusive depending on interpretation — we use end-exclusive window [from, to).
     pub to: String,
 }
+
+// ── Course ─────────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct Course {
+    pub id: Uuid,
+    pub title: String,
+    pub slug: String,
+    pub description: String,
+    pub short_description: Option<String>,
+    pub thumbnail_url: Option<String>,
+    pub trailer_video_url: Option<String>,
+    pub difficulty: String,
+    pub instructor_id: Uuid,
+    pub price_cents: i32,
+    pub currency: String,
+    pub is_free: bool,
+    pub is_included_in_subscription: bool,
+    pub sort_order: i32,
+    pub published: bool,
+    pub published_at: Option<DateTime<Utc>>,
+    pub estimated_duration_minutes: i32,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct CourseModule {
+    pub id: Uuid,
+    pub course_id: Uuid,
+    pub title: String,
+    pub description: Option<String>,
+    pub sort_order: i32,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct CourseLesson {
+    pub id: Uuid,
+    pub module_id: Uuid,
+    pub title: String,
+    pub slug: String,
+    pub description: Option<String>,
+    pub content: String,
+    pub content_json: Option<serde_json::Value>,
+    pub video_url: Option<String>,
+    pub video_duration_seconds: Option<i32>,
+    pub sort_order: i32,
+    pub is_preview: bool,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct LessonProgress {
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub lesson_id: Uuid,
+    pub completed: bool,
+    pub progress_seconds: i32,
+    pub completed_at: Option<DateTime<Utc>>,
+    pub last_accessed_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct CreateCourseRequest {
+    #[validate(length(min = 1, message = "Title is required"))]
+    pub title: String,
+    pub slug: Option<String>,
+    pub description: Option<String>,
+    pub short_description: Option<String>,
+    pub thumbnail_url: Option<String>,
+    pub trailer_video_url: Option<String>,
+    pub difficulty: Option<String>,
+    pub price_cents: Option<i32>,
+    pub currency: Option<String>,
+    pub is_free: Option<bool>,
+    pub is_included_in_subscription: Option<bool>,
+    pub sort_order: Option<i32>,
+    pub published: Option<bool>,
+    pub estimated_duration_minutes: Option<i32>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateCourseRequest {
+    pub title: Option<String>,
+    pub slug: Option<String>,
+    pub description: Option<String>,
+    pub short_description: Option<String>,
+    pub thumbnail_url: Option<String>,
+    pub trailer_video_url: Option<String>,
+    pub difficulty: Option<String>,
+    pub price_cents: Option<i32>,
+    pub currency: Option<String>,
+    pub is_free: Option<bool>,
+    pub is_included_in_subscription: Option<bool>,
+    pub sort_order: Option<i32>,
+    pub published: Option<bool>,
+    pub estimated_duration_minutes: Option<i32>,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct CreateModuleRequest {
+    #[validate(length(min = 1, message = "Title is required"))]
+    pub title: String,
+    pub description: Option<String>,
+    pub sort_order: Option<i32>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateModuleRequest {
+    pub title: Option<String>,
+    pub description: Option<String>,
+    pub sort_order: Option<i32>,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct CreateLessonRequest {
+    #[validate(length(min = 1, message = "Title is required"))]
+    pub title: String,
+    pub slug: Option<String>,
+    pub description: Option<String>,
+    pub content: Option<String>,
+    pub content_json: Option<serde_json::Value>,
+    pub video_url: Option<String>,
+    pub video_duration_seconds: Option<i32>,
+    pub sort_order: Option<i32>,
+    pub is_preview: Option<bool>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateLessonRequest {
+    pub title: Option<String>,
+    pub slug: Option<String>,
+    pub description: Option<String>,
+    pub content: Option<String>,
+    pub content_json: Option<serde_json::Value>,
+    pub video_url: Option<String>,
+    pub video_duration_seconds: Option<i32>,
+    pub sort_order: Option<i32>,
+    pub is_preview: Option<bool>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateLessonProgressRequest {
+    pub progress_seconds: Option<i32>,
+    pub completed: Option<bool>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct CourseWithModules {
+    #[serde(flatten)]
+    pub course: Course,
+    pub modules: Vec<ModuleWithLessons>,
+    pub total_lessons: i64,
+    pub total_duration_seconds: i64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ModuleWithLessons {
+    #[serde(flatten)]
+    pub module: CourseModule,
+    pub lessons: Vec<CourseLesson>,
+}
+
+#[derive(Debug, Serialize, FromRow)]
+pub struct CourseListItem {
+    pub id: Uuid,
+    pub title: String,
+    pub slug: String,
+    pub short_description: Option<String>,
+    pub thumbnail_url: Option<String>,
+    pub difficulty: String,
+    pub instructor_name: String,
+    pub price_cents: i32,
+    pub is_free: bool,
+    pub is_included_in_subscription: bool,
+    pub published: bool,
+    pub estimated_duration_minutes: i32,
+    pub total_lessons: i64,
+    pub created_at: DateTime<Utc>,
+}
+
+// ── Pricing Plans ──────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct PricingPlan {
+    pub id: Uuid,
+    pub name: String,
+    pub slug: String,
+    pub description: Option<String>,
+    pub stripe_price_id: Option<String>,
+    pub stripe_product_id: Option<String>,
+    pub amount_cents: i32,
+    pub currency: String,
+    pub interval: String,
+    pub interval_count: i32,
+    pub trial_days: i32,
+    pub features: serde_json::Value,
+    pub highlight_text: Option<String>,
+    pub is_popular: bool,
+    pub is_active: bool,
+    pub sort_order: i32,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct CreatePricingPlanRequest {
+    #[validate(length(min = 1, message = "Name is required"))]
+    pub name: String,
+    pub slug: Option<String>,
+    pub description: Option<String>,
+    pub stripe_price_id: Option<String>,
+    pub stripe_product_id: Option<String>,
+    pub amount_cents: i32,
+    pub currency: Option<String>,
+    pub interval: Option<String>,
+    pub interval_count: Option<i32>,
+    pub trial_days: Option<i32>,
+    pub features: Option<serde_json::Value>,
+    pub highlight_text: Option<String>,
+    pub is_popular: Option<bool>,
+    pub is_active: Option<bool>,
+    pub sort_order: Option<i32>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdatePricingPlanRequest {
+    pub name: Option<String>,
+    pub slug: Option<String>,
+    pub description: Option<String>,
+    pub stripe_price_id: Option<String>,
+    pub stripe_product_id: Option<String>,
+    pub amount_cents: Option<i32>,
+    pub currency: Option<String>,
+    pub interval: Option<String>,
+    pub interval_count: Option<i32>,
+    pub trial_days: Option<i32>,
+    pub features: Option<serde_json::Value>,
+    pub highlight_text: Option<String>,
+    pub is_popular: Option<bool>,
+    pub is_active: Option<bool>,
+    pub sort_order: Option<i32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct PricingChangeLog {
+    pub id: Uuid,
+    pub plan_id: Uuid,
+    pub field_changed: String,
+    pub old_value: Option<String>,
+    pub new_value: Option<String>,
+    pub changed_by: Uuid,
+    pub changed_at: DateTime<Utc>,
+}
+
+// ── Coupons ────────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, PartialEq)]
+#[sqlx(type_name = "discount_type", rename_all = "lowercase")]
+pub enum DiscountType {
+    Percentage,
+    #[sqlx(rename = "fixed_amount")]
+    FixedAmount,
+    #[sqlx(rename = "free_trial")]
+    FreeTrial,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct Coupon {
+    pub id: Uuid,
+    pub code: String,
+    pub description: Option<String>,
+    pub discount_type: DiscountType,
+    pub discount_value: rust_decimal::Decimal,
+    pub min_purchase_cents: Option<i32>,
+    pub max_discount_cents: Option<i32>,
+    pub applies_to: String,
+    pub applicable_plan_ids: Vec<Uuid>,
+    pub applicable_course_ids: Vec<Uuid>,
+    pub usage_limit: Option<i32>,
+    pub usage_count: i32,
+    pub per_user_limit: i32,
+    pub starts_at: Option<DateTime<Utc>>,
+    pub expires_at: Option<DateTime<Utc>>,
+    pub is_active: bool,
+    pub stackable: bool,
+    pub first_purchase_only: bool,
+    pub stripe_coupon_id: Option<String>,
+    pub stripe_promotion_code_id: Option<String>,
+    pub created_by: Uuid,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct CreateCouponRequest {
+    pub code: Option<String>,
+    pub description: Option<String>,
+    pub discount_type: DiscountType,
+    pub discount_value: f64,
+    pub min_purchase_cents: Option<i32>,
+    pub max_discount_cents: Option<i32>,
+    pub applies_to: Option<String>,
+    pub applicable_plan_ids: Option<Vec<Uuid>>,
+    pub applicable_course_ids: Option<Vec<Uuid>>,
+    pub usage_limit: Option<i32>,
+    pub per_user_limit: Option<i32>,
+    pub starts_at: Option<DateTime<Utc>>,
+    pub expires_at: Option<DateTime<Utc>>,
+    pub is_active: Option<bool>,
+    pub stackable: Option<bool>,
+    pub first_purchase_only: Option<bool>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateCouponRequest {
+    pub description: Option<String>,
+    pub discount_type: Option<DiscountType>,
+    pub discount_value: Option<f64>,
+    pub min_purchase_cents: Option<i32>,
+    pub max_discount_cents: Option<i32>,
+    pub applies_to: Option<String>,
+    pub applicable_plan_ids: Option<Vec<Uuid>>,
+    pub applicable_course_ids: Option<Vec<Uuid>>,
+    pub usage_limit: Option<i32>,
+    pub per_user_limit: Option<i32>,
+    pub starts_at: Option<DateTime<Utc>>,
+    pub expires_at: Option<DateTime<Utc>>,
+    pub is_active: Option<bool>,
+    pub stackable: Option<bool>,
+    pub first_purchase_only: Option<bool>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ValidateCouponRequest {
+    pub code: String,
+    pub plan_id: Option<Uuid>,
+    pub course_id: Option<Uuid>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct CouponValidationResponse {
+    pub valid: bool,
+    pub coupon: Option<Coupon>,
+    pub discount_amount_cents: Option<i32>,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct CouponUsage {
+    pub id: Uuid,
+    pub coupon_id: Uuid,
+    pub user_id: Uuid,
+    pub subscription_id: Option<Uuid>,
+    pub discount_applied_cents: i32,
+    pub used_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BulkCouponRequest {
+    pub count: i32,
+    pub prefix: Option<String>,
+    pub discount_type: DiscountType,
+    pub discount_value: f64,
+    pub usage_limit: Option<i32>,
+    pub expires_at: Option<DateTime<Utc>>,
+}
+
+// ── Popups ─────────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct Popup {
+    pub id: Uuid,
+    pub name: String,
+    pub popup_type: String,
+    pub trigger_type: String,
+    pub trigger_config: serde_json::Value,
+    pub content_json: serde_json::Value,
+    pub style_json: serde_json::Value,
+    pub targeting_rules: serde_json::Value,
+    pub display_frequency: String,
+    pub frequency_config: serde_json::Value,
+    pub success_message: Option<String>,
+    pub redirect_url: Option<String>,
+    pub is_active: bool,
+    pub starts_at: Option<DateTime<Utc>>,
+    pub expires_at: Option<DateTime<Utc>>,
+    pub priority: i32,
+    pub created_by: Uuid,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct CreatePopupRequest {
+    #[validate(length(min = 1, message = "Name is required"))]
+    pub name: String,
+    pub popup_type: Option<String>,
+    pub trigger_type: Option<String>,
+    pub trigger_config: Option<serde_json::Value>,
+    pub content_json: Option<serde_json::Value>,
+    pub style_json: Option<serde_json::Value>,
+    pub targeting_rules: Option<serde_json::Value>,
+    pub display_frequency: Option<String>,
+    pub frequency_config: Option<serde_json::Value>,
+    pub success_message: Option<String>,
+    pub redirect_url: Option<String>,
+    pub is_active: Option<bool>,
+    pub starts_at: Option<DateTime<Utc>>,
+    pub expires_at: Option<DateTime<Utc>>,
+    pub priority: Option<i32>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdatePopupRequest {
+    pub name: Option<String>,
+    pub popup_type: Option<String>,
+    pub trigger_type: Option<String>,
+    pub trigger_config: Option<serde_json::Value>,
+    pub content_json: Option<serde_json::Value>,
+    pub style_json: Option<serde_json::Value>,
+    pub targeting_rules: Option<serde_json::Value>,
+    pub display_frequency: Option<String>,
+    pub frequency_config: Option<serde_json::Value>,
+    pub success_message: Option<String>,
+    pub redirect_url: Option<String>,
+    pub is_active: Option<bool>,
+    pub starts_at: Option<DateTime<Utc>>,
+    pub expires_at: Option<DateTime<Utc>>,
+    pub priority: Option<i32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct PopupSubmission {
+    pub id: Uuid,
+    pub popup_id: Uuid,
+    pub user_id: Option<Uuid>,
+    pub session_id: Option<Uuid>,
+    pub form_data: serde_json::Value,
+    pub ip_address: Option<String>,
+    pub user_agent: Option<String>,
+    pub page_url: Option<String>,
+    pub submitted_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PopupSubmitRequest {
+    pub popup_id: Uuid,
+    pub session_id: Option<Uuid>,
+    pub form_data: serde_json::Value,
+    pub page_url: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct PopupAnalytics {
+    pub popup_id: Uuid,
+    pub popup_name: String,
+    pub total_impressions: i64,
+    pub total_closes: i64,
+    pub total_submissions: i64,
+    pub conversion_rate: f64,
+}
+
+// ── Sales / Revenue Analytics ──────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct SalesEvent {
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub event_type: String,
+    pub amount_cents: i32,
+    pub currency: String,
+    pub plan_id: Option<Uuid>,
+    pub coupon_id: Option<Uuid>,
+    pub stripe_payment_intent_id: Option<String>,
+    pub stripe_invoice_id: Option<String>,
+    pub metadata: serde_json::Value,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct MonthlyRevenueSnapshot {
+    pub id: Uuid,
+    pub year: i32,
+    pub month: i32,
+    pub mrr_cents: i64,
+    pub arr_cents: i64,
+    pub total_revenue_cents: i64,
+    pub new_subscribers: i32,
+    pub churned_subscribers: i32,
+    pub net_subscriber_change: i32,
+    pub avg_revenue_per_user_cents: i32,
+    pub computed_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct RevenueAnalytics {
+    pub total_revenue_cents: i64,
+    pub mrr_cents: i64,
+    pub arr_cents: i64,
+    pub total_subscribers: i64,
+    pub churn_rate: f64,
+    pub avg_revenue_per_user_cents: i64,
+    pub revenue_by_month: Vec<MonthlyRevenueSummary>,
+    pub revenue_by_plan: Vec<PlanRevenueSummary>,
+    pub recent_sales: Vec<SalesEvent>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct MonthlyRevenueSummary {
+    pub year: i32,
+    pub month: i32,
+    pub revenue_cents: i64,
+    pub new_subscribers: i64,
+    pub churned: i64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct PlanRevenueSummary {
+    pub plan_name: String,
+    pub subscriber_count: i64,
+    pub revenue_cents: i64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RevenueAnalyticsQuery {
+    pub from: Option<String>,
+    pub to: Option<String>,
+    pub granularity: Option<String>,
+}

@@ -2,5 +2,8 @@ pub mod admin;
 pub mod analytics;
 pub mod auth;
 pub mod blog;
+pub mod coupons;
 pub mod member;
+pub mod popups;
+pub mod pricing;
 pub mod webhooks;

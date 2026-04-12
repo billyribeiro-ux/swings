@@ -315,3 +315,440 @@ export interface PostListFilters {
 	tag_slug?: string;
 	search?: string;
 }
+
+// ── Courses ───────────────────────────────────────────────────────────
+
+export interface Course {
+	id: string;
+	title: string;
+	slug: string;
+	description: string;
+	short_description: string | null;
+	thumbnail_url: string | null;
+	trailer_video_url: string | null;
+	difficulty: 'beginner' | 'intermediate' | 'advanced';
+	instructor_id: string;
+	price_cents: number;
+	currency: string;
+	is_free: boolean;
+	is_included_in_subscription: boolean;
+	sort_order: number;
+	published: boolean;
+	published_at: string | null;
+	estimated_duration_minutes: number;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface CourseModule {
+	id: string;
+	course_id: string;
+	title: string;
+	description: string | null;
+	sort_order: number;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface CourseLesson {
+	id: string;
+	module_id: string;
+	title: string;
+	slug: string;
+	description: string | null;
+	content: string;
+	content_json: Record<string, unknown> | null;
+	video_url: string | null;
+	video_duration_seconds: number | null;
+	sort_order: number;
+	is_preview: boolean;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface LessonProgress {
+	id: string;
+	user_id: string;
+	lesson_id: string;
+	completed: boolean;
+	progress_seconds: number;
+	completed_at: string | null;
+	last_accessed_at: string;
+}
+
+export interface CourseWithModules extends Course {
+	modules: ModuleWithLessons[];
+	total_lessons: number;
+	total_duration_seconds: number;
+}
+
+export interface ModuleWithLessons extends CourseModule {
+	lessons: CourseLesson[];
+}
+
+export interface CourseListItem {
+	id: string;
+	title: string;
+	slug: string;
+	short_description: string | null;
+	thumbnail_url: string | null;
+	difficulty: string;
+	instructor_name: string;
+	price_cents: number;
+	is_free: boolean;
+	is_included_in_subscription: boolean;
+	published: boolean;
+	estimated_duration_minutes: number;
+	total_lessons: number;
+	created_at: string;
+}
+
+export interface CreateCoursePayload {
+	title: string;
+	slug?: string;
+	description?: string;
+	short_description?: string;
+	thumbnail_url?: string;
+	trailer_video_url?: string;
+	difficulty?: string;
+	price_cents?: number;
+	currency?: string;
+	is_free?: boolean;
+	is_included_in_subscription?: boolean;
+	sort_order?: number;
+	published?: boolean;
+	estimated_duration_minutes?: number;
+}
+
+export interface UpdateCoursePayload {
+	title?: string;
+	slug?: string;
+	description?: string;
+	short_description?: string;
+	thumbnail_url?: string;
+	trailer_video_url?: string;
+	difficulty?: string;
+	price_cents?: number;
+	currency?: string;
+	is_free?: boolean;
+	is_included_in_subscription?: boolean;
+	sort_order?: number;
+	published?: boolean;
+	estimated_duration_minutes?: number;
+}
+
+export interface CreateModulePayload {
+	title: string;
+	description?: string;
+	sort_order?: number;
+}
+
+export interface CreateLessonPayload {
+	title: string;
+	slug?: string;
+	description?: string;
+	content?: string;
+	content_json?: Record<string, unknown>;
+	video_url?: string;
+	video_duration_seconds?: number;
+	sort_order?: number;
+	is_preview?: boolean;
+}
+
+// ── Pricing Plans ─────────────────────────────────────────────────────
+
+export interface PricingPlan {
+	id: string;
+	name: string;
+	slug: string;
+	description: string | null;
+	stripe_price_id: string | null;
+	stripe_product_id: string | null;
+	amount_cents: number;
+	currency: string;
+	interval: 'month' | 'year' | 'one_time';
+	interval_count: number;
+	trial_days: number;
+	features: string[];
+	highlight_text: string | null;
+	is_popular: boolean;
+	is_active: boolean;
+	sort_order: number;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface CreatePricingPlanPayload {
+	name: string;
+	slug?: string;
+	description?: string;
+	stripe_price_id?: string;
+	stripe_product_id?: string;
+	amount_cents: number;
+	currency?: string;
+	interval?: string;
+	interval_count?: number;
+	trial_days?: number;
+	features?: string[];
+	highlight_text?: string;
+	is_popular?: boolean;
+	is_active?: boolean;
+	sort_order?: number;
+}
+
+export interface UpdatePricingPlanPayload {
+	name?: string;
+	slug?: string;
+	description?: string;
+	stripe_price_id?: string;
+	stripe_product_id?: string;
+	amount_cents?: number;
+	currency?: string;
+	interval?: string;
+	interval_count?: number;
+	trial_days?: number;
+	features?: string[];
+	highlight_text?: string;
+	is_popular?: boolean;
+	is_active?: boolean;
+	sort_order?: number;
+}
+
+export interface PricingChangeLog {
+	id: string;
+	plan_id: string;
+	field_changed: string;
+	old_value: string | null;
+	new_value: string | null;
+	changed_by: string;
+	changed_at: string;
+}
+
+// ── Coupons ───────────────────────────────────────────────────────────
+
+export type DiscountType = 'percentage' | 'fixed_amount' | 'free_trial';
+
+export interface Coupon {
+	id: string;
+	code: string;
+	description: string | null;
+	discount_type: DiscountType;
+	discount_value: number;
+	min_purchase_cents: number | null;
+	max_discount_cents: number | null;
+	applies_to: 'all' | 'monthly' | 'annual' | 'course' | 'specific_plans';
+	applicable_plan_ids: string[];
+	applicable_course_ids: string[];
+	usage_limit: number | null;
+	usage_count: number;
+	per_user_limit: number;
+	starts_at: string | null;
+	expires_at: string | null;
+	is_active: boolean;
+	stackable: boolean;
+	first_purchase_only: boolean;
+	stripe_coupon_id: string | null;
+	stripe_promotion_code_id: string | null;
+	created_by: string;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface CreateCouponPayload {
+	code?: string;
+	description?: string;
+	discount_type: DiscountType;
+	discount_value: number;
+	min_purchase_cents?: number;
+	max_discount_cents?: number;
+	applies_to?: string;
+	applicable_plan_ids?: string[];
+	applicable_course_ids?: string[];
+	usage_limit?: number;
+	per_user_limit?: number;
+	starts_at?: string;
+	expires_at?: string;
+	is_active?: boolean;
+	stackable?: boolean;
+	first_purchase_only?: boolean;
+}
+
+export interface UpdateCouponPayload {
+	description?: string;
+	discount_type?: DiscountType;
+	discount_value?: number;
+	min_purchase_cents?: number;
+	max_discount_cents?: number;
+	applies_to?: string;
+	applicable_plan_ids?: string[];
+	applicable_course_ids?: string[];
+	usage_limit?: number;
+	per_user_limit?: number;
+	starts_at?: string;
+	expires_at?: string;
+	is_active?: boolean;
+	stackable?: boolean;
+	first_purchase_only?: boolean;
+}
+
+export interface CouponValidationResponse {
+	valid: boolean;
+	coupon: Coupon | null;
+	discount_amount_cents: number | null;
+	message: string;
+}
+
+export interface CouponUsage {
+	id: string;
+	coupon_id: string;
+	user_id: string;
+	subscription_id: string | null;
+	discount_applied_cents: number;
+	used_at: string;
+}
+
+export interface BulkCouponPayload {
+	count: number;
+	prefix?: string;
+	discount_type: DiscountType;
+	discount_value: number;
+	usage_limit?: number;
+	expires_at?: string;
+}
+
+// ── Popups ────────────────────────────────────────────────────────────
+
+export type PopupType = 'modal' | 'slide_in' | 'banner' | 'fullscreen' | 'floating_bar' | 'inline';
+export type PopupTrigger = 'on_load' | 'exit_intent' | 'scroll_percentage' | 'time_delay' | 'click' | 'manual' | 'inactivity';
+export type PopupFrequency = 'every_time' | 'once_per_session' | 'once_ever' | 'custom';
+
+export interface PopupElement {
+	id: string;
+	type: 'heading' | 'text' | 'image' | 'input' | 'email' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'button' | 'divider' | 'spacer';
+	props: Record<string, unknown>;
+	style?: Record<string, string>;
+}
+
+export interface PopupStyle {
+	background: string;
+	textColor: string;
+	accentColor: string;
+	borderRadius: string;
+	maxWidth: string;
+	animation: 'fade' | 'slide_up' | 'slide_down' | 'slide_left' | 'slide_right' | 'scale' | 'none';
+	backdrop: boolean;
+	backdropColor: string;
+	padding?: string;
+	shadow?: string;
+}
+
+export interface PopupTargetingRules {
+	pages: string[];
+	devices: ('desktop' | 'mobile' | 'tablet')[];
+	userStatus: ('all' | 'logged_in' | 'logged_out' | 'member' | 'non_member')[];
+}
+
+export interface Popup {
+	id: string;
+	name: string;
+	popup_type: PopupType;
+	trigger_type: PopupTrigger;
+	trigger_config: Record<string, unknown>;
+	content_json: { elements: PopupElement[] };
+	style_json: PopupStyle;
+	targeting_rules: PopupTargetingRules;
+	display_frequency: PopupFrequency;
+	frequency_config: Record<string, unknown>;
+	success_message: string | null;
+	redirect_url: string | null;
+	is_active: boolean;
+	starts_at: string | null;
+	expires_at: string | null;
+	priority: number;
+	created_by: string;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface CreatePopupPayload {
+	name: string;
+	popup_type?: PopupType;
+	trigger_type?: PopupTrigger;
+	trigger_config?: Record<string, unknown>;
+	content_json?: { elements: PopupElement[] };
+	style_json?: Partial<PopupStyle>;
+	targeting_rules?: Partial<PopupTargetingRules>;
+	display_frequency?: PopupFrequency;
+	frequency_config?: Record<string, unknown>;
+	success_message?: string;
+	redirect_url?: string;
+	is_active?: boolean;
+	starts_at?: string;
+	expires_at?: string;
+	priority?: number;
+}
+
+export interface UpdatePopupPayload extends Partial<CreatePopupPayload> {}
+
+export interface PopupSubmission {
+	id: string;
+	popup_id: string;
+	user_id: string | null;
+	session_id: string | null;
+	form_data: Record<string, unknown>;
+	ip_address: string | null;
+	user_agent: string | null;
+	page_url: string | null;
+	submitted_at: string;
+}
+
+export interface PopupAnalytics {
+	popup_id: string;
+	popup_name: string;
+	total_impressions: number;
+	total_closes: number;
+	total_submissions: number;
+	conversion_rate: number;
+}
+
+// ── Revenue Analytics ─────────────────────────────────────────────────
+
+export interface SalesEvent {
+	id: string;
+	user_id: string;
+	event_type: 'new_subscription' | 'renewal' | 'upgrade' | 'downgrade' | 'cancellation' | 'refund' | 'course_purchase';
+	amount_cents: number;
+	currency: string;
+	plan_id: string | null;
+	coupon_id: string | null;
+	stripe_payment_intent_id: string | null;
+	stripe_invoice_id: string | null;
+	metadata: Record<string, unknown>;
+	created_at: string;
+}
+
+export interface MonthlyRevenueSummary {
+	year: number;
+	month: number;
+	revenue_cents: number;
+	new_subscribers: number;
+	churned: number;
+}
+
+export interface PlanRevenueSummary {
+	plan_name: string;
+	subscriber_count: number;
+	revenue_cents: number;
+}
+
+export interface RevenueAnalytics {
+	total_revenue_cents: number;
+	mrr_cents: number;
+	arr_cents: number;
+	total_subscribers: number;
+	churn_rate: number;
+	avg_revenue_per_user_cents: number;
+	revenue_by_month: MonthlyRevenueSummary[];
+	revenue_by_plan: PlanRevenueSummary[];
+	recent_sales: SalesEvent[];
+}
