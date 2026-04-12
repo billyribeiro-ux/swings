@@ -94,6 +94,7 @@
 	let saving = $state(false);
 	let saveMessage = $state('');
 	let autosaveStatus: 'idle' | 'pending' | 'saving' | 'saved' | 'error' = $state('idle');
+	let lastSavedAt: Date | null = $state(null);
 	let wordCount = $state(p?.word_count || 0);
 
 	// SEO analysis (derived — must be after wordCount)
@@ -258,9 +259,10 @@
 					content_json: contentJson
 				});
 				autosaveStatus = 'saved';
+				lastSavedAt = new Date();
 				setTimeout(() => {
 					if (autosaveStatus === 'saved') autosaveStatus = 'idle';
-				}, 4000);
+				}, 30000);
 			} catch (e) {
 				console.error('Autosave failed', e);
 				autosaveStatus = 'error';
@@ -451,11 +453,17 @@
 			onUpdate={handleEditorUpdate}
 			onWordCount={handleWordCount}
 			onInsertImage={openMediaForEditor}
+			{autosaveStatus}
+			{lastSavedAt}
+			{revisions}
+			focusKeyword=""
+			{metaTitle}
+			{metaDescription}
 		/>
 
 		<!-- Status bar -->
 		<div class="post-editor__statusbar">
-			<span>{wordCount} words · {charCount} characters</span>
+			<span>{wordCount} words · {charCount} characters · ~{Math.max(1, Math.ceil(wordCount / 238))} min read</span>
 			<span
 				class="post-editor__autosave"
 				class:post-editor__autosave--pending={autosaveStatus === 'pending'}
@@ -463,10 +471,14 @@
 				class:post-editor__autosave--saved={autosaveStatus === 'saved'}
 				class:post-editor__autosave--error={autosaveStatus === 'error'}
 			>
-				{#if autosaveStatus === 'pending'}Draft unsaved
-				{:else if autosaveStatus === 'saving'}Saving draft…
-				{:else if autosaveStatus === 'saved'}Draft saved ✓
-				{:else if autosaveStatus === 'error'}Autosave failed
+				{#if autosaveStatus === 'pending'}
+					<span class="autosave-dot autosave-dot--amber"></span> Unsaved changes
+				{:else if autosaveStatus === 'saving'}
+					<span class="autosave-dot autosave-dot--pulse"></span> Saving draft...
+				{:else if autosaveStatus === 'saved'}
+					<span class="autosave-dot autosave-dot--green"></span> Saved {lastSavedAt ? (() => { const d = Math.floor((Date.now() - lastSavedAt.getTime()) / 1000); return d < 10 ? 'just now' : d < 60 ? `${d}s ago` : `${Math.floor(d/60)} min ago`; })() : ''}
+				{:else if autosaveStatus === 'error'}
+					<span class="autosave-dot autosave-dot--red"></span> Autosave failed
 				{/if}
 			</span>
 			{#if saveMessage}
@@ -1060,6 +1072,41 @@
 
 	.post-editor__autosave--error {
 		color: #ef4444;
+	}
+
+	.autosave-dot {
+		display: inline-block;
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: var(--color-grey-500, #475569);
+		vertical-align: middle;
+		margin-right: 0.2rem;
+	}
+
+	.autosave-dot--green {
+		background: #22c55e;
+		box-shadow: 0 0 4px rgba(34, 197, 94, 0.5);
+	}
+
+	.autosave-dot--amber {
+		background: #f59e0b;
+		box-shadow: 0 0 4px rgba(245, 158, 11, 0.5);
+	}
+
+	.autosave-dot--red {
+		background: #ef4444;
+		box-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
+	}
+
+	.autosave-dot--pulse {
+		background: var(--color-grey-400, #94a3b8);
+		animation: pulse-dot 1.2s ease-in-out infinite;
+	}
+
+	@keyframes pulse-dot {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0.3; }
 	}
 
 	/* Sidebar */
