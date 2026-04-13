@@ -28,6 +28,7 @@ pub fn admin_router() -> Router<AppState> {
         .route("/posts/{id}", get(admin_get_post))
         .route("/posts/{id}", put(admin_update_post))
         .route("/posts/{id}", delete(admin_delete_post))
+        .route("/posts/{id}/restore", post(admin_restore_post_from_trash))
         .route("/posts/{id}/status", put(admin_update_post_status))
         .route("/posts/{id}/autosave", post(admin_autosave_post))
         .route("/posts/{id}/revisions", get(admin_list_revisions))
@@ -101,6 +102,8 @@ async fn build_post_response(
         excerpt: post.excerpt,
         featured_image_url,
         status: post.status,
+        pre_trash_status: post.pre_trash_status,
+        trashed_at: post.trashed_at,
         visibility: post.visibility.clone(),
         is_password_protected: post.password_hash.is_some(),
         format: post.format.clone(),
@@ -256,6 +259,17 @@ async fn admin_update_post(
         .await?
         .ok_or(AppError::NotFound("Post not found".to_string()))?;
 
+    if existing.status == PostStatus::Trash {
+        if let Some(ref s) = req.status {
+            if s != &PostStatus::Trash {
+                return Err(AppError::BadRequest(
+                    "This post is in the trash. Restore it first (POST .../restore), or keep status as trash."
+                        .to_string(),
+                ));
+            }
+        }
+    }
+
     // Create revision before updating
     db::create_blog_revision(
         &state.db,
@@ -299,8 +313,27 @@ async fn admin_delete_post(
     _admin: AdminUser,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    let existing = db::get_blog_post(&state.db, id)
+        .await?
+        .ok_or(AppError::NotFound("Post not found".to_string()))?;
+    if existing.status != PostStatus::Trash {
+        return Err(AppError::BadRequest(
+            "Only posts in the trash can be permanently deleted. Move the post to trash first."
+                .to_string(),
+        ));
+    }
     db::delete_blog_post(&state.db, id).await?;
-    Ok(Json(serde_json::json!({ "message": "Post deleted" })))
+    Ok(Json(serde_json::json!({ "message": "Post permanently deleted" })))
+}
+
+async fn admin_restore_post_from_trash(
+    State(state): State<AppState>,
+    _admin: AdminUser,
+    Path(id): Path<Uuid>,
+) -> AppResult<Json<BlogPostResponse>> {
+    let post = db::restore_post_from_trash(&state.db, id).await?;
+    let response = build_post_response(&state.db, post).await?;
+    Ok(Json(response))
 }
 
 async fn admin_update_post_status(
@@ -309,7 +342,20 @@ async fn admin_update_post_status(
     Path(id): Path<Uuid>,
     Json(req): Json<UpdatePostStatusRequest>,
 ) -> AppResult<Json<BlogPostResponse>> {
-    let post = db::update_post_status(&state.db, id, &req.status).await?;
+    let existing = db::get_blog_post(&state.db, id)
+        .await?
+        .ok_or(AppError::NotFound("Post not found".to_string()))?;
+
+    let post = if req.status == PostStatus::Trash {
+        db::move_post_to_trash(&state.db, id).await?
+    } else if existing.status == PostStatus::Trash {
+        return Err(AppError::BadRequest(
+            "This post is in the trash. Use POST /api/admin/blog/posts/{id}/restore to restore it."
+                .to_string(),
+        ));
+    } else {
+        db::update_post_status(&state.db, id, &req.status).await?
+    };
     let response = build_post_response(&state.db, post).await?;
     Ok(Json(response))
 }

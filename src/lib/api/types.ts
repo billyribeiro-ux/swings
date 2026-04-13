@@ -169,6 +169,9 @@ export interface BlogPostResponse {
 	excerpt: string | null;
 	featured_image_url: string | null;
 	status: PostStatus;
+	/** Status before the post was moved to trash (used when restoring). */
+	pre_trash_status?: PostStatus | null;
+	trashed_at?: string | null;
 	visibility: string;
 	is_password_protected: boolean;
 	format: string;

@@ -42,7 +42,13 @@
 		bulkActionValue = '';
 
 		if (action === 'delete') {
-			if (!confirm(`Permanently delete ${selectedIds.length} post(s)?`)) return;
+			if (statusFilter !== 'trash') {
+				alert(
+					'Permanent deletion only applies to posts in the Trash. Open the Trash tab, select posts, then choose Delete permanently.'
+				);
+				return;
+			}
+			if (!confirm(`Permanently delete ${selectedIds.length} post(s)? This cannot be undone.`)) return;
 			await Promise.allSettled(selectedIds.map((id) => api.delete(`/api/admin/blog/posts/${id}`)));
 		} else {
 			const status = action === 'trash' ? 'trash' : action === 'publish' ? 'published' : 'draft';
@@ -114,7 +120,7 @@
 
 	async function restorePost(id: string) {
 		try {
-			await api.put(`/api/admin/blog/posts/${id}/status`, { status: 'draft' });
+			await api.post(`/api/admin/blog/posts/${id}/restore`);
 			loadPosts();
 		} catch (e) {
 			console.error('Failed to restore post', e);
@@ -312,14 +318,17 @@
 					<div class="post-card__actions">
 						<a href="/admin/blog/{post.id}" class="post-card__btn post-card__btn--edit">Edit</a>
 						{#if post.status === 'trash'}
+							<button class="post-card__btn post-card__btn--edit" onclick={() => restorePost(post.id)}
+								>Restore</button
+							>
 							<button
 								class="post-card__btn post-card__btn--delete"
-								onclick={() => hardDelete(post.id)}>Delete</button
+								onclick={() => hardDelete(post.id)}>Delete permanently</button
 							>
 						{:else}
 							<button
 								class="post-card__btn post-card__btn--delete"
-								onclick={() => deletePost(post.id)}>Trash</button
+								onclick={() => deletePost(post.id)}>Move to trash</button
 							>
 						{/if}
 					</div>
@@ -389,8 +398,9 @@
 								>
 								{#if post.status === 'trash'}
 									<button class="action-btn" onclick={() => restorePost(post.id)}>Restore</button>
-									<button class="action-btn action-btn--danger" onclick={() => hardDelete(post.id)}
-										>Delete</button
+									<button
+										class="action-btn action-btn--danger"
+										onclick={() => hardDelete(post.id)}>Delete permanently</button
 									>
 								{:else}
 									<button class="action-btn action-btn--danger" onclick={() => deletePost(post.id)}

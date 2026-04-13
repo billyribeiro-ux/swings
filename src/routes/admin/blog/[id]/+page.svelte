@@ -47,7 +47,9 @@
 	<div class="editor-error">{error}</div>
 {:else if postData}
 	<svelte:boundary>
-		<PostEditor mode="edit" post={postData} onSave={updatePost} />
+		{#key postData.updated_at}
+			<PostEditor mode="edit" post={postData} onSave={updatePost} onRestored={loadPost} />
+		{/key}
 		{#snippet failed(err, reset)}
 			<div class="editor-error">
 				<p>The editor crashed unexpectedly.</p>

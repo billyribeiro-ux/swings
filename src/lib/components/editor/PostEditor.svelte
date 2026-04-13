@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
+	import { goto } from '$app/navigation';
 	import { api } from '$lib/api/client';
 	import type {
 		BlogPostResponse,
@@ -38,9 +39,11 @@
 		post?: BlogPostResponse | null;
 		onSave: (payload: CreatePostPayload | UpdatePostPayload) => Promise<BlogPostResponse>;
 		onSaved?: (post: BlogPostResponse) => void;
+		/** Called after a successful restore so the parent can reload the post. */
+		onRestored?: () => void | Promise<void>;
 	}
 
-	let { mode, post = null, onSave, onSaved }: Props = $props();
+	let { mode, post = null, onSave, onSaved, onRestored }: Props = $props();
 
 	// Snapshot initial post value via `untrack` so this read is not registered
 	// as a reactive dependency — `$state` initialisers below should reflect the
@@ -133,6 +136,9 @@
 	let mediaInsertTarget: 'editor' | 'featured' = $state('editor');
 	let sidebarOpen = $state(true);
 	let autosaveTimer: ReturnType<typeof setTimeout> | undefined;
+	let trashing = $state(false);
+	let restoring = $state(false);
+	let deletingPermanent = $state(false);
 
 	// Editor reference
 	let editorComponent: BlogEditor | undefined = $state();
@@ -247,7 +253,7 @@
 	}
 
 	function scheduleAutosave() {
-		if (mode !== 'edit' || !post) return;
+		if (mode !== 'edit' || !post || post.status === 'trash') return;
 		autosaveStatus = 'pending';
 		clearTimeout(autosaveTimer);
 		autosaveTimer = setTimeout(async () => {
@@ -400,6 +406,65 @@
 		}
 	}
 
+	async function moveToTrash() {
+		if (!post || post.status === 'trash') return;
+		if (
+			!confirm(
+				'Move this post to the Trash? You can restore it later from Blog → Trash, or delete it permanently from there.'
+			)
+		)
+			return;
+		trashing = true;
+		saveMessage = '';
+		try {
+			await api.put(`/api/admin/blog/posts/${post.id}/status`, { status: 'trash' });
+			await goto('/admin/blog');
+		} catch (e) {
+			saveMessage = 'Could not move to trash';
+			console.error(e);
+		} finally {
+			trashing = false;
+		}
+	}
+
+	async function restoreFromTrash() {
+		if (!post || post.status !== 'trash') return;
+		restoring = true;
+		saveMessage = '';
+		try {
+			await api.post<BlogPostResponse>(`/api/admin/blog/posts/${post.id}/restore`);
+			saveMessage = 'Restored from trash';
+			await onRestored?.();
+			setTimeout(() => (saveMessage = ''), 3000);
+		} catch (e) {
+			saveMessage = 'Restore failed';
+			console.error(e);
+		} finally {
+			restoring = false;
+		}
+	}
+
+	async function deletePermanently() {
+		if (!post || post.status !== 'trash') return;
+		if (
+			!confirm(
+				'Permanently delete this post? This cannot be undone. All revisions and metadata will be removed.'
+			)
+		)
+			return;
+		deletingPermanent = true;
+		saveMessage = '';
+		try {
+			await api.delete(`/api/admin/blog/posts/${post.id}`);
+			await goto('/admin/blog');
+		} catch (e) {
+			saveMessage = 'Delete failed';
+			console.error(e);
+		} finally {
+			deletingPermanent = false;
+		}
+	}
+
 	async function restoreRevision(revId: string) {
 		if (
 			!post ||
@@ -433,6 +498,44 @@
 				<span>Back to posts</span>
 			</a>
 		</div>
+
+		{#if mode === 'edit' && post?.status === 'trash'}
+			<div class="post-editor__trash-banner" role="status">
+				<div class="post-editor__trash-banner__text">
+					<p class="post-editor__trash-banner__title">This post is in the Trash</p>
+					<p class="post-editor__trash-banner__hint">
+						Restore it to continue editing and publishing, or delete it permanently. Trashed posts are
+						not shown on the public site.
+					</p>
+					{#if post.pre_trash_status}
+						<p class="post-editor__trash-banner__meta">
+							Before trash, status was <strong>{post.pre_trash_status.replace(/_/g, ' ')}</strong>
+							{#if post.trashed_at}
+								· moved {new Date(post.trashed_at).toLocaleString()}
+							{/if}
+						</p>
+					{/if}
+				</div>
+				<div class="post-editor__trash-banner__actions">
+					<button
+						type="button"
+						class="post-editor__trash-restore"
+						onclick={restoreFromTrash}
+						disabled={restoring || deletingPermanent}
+					>
+						{restoring ? 'Restoring…' : 'Restore'}
+					</button>
+					<button
+						type="button"
+						class="post-editor__trash-delete"
+						onclick={deletePermanently}
+						disabled={restoring || deletingPermanent}
+					>
+						{deletingPermanent ? 'Deleting…' : 'Delete permanently'}
+					</button>
+				</div>
+			</div>
+		{/if}
 
 		<!-- Title -->
 		<input
@@ -504,23 +607,45 @@
 				<h3 class="sidebar-section__title">Publish</h3>
 				<div class="sidebar-section__content">
 					<div class="publish-actions">
-						<button
-							class="publish-btn publish-btn--draft"
-							onclick={() => handleSave('draft')}
-							disabled={saving}
-						>
-							<FloppyDisk size={16} weight="bold" />
-							<span>Save Draft</span>
-						</button>
-						<button
-							class="publish-btn publish-btn--publish"
-							onclick={() => handleSave('published')}
-							disabled={saving}
-						>
-							<PaperPlane size={16} weight="bold" />
-							<span>{mode === 'edit' && post?.status === 'published' ? 'Update' : 'Publish'}</span>
-						</button>
+						{#if post?.status === 'trash'}
+							<button
+								class="publish-btn publish-btn--draft publish-btn--full"
+								onclick={() => handleSave()}
+								disabled={saving}
+							>
+								<FloppyDisk size={16} weight="bold" />
+								<span>Save changes</span>
+							</button>
+						{:else}
+							<button
+								class="publish-btn publish-btn--draft"
+								onclick={() => handleSave('draft')}
+								disabled={saving}
+							>
+								<FloppyDisk size={16} weight="bold" />
+								<span>Save Draft</span>
+							</button>
+							<button
+								class="publish-btn publish-btn--publish"
+								onclick={() => handleSave('published')}
+								disabled={saving}
+							>
+								<PaperPlane size={16} weight="bold" />
+								<span>{mode === 'edit' && post?.status === 'published' ? 'Update' : 'Publish'}</span>
+							</button>
+						{/if}
 					</div>
+					{#if mode === 'edit' && post && post.status !== 'trash'}
+						<button
+							type="button"
+							class="post-editor__move-trash"
+							onclick={moveToTrash}
+							disabled={trashing || saving}
+						>
+							<Trash size={16} weight="bold" />
+							<span>{trashing ? 'Moving…' : 'Move to trash'}</span>
+						</button>
+					{/if}
 				</div>
 			</div>
 
@@ -562,12 +687,16 @@
 							name="post-status"
 							class="sidebar-field__select"
 							bind:value={status}
+							disabled={post?.status === 'trash'}
 						>
 							<option value="draft">Draft</option>
 							<option value="pending_review">Pending Review</option>
 							<option value="published">Published</option>
 							<option value="private">Private</option>
 							<option value="scheduled">Scheduled</option>
+							{#if post?.status === 'trash'}
+								<option value="trash">In trash</option>
+							{/if}
 						</select>
 					</label>
 
@@ -1207,6 +1336,113 @@
 
 	.publish-btn--publish:hover:not(:disabled) {
 		opacity: 0.9;
+	}
+
+	.publish-btn--full {
+		flex: 1 1 100%;
+	}
+
+	.post-editor__move-trash {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.35rem;
+		width: 100%;
+		margin-top: 0.5rem;
+		padding: 0.45rem 0.5rem;
+		border: 1px solid rgba(239, 68, 68, 0.35);
+		border-radius: 0.375rem;
+		background: transparent;
+		color: #f87171;
+		font-size: 0.75rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.post-editor__move-trash:hover:not(:disabled) {
+		background: rgba(239, 68, 68, 0.1);
+	}
+
+	.post-editor__move-trash:disabled {
+		opacity: 0.45;
+		cursor: not-allowed;
+	}
+
+	.post-editor__trash-banner {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 1rem 1.1rem;
+		border-radius: 0.5rem;
+		border: 1px solid rgba(239, 68, 68, 0.35);
+		background: rgba(239, 68, 68, 0.08);
+	}
+
+	.post-editor__trash-banner__title {
+		margin: 0 0 0.35rem;
+		font-size: 0.95rem;
+		font-weight: 700;
+		color: #fecaca;
+	}
+
+	.post-editor__trash-banner__hint {
+		margin: 0;
+		font-size: 0.8rem;
+		color: var(--color-grey-300, #cbd5e1);
+		line-height: 1.45;
+		max-width: 40rem;
+	}
+
+	.post-editor__trash-banner__meta {
+		margin: 0.5rem 0 0;
+		font-size: 0.72rem;
+		color: var(--color-grey-400, #94a3b8);
+		text-transform: capitalize;
+	}
+
+	.post-editor__trash-banner__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		flex-shrink: 0;
+	}
+
+	.post-editor__trash-restore {
+		padding: 0.45rem 0.9rem;
+		border: none;
+		border-radius: 0.375rem;
+		background: var(--color-teal, #0fa4af);
+		color: #fff;
+		font-size: 0.8rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.post-editor__trash-restore:hover:not(:disabled) {
+		opacity: 0.92;
+	}
+
+	.post-editor__trash-delete {
+		padding: 0.45rem 0.9rem;
+		border: 1px solid rgba(239, 68, 68, 0.5);
+		border-radius: 0.375rem;
+		background: rgba(239, 68, 68, 0.15);
+		color: #fecaca;
+		font-size: 0.8rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.post-editor__trash-delete:hover:not(:disabled) {
+		background: rgba(239, 68, 68, 0.25);
+	}
+
+	.post-editor__trash-restore:disabled,
+	.post-editor__trash-delete:disabled {
+		opacity: 0.45;
+		cursor: not-allowed;
 	}
 
 	/* Fields */

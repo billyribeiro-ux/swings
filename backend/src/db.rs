@@ -721,6 +721,13 @@ pub async fn update_blog_post(
     } else {
         existing.published_at
     };
+    let (pre_trash_status, trashed_at): (Option<PostStatus>, Option<DateTime<Utc>>) = match &status {
+        PostStatus::Trash if existing.status != PostStatus::Trash => {
+            (Some(existing.status.clone()), Some(Utc::now()))
+        }
+        PostStatus::Trash => (existing.pre_trash_status, existing.trashed_at),
+        _ => (None, None),
+    };
     let new_password_hash = match password_hash_update {
         Some(v) => v,
         None => existing.password_hash.clone(),
@@ -735,8 +742,9 @@ pub async fn update_blog_post(
             format = $10, is_sticky = $11, allow_comments = $12, meta_title = $13,
             meta_description = $14, canonical_url = $15, og_image_url = $16,
             reading_time_minutes = $17, word_count = $18, scheduled_at = $19, published_at = $20,
-            author_id = $21, updated_at = NOW()
-        WHERE id = $22 RETURNING *
+            pre_trash_status = $21, trashed_at = $22,
+            author_id = $23, updated_at = NOW()
+        WHERE id = $24 RETURNING *
         "#,
     )
     .bind(title)
@@ -759,6 +767,8 @@ pub async fn update_blog_post(
     .bind(wc)
     .bind(req.scheduled_at.or(existing.scheduled_at))
     .bind(published_at)
+    .bind(pre_trash_status)
+    .bind(trashed_at)
     .bind(new_author_id)
     .bind(post_id)
     .fetch_one(pool)
@@ -797,11 +807,14 @@ pub async fn autosave_blog_post(
     .await
 }
 
+/// Changes status for posts that are not in the trash. Does not handle `trash` or restore — use
+/// [`move_post_to_trash`] / [`restore_post_from_trash`] from handlers instead.
 pub async fn update_post_status(
     pool: &PgPool,
     post_id: Uuid,
     status: &PostStatus,
 ) -> Result<BlogPost, sqlx::Error> {
+    debug_assert!(*status != PostStatus::Trash);
     let published_at_expr = if *status == PostStatus::Published {
         "COALESCE(published_at, NOW())"
     } else {
@@ -815,6 +828,60 @@ pub async fn update_post_status(
 
     sqlx::query_as::<_, BlogPost>(&q)
         .bind(status)
+        .bind(post_id)
+        .fetch_one(pool)
+        .await
+}
+
+pub async fn move_post_to_trash(pool: &PgPool, post_id: Uuid) -> Result<BlogPost, sqlx::Error> {
+    let existing = sqlx::query_as::<_, BlogPost>("SELECT * FROM blog_posts WHERE id = $1")
+        .bind(post_id)
+        .fetch_one(pool)
+        .await?;
+    if existing.status == PostStatus::Trash {
+        return Ok(existing);
+    }
+    let prev = existing.status.clone();
+    sqlx::query_as::<_, BlogPost>(
+        r#"
+        UPDATE blog_posts SET
+            status = 'trash',
+            pre_trash_status = $1,
+            trashed_at = NOW(),
+            updated_at = NOW()
+        WHERE id = $2
+        RETURNING *
+        "#,
+    )
+    .bind(prev)
+    .bind(post_id)
+    .fetch_one(pool)
+    .await
+}
+
+pub async fn restore_post_from_trash(pool: &PgPool, post_id: Uuid) -> Result<BlogPost, sqlx::Error> {
+    let existing = sqlx::query_as::<_, BlogPost>("SELECT * FROM blog_posts WHERE id = $1")
+        .bind(post_id)
+        .fetch_one(pool)
+        .await?;
+    if existing.status != PostStatus::Trash {
+        return Ok(existing);
+    }
+    let new_status = existing
+        .pre_trash_status
+        .clone()
+        .unwrap_or(PostStatus::Draft);
+    let published_at_expr = if new_status == PostStatus::Published {
+        "COALESCE(published_at, NOW())"
+    } else {
+        "published_at"
+    };
+    let q = format!(
+        "UPDATE blog_posts SET status = $1, pre_trash_status = NULL, trashed_at = NULL, published_at = {}, updated_at = NOW() WHERE id = $2 RETURNING *",
+        published_at_expr
+    );
+    sqlx::query_as::<_, BlogPost>(&q)
+        .bind(new_status)
         .bind(post_id)
         .fetch_one(pool)
         .await
@@ -853,6 +920,9 @@ pub async fn list_blog_posts_admin(
     search: Option<&str>,
 ) -> Result<(Vec<BlogPost>, i64), sqlx::Error> {
     let mut where_clauses = vec!["1=1".to_string()];
+    if status.is_none() {
+        where_clauses.push("status <> 'trash'".to_string());
+    }
     if status.is_some() { where_clauses.push("status = $3".to_string()); }
     if author_id.is_some() { where_clauses.push("author_id = $4".to_string()); }
     if search.is_some() { where_clauses.push("(title ILIKE $5 OR content ILIKE $5)".to_string()); }
