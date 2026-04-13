@@ -24,6 +24,14 @@
 	import ChatCircleDots from 'phosphor-svelte/lib/ChatCircleDots';
 	import Gear from 'phosphor-svelte/lib/Gear';
 	import CommandPalette from '$lib/components/admin/CommandPalette.svelte';
+	import {
+		blogAdminItems,
+		courseAdminItems,
+		couponAdminItems,
+		popupAdminItems,
+		publicAdminRoutes,
+		subscriptionAdminItems
+	} from '$lib/components/admin/admin-nav';
 
 	let { children } = $props();
 
@@ -78,8 +86,7 @@
 		}
 	});
 
-	const publicRoutes = ['/admin/forgot-password', '/admin/reset-password'];
-	const isPublicRoute = $derived(publicRoutes.some((r) => page.url.pathname.startsWith(r)));
+	const isPublicRoute = $derived(publicAdminRoutes.some((r) => page.url.pathname.startsWith(r)));
 
 	/** True only after /api/auth/me succeeds — avoids child pages firing admin APIs with stale localStorage JWTs. */
 	let adminSessionReady = $state(false);
@@ -161,33 +168,6 @@
 		{ href: '/admin/author', label: 'Author Profile', icon: UserCircle }
 	];
 
-	const blogItems = [
-		{ href: '/admin/blog', label: 'All Posts' },
-		{ href: '/admin/blog/new', label: 'New Post' },
-		{ href: '/admin/blog/categories', label: 'Categories' },
-		{ href: '/admin/blog/tags', label: 'Tags' },
-		{ href: '/admin/blog/media', label: 'Media' }
-	];
-
-	const courseItems = [
-		{ href: '/admin/courses', label: 'All Courses' },
-		{ href: '/admin/courses/new', label: 'New Course' }
-	];
-
-	const subscriptionItems = [
-		{ href: '/admin/subscriptions', label: 'Overview' },
-		{ href: '/admin/subscriptions/plans', label: 'Pricing Plans' }
-	];
-
-	const couponItems = [
-		{ href: '/admin/coupons', label: 'All Coupons' },
-		{ href: '/admin/coupons/new', label: 'Create Coupon' }
-	];
-
-	const popupItems = [
-		{ href: '/admin/popups', label: 'All Popups' },
-		{ href: '/admin/popups/new', label: 'Create Popup' }
-	];
 </script>
 
 {#if isPublicRoute}
@@ -339,7 +319,7 @@
 					</button>
 					{#if blogSubmenuOpen}
 						<div class="admin__nav-submenu">
-							{#each blogItems as item (item.href)}
+							{#each blogAdminItems as item (item.href)}
 								<a
 									href={item.href}
 									class="admin__nav-sublink"
@@ -369,7 +349,7 @@
 					</button>
 					{#if courseSubmenuOpen}
 						<div class="admin__nav-submenu">
-							{#each courseItems as item (item.href)}
+							{#each courseAdminItems as item (item.href)}
 								<a
 									href={item.href}
 									class="admin__nav-sublink"
@@ -399,7 +379,7 @@
 					</button>
 					{#if subscriptionSubmenuOpen}
 						<div class="admin__nav-submenu">
-							{#each subscriptionItems as item (item.href)}
+							{#each subscriptionAdminItems as item (item.href)}
 								<a
 									href={item.href}
 									class="admin__nav-sublink"
@@ -429,7 +409,7 @@
 					</button>
 					{#if couponSubmenuOpen}
 						<div class="admin__nav-submenu">
-							{#each couponItems as item (item.href)}
+							{#each couponAdminItems as item (item.href)}
 								<a
 									href={item.href}
 									class="admin__nav-sublink"
@@ -459,7 +439,7 @@
 					</button>
 					{#if popupSubmenuOpen}
 						<div class="admin__nav-submenu">
-							{#each popupItems as item (item.href)}
+							{#each popupAdminItems as item (item.href)}
 								<a
 									href={item.href}
 									class="admin__nav-sublink"

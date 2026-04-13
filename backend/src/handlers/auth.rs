@@ -70,8 +70,7 @@ async fn login(
         .await?
         .ok_or(AppError::Unauthorized)?;
 
-    let parsed_hash =
-        PasswordHash::new(&user.password_hash).map_err(|_| AppError::Unauthorized)?;
+    let parsed_hash = PasswordHash::new(&user.password_hash).map_err(|_| AppError::Unauthorized)?;
 
     Argon2::default()
         .verify_password(req.password.as_bytes(), &parsed_hash)
@@ -119,7 +118,10 @@ async fn me(State(state): State<AppState>, auth: AuthUser) -> AppResult<Json<Use
     Ok(Json(user.into()))
 }
 
-async fn logout(State(state): State<AppState>, auth: AuthUser) -> AppResult<Json<serde_json::Value>> {
+async fn logout(
+    State(state): State<AppState>,
+    auth: AuthUser,
+) -> AppResult<Json<serde_json::Value>> {
     db::delete_user_refresh_tokens(&state.db, auth.user_id).await?;
     Ok(Json(serde_json::json!({ "message": "Logged out" })))
 }
@@ -144,11 +146,18 @@ async fn forgot_password(
         db::create_password_reset_token(&state.db, user.id, &token_hash, expires_at).await?;
 
         // Build reset URL
-        let reset_url = format!("{}/admin/reset-password?token={}", state.config.frontend_url, raw_token);
+        let reset_url = format!(
+            "{}/admin/reset-password?token={}",
+            state.config.frontend_url, raw_token
+        );
 
         // TODO: Send email with reset_url in production
         // For now, log the reset link for development
-        tracing::info!("Password reset requested for {}. Reset URL: {}", req.email, reset_url);
+        tracing::info!(
+            "Password reset requested for {}. Reset URL: {}",
+            req.email,
+            reset_url
+        );
     }
 
     Ok(Json(serde_json::json!({
@@ -167,7 +176,9 @@ async fn reset_password(
 
     let reset_token = db::find_password_reset_token(&state.db, &token_hash)
         .await?
-        .ok_or(AppError::BadRequest("Invalid or expired reset token".to_string()))?;
+        .ok_or(AppError::BadRequest(
+            "Invalid or expired reset token".to_string(),
+        ))?;
 
     // Hash new password
     let salt = SaltString::generate(&mut OsRng);

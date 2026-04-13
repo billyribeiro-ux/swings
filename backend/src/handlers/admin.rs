@@ -12,8 +12,7 @@ use crate::{
     error::{AppError, AppResult},
     extractors::AdminUser,
     models::*,
-    stripe_api,
-    AppState,
+    stripe_api, AppState,
 };
 
 pub fn router() -> Router<AppState> {
@@ -24,10 +23,22 @@ pub fn router() -> Router<AppState> {
         // Members
         .route("/members", get(list_members))
         .route("/members/{id}", get(get_member))
-        .route("/members/{id}/subscription", get(get_member_subscription_admin))
-        .route("/members/{id}/billing-portal", post(admin_member_billing_portal))
-        .route("/members/{id}/subscription/cancel", post(admin_member_subscription_cancel))
-        .route("/members/{id}/subscription/resume", post(admin_member_subscription_resume))
+        .route(
+            "/members/{id}/subscription",
+            get(get_member_subscription_admin),
+        )
+        .route(
+            "/members/{id}/billing-portal",
+            post(admin_member_billing_portal),
+        )
+        .route(
+            "/members/{id}/subscription/cancel",
+            post(admin_member_subscription_cancel),
+        )
+        .route(
+            "/members/{id}/subscription/resume",
+            post(admin_member_subscription_resume),
+        )
         .route("/members/{id}/role", put(update_member_role))
         .route("/members/{id}", delete(delete_member))
         // Watchlists
@@ -74,12 +85,10 @@ async fn analytics_summary(
     _admin: AdminUser,
     Query(q): Query<AnalyticsSummaryQuery>,
 ) -> AppResult<Json<AnalyticsSummary>> {
-    let from_date = NaiveDate::parse_from_str(&q.from, "%Y-%m-%d").map_err(|_| {
-        AppError::BadRequest("invalid from date (use YYYY-MM-DD)".to_string())
-    })?;
-    let to_date = NaiveDate::parse_from_str(&q.to, "%Y-%m-%d").map_err(|_| {
-        AppError::BadRequest("invalid to date (use YYYY-MM-DD)".to_string())
-    })?;
+    let from_date = NaiveDate::parse_from_str(&q.from, "%Y-%m-%d")
+        .map_err(|_| AppError::BadRequest("invalid from date (use YYYY-MM-DD)".to_string()))?;
+    let to_date = NaiveDate::parse_from_str(&q.to, "%Y-%m-%d")
+        .map_err(|_| AppError::BadRequest("invalid to date (use YYYY-MM-DD)".to_string()))?;
     if to_date < from_date {
         return Err(AppError::BadRequest(
             "to must be on or after from".to_string(),
@@ -193,9 +202,7 @@ async fn get_member_subscription_admin(
     let sub = db::find_subscription_by_user(&state.db, user_id).await?;
     let is_active = sub
         .as_ref()
-        .map(|s| {
-            s.status == SubscriptionStatus::Active || s.status == SubscriptionStatus::Trialing
-        })
+        .map(|s| s.status == SubscriptionStatus::Active || s.status == SubscriptionStatus::Trialing)
         .unwrap_or(false);
 
     Ok(Json(SubscriptionStatusResponse {
@@ -246,7 +253,9 @@ async fn admin_member_subscription_cancel(
     stripe_api::set_subscription_cancel_at_period_end(&state, &sub.stripe_subscription_id, true)
         .await?;
 
-    Ok(Json(serde_json::json!({ "ok": true, "cancel_at_period_end": true })))
+    Ok(Json(
+        serde_json::json!({ "ok": true, "cancel_at_period_end": true }),
+    ))
 }
 
 async fn admin_member_subscription_resume(
@@ -265,7 +274,9 @@ async fn admin_member_subscription_resume(
     stripe_api::set_subscription_cancel_at_period_end(&state, &sub.stripe_subscription_id, false)
         .await?;
 
-    Ok(Json(serde_json::json!({ "ok": true, "cancel_at_period_end": false })))
+    Ok(Json(
+        serde_json::json!({ "ok": true, "cancel_at_period_end": false }),
+    ))
 }
 
 #[derive(serde::Deserialize)]

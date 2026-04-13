@@ -180,7 +180,7 @@
 		});
 
 		return () => {
-			d3.select(container).select('svg').remove();
+			if (container) d3.select(container).select('svg').remove();
 		};
 	});
 </script>

@@ -527,6 +527,15 @@ export interface PricingChangeLog {
 	changed_at: string;
 }
 
+export interface PricingPlanPriceLogEntry {
+	id: string;
+	plan_name: string;
+	old_amount_cents: number;
+	new_amount_cents: number;
+	changed_at: string;
+	changed_by: string;
+}
+
 // ── Coupons ───────────────────────────────────────────────────────────
 
 export type DiscountType = 'percentage' | 'fixed_amount' | 'free_trial';

@@ -12,7 +12,7 @@ use validator::Validate;
 
 use crate::{
     error::{AppError, AppResult},
-    extractors::{AuthUser, AdminUser},
+    extractors::{AdminUser, AuthUser},
     models::*,
     AppState,
 };
@@ -132,13 +132,12 @@ async fn validate_coupon_inner(
     user_id: Option<Uuid>,
 ) -> Result<Coupon, String> {
     // 1. Code exists and is_active
-    let coupon: Option<Coupon> = sqlx::query_as(
-        "SELECT * FROM coupons WHERE UPPER(code) = UPPER($1)"
-    )
-    .bind(code)
-    .fetch_optional(pool)
-    .await
-    .map_err(|e| format!("Database error: {e}"))?;
+    let coupon: Option<Coupon> =
+        sqlx::query_as("SELECT * FROM coupons WHERE UPPER(code) = UPPER($1)")
+            .bind(code)
+            .fetch_optional(pool)
+            .await
+            .map_err(|e| format!("Database error: {e}"))?;
 
     let coupon = coupon.ok_or_else(|| "Coupon code not found".to_string())?;
 
@@ -169,7 +168,7 @@ async fn validate_coupon_inner(
     // 4. Check per-user limit
     if let Some(uid) = user_id {
         let user_usage_count: i64 = sqlx::query_scalar(
-            "SELECT COUNT(*) FROM coupon_usages WHERE coupon_id = $1 AND user_id = $2"
+            "SELECT COUNT(*) FROM coupon_usages WHERE coupon_id = $1 AND user_id = $2",
         )
         .bind(coupon.id)
         .bind(uid)
@@ -178,7 +177,9 @@ async fn validate_coupon_inner(
         .map_err(|e| format!("Database error: {e}"))?;
 
         if user_usage_count >= coupon.per_user_limit as i64 {
-            return Err("You have already used this coupon the maximum number of times".to_string());
+            return Err(
+                "You have already used this coupon the maximum number of times".to_string(),
+            );
         }
     }
 
@@ -187,14 +188,18 @@ async fn validate_coupon_inner(
         "all" => { /* applies to everything */ }
         "plan" => {
             if let Some(pid) = plan_id {
-                if !coupon.applicable_plan_ids.is_empty() && !coupon.applicable_plan_ids.contains(&pid) {
+                if !coupon.applicable_plan_ids.is_empty()
+                    && !coupon.applicable_plan_ids.contains(&pid)
+                {
                     return Err("Coupon does not apply to this plan".to_string());
                 }
             }
         }
         "course" => {
             if let Some(cid) = course_id {
-                if !coupon.applicable_course_ids.is_empty() && !coupon.applicable_course_ids.contains(&cid) {
+                if !coupon.applicable_course_ids.is_empty()
+                    && !coupon.applicable_course_ids.contains(&cid)
+                {
                     return Err("Coupon does not apply to this course".to_string());
                 }
             }
@@ -368,15 +373,17 @@ async fn admin_create_coupon(
     };
 
     // Check for duplicate code
-    let existing: Option<(Uuid,)> = sqlx::query_as(
-        "SELECT id FROM coupons WHERE UPPER(code) = UPPER($1)"
-    )
-    .bind(&code)
-    .fetch_optional(&state.db)
-    .await?;
+    let existing: Option<(Uuid,)> =
+        sqlx::query_as("SELECT id FROM coupons WHERE UPPER(code) = UPPER($1)")
+            .bind(&code)
+            .fetch_optional(&state.db)
+            .await?;
 
     if existing.is_some() {
-        return Err(AppError::Conflict(format!("Coupon code '{}' already exists", code)));
+        return Err(AppError::Conflict(format!(
+            "Coupon code '{}' already exists",
+            code
+        )));
     }
 
     let coupon: Coupon = sqlx::query_as(
@@ -428,13 +435,11 @@ async fn admin_get_coupon(
     _admin: AdminUser,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<CouponWithStats>> {
-    let coupon: Coupon = sqlx::query_as(
-        "SELECT * FROM coupons WHERE id = $1"
-    )
-    .bind(id)
-    .fetch_optional(&state.db)
-    .await?
-    .ok_or(AppError::NotFound("Coupon not found".to_string()))?;
+    let coupon: Coupon = sqlx::query_as("SELECT * FROM coupons WHERE id = $1")
+        .bind(id)
+        .fetch_optional(&state.db)
+        .await?
+        .ok_or(AppError::NotFound("Coupon not found".to_string()))?;
 
     let stats: (i64, Option<i64>) = sqlx::query_as(
         r#"
@@ -460,31 +465,36 @@ async fn admin_update_coupon(
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateCouponRequest>,
 ) -> AppResult<Json<Coupon>> {
-    let existing: Coupon = sqlx::query_as(
-        "SELECT * FROM coupons WHERE id = $1"
-    )
-    .bind(id)
-    .fetch_optional(&state.db)
-    .await?
-    .ok_or(AppError::NotFound("Coupon not found".to_string()))?;
+    let existing: Coupon = sqlx::query_as("SELECT * FROM coupons WHERE id = $1")
+        .bind(id)
+        .fetch_optional(&state.db)
+        .await?
+        .ok_or(AppError::NotFound("Coupon not found".to_string()))?;
 
     let discount_type = req.discount_type.unwrap_or(existing.discount_type);
-    let discount_value = req.discount_value
+    let discount_value = req
+        .discount_value
         .map(|v| rust_decimal::Decimal::from_f64_retain(v).unwrap_or_default())
         .unwrap_or(existing.discount_value);
     let description = req.description.or(existing.description);
     let min_purchase_cents = req.min_purchase_cents.or(existing.min_purchase_cents);
     let max_discount_cents = req.max_discount_cents.or(existing.max_discount_cents);
     let applies_to = req.applies_to.unwrap_or(existing.applies_to);
-    let applicable_plan_ids = req.applicable_plan_ids.unwrap_or(existing.applicable_plan_ids);
-    let applicable_course_ids = req.applicable_course_ids.unwrap_or(existing.applicable_course_ids);
+    let applicable_plan_ids = req
+        .applicable_plan_ids
+        .unwrap_or(existing.applicable_plan_ids);
+    let applicable_course_ids = req
+        .applicable_course_ids
+        .unwrap_or(existing.applicable_course_ids);
     let usage_limit = req.usage_limit.or(existing.usage_limit);
     let per_user_limit = req.per_user_limit.unwrap_or(existing.per_user_limit);
     let starts_at = req.starts_at.or(existing.starts_at);
     let expires_at = req.expires_at.or(existing.expires_at);
     let is_active = req.is_active.unwrap_or(existing.is_active);
     let stackable = req.stackable.unwrap_or(existing.stackable);
-    let first_purchase_only = req.first_purchase_only.unwrap_or(existing.first_purchase_only);
+    let first_purchase_only = req
+        .first_purchase_only
+        .unwrap_or(existing.first_purchase_only);
 
     let coupon: Coupon = sqlx::query_as(
         r#"
@@ -580,8 +590,8 @@ async fn admin_bulk_create_coupons(
         ));
     }
 
-    let discount_value = rust_decimal::Decimal::from_f64_retain(req.discount_value)
-        .unwrap_or_default();
+    let discount_value =
+        rust_decimal::Decimal::from_f64_retain(req.discount_value).unwrap_or_default();
 
     let mut created: Vec<Coupon> = Vec::with_capacity(req.count as usize);
 
@@ -631,12 +641,10 @@ async fn admin_list_coupon_usages(
     Query(params): Query<PaginationParams>,
 ) -> AppResult<Json<PaginatedResponse<CouponUsageWithUser>>> {
     // Verify coupon exists
-    let exists: Option<(Uuid,)> = sqlx::query_as(
-        "SELECT id FROM coupons WHERE id = $1"
-    )
-    .bind(id)
-    .fetch_optional(&state.db)
-    .await?;
+    let exists: Option<(Uuid,)> = sqlx::query_as("SELECT id FROM coupons WHERE id = $1")
+        .bind(id)
+        .fetch_optional(&state.db)
+        .await?;
 
     if exists.is_none() {
         return Err(AppError::NotFound("Coupon not found".to_string()));
@@ -646,7 +654,19 @@ async fn admin_list_coupon_usages(
     let offset = params.offset();
     let page = params.page.unwrap_or(1).max(1);
 
-    let rows = sqlx::query_as::<_, (Uuid, Uuid, Uuid, Option<String>, Option<String>, Option<Uuid>, i32, chrono::DateTime<Utc>)>(
+    let rows = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            Uuid,
+            Uuid,
+            Option<String>,
+            Option<String>,
+            Option<Uuid>,
+            i32,
+            chrono::DateTime<Utc>,
+        ),
+    >(
         r#"
         SELECT
             cu.id,
@@ -684,12 +704,10 @@ async fn admin_list_coupon_usages(
         })
         .collect();
 
-    let total: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM coupon_usages WHERE coupon_id = $1"
-    )
-    .bind(id)
-    .fetch_one(&state.db)
-    .await?;
+    let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM coupon_usages WHERE coupon_id = $1")
+        .bind(id)
+        .fetch_one(&state.db)
+        .await?;
 
     let total_pages = (total as f64 / per_page as f64).ceil() as i64;
 
@@ -768,12 +786,11 @@ async fn public_apply_coupon(
 
     // Check first_purchase_only
     if coupon.first_purchase_only {
-        let has_prior: i64 = sqlx::query_scalar(
-            "SELECT COUNT(*) FROM coupon_usages WHERE user_id = $1"
-        )
-        .bind(auth.user_id)
-        .fetch_one(&state.db)
-        .await?;
+        let has_prior: i64 =
+            sqlx::query_scalar("SELECT COUNT(*) FROM coupon_usages WHERE user_id = $1")
+                .bind(auth.user_id)
+                .fetch_one(&state.db)
+                .await?;
 
         if has_prior > 0 {
             return Err(AppError::BadRequest(
@@ -803,10 +820,12 @@ async fn public_apply_coupon(
     .fetch_one(&mut *tx)
     .await?;
 
-    sqlx::query("UPDATE coupons SET usage_count = usage_count + 1, updated_at = NOW() WHERE id = $1")
-        .bind(coupon.id)
-        .execute(&mut *tx)
-        .await?;
+    sqlx::query(
+        "UPDATE coupons SET usage_count = usage_count + 1, updated_at = NOW() WHERE id = $1",
+    )
+    .bind(coupon.id)
+    .execute(&mut *tx)
+    .await?;
 
     tx.commit().await?;
 

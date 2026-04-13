@@ -20,6 +20,11 @@
 	import BlogEditor from './BlogEditor.svelte';
 	import MediaLibrary from './MediaLibrary.svelte';
 	import {
+		buildPostPayload,
+		formatAutosaveRelative,
+		slugifyPostTitle
+	} from './post-editor-utils';
+	import {
 		ArrowLeft,
 		CaretRight,
 		CaretLeft,
@@ -220,17 +225,10 @@
 		}
 	}
 
-	function slugify(s: string): string {
-		return s
-			.toLowerCase()
-			.replace(/[^a-z0-9]+/g, '-')
-			.replace(/^-+|-+$/g, '');
-	}
-
 	function handleTitleInput(e: Event) {
 		title = (e.target as HTMLInputElement).value;
 		if (!slugManual) {
-			slug = slugify(title);
+			slug = slugifyPostTitle(title);
 		}
 	}
 
@@ -275,28 +273,28 @@
 	}
 
 	function buildPayload(): CreatePostPayload | UpdatePostPayload {
-		return {
+		return buildPostPayload({
 			title,
 			slug,
 			content,
-			content_json: contentJson || undefined,
-			excerpt: excerpt || undefined,
-			featured_image_id: featuredImageId || undefined,
+			contentJson,
+			excerpt,
+			featuredImageId,
 			status,
 			visibility,
-			is_sticky: isSticky,
-			allow_comments: allowComments,
-			meta_title: metaTitle || undefined,
-			meta_description: metaDescription || undefined,
-			canonical_url: canonicalUrl || undefined,
-			og_image_url: ogImageUrl || undefined,
-			category_ids: selectedCategoryIds.size > 0 ? [...selectedCategoryIds] : undefined,
-			tag_ids: selectedTagIds.size > 0 ? [...selectedTagIds] : undefined,
-			scheduled_at: status === 'scheduled' ? scheduledAt || undefined : undefined,
-			post_password: visibility === 'password' ? postPassword || undefined : undefined,
-			author_id: authorId || undefined,
-			format: postFormat
-		};
+			isSticky,
+			allowComments,
+			metaTitle,
+			metaDescription,
+			canonicalUrl,
+			ogImageUrl,
+			selectedCategoryIds: [...selectedCategoryIds],
+			selectedTagIds: [...selectedTagIds],
+			scheduledAt,
+			postPassword,
+			authorId,
+			postFormat
+		});
 	}
 
 	async function handleSave(overrideStatus?: PostStatus) {
@@ -588,7 +586,7 @@
 				{:else if autosaveStatus === 'saving'}
 					<span class="autosave-dot autosave-dot--pulse"></span> Saving draft...
 				{:else if autosaveStatus === 'saved'}
-					<span class="autosave-dot autosave-dot--green"></span> Saved {lastSavedAt ? (() => { const d = Math.floor((Date.now() - lastSavedAt.getTime()) / 1000); return d < 10 ? 'just now' : d < 60 ? `${d}s ago` : `${Math.floor(d/60)} min ago`; })() : ''}
+					<span class="autosave-dot autosave-dot--green"></span> Saved {formatAutosaveRelative(lastSavedAt)}
 				{:else if autosaveStatus === 'error'}
 					<span class="autosave-dot autosave-dot--red"></span> Autosave failed
 				{/if}

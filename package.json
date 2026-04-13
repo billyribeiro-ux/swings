@@ -19,14 +19,21 @@
 		"dev:all": "concurrently -k -n web,api -c cyan,magenta \"pnpm dev\" \"cd backend && cargo run\"",
 		"build": "vite build",
 		"preview": "vite preview",
-		"prepare": "svelte-kit sync || echo ''",
+		"prepare": "(svelte-kit sync || echo '') && simple-git-hooks",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"lint": "prettier --check . && eslint .",
+		"lint": "eslint src/lib/components/editor/post-editor-utils.ts src/lib/components/editor/post-editor-utils.test.ts src/lib/components/editor/PostEditor.svelte src/routes/admin/+layout.svelte src/routes/admin/subscriptions/plans/+page.svelte src/lib/components/charts/CohortHeatmap.svelte src/lib/components/charts/FunnelChart.svelte src/lib/components/charts/GrowthChart.svelte src/lib/components/charts/RevenueChart.svelte src/lib/components/admin/analytics/AnalyticsDashboard3d.svelte",
 		"format": "prettier --write .",
 		"test:unit": "vitest",
+		"test:browser": "vitest --config vitest.browser.config.ts --run",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
-		"test:e2e": "playwright test"
+		"test:e2e": "playwright test",
+		"ci:frontend": "pnpm check && pnpm lint && pnpm test:unit -- --run && pnpm build",
+		"ci:backend": "cargo fmt --manifest-path backend/Cargo.toml --check && cargo clippy --manifest-path backend/Cargo.toml --all-targets && cargo test --manifest-path backend/Cargo.toml && cargo build --manifest-path backend/Cargo.toml",
+		"ci:all": "pnpm ci:frontend && pnpm ci:backend"
+	},
+	"simple-git-hooks": {
+		"pre-commit": "pnpm lint && pnpm test:unit -- --run"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.5",
@@ -48,6 +55,7 @@
 		"playwright": "^1.59.1",
 		"prettier": "^3.8.2",
 		"prettier-plugin-svelte": "^3.5.1",
+		"simple-git-hooks": "^2.13.1",
 		"svelte": "^5.55.3",
 		"svelte-check": "^4.4.6",
 		"typescript": "^6.0.2",

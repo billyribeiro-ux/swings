@@ -21,7 +21,9 @@ pub fn admin_router() -> Router<AppState> {
         .route("/courses", get(admin_list_courses).post(create_course))
         .route(
             "/courses/{id}",
-            get(admin_get_course).put(update_course).delete(delete_course),
+            get(admin_get_course)
+                .put(update_course)
+                .delete(delete_course),
         )
         .route("/courses/{id}/publish", post(toggle_publish))
         .route("/courses/{id}/modules", post(create_module))
@@ -135,7 +137,8 @@ async fn create_course(
     let sort_order = req.sort_order.unwrap_or(0);
     let published = req.published.unwrap_or(false);
     let estimated_duration_minutes = req.estimated_duration_minutes.unwrap_or(0);
-    let published_at: Option<chrono::DateTime<Utc>> = if published { Some(Utc::now()) } else { None };
+    let published_at: Option<chrono::DateTime<Utc>> =
+        if published { Some(Utc::now()) } else { None };
 
     let course = sqlx::query_as::<_, Course>(
         r#"
@@ -456,14 +459,12 @@ async fn create_lesson(
         .map_err(|e| AppError::Validation(e.to_string()))?;
 
     // Verify module belongs to course
-    sqlx::query_scalar::<_, Uuid>(
-        "SELECT id FROM course_modules WHERE id = $1 AND course_id = $2",
-    )
-    .bind(module_id)
-    .bind(course_id)
-    .fetch_optional(&state.db)
-    .await?
-    .ok_or(AppError::NotFound("Module not found".to_string()))?;
+    sqlx::query_scalar::<_, Uuid>("SELECT id FROM course_modules WHERE id = $1 AND course_id = $2")
+        .bind(module_id)
+        .bind(course_id)
+        .fetch_optional(&state.db)
+        .await?
+        .ok_or(AppError::NotFound("Module not found".to_string()))?;
 
     let slug = req
         .slug
@@ -573,10 +574,9 @@ async fn public_list_courses(
     let offset = params.offset();
     let page = params.page.unwrap_or(1).max(1);
 
-    let total =
-        sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM courses WHERE published = true")
-            .fetch_one(&state.db)
-            .await?;
+    let total = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM courses WHERE published = true")
+        .fetch_one(&state.db)
+        .await?;
 
     let courses = sqlx::query_as::<_, CourseListItem>(
         r#"
@@ -780,7 +780,8 @@ async fn update_lesson_progress(
 
     let completed = req.completed.unwrap_or(false);
     let progress_seconds = req.progress_seconds.unwrap_or(0);
-    let completed_at: Option<chrono::DateTime<Utc>> = if completed { Some(Utc::now()) } else { None };
+    let completed_at: Option<chrono::DateTime<Utc>> =
+        if completed { Some(Utc::now()) } else { None };
 
     let progress = sqlx::query_as::<_, LessonProgress>(
         r#"

@@ -30,7 +30,8 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 thiserror = "2"
 anyhow = "1"
-sha2 = "0.11"
+sha2 = "0.10"
+hmac = "0.12"
 validator = { version = "0.20", features = ["derive"] }
 
 # Stripe

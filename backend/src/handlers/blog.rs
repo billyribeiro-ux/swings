@@ -32,7 +32,10 @@ pub fn admin_router() -> Router<AppState> {
         .route("/posts/{id}/status", put(admin_update_post_status))
         .route("/posts/{id}/autosave", post(admin_autosave_post))
         .route("/posts/{id}/revisions", get(admin_list_revisions))
-        .route("/posts/{id}/revisions/{rev_id}/restore", post(admin_restore_revision))
+        .route(
+            "/posts/{id}/revisions/{rev_id}/restore",
+            post(admin_restore_revision),
+        )
         .route("/posts/{id}/meta", get(admin_list_post_meta))
         .route("/posts/{id}/meta", post(admin_upsert_post_meta))
         .route("/posts/{id}/meta/{key}", delete(admin_delete_post_meta))
@@ -68,10 +71,7 @@ pub fn public_router() -> Router<AppState> {
 
 // ── Helper: Build full post response ───────────────────────────────────
 
-async fn build_post_response(
-    pool: &sqlx::PgPool,
-    post: BlogPost,
-) -> AppResult<BlogPostResponse> {
+async fn build_post_response(pool: &sqlx::PgPool, post: BlogPost) -> AppResult<BlogPostResponse> {
     let author = db::find_user_by_id(pool, post.author_id)
         .await?
         .ok_or(AppError::NotFound("Author not found".to_string()))?;
@@ -125,12 +125,11 @@ async fn build_post_response(
     })
 }
 
-async fn build_post_list_item(
-    pool: &sqlx::PgPool,
-    post: BlogPost,
-) -> AppResult<BlogPostListItem> {
+async fn build_post_list_item(pool: &sqlx::PgPool, post: BlogPost) -> AppResult<BlogPostListItem> {
     let author = db::find_user_by_id(pool, post.author_id).await?;
-    let author_name = author.map(|a| a.name).unwrap_or_else(|| "Unknown".to_string());
+    let author_name = author
+        .map(|a| a.name)
+        .unwrap_or_else(|| "Unknown".to_string());
     let categories = db::get_categories_for_post(pool, post.id).await?;
     let tags = db::get_tags_for_post(pool, post.id).await?;
     let featured_image_url = if let Some(img_id) = post.featured_image_id {
@@ -217,12 +216,21 @@ async fn admin_create_post(
 
     let password_hash = if req.visibility.as_deref() == Some("password") {
         if let Some(ref pw) = req.post_password {
-            if !pw.is_empty() { Some(hash_post_password(pw)?) } else { None }
-        } else { None }
-    } else { None };
+            if !pw.is_empty() {
+                Some(hash_post_password(pw)?)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    } else {
+        None
+    };
 
     let effective_author = req.author_id.unwrap_or(admin.user_id);
-    let post = db::create_blog_post(&state.db, effective_author, &req, password_hash.as_deref()).await?;
+    let post =
+        db::create_blog_post(&state.db, effective_author, &req, password_hash.as_deref()).await?;
 
     // Set categories/tags if provided
     if let Some(ref cat_ids) = req.category_ids {
@@ -281,20 +289,33 @@ async fn admin_update_post(
     )
     .await?;
 
-    let password_hash_update: Option<Option<String>> =
-        if let Some(vis) = req.visibility.as_deref() {
-            if vis == "password" {
-                if let Some(ref pw) = req.post_password {
-                    if !pw.is_empty() { Some(Some(hash_post_password(pw)?)) } else { None }
-                } else { None }
+    let password_hash_update: Option<Option<String>> = if let Some(vis) = req.visibility.as_deref()
+    {
+        if vis == "password" {
+            if let Some(ref pw) = req.post_password {
+                if !pw.is_empty() {
+                    Some(Some(hash_post_password(pw)?))
+                } else {
+                    None
+                }
             } else {
-                Some(None)
+                None
             }
-        } else if let Some(ref pw) = req.post_password {
-            if !pw.is_empty() { Some(Some(hash_post_password(pw)?)) } else { None }
-        } else { None };
+        } else {
+            Some(None)
+        }
+    } else if let Some(ref pw) = req.post_password {
+        if !pw.is_empty() {
+            Some(Some(hash_post_password(pw)?))
+        } else {
+            None
+        }
+    } else {
+        None
+    };
 
-    let post = db::update_blog_post(&state.db, id, &req, password_hash_update, req.author_id).await?;
+    let post =
+        db::update_blog_post(&state.db, id, &req, password_hash_update, req.author_id).await?;
 
     // Update categories/tags if provided
     if let Some(ref cat_ids) = req.category_ids {
@@ -323,7 +344,9 @@ async fn admin_delete_post(
         ));
     }
     db::delete_blog_post(&state.db, id).await?;
-    Ok(Json(serde_json::json!({ "message": "Post permanently deleted" })))
+    Ok(Json(
+        serde_json::json!({ "message": "Post permanently deleted" }),
+    ))
 }
 
 async fn admin_restore_post_from_trash(
@@ -379,7 +402,9 @@ async fn admin_list_revisions(
     let mut items = Vec::with_capacity(revisions.len());
     for rev in revisions {
         let author = db::find_user_by_id(&state.db, rev.author_id).await?;
-        let author_name = author.map(|a| a.name).unwrap_or_else(|| "Unknown".to_string());
+        let author_name = author
+            .map(|a| a.name)
+            .unwrap_or_else(|| "Unknown".to_string());
         items.push(RevisionResponse {
             id: rev.id,
             post_id: rev.post_id,
@@ -569,27 +594,28 @@ async fn admin_upload_media(
     let mut content_type = String::new();
     let mut title: Option<String> = None;
 
-    while let Some(field) = multipart.next_field().await.map_err(|e| {
-        AppError::BadRequest(format!("Multipart error: {}", e))
-    })? {
+    while let Some(field) = multipart
+        .next_field()
+        .await
+        .map_err(|e| AppError::BadRequest(format!("Multipart error: {}", e)))?
+    {
         let name = field.name().unwrap_or("").to_string();
         if name == "file" {
-            original_filename = field
-                .file_name()
-                .unwrap_or("unknown")
-                .to_string();
+            original_filename = field.file_name().unwrap_or("unknown").to_string();
             content_type = field
                 .content_type()
                 .unwrap_or("application/octet-stream")
                 .to_string();
-            let data = field.bytes().await.map_err(|e| {
-                AppError::BadRequest(format!("Failed to read file: {}", e))
-            })?;
+            let data = field
+                .bytes()
+                .await
+                .map_err(|e| AppError::BadRequest(format!("Failed to read file: {}", e)))?;
             file_data = Some(data.to_vec());
         } else if name == "title" {
-            let text = field.text().await.map_err(|e| {
-                AppError::BadRequest(format!("Failed to read title: {}", e))
-            })?;
+            let text = field
+                .text()
+                .await
+                .map_err(|e| AppError::BadRequest(format!("Failed to read title: {}", e)))?;
             if !text.trim().is_empty() {
                 title = Some(text.trim().to_string());
             }
@@ -600,7 +626,12 @@ async fn admin_upload_media(
 
     // Validate MIME type
     let allowed = [
-        "image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/svg+xml",
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "image/avif",
+        "image/svg+xml",
         "application/pdf",
     ];
     if !allowed.contains(&content_type.as_str()) {
@@ -732,7 +763,9 @@ async fn public_unlock_post(
         .await?
         .ok_or(AppError::NotFound("Post not found".to_string()))?;
 
-    let hash_str = post.password_hash.as_deref()
+    let hash_str = post
+        .password_hash
+        .as_deref()
         .ok_or_else(|| AppError::BadRequest("Post is not password protected".to_string()))?;
 
     let parsed = PasswordHash::new(hash_str)
@@ -753,9 +786,7 @@ async fn public_list_categories(
     Ok(Json(cats))
 }
 
-async fn public_list_tags(
-    State(state): State<AppState>,
-) -> AppResult<Json<Vec<BlogTag>>> {
+async fn public_list_tags(State(state): State<AppState>) -> AppResult<Json<Vec<BlogTag>>> {
     let tags = db::list_blog_tags(&state.db).await?;
     Ok(Json(tags))
 }
@@ -816,9 +847,7 @@ async fn public_posts_by_tag(
     }))
 }
 
-async fn public_all_slugs(
-    State(state): State<AppState>,
-) -> AppResult<Json<Vec<String>>> {
+async fn public_all_slugs(State(state): State<AppState>) -> AppResult<Json<Vec<String>>> {
     let slugs = db::list_all_published_slugs(&state.db).await?;
     Ok(Json(slugs))
 }

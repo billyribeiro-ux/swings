@@ -1172,6 +1172,7 @@ pub struct PopupAnalytics {
 // ── Sales / Revenue Analytics ──────────────────────────────────────────
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[allow(dead_code)]
 pub struct SalesEvent {
     pub id: Uuid,
     pub user_id: Uuid,
@@ -1187,6 +1188,7 @@ pub struct SalesEvent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[allow(dead_code)]
 pub struct MonthlyRevenueSnapshot {
     pub id: Uuid,
     pub year: i32,
@@ -1202,6 +1204,7 @@ pub struct MonthlyRevenueSnapshot {
 }
 
 #[derive(Debug, Serialize)]
+#[allow(dead_code)]
 pub struct RevenueAnalytics {
     pub total_revenue_cents: i64,
     pub mrr_cents: i64,
@@ -1215,6 +1218,7 @@ pub struct RevenueAnalytics {
 }
 
 #[derive(Debug, Serialize)]
+#[allow(dead_code)]
 pub struct MonthlyRevenueSummary {
     pub year: i32,
     pub month: i32,
@@ -1224,6 +1228,7 @@ pub struct MonthlyRevenueSummary {
 }
 
 #[derive(Debug, Serialize)]
+#[allow(dead_code)]
 pub struct PlanRevenueSummary {
     pub plan_name: String,
     pub subscriber_count: i64,
@@ -1231,6 +1236,7 @@ pub struct PlanRevenueSummary {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct RevenueAnalyticsQuery {
     pub from: Option<String>,
     pub to: Option<String>,

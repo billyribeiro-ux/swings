@@ -1,10 +1,11 @@
 use std::sync::Arc;
 
+use axum::http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
+use axum::http::HeaderValue;
+use axum::http::Method;
 use axum::Router;
 use sqlx::postgres::PgPoolOptions;
-use tower_http::cors::{Any, CorsLayer};
-use axum::http::header::{AUTHORIZATION, CONTENT_TYPE, ACCEPT};
-use axum::http::Method;
+use tower_http::cors::CorsLayer;
 use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -15,8 +16,8 @@ mod email;
 mod error;
 mod extractors;
 mod handlers;
-mod models;
 mod middleware;
+mod models;
 mod stripe_api;
 
 use config::Config;
@@ -41,8 +42,10 @@ pub struct AppState {
 #[tokio::main]
 async fn main() {
     tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::try_from_default_env()
-            .unwrap_or_else(|_| "swings_api=debug,tower_http=debug".into()))
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "swings_api=debug,tower_http=debug".into()),
+        )
         .with(tracing_subscriber::fmt::layer())
         .init();
 
@@ -62,17 +65,24 @@ async fn main() {
         .await
         .expect("Failed to run migrations");
 
-    // Seed admin (override via ADMIN_EMAIL / ADMIN_PASSWORD / ADMIN_NAME in backend/.env)
-    let admin_email = std::env::var("ADMIN_EMAIL").unwrap_or_else(|_| {
-        "welberribeirodrums@gmail.com".to_string()
-    });
-    let admin_password =
-        std::env::var("ADMIN_PASSWORD").unwrap_or_else(|_| "Davedicenso01!!!".to_string());
-    let admin_name =
-        std::env::var("ADMIN_NAME").unwrap_or_else(|_| "Billy Ribeiro".to_string());
-    db::seed_admin(&pool, &admin_email, &admin_password, &admin_name)
-        .await
-        .expect("Failed to seed admin user");
+    let admin_email = std::env::var("ADMIN_EMAIL").ok();
+    let admin_password = std::env::var("ADMIN_PASSWORD").ok();
+    let admin_name = std::env::var("ADMIN_NAME").unwrap_or_else(|_| "Admin".to_string());
+    match (admin_email, admin_password) {
+        (Some(email), Some(password)) => {
+            db::seed_admin(&pool, &email, &password, &admin_name)
+                .await
+                .expect("Failed to seed admin user");
+        }
+        _ if config.is_production() => {
+            panic!("ADMIN_EMAIL and ADMIN_PASSWORD must be set in production");
+        }
+        _ => {
+            tracing::warn!(
+                "ADMIN_EMAIL/ADMIN_PASSWORD not set; skipping admin seed in non-production mode"
+            );
+        }
+    }
 
     // Ensure uploads directory exists
     let upload_dir = config.upload_dir.clone();
@@ -99,8 +109,18 @@ async fn main() {
         email_service,
     };
 
+    let allowed_origins = state
+        .config
+        .cors_allowed_origins
+        .iter()
+        .filter_map(|origin| HeaderValue::from_str(origin).ok())
+        .collect::<Vec<_>>();
+    if allowed_origins.is_empty() {
+        panic!("CORS_ALLOWED_ORIGINS (or FRONTEND_URL) must contain at least one valid origin");
+    }
+
     let cors = CorsLayer::new()
-        .allow_origin(Any)
+        .allow_origin(allowed_origins)
         .allow_methods([
             Method::GET,
             Method::POST,

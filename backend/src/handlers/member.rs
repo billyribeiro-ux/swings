@@ -10,8 +10,7 @@ use crate::{
     error::{AppError, AppResult},
     extractors::AuthUser,
     models::*,
-    stripe_api,
-    AppState,
+    stripe_api, AppState,
 };
 
 pub fn router() -> Router<AppState> {
@@ -74,7 +73,10 @@ async fn update_profile(
     let twitter_url = req.twitter_url.as_deref().or(user.twitter_url.as_deref());
     let linkedin_url = req.linkedin_url.as_deref().or(user.linkedin_url.as_deref());
     let youtube_url = req.youtube_url.as_deref().or(user.youtube_url.as_deref());
-    let instagram_url = req.instagram_url.as_deref().or(user.instagram_url.as_deref());
+    let instagram_url = req
+        .instagram_url
+        .as_deref()
+        .or(user.instagram_url.as_deref());
 
     let updated = sqlx::query_as::<_, crate::models::User>(
         r#"UPDATE users SET
@@ -131,8 +133,9 @@ async fn post_billing_portal(
         .return_url
         .unwrap_or_else(|| format!("{base}/dashboard/account"));
 
-    let url = stripe_api::create_billing_portal_session(&state, &sub.stripe_customer_id, &return_url)
-        .await?;
+    let url =
+        stripe_api::create_billing_portal_session(&state, &sub.stripe_customer_id, &return_url)
+            .await?;
 
     Ok(Json(BillingPortalResponse { url }))
 }
@@ -148,7 +151,9 @@ async fn post_subscription_cancel(
     stripe_api::set_subscription_cancel_at_period_end(&state, &sub.stripe_subscription_id, true)
         .await?;
 
-    Ok(Json(serde_json::json!({ "ok": true, "cancel_at_period_end": true })))
+    Ok(Json(
+        serde_json::json!({ "ok": true, "cancel_at_period_end": true }),
+    ))
 }
 
 async fn post_subscription_resume(
@@ -162,7 +167,9 @@ async fn post_subscription_resume(
     stripe_api::set_subscription_cancel_at_period_end(&state, &sub.stripe_subscription_id, false)
         .await?;
 
-    Ok(Json(serde_json::json!({ "ok": true, "cancel_at_period_end": false })))
+    Ok(Json(
+        serde_json::json!({ "ok": true, "cancel_at_period_end": false }),
+    ))
 }
 
 // ── Watchlists ──────────────────────────────────────────────────────────

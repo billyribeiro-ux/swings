@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
+	import type {
+		CreatePricingPlanPayload,
+		PricingPlan,
+		PricingPlanPriceLogEntry,
+		UpdatePricingPlanPayload
+	} from '$lib/api/types';
 	import Plus from 'phosphor-svelte/lib/Plus';
 	import PencilSimple from 'phosphor-svelte/lib/PencilSimple';
 	import FloppyDisk from 'phosphor-svelte/lib/FloppyDisk';
@@ -10,29 +16,10 @@
 	import CaretUp from 'phosphor-svelte/lib/CaretUp';
 	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
 
-	interface Plan {
-		id: string;
-		name: string;
-		amount_cents: number;
-		interval: 'month' | 'year';
-		features: string[];
-		is_active: boolean;
-		is_popular: boolean;
-		trial_days: number;
-		stripe_price_id: string;
-	}
+	type BillingInterval = 'month' | 'year';
 
-	interface PriceChangeLog {
-		id: string;
-		plan_name: string;
-		old_amount_cents: number;
-		new_amount_cents: number;
-		changed_at: string;
-		changed_by: string;
-	}
-
-	let plans = $state<Plan[]>([]);
-	let priceLog = $state<PriceChangeLog[]>([]);
+	let plans = $state<PricingPlan[]>([]);
+	let priceLog = $state<PricingPlanPriceLogEntry[]>([]);
 	let loading = $state(true);
 	let saving = $state<string | null>(null);
 	let editingId = $state<string | null>(null);
@@ -42,7 +29,7 @@
 	let editDraft = $state<{
 		name: string;
 		amount_dollars: string;
-		interval: 'month' | 'year';
+		interval: BillingInterval;
 		features: string;
 		trial_days: string;
 		stripe_price_id: string;
@@ -58,7 +45,7 @@
 	let newPlan = $state<{
 		name: string;
 		amount_dollars: string;
-		interval: 'month' | 'year';
+		interval: BillingInterval;
 		features: string;
 		trial_days: string;
 		stripe_price_id: string;
@@ -74,7 +61,7 @@
 	async function loadPlans() {
 		loading = true;
 		try {
-			plans = await api.get<Plan[]>('/api/admin/subscriptions/plans');
+			plans = await api.get<PricingPlan[]>('/api/admin/subscriptions/plans');
 		} catch {
 			plans = [];
 		} finally {
@@ -84,7 +71,7 @@
 
 	async function loadPriceLog() {
 		try {
-			priceLog = await api.get<PriceChangeLog[]>('/api/admin/subscriptions/plans/price-log');
+			priceLog = await api.get<PricingPlanPriceLogEntry[]>('/api/admin/subscriptions/plans/price-log');
 		} catch {
 			priceLog = [];
 		}
@@ -95,15 +82,15 @@
 		loadPriceLog();
 	});
 
-	function startEdit(plan: Plan) {
+	function startEdit(plan: PricingPlan) {
 		editingId = plan.id;
 		editDraft = {
 			name: plan.name,
 			amount_dollars: (plan.amount_cents / 100).toFixed(2),
-			interval: plan.interval,
+			interval: plan.interval === 'year' ? 'year' : 'month',
 			features: plan.features.join('\n'),
 			trial_days: String(plan.trial_days),
-			stripe_price_id: plan.stripe_price_id
+			stripe_price_id: plan.stripe_price_id ?? ''
 		};
 	}
 
@@ -114,14 +101,15 @@
 	async function saveEdit(planId: string) {
 		saving = planId;
 		try {
-			await api.put(`/api/admin/subscriptions/plans/${planId}`, {
+			const payload: UpdatePricingPlanPayload = {
 				name: editDraft.name,
 				amount_cents: Math.round(parseFloat(editDraft.amount_dollars) * 100),
 				interval: editDraft.interval,
 				features: editDraft.features.split('\n').map((f) => f.trim()).filter(Boolean),
 				trial_days: parseInt(editDraft.trial_days) || 0,
 				stripe_price_id: editDraft.stripe_price_id
-			});
+			};
+			await api.put(`/api/admin/subscriptions/plans/${planId}`, payload);
 			await loadPlans();
 			await loadPriceLog();
 			editingId = null;
@@ -135,14 +123,15 @@
 	async function createPlan() {
 		saving = 'new';
 		try {
-			await api.post('/api/admin/subscriptions/plans', {
+			const payload: CreatePricingPlanPayload = {
 				name: newPlan.name,
 				amount_cents: Math.round(parseFloat(newPlan.amount_dollars) * 100),
 				interval: newPlan.interval,
 				features: newPlan.features.split('\n').map((f) => f.trim()).filter(Boolean),
 				trial_days: parseInt(newPlan.trial_days) || 0,
 				stripe_price_id: newPlan.stripe_price_id
-			});
+			};
+			await api.post('/api/admin/subscriptions/plans', payload);
 			await loadPlans();
 			showNewForm = false;
 			newPlan = { name: '', amount_dollars: '', interval: 'month', features: '', trial_days: '0', stripe_price_id: '' };

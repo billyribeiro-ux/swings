@@ -82,7 +82,11 @@ async fn admin_create_plan(
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
 
-    let slug = req.slug.as_deref().map(slugify).unwrap_or_else(|| slugify(&req.name));
+    let slug = req
+        .slug
+        .as_deref()
+        .map(slugify)
+        .unwrap_or_else(|| slugify(&req.name));
     let currency = req.currency.as_deref().unwrap_or("usd");
     let interval = req.interval.as_deref().unwrap_or("month");
     let interval_count = req.interval_count.unwrap_or(1);
@@ -219,7 +223,11 @@ async fn admin_update_plan(
     }
     if let Some(amount_cents) = req.amount_cents {
         if amount_cents != existing.amount_cents {
-            changes.push(("amount_cents", existing.amount_cents.to_string(), amount_cents.to_string()));
+            changes.push((
+                "amount_cents",
+                existing.amount_cents.to_string(),
+                amount_cents.to_string(),
+            ));
         }
     }
     if let Some(ref currency) = req.currency {
@@ -234,12 +242,20 @@ async fn admin_update_plan(
     }
     if let Some(interval_count) = req.interval_count {
         if interval_count != existing.interval_count {
-            changes.push(("interval_count", existing.interval_count.to_string(), interval_count.to_string()));
+            changes.push((
+                "interval_count",
+                existing.interval_count.to_string(),
+                interval_count.to_string(),
+            ));
         }
     }
     if let Some(trial_days) = req.trial_days {
         if trial_days != existing.trial_days {
-            changes.push(("trial_days", existing.trial_days.to_string(), trial_days.to_string()));
+            changes.push((
+                "trial_days",
+                existing.trial_days.to_string(),
+                trial_days.to_string(),
+            ));
         }
     }
     if let Some(ref features) = req.features {
@@ -257,33 +273,61 @@ async fn admin_update_plan(
     }
     if let Some(is_popular) = req.is_popular {
         if is_popular != existing.is_popular {
-            changes.push(("is_popular", existing.is_popular.to_string(), is_popular.to_string()));
+            changes.push((
+                "is_popular",
+                existing.is_popular.to_string(),
+                is_popular.to_string(),
+            ));
         }
     }
     if let Some(is_active) = req.is_active {
         if is_active != existing.is_active {
-            changes.push(("is_active", existing.is_active.to_string(), is_active.to_string()));
+            changes.push((
+                "is_active",
+                existing.is_active.to_string(),
+                is_active.to_string(),
+            ));
         }
     }
     if let Some(sort_order) = req.sort_order {
         if sort_order != existing.sort_order {
-            changes.push(("sort_order", existing.sort_order.to_string(), sort_order.to_string()));
+            changes.push((
+                "sort_order",
+                existing.sort_order.to_string(),
+                sort_order.to_string(),
+            ));
         }
     }
 
     // Apply the update
     let name = req.name.as_deref().unwrap_or(&existing.name);
-    let slug = req.slug.as_deref().map(slugify).unwrap_or(existing.slug.clone());
-    let description = req.description.as_deref().or(existing.description.as_deref());
-    let stripe_price_id = req.stripe_price_id.as_deref().or(existing.stripe_price_id.as_deref());
-    let stripe_product_id = req.stripe_product_id.as_deref().or(existing.stripe_product_id.as_deref());
+    let slug = req
+        .slug
+        .as_deref()
+        .map(slugify)
+        .unwrap_or(existing.slug.clone());
+    let description = req
+        .description
+        .as_deref()
+        .or(existing.description.as_deref());
+    let stripe_price_id = req
+        .stripe_price_id
+        .as_deref()
+        .or(existing.stripe_price_id.as_deref());
+    let stripe_product_id = req
+        .stripe_product_id
+        .as_deref()
+        .or(existing.stripe_product_id.as_deref());
     let amount_cents = req.amount_cents.unwrap_or(existing.amount_cents);
     let currency = req.currency.as_deref().unwrap_or(&existing.currency);
     let interval = req.interval.as_deref().unwrap_or(&existing.interval);
     let interval_count = req.interval_count.unwrap_or(existing.interval_count);
     let trial_days = req.trial_days.unwrap_or(existing.trial_days);
     let features = req.features.clone().unwrap_or(existing.features.clone());
-    let highlight_text = req.highlight_text.as_deref().or(existing.highlight_text.as_deref());
+    let highlight_text = req
+        .highlight_text
+        .as_deref()
+        .or(existing.highlight_text.as_deref());
     let is_popular = req.is_popular.unwrap_or(existing.is_popular);
     let is_active = req.is_active.unwrap_or(existing.is_active);
     let sort_order = req.sort_order.unwrap_or(existing.sort_order);
@@ -362,7 +406,9 @@ async fn admin_delete_plan(
         return Err(AppError::NotFound("Pricing plan not found".to_string()));
     }
 
-    Ok(Json(serde_json::json!({ "message": "Pricing plan deactivated" })))
+    Ok(Json(
+        serde_json::json!({ "message": "Pricing plan deactivated" }),
+    ))
 }
 
 async fn admin_toggle_plan(
@@ -395,12 +441,11 @@ async fn admin_plan_history(
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Vec<PricingChangeLog>>> {
     // Verify plan exists
-    let exists = sqlx::query_scalar::<_, bool>(
-        "SELECT EXISTS(SELECT 1 FROM pricing_plans WHERE id = $1)",
-    )
-    .bind(id)
-    .fetch_one(&state.db)
-    .await?;
+    let exists =
+        sqlx::query_scalar::<_, bool>("SELECT EXISTS(SELECT 1 FROM pricing_plans WHERE id = $1)")
+            .bind(id)
+            .fetch_one(&state.db)
+            .await?;
 
     if !exists {
         return Err(AppError::NotFound("Pricing plan not found".to_string()));
@@ -423,9 +468,7 @@ async fn admin_plan_history(
 
 // ── Public Handlers ───────────────────────────────────────────────────
 
-async fn public_list_plans(
-    State(state): State<AppState>,
-) -> AppResult<Json<Vec<PricingPlan>>> {
+async fn public_list_plans(State(state): State<AppState>) -> AppResult<Json<Vec<PricingPlan>>> {
     let plans = sqlx::query_as::<_, PricingPlan>(
         r#"
         SELECT id, name, slug, description, stripe_price_id, stripe_product_id,

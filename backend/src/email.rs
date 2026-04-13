@@ -1,7 +1,6 @@
 use lettre::{
-    message::header::ContentType,
-    transport::smtp::authentication::Credentials,
-    AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
+    message::header::ContentType, transport::smtp::authentication::Credentials, AsyncSmtpTransport,
+    AsyncTransport, Message, Tokio1Executor,
 };
 use tera::{Context, Tera};
 
@@ -219,10 +218,7 @@ impl EmailService {
                 .port(config.smtp_port)
                 .build()
         } else {
-            let creds = Credentials::new(
-                config.smtp_user.clone(),
-                config.smtp_password.clone(),
-            );
+            let creds = Credentials::new(config.smtp_user.clone(), config.smtp_password.clone());
             AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&config.smtp_host)?
                 .port(config.smtp_port)
                 .credentials(creds)
@@ -233,7 +229,10 @@ impl EmailService {
         templates.add_raw_template("base", BASE_TEMPLATE)?;
         templates.add_raw_template("password_reset", PASSWORD_RESET_TEMPLATE)?;
         templates.add_raw_template("welcome", WELCOME_TEMPLATE)?;
-        templates.add_raw_template("subscription_confirmation", SUBSCRIPTION_CONFIRMATION_TEMPLATE)?;
+        templates.add_raw_template(
+            "subscription_confirmation",
+            SUBSCRIPTION_CONFIRMATION_TEMPLATE,
+        )?;
         templates.add_raw_template("subscription_cancelled", SUBSCRIPTION_CANCELLED_TEMPLATE)?;
 
         Ok(Self {
@@ -291,8 +290,13 @@ impl EmailService {
         ctx.insert("reset_url", &reset_url);
 
         let html = self.templates.render("password_reset", &ctx)?;
-        self.send_email(to_email, to_name, "Reset Your Password — Explosive Swings", &html)
-            .await
+        self.send_email(
+            to_email,
+            to_name,
+            "Reset Your Password — Explosive Swings",
+            &html,
+        )
+        .await
     }
 
     pub async fn send_welcome(

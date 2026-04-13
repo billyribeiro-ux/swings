@@ -5,6 +5,8 @@ use axum::{
     routing::post,
     Router,
 };
+use hmac::{Hmac, Mac};
+use sha2::Sha256;
 
 use crate::{db, models::*, AppState};
 
@@ -17,7 +19,10 @@ async fn stripe_webhook(
     headers: HeaderMap,
     body: Bytes,
 ) -> StatusCode {
-    let signature = match headers.get("stripe-signature").and_then(|v| v.to_str().ok()) {
+    let signature = match headers
+        .get("stripe-signature")
+        .and_then(|v| v.to_str().ok())
+    {
         Some(sig) => sig.to_string(),
         None => return StatusCode::BAD_REQUEST,
     };
@@ -27,11 +32,15 @@ async fn stripe_webhook(
         return StatusCode::INTERNAL_SERVER_ERROR;
     }
 
-    // Verify webhook signature
+    // Verify webhook signature before parsing the event payload.
     let payload = match std::str::from_utf8(&body) {
         Ok(p) => p,
         Err(_) => return StatusCode::BAD_REQUEST,
     };
+    if !verify_stripe_signature(payload, &signature, &state.config.stripe_webhook_secret) {
+        tracing::warn!("Rejected Stripe webhook due to invalid signature");
+        return StatusCode::UNAUTHORIZED;
+    }
 
     let event: serde_json::Value = match serde_json::from_str(payload) {
         Ok(e) => e,
@@ -66,9 +75,95 @@ async fn stripe_webhook(
         }
     }
 
-    let _ = signature; // TODO: verify signature with stripe_webhook_secret
-
     StatusCode::OK
+}
+
+fn verify_stripe_signature(payload: &str, signature_header: &str, secret: &str) -> bool {
+    type HmacSha256 = Hmac<Sha256>;
+
+    let mut timestamp: Option<i64> = None;
+    let mut signatures: Vec<&str> = Vec::new();
+    for part in signature_header.split(',') {
+        let mut kv = part.splitn(2, '=');
+        let key = kv.next().unwrap_or_default().trim();
+        let value = kv.next().unwrap_or_default().trim();
+        match key {
+            "t" => timestamp = value.parse::<i64>().ok(),
+            "v1" if !value.is_empty() => signatures.push(value),
+            _ => {}
+        }
+    }
+
+    let Some(ts) = timestamp else {
+        return false;
+    };
+    if signatures.is_empty() {
+        return false;
+    }
+
+    let now = chrono::Utc::now().timestamp();
+    // Stripe recommends a 5 minute tolerance to reduce replay risk.
+    if (now - ts).abs() > 300 {
+        return false;
+    }
+
+    let signed_payload = format!("{ts}.{payload}");
+    let mut mac = match HmacSha256::new_from_slice(secret.as_bytes()) {
+        Ok(mac) => mac,
+        Err(_) => return false,
+    };
+    mac.update(signed_payload.as_bytes());
+    let computed = mac.finalize().into_bytes();
+    let computed_hex = computed
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect::<String>();
+
+    signatures
+        .iter()
+        .any(|candidate| candidate.eq_ignore_ascii_case(&computed_hex))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::verify_stripe_signature;
+    use chrono::Utc;
+    use hmac::{Hmac, Mac};
+    use sha2::Sha256;
+
+    fn make_signature(secret: &str, payload: &str, timestamp: i64) -> String {
+        type HmacSha256 = Hmac<Sha256>;
+        let mut mac = HmacSha256::new_from_slice(secret.as_bytes()).expect("valid hmac key");
+        mac.update(format!("{timestamp}.{payload}").as_bytes());
+        let digest = mac.finalize().into_bytes();
+        let hex = digest
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect::<String>();
+        format!("t={timestamp},v1={hex}")
+    }
+
+    #[test]
+    fn accepts_valid_signature() {
+        let secret = "whsec_test_secret";
+        let payload = r#"{"type":"checkout.session.completed"}"#;
+        let timestamp = Utc::now().timestamp();
+        let header = make_signature(secret, payload, timestamp);
+        assert!(verify_stripe_signature(payload, &header, secret));
+    }
+
+    #[test]
+    fn rejects_tampered_payload() {
+        let secret = "whsec_test_secret";
+        let payload = r#"{"type":"checkout.session.completed"}"#;
+        let timestamp = Utc::now().timestamp();
+        let header = make_signature(secret, payload, timestamp);
+        assert!(!verify_stripe_signature(
+            r#"{"type":"customer.subscription.deleted"}"#,
+            &header,
+            secret
+        ));
+    }
 }
 
 async fn handle_subscription_update(
@@ -103,17 +198,13 @@ async fn handle_subscription_update(
         SubscriptionPlan::Monthly
     };
 
-    let period_start = chrono::DateTime::from_timestamp(
-        sub["current_period_start"].as_i64().unwrap_or(0),
-        0,
-    )
-    .unwrap_or_default();
+    let period_start =
+        chrono::DateTime::from_timestamp(sub["current_period_start"].as_i64().unwrap_or(0), 0)
+            .unwrap_or_default();
 
-    let period_end = chrono::DateTime::from_timestamp(
-        sub["current_period_end"].as_i64().unwrap_or(0),
-        0,
-    )
-    .unwrap_or_default();
+    let period_end =
+        chrono::DateTime::from_timestamp(sub["current_period_end"].as_i64().unwrap_or(0), 0)
+            .unwrap_or_default();
 
     // Find user by stripe customer id
     if let Some(user) = db::find_user_by_stripe_customer(&state.db, customer_id).await? {

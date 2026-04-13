@@ -36,8 +36,13 @@ The API will start on `http://localhost:3001` by default.
 | `REFRESH_TOKEN_EXPIRATION_DAYS` | No | `30` | Refresh token lifetime |
 | `PORT` | No | `3001` | Server port |
 | `FRONTEND_URL` | No | `http://localhost:5173` | Frontend URL for CORS |
+| `CORS_ALLOWED_ORIGINS` | No | `FRONTEND_URL` | Comma-separated list of allowed CORS origins |
 | `STRIPE_SECRET_KEY` | No | - | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | No | - | Stripe webhook signing secret |
+| `APP_ENV` | No | `development` | Use `production` to enforce production-only guards |
+| `ADMIN_EMAIL` | Dev optional / Prod required | - | Seed admin email |
+| `ADMIN_PASSWORD` | Dev optional / Prod required | - | Seed admin password |
+| `ADMIN_NAME` | No | `Admin` | Seed admin display name |
 
 ## API Endpoints
 

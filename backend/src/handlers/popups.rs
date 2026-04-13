@@ -149,8 +149,16 @@ async fn admin_create_popup(
     .bind(&req.name)
     .bind(req.popup_type.as_deref().unwrap_or("modal"))
     .bind(req.trigger_type.as_deref().unwrap_or("time_delay"))
-    .bind(req.trigger_config.as_ref().unwrap_or(&serde_json::json!({"delay_ms": 3000})))
-    .bind(req.content_json.as_ref().unwrap_or(&serde_json::json!({"elements": []})))
+    .bind(
+        req.trigger_config
+            .as_ref()
+            .unwrap_or(&serde_json::json!({"delay_ms": 3000})),
+    )
+    .bind(
+        req.content_json
+            .as_ref()
+            .unwrap_or(&serde_json::json!({"elements": []})),
+    )
     .bind(req.style_json.as_ref().unwrap_or(&serde_json::json!({
         "background": "#1a1a2e",
         "textColor": "#ffffff",
@@ -166,8 +174,16 @@ async fn admin_create_popup(
         "devices": ["desktop", "mobile", "tablet"],
         "userStatus": ["all"]
     })))
-    .bind(req.display_frequency.as_deref().unwrap_or("once_per_session"))
-    .bind(req.frequency_config.as_ref().unwrap_or(&serde_json::json!({})))
+    .bind(
+        req.display_frequency
+            .as_deref()
+            .unwrap_or("once_per_session"),
+    )
+    .bind(
+        req.frequency_config
+            .as_ref()
+            .unwrap_or(&serde_json::json!({})),
+    )
     .bind(&req.success_message)
     .bind(&req.redirect_url)
     .bind(req.is_active.unwrap_or(false))
@@ -213,13 +229,11 @@ async fn admin_update_popup(
     Json(req): Json<UpdatePopupRequest>,
 ) -> AppResult<Json<Popup>> {
     // Ensure popup exists
-    let existing = sqlx::query_as::<_, Popup>(
-        "SELECT * FROM popups WHERE id = $1",
-    )
-    .bind(id)
-    .fetch_optional(&state.db)
-    .await?
-    .ok_or(AppError::NotFound("Popup not found".to_string()))?;
+    let existing = sqlx::query_as::<_, Popup>("SELECT * FROM popups WHERE id = $1")
+        .bind(id)
+        .fetch_optional(&state.db)
+        .await?
+        .ok_or(AppError::NotFound("Popup not found".to_string()))?;
 
     let popup = sqlx::query_as::<_, Popup>(
         r#"
@@ -319,13 +333,11 @@ async fn admin_duplicate_popup(
     admin: AdminUser,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Popup>> {
-    let source = sqlx::query_as::<_, Popup>(
-        "SELECT * FROM popups WHERE id = $1",
-    )
-    .bind(id)
-    .fetch_optional(&state.db)
-    .await?
-    .ok_or(AppError::NotFound("Popup not found".to_string()))?;
+    let source = sqlx::query_as::<_, Popup>("SELECT * FROM popups WHERE id = $1")
+        .bind(id)
+        .fetch_optional(&state.db)
+        .await?
+        .ok_or(AppError::NotFound("Popup not found".to_string()))?;
 
     let new_name = format!("{} (Copy)", source.name);
 
@@ -425,17 +437,17 @@ async fn admin_get_analytics(
     Query(query): Query<AnalyticsQuery>,
 ) -> AppResult<Json<serde_json::Value>> {
     // Verify popup exists
-    let popup = sqlx::query_as::<_, Popup>(
-        "SELECT * FROM popups WHERE id = $1",
-    )
-    .bind(id)
-    .fetch_optional(&state.db)
-    .await?
-    .ok_or(AppError::NotFound("Popup not found".to_string()))?;
+    let popup = sqlx::query_as::<_, Popup>("SELECT * FROM popups WHERE id = $1")
+        .bind(id)
+        .fetch_optional(&state.db)
+        .await?
+        .ok_or(AppError::NotFound("Popup not found".to_string()))?;
 
     let summary = build_popup_analytics(&state.db, &popup).await?;
 
-    let from = query.from.unwrap_or_else(|| Utc::now() - chrono::Duration::days(30));
+    let from = query
+        .from
+        .unwrap_or_else(|| Utc::now() - chrono::Duration::days(30));
     let to = query.to.unwrap_or_else(Utc::now);
     let granularity = query.granularity.as_deref().unwrap_or("day");
 
@@ -506,7 +518,9 @@ async fn public_active_popups(
 
     let filtered: Vec<Popup> = popups
         .into_iter()
-        .filter(|popup| matches_targeting_rules(&popup.targeting_rules, page_path, device, user_status))
+        .filter(|popup| {
+            matches_targeting_rules(&popup.targeting_rules, page_path, device, user_status)
+        })
         .collect();
 
     Ok(Json(filtered))

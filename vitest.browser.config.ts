@@ -1,0 +1,15 @@
+import devtoolsJson from 'vite-plugin-devtools-json';
+import { defineConfig } from 'vitest/config';
+import { sveltekit } from '@sveltejs/kit/vite';
+
+export default defineConfig({
+	plugins: [sveltekit(), devtoolsJson()],
+	test: {
+		include: ['src/**/*.svelte.spec.ts'],
+		browser: {
+			enabled: true,
+			provider: 'playwright',
+			instances: [{ browser: 'chromium' }]
+		}
+	}
+});

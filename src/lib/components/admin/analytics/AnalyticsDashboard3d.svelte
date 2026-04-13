@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { Canvas, T, useThrelte } from '@threlte/core';
+	import { Canvas, T } from '@threlte/core';
 	import { HTML, Float, RoundedBoxGeometry } from '@threlte/extras';
-	import { interactivity } from '@threlte/extras/interactivity';
 	import * as THREE from 'three';
 	import { onMount } from 'svelte';
 
