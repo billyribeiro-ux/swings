@@ -124,48 +124,6 @@ fn verify_stripe_signature(payload: &str, signature_header: &str, secret: &str) 
         .any(|candidate| candidate.eq_ignore_ascii_case(&computed_hex))
 }
 
-#[cfg(test)]
-mod tests {
-    use super::verify_stripe_signature;
-    use chrono::Utc;
-    use hmac::{Hmac, Mac};
-    use sha2::Sha256;
-
-    fn make_signature(secret: &str, payload: &str, timestamp: i64) -> String {
-        type HmacSha256 = Hmac<Sha256>;
-        let mut mac = HmacSha256::new_from_slice(secret.as_bytes()).expect("valid hmac key");
-        mac.update(format!("{timestamp}.{payload}").as_bytes());
-        let digest = mac.finalize().into_bytes();
-        let hex = digest
-            .iter()
-            .map(|b| format!("{b:02x}"))
-            .collect::<String>();
-        format!("t={timestamp},v1={hex}")
-    }
-
-    #[test]
-    fn accepts_valid_signature() {
-        let secret = "whsec_test_secret";
-        let payload = r#"{"type":"checkout.session.completed"}"#;
-        let timestamp = Utc::now().timestamp();
-        let header = make_signature(secret, payload, timestamp);
-        assert!(verify_stripe_signature(payload, &header, secret));
-    }
-
-    #[test]
-    fn rejects_tampered_payload() {
-        let secret = "whsec_test_secret";
-        let payload = r#"{"type":"checkout.session.completed"}"#;
-        let timestamp = Utc::now().timestamp();
-        let header = make_signature(secret, payload, timestamp);
-        assert!(!verify_stripe_signature(
-            r#"{"type":"customer.subscription.deleted"}"#,
-            &header,
-            secret
-        ));
-    }
-}
-
 async fn handle_subscription_update(
     state: &AppState,
     event: &serde_json::Value,
@@ -281,4 +239,46 @@ async fn handle_checkout_completed(
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::verify_stripe_signature;
+    use chrono::Utc;
+    use hmac::{Hmac, Mac};
+    use sha2::Sha256;
+
+    fn make_signature(secret: &str, payload: &str, timestamp: i64) -> String {
+        type HmacSha256 = Hmac<Sha256>;
+        let mut mac = HmacSha256::new_from_slice(secret.as_bytes()).expect("valid hmac key");
+        mac.update(format!("{timestamp}.{payload}").as_bytes());
+        let digest = mac.finalize().into_bytes();
+        let hex = digest
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect::<String>();
+        format!("t={timestamp},v1={hex}")
+    }
+
+    #[test]
+    fn accepts_valid_signature() {
+        let secret = "whsec_test_secret";
+        let payload = r#"{"type":"checkout.session.completed"}"#;
+        let timestamp = Utc::now().timestamp();
+        let header = make_signature(secret, payload, timestamp);
+        assert!(verify_stripe_signature(payload, &header, secret));
+    }
+
+    #[test]
+    fn rejects_tampered_payload() {
+        let secret = "whsec_test_secret";
+        let payload = r#"{"type":"checkout.session.completed"}"#;
+        let timestamp = Utc::now().timestamp();
+        let header = make_signature(secret, payload, timestamp);
+        assert!(!verify_stripe_signature(
+            r#"{"type":"customer.subscription.deleted"}"#,
+            &header,
+            secret
+        ));
+    }
 }

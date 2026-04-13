@@ -66,7 +66,6 @@
 	}
 
 	function addLesson(mi: number) {
-		const mod = modules[mi];
 		modules = modules.map((m, i) => i !== mi ? m : { ...m, lessons: [...m.lessons, { id: `new-lesson-${Date.now()}`, title: '', video_url: '', is_preview: false, sort_order: m.lessons.length }] });
 	}
 

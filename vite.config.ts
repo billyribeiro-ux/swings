@@ -4,6 +4,15 @@ import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
 	plugins: [sveltekit(), devtoolsJson()],
+	build: {
+		// Large, intentional vendor chunks in this app make Vite's default 500k warning too noisy.
+		chunkSizeWarningLimit: 10000,
+		rolldownOptions: {
+			checks: {
+				pluginTimings: false
+			}
+		}
+	},
 	server: {
 		proxy: {
 			// Rust API (pnpm dev + cargo run in backend). Browser uses same-origin /api via getPublicApiBase().

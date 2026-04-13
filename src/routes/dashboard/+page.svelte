@@ -55,14 +55,6 @@
 			: null
 	);
 
-	function formatDate(dateStr: string): string {
-		return new Date(dateStr).toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric'
-		});
-	}
-
 	function getCourseForEnrollment(courseId: string): CourseListItem | undefined {
 		return allCourses.find((c) => c.id === courseId);
 	}

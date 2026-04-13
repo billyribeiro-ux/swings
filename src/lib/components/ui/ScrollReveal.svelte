@@ -23,7 +23,7 @@
 		blur = 6,
 		scale = 0.96,
 		duration = 0.9,
-		delay = 0,
+		delay: _delay = 0,
 		stagger = 0.12,
 		start = 'top 82%',
 		ease = 'expo.out'

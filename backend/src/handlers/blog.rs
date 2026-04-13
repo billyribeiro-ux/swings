@@ -168,7 +168,7 @@ async fn admin_list_posts(
     _admin: AdminUser,
     Query(params): Query<PostListParams>,
 ) -> AppResult<Json<PaginatedResponse<BlogPostListItem>>> {
-    let per_page = params.per_page.unwrap_or(20).min(100).max(1);
+    let per_page = params.per_page.unwrap_or(20).clamp(1, 100);
     let page = params.page.unwrap_or(1).max(1);
     let offset = (page - 1) * per_page;
 

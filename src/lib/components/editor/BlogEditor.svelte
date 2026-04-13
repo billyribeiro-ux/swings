@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Editor, Node } from '@tiptap/core';
+	import type { NodeViewRenderer } from '@tiptap/core';
 	import StarterKit from '@tiptap/starter-kit';
 	import Image from '@tiptap/extension-image';
 	import { Table } from '@tiptap/extension-table';
@@ -38,7 +39,6 @@
 			};
 		},
 		addNodeView() {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			return (({
 				node,
 				updateAttributes
@@ -91,7 +91,7 @@
 						return true;
 					}
 				};
-			}) as unknown as any;
+			}) as unknown as NodeViewRenderer;
 		}
 	});
 

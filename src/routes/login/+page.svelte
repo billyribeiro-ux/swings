@@ -3,7 +3,6 @@
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api, ApiError } from '$lib/api/client';
 	import type { AuthResponse } from '$lib/api/types';
-	import Button from '$lib/components/ui/Button.svelte';
 
 	let email = $state('');
 	let password = $state('');

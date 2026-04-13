@@ -710,8 +710,7 @@ fn matches_page_pattern(pattern: &str, path: &str) -> bool {
         return true;
     }
 
-    if pattern.ends_with('*') {
-        let prefix = &pattern[..pattern.len() - 1];
+    if let Some(prefix) = pattern.strip_suffix('*') {
         return path.starts_with(prefix);
     }
 

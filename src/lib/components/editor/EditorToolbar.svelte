@@ -62,7 +62,7 @@
 		showSource,
 		isDistractionFree = false,
 		wordCount = 0,
-		charCount = 0,
+		charCount: _charCount = 0,
 		onToggleFullscreen,
 		onToggleSource,
 		onToggleDistractionFree,

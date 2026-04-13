@@ -1,5 +1,42 @@
 import { SITE, FOUNDERS } from './config';
 
+function slugifyIdentifier(value: string): string {
+	return value
+		.toLowerCase()
+		.trim()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/(^-|-$)/g, '');
+}
+
+function buildAuthorIdentity(authorName?: string): { '@type': 'Person'; '@id': string; name: string; url?: string } {
+	const resolvedName = authorName?.trim() || FOUNDERS.billy.name;
+	const normalizedName = resolvedName.toLowerCase();
+
+	if (normalizedName === FOUNDERS.billy.name.toLowerCase()) {
+		return {
+			'@type': 'Person',
+			'@id': `${SITE.url}/#billy-ribeiro`,
+			name: FOUNDERS.billy.name,
+			url: FOUNDERS.billy.url
+		};
+	}
+
+	if (normalizedName === FOUNDERS.freddie.name.toLowerCase()) {
+		return {
+			'@type': 'Person',
+			'@id': `${SITE.url}/#freddie-ferber`,
+			name: FOUNDERS.freddie.name,
+			url: FOUNDERS.freddie.url
+		};
+	}
+
+	return {
+		'@type': 'Person',
+		'@id': `${SITE.url}/#author-${slugifyIdentifier(resolvedName)}`,
+		name: resolvedName
+	};
+}
+
 export function organizationSchema() {
 	return {
 		'@type': 'Organization',
@@ -133,11 +170,7 @@ export function articleSchema(opts: {
 		url: `${SITE.url}${opts.path}`,
 		datePublished: opts.datePublished,
 		dateModified: opts.dateModified || opts.datePublished,
-		author: {
-			'@type': 'Person',
-			'@id': `${SITE.url}/#billy-ribeiro`,
-			name: opts.authorName || FOUNDERS.billy.name
-		},
+		author: buildAuthorIdentity(opts.authorName),
 		publisher: { '@id': `${SITE.url}/#organization` },
 		isPartOf: { '@id': `${SITE.url}/#website` },
 		inLanguage: 'en-US',
@@ -163,6 +196,16 @@ export function productSchema(opts: {
 			'@type': 'Offer',
 			price: opts.price,
 			priceCurrency: opts.priceCurrency || 'USD',
+			priceSpecification: {
+				'@type': 'UnitPriceSpecification',
+				price: opts.price,
+				priceCurrency: opts.priceCurrency || 'USD',
+				referenceQuantity: {
+					'@type': 'QuantitativeValue',
+					value: 1,
+					unitText: opts.billingPeriod === 'year' ? 'YEAR' : 'MONTH'
+				}
+			},
 			availability: 'https://schema.org/InStock',
 			priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
 			url: `${SITE.url}${opts.path}`

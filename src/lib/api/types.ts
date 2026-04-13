@@ -700,7 +700,7 @@ export interface CreatePopupPayload {
 	priority?: number;
 }
 
-export interface UpdatePopupPayload extends Partial<CreatePopupPayload> {}
+export type UpdatePopupPayload = Partial<CreatePopupPayload>;
 
 export interface PopupSubmission {
 	id: string;

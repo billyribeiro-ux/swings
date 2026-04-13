@@ -4,13 +4,11 @@
 	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
 	import { env } from '$env/dynamic/public';
 	import { createCheckoutSession } from '$lib/utils/stripe';
-	import Button from '$lib/components/ui/Button.svelte';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import Seo from '$lib/seo/Seo.svelte';
 	import { productSchema, buildJsonLd } from '$lib/seo/jsonld';
 	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
-	import CurrencyDollar from 'phosphor-svelte/lib/CurrencyDollar';
 	import Sparkle from 'phosphor-svelte/lib/Sparkle';
 
 	const jsonLd = buildJsonLd([

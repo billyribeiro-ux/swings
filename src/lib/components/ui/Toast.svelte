@@ -8,14 +8,10 @@
 		info: 'ℹ'
 	};
 
-	function getElapsed(createdAt: number): number {
-		return Date.now() - createdAt;
-	}
 </script>
 
 <div class="toast-container" aria-live="polite" aria-relevant="additions removals">
 	{#each toast.toasts as t (t.id)}
-		{@const elapsed = getElapsed(t.createdAt)}
 		<div class="toast toast--{t.type}" role="alert">
 			<div class="toast__icon">
 				{iconMap[t.type]}

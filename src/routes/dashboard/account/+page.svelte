@@ -150,7 +150,7 @@
 			{#if subMsg}<p class="info">{subMsg}</p>{/if}
 		{:else}
 			<p class="muted">No active subscription.</p>
-			<a href="/#pricing" class="btn-primary" style="display:inline-block;margin-top:.75rem;text-decoration:none;text-align:center">View Plans</a>
+			<a href="/pricing/monthly" class="btn-primary" style="display:inline-block;margin-top:.75rem;text-decoration:none;text-align:center">View Plans</a>
 		{/if}
 	</section>
 

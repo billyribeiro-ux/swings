@@ -10,7 +10,7 @@
 		onsubmit?: (formData: Record<string, unknown>) => void;
 	}
 
-	let { popup, preview = false, onclose, onsubmit }: Props = $props();
+	let { popup, preview: _preview = false, onclose, onsubmit }: Props = $props();
 
 	let formValues = $state<Record<string, unknown>>({});
 	let submitted = $state(false);

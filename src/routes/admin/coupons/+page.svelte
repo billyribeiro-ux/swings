@@ -58,10 +58,16 @@
 	async function loadCoupons() {
 		loading = true;
 		try {
-			const params = new URLSearchParams({ page: String(page), per_page: '15' });
-			if (search.trim()) params.set('search', search.trim());
-			if (filter !== 'all') params.set('status', filter);
-			const res = await api.get<PaginatedResponse<Coupon>>(`/api/admin/coupons?${params.toString()}`);
+			const params: Array<[string, string]> = [
+				['page', String(page)],
+				['per_page', '15']
+			];
+			if (search.trim()) params.push(['search', search.trim()]);
+			if (filter !== 'all') params.push(['status', filter]);
+			const query = params
+				.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+				.join('&');
+			const res = await api.get<PaginatedResponse<Coupon>>(`/api/admin/coupons?${query}`);
 			coupons = res.data; total = res.total; totalPages = res.total_pages;
 		} catch { /* silent */ } finally { loading = false; }
 	}

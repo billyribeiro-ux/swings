@@ -631,7 +631,7 @@ impl PaginationParams {
     }
 
     pub fn per_page(&self) -> i64 {
-        self.per_page.unwrap_or(20).min(100).max(1)
+        self.per_page.unwrap_or(20).clamp(1, 100)
     }
 }
 

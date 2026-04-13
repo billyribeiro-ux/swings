@@ -4,7 +4,6 @@
 	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
 	import { env } from '$env/dynamic/public';
 	import { createCheckoutSession } from '$lib/utils/stripe';
-	import Button from '$lib/components/ui/Button.svelte';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import Seo from '$lib/seo/Seo.svelte';
 	import { productSchema, buildJsonLd } from '$lib/seo/jsonld';

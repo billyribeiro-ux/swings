@@ -254,6 +254,7 @@ pub async fn delete_user_refresh_tokens(pool: &PgPool, user_id: Uuid) -> Result<
 
 // ── Subscriptions ───────────────────────────────────────────────────────
 
+#[allow(clippy::too_many_arguments)]
 pub async fn upsert_subscription(
     pool: &PgPool,
     user_id: Uuid,
@@ -663,7 +664,7 @@ pub async fn create_blog_post(
     let slug = req
         .slug
         .as_deref()
-        .map(|s| slugify(s))
+        .map(slugify)
         .unwrap_or_else(|| slugify(&req.title));
     let content = req.content.as_deref().unwrap_or("");
     let wc = compute_word_count(content);
@@ -732,7 +733,7 @@ pub async fn update_blog_post(
     let slug = req
         .slug
         .as_deref()
-        .map(|s| slugify(s))
+        .map(slugify)
         .unwrap_or_else(|| existing.slug.clone());
     let content = req.content.as_deref().unwrap_or(&existing.content);
     let wc = compute_word_count(content);
@@ -1194,7 +1195,7 @@ pub async fn create_blog_category(
     let slug = req
         .slug
         .as_deref()
-        .map(|s| slugify(s))
+        .map(slugify)
         .unwrap_or_else(|| slugify(&req.name));
 
     sqlx::query_as::<_, BlogCategory>(
@@ -1227,7 +1228,7 @@ pub async fn update_blog_category(
     let slug = req
         .slug
         .as_deref()
-        .map(|s| slugify(s))
+        .map(slugify)
         .unwrap_or_else(|| existing.slug.clone());
 
     sqlx::query_as::<_, BlogCategory>(
@@ -1269,7 +1270,7 @@ pub async fn create_blog_tag(
     let slug = req
         .slug
         .as_deref()
-        .map(|s| slugify(s))
+        .map(slugify)
         .unwrap_or_else(|| slugify(&req.name));
 
     sqlx::query_as::<_, BlogTag>(
@@ -1354,6 +1355,7 @@ pub async fn get_blog_revision(
 
 // ── Media ─────────────────────────────────────────────────────────────
 
+#[allow(clippy::too_many_arguments)]
 pub async fn create_media(
     pool: &PgPool,
     uploader_id: Uuid,

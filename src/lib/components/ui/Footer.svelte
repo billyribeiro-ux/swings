@@ -125,7 +125,7 @@
 						</a>
 					</li>
 					<li class="footer__li" style={motionOk && inView ? '--stagger: 145ms' : undefined}>
-						<a href="/#pricing" class="footer__link">
+						<a href="/pricing/monthly" class="footer__link">
 							<span class="footer__link-text">Pricing</span>
 						</a>
 					</li>

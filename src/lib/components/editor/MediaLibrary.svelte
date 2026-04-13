@@ -11,7 +11,7 @@
 	let { open, onClose, onSelect }: Props = $props();
 
 	let items: MediaItem[] = $state([]);
-	let total = $state(0);
+	let _total = $state(0);
 	let page = $state(1);
 	let totalPages = $state(1);
 	let loading = $state(false);
@@ -35,7 +35,7 @@
 				`/api/admin/blog/media?page=${page}&per_page=20`
 			);
 			items = res.data;
-			total = res.total;
+			_total = res.total;
 			totalPages = res.total_pages;
 		} catch (e) {
 			console.error('Failed to load media', e);
@@ -52,7 +52,7 @@
 			if (providedTitle?.trim()) formData.append('title', providedTitle.trim());
 			const media = await api.upload<MediaItem>('/api/admin/blog/media/upload', formData);
 			items = [media, ...items];
-			total += 1;
+			_total += 1;
 			selected = media;
 			editTitle = media.title || '';
 			editAlt = media.alt_text || '';
@@ -128,7 +128,7 @@
 		try {
 			await api.delete(`/api/admin/blog/media/${selected.id}`);
 			items = items.filter((i) => i.id !== selected!.id);
-			total -= 1;
+			_total -= 1;
 			selected = null;
 		} catch (e) {
 			console.error('Failed to delete media', e);

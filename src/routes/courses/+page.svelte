@@ -12,7 +12,6 @@
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
 	import Clock from 'phosphor-svelte/lib/Clock';
 	import GraduationCap from 'phosphor-svelte/lib/GraduationCap';
-	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
 
 	const jsonLd = buildJsonLd([
 		webPageSchema({

@@ -15,7 +15,6 @@
 	import CaretDown from 'phosphor-svelte/lib/CaretDown';
 	import Plus from 'phosphor-svelte/lib/Plus';
 	import Eye from 'phosphor-svelte/lib/Eye';
-	import ChartBar from 'phosphor-svelte/lib/ChartBar';
 
 	const popupId = $derived(page.params.id);
 
@@ -263,7 +262,7 @@
 				{#each elements as el}
 					{#if el.type === 'heading'}<h2 style="margin:0 0 0.5rem">{el.props.text ?? 'Heading'}</h2>
 					{:else if el.type === 'text'}<p style="margin:0 0 0.5rem; opacity:0.8; font-size:0.9rem">{el.props.text ?? ''}</p>
-					{:else if el.type === 'email' || el.type === 'input'}<div style="margin:0 0 0.5rem"><label style="font-size:0.75rem; opacity:0.7">{el.props.label ?? ''}</label><input type="text" placeholder={String(el.props.placeholder ?? '')} style="width:100%; padding:0.5rem; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:6px; color:{textColor}" /></div>
+					{:else if el.type === 'email' || el.type === 'input'}<div style="margin:0 0 0.5rem"><span style="font-size:0.75rem; opacity:0.7">{el.props.label ?? ''}</span><input type="text" placeholder={String(el.props.placeholder ?? '')} style="width:100%; padding:0.5rem; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:6px; color:{textColor}" /></div>
 					{:else if el.type === 'button'}<button style="padding:0.6rem 1.5rem; background:{accentColor}; color:white; border:none; border-radius:6px; font-weight:600; cursor:pointer; width:100%">{el.props.text ?? 'Submit'}</button>
 					{:else if el.type === 'divider'}<hr style="border:none; border-top:1px solid rgba(255,255,255,0.1); margin:0.75rem 0" />
 					{/if}

@@ -110,7 +110,7 @@
 							}}
 						>
 							<div class="dropdown-panel__inner">
-								{#each courses as course, i (course.id)}
+								{#each courses as course (course.id)}
 									{@const Icon = iconMap[course.icon]}
 									<a href="/courses/{course.slug}" class="dropdown-item" onclick={closeAll}>
 										<div
@@ -149,14 +149,14 @@
 				</div>
 
 				<a href="/blog" class="nav__link">Blog</a>
-				<a href="/#pricing" class="nav__link">Pricing</a>
+				<a href="/pricing/monthly" class="nav__link">Pricing</a>
 			</div>
 		</div>
 
 		<!-- Right: CTA + Mobile toggle -->
 		<div class="nav__right">
 			<div class="nav__cta-desktop">
-				<Button variant="primary" href="#pricing">Get Instant Access</Button>
+				<Button variant="primary" href="/pricing/monthly">Get Instant Access</Button>
 			</div>
 
 			<!-- Mobile hamburger -->
@@ -221,7 +221,7 @@
 					<a href="/about" class="mobile-menu__link" onclick={closeAll}>About</a>
 					<a href="/courses" class="mobile-menu__link" onclick={closeAll}>All Courses</a>
 					<a href="/blog" class="mobile-menu__link" onclick={closeAll}>Blog</a>
-					<a href="/#pricing" class="mobile-menu__link" onclick={closeAll}>Pricing</a>
+					<a href="/pricing/monthly" class="mobile-menu__link" onclick={closeAll}>Pricing</a>
 				</div>
 
 				<!-- Mobile CTA -->
@@ -229,7 +229,7 @@
 					class="mobile-menu__cta"
 					in:fly={{ y: 14, duration: tDur(380), delay: tDelay(130), easing: quintOut }}
 				>
-					<a href="#pricing" class="mobile-menu__cta-btn" onclick={closeAll}>
+					<a href="/pricing/monthly" class="mobile-menu__cta-btn" onclick={closeAll}>
 						Get Instant Access
 						<ArrowRight size={16} weight="bold" />
 					</a>

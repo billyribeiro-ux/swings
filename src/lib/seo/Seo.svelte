@@ -26,7 +26,18 @@
 		jsonLd
 	}: Props = $props();
 
-	const resolvedCanonical = $derived(canonical || `${SITE.url}${page.url.pathname}`);
+	function absolutizeUrl(url: string): string {
+		try {
+			return new URL(url, SITE.url).toString();
+		} catch {
+			return SITE.url;
+		}
+	}
+
+	const resolvedCanonical = $derived(
+		canonical ? absolutizeUrl(canonical) : `${SITE.url}${page.url.pathname}`
+	);
+	const resolvedOgImage = $derived(absolutizeUrl(ogImage));
 	const resolvedOgTitle = $derived(ogTitle || title);
 	const resolvedOgDesc = $derived(ogDescription || description);
 </script>
@@ -45,7 +56,7 @@
 	<meta property="og:description" content={resolvedOgDesc} />
 	<meta property="og:type" content={ogType} />
 	<meta property="og:url" content={resolvedCanonical} />
-	<meta property="og:image" content={ogImage} />
+	<meta property="og:image" content={resolvedOgImage} />
 	<meta property="og:site_name" content={SITE.name} />
 	<meta property="og:locale" content={SITE.locale} />
 
@@ -54,7 +65,7 @@
 	<meta name="twitter:site" content={SITE.twitterHandle} />
 	<meta name="twitter:title" content={resolvedOgTitle} />
 	<meta name="twitter:description" content={resolvedOgDesc} />
-	<meta name="twitter:image" content={ogImage} />
+	<meta name="twitter:image" content={resolvedOgImage} />
 
 	{#if jsonLd}
 		<!-- buildJsonLd() escapes `<` to `\u003c` so the inner JSON cannot break out -->

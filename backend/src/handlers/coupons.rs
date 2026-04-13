@@ -219,7 +219,7 @@ async fn admin_list_coupons(
     _admin: AdminUser,
     Query(params): Query<CouponListParams>,
 ) -> AppResult<Json<PaginatedResponse<Coupon>>> {
-    let per_page = params.per_page.unwrap_or(20).min(100).max(1);
+    let per_page = params.per_page.unwrap_or(20).clamp(1, 100);
     let page = params.page.unwrap_or(1).max(1);
     let offset = (page - 1) * per_page;
 
@@ -772,7 +772,7 @@ async fn public_apply_coupon(
         Some(auth.user_id),
     )
     .await
-    .map_err(|msg| AppError::BadRequest(msg))?;
+    .map_err(AppError::BadRequest)?;
 
     // Check min purchase
     if let Some(min) = coupon.min_purchase_cents {

@@ -16,7 +16,6 @@
 	let course = $state<CourseWithModules | null>(null);
 	let progressMap = new SvelteMap<string, LessonProgress>();
 	let currentLesson = $state<CourseLesson | null>(null);
-	let currentModuleId = $state<string | null>(null);
 	let loading = $state(true);
 	let markingComplete = $state(false);
 	let sidebarOpen = $state(false);
@@ -34,11 +33,9 @@
 			const first = findFirstIncomplete(data);
 			if (first) {
 				currentLesson = first.lesson;
-				currentModuleId = first.moduleId;
 				expandedModules.add(first.moduleId);
 			} else if (data.modules.length > 0 && data.modules[0].lessons.length > 0) {
 				currentLesson = data.modules[0].lessons[0];
-				currentModuleId = data.modules[0].id;
 				expandedModules.add(data.modules[0].id);
 			}
 		} catch { /* handle silently */ } finally { loading = false; }
@@ -59,7 +56,6 @@
 
 	function selectLesson(lesson: CourseLesson, moduleId: string) {
 		currentLesson = lesson;
-		currentModuleId = moduleId;
 		sidebarOpen = false;
 		expandedModules.add(moduleId);
 	}

@@ -16,6 +16,10 @@
 
 	const appRoutes = ['/dashboard', '/admin', '/login', '/register'];
 	const isAppRoute = $derived(appRoutes.some((r) => page.url.pathname.startsWith(r)));
+	const noindexRoutes = ['/success'];
+	const isNoindexRoute = $derived(
+		isAppRoute || noindexRoutes.some((r) => page.url.pathname.startsWith(r))
+	);
 
 	/** Offset nav when WordPress-style admin bar is visible */
 	const wpAdminOffset = $derived(
@@ -25,14 +29,17 @@
 			!['/dashboard', '/login', '/register'].some((p) => page.url.pathname.startsWith(p))
 	);
 
-	const globalJsonLd = buildJsonLd([organizationSchema(), webSiteSchema()]);
+	const _globalJsonLd = buildJsonLd([organizationSchema(), webSiteSchema()]);
 </script>
 
 <svelte:head>
 	<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 	<meta name="author" content="Billy Ribeiro" />
 	<meta name="publisher" content="Explosive Swings" />
-	{@html `<script type="application/ld+json">${globalJsonLd}</script>`}
+	{#if isNoindexRoute}
+		<meta name="robots" content="noindex, nofollow" />
+	{/if}
+	<script type="application/ld+json">{_globalJsonLd}</script>
 </svelte:head>
 
 <AnalyticsBeacon />

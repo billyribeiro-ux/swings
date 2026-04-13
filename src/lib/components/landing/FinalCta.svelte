@@ -52,7 +52,7 @@
 			Get your weekly watchlist every Sunday night - detailed entries, targets, exits, and stops so
 			you're prepared before the market opens.
 		</p>
-		<Button variant="primary" href="#pricing">
+		<Button variant="primary" href="/pricing/monthly">
 			Get Instant Access to Alerts
 			<ArrowRight size={20} weight="bold" />
 		</Button>

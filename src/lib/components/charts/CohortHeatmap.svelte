@@ -129,10 +129,9 @@
 					.attr('rx', 3)
 					.attr('fill', 'transparent')
 					.style('cursor', 'pointer')
-					.on('mouseenter', function (event: MouseEvent) {
+					.on('mouseenter', function () {
 						d3.select(this).attr('fill', 'rgba(255,255,255,0.08)');
 						if (tooltipEl) {
-							const rect = container!.getBoundingClientRect();
 							tooltipEl.style.opacity = '1';
 							tooltipEl.style.left = `${colIdx * cellSize + cellSize / 2 + margin.left}px`;
 							tooltipEl.style.top = `${rowIdx * cellSize + margin.top - 45}px`;

@@ -9,7 +9,6 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import SampleAlertCard from './SampleAlertCard.svelte';
 	import HeroChart from '$lib/components/charts/HeroChart.svelte';
-	import LivePriceTicker from '$lib/components/ui/LivePriceTicker.svelte';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
 
 	let heroRef: HTMLElement | undefined = $state();
@@ -123,7 +122,7 @@
 
 				<!-- Actions -->
 				<div class="hero-actions hero__actions">
-					<Button variant="primary" href="#pricing" magnetic>
+					<Button variant="primary" href="/pricing/monthly" magnetic>
 						Get Instant Access
 						<ArrowRight size={20} weight="bold" />
 					</Button>

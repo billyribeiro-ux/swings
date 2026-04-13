@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import type { PricingPlan } from '$lib/api/types';
+	import Seo from '$lib/seo/Seo.svelte';
+	import { webPageSchema, buildJsonLd } from '$lib/seo/jsonld';
 	import Check from 'phosphor-svelte/lib/Check';
 	import Tag from 'phosphor-svelte/lib/Tag';
 	import CaretDown from 'phosphor-svelte/lib/CaretDown';
@@ -43,6 +45,16 @@
 		{ q: 'Can I switch between monthly and annual?', a: 'Yes. You can upgrade or downgrade your plan at any time. When switching to annual, you receive prorated credit for your remaining monthly period.' },
 		{ q: 'What happens after I subscribe?', a: 'You get instant access to all courses, weekly watchlists, trade alerts, and the members-only community. Start learning immediately.' }
 	];
+
+	const jsonLd = buildJsonLd([
+		webPageSchema({
+			path: '/pricing',
+			title: 'Pricing Plans - Explosive Swings',
+			description:
+				'Compare monthly and annual plans for Explosive Swings. Access weekly watchlists, course training, and trade execution guidance.',
+			speakable: '.pricing-page__title, .pricing-page__subtitle'
+		})
+	]);
 
 	const fallbackPlans: DisplayPlan[] = [
 		{ id: '1', name: 'Monthly', slug: 'monthly', amount_cents: 4900, currency: 'usd', interval: 'month', features: ['Weekly watchlists & trade alerts', 'Full course library access', 'Members-only community', 'Mobile app access'], is_popular: false, highlight_text: null, trial_days: 0, stripe_price_id: null },
@@ -103,10 +115,12 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Pricing - Explosive Swings</title>
-	<meta name="description" content="Choose the plan that's right for you. Get access to courses, watchlists, and trade alerts." />
-</svelte:head>
+<Seo
+	title="Pricing Plans - Explosive Swings"
+	description="Compare monthly and annual plans for Explosive Swings. Access weekly watchlists, course training, and trade execution guidance."
+	ogTitle="Explosive Swings Pricing - Monthly and Annual"
+	{jsonLd}
+/>
 
 <div class="pricing-page">
 	<div class="pricing-page__header">

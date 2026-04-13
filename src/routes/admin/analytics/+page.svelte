@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { SvelteDate } from 'svelte/reactivity';
 	import { api } from '$lib/api/client';
 	import RevenueChart from '$lib/components/charts/RevenueChart.svelte';
 	import GrowthChart from '$lib/components/charts/GrowthChart.svelte';
@@ -43,7 +44,8 @@
 	];
 
 	function getRangeDates(r: string): { from: string; to: string } {
-		const to = new Date(), from = new Date();
+		const to = new SvelteDate();
+		const from = new SvelteDate(to.getTime());
 		if (r === '7d') from.setDate(to.getDate() - 7);
 		else if (r === '30d') from.setDate(to.getDate() - 30);
 		else if (r === '90d') from.setDate(to.getDate() - 90);

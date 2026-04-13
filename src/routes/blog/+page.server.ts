@@ -5,7 +5,12 @@ import type { BlogPostListItem, BlogCategory, PaginatedResponse } from '$lib/api
 const API = getPublicApiBase();
 
 export const load: PageServerLoad = async ({ url, fetch }) => {
-	const page = Number(url.searchParams.get('page') || '1');
+	let page: number;
+	try {
+		page = Number(url.searchParams.get('page') || '1');
+	} catch {
+		page = 1;
+	}
 	const per_page = 12;
 
 	const [postsRes, catsRes] = await Promise.allSettled([

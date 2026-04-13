@@ -17,7 +17,7 @@
 
 	const posts = $derived(data.posts);
 	const categories = $derived(data.categories);
-	const total = $derived(data.total);
+	const _total = $derived(data.total);
 	// Renamed from `page` to avoid shadowing the `page` import from `$app/state`.
 	const currentPage = $derived(data.page);
 	const totalPages = $derived(data.totalPages);

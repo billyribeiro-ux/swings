@@ -313,7 +313,7 @@
 			</p>
 
 			<div class="reveal-item">
-				<a href="/#pricing" class="page-cta-btn">
+				<a href="/pricing/monthly" class="page-cta-btn">
 					Get Instant Access
 					<ChartLineUp size={18} weight="bold" />
 				</a>

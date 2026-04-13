@@ -79,12 +79,18 @@
 	async function loadSubscriptions() {
 		loading = true;
 		try {
-			const params = new URLSearchParams({ page: String(page), per_page: '15' });
-			if (search.trim()) params.set('search', search.trim());
-			if (statusFilter !== 'all') params.set('status', statusFilter);
+			const params: Array<[string, string]> = [
+				['page', String(page)],
+				['per_page', '15']
+			];
+			if (search.trim()) params.push(['search', search.trim()]);
+			if (statusFilter !== 'all') params.push(['status', statusFilter]);
+			const query = params
+				.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+				.join('&');
 
 			const res = await api.get<PaginatedSubscriptions>(
-				`/api/admin/subscriptions?${params.toString()}`
+				`/api/admin/subscriptions?${query}`
 			);
 			subscriptions = res.data;
 			total = res.total;

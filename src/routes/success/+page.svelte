@@ -126,7 +126,7 @@
 			</div>
 
 			<div class="success-page__steps-list">
-				{#each steps as step, i (step.title)}
+				{#each steps as step (step.title)}
 					<div class="success-page__step">
 						<div class="success-page__step-icon">
 							<step.icon size={20} weight="duotone" color="#15C5D1" />
