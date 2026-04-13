@@ -1,0 +1,25 @@
+---
+description: Ensure Svelte MCP is available and used for Svelte/SvelteKit work
+alwaysApply: true
+---
+
+# Svelte MCP (agent + IDE)
+
+This repo registers the **official Svelte MCP** in `.cursor/mcp.json` (remote HTTP: `https://mcp.svelte.dev/mcp`).
+
+## You (human) — one-time in Cursor
+
+1. **Command Palette** → `Cursor: Open MCP Settings` (or **Settings → MCP**).
+2. Confirm a server named **`svelte`** appears and is **enabled** (toggle on).
+3. If it does not appear: **Reload Window** (`Developer: Reload Window`).
+4. Prefer **project** MCP (this repo’s `.cursor/mcp.json`). If you also use `~/.cursor/mcp.json`, duplicate entries can conflict; project-level should win.
+
+## Agent — when tools are available
+
+If the Svelte MCP tools are listed in the session (e.g. `list-sections`, `get-documentation`, `svelte-autofixer`, `playground-link`):
+
+- For Svelte / SvelteKit questions: call **`list-sections`**, then **`get-documentation`** for relevant sections.
+- After editing **`.svelte`** files: run **`svelte-autofixer`** until it reports no issues.
+- **`playground-link`**: only after the user confirms they want a link, and not for code saved only in the repo.
+
+If those tools are **not** in the tool list, the MCP server is not connected to this chat session — follow **AGENTS.md** manually and say the user should enable/reload MCP.

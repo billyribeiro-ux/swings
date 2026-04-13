@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import type {
 		BlogPostListItem,
@@ -216,7 +217,7 @@
 <div class="blog-admin">
 	<div class="blog-admin__header">
 		<h1>Blog Posts</h1>
-		<a href="/admin/blog/new" class="btn-primary">+ New Post</a>
+		<a href={resolve('/admin/blog/new')} class="btn-primary">+ New Post</a>
 	</div>
 
 	<!-- Filters -->
@@ -280,7 +281,7 @@
 			{#each posts as post (post.id)}
 				<div class="post-card">
 					<div class="post-card__header">
-						<a href="/admin/blog/{post.id}" class="post-card__title">{post.title}</a>
+						<a href={resolve(`/admin/blog/${post.id}`)} class="post-card__title">{post.title}</a>
 						<span class="badge {statusBadge(post.status)}">
 							{statusLabel(post.status)}
 						</span>
@@ -306,7 +307,7 @@
 						<div class="post-card__row">
 							<span class="post-card__label">Categories</span>
 							<span class="post-card__cats">
-								{#each post.categories as cat}
+								{#each post.categories as cat (cat.id)}
 									<span class="cat-pill">{cat.name}</span>
 								{/each}
 							</span>
@@ -316,7 +317,7 @@
 						{post.word_count} words · {post.reading_time_minutes} min read
 					</div>
 					<div class="post-card__actions">
-						<a href="/admin/blog/{post.id}" class="post-card__btn post-card__btn--edit">Edit</a>
+						<a href={resolve(`/admin/blog/${post.id}`)} class="post-card__btn post-card__btn--edit">Edit</a>
 						{#if post.status === 'trash'}
 							<button class="post-card__btn post-card__btn--edit" onclick={() => restorePost(post.id)}
 								>Restore</button
@@ -362,7 +363,7 @@
 								/>
 							</td>
 							<td>
-								<a href="/admin/blog/{post.id}" class="post-title-link">
+								<a href={resolve(`/admin/blog/${post.id}`)} class="post-title-link">
 									{post.title}
 								</a>
 								{#if post.is_sticky}<span class="sticky-badge">Sticky</span>{/if}
@@ -372,7 +373,7 @@
 							</td>
 							<td class="td-author">{post.author_name}</td>
 							<td class="td-cats">
-								{#each post.categories as cat}
+								{#each post.categories as cat (cat.id)}
 									<span class="cat-pill">{cat.name}</span>
 								{/each}
 							</td>
@@ -389,7 +390,7 @@
 								{/if}
 							</td>
 							<td class="td-actions">
-								<a href="/admin/blog/{post.id}" class="action-link">Edit</a>
+								<a href={resolve(`/admin/blog/${post.id}`)} class="action-link">Edit</a>
 								<button
 									class="action-btn"
 									class:action-btn--active={qePostId === post.id}
@@ -432,7 +433,7 @@
 												<label class="qe-label">
 													Author
 													<select class="qe-select" bind:value={qeAuthorId}>
-														{#each admins as a}
+														{#each admins as a (a.id)}
 															<option value={a.id}>{a.name || a.email}</option>
 														{/each}
 													</select>

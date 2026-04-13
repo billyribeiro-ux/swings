@@ -2,6 +2,7 @@
 	import { untrack } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import type {
 		BlogPostResponse,
@@ -24,9 +25,6 @@
 		CaretLeft,
 		FloppyDisk,
 		PaperPlane,
-		Clock,
-		Globe,
-		Lock,
 		Image,
 		Trash,
 		Plus,
@@ -347,16 +345,27 @@
 		}
 	}
 
-	function handleFocalClick(e: MouseEvent) {
-		const target = e.currentTarget as HTMLElement;
-		const rect = target.getBoundingClientRect();
-		focalX = Math.round(((e.clientX - rect.left) / rect.width) * 100) / 100;
-		focalY = Math.round(((e.clientY - rect.top) / rect.height) * 100) / 100;
+	function setFocalPoint(el: HTMLElement, clientX: number, clientY: number) {
+		const rect = el.getBoundingClientRect();
+		focalX = Math.round(((clientX - rect.left) / rect.width) * 100) / 100;
+		focalY = Math.round(((clientY - rect.top) / rect.height) * 100) / 100;
 		if (featuredImageId) {
 			api
 				.put(`/api/admin/media/${featuredImageId}`, { focal_x: focalX, focal_y: focalY })
 				.catch(() => {});
 		}
+	}
+
+	function handleFocalClick(e: MouseEvent) {
+		setFocalPoint(e.currentTarget as HTMLElement, e.clientX, e.clientY);
+	}
+
+	function handleFocalKeydown(e: KeyboardEvent) {
+		if (e.key !== 'Enter' && e.key !== ' ') return;
+		e.preventDefault();
+		const el = e.currentTarget as HTMLElement;
+		const rect = el.getBoundingClientRect();
+		setFocalPoint(el, rect.left + rect.width / 2, rect.top + rect.height / 2);
 	}
 
 	function removeFeaturedImage() {
@@ -418,7 +427,7 @@
 		saveMessage = '';
 		try {
 			await api.put(`/api/admin/blog/posts/${post.id}/status`, { status: 'trash' });
-			await goto('/admin/blog');
+			await goto(resolve('/admin/blog'));
 		} catch (e) {
 			saveMessage = 'Could not move to trash';
 			console.error(e);
@@ -456,7 +465,7 @@
 		saveMessage = '';
 		try {
 			await api.delete(`/api/admin/blog/posts/${post.id}`);
-			await goto('/admin/blog');
+			await goto(resolve('/admin/blog'));
 		} catch (e) {
 			saveMessage = 'Delete failed';
 			console.error(e);
@@ -493,7 +502,7 @@
 	<!-- Main content area -->
 	<div class="post-editor__main">
 		<div class="post-editor__back">
-			<a href="/admin/blog">
+			<a href={resolve('/admin/blog')}>
 				<ArrowLeft size={16} weight="bold" />
 				<span>Back to posts</span>
 			</a>
@@ -558,7 +567,7 @@
 			onInsertImage={openMediaForEditor}
 			{autosaveStatus}
 			{lastSavedAt}
-			revisions={revisions as any}
+			{revisions}
 			focusKeyword=""
 			{metaTitle}
 			{metaDescription}
@@ -928,12 +937,12 @@
 				<div class="sidebar-section__content">
 					{#if featuredImageUrl}
 						<div class="featured-preview">
-							<!-- svelte-ignore a11y_click_events_have_key_events -->
-							<!-- svelte-ignore a11y_no_static_element_interactions -->
 							<div
 								class="focal-picker"
-								role="presentation"
+								role="button"
+								tabindex="0"
 								onclick={handleFocalClick}
+								onkeydown={handleFocalKeydown}
 								title="Click to set focal point"
 							>
 								<img
