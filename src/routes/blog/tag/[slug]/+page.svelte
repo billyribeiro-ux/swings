@@ -53,7 +53,7 @@
 			webPageSchema({
 				path: `/blog/tag/${slug}`,
 				title: `Tag: ${tagName} - Blog - Explosive Swings`,
-				description: `Posts tagged with ${tagName}.`
+				description: `Browse ${tagName} articles with practical options setups, market context, and risk management lessons.`
 			})
 		])
 	);
@@ -61,7 +61,7 @@
 
 <Seo
 	title="Tag: {tagName} - Blog - Explosive Swings"
-	description="Posts tagged with {tagName}."
+	description="Browse {tagName} articles with practical options setups, market context, and risk management lessons."
 	{jsonLd}
 />
 

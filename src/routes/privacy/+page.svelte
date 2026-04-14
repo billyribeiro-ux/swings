@@ -15,7 +15,6 @@
 <Seo
 	title="Privacy Policy - Explosive Swings"
 	description="Privacy Policy for Explosive Swings. Learn how we collect, use, and protect your personal information."
-	canonical="/privacy"
 	{jsonLd}
 />
 

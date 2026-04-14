@@ -17,7 +17,7 @@
 		"dev": "vite dev",
 		"dev:api": "cd backend && cargo run",
 		"dev:all": "concurrently -k -n web,api -c cyan,magenta \"pnpm dev\" \"cd backend && cargo run\"",
-		"build": "vite build",
+		"build": "rm -rf .svelte-kit && vite build",
 		"preview": "vite preview",
 		"prepare": "(svelte-kit sync || echo '') && simple-git-hooks",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -28,7 +28,8 @@
 		"test:browser": "vitest --config vitest.browser.config.ts --run",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright test",
-		"ci:frontend": "pnpm check && pnpm lint && pnpm test:unit -- --run && pnpm build",
+		"ci:seo": "node scripts/seo-audit.mjs",
+		"ci:frontend": "pnpm check && pnpm lint && pnpm ci:seo && pnpm test:unit -- --run && pnpm build",
 		"ci:backend": "cargo fmt --manifest-path backend/Cargo.toml --check && cargo clippy --manifest-path backend/Cargo.toml --all-targets -- -D warnings && cargo test --manifest-path backend/Cargo.toml && cargo build --manifest-path backend/Cargo.toml",
 		"ci:all": "pnpm ci:frontend && pnpm ci:backend"
 	},

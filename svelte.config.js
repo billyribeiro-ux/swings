@@ -24,7 +24,7 @@ const config = {
 			handleHttpError: 'warn',
 			handleMissingId: 'warn',
 			crawl: true,
-			entries: ['/', '/about', '/courses', '/blog', '/pricing/monthly', '/pricing/annual']
+			entries: ['/', '/about', '/courses', '/blog', '/pricing', '/pricing/monthly', '/pricing/annual']
 		}
 	}
 };

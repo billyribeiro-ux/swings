@@ -110,7 +110,12 @@ pnpm run build
 
 # Preview production build
 pnpm run preview
+
+# SEO policy checks
+pnpm run ci:seo
 ```
+
+SEO operational guidance lives in `SEO_RUNBOOK.md`.
 
 ## 🚢 Deployment
 

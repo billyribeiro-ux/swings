@@ -15,9 +15,9 @@
 	const jsonLd = buildJsonLd([
 		webPageSchema({
 			path: '/about',
-			title: 'About Explosive Swings - Our Mission & Team',
+			title: 'About Explosive Swings - Team, Method, and Trading Philosophy',
 			description:
-				'Learn about Explosive Swings, our mission to empower options traders, and the team behind the weekly watchlists.',
+				'Meet the team behind Explosive Swings and learn the risk-first process we use to build weekly watchlists and options education.',
 			speakable: '.about-title, .about-subtitle, .founder-card__name, .founder-card__bio'
 		})
 	]);
@@ -65,8 +65,8 @@
 
 <Seo
 	title="About - Explosive Swings"
-	description="Learn about Explosive Swings, our mission to empower options traders, and the team behind the weekly watchlists."
-	ogTitle="About Explosive Swings - Our Mission & Team"
+	description="Meet the team behind Explosive Swings and learn the risk-first process we use to build weekly watchlists and options education."
+	ogTitle="About Explosive Swings - Team and Trading Philosophy"
 	{jsonLd}
 />
 

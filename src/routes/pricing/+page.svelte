@@ -39,11 +39,11 @@
 	let openFaq = $state(-1);
 
 	const faqs = [
-		{ q: 'Can I cancel anytime?', a: 'Yes. Cancel your subscription at any time from your account settings. You will retain access until the end of your billing period.' },
-		{ q: 'What payment methods do you accept?', a: 'We accept all major credit cards (Visa, Mastercard, Amex), debit cards, and Apple Pay / Google Pay through our secure Stripe payment processor.' },
-		{ q: 'Is there a free trial?', a: 'Some plans include a free trial period. Check individual plan details for trial availability.' },
-		{ q: 'Can I switch between monthly and annual?', a: 'Yes. You can upgrade or downgrade your plan at any time. When switching to annual, you receive prorated credit for your remaining monthly period.' },
-		{ q: 'What happens after I subscribe?', a: 'You get instant access to all courses, weekly watchlists, trade alerts, and the members-only community. Start learning immediately.' }
+		{ q: 'Can I cancel anytime?', a: 'Yes. Cancel any time from your account settings. Your access stays active through the end of your current billing period.' },
+		{ q: 'What payment methods do you accept?', a: 'We process payments securely through Stripe and accept major credit and debit cards, plus Apple Pay and Google Pay where supported.' },
+		{ q: 'Is there a free trial?', a: 'Some plans include a trial window. Trial availability is shown directly on each plan card before checkout.' },
+		{ q: 'Can I switch between monthly and annual?', a: 'Yes. You can change plans at any time. Billing is adjusted automatically, including prorated credits when applicable.' },
+		{ q: 'What happens after I subscribe?', a: 'You get immediate member access to course lessons, weekly watchlists, and alert channels, plus onboarding guidance to start using the workflow quickly.' }
 	];
 
 	const jsonLd = buildJsonLd([
@@ -124,8 +124,8 @@
 
 <div class="pricing-page">
 	<div class="pricing-page__header">
-		<h1 class="pricing-page__title">Choose Your Plan</h1>
-		<p class="pricing-page__subtitle">Unlock your trading potential with access to courses, weekly watchlists, and real-time trade alerts.</p>
+		<h1 class="pricing-page__title">Choose the Plan That Fits Your Trading Workflow</h1>
+		<p class="pricing-page__subtitle">Compare monthly and annual options for structured training, weekly watchlists, and disciplined execution support.</p>
 
 		<div class="pricing-page__toggle">
 			<button class="toggle-btn" class:active={billingCycle === 'month'} onclick={() => (billingCycle = 'month')}>Monthly</button>
@@ -159,7 +159,7 @@
 						<p class="plan-card__trial">{plan.trial_days}-day free trial</p>
 					{/if}
 					<ul class="plan-card__features">
-						{#each plan.features as feature}
+						{#each plan.features as feature (feature)}
 							<li><Check size={16} weight="bold" /> {feature}</li>
 						{/each}
 					</ul>
@@ -191,7 +191,7 @@
 		<!-- FAQ -->
 		<div class="faq-section">
 			<h2 class="faq-title">Frequently Asked Questions</h2>
-			{#each faqs as faq, i}
+			{#each faqs as faq, i (faq.q)}
 				<button class="faq-item" onclick={() => (openFaq = openFaq === i ? -1 : i)}>
 					<div class="faq-q">
 						{faq.q}

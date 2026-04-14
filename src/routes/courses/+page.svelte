@@ -16,9 +16,9 @@
 	const jsonLd = buildJsonLd([
 		webPageSchema({
 			path: '/courses',
-			title: 'Options Trading Courses - Explosive Swings',
+			title: 'Options Trading Courses - Structured Learning Paths',
 			description:
-				'Structured courses designed to take you from the basics to confidently trading options at your own pace.',
+				'Follow structured options courses that turn market concepts into repeatable execution, risk management habits, and review workflows.',
 			speakable: '.courses-title, .courses-subtitle'
 		}),
 		...courses.map((c) =>
@@ -78,8 +78,8 @@
 
 <Seo
 	title="Options Trading Courses - Explosive Swings"
-	description="Structured courses designed to take you from the basics to confidently trading options at your own pace."
-	ogTitle="Options Trading Courses - Explosive Swings"
+	description="Follow structured options courses that turn market concepts into repeatable execution, risk management habits, and review workflows."
+	ogTitle="Options Trading Courses - Structured Learning Paths"
 	{jsonLd}
 />
 

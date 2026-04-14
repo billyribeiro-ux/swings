@@ -68,7 +68,6 @@
 	<meta name="twitter:image" content={resolvedOgImage} />
 
 	{#if jsonLd}
-		<!-- buildJsonLd() escapes `<` to `\u003c` so the inner JSON cannot break out -->
-		{@html '<script type="application/ld+json">' + jsonLd + '<' + '/script>'}
+		<script type="application/ld+json">{jsonLd}</script>
 	{/if}
 </svelte:head>

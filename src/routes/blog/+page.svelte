@@ -70,9 +70,9 @@
 		buildJsonLd([
 			webPageSchema({
 				path: '/blog',
-				title: 'Blog - Explosive Swings',
+				title: 'Options Trading Blog - Strategy, Risk, and Market Context',
 				description:
-					'Options trading insights, strategies, and education from the Explosive Swings team.',
+					'Read practical options trading breakdowns, risk management lessons, and weekly market context from the Explosive Swings team.',
 				speakable: '.blog-title, .blog-subtitle'
 			}),
 			...posts.map((p) =>
@@ -88,8 +88,8 @@
 </script>
 
 <Seo
-	title="Blog - Explosive Swings"
-	description="Options trading insights, strategies, and education from the Explosive Swings team."
+	title="Options Trading Blog - Explosive Swings"
+	description="Read practical options trading breakdowns, risk management lessons, and weekly market context from the Explosive Swings team."
 	ogTitle="Options Trading Blog - Explosive Swings"
 	{jsonLd}
 />

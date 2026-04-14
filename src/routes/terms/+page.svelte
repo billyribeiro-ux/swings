@@ -15,7 +15,6 @@
 <Seo
 	title="Terms of Service - Explosive Swings"
 	description="Terms of Service for Explosive Swings. Read our terms and conditions for using our trading education platform and weekly watchlist service."
-	canonical="/terms"
 	{jsonLd}
 />
 

@@ -65,7 +65,7 @@
 			webPageSchema({
 				path: `/blog/category/${slug}`,
 				title: `${categoryName} - Blog - Explosive Swings`,
-				description: `Posts in the ${categoryName} category.`
+				description: `Explore ${categoryName} posts with clear trade rationale, execution checkpoints, and risk-first decision making.`
 			})
 		])
 	);
@@ -73,7 +73,7 @@
 
 <Seo
 	title="{categoryName} - Blog - Explosive Swings"
-	description="Posts in the {categoryName} category."
+	description="Explore {categoryName} posts with clear trade rationale, execution checkpoints, and risk-first decision making."
 	{jsonLd}
 />
 

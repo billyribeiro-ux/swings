@@ -6,12 +6,7 @@ export default defineConfig({
 	plugins: [sveltekit(), devtoolsJson()],
 	build: {
 		// Large, intentional vendor chunks in this app make Vite's default 500k warning too noisy.
-		chunkSizeWarningLimit: 10000,
-		rolldownOptions: {
-			checks: {
-				pluginTimings: false
-			}
-		}
+		chunkSizeWarningLimit: 10000
 	},
 	server: {
 		proxy: {
