@@ -106,7 +106,7 @@
 				<!-- Eyebrow Badge -->
 				<div class="hero-badge hero__badge">
 					<span class="hero__badge-dot animate-pulse"></span>
-					<span class="hero__badge-text"> Weekly watchlist delivered every Sunday night </span>
+					<span class="hero__badge-text"> Weekly watchlist delivered every Sunday 6:00 PM ET </span>
 				</div>
 
 				<!-- Title -->

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Hero from '$lib/components/landing/Hero.svelte';
+	import ScheduleCountdowns from '$lib/components/landing/ScheduleCountdowns.svelte';
 	import WhyDifferent from '$lib/components/landing/WhyDifferent.svelte';
 	import WhatYouGet from '$lib/components/landing/WhatYouGet.svelte';
 	import WhoItsFor from '$lib/components/landing/WhoItsFor.svelte';
@@ -32,6 +33,7 @@
 />
 
 <Hero />
+<ScheduleCountdowns />
 <WhyDifferent />
 <WhatYouGet />
 <WhoItsFor />
