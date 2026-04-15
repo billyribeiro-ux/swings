@@ -3655,7 +3655,7 @@ dependencies = [
  "hmac",
  "jsonwebtoken",
  "lettre",
- "rand 0.8.5",
+ "rand 0.9.4",
  "rust_decimal",
  "sanitize-filename",
  "serde",
