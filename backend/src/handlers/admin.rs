@@ -20,6 +20,7 @@ pub fn router() -> Router<AppState> {
         // Dashboard
         .route("/stats", get(dashboard_stats))
         .route("/analytics/summary", get(analytics_summary))
+        .route("/analytics/revenue", get(analytics_revenue))
         // Members
         .route("/members", get(list_members))
         .route("/members/{id}", get(get_member))
@@ -104,9 +105,23 @@ async fn analytics_summary(
     let (total_page_views, total_sessions, total_impressions) =
         db::analytics_totals(&state.db, start, end_exclusive).await?;
 
+    let (bounced_sessions, bounce_eligible_sessions) =
+        db::analytics_bounce_stats(&state.db, start, end_exclusive).await?;
+    let bounce_rate = if bounce_eligible_sessions > 0 {
+        bounced_sessions as f64 / bounce_eligible_sessions as f64
+    } else {
+        0.0
+    };
+
+    let (mrr_cents, arr_cents, active_subscribers) =
+        db::admin_estimated_mrr_arr_cents(&state.db).await?;
+    let period_revenue_cents =
+        db::analytics_sales_revenue_total_cents(&state.db, start, end_exclusive).await?;
+
     let days = db::analytics_time_series(&state.db, start, end_exclusive).await?;
     let tops = db::analytics_top_pages(&state.db, start, end_exclusive, 25).await?;
     let ctr_rows = db::analytics_ctr_breakdown(&state.db, start, end_exclusive).await?;
+    let recent_rows = db::analytics_recent_sales(&state.db, start, end_exclusive, 20).await?;
 
     let time_series = days
         .into_iter()
@@ -123,6 +138,7 @@ async fn analytics_summary(
         .map(|t| AnalyticsTopPage {
             path: t.path,
             views: t.views,
+            sessions: t.sessions,
         })
         .collect();
 
@@ -144,16 +160,68 @@ async fn analytics_summary(
         })
         .collect();
 
+    let recent_sales = recent_rows
+        .into_iter()
+        .map(|r| AnalyticsRecentSale {
+            id: r.id,
+            event_type: r.event_type,
+            amount_cents: r.amount_cents,
+            user_email: r.user_email,
+            created_at: r.created_at,
+        })
+        .collect();
+
     Ok(Json(AnalyticsSummary {
         from: q.from.clone(),
         to: q.to.clone(),
         total_page_views,
         total_sessions,
         total_impressions,
+        bounced_sessions,
+        bounce_eligible_sessions,
+        bounce_rate,
+        mrr_cents,
+        arr_cents,
+        active_subscribers,
+        period_revenue_cents,
         time_series,
         top_pages,
         ctr_series,
+        recent_sales,
     }))
+}
+
+async fn analytics_revenue(
+    State(state): State<AppState>,
+    _admin: AdminUser,
+    Query(q): Query<AnalyticsSummaryQuery>,
+) -> AppResult<Json<AdminRevenueResponse>> {
+    let from_date = NaiveDate::parse_from_str(&q.from, "%Y-%m-%d")
+        .map_err(|_| AppError::BadRequest("invalid from date (use YYYY-MM-DD)".to_string()))?;
+    let to_date = NaiveDate::parse_from_str(&q.to, "%Y-%m-%d")
+        .map_err(|_| AppError::BadRequest("invalid to date (use YYYY-MM-DD)".to_string()))?;
+    if to_date < from_date {
+        return Err(AppError::BadRequest(
+            "to must be on or after from".to_string(),
+        ));
+    }
+
+    let start = from_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
+    let end_exclusive = (to_date + Duration::days(1))
+        .and_hms_opt(0, 0, 0)
+        .unwrap()
+        .and_utc();
+
+    let rows = db::analytics_sales_revenue_daily(&state.db, start, end_exclusive).await?;
+    let data = rows
+        .into_iter()
+        .map(|r| DailyRevenuePoint {
+            date: r.day.format("%Y-%m-%d").to_string(),
+            revenue_cents: r.revenue_cents,
+        })
+        .collect();
+
+    Ok(Json(AdminRevenueResponse { data }))
 }
 
 // ── Members ─────────────────────────────────────────────────────────────

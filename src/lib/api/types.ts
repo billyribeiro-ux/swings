@@ -103,6 +103,15 @@ export interface AnalyticsTimeBucket {
 export interface AnalyticsTopPage {
 	path: string;
 	views: number;
+	sessions: number;
+}
+
+export interface AnalyticsRecentSale {
+	id: string;
+	event_type: string;
+	amount_cents: number;
+	user_email: string;
+	created_at: string;
 }
 
 export interface AnalyticsCtrPoint {
@@ -119,9 +128,21 @@ export interface AnalyticsSummary {
 	total_page_views: number;
 	total_sessions: number;
 	total_impressions: number;
+	bounced_sessions: number;
+	bounce_eligible_sessions: number;
+	bounce_rate: number;
+	mrr_cents: number;
+	arr_cents: number;
+	active_subscribers: number;
+	period_revenue_cents: number;
 	time_series: AnalyticsTimeBucket[];
 	top_pages: AnalyticsTopPage[];
 	ctr_series: AnalyticsCtrPoint[];
+	recent_sales: AnalyticsRecentSale[];
+}
+
+export interface AdminRevenueResponse {
+	data: { date: string; revenue_cents: number }[];
 }
 
 export interface PaginatedResponse<T> {

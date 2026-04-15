@@ -675,6 +675,16 @@ pub struct AnalyticsTimeBucket {
 pub struct AnalyticsTopPage {
     pub path: String,
     pub views: i64,
+    pub sessions: i64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AnalyticsRecentSale {
+    pub id: Uuid,
+    pub event_type: String,
+    pub amount_cents: i32,
+    pub user_email: String,
+    pub created_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Serialize)]
@@ -693,9 +703,32 @@ pub struct AnalyticsSummary {
     pub total_page_views: i64,
     pub total_sessions: i64,
     pub total_impressions: i64,
+    /// Sessions with exactly one page view in the period (classic single-page session bounce).
+    pub bounced_sessions: i64,
+    /// Sessions with ≥1 page view in the period (denominator for bounce rate).
+    pub bounce_eligible_sessions: i64,
+    pub bounce_rate: f64,
+    /// Estimated from active subscription counts × `pricing_plans` amounts (monthly + annual/12).
+    pub mrr_cents: i64,
+    pub arr_cents: i64,
+    pub active_subscribers: i64,
+    /// Sum of `sales_events.amount_cents` in `[from, to]`.
+    pub period_revenue_cents: i64,
     pub time_series: Vec<AnalyticsTimeBucket>,
     pub top_pages: Vec<AnalyticsTopPage>,
     pub ctr_series: Vec<AnalyticsCtrPoint>,
+    pub recent_sales: Vec<AnalyticsRecentSale>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct DailyRevenuePoint {
+    pub date: String,
+    pub revenue_cents: i64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AdminRevenueResponse {
+    pub data: Vec<DailyRevenuePoint>,
 }
 
 #[derive(Debug, Deserialize)]

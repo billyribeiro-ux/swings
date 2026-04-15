@@ -1613,6 +1613,7 @@ pub async fn analytics_time_series(
 pub struct AnalyticsTopPageRow {
     pub path: String,
     pub views: i64,
+    pub sessions: i64,
 }
 
 pub async fn analytics_top_pages(
@@ -1623,7 +1624,10 @@ pub async fn analytics_top_pages(
 ) -> Result<Vec<AnalyticsTopPageRow>, sqlx::Error> {
     sqlx::query_as::<_, AnalyticsTopPageRow>(
         r#"
-        SELECT path, COUNT(*)::bigint AS views
+        SELECT
+            path,
+            COUNT(*)::bigint AS views,
+            COUNT(DISTINCT session_id)::bigint AS sessions
         FROM analytics_events
         WHERE event_type = 'page_view' AND created_at >= $1 AND created_at < $2
         GROUP BY path
@@ -1636,6 +1640,141 @@ pub async fn analytics_top_pages(
     .bind(limit)
     .fetch_all(pool)
     .await
+}
+
+/// Sessions with at least one page_view in the window: "bounce" = exactly one page_view.
+pub async fn analytics_bounce_stats(
+    pool: &PgPool,
+    start: DateTime<Utc>,
+    end_exclusive: DateTime<Utc>,
+) -> Result<(i64, i64), sqlx::Error> {
+    let row: (i64, i64) = sqlx::query_as(
+        r#"
+        WITH session_pv AS (
+            SELECT session_id, COUNT(*)::bigint AS pv
+            FROM analytics_events
+            WHERE event_type = 'page_view' AND created_at >= $1 AND created_at < $2
+            GROUP BY session_id
+        )
+        SELECT
+            COUNT(*) FILTER (WHERE pv = 1)::bigint AS bounced,
+            COUNT(*)::bigint AS eligible
+        FROM session_pv
+        "#,
+    )
+    .bind(start)
+    .bind(end_exclusive)
+    .fetch_one(pool)
+    .await?;
+    Ok(row)
+}
+
+#[derive(Debug, sqlx::FromRow)]
+pub struct DailyRevenueRow {
+    pub day: NaiveDate,
+    pub revenue_cents: i64,
+}
+
+pub async fn analytics_sales_revenue_daily(
+    pool: &PgPool,
+    start: DateTime<Utc>,
+    end_exclusive: DateTime<Utc>,
+) -> Result<Vec<DailyRevenueRow>, sqlx::Error> {
+    sqlx::query_as::<_, DailyRevenueRow>(
+        r#"
+        SELECT
+            (date_trunc('day', created_at AT TIME ZONE 'UTC'))::date AS day,
+            COALESCE(SUM(amount_cents), 0)::bigint AS revenue_cents
+        FROM sales_events
+        WHERE created_at >= $1 AND created_at < $2
+        GROUP BY 1
+        ORDER BY 1 ASC
+        "#,
+    )
+    .bind(start)
+    .bind(end_exclusive)
+    .fetch_all(pool)
+    .await
+}
+
+pub async fn analytics_sales_revenue_total_cents(
+    pool: &PgPool,
+    start: DateTime<Utc>,
+    end_exclusive: DateTime<Utc>,
+) -> Result<i64, sqlx::Error> {
+    let row: (i64,) = sqlx::query_as(
+        r#"
+        SELECT COALESCE(SUM(amount_cents), 0)::bigint
+        FROM sales_events
+        WHERE created_at >= $1 AND created_at < $2
+        "#,
+    )
+    .bind(start)
+    .bind(end_exclusive)
+    .fetch_one(pool)
+    .await?;
+    Ok(row.0)
+}
+
+#[derive(Debug, sqlx::FromRow)]
+pub struct RecentSaleRow {
+    pub id: Uuid,
+    pub event_type: String,
+    pub amount_cents: i32,
+    pub user_email: String,
+    pub created_at: DateTime<Utc>,
+}
+
+pub async fn analytics_recent_sales(
+    pool: &PgPool,
+    start: DateTime<Utc>,
+    end_exclusive: DateTime<Utc>,
+    limit: i64,
+) -> Result<Vec<RecentSaleRow>, sqlx::Error> {
+    sqlx::query_as::<_, RecentSaleRow>(
+        r#"
+        SELECT se.id, se.event_type, se.amount_cents, u.email AS user_email, se.created_at
+        FROM sales_events se
+        JOIN users u ON u.id = se.user_id
+        WHERE se.created_at >= $1 AND se.created_at < $2
+        ORDER BY se.created_at DESC
+        LIMIT $3
+        "#,
+    )
+    .bind(start)
+    .bind(end_exclusive)
+    .bind(limit)
+    .fetch_all(pool)
+    .await
+}
+
+/// Active monthly/annual plan prices from `pricing_plans` (slugs `monthly` / `annual`).
+pub async fn pricing_monthly_annual_cents(pool: &PgPool) -> Result<(i32, i32), sqlx::Error> {
+    let row: (Option<i32>, Option<i32>) = sqlx::query_as(
+        r#"
+        SELECT
+            MAX(amount_cents) FILTER (WHERE slug = 'monthly'),
+            MAX(amount_cents) FILTER (WHERE slug = 'annual')
+        FROM pricing_plans
+        WHERE is_active = TRUE
+        "#,
+    )
+    .fetch_one(pool)
+    .await?;
+    Ok((row.0.unwrap_or(0), row.1.unwrap_or(0)))
+}
+
+/// Estimated MRR / ARR from active subscription counts × public plan prices.
+pub async fn admin_estimated_mrr_arr_cents(
+    pool: &PgPool,
+) -> Result<(i64, i64, i64), sqlx::Error> {
+    let (monthly_price, annual_price) = pricing_monthly_annual_cents(pool).await?;
+    let n_m = count_subscriptions_by_plan(pool, &SubscriptionPlan::Monthly).await?;
+    let n_a = count_subscriptions_by_plan(pool, &SubscriptionPlan::Annual).await?;
+    let mrr = n_m * monthly_price as i64 + (n_a * annual_price as i64) / 12;
+    let arr = mrr * 12;
+    let active = count_active_subscriptions(pool).await?;
+    Ok((mrr, arr, active))
 }
 
 #[derive(Debug, sqlx::FromRow)]

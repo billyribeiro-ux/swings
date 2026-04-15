@@ -10,6 +10,9 @@
 	import SampleAlertCard from './SampleAlertCard.svelte';
 	import HeroChart from '$lib/components/charts/HeroChart.svelte';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
+	import { ctaImpression, trackCtaEvent } from '$lib/analytics/cta';
+
+	const HERO_PRIMARY_CTA = 'hero_get_instant_access';
 
 	let heroRef: HTMLElement | undefined = $state();
 	let glowRef: HTMLElement | undefined = $state();
@@ -124,10 +127,17 @@
 
 				<!-- Actions -->
 				<div class="hero-actions hero__actions">
-					<Button variant="primary" href="/pricing/monthly" magnetic>
-						Get Instant Access
-						<ArrowRight size={20} weight="bold" />
-					</Button>
+					<div {@attach ctaImpression({ ctaId: HERO_PRIMARY_CTA })}>
+						<Button
+							variant="primary"
+							href="/pricing/monthly"
+							magnetic
+							onclick={() => trackCtaEvent('click', HERO_PRIMARY_CTA)}
+						>
+							Get Instant Access
+							<ArrowRight size={20} weight="bold" />
+						</Button>
+					</div>
 					<Button variant="ghost" onclick={scrollToHowItWorks} magnetic>See How It Works</Button>
 				</div>
 

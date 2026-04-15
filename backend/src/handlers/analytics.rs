@@ -9,7 +9,9 @@ use crate::{
 };
 
 pub fn router() -> Router<AppState> {
-    Router::new().route("/events", post(ingest_events))
+    Router::new()
+        .route("/events", post(ingest_events))
+        .layer(crate::middleware::rate_limit::analytics_ingest_layer())
 }
 
 const MAX_EVENTS_PER_REQUEST: usize = 64;

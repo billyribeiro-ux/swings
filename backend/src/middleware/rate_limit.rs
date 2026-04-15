@@ -36,3 +36,8 @@ pub fn register_layer() -> AuthGovernorLayer {
 pub fn forgot_password_layer() -> AuthGovernorLayer {
     ip_layer(Duration::from_secs(1200), 3)
 }
+
+/// Public analytics ingest: generous limit to avoid dropping legitimate SPA traffic (~120/min per IP).
+pub fn analytics_ingest_layer() -> AuthGovernorLayer {
+    ip_layer(Duration::from_secs(1), 120)
+}

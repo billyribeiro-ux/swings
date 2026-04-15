@@ -1,6 +1,9 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
+	import { ctaImpression, trackCtaEvent } from '$lib/analytics/cta';
+
+	const FINAL_CTA_ID = 'final_get_instant_access';
 	import { gsap } from 'gsap';
 	import {
 		createCinematicReveal,
@@ -52,10 +55,16 @@
 			Get your weekly watchlist every Sunday night - detailed entries, targets, exits, and stops so
 			you're prepared before the market opens.
 		</p>
-		<Button variant="primary" href="/pricing/monthly">
-			Get Instant Access to Alerts
-			<ArrowRight size={20} weight="bold" />
-		</Button>
+		<div {@attach ctaImpression({ ctaId: FINAL_CTA_ID })}>
+			<Button
+				variant="primary"
+				href="/pricing/monthly"
+				onclick={() => trackCtaEvent('click', FINAL_CTA_ID)}
+			>
+				Get Instant Access to Alerts
+				<ArrowRight size={20} weight="bold" />
+			</Button>
+		</div>
 	</div>
 </section>
 
