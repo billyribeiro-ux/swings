@@ -2,11 +2,7 @@
 	"rewrites": [
 		{
 			"source": "/api/:path*",
-			"destination": "https://swings-api.onrender.com/api/:path*"
-		},
-		{
-			"source": "/uploads/:path*",
-			"destination": "https://swings-api.onrender.com/uploads/:path*"
+			"destination": "https://YOUR-SERVICE.up.railway.app/api/:path*"
 		}
 	]
 }
