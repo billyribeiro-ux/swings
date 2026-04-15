@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { afterNavigate } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { page } from '$app/state';
 	import { api } from '$lib/api/client';
@@ -13,6 +14,7 @@
 	let activePopups = $state<Popup[]>([]);
 	let visiblePopupIds = $state<Set<string>>(new Set());
 	let cleanupFns: Array<() => void> = [];
+	let popupRequestSeq = 0;
 
 	const currentPath = $derived(page.url.pathname);
 
@@ -193,6 +195,7 @@
 
 	async function fetchAndSetupPopups() {
 		if (!browser) return;
+		const reqId = ++popupRequestSeq;
 
 		cleanupAllTriggers();
 		visiblePopupIds = new Set();
@@ -205,6 +208,7 @@
 				`/api/popups/active?page=${encodeURIComponent(currentPath)}&device=${device}&user_status=${userStatus}`,
 				{ skipAuth: true }
 			);
+			if (reqId !== popupRequestSeq) return;
 			activePopups = popups;
 
 			for (const popup of activePopups) {
@@ -214,22 +218,20 @@
 				}
 			}
 		} catch {
+			if (reqId !== popupRequestSeq) return;
 			activePopups = [];
 		}
 	}
 
 	onMount(() => {
-		fetchAndSetupPopups();
-		return () => cleanupAllTriggers();
-	});
-
-	// Re-fetch when route changes
-	let previousPath = $state('');
-	$effect(() => {
-		if (currentPath !== previousPath) {
-			previousPath = currentPath;
+		// `afterNavigate` also fires on first load and keeps popups synced to route/device/auth.
+		const unlisten = afterNavigate(() => {
 			fetchAndSetupPopups();
-		}
+		});
+		return () => {
+			unlisten();
+			cleanupAllTriggers();
+		};
 	});
 </script>
 

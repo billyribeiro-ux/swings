@@ -36,7 +36,21 @@ The API will start on `http://localhost:3001` by default.
 | `REFRESH_TOKEN_EXPIRATION_DAYS` | No | `30` | Refresh token lifetime |
 | `PORT` | No | `3001` | Server port |
 | `FRONTEND_URL` | No | `http://localhost:5173` | Frontend URL for CORS |
-| `CORS_ALLOWED_ORIGINS` | No | `FRONTEND_URL` | Comma-separated list of allowed CORS origins |
+| `CORS_ALLOWED_ORIGINS` | No | `FRONTEND_URL` | Comma-separated **exact** browser origins (scheme + host + port). No trailing `/`. |
+
+### CORS in production
+
+Browsers send the page’s origin on every cross-site API call (e.g. `https://www.precisionoptionsignals.com`). Your API must list that **exact** string in `CORS_ALLOWED_ORIGINS`, or the preflight `OPTIONS` response will omit `Access-Control-Allow-Origin` and the browser blocks the request.
+
+- If visitors use **`https://www.…`**, allow `https://www.precisionoptionsignals.com`.
+- **`https://precisionoptionsignals.com`** (apex) is a **different** origin; include both if you use both.
+- After changing env vars on Render, **redeploy** (or restart) the API service.
+
+Example:
+
+```env
+CORS_ALLOWED_ORIGINS=https://precisionoptionsignals.com,https://www.precisionoptionsignals.com
+```
 | `STRIPE_SECRET_KEY` | No | - | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | No | - | Stripe webhook signing secret |
 | `APP_ENV` | No | `development` | Use `production` to enforce production-only guards |

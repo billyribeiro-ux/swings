@@ -96,7 +96,7 @@
 		<h1 class="courses-title page-hero__title">Level Up Your Options Game</h1>
 
 		<p class="courses-subtitle page-hero__subtitle">
-			Structured courses designed to take you from the basics to confidently trading options -- at
+			Structured courses designed to take you from the basics to confidently trading options at
 			your own pace.
 		</p>
 	</div>
