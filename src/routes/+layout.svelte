@@ -12,9 +12,6 @@
 	import { auth } from '$lib/stores/auth.svelte';
 	import { organizationSchema, webSiteSchema, buildJsonLd } from '$lib/seo/jsonld';
 	import { SITE } from '$lib/seo/config';
-	import { injectSpeedInsights } from '@vercel/speed-insights/sveltekit';
-
-	injectSpeedInsights();
 
 	let { children } = $props();
 
