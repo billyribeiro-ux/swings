@@ -1,4 +1,6 @@
+use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Duration;
 
 use axum::http::HeaderValue;
 use axum::http::Method;
@@ -17,6 +19,7 @@ mod extractors;
 mod handlers;
 mod middleware;
 mod models;
+mod services;
 mod stripe_api;
 
 use config::Config;
@@ -36,6 +39,7 @@ pub struct AppState {
     pub db: sqlx::PgPool,
     pub config: Arc<Config>,
     pub email_service: Option<Arc<email::EmailService>>,
+    pub media_backend: services::MediaBackend,
 }
 
 #[tokio::main]
@@ -51,10 +55,15 @@ async fn main() {
     load_dotenv();
 
     let config = Config::from_env();
+    config.assert_production_ready();
     let port = config.port;
 
     let pool = PgPoolOptions::new()
         .max_connections(10)
+        .min_connections(0)
+        .acquire_timeout(Duration::from_secs(10))
+        .idle_timeout(Duration::from_secs(300))
+        .max_lifetime(Duration::from_secs(1800))
         .connect(&config.database_url)
         .await
         .expect("Failed to connect to database");
@@ -102,10 +111,13 @@ async fn main() {
         }
     };
 
+    let media_backend = services::MediaBackend::resolve(config.upload_dir.clone());
+
     let state = AppState {
         db: pool,
         config: Arc::new(config),
         email_service,
+        media_backend,
     };
 
     let allowed_origins = state
@@ -133,7 +145,10 @@ async fn main() {
         .await
         .expect("Failed to create uploads directory");
 
-    let app = Router::new()
+    let mount_local_uploads =
+        !(state.config.is_production() && state.media_backend.is_r2());
+
+    let mut app = Router::new()
         // Auth & analytics
         .nest("/api/auth", handlers::auth::router())
         .nest("/api/analytics", handlers::analytics::router())
@@ -153,9 +168,14 @@ async fn main() {
         // Member routes
         .nest("/api/member", handlers::member::router())
         .nest("/api/member", handlers::courses::member_router())
-        // Webhooks & uploads
-        .nest("/api/webhooks", handlers::webhooks::router())
-        .nest_service("/uploads", ServeDir::new(&upload_dir))
+        // Webhooks
+        .nest("/api/webhooks", handlers::webhooks::router());
+
+    if mount_local_uploads {
+        app = app.nest_service("/uploads", ServeDir::new(&upload_dir));
+    }
+
+    let app = app
         .layer(cors)
         .layer(TraceLayer::new_for_http())
         .with_state(state);
@@ -165,5 +185,10 @@ async fn main() {
         .unwrap();
 
     tracing::info!("Swings API listening on port {port}");
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await
+    .unwrap();
 }

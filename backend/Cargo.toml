@@ -49,3 +49,11 @@ rand = "0.8"
 
 # Decimal
 rust_decimal = { version = "1", features = ["serde-with-str"] }
+
+# R2 (S3 API)
+aws-sdk-s3 = { version = "1", default-features = false, features = ["rt-tokio", "rustls"] }
+bytes = "1"
+
+# Rate limiting
+governor = "0.10"
+tower_governor = "0.8"

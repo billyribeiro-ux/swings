@@ -283,6 +283,8 @@ pub struct RefreshToken {
     pub token_hash: String,
     pub expires_at: DateTime<Utc>,
     pub created_at: DateTime<Utc>,
+    pub family_id: Uuid,
+    pub used: bool,
 }
 
 // ── Watchlist with alerts (joined response) ─────────────────────────────

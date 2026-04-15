@@ -26,23 +26,13 @@ impl Config {
     pub fn from_env() -> Self {
         let frontend_url =
             env::var("FRONTEND_URL").unwrap_or_else(|_| "http://localhost:5173".to_string());
-        let mut cors_allowed_origins = env::var("CORS_ALLOWED_ORIGINS")
+        let cors_allowed_origins = env::var("CORS_ALLOWED_ORIGINS")
             .unwrap_or_else(|_| frontend_url.clone())
             .split(',')
             .map(str::trim)
             .filter(|s| !s.is_empty())
             .map(ToOwned::to_owned)
             .collect::<Vec<_>>();
-
-        // Always allow apex + www for this product so a partial CORS env cannot block production traffic.
-        for origin in [
-            "https://precisionoptionsignals.com",
-            "https://www.precisionoptionsignals.com",
-        ] {
-            if !cors_allowed_origins.iter().any(|o| o == origin) {
-                cors_allowed_origins.push(origin.to_string());
-            }
-        }
 
         Self {
             database_url: env::var("DATABASE_URL").expect("DATABASE_URL must be set"),
@@ -82,5 +72,54 @@ impl Config {
 
     pub fn is_production(&self) -> bool {
         self.app_env.eq_ignore_ascii_case("production")
+    }
+
+    /// Panics in production when required secrets or URLs are missing. Call right after `from_env()`.
+    pub fn assert_production_ready(&self) {
+        if !self.is_production() {
+            return;
+        }
+
+        let mut missing: Vec<String> = Vec::new();
+
+        if self.database_url.trim().is_empty() {
+            missing.push("DATABASE_URL".into());
+        }
+        if self.jwt_secret.trim().is_empty() {
+            missing.push("JWT_SECRET".into());
+        }
+        if self.api_url.trim().is_empty() {
+            missing.push("API_URL".into());
+        }
+        if self.frontend_url.trim().is_empty() {
+            missing.push("FRONTEND_URL".into());
+        }
+        if self.stripe_secret_key.trim().is_empty() {
+            missing.push("STRIPE_SECRET_KEY".into());
+        }
+        if self.stripe_webhook_secret.trim().is_empty() {
+            missing.push("STRIPE_WEBHOOK_SECRET".into());
+        }
+
+        if env::var("ADMIN_EMAIL").unwrap_or_default().trim().is_empty() {
+            missing.push("ADMIN_EMAIL".into());
+        }
+        if env::var("ADMIN_PASSWORD").unwrap_or_default().trim().is_empty() {
+            missing.push("ADMIN_PASSWORD".into());
+        }
+
+        if crate::services::R2Storage::from_env().is_err() {
+            missing.push(
+                "R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_PUBLIC_URL"
+                    .into(),
+            );
+        }
+
+        if !missing.is_empty() {
+            panic!(
+                "APP_ENV=production but required configuration is missing or invalid:\n  - {}",
+                missing.join("\n  - ")
+            );
+        }
     }
 }

@@ -6,6 +6,7 @@ use axum::{
     Router,
 };
 use hmac::{Hmac, Mac};
+use rand::Rng;
 use sha2::Sha256;
 
 use crate::{db, models::*, AppState};
@@ -47,9 +48,37 @@ async fn stripe_webhook(
         Err(_) => return StatusCode::BAD_REQUEST,
     };
 
-    let event_type = event["type"].as_str().unwrap_or("");
+    let Some(event_id) = event.get("id").and_then(|v| v.as_str()) else {
+        tracing::warn!("Stripe event missing id");
+        return StatusCode::BAD_REQUEST;
+    };
+    let event_type = event
+        .get("type")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
 
-    tracing::info!("Stripe webhook received: {event_type}");
+    match db::try_claim_stripe_webhook_event(&state.db, event_id, event_type).await {
+        Ok(true) => {}
+        Ok(false) => {
+            tracing::debug!(event_id, "Duplicate Stripe webhook event — acknowledging");
+            return StatusCode::OK;
+        }
+        Err(e) => {
+            tracing::error!("Webhook idempotency insert failed: {e}");
+            return StatusCode::INTERNAL_SERVER_ERROR;
+        }
+    }
+
+    // ~1% of webhooks: prune old idempotency rows so the table stays bounded.
+    if rand::thread_rng().gen_bool(0.01) {
+        match db::cleanup_old_stripe_webhook_events(&state.db).await {
+            Ok(n) if n > 0 => tracing::debug!("Cleaned up {n} old processed_webhook_events rows"),
+            Err(e) => tracing::warn!("Webhook idempotency cleanup failed: {e}"),
+            _ => {}
+        }
+    }
+
+    tracing::info!("Stripe webhook received: {event_type} ({event_id})");
 
     match event_type {
         "customer.subscription.created" | "customer.subscription.updated" => {

@@ -19,12 +19,24 @@ use crate::{
 
 pub fn router() -> Router<AppState> {
     Router::new()
-        .route("/register", post(register))
-        .route("/login", post(login))
+        .merge(
+            Router::new()
+                .route("/register", post(register))
+                .layer(crate::middleware::rate_limit::register_layer()),
+        )
+        .merge(
+            Router::new()
+                .route("/login", post(login))
+                .layer(crate::middleware::rate_limit::login_layer()),
+        )
+        .merge(
+            Router::new()
+                .route("/forgot-password", post(forgot_password))
+                .layer(crate::middleware::rate_limit::forgot_password_layer()),
+        )
         .route("/refresh", post(refresh))
         .route("/me", axum::routing::get(me))
         .route("/logout", post(logout))
-        .route("/forgot-password", post(forgot_password))
         .route("/reset-password", post(reset_password))
 }
 
@@ -95,18 +107,56 @@ async fn refresh(
         .await?
         .ok_or(AppError::Unauthorized)?;
 
-    // Delete the used refresh token (rotation)
-    db::delete_refresh_token(&state.db, &token_hash).await?;
+    if stored.used {
+        tracing::warn!(
+            user_id = %stored.user_id,
+            family_id = %stored.family_id,
+            "Refresh token reuse detected — revoking token family"
+        );
+        db::delete_refresh_tokens_by_family(&state.db, stored.family_id).await?;
+        return Err(AppError::TokenReuseDetected(
+            "Session invalidated due to token reuse".to_string(),
+        ));
+    }
+
+    db::mark_refresh_token_used(&state.db, stored.id).await?;
 
     let user = db::find_user_by_id(&state.db, stored.user_id)
         .await?
         .ok_or(AppError::Unauthorized)?;
 
-    let (access_token, refresh_token) = generate_tokens(&state, &user).await?;
+    let now = Utc::now();
+    let claims = Claims {
+        sub: user.id,
+        role: format!("{:?}", user.role).to_lowercase(),
+        iat: now.timestamp() as usize,
+        exp: (now + Duration::hours(state.config.jwt_expiration_hours)).timestamp() as usize,
+    };
+
+    let access_token = encode(
+        &Header::default(),
+        &claims,
+        &EncodingKey::from_secret(state.config.jwt_secret.as_bytes()),
+    )
+    .map_err(|e| AppError::BadRequest(format!("Token generation failed: {e}")))?;
+
+    let new_refresh = Uuid::new_v4().to_string();
+    let new_hash = hash_token(&new_refresh);
+    let expires_at = now + Duration::days(state.config.refresh_token_expiration_days);
+
+    db::store_refresh_token(
+        &state.db,
+        stored.user_id,
+        &new_hash,
+        expires_at,
+        stored.family_id,
+        false,
+    )
+    .await?;
 
     Ok(Json(TokenResponse {
         access_token,
-        refresh_token,
+        refresh_token: new_refresh,
     }))
 }
 
@@ -223,8 +273,17 @@ async fn generate_tokens(state: &AppState, user: &User) -> AppResult<(String, St
     let refresh_token = Uuid::new_v4().to_string();
     let token_hash = hash_token(&refresh_token);
     let expires_at = now + Duration::days(state.config.refresh_token_expiration_days);
+    let family_id = Uuid::new_v4();
 
-    db::store_refresh_token(&state.db, user.id, &token_hash, expires_at).await?;
+    db::store_refresh_token(
+        &state.db,
+        user.id,
+        &token_hash,
+        expires_at,
+        family_id,
+        false,
+    )
+    .await?;
 
     Ok((access_token, refresh_token))
 }

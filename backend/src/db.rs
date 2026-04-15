@@ -211,16 +211,39 @@ pub async fn store_refresh_token(
     user_id: Uuid,
     token_hash: &str,
     expires_at: DateTime<Utc>,
+    family_id: Uuid,
+    used: bool,
 ) -> Result<(), sqlx::Error> {
     sqlx::query(
-        "INSERT INTO refresh_tokens (id, user_id, token_hash, expires_at) VALUES ($1, $2, $3, $4)",
+        "INSERT INTO refresh_tokens (id, user_id, token_hash, expires_at, family_id, used) VALUES ($1, $2, $3, $4, $5, $6)",
     )
     .bind(Uuid::new_v4())
     .bind(user_id)
     .bind(token_hash)
     .bind(expires_at)
+    .bind(family_id)
+    .bind(used)
     .execute(pool)
     .await?;
+    Ok(())
+}
+
+pub async fn mark_refresh_token_used(pool: &PgPool, id: Uuid) -> Result<(), sqlx::Error> {
+    sqlx::query("UPDATE refresh_tokens SET used = true WHERE id = $1")
+        .bind(id)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
+pub async fn delete_refresh_tokens_by_family(
+    pool: &PgPool,
+    family_id: Uuid,
+) -> Result<(), sqlx::Error> {
+    sqlx::query("DELETE FROM refresh_tokens WHERE family_id = $1")
+        .bind(family_id)
+        .execute(pool)
+        .await?;
     Ok(())
 }
 
@@ -236,20 +259,38 @@ pub async fn find_refresh_token(
     .await
 }
 
-pub async fn delete_refresh_token(pool: &PgPool, token_hash: &str) -> Result<(), sqlx::Error> {
-    sqlx::query("DELETE FROM refresh_tokens WHERE token_hash = $1")
-        .bind(token_hash)
-        .execute(pool)
-        .await?;
-    Ok(())
-}
-
 pub async fn delete_user_refresh_tokens(pool: &PgPool, user_id: Uuid) -> Result<(), sqlx::Error> {
     sqlx::query("DELETE FROM refresh_tokens WHERE user_id = $1")
         .bind(user_id)
         .execute(pool)
         .await?;
     Ok(())
+}
+
+/// Returns `true` if this event was newly claimed, `false` if it was already processed.
+pub async fn try_claim_stripe_webhook_event(
+    pool: &PgPool,
+    event_id: &str,
+    event_type: &str,
+) -> Result<bool, sqlx::Error> {
+    let res = sqlx::query(
+        r#"INSERT INTO processed_webhook_events (event_id, event_type) VALUES ($1, $2)
+           ON CONFLICT (event_id) DO NOTHING"#,
+    )
+    .bind(event_id)
+    .bind(event_type)
+    .execute(pool)
+    .await?;
+    Ok(res.rows_affected() > 0)
+}
+
+pub async fn cleanup_old_stripe_webhook_events(pool: &PgPool) -> Result<u64, sqlx::Error> {
+    let res = sqlx::query(
+        "DELETE FROM processed_webhook_events WHERE processed_at < NOW() - INTERVAL '30 days'",
+    )
+    .execute(pool)
+    .await?;
+    Ok(res.rows_affected())
 }
 
 // ── Subscriptions ───────────────────────────────────────────────────────

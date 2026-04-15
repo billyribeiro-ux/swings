@@ -7,6 +7,7 @@ use axum::{
     routing::{delete, get, post, put},
     Json, Router,
 };
+use bytes::Bytes;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -15,6 +16,7 @@ use crate::{
     error::{AppError, AppResult},
     extractors::AdminUser,
     models::*,
+    services::{MediaBackend, R2Storage},
     AppState,
 };
 
@@ -581,13 +583,7 @@ async fn admin_upload_media(
     admin: AdminUser,
     mut multipart: Multipart,
 ) -> AppResult<Json<Media>> {
-    let upload_dir = &state.config.upload_dir;
     let api_url = &state.config.api_url;
-
-    // Ensure upload dir exists
-    tokio::fs::create_dir_all(upload_dir)
-        .await
-        .map_err(|e| AppError::BadRequest(format!("Failed to create upload dir: {}", e)))?;
 
     let mut file_data: Option<Vec<u8>> = None;
     let mut original_filename = String::new();
@@ -642,19 +638,41 @@ async fn admin_upload_media(
     }
 
     let file_size = data.len() as i64;
-    let safe_name = sanitize_filename::sanitize(&original_filename);
-    let ext = std::path::Path::new(&safe_name)
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("bin");
-    let unique_name = format!("{}.{}", Uuid::new_v4(), ext);
-    let storage_path = format!("{}/{}", upload_dir, unique_name);
-    let url = format!("{}/uploads/{}", api_url, unique_name);
 
-    // Write file
-    tokio::fs::write(&storage_path, &data)
-        .await
-        .map_err(|e| AppError::BadRequest(format!("Failed to write file: {}", e)))?;
+    let (storage_path, url, stored_filename) = match &state.media_backend {
+        MediaBackend::R2(r2) => {
+            let key = R2Storage::generate_key(&original_filename);
+            let url = r2
+                .upload(&key, Bytes::from(data), &content_type)
+                .await?;
+            let stored_filename = key
+                .rsplit('/')
+                .next()
+                .unwrap_or(key.as_str())
+                .to_string();
+            (key, url, stored_filename)
+        }
+        MediaBackend::Local { upload_dir } => {
+            tokio::fs::create_dir_all(upload_dir)
+                .await
+                .map_err(|e| AppError::BadRequest(format!("Failed to create upload dir: {}", e)))?;
+
+            let safe_name = sanitize_filename::sanitize(&original_filename);
+            let ext = std::path::Path::new(&safe_name)
+                .extension()
+                .and_then(|e| e.to_str())
+                .unwrap_or("bin");
+            let unique_name = format!("{}.{}", Uuid::new_v4(), ext);
+            let storage_path = format!("{}/{}", upload_dir, unique_name);
+            let url = format!("{}/uploads/{}", api_url, unique_name);
+
+            tokio::fs::write(&storage_path, &data)
+                .await
+                .map_err(|e| AppError::BadRequest(format!("Failed to write file: {}", e)))?;
+
+            (storage_path, url, unique_name)
+        }
+    };
 
     // Get image dimensions if applicable
     let (width, height) = if content_type.starts_with("image/") && content_type != "image/svg+xml" {
@@ -668,7 +686,7 @@ async fn admin_upload_media(
     let media = db::create_media(
         &state.db,
         admin.user_id,
-        &unique_name,
+        &stored_filename,
         &original_filename,
         title.as_deref(),
         &content_type,
@@ -700,9 +718,21 @@ async fn admin_delete_media(
 ) -> AppResult<Json<serde_json::Value>> {
     let media = db::delete_media(&state.db, id).await?;
 
-    // Delete file from disk
     if let Some(m) = media {
-        let _ = tokio::fs::remove_file(&m.storage_path).await;
+        match &state.media_backend {
+            MediaBackend::R2(r2) if m.storage_path.starts_with("media/") => {
+                if let Err(e) = r2.delete_object(&m.storage_path).await {
+                    tracing::warn!(
+                        key = %m.storage_path,
+                        error = %e,
+                        "Failed to delete object from R2 (metadata already removed)"
+                    );
+                }
+            }
+            _ => {
+                let _ = tokio::fs::remove_file(&m.storage_path).await;
+            }
+        }
     }
 
     Ok(Json(serde_json::json!({ "message": "Media deleted" })))

@@ -30,36 +30,46 @@ The API will start on `http://localhost:3001` by default.
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `DATABASE_URL` | Yes | - | PostgreSQL connection string |
+| `DATABASE_URL` | Yes | - | PostgreSQL connection string. For Neon, include `sslmode=require`. |
 | `JWT_SECRET` | Yes | - | Secret key for JWT signing |
 | `JWT_EXPIRATION_HOURS` | No | `24` | Access token lifetime |
 | `REFRESH_TOKEN_EXPIRATION_DAYS` | No | `30` | Refresh token lifetime |
 | `PORT` | No | `3001` | Server port |
 | `FRONTEND_URL` | No | `http://localhost:5173` | Frontend URL for CORS |
-| `CORS_ALLOWED_ORIGINS` | No | `FRONTEND_URL` | Comma-separated **exact** browser origins (scheme + host + port). No trailing `/`. |
-
-### CORS in production
-
-The API **always merges** these origins into the allowlist (in addition to `CORS_ALLOWED_ORIGINS` / `FRONTEND_URL`):
-
-- `https://precisionoptionsignals.com`
-- `https://www.precisionoptionsignals.com`
-
-Preflight accepts **any** request header so browser extensions (Sentry, etc.) cannot break `OPTIONS`.
-
-Add more origins via `CORS_ALLOWED_ORIGINS` for staging or alternate domains. Example:
-
-```env
-CORS_ALLOWED_ORIGINS=https://precisionoptionsignals.com,https://www.precisionoptionsignals.com
-```
-
-After changing env vars on Render, **redeploy** (or restart) the API service.
+| `CORS_ALLOWED_ORIGINS` | No | `FRONTEND_URL` | Comma-separated **exact** browser origins (scheme + host + port). No trailing `/`. List every origin browsers use (e.g. apex and `www` separately if both are live). |
+| `API_URL` | No | `http://localhost:3001` | Public base URL of this API (used for absolute media URLs in local upload mode). |
+| `UPLOAD_DIR` | No | `./uploads` | Local media directory when R2 is not configured. |
 | `STRIPE_SECRET_KEY` | No | - | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | No | - | Stripe webhook signing secret |
-| `APP_ENV` | No | `development` | Use `production` to enforce production-only guards |
+| `APP_ENV` | No | `development` | Set to `production` to enforce production-only guards (admin seed, R2, Stripe, JWT, URLs, etc.). |
 | `ADMIN_EMAIL` | Dev optional / Prod required | - | Seed admin email |
 | `ADMIN_PASSWORD` | Dev optional / Prod required | - | Seed admin password |
 | `ADMIN_NAME` | No | `Admin` | Seed admin display name |
+| `R2_ACCOUNT_ID` | Prod required | - | Cloudflare account id for S3-compatible endpoint |
+| `R2_ACCESS_KEY_ID` | Prod required | - | R2 API token access key |
+| `R2_SECRET_ACCESS_KEY` | Prod required | - | R2 API token secret |
+| `R2_BUCKET_NAME` | Prod required | - | Bucket name |
+| `R2_PUBLIC_URL` | Prod required | - | Public base URL for objects (no trailing `/`) |
+
+### CORS
+
+Allowed origins come **only** from `CORS_ALLOWED_ORIGINS` and/or the default of `FRONTEND_URL`. Preflight accepts **any** request header so browser extensions (Sentry, etc.) cannot break `OPTIONS`.
+
+### Media (R2 vs local)
+
+When all `R2_*` variables are set, uploads go to Cloudflare R2 and `/uploads` static serving is skipped in **production**. If any R2 variable is missing, the API logs a warning and stores files under `UPLOAD_DIR` (and serves them at `/uploads/...`).
+
+### Rate limiting
+
+`POST /api/auth/login`, `POST /api/auth/register`, and `POST /api/auth/forgot-password` are rate-limited per client IP using `tower-governor`. The stack uses **`SmartIpKeyExtractor`**, which reads `X-Forwarded-For` / `Forwarded` when present. Deploy behind a trusted reverse proxy (e.g. Railway) that sets those headers from the real client; otherwise clients could spoof IPs.
+
+### Production checklist
+
+With `APP_ENV=production`, the process **panics on startup** unless `DATABASE_URL`, `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `API_URL`, `FRONTEND_URL`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and **all** `R2_*` variables are set and non-empty, and R2 client initialization succeeds.
+
+### Database pool (Neon)
+
+The API uses SQLx pool options suited to serverless Postgres: bounded acquire time, idle timeout, and max connection lifetime. Keep `sslmode=require` in `DATABASE_URL` for Neon.
 
 ## API Endpoints
 

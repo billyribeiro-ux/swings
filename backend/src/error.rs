@@ -30,6 +30,12 @@ pub enum AppError {
 
     #[error("Validation error: {0}")]
     Validation(String),
+
+    #[error("{0}")]
+    TokenReuseDetected(String),
+
+    #[error(transparent)]
+    Storage(#[from] crate::services::StorageError),
 }
 
 impl IntoResponse for AppError {
@@ -55,6 +61,19 @@ impl IntoResponse for AppError {
                     "Database error".to_string(),
                 )
             }
+            AppError::TokenReuseDetected(msg) => (StatusCode::UNAUTHORIZED, msg.clone()),
+            AppError::Storage(e) => match e {
+                crate::services::StorageError::Config(_) => {
+                    (StatusCode::BAD_REQUEST, e.to_string())
+                }
+                crate::services::StorageError::Upload(_) | crate::services::StorageError::Delete(_) => {
+                    tracing::error!("Storage error: {e}");
+                    (
+                        StatusCode::BAD_GATEWAY,
+                        "Storage operation failed".to_string(),
+                    )
+                }
+            },
         };
 
         (status, Json(json!({ "error": message }))).into_response()
