@@ -3,7 +3,7 @@
 	import { afterNavigate } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { page } from '$app/state';
-	import { api } from '$lib/api/client';
+import { api, ApiError } from '$lib/api/client';
 	import { auth } from '$lib/stores/auth.svelte';
 	import type { Popup } from '$lib/api/types';
 	import PopupRenderer from './PopupRenderer.svelte';
@@ -15,6 +15,8 @@
 	let visiblePopupIds = $state<Set<string>>(new Set());
 	let cleanupFns: Array<() => void> = [];
 	let popupRequestSeq = 0;
+let popupFetchFailures = 0;
+let popupFetchPauseUntil = 0;
 
 	const currentPath = $derived(page.url.pathname);
 
@@ -195,6 +197,7 @@
 
 	async function fetchAndSetupPopups() {
 		if (!browser) return;
+		if (Date.now() < popupFetchPauseUntil) return;
 		const reqId = ++popupRequestSeq;
 
 		cleanupAllTriggers();
@@ -209,6 +212,8 @@
 				{ skipAuth: true }
 			);
 			if (reqId !== popupRequestSeq) return;
+			popupFetchFailures = 0;
+			popupFetchPauseUntil = 0;
 			activePopups = popups;
 
 			for (const popup of activePopups) {
@@ -217,9 +222,19 @@
 					cleanupFns.push(cleanup);
 				}
 			}
-		} catch {
+		} catch (err) {
 			if (reqId !== popupRequestSeq) return;
 			activePopups = [];
+			popupFetchFailures += 1;
+			const backoffMs = Math.min(60_000, 1_500 * 2 ** (popupFetchFailures - 1));
+
+			// Hard-disable for longer if backend route is missing (common during misdeploys).
+			if (err instanceof ApiError && err.status === 404) {
+				popupFetchPauseUntil = Date.now() + 10 * 60_000;
+				return;
+			}
+
+			popupFetchPauseUntil = Date.now() + backoffMs;
 		}
 	}
 

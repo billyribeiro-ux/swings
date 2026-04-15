@@ -2,12 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { resolvePublicApiBase } from './resolvePublicApiBase';
 
 describe('resolvePublicApiBase', () => {
-	it('trims VITE value and strips trailing slash', () => {
+	it('server-side: trims VITE value and strips trailing slash', () => {
 		expect(
 			resolvePublicApiBase({
 				viteApiUrl: ' https://api.example.com/ ',
 				dev: false,
-				browser: true
+				browser: false
 			})
 		).toBe('https://api.example.com');
 	});
@@ -49,12 +49,22 @@ describe('resolvePublicApiBase', () => {
 		).toBe('');
 	});
 
-	it('production + env set: uses API host', () => {
+	it('production + env set in browser: still uses same-origin path', () => {
 		expect(
 			resolvePublicApiBase({
 				viteApiUrl: 'https://swings-api.onrender.com',
 				dev: false,
 				browser: true
+			})
+		).toBe('');
+	});
+
+	it('production + env set on server: uses API host', () => {
+		expect(
+			resolvePublicApiBase({
+				viteApiUrl: 'https://swings-api.onrender.com',
+				dev: false,
+				browser: false
 			})
 		).toBe('https://swings-api.onrender.com');
 	});

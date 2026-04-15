@@ -13,6 +13,12 @@ export function resolvePublicApiBase(params: {
 	dev: boolean;
 	browser: boolean;
 }): string {
+	// In production browsers, force same-origin requests so platform rewrites/proxies
+	// can handle cross-origin API routing without CORS fragility.
+	if (params.browser && !params.dev) {
+		return '';
+	}
+
 	const raw = params.viteApiUrl;
 	if (raw != null && String(raw).trim() !== '') {
 		return String(raw).trim().replace(/\/$/, '');
