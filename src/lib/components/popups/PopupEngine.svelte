@@ -224,12 +224,11 @@
 	}
 
 	onMount(() => {
-		// `afterNavigate` also fires on first load and keeps popups synced to route/device/auth.
-		const unlisten = afterNavigate(() => {
+		// `afterNavigate` also fires on first load and stays registered until this component unmounts.
+		afterNavigate(() => {
 			fetchAndSetupPopups();
 		});
 		return () => {
-			unlisten();
 			cleanupAllTriggers();
 		};
 	});

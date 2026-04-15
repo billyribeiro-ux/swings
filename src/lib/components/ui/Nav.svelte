@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { courses } from '$lib/data/courses';
+	import { onMount } from 'svelte';
 	import { fly, slide } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { prefersReducedMotion } from 'svelte/motion';
@@ -19,6 +20,7 @@
 	let dropdownRef: HTMLDivElement | undefined = $state();
 	let scrolled = $state(false);
 	let navRef: HTMLElement | undefined = $state();
+	let scrollRaf = 0;
 
 	const motion = $derived(!prefersReducedMotion.current);
 	const tDur = (ms: number) => (motion ? ms : 1);
@@ -51,7 +53,11 @@
 	}
 
 	function handleScroll() {
-		scrolled = window.scrollY > 16;
+		if (scrollRaf) return;
+		scrollRaf = requestAnimationFrame(() => {
+			scrollRaf = 0;
+			scrolled = window.scrollY > 16;
+		});
 	}
 
 	$effect(() => {
@@ -59,6 +65,12 @@
 		document.body.style.overflow = isMobileOpen ? 'hidden' : '';
 		return () => {
 			document.body.style.overflow = '';
+		};
+	});
+
+	onMount(() => {
+		return () => {
+			if (scrollRaf) cancelAnimationFrame(scrollRaf);
 		};
 	});
 </script>

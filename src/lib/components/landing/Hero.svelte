@@ -37,7 +37,8 @@
 						y: 40,
 						blur: 12,
 						scale: 0.95,
-						overlap: 0.6
+						overlap: 0.6,
+						lcpVisible: true
 					},
 					{
 						selector: '.hero-subtitle',
@@ -46,7 +47,8 @@
 						y: 30,
 						blur: 8,
 						scale: 0.98,
-						overlap: 0.65
+						overlap: 0.65,
+						lcpVisible: true
 					},
 					{
 						selector: '.hero-actions',

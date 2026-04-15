@@ -20,20 +20,35 @@
 	}: Props = $props();
 
 	let buttonRef: HTMLElement | undefined = $state();
+	let magneticRaf = 0;
+	let lastMagneticEvent: MouseEvent | null = null;
 
 	const classes = $derived(`btn btn--${variant}${magnetic ? ' btn--magnetic' : ''}`);
 
-	function handleMouseMove(e: MouseEvent) {
-		if (!magnetic || !buttonRef || disabled) return;
-
+	function applyMagneticFromEvent(e: MouseEvent) {
+		if (!buttonRef) return;
 		const rect = buttonRef.getBoundingClientRect();
 		const x = e.clientX - rect.left - rect.width / 2;
 		const y = e.clientY - rect.top - rect.height / 2;
-
 		buttonRef.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
 	}
 
+	function handleMouseMove(e: MouseEvent) {
+		if (!magnetic || !buttonRef || disabled) return;
+		lastMagneticEvent = e;
+		if (magneticRaf) return;
+		magneticRaf = requestAnimationFrame(() => {
+			magneticRaf = 0;
+			const ev = lastMagneticEvent;
+			if (!ev || !buttonRef || !magnetic || disabled) return;
+			applyMagneticFromEvent(ev);
+		});
+	}
+
 	function handleMouseLeave() {
+		lastMagneticEvent = null;
+		if (magneticRaf) cancelAnimationFrame(magneticRaf);
+		magneticRaf = 0;
 		if (!buttonRef) return;
 		buttonRef.style.transform = '';
 	}

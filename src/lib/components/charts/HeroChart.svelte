@@ -24,6 +24,15 @@
 		let fadeTimer: ReturnType<typeof setTimeout> | undefined;
 
 		void (async () => {
+			await new Promise<void>((resolve) => {
+				if (typeof requestIdleCallback === 'function') {
+					requestIdleCallback(() => resolve(), { timeout: 1200 });
+				} else {
+					setTimeout(resolve, 0);
+				}
+			});
+			if (cancelled) return;
+
 			const ApexCharts = (await import('apexcharts')).default;
 			if (cancelled) return;
 

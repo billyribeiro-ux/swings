@@ -54,6 +54,11 @@ export interface CascadeItem {
 	blur?: number;
 	scale?: number;
 	overlap?: number; // negative offset from previous
+	/**
+	 * Keep opacity at 1 for the whole animation so the node stays paintable.
+	 * Use on hero headings so LCP is not blocked waiting for a fade-in.
+	 */
+	lcpVisible?: boolean;
 }
 
 export function createCinematicCascade(
@@ -71,10 +76,11 @@ export function createCinematicCascade(
 		const blurAmt = reduced ? 0 : (item.blur ?? 8);
 		const scaleAmt = reduced ? 1 : (item.scale ?? 0.97);
 		const overlap = reduced ? 0 : (item.overlap ?? 0.55);
+		const lcpVisible = item.lcpVisible === true;
 
 		// Initial state
 		gsap.set(item.selector, {
-			opacity: 0,
+			opacity: lcpVisible ? 1 : 0,
 			y,
 			scale: scaleAmt,
 			filter: `blur(${blurAmt}px)`,
@@ -86,7 +92,7 @@ export function createCinematicCascade(
 		tl.to(
 			item.selector,
 			{
-				opacity: 1,
+				...(lcpVisible ? {} : { opacity: 1 }),
 				y: 0,
 				scale: 1,
 				filter: 'blur(0px)',
