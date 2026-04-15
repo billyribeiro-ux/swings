@@ -26,13 +26,23 @@ impl Config {
     pub fn from_env() -> Self {
         let frontend_url =
             env::var("FRONTEND_URL").unwrap_or_else(|_| "http://localhost:5173".to_string());
-        let cors_allowed_origins = env::var("CORS_ALLOWED_ORIGINS")
+        let mut cors_allowed_origins = env::var("CORS_ALLOWED_ORIGINS")
             .unwrap_or_else(|_| frontend_url.clone())
             .split(',')
             .map(str::trim)
             .filter(|s| !s.is_empty())
             .map(ToOwned::to_owned)
             .collect::<Vec<_>>();
+
+        // Always allow apex + www for this product so a partial CORS env cannot block production traffic.
+        for origin in [
+            "https://precisionoptionsignals.com",
+            "https://www.precisionoptionsignals.com",
+        ] {
+            if !cors_allowed_origins.iter().any(|o| o == origin) {
+                cors_allowed_origins.push(origin.to_string());
+            }
+        }
 
         Self {
             database_url: env::var("DATABASE_URL").expect("DATABASE_URL must be set"),

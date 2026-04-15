@@ -1,15 +1,8 @@
-import { loadStripe, type Stripe } from '@stripe/stripe-js';
-import { env } from '$env/dynamic/public';
-
-let stripePromise: Promise<Stripe | null>;
-
-export function getStripe() {
-	if (!stripePromise) {
-		stripePromise = loadStripe(env.PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
-	}
-	return stripePromise;
-}
-
+/**
+ * Hosted Stripe Checkout via SvelteKit `/api/create-checkout-session`.
+ * Intentionally does not import `@stripe/stripe-js` so marketing pages avoid loading
+ * `js.stripe.com` (and its deprecated `unload` listeners) until real Elements usage exists.
+ */
 export async function createCheckoutSession(priceId: string) {
 	try {
 		const response = await fetch('/api/create-checkout-session', {

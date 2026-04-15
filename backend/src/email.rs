@@ -309,8 +309,13 @@ impl EmailService {
         ctx.insert("name", to_name);
 
         let html = self.templates.render("welcome", &ctx)?;
-        self.send_email(to_email, to_name, "Welcome to Precision Options Signals!", &html)
-            .await
+        self.send_email(
+            to_email,
+            to_name,
+            "Welcome to Precision Options Signals!",
+            &html,
+        )
+        .await
     }
 
     pub async fn send_subscription_confirmation(

@@ -1,11 +1,10 @@
 use std::sync::Arc;
 
-use axum::http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use axum::http::HeaderValue;
 use axum::http::Method;
 use axum::Router;
 use sqlx::postgres::PgPoolOptions;
-use tower_http::cors::CorsLayer;
+use tower_http::cors::{Any, CorsLayer};
 use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -128,7 +127,8 @@ async fn main() {
             Method::DELETE,
             Method::OPTIONS,
         ])
-        .allow_headers([AUTHORIZATION, CONTENT_TYPE, ACCEPT]);
+        // Avoid preflight failures when browsers/extensions send non-standard request headers.
+        .allow_headers(Any);
     tokio::fs::create_dir_all(&upload_dir)
         .await
         .expect("Failed to create uploads directory");

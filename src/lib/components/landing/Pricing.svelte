@@ -2,7 +2,7 @@
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import { pricingPlans } from '$lib/data/pricing';
-	import { createCheckoutSession } from '$lib/utils/stripe';
+	import { createCheckoutSession } from '$lib/utils/checkout';
 	import { env } from '$env/dynamic/public';
 	import { ctaImpression, trackCtaEvent } from '$lib/analytics/cta';
 

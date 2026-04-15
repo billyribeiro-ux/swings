@@ -40,17 +40,20 @@ The API will start on `http://localhost:3001` by default.
 
 ### CORS in production
 
-Browsers send the page’s origin on every cross-site API call (e.g. `https://www.precisionoptionsignals.com`). Your API must list that **exact** string in `CORS_ALLOWED_ORIGINS`, or the preflight `OPTIONS` response will omit `Access-Control-Allow-Origin` and the browser blocks the request.
+The API **always merges** these origins into the allowlist (in addition to `CORS_ALLOWED_ORIGINS` / `FRONTEND_URL`):
 
-- If visitors use **`https://www.…`**, allow `https://www.precisionoptionsignals.com`.
-- **`https://precisionoptionsignals.com`** (apex) is a **different** origin; include both if you use both.
-- After changing env vars on Render, **redeploy** (or restart) the API service.
+- `https://precisionoptionsignals.com`
+- `https://www.precisionoptionsignals.com`
 
-Example:
+Preflight accepts **any** request header so browser extensions (Sentry, etc.) cannot break `OPTIONS`.
+
+Add more origins via `CORS_ALLOWED_ORIGINS` for staging or alternate domains. Example:
 
 ```env
 CORS_ALLOWED_ORIGINS=https://precisionoptionsignals.com,https://www.precisionoptionsignals.com
 ```
+
+After changing env vars on Render, **redeploy** (or restart) the API service.
 | `STRIPE_SECRET_KEY` | No | - | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | No | - | Stripe webhook signing secret |
 | `APP_ENV` | No | `development` | Use `production` to enforce production-only guards |

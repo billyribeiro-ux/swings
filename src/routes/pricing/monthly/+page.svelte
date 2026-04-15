@@ -3,7 +3,7 @@
 	import { gsap } from 'gsap';
 	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
 	import { env } from '$env/dynamic/public';
-	import { createCheckoutSession } from '$lib/utils/stripe';
+	import { createCheckoutSession } from '$lib/utils/checkout';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import Seo from '$lib/seo/Seo.svelte';
 	import { productSchema, buildJsonLd } from '$lib/seo/jsonld';

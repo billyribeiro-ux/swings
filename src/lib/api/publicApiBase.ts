@@ -6,8 +6,8 @@ import { resolvePublicApiBase } from '$lib/api/resolvePublicApiBase';
  *
  * - **Dev (browser):** `""` — Vite proxies `/api` → `vite.config.ts` target.
  * - **Dev (SSR):** `http://127.0.0.1:3001` — Node cannot use the browser proxy.
- * - **Production (Vercel + API on Render, etc.):** set `VITE_API_URL` at build time to the API origin.
- *   Do not rely on localhost; this app is not same-origin with the API unless you add rewrites.
+ * - **Production browser:** same-origin `/api` (Vercel rewrites to the Rust API). No CORS for page navigations.
+ * - **Production SSR / build:** set `VITE_API_URL` so server-side loaders can reach the API host directly.
  */
 export function getPublicApiBase(): string {
 	return resolvePublicApiBase({
