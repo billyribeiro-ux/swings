@@ -61,7 +61,7 @@
 </script>
 
 <svelte:head>
-	<title>Dashboard - Explosive Swings</title>
+	<title>Dashboard - Precision Options Signals</title>
 </svelte:head>
 
 <div class="overview">

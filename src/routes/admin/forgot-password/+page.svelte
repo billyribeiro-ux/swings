@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { api, ApiError } from '$lib/api/client';
+	import { SITE } from '$lib/seo/config';
 
 	let email = $state('');
 	let loading = $state(false);
@@ -27,15 +28,15 @@
 </script>
 
 <svelte:head>
-	<title>Forgot Password - Admin - Explosive Swings</title>
+	<title>Forgot Password - Admin - {SITE.name}</title>
 </svelte:head>
 
 <div class="forgot-page">
 	<div class="forgot-card">
 		<div class="forgot-card__header">
 			<a href="/" class="forgot-card__logo">
-				<span class="forgot-card__logo-brand">Explosive</span>
-				<span class="forgot-card__logo-accent">Swings</span>
+				<span class="forgot-card__logo-brand">{SITE.logoBrandPrimary}</span>
+				<span class="forgot-card__logo-accent">{SITE.logoBrandAccent}</span>
 			</a>
 			<span class="forgot-card__badge">Admin</span>
 			<h1 class="forgot-card__title">Forgot Password</h1>

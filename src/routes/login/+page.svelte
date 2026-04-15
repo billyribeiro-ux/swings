@@ -3,6 +3,7 @@
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api, ApiError } from '$lib/api/client';
 	import type { AuthResponse } from '$lib/api/types';
+	import { SITE } from '$lib/seo/config';
 
 	let email = $state('');
 	let password = $state('');
@@ -41,15 +42,15 @@
 </script>
 
 <svelte:head>
-	<title>Login - Explosive Swings</title>
+	<title>Login - {SITE.name}</title>
 </svelte:head>
 
 <div class="auth-page">
 	<div class="auth-card">
 		<div class="auth-card__header">
 			<a href="/" class="auth-card__logo">
-				<span class="auth-card__logo-brand">Explosive</span>
-				<span class="auth-card__logo-accent">Swings</span>
+				<span class="auth-card__logo-brand">{SITE.logoBrandPrimary}</span>
+				<span class="auth-card__logo-accent">{SITE.logoBrandAccent}</span>
 			</a>
 			<h1 class="auth-card__title">Welcome Back</h1>
 			<p class="auth-card__subtitle">Sign in to access your dashboard</p>

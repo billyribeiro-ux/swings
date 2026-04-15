@@ -101,7 +101,7 @@
 </script>
 
 <svelte:head>
-	<title>{user?.name ?? 'Member'} - Admin - Explosive Swings</title>
+	<title>{user?.name ?? 'Member'} - Admin - Precision Options Signals</title>
 </svelte:head>
 
 <div class="member-detail">

@@ -7,6 +7,7 @@
 	import Check from 'phosphor-svelte/lib/Check';
 	import Tag from 'phosphor-svelte/lib/Tag';
 	import CaretDown from 'phosphor-svelte/lib/CaretDown';
+	import { PRICING_ANNUAL_SAVINGS_USD, PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED } from '$lib/data/pricing';
 
 	interface DisplayPlan {
 		id: string;
@@ -49,16 +50,33 @@
 	const jsonLd = buildJsonLd([
 		webPageSchema({
 			path: '/pricing',
-			title: 'Pricing Plans - Explosive Swings',
+			title: 'Pricing Plans - Precision Options Signals',
 			description:
-				'Compare monthly and annual plans for Explosive Swings. Access weekly watchlists, course training, and trade execution guidance.',
+				'Compare monthly and annual plans for Precision Options Signals. Access weekly watchlists, course training, and trade execution guidance.',
 			speakable: '.pricing-page__title, .pricing-page__subtitle'
 		})
 	]);
 
 	const fallbackPlans: DisplayPlan[] = [
 		{ id: '1', name: 'Monthly', slug: 'monthly', amount_cents: 4900, currency: 'usd', interval: 'month', features: ['Weekly watchlists & trade alerts', 'Full course library access', 'Members-only community', 'Mobile app access'], is_popular: false, highlight_text: null, trial_days: 0, stripe_price_id: null },
-		{ id: '2', name: 'Annual', slug: 'annual', amount_cents: 39900, currency: 'usd', interval: 'year', features: ['Everything in Monthly', 'Save $189/year vs monthly', 'Priority support', 'Exclusive annual member content'], is_popular: true, highlight_text: 'Best Value', trial_days: 0, stripe_price_id: null }
+		{
+			id: '2',
+			name: 'Annual',
+			slug: 'annual',
+			amount_cents: 39900,
+			currency: 'usd',
+			interval: 'year',
+			features: [
+				'Everything in Monthly',
+				`Save $${PRICING_ANNUAL_SAVINGS_USD}/year vs monthly`,
+				'Priority support',
+				'Exclusive annual member content'
+			],
+			is_popular: true,
+			highlight_text: 'Best Value',
+			trial_days: 0,
+			stripe_price_id: null
+		}
 	];
 
 	let filteredPlans = $derived(plans.filter(p => billingCycle === 'month' ? p.interval === 'month' : p.interval === 'year'));
@@ -116,9 +134,9 @@
 </script>
 
 <Seo
-	title="Pricing Plans - Explosive Swings"
-	description="Compare monthly and annual plans for Explosive Swings. Access weekly watchlists, course training, and trade execution guidance."
-	ogTitle="Explosive Swings Pricing - Monthly and Annual"
+	title="Pricing Plans - Precision Options Signals"
+	description="Compare monthly and annual plans for Precision Options Signals. Access weekly watchlists, course training, and trade execution guidance."
+	ogTitle="Precision Options Signals Pricing - Monthly and Annual"
 	{jsonLd}
 />
 
@@ -129,7 +147,7 @@
 
 		<div class="pricing-page__toggle">
 			<button class="toggle-btn" class:active={billingCycle === 'month'} onclick={() => (billingCycle = 'month')}>Monthly</button>
-			<button class="toggle-btn" class:active={billingCycle === 'year'} onclick={() => (billingCycle = 'year')}>Annual <span class="toggle-badge">Save 32%</span></button>
+			<button class="toggle-btn" class:active={billingCycle === 'year'} onclick={() => (billingCycle = 'year')}>Annual <span class="toggle-badge">Save {PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED}%</span></button>
 		</div>
 	</div>
 

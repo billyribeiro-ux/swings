@@ -7,6 +7,7 @@
 	import BookOpen from 'phosphor-svelte/lib/BookOpen';
 	import UserCircle from 'phosphor-svelte/lib/UserCircle';
 	import SignOut from 'phosphor-svelte/lib/SignOut';
+	import { SITE } from '$lib/seo/config';
 
 	let { children } = $props();
 
@@ -33,8 +34,8 @@
 	<div class="dash">
 		<aside class="dash__sidebar">
 			<a href="/" class="dash__logo">
-				<span class="dash__logo-brand">Explosive</span>
-				<span class="dash__logo-accent">Swings</span>
+				<span class="dash__logo-brand">{SITE.logoBrandPrimary}</span>
+				<span class="dash__logo-accent">{SITE.logoBrandAccent}</span>
 			</a>
 
 			<nav class="dash__nav">

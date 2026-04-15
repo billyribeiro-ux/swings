@@ -64,7 +64,7 @@
 		buildJsonLd([
 			webPageSchema({
 				path: `/blog/category/${slug}`,
-				title: `${categoryName} - Blog - Explosive Swings`,
+				title: `${categoryName} - Blog - Precision Options Signals`,
 				description: `Explore ${categoryName} posts with clear trade rationale, execution checkpoints, and risk-first decision making.`
 			})
 		])
@@ -72,7 +72,7 @@
 </script>
 
 <Seo
-	title="{categoryName} - Blog - Explosive Swings"
+	title="{categoryName} - Blog - Precision Options Signals"
 	description="Explore {categoryName} posts with clear trade rationale, execution checkpoints, and risk-first decision making."
 	{jsonLd}
 />

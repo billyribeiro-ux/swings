@@ -2,14 +2,14 @@ import { expect, test } from '@playwright/test';
 
 test('homepage loads with brand copy', async ({ page }) => {
 	await page.goto('/');
-	await expect(page).toHaveTitle(/Explosive Swings/i);
-	await expect(page.getByText('Explosive', { exact: false }).first()).toBeVisible();
+	await expect(page).toHaveTitle(/Precision Options Signals/i);
+	await expect(page.getByText('Precision', { exact: false }).first()).toBeVisible();
 });
 
 test('pricing page is reachable', async ({ page }) => {
 	await page.goto('/pricing');
 	await expect(page).toHaveURL(/\/pricing/);
-	await expect(page.getByText('Explosive', { exact: false }).first()).toBeVisible();
+	await expect(page.getByText('Precision', { exact: false }).first()).toBeVisible();
 });
 
 test('login page renders sign-in form', async ({ page }) => {

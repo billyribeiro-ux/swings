@@ -126,7 +126,7 @@
 </script>
 
 <svelte:head>
-	<title>Edit Watchlist - Admin - Explosive Swings</title>
+	<title>Edit Watchlist - Admin - Precision Options Signals</title>
 </svelte:head>
 
 <div class="edit-wl">

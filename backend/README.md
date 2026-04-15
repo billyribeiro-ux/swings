@@ -1,6 +1,6 @@
 # Swings API - Rust Backend
 
-Axum + Tokio + SQLx + PostgreSQL backend for the Explosive Swings membership platform.
+Axum + Tokio + SQLx + PostgreSQL backend for the Precision Options Signals membership platform.
 
 ## Prerequisites
 

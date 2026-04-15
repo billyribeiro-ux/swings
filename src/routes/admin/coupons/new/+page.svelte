@@ -51,7 +51,7 @@
 	}
 </script>
 
-<svelte:head><title>New Coupon - Admin - Explosive Swings</title></svelte:head>
+<svelte:head><title>New Coupon - Admin - Precision Options Signals</title></svelte:head>
 
 <div class="pg">
 	<a href="/admin/coupons" class="back"><ArrowLeft size={18} /> Back to Coupons</a>

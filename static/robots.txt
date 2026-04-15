@@ -7,4 +7,4 @@ Disallow: /register
 Disallow: /success
 Disallow: /api/
 
-Sitemap: https://explosiveswings.com/sitemap.xml
+Sitemap: https://precisionoptionsignals.com/sitemap.xml

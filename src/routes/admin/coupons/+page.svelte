@@ -116,7 +116,7 @@
 	}
 </script>
 
-<svelte:head><title>Coupons - Admin - Explosive Swings</title></svelte:head>
+<svelte:head><title>Coupons - Admin - Precision Options Signals</title></svelte:head>
 
 <div class="cp">
 	<div class="cp__header">

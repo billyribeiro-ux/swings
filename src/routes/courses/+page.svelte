@@ -77,7 +77,7 @@
 </script>
 
 <Seo
-	title="Options Trading Courses - Explosive Swings"
+	title="Options Trading Courses - Precision Options Signals"
 	description="Follow structured options courses that turn market concepts into repeatable execution, risk management habits, and review workflows."
 	ogTitle="Options Trading Courses - Structured Learning Paths"
 	{jsonLd}

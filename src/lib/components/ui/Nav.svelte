@@ -10,6 +10,7 @@
 	import BookOpen from 'phosphor-svelte/lib/BookOpen';
 	import Pulse from 'phosphor-svelte/lib/Pulse';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
+	import { SITE } from '$lib/seo/config';
 
 	const iconMap: Record<string, typeof BookOpen> = { BookOpen, Pulse };
 
@@ -73,8 +74,8 @@
 	<div class="nav__inner">
 		<!-- Logo -->
 		<a href="/" class="nav__logo">
-			<span class="nav__logo-brand">Explosive</span>
-			<span class="nav__logo-accent">Swings</span>
+			<span class="nav__logo-brand">{SITE.logoBrandPrimary}</span>
+			<span class="nav__logo-accent">{SITE.logoBrandAccent}</span>
 		</a>
 
 		<!-- Desktop Nav -->

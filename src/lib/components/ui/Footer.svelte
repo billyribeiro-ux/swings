@@ -6,6 +6,7 @@
 	import EnvelopeSimple from 'phosphor-svelte/lib/EnvelopeSimple';
 	import TrendUp from 'phosphor-svelte/lib/TrendUp';
 	import ArrowUpRight from 'phosphor-svelte/lib/ArrowUpRight';
+	import { SITE } from '$lib/seo/config';
 
 	const currentYear = new Date().getFullYear();
 
@@ -74,8 +75,8 @@
 			<div class="footer__col footer__col--brand">
 				<div class="footer__brand-inner">
 					<a href="/" class="footer__logo">
-						<span class="footer__logo-brand">Explosive</span>
-						<span class="footer__logo-accent">Swings</span>
+						<span class="footer__logo-brand">{SITE.logoBrandPrimary}</span>
+						<span class="footer__logo-accent">{SITE.logoBrandAccent}</span>
 					</a>
 					<p class="footer__tagline">
 						Weekly options watchlists and structured trading courses, built by Billy Ribeiro.
@@ -145,13 +146,13 @@
 			<!-- Contact -->
 			<div class="footer__col footer__col--contact">
 				<h4 class="footer__heading">Contact</h4>
-				<a href="mailto:support@explosiveswings.com" class="footer__contact-card">
+				<a href={`mailto:${SITE.supportEmail}`} class="footer__contact-card">
 					<span class="footer__contact-icon-wrap" aria-hidden="true">
 						<EnvelopeSimple size={20} weight="bold" />
 					</span>
 					<span class="footer__contact-body">
 						<span class="footer__contact-label">Email us</span>
-						<span class="footer__contact-email">support@explosiveswings.com</span>
+						<span class="footer__contact-email">{SITE.supportEmail}</span>
 					</span>
 				</a>
 			</div>
@@ -159,7 +160,7 @@
 
 		<div class="footer__bottom">
 			<div class="footer__bottom-inner">
-				<p class="footer__copyright">© {currentYear} Explosive Swings. All rights reserved.</p>
+				<p class="footer__copyright">© {currentYear} {SITE.name}. All rights reserved.</p>
 				<div class="footer__disclaimer">
 					<TrendUp size={14} weight="bold" class="footer__disclaimer-icon" aria-hidden="true" />
 					<span>Trading involves risk. Past performance ≠ future results.</span>

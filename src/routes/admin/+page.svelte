@@ -31,7 +31,7 @@
 </script>
 
 <svelte:head>
-	<title>Admin Dashboard - Explosive Swings</title>
+	<title>Admin Dashboard - Precision Options Signals</title>
 </svelte:head>
 
 <div class="admin-dash">

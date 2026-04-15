@@ -35,7 +35,7 @@
 </script>
 
 <svelte:head>
-	<title>New Watchlist - Admin - Explosive Swings</title>
+	<title>New Watchlist - Admin - Precision Options Signals</title>
 </svelte:head>
 
 <div class="new-wl">

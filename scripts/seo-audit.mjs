@@ -56,7 +56,7 @@ assertRule(
 );
 
 assertRule(
-	robotsSource.includes('Sitemap: https://explosiveswings.com/sitemap.xml'),
+	robotsSource.includes('Sitemap: https://precisionoptionsignals.com/sitemap.xml'),
 	'robots.txt must reference canonical sitemap URL.'
 );
 

@@ -1,5 +1,9 @@
 import { SITE, FOUNDERS } from './config';
 
+function organizationSameAs(): Record<string, string[]> | object {
+	return SITE.sameAs.length > 0 ? { sameAs: [...SITE.sameAs] } : {};
+}
+
 function slugifyIdentifier(value: string): string {
 	return value
 		.toLowerCase()
@@ -51,7 +55,7 @@ export function organizationSchema() {
 		},
 		foundingDate: SITE.foundingDate,
 		description: SITE.description,
-		sameAs: ['https://twitter.com/explosiveswings', 'https://www.youtube.com/@explosiveswings'],
+		...organizationSameAs(),
 		founder: [
 			{
 				'@type': 'Person',

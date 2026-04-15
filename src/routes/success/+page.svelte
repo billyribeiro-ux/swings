@@ -96,8 +96,8 @@
 </script>
 
 <Seo
-	title="Welcome to Explosive Swings!"
-	description="Welcome to Explosive Swings. Your subscription is active."
+	title="Welcome to Precision Options Signals!"
+	description="Welcome to Precision Options Signals. Your subscription is active."
 	noindex={true}
 />
 
@@ -111,7 +111,7 @@
 		</div>
 
 		<!-- Title -->
-		<h1 class="success-title success-page__title">Welcome to Explosive Swings!</h1>
+		<h1 class="success-title success-page__title">Welcome to Precision Options Signals!</h1>
 
 		<!-- Subtitle -->
 		<p class="success-subtitle success-page__subtitle">

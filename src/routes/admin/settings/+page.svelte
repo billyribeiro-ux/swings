@@ -49,7 +49,7 @@
 
 	const defaults: AllSettings = {
 		site: {
-			siteName: 'Explosive Swings',
+			siteName: 'Precision Options Signals',
 			siteDescription: '',
 			logoUrl: '',
 			faviconUrl: ''
@@ -125,7 +125,7 @@
 </script>
 
 <svelte:head>
-	<title>Settings - Admin - Explosive Swings</title>
+	<title>Settings - Admin - Precision Options Signals</title>
 </svelte:head>
 
 <div class="settings-page">
@@ -367,7 +367,7 @@
 						type="text"
 						class="settings-field__input"
 						bind:value={settings.seo.defaultMetaTitle}
-						placeholder="Explosive Swings - Options Trading Alerts"
+						placeholder="Precision Options Signals - Options Trading Alerts"
 					/>
 				</div>
 

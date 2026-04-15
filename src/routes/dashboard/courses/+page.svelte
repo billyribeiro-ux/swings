@@ -106,7 +106,7 @@
 </script>
 
 <svelte:head>
-	<title>Courses - Explosive Swings</title>
+	<title>Courses - Precision Options Signals</title>
 </svelte:head>
 
 <div class="courses-page">

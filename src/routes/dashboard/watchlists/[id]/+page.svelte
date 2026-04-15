@@ -24,7 +24,7 @@
 </script>
 
 <svelte:head>
-	<title>{watchlist?.title ?? 'Watchlist'} - Explosive Swings</title>
+	<title>{watchlist?.title ?? 'Watchlist'} - Precision Options Signals</title>
 </svelte:head>
 
 <div class="wl-detail">

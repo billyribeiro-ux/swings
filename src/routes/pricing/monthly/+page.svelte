@@ -10,13 +10,14 @@
 	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
 	import CurrencyDollar from 'phosphor-svelte/lib/CurrencyDollar';
+	import { PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED, PRICING_MONTHLY_USD } from '$lib/data/pricing';
 
 	const jsonLd = buildJsonLd([
 		productSchema({
-			name: 'Explosive Swings Monthly Plan',
+			name: 'Precision Options Signals Monthly Plan',
 			description:
 				'Weekly options watchlists with 5-7 high-probability setups, entry zones, profit targets, and stop losses.',
-			price: '97',
+			price: String(PRICING_MONTHLY_USD),
 			path: '/pricing/monthly',
 			billingPeriod: 'month'
 		})
@@ -105,9 +106,9 @@
 </script>
 
 <Seo
-	title="Monthly Plan - Explosive Swings"
-	description="Get weekly options watchlists for $97/month. Cancel anytime. 5-7 high-probability setups with entries, targets, and stops."
-	ogTitle="Monthly Plan $97/mo - Explosive Swings"
+	title="Monthly Plan - Precision Options Signals"
+	description="Get weekly options watchlists for $49/month. Cancel anytime. 5-7 high-probability setups with entries, targets, and stops."
+	ogTitle="Monthly Plan $49/mo - Precision Options Signals"
 	{jsonLd}
 />
 
@@ -125,7 +126,7 @@
 
 		<div class="price-amount price-hero__amount">
 			<div class="price-hero__price-row">
-				<span class="price-hero__price">$97</span>
+				<span class="price-hero__price">{'$' + PRICING_MONTHLY_USD}</span>
 				<span class="price-hero__suffix">/month</span>
 			</div>
 			<p class="price-hero__note">Billed monthly. Cancel anytime.</p>
@@ -163,7 +164,7 @@
 				</h2>
 
 				<p class="reveal-item page-cta__desc">
-					Join hundreds of traders who trust Explosive Swings for their weekly options watchlists.
+					Join hundreds of traders who trust Precision Options Signals for their weekly options watchlists.
 				</p>
 
 				<div class="reveal-item page-cta__actions">
@@ -171,13 +172,13 @@
 						{#if isLoading}
 							Processing...
 						{:else}
-							Start Monthly Plan -- $97/mo
+							Start Monthly Plan -- {'$' + PRICING_MONTHLY_USD}/mo
 							<ArrowRight size={18} weight="bold" />
 						{/if}
 					</button>
 
 					<a href="/pricing/annual" class="page-cta__link">
-						View Annual Plan (Save 20%)
+						View Annual Plan (Save {PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED}%)
 						<ArrowRight size={14} weight="bold" />
 					</a>
 				</div>

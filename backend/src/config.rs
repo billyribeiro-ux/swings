@@ -62,7 +62,7 @@ impl Config {
             smtp_user: std::env::var("SMTP_USER").unwrap_or_default(),
             smtp_password: std::env::var("SMTP_PASSWORD").unwrap_or_default(),
             smtp_from: std::env::var("SMTP_FROM")
-                .unwrap_or_else(|_| "noreply@explosiveswings.com".to_string()),
+                .unwrap_or_else(|_| "noreply@precisionoptionsignals.com".to_string()),
             app_url: std::env::var("APP_URL")
                 .unwrap_or_else(|_| "http://localhost:5173".to_string()),
             app_env: std::env::var("APP_ENV").unwrap_or_else(|_| "development".to_string()),

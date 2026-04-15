@@ -1,4 +1,4 @@
-# Explosive Swings — SvelteKit Landing Page
+# Precision Options Signals — SvelteKit Landing Page
 
 Premium stock alert service landing page built with **SvelteKit** (Svelte 5), **TailwindCSS v4**, **GSAP**, and **Stripe** integration.
 

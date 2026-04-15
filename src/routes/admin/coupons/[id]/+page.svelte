@@ -92,7 +92,7 @@
 </script>
 
 <svelte:head>
-	<title>{coupon ? `Edit ${coupon.code}` : 'Edit Coupon'} - Admin - Explosive Swings</title>
+	<title>{coupon ? `Edit ${coupon.code}` : 'Edit Coupon'} - Admin - Precision Options Signals</title>
 </svelte:head>
 
 <div class="ce">

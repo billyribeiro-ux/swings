@@ -11,6 +11,7 @@
 	import PopupEngine from '$lib/components/popups/PopupEngine.svelte';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { organizationSchema, webSiteSchema, buildJsonLd } from '$lib/seo/jsonld';
+	import { SITE } from '$lib/seo/config';
 
 	let { children } = $props();
 
@@ -35,7 +36,7 @@
 <svelte:head>
 	<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 	<meta name="author" content="Billy Ribeiro" />
-	<meta name="publisher" content="Explosive Swings" />
+	<meta name="publisher" content={SITE.name} />
 	{#if isNoindexRoute}
 		<meta name="robots" content="noindex, nofollow" />
 	{/if}

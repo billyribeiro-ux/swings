@@ -52,7 +52,7 @@
 		buildJsonLd([
 			webPageSchema({
 				path: `/blog/tag/${slug}`,
-				title: `Tag: ${tagName} - Blog - Explosive Swings`,
+				title: `Tag: ${tagName} - Blog - Precision Options Signals`,
 				description: `Browse ${tagName} articles with practical options setups, market context, and risk management lessons.`
 			})
 		])
@@ -60,7 +60,7 @@
 </script>
 
 <Seo
-	title="Tag: {tagName} - Blog - Explosive Swings"
+	title="Tag: {tagName} - Blog - Precision Options Signals"
 	description="Browse {tagName} articles with practical options setups, market context, and risk management lessons."
 	{jsonLd}
 />

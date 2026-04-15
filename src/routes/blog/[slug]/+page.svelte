@@ -69,7 +69,7 @@
 </script>
 
 <Seo
-	title="{post.meta_title || post.title} - Explosive Swings"
+	title="{post.meta_title || post.title} - Precision Options Signals"
 	description={post.meta_description || post.excerpt || ''}
 	ogTitle={post.meta_title || post.title}
 	ogImage={post.og_image_url || post.featured_image_url || undefined}

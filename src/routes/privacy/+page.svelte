@@ -5,16 +5,16 @@
 	const jsonLd = buildJsonLd([
 		webPageSchema({
 			path: '/privacy',
-			title: 'Privacy Policy - Explosive Swings',
+			title: 'Privacy Policy - Precision Options Signals',
 			description:
-				'Privacy Policy for Explosive Swings. Learn how we collect, use, and protect your personal information.'
+				'Privacy Policy for Precision Options Signals. Learn how we collect, use, and protect your personal information.'
 		})
 	]);
 </script>
 
 <Seo
-	title="Privacy Policy - Explosive Swings"
-	description="Privacy Policy for Explosive Swings. Learn how we collect, use, and protect your personal information."
+	title="Privacy Policy - Precision Options Signals"
+	description="Privacy Policy for Precision Options Signals. Learn how we collect, use, and protect your personal information."
 	{jsonLd}
 />
 
@@ -26,7 +26,7 @@
 		<section class="legal__section">
 			<h2>1. Introduction</h2>
 			<p>
-				Explosive Swings ("we," "us," or "our") respects your privacy and is committed to protecting
+				Precision Options Signals ("we," "us," or "our") respects your privacy and is committed to protecting
 				your personal data. This Privacy Policy explains how we collect, use, disclose, and
 				safeguard your information when you visit our website and use our services.
 			</p>
@@ -132,7 +132,7 @@
 			</ul>
 			<p>
 				To exercise these rights, contact us at
-				<a href="mailto:support@explosiveswings.com">support@explosiveswings.com</a>.
+				<a href="mailto:support@precisionoptionsignals.com">support@precisionoptionsignals.com</a>.
 			</p>
 		</section>
 
@@ -157,7 +157,7 @@
 			<h2>12. Contact</h2>
 			<p>
 				If you have questions about this Privacy Policy, please contact us at
-				<a href="mailto:support@explosiveswings.com">support@explosiveswings.com</a>.
+				<a href="mailto:support@precisionoptionsignals.com">support@precisionoptionsignals.com</a>.
 			</p>
 		</section>
 	</div>

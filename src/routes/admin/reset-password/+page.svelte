@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { api, ApiError } from '$lib/api/client';
+	import { SITE } from '$lib/seo/config';
 
 	const token = $derived(page.url.searchParams.get('token') || '');
 
@@ -51,15 +52,15 @@
 </script>
 
 <svelte:head>
-	<title>Reset Password - Admin - Explosive Swings</title>
+	<title>Reset Password - Admin - {SITE.name}</title>
 </svelte:head>
 
 <div class="reset-page">
 	<div class="reset-card">
 		<div class="reset-card__header">
 			<a href="/" class="reset-card__logo">
-				<span class="reset-card__logo-brand">Explosive</span>
-				<span class="reset-card__logo-accent">Swings</span>
+				<span class="reset-card__logo-brand">{SITE.logoBrandPrimary}</span>
+				<span class="reset-card__logo-accent">{SITE.logoBrandAccent}</span>
 			</a>
 			<span class="reset-card__badge">Admin</span>
 			<h1 class="reset-card__title">Reset Password</h1>

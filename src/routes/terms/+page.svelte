@@ -5,16 +5,16 @@
 	const jsonLd = buildJsonLd([
 		webPageSchema({
 			path: '/terms',
-			title: 'Terms of Service - Explosive Swings',
+			title: 'Terms of Service - Precision Options Signals',
 			description:
-				'Terms of Service for Explosive Swings. Read our terms and conditions for using our trading education platform and weekly watchlist service.'
+				'Terms of Service for Precision Options Signals. Read our terms and conditions for using our trading education platform and weekly watchlist service.'
 		})
 	]);
 </script>
 
 <Seo
-	title="Terms of Service - Explosive Swings"
-	description="Terms of Service for Explosive Swings. Read our terms and conditions for using our trading education platform and weekly watchlist service."
+	title="Terms of Service - Precision Options Signals"
+	description="Terms of Service for Precision Options Signals. Read our terms and conditions for using our trading education platform and weekly watchlist service."
 	{jsonLd}
 />
 
@@ -26,8 +26,8 @@
 		<section class="legal__section">
 			<h2>1. Acceptance of Terms</h2>
 			<p>
-				By accessing or using the Explosive Swings website, services, content, or any applications
-				(collectively, the "Service") made available by Explosive Swings ("we," "us," or "our"), you
+				By accessing or using the Precision Options Signals website, services, content, or any applications
+				(collectively, the "Service") made available by Precision Options Signals ("we," "us," or "our"), you
 				agree to be bound by these Terms of Service. If you do not agree, do not use the Service.
 			</p>
 		</section>
@@ -35,7 +35,7 @@
 		<section class="legal__section">
 			<h2>2. Description of Service</h2>
 			<p>
-				Explosive Swings provides trading education content, weekly stock watchlists, options
+				Precision Options Signals provides trading education content, weekly stock watchlists, options
 				trading courses, and related educational materials. Our Service is for informational and
 				educational purposes only. <strong
 					>Nothing on this site constitutes financial advice, investment advice, trading advice, or
@@ -47,7 +47,7 @@
 		<section class="legal__section">
 			<h2>3. No Financial Advice Disclaimer</h2>
 			<p>
-				All content provided by Explosive Swings, including but not limited to watchlists, alerts,
+				All content provided by Precision Options Signals, including but not limited to watchlists, alerts,
 				courses, articles, and any other materials, is for educational and informational purposes
 				only. We are not registered investment advisors, broker-dealers, or financial planners.
 			</p>
@@ -82,10 +82,10 @@
 			<h2>6. Intellectual Property</h2>
 			<p>
 				All content, features, and functionality of the Service — including text, graphics, logos,
-				icons, images, audio, video, courses, watchlists, and software — are owned by Explosive
-				Swings and are protected by copyright, trademark, and other intellectual property laws. You
-				may not reproduce, distribute, modify, or create derivative works without our prior written
-				consent.
+				icons, images, audio, video, courses, watchlists, and software — are owned by Precision
+				Options Signals and are protected by copyright, trademark, and other intellectual property
+				laws. You may not reproduce, distribute, modify, or create derivative works without our prior
+				written consent.
 			</p>
 		</section>
 
@@ -113,7 +113,7 @@
 		<section class="legal__section">
 			<h2>9. Limitation of Liability</h2>
 			<p>
-				To the fullest extent permitted by law, Explosive Swings shall not be liable for any
+				To the fullest extent permitted by law, Precision Options Signals shall not be liable for any
 				indirect, incidental, special, consequential, or punitive damages, including but not limited
 				to loss of profits, data, or trading losses, arising out of or related to your use of the
 				Service.
@@ -142,7 +142,7 @@
 			<h2>12. Contact</h2>
 			<p>
 				If you have questions about these Terms, please contact us at
-				<a href="mailto:support@explosiveswings.com">support@explosiveswings.com</a>.
+				<a href="mailto:support@precisionoptionsignals.com">support@precisionoptionsignals.com</a>.
 			</p>
 		</section>
 	</div>

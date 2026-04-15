@@ -16,7 +16,7 @@
 	const jsonLd = buildJsonLd([
 		webPageSchema({
 			path: '/',
-			title: 'Explosive Swings - Weekly Options Watchlists and Trading Education',
+			title: 'Precision Options Signals - Weekly Options Watchlists and Trading Education',
 			description:
 				'Get a weekly options watchlist with clear entry zones, targets, and risk levels, plus practical courses that explain the trade thesis behind every setup.',
 			speakable: '.hero__title, .hero__subtitle'
@@ -25,9 +25,9 @@
 </script>
 
 <Seo
-	title="Explosive Swings - Weekly Options Watchlists and Trading Education"
+	title="Precision Options Signals - Weekly Options Watchlists and Trading Education"
 	description="Get a weekly options watchlist with clear entry zones, targets, and risk levels, plus practical courses that explain the trade thesis behind every setup."
-	ogTitle="Explosive Swings - Weekly Options Watchlists"
+	ogTitle="Precision Options Signals - Weekly Options Watchlists"
 	ogDescription="Trade with a documented plan each week: setup rationale, entry zones, targets, and risk controls."
 	{jsonLd}
 />

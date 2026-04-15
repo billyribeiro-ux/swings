@@ -15,9 +15,9 @@
 	const jsonLd = buildJsonLd([
 		webPageSchema({
 			path: '/about',
-			title: 'About Explosive Swings - Team, Method, and Trading Philosophy',
+			title: 'About Precision Options Signals - Team, Method, and Trading Philosophy',
 			description:
-				'Meet the team behind Explosive Swings and learn the risk-first process we use to build weekly watchlists and options education.',
+				'Meet the team behind Precision Options Signals and learn the risk-first process we use to build weekly watchlists and options education.',
 			speakable: '.about-title, .about-subtitle, .founder-card__name, .founder-card__bio'
 		})
 	]);
@@ -64,9 +64,9 @@
 </script>
 
 <Seo
-	title="About - Explosive Swings"
-	description="Meet the team behind Explosive Swings and learn the risk-first process we use to build weekly watchlists and options education."
-	ogTitle="About Explosive Swings - Team and Trading Philosophy"
+	title="About - Precision Options Signals"
+	description="Meet the team behind Precision Options Signals and learn the risk-first process we use to build weekly watchlists and options education."
+	ogTitle="About Precision Options Signals - Team and Trading Philosophy"
 	{jsonLd}
 />
 
@@ -85,7 +85,7 @@
 		</h1>
 
 		<p class="about-subtitle page-hero__subtitle page-hero__subtitle--wide">
-			Founded by Billy Ribeiro and Freddie Ferber, Explosive Swings was built on a single
+			Founded by Billy Ribeiro and Freddie Ferber, Precision Options Signals was built on a single
 			conviction: traders don't fail because of bad alerts -- they fail because no one ever
 			explained the <em>why</em> behind the trade.
 		</p>
@@ -125,7 +125,7 @@
 					</p>
 
 					<p>
-						Explosive Swings serves <strong>18,000+ active traders</strong> across all experience levels,
+						Precision Options Signals serves <strong>18,000+ active traders</strong> across all experience levels,
 						from professionals refining their edge to disciplined beginners building their first repeatable
 						framework.
 					</p>
@@ -232,7 +232,7 @@
 						</p>
 						<p>
 							Billy's approach: focus on high-probability setups, manage risk religiously, and never
-							chase trades. That philosophy is the foundation of Explosive Swings.
+							chase trades. That philosophy is the foundation of Precision Options Signals.
 						</p>
 					</div>
 

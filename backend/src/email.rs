@@ -116,13 +116,13 @@ const BASE_TEMPLATE: &str = r#"<!DOCTYPE html>
   <div class="wrapper">
     <div class="container">
       <div class="header">
-        <a href="{{ app_url }}" class="logo">Explosive Swings</a>
+        <a href="{{ app_url }}" class="logo">Precision Options Signals</a>
       </div>
       <div class="body">
         {% block content %}{% endblock content %}
       </div>
       <div class="footer">
-        <p>&copy; {{ year }} Explosive Swings. All rights reserved.</p>
+        <p>&copy; {{ year }} Precision Options Signals. All rights reserved.</p>
         <p>If you no longer wish to receive these emails, you can <a href="{{ app_url }}/settings">manage your preferences</a>.</p>
       </div>
     </div>
@@ -134,7 +134,7 @@ const PASSWORD_RESET_TEMPLATE: &str = r#"{% extends "base" %}
 {% block content %}
 <h1>Reset Your Password</h1>
 <p>Hi {{ name }},</p>
-<p>We received a request to reset the password for your Explosive Swings account. Click the button below to choose a new password.</p>
+<p>We received a request to reset the password for your Precision Options Signals account. Click the button below to choose a new password.</p>
 <div class="cta-wrapper">
   <a href="{{ reset_url }}" class="cta-button">Reset Password</a>
 </div>
@@ -149,10 +149,10 @@ const PASSWORD_RESET_TEMPLATE: &str = r#"{% extends "base" %}
 
 const WELCOME_TEMPLATE: &str = r#"{% extends "base" %}
 {% block content %}
-<h1>Welcome to Explosive Swings!</h1>
+<h1>Welcome to Precision Options Signals!</h1>
 <p>Hi {{ name }},</p>
 <p>Thanks for creating your account. We&#39;re excited to have you on board!</p>
-<p>Explosive Swings gives you access to professional swing trading analysis, real-time alerts, and a community of traders dedicated to consistent results.</p>
+<p>Precision Options Signals gives you access to professional swing trading analysis, real-time alerts, and a community of traders dedicated to consistent results.</p>
 <div class="cta-wrapper">
   <a href="{{ app_url }}" class="cta-button">Get Started</a>
 </div>
@@ -293,7 +293,7 @@ impl EmailService {
         self.send_email(
             to_email,
             to_name,
-            "Reset Your Password — Explosive Swings",
+            "Reset Your Password — Precision Options Signals",
             &html,
         )
         .await
@@ -305,11 +305,11 @@ impl EmailService {
         to_name: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut ctx = self.base_context();
-        ctx.insert("subject", "Welcome to Explosive Swings");
+        ctx.insert("subject", "Welcome to Precision Options Signals");
         ctx.insert("name", to_name);
 
         let html = self.templates.render("welcome", &ctx)?;
-        self.send_email(to_email, to_name, "Welcome to Explosive Swings!", &html)
+        self.send_email(to_email, to_name, "Welcome to Precision Options Signals!", &html)
             .await
     }
 
@@ -328,7 +328,7 @@ impl EmailService {
         self.send_email(
             to_email,
             to_name,
-            "Your Subscription is Active — Explosive Swings",
+            "Your Subscription is Active — Precision Options Signals",
             &html,
         )
         .await
@@ -349,7 +349,7 @@ impl EmailService {
         self.send_email(
             to_email,
             to_name,
-            "Your Subscription Has Been Cancelled — Explosive Swings",
+            "Your Subscription Has Been Cancelled — Precision Options Signals",
             &html,
         )
         .await

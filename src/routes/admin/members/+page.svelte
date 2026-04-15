@@ -64,7 +64,7 @@
 </script>
 
 <svelte:head>
-	<title>Members - Admin - Explosive Swings</title>
+	<title>Members - Admin - Precision Options Signals</title>
 </svelte:head>
 
 <div class="members-page">

@@ -45,7 +45,7 @@
 </script>
 
 <svelte:head>
-	<title>Watchlists - Explosive Swings</title>
+	<title>Watchlists - Precision Options Signals</title>
 </svelte:head>
 
 <div class="wl-page">

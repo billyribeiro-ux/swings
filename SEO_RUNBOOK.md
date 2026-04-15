@@ -1,12 +1,12 @@
 # SEO Runbook
 
-This runbook defines the SEO operating standard for Explosive Swings.
+This runbook defines the SEO operating standard for Precision Options Signals.
 
 ## 1) Metadata and Canonicals
 
 - Use `src/lib/seo/Seo.svelte` for every indexable public page.
 - Always provide unique `title` and `description` that match user intent.
-- Canonicals must be absolute (`https://explosiveswings.com/...`) and point to the preferred URL.
+- Canonicals must be absolute (`https://precisionoptionsignals.com/...`) and point to the preferred URL.
 - Keep `og:*` and `twitter:*` aligned with canonical and page topic.
 
 ## 2) Indexing Controls

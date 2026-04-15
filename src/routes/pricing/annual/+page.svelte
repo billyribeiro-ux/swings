@@ -10,13 +10,20 @@
 	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
 	import Sparkle from 'phosphor-svelte/lib/Sparkle';
+	import {
+		PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED,
+		PRICING_ANNUAL_SAVINGS_USD,
+		PRICING_ANNUAL_USD,
+		PRICING_MONTHLY_USD
+	} from '$lib/data/pricing';
+
+	const monthlyYearTotal = PRICING_MONTHLY_USD * 12;
 
 	const jsonLd = buildJsonLd([
 		productSchema({
-			name: 'Explosive Swings Annual Plan',
-			description:
-				'Weekly options watchlists with 5-7 high-probability setups. Save $232/year vs monthly plan.',
-			price: '932',
+			name: 'Precision Options Signals Annual Plan',
+			description: `Weekly options watchlists with 5-7 high-probability setups. Save $${PRICING_ANNUAL_SAVINGS_USD}/year vs paying monthly.`,
+			price: String(PRICING_ANNUAL_USD),
 			path: '/pricing/annual',
 			billingPeriod: 'year'
 		})
@@ -101,14 +108,14 @@
 		'Access to private Discord community',
 		'Exclusive educational content & webinars',
 		'Priority support & early access to new features',
-		'Save $232/year vs monthly plan'
+		`Save $${PRICING_ANNUAL_SAVINGS_USD}/year vs monthly plan`
 	];
 </script>
 
 <Seo
-	title="Annual Plan - Explosive Swings"
-	description="Get weekly options watchlists for $932/year. Save 20% vs monthly. 5-7 high-probability setups with entries, targets, and stops."
-	ogTitle="Annual Plan $932/yr (Save 20%) - Explosive Swings"
+	title="Annual Plan - Precision Options Signals"
+	description={`Get weekly options watchlists for $${PRICING_ANNUAL_USD}/year. Save ${PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED}% vs paying monthly. 5-7 high-probability setups with entries, targets, and stops.`}
+	ogTitle={`Annual Plan $${PRICING_ANNUAL_USD}/yr (Save ${PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED}%) - Precision Options Signals`}
 	{jsonLd}
 />
 
@@ -122,16 +129,20 @@
 			<span class="page-badge__text page-badge__text--gold">Best Value</span>
 		</div>
 
-		<h1 class="price-title page-hero__title">Annual Plan -- Save 20%</h1>
+		<h1 class="price-title page-hero__title">
+			Annual Plan -- Save {PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED}%
+		</h1>
 
 		<div class="price-amount price-hero__amount">
 			<div class="price-hero__price-row">
-				<span class="price-hero__price">$932</span>
+				<span class="price-hero__price">{'$' + PRICING_ANNUAL_USD}</span>
 				<span class="price-hero__suffix">/year</span>
 			</div>
 			<div class="price-hero__savings-badge">
 				<CheckCircle size={16} weight="fill" color="#22B573" />
-				<span class="price-hero__savings-text">Save $232 vs monthly</span>
+				<span class="price-hero__savings-text">
+					Save {'$' + PRICING_ANNUAL_SAVINGS_USD} vs paying monthly for a year
+				</span>
 			</div>
 		</div>
 	</div>
@@ -168,15 +179,21 @@
 				<div class="comparison-card__body">
 					<div class="comparison-card__row">
 						<span class="comparison-card__label">Monthly Plan (12 months)</span>
-						<span class="comparison-card__value">$1,164</span>
+						<span class="comparison-card__value"
+							>{'$' + monthlyYearTotal.toLocaleString('en-US')}</span
+						>
 					</div>
 					<div class="comparison-card__row">
 						<span class="comparison-card__label">Annual Plan</span>
-						<span class="comparison-card__value comparison-card__value--teal">$932</span>
+						<span class="comparison-card__value comparison-card__value--teal"
+							>{'$' + PRICING_ANNUAL_USD}</span
+						>
 					</div>
 					<div class="comparison-card__row">
 						<span class="comparison-card__label comparison-card__label--green">You Save</span>
-						<span class="comparison-card__value comparison-card__value--green-lg">$232</span>
+						<span class="comparison-card__value comparison-card__value--green-lg"
+							>{'$' + PRICING_ANNUAL_SAVINGS_USD}</span
+						>
 					</div>
 				</div>
 			</div>
@@ -194,7 +211,8 @@
 				</h2>
 
 				<p class="reveal-item page-cta__desc">
-					Get 12 months of weekly watchlists and save over $230 compared to paying monthly.
+					Get 12 months of weekly watchlists and save {'$' + PRICING_ANNUAL_SAVINGS_USD} compared to
+					paying monthly.
 				</p>
 
 				<div class="reveal-item page-cta__actions">
@@ -202,7 +220,7 @@
 						{#if isLoading}
 							Processing...
 						{:else}
-							Start Annual Plan -- $932/year
+							Start Annual Plan -- {'$' + PRICING_ANNUAL_USD}/year
 							<ArrowRight size={18} weight="bold" />
 						{/if}
 					</button>

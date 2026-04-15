@@ -75,7 +75,7 @@
 	function goTo(item: { lesson: CourseLesson; moduleId: string }) { selectLesson(item.lesson, item.moduleId); }
 </script>
 
-<svelte:head><title>{currentLesson?.title ?? 'Course'} - Explosive Swings</title></svelte:head>
+<svelte:head><title>{currentLesson?.title ?? 'Course'} - Precision Options Signals</title></svelte:head>
 
 {#if loading}
 	<div class="player-loading"><p>Loading course...</p></div>

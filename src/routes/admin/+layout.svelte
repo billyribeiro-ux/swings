@@ -23,6 +23,7 @@
 	import ChatCircleDots from 'phosphor-svelte/lib/ChatCircleDots';
 	import Gear from 'phosphor-svelte/lib/Gear';
 	import CommandPalette from '$lib/components/admin/CommandPalette.svelte';
+	import { SITE } from '$lib/seo/config';
 	import {
 		blogAdminItems,
 		courseAdminItems,
@@ -176,8 +177,8 @@
 		<div class="admin-login__card">
 			<div class="admin-login__header">
 				<a href="/" class="admin-login__logo">
-					<span class="admin-login__logo-brand">Explosive</span>
-					<span class="admin-login__logo-accent">Swings</span>
+					<span class="admin-login__logo-brand">{SITE.logoBrandPrimary}</span>
+					<span class="admin-login__logo-accent">{SITE.logoBrandAccent}</span>
 				</a>
 				<span class="admin-login__badge">Admin</span>
 				<h1 class="admin-login__title">Admin Login</h1>
@@ -256,8 +257,8 @@
 				{/if}
 			</button>
 			<a href="/" class="admin__mobile-logo">
-				<span class="admin__logo-brand">Explosive</span>
-				<span class="admin__logo-accent">Swings</span>
+				<span class="admin__logo-brand">{SITE.logoBrandPrimary}</span>
+				<span class="admin__logo-accent">{SITE.logoBrandAccent}</span>
 			</a>
 			<span class="admin__badge admin__badge--mobile">Admin</span>
 		</header>
@@ -268,9 +269,9 @@
 			class:admin__sidebar--collapsed={sidebarCollapsed}
 		>
 			<div class="admin__sidebar-top">
-				<a href="/" class="admin__logo" title="Explosive Swings">
-					<span class="admin__logo-brand">Explosive</span>
-					<span class="admin__logo-accent">Swings</span>
+				<a href="/" class="admin__logo" title={SITE.name}>
+					<span class="admin__logo-brand">{SITE.logoBrandPrimary}</span>
+					<span class="admin__logo-accent">{SITE.logoBrandAccent}</span>
 				</a>
 				<div class="admin__sidebar-top-actions">
 					<span class="admin__badge">Admin</span>

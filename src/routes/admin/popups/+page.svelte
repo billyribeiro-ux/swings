@@ -118,7 +118,7 @@
 </script>
 
 <svelte:head>
-	<title>Popups - Admin - Explosive Swings</title>
+	<title>Popups - Admin - Precision Options Signals</title>
 </svelte:head>
 
 <div class="pop-admin">

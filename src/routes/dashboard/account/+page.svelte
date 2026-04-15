@@ -105,7 +105,7 @@
 	}
 </script>
 
-<svelte:head><title>Account - Explosive Swings</title></svelte:head>
+<svelte:head><title>Account - Precision Options Signals</title></svelte:head>
 
 <div class="acct">
 	<h2 class="acct-title">Account Settings</h2>

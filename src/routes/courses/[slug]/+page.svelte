@@ -124,7 +124,7 @@
 </script>
 
 <Seo
-	title="{course.title} - Explosive Swings"
+	title="{course.title} - Precision Options Signals"
 	description={course.description}
 	ogTitle="{course.title} - Options Trading Course"
 	{jsonLd}

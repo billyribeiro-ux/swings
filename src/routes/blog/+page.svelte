@@ -72,7 +72,7 @@
 				path: '/blog',
 				title: 'Options Trading Blog - Strategy, Risk, and Market Context',
 				description:
-					'Read practical options trading breakdowns, risk management lessons, and weekly market context from the Explosive Swings team.',
+					'Read practical options trading breakdowns, risk management lessons, and weekly market context from the Precision Options Signals team.',
 				speakable: '.blog-title, .blog-subtitle'
 			}),
 			...posts.map((p) =>
@@ -88,9 +88,9 @@
 </script>
 
 <Seo
-	title="Options Trading Blog - Explosive Swings"
-	description="Read practical options trading breakdowns, risk management lessons, and weekly market context from the Explosive Swings team."
-	ogTitle="Options Trading Blog - Explosive Swings"
+	title="Options Trading Blog - Precision Options Signals"
+	description="Read practical options trading breakdowns, risk management lessons, and weekly market context from the Precision Options Signals team."
+	ogTitle="Options Trading Blog - Precision Options Signals"
 	{jsonLd}
 />
 
