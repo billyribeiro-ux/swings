@@ -73,6 +73,7 @@ export interface WatchlistCountdownParts {
 	days: number;
 	hours: number;
 	minutes: number;
+	seconds: number;
 }
 
 export interface MarketCountdownParts {
@@ -84,11 +85,12 @@ export interface MarketCountdownParts {
 export function getWatchlistCountdown(now: Date, target: Date): WatchlistCountdownParts {
 	let ms = target.getTime() - now.getTime();
 	if (ms < 0) ms = 0;
-	const totalM = Math.floor(ms / 60_000);
+	const totalS = Math.floor(ms / 1000);
 	return {
-		days: Math.floor(totalM / (60 * 24)),
-		hours: Math.floor((totalM % (60 * 24)) / 60),
-		minutes: totalM % 60
+		days: Math.floor(totalS / 86_400),
+		hours: Math.floor((totalS % 86_400) / 3600),
+		minutes: Math.floor((totalS % 3600) / 60),
+		seconds: totalS % 60
 	};
 }
 

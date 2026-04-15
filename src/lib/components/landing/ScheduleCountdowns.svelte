@@ -20,6 +20,7 @@
 	let wDays = $state(0);
 	let wHours = $state(0);
 	let wMinutes = $state(0);
+	let wSeconds = $state(0);
 	let mHours = $state(0);
 	let mMinutes = $state(0);
 	let mSeconds = $state(0);
@@ -41,6 +42,7 @@
 		wDays = w.days;
 		wHours = w.hours;
 		wMinutes = w.minutes;
+		wSeconds = w.seconds;
 		mHours = m.hours;
 		mMinutes = m.minutes;
 		mSeconds = m.seconds;
@@ -115,6 +117,10 @@
 							<span class="schedule-countdowns__chip-value">{pad2(wMinutes)}</span>
 							<span class="schedule-countdowns__chip-label">Minutes</span>
 						</div>
+						<div class="schedule-countdowns__chip">
+							<span class="schedule-countdowns__chip-value">{pad2(wSeconds)}</span>
+							<span class="schedule-countdowns__chip-label">Seconds</span>
+						</div>
 					{:else}
 						<div class="schedule-countdowns__chip">
 							<span class="schedule-countdowns__chip-value schedule-countdowns__placeholder">—</span>
@@ -127,6 +133,10 @@
 						<div class="schedule-countdowns__chip">
 							<span class="schedule-countdowns__chip-value schedule-countdowns__placeholder">—</span>
 							<span class="schedule-countdowns__chip-label">Minutes</span>
+						</div>
+						<div class="schedule-countdowns__chip">
+							<span class="schedule-countdowns__chip-value schedule-countdowns__placeholder">—</span>
+							<span class="schedule-countdowns__chip-label">Seconds</span>
 						</div>
 					{/if}
 				</div>

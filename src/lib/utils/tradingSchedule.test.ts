@@ -60,10 +60,15 @@ describe('getNextMarketOpen', () => {
 });
 
 describe('countdown helpers', () => {
-	it('getWatchlistCountdown floors to minute parts', () => {
+	it('getWatchlistCountdown breaks down days through seconds', () => {
 		const target = new Date('2026-01-01T00:02:30.000Z');
 		const now = new Date('2026-01-01T00:00:00.000Z');
-		expect(getWatchlistCountdown(now, target)).toEqual({ days: 0, hours: 0, minutes: 2 });
+		expect(getWatchlistCountdown(now, target)).toEqual({
+			days: 0,
+			hours: 0,
+			minutes: 2,
+			seconds: 30
+		});
 	});
 
 	it('getMarketCountdown uses total hours past 24', () => {
