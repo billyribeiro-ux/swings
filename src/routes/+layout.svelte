@@ -14,6 +14,7 @@
 	import { organizationSchema, webSiteSchema, buildJsonLd } from '$lib/seo/jsonld';
 	import { SITE } from '$lib/seo/config';
 	import { STUB_BANNER_CONFIG, fetchBannerConfig, type BannerConfig } from '$lib/api/consent';
+	import { setupGateScanner } from '$lib/consent/gate';
 
 	let { children } = $props();
 
@@ -26,6 +27,15 @@
 		void fetchBannerConfig().then((cfg) => {
 			bannerConfig = cfg;
 		});
+	});
+
+	// CONSENT-02: install the script-hydration scanner. Runs once on mount and
+	// re-scans on every consent update. Scripts gated via `data-consent-category`
+	// (in `app.html` or injected by MDX content) activate as soon as the
+	// matching category is granted.
+	$effect(() => {
+		if (!browser) return;
+		setupGateScanner();
 	});
 
 	const appRoutes = ['/dashboard', '/admin', '/login', '/register'];

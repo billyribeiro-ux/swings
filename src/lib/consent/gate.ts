@@ -111,6 +111,86 @@ export function loadScript(url: string, opts: GateOptions): Promise<void> {
 }
 
 /**
+ * Hydrate DOM scripts gated via `data-consent-category="<key>"`.
+ *
+ * Two element shapes are recognised:
+ *
+ *   1. **External (src-swap)** —
+ *      `<script data-consent-src="https://…" data-consent-category="analytics">`
+ *      When the category is granted, we clone the element, set `src` to the
+ *      `data-consent-src` value, remove the `data-consent-src` attribute, and
+ *      replace the original node. The browser fetches and executes normally.
+ *
+ *   2. **Inline (type-swap)** —
+ *      `<script type="text/plain" data-consent-category="analytics">gtag('send',...)</script>`
+ *      When granted, we clone the node with `type="text/javascript"` and
+ *      replace it. The browser re-parses the text content and runs it.
+ *
+ * Both shapes stamp `data-consent-loaded="true"` after activation so
+ * repeated calls are idempotent.
+ *
+ * Category attribute values may contain multiple keys separated by spaces;
+ * ALL must be granted for activation (AND semantics — matches `loadScript`).
+ */
+export function hydrateConsentedScripts(): void {
+	if (typeof document === 'undefined') return;
+	const nodes = document.querySelectorAll<HTMLScriptElement>(
+		'script[data-consent-category]:not([data-consent-loaded="true"])'
+	);
+	nodes.forEach((node) => {
+		const raw = node.getAttribute('data-consent-category');
+		if (!raw) return;
+		const categories = raw.split(/\s+/).filter(Boolean);
+		if (categories.length === 0) return;
+		if (!allGranted(categories)) return;
+
+		const activated = document.createElement('script');
+		// Copy every non-data attribute EXCEPT `type` (which we set below) and
+		// `data-consent-src` (which we rewrite to `src`). Preserves nonce,
+		// async, defer, crossorigin, referrerpolicy, integrity, etc.
+		for (const attr of Array.from(node.attributes)) {
+			if (attr.name === 'type' || attr.name === 'data-consent-src') continue;
+			activated.setAttribute(attr.name, attr.value);
+		}
+		const gatedSrc = node.getAttribute('data-consent-src');
+		if (gatedSrc) {
+			activated.setAttribute('src', gatedSrc);
+			activated.removeAttribute('data-consent-src');
+		}
+		// Inline variant: copy textContent; the `type` attribute was previously
+		// `text/plain` to suppress execution — we let the browser treat it as
+		// JavaScript by omitting `type` (spec default).
+		if (!gatedSrc) {
+			activated.textContent = node.textContent ?? '';
+		}
+		activated.dataset.consentLoaded = 'true';
+
+		const parent = node.parentNode;
+		if (parent) parent.replaceChild(activated, node);
+	});
+}
+
+let scannerInstalled = false;
+
+/**
+ * Install a page-lifetime scanner that runs [`hydrateConsentedScripts`] on
+ * every consent update. Idempotent — safe to call from multiple mount
+ * points.
+ *
+ * Fires once synchronously at install so any scripts gated purely on
+ * `necessary` (or a grant already in the envelope) run immediately.
+ */
+export function setupGateScanner(): void {
+	if (typeof window === 'undefined') return;
+	if (scannerInstalled) return;
+	scannerInstalled = true;
+	hydrateConsentedScripts();
+	window.addEventListener(CONSENT_EVENT_NAME, () => {
+		hydrateConsentedScripts();
+	});
+}
+
+/**
  * Run `cb` every time the categories transition from "not all granted" to
  * "all granted". Returns an unsubscribe fn. If `cb` itself returns a cleanup
  * function, it is called on the NEXT deny transition (so subscribers can
