@@ -237,6 +237,21 @@ async fn main() -> Result<()> {
                     notifications_service.channels().clone(),
                 )),
             )
+            // POP-06: revenue attribution subscriber. Narrowly scoped to
+            // the two events that carry a session_id — a broader glob
+            // would fire the no-op branch on every event in the system.
+            .register(
+                "order.completed",
+                Arc::new(events::handlers::PopupAttributionHandler::new(
+                    state.db.clone(),
+                )),
+            )
+            .register(
+                "subscription.started",
+                Arc::new(events::handlers::PopupAttributionHandler::new(
+                    state.db.clone(),
+                )),
+            )
             // FORM-07 will land a real implementation; the stub keeps the
             // dispatcher from reporting NoHandler for outbound webhook events.
             .register(

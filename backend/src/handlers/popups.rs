@@ -657,9 +657,17 @@ async fn public_active_popups(
             }
             Err(_) => true,
         };
-        if freq_ok {
-            allowed.push(popup);
+        if !freq_ok {
+            continue;
         }
+
+        // POP-06: hydrate any form_ref elements so the client receives
+        // a self-contained popup payload.
+        let mut popup = popup;
+        popup.content_json =
+            crate::popups::content::hydrate_content(&state.db, popup.content_json.clone())
+                .await?;
+        allowed.push(popup);
     }
 
     Ok(Json(allowed))
