@@ -17,6 +17,7 @@ pub mod email;
 pub mod error;
 pub mod events;
 pub mod extractors;
+pub mod forms;
 pub mod handlers;
 pub mod middleware;
 pub mod models;
