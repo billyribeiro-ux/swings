@@ -3275,6 +3275,42 @@
         }
       }
     },
+    "/api/consent/banner": {
+      "get": {
+        "tags": [
+          "consent"
+        ],
+        "summary": "Resolve the active banner config + category list + current policy version.",
+        "description": "Always returns 200 with the `default`/`en` seed if no better match exists.\nThe only error shape is a `503` if the tables are empty (which can only\nhappen if migration `024_consent.sql` has not run).",
+        "operationId": "get_banner",
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "description": "BCP-47 locale tag; defaults to 'en'.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resolved banner config",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BannerConfig"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Consent tables not seeded"
+          }
+        }
+      }
+    },
     "/api/coupons/apply": {
       "post": {
         "tags": [
@@ -3971,6 +4007,118 @@
           "content_json": {}
         }
       },
+      "BannerConfig": {
+        "type": "object",
+        "required": [
+          "version",
+          "policyVersion",
+          "layout",
+          "position",
+          "locale",
+          "region",
+          "categories",
+          "copy",
+          "theme"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Banner config row version. Bumped when copy/layout changes; used by\nCONSENT-03 to re-prompt subjects whose recorded consent predates this."
+          },
+          "policyVersion": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Current privacy-policy version, sourced from `consent_policies`."
+          },
+          "layout": {
+            "$ref": "#/components/schemas/BannerLayout"
+          },
+          "position": {
+            "$ref": "#/components/schemas/BannerPosition"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsentCategoryDef"
+            }
+          },
+          "copy": {
+            "$ref": "#/components/schemas/BannerCopy"
+          },
+          "theme": {
+            "description": "Opaque theme overrides; the frontend maps known keys to PE7 CSS vars."
+          }
+        }
+      },
+      "BannerCopy": {
+        "type": "object",
+        "required": [
+          "title",
+          "body",
+          "acceptAll",
+          "rejectAll",
+          "customize",
+          "savePreferences"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "acceptAll": {
+            "type": "string"
+          },
+          "rejectAll": {
+            "type": "string"
+          },
+          "customize": {
+            "type": "string"
+          },
+          "savePreferences": {
+            "type": "string"
+          },
+          "privacyPolicyHref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "privacyPolicyLabel": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "BannerLayout": {
+        "type": "string",
+        "enum": [
+          "bar",
+          "box",
+          "popup",
+          "fullscreen"
+        ]
+      },
+      "BannerPosition": {
+        "type": "string",
+        "enum": [
+          "top",
+          "bottom",
+          "center",
+          "bottom-start",
+          "bottom-end"
+        ]
+      },
       "BillingPortalRequest": {
         "type": "object",
         "properties": {
@@ -4600,6 +4748,37 @@
             "items": {
               "$ref": "#/components/schemas/PreferenceUpdate"
             }
+          }
+        }
+      },
+      "ConsentCategoryDef": {
+        "type": "object",
+        "description": "Single-category entry in the banner response.\n\nWire fields are camelCased to match the frontend stub at\n`src/lib/api/consent.ts`; when schema codegen replaces the stub the\nSvelte components consume this shape unchanged.",
+        "required": [
+          "key",
+          "label",
+          "description",
+          "required",
+          "defaultEnabled"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Stable key — MUST NOT be renamed after a row has been written to the\nconsent log (CONSENT-03). Migration-level change only."
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "When true, toggle is disabled in the preferences modal."
+          },
+          "defaultEnabled": {
+            "type": "boolean",
+            "description": "Whether the category is pre-checked before the user interacts.\nGDPR Art. 4(11) + EDPB 05/2020 §86: non-required categories MUST default\nto `false`. Derived here rather than stored so a data fix is cheap."
           }
         }
       },
@@ -8556,6 +8735,10 @@
     {
       "name": "blog",
       "description": "Public blog endpoints"
+    },
+    {
+      "name": "consent",
+      "description": "Cookie / tracking consent banner + category lookup"
     },
     {
       "name": "coupons",

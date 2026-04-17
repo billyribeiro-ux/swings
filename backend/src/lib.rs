@@ -11,6 +11,7 @@ use std::sync::Arc;
 pub mod authz;
 pub mod common;
 pub mod config;
+pub mod consent;
 pub mod db;
 pub mod email;
 pub mod error;

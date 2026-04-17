@@ -953,6 +953,28 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/consent/banner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Resolve the active banner config + category list + current policy version.
+         * @description Always returns 200 with the `default`/`en` seed if no better match exists.
+         *     The only error shape is a `503` if the tables are empty (which can only
+         *     happen if migration `024_consent.sql` has not run).
+         */
+        get: operations["get_banner"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/coupons/apply": {
         parameters: {
             query?: never;
@@ -1241,6 +1263,41 @@ export type components = {
             content?: string | null;
             content_json?: unknown;
         };
+        BannerConfig: {
+            /**
+             * Format: int32
+             * @description Banner config row version. Bumped when copy/layout changes; used by
+             *     CONSENT-03 to re-prompt subjects whose recorded consent predates this.
+             */
+            version: number;
+            /**
+             * Format: int32
+             * @description Current privacy-policy version, sourced from `consent_policies`.
+             */
+            policyVersion: number;
+            layout: components["schemas"]["BannerLayout"];
+            position: components["schemas"]["BannerPosition"];
+            locale: string;
+            region: string;
+            categories: components["schemas"]["ConsentCategoryDef"][];
+            copy: components["schemas"]["BannerCopy"];
+            /** @description Opaque theme overrides; the frontend maps known keys to PE7 CSS vars. */
+            theme: unknown;
+        };
+        BannerCopy: {
+            title: string;
+            body: string;
+            acceptAll: string;
+            rejectAll: string;
+            customize: string;
+            savePreferences: string;
+            privacyPolicyHref?: string | null;
+            privacyPolicyLabel?: string | null;
+        };
+        /** @enum {string} */
+        BannerLayout: "bar" | "box" | "popup" | "fullscreen";
+        /** @enum {string} */
+        BannerPosition: "top" | "bottom" | "center" | "bottom-start" | "bottom-end";
         BillingPortalRequest: {
             return_url?: string | null;
         };
@@ -1409,6 +1466,30 @@ export type components = {
         };
         BulkPreferenceUpdate: {
             items: components["schemas"]["PreferenceUpdate"][];
+        };
+        /**
+         * @description Single-category entry in the banner response.
+         *
+         *     Wire fields are camelCased to match the frontend stub at
+         *     `src/lib/api/consent.ts`; when schema codegen replaces the stub the
+         *     Svelte components consume this shape unchanged.
+         */
+        ConsentCategoryDef: {
+            /**
+             * @description Stable key — MUST NOT be renamed after a row has been written to the
+             *     consent log (CONSENT-03). Migration-level change only.
+             */
+            key: string;
+            label: string;
+            description: string;
+            /** @description When true, toggle is disabled in the preferences modal. */
+            required: boolean;
+            /**
+             * @description Whether the category is pre-checked before the user interacts.
+             *     GDPR Art. 4(11) + EDPB 05/2020 §86: non-required categories MUST default
+             *     to `false`. Derived here rather than stored so a data fix is cheap.
+             */
+            defaultEnabled: boolean;
         };
         Coupon: {
             /** Format: uuid */
@@ -5179,6 +5260,36 @@ export interface operations {
             };
             /** @description Post not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_banner: {
+        parameters: {
+            query?: {
+                /** @description BCP-47 locale tag; defaults to 'en'. */
+                locale?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resolved banner config */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BannerConfig"];
+                };
+            };
+            /** @description Consent tables not seeded */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

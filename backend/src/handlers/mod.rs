@@ -2,6 +2,7 @@ pub mod admin;
 pub mod analytics;
 pub mod auth;
 pub mod blog;
+pub mod consent;
 pub mod coupons;
 pub mod courses;
 pub mod csp_report;

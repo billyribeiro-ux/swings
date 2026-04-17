@@ -22,8 +22,8 @@ use utoipa_swagger_ui::SwaggerUi;
 use crate::{
     extractors::AdminUser,
     handlers::{
-        admin, analytics, auth, blog, coupons, courses, csp_report, member, notifications, outbox,
-        popups, webhooks,
+        admin, analytics, auth, blog, consent, coupons, courses, csp_report, member, notifications,
+        outbox, popups, webhooks,
     },
     AppState,
 };
@@ -62,6 +62,7 @@ impl Modify for SecurityAddon {
         (name = "admin-notifications", description = "Admin-only notification template + delivery ops"),
         (name = "analytics", description = "Client-side analytics ingestion"),
         (name = "blog", description = "Public blog endpoints"),
+        (name = "consent", description = "Cookie / tracking consent banner + category lookup"),
         (name = "coupons", description = "Discount coupon management"),
         (name = "courses", description = "Course catalog, modules, lessons, progress"),
         (name = "member", description = "Authenticated member self-service"),
@@ -124,6 +125,8 @@ impl Modify for SecurityAddon {
         courses::delete_lesson,
         courses::enroll_course,
         courses::update_lesson_progress,
+        // Consent (CONSENT-01)
+        consent::get_banner,
         // Coupons
         coupons::admin_create_coupon,
         coupons::admin_update_coupon,
@@ -253,6 +256,12 @@ impl Modify for SecurityAddon {
             crate::models::ValidateCouponRequest,
             crate::models::CouponValidationResponse,
             crate::models::BulkCouponRequest,
+            // Consent (CONSENT-01)
+            consent::BannerConfig,
+            consent::BannerCopy,
+            consent::BannerLayout,
+            consent::BannerPosition,
+            consent::ConsentCategoryDef,
             // Popups
             crate::models::Popup,
             crate::models::CreatePopupRequest,

@@ -1,73 +1,33 @@
 /**
  * Consent API client.
  *
- * Stub phase: these functions return hard-coded defaults / round-trip through
- * localStorage so the UI can be developed end-to-end while CONSENT-01 is still
- * landing the backend. Every function points at its future real endpoint via a
- * `// CONSENT-01 TODO:` comment so swapping in the live implementation is a
- * single-file edit per endpoint.
+ * CONSENT-01 status: banner config endpoint is live. The category set is
+ * sourced from the server response — the `DEFAULT_CATEGORIES` constant below
+ * is retained only as an SSR/test fallback (fixtures, storybook-style
+ * harnesses, and the admin preview route). The real endpoint always returns
+ * an authoritative list, so consumers should prefer the server response.
  *
- * When CONSENT-01 ships, the following endpoints will supersede the stubs:
- *   - GET  /api/consent/banner  → current geo-resolved banner config
- *   - POST /api/consent/record  → write a consent event row
- *   - GET  /api/consent/me      → current subject's consent state
+ * CONSENT-03 stubs (still localStorage-backed):
+ *   - `recordConsent` — will write to `POST /api/consent/record`
+ *   - `fetchMyConsent` — will read from `GET /api/consent/me`
  *
- * The TypeScript contracts here are deliberately narrow (and locally owned) so
- * that once `schema.d.ts` exports the real `ConsentBannerConfig`,
- * `ConsentRecord`, and `ConsentState` shapes, the only change needed is to
- * switch these `interface` declarations for `type X = components['schemas']['X']`
- * re-exports. Consumers of this module import from here exclusively, so the
- * swap is transparent.
+ * The TypeScript contracts below alias the generated OpenAPI shapes. When
+ * CONSENT-03 lands its own schemas the remaining local interfaces become
+ * aliases the same way `BannerConfig` already is.
  */
 
-// TODO CONSENT-01: once backend schemas are generated, replace these with:
-//   import type { components } from '$lib/api/schema';
-//   export type BannerConfig = components['schemas']['ConsentBannerConfig'];
-//   ...
+import { api, ApiError } from '$lib/api/client';
+import type { components } from '$lib/api/schema';
 
-export type BannerLayout = 'bar' | 'box' | 'popup';
+/** Generated OpenAPI shape — single source of truth for the banner payload. */
+export type BannerConfig = components['schemas']['BannerConfig'];
+export type BannerCopy = components['schemas']['BannerCopy'];
+export type ConsentCategoryDef = components['schemas']['ConsentCategoryDef'];
+
+export type BannerLayout = 'bar' | 'box' | 'popup' | 'fullscreen';
 export type BannerPosition = 'top' | 'bottom' | 'center' | 'bottom-start' | 'bottom-end';
 
-export interface ConsentCategoryDef {
-	/** Stable key — NEVER change after a category has been used in production. */
-	readonly key: string;
-	readonly label: string;
-	readonly description: string;
-	/** When true, toggle is disabled and the category is always granted. */
-	readonly required: boolean;
-	/** Off unless user opts in; purely informational. */
-	readonly defaultEnabled: boolean;
-}
-
-export interface BannerCopy {
-	readonly title: string;
-	readonly body: string;
-	readonly acceptAll: string;
-	readonly rejectAll: string;
-	readonly customize: string;
-	readonly savePreferences: string;
-	readonly privacyPolicyHref?: string;
-	readonly privacyPolicyLabel?: string;
-}
-
-export interface BannerConfig {
-	readonly version: number;
-	/** Policy version — bumped when the underlying privacy policy changes. */
-	readonly policyVersion: number;
-	readonly layout: BannerLayout;
-	readonly position: BannerPosition;
-	readonly categories: readonly ConsentCategoryDef[];
-	readonly copy: BannerCopy;
-	/** Locale tag (BCP-47). Present so CONSENT-06 can slot in translations. */
-	readonly locale: string;
-}
-
 export type ConsentAction = 'granted' | 'denied' | 'updated' | 'revoked';
-
-export interface ConsentRecordInput {
-	readonly action: ConsentAction;
-	readonly categories: Readonly<Record<string, boolean>>;
-}
 
 export interface ConsentRecordResponse {
 	readonly id: string;
@@ -78,7 +38,15 @@ export interface FetchMyConsentResponse {
 	readonly decidedAt: string;
 }
 
-/** Canonical default category set per AUDIT_PHASE3_PLAN.md §3. */
+/**
+ * Canonical default category set. Used as an SSR/offline fallback so
+ * the banner can render before (or without) the network round-trip, and by
+ * `ConsentStore` as the seed shape for its preference record.
+ *
+ * Keep in sync with the seed in `backend/migrations/024_consent.sql` — the
+ * test in `backend/src/handlers/consent.rs::seed_copy_json_parses` is the
+ * backstop if they drift.
+ */
 export const DEFAULT_CATEGORIES: readonly ConsentCategoryDef[] = [
 	{
 		key: 'necessary',
@@ -122,7 +90,7 @@ export const DEFAULT_CATEGORIES: readonly ConsentCategoryDef[] = [
 	}
 ];
 
-/** Default banner copy in English. CONSENT-06 will swap this for translated messages. */
+/** SSR/offline fallback copy. Real copy flows from the server response. */
 export const DEFAULT_COPY: BannerCopy = {
 	title: 'We value your privacy',
 	body: 'We use cookies and similar technologies to power the site, understand usage, and — with your permission — personalize content. You can accept everything, reject non-essential categories, or choose exactly what to allow.',
@@ -134,32 +102,48 @@ export const DEFAULT_COPY: BannerCopy = {
 	privacyPolicyLabel: 'Privacy policy'
 };
 
-/** Hard-coded stub config used until CONSENT-01 exposes the real endpoint. */
+/** SSR/offline fallback config. Real config flows from `/api/consent/banner`. */
 export const STUB_BANNER_CONFIG: BannerConfig = {
 	version: 1,
 	policyVersion: 1,
 	layout: 'bar',
 	position: 'bottom',
-	categories: DEFAULT_CATEGORIES,
+	locale: 'en',
+	region: 'default',
+	categories: [...DEFAULT_CATEGORIES],
 	copy: DEFAULT_COPY,
-	locale: 'en'
+	theme: {}
 };
 
 /**
- * Fetch the current banner config.
+ * Fetch the current banner config from `/api/consent/banner`.
  *
- * CONSENT-01 TODO: replace with `api.get<BannerConfig>('/api/consent/banner')`.
- * Geo-resolution happens server-side; the UI does not need to know the region.
+ * Returns `STUB_BANNER_CONFIG` when the endpoint is unreachable (network
+ * error, 5xx) so the UI degrades to the default experience rather than
+ * failing closed. Logs the underlying error at debug-level so that
+ * observability still picks it up without polluting the console in the
+ * common-case dev flow where the backend is offline.
+ *
+ * `locale` accepts any BCP-47 tag; the server normalises to its primary
+ * subtag until CONSENT-06 lands the translation catalogues.
  */
-export async function fetchBannerConfig(): Promise<BannerConfig> {
-	// Preserve async shape so swapping to `fetch` is mechanical.
-	return Promise.resolve(STUB_BANNER_CONFIG);
+export async function fetchBannerConfig(locale?: string): Promise<BannerConfig> {
+	const qs = locale ? `?locale=${encodeURIComponent(locale)}` : '';
+	try {
+		return await api.get<BannerConfig>(`/api/consent/banner${qs}`, { skipAuth: true });
+	} catch (err) {
+		if (typeof console !== 'undefined') {
+			const reason = err instanceof ApiError ? `HTTP ${err.status}` : String(err);
+			console.debug('[consent] fetchBannerConfig fell back to stub:', reason);
+		}
+		return STUB_BANNER_CONFIG;
+	}
 }
 
 /**
  * Record a consent event.
  *
- * CONSENT-01 TODO: replace with
+ * CONSENT-03 TODO: replace with
  *   `api.post<ConsentRecordResponse>('/api/consent/record', { action, categories })`.
  * The backend will enrich the row with subject_id / anonymous_id, IP hash,
  * user-agent, banner_version, policy_version, and — critically — the GPC
@@ -179,7 +163,7 @@ export async function recordConsent(
 /**
  * Fetch the current subject's consent state.
  *
- * CONSENT-01 TODO: replace with
+ * CONSENT-03 TODO: replace with
  *   `api.get<FetchMyConsentResponse>('/api/consent/me')`.
  * The stub reads from the same localStorage envelope the store persists to
  * so the rest of the app sees a consistent view during development.

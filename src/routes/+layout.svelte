@@ -13,9 +13,20 @@
 	import { auth } from '$lib/stores/auth.svelte';
 	import { organizationSchema, webSiteSchema, buildJsonLd } from '$lib/seo/jsonld';
 	import { SITE } from '$lib/seo/config';
-	import { STUB_BANNER_CONFIG } from '$lib/api/consent';
+	import { STUB_BANNER_CONFIG, fetchBannerConfig, type BannerConfig } from '$lib/api/consent';
 
 	let { children } = $props();
+
+	// CONSENT-01: render the stub synchronously so the banner has no FOUC, then
+	// swap in the live config once the network round-trip resolves. Failures
+	// stay on the stub — `fetchBannerConfig` handles that internally.
+	let bannerConfig = $state<BannerConfig>(STUB_BANNER_CONFIG);
+	$effect(() => {
+		if (!browser) return;
+		void fetchBannerConfig().then((cfg) => {
+			bannerConfig = cfg;
+		});
+	});
 
 	const appRoutes = ['/dashboard', '/admin', '/login', '/register'];
 	const isAppRoute = $derived(appRoutes.some((r) => page.url.pathname.startsWith(r)));
@@ -69,7 +80,7 @@
 {/if}
 
 {#if browser}
-	<ConsentBanner config={STUB_BANNER_CONFIG} />
+	<ConsentBanner config={bannerConfig} />
 	<PopupEngine />
 {/if}
 
