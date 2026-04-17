@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import { browser } from '$app/environment';
 	import { auth } from '$lib/stores/auth.svelte';
+	import { consent } from '$lib/stores/consent.svelte';
 	import { ANALYTICS_OPT_OUT_KEY, ANALYTICS_SESSION_KEY } from '$lib/analytics/constants';
 	import { getPublicApiBase } from '$lib/api/publicApiBase';
 
@@ -21,6 +22,11 @@
 		if (navigator.doNotTrack === '1') return false;
 		if (localStorage.getItem(ANALYTICS_OPT_OUT_KEY) === '1') return false;
 		if (path.startsWith('/admin')) return false;
+		// CONSENT-02: first-party analytics is gated behind the `analytics`
+		// category. Until the user accepts (or the banner is never shown —
+		// e.g. GPC signal) the beacon is silent. No events are buffered; the
+		// first page view after acceptance is sent on the next navigation.
+		if (!consent.hasCategory('analytics')) return false;
 		return true;
 	}
 

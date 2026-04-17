@@ -1,5 +1,7 @@
 use std::env;
 
+use anyhow::{bail, Context, Result};
+
 #[derive(Clone)]
 pub struct Config {
     pub database_url: String,
@@ -23,7 +25,10 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn from_env() -> Self {
+    /// Build a [`Config`] from process environment variables. Required variables
+    /// fail startup via `anyhow::Error` rather than panicking so `main` can print
+    /// a clean error chain.
+    pub fn from_env() -> Result<Self> {
         let frontend_url =
             env::var("FRONTEND_URL").unwrap_or_else(|_| "http://localhost:5173".to_string());
         let cors_allowed_origins = env::var("CORS_ALLOWED_ORIGINS")
@@ -34,50 +39,58 @@ impl Config {
             .map(ToOwned::to_owned)
             .collect::<Vec<_>>();
 
-        Self {
-            database_url: env::var("DATABASE_URL").expect("DATABASE_URL must be set"),
-            jwt_secret: env::var("JWT_SECRET").expect("JWT_SECRET must be set"),
-            jwt_expiration_hours: env::var("JWT_EXPIRATION_HOURS")
-                .unwrap_or_else(|_| "24".to_string())
-                .parse()
-                .expect("JWT_EXPIRATION_HOURS must be a number"),
-            refresh_token_expiration_days: env::var("REFRESH_TOKEN_EXPIRATION_DAYS")
-                .unwrap_or_else(|_| "30".to_string())
-                .parse()
-                .expect("REFRESH_TOKEN_EXPIRATION_DAYS must be a number"),
-            port: env::var("PORT")
-                .unwrap_or_else(|_| "3001".to_string())
-                .parse()
-                .expect("PORT must be a number"),
+        let database_url = env::var("DATABASE_URL").context("DATABASE_URL must be set")?;
+        let jwt_secret = env::var("JWT_SECRET").context("JWT_SECRET must be set")?;
+
+        let jwt_expiration_hours = env::var("JWT_EXPIRATION_HOURS")
+            .unwrap_or_else(|_| "24".to_string())
+            .parse()
+            .context("JWT_EXPIRATION_HOURS must be a number")?;
+        let refresh_token_expiration_days = env::var("REFRESH_TOKEN_EXPIRATION_DAYS")
+            .unwrap_or_else(|_| "30".to_string())
+            .parse()
+            .context("REFRESH_TOKEN_EXPIRATION_DAYS must be a number")?;
+        let port = env::var("PORT")
+            .unwrap_or_else(|_| "3001".to_string())
+            .parse()
+            .context("PORT must be a number")?;
+        let smtp_port = env::var("SMTP_PORT")
+            .unwrap_or_else(|_| "587".to_string())
+            .parse()
+            .context("SMTP_PORT must be a number")?;
+
+        Ok(Self {
+            database_url,
+            jwt_secret,
+            jwt_expiration_hours,
+            refresh_token_expiration_days,
+            port,
             frontend_url,
             stripe_secret_key: env::var("STRIPE_SECRET_KEY").unwrap_or_default(),
             stripe_webhook_secret: env::var("STRIPE_WEBHOOK_SECRET").unwrap_or_default(),
             upload_dir: env::var("UPLOAD_DIR").unwrap_or_else(|_| "./uploads".to_string()),
             api_url: env::var("API_URL").unwrap_or_else(|_| "http://localhost:3001".to_string()),
-            smtp_host: std::env::var("SMTP_HOST").unwrap_or_else(|_| "smtp.gmail.com".to_string()),
-            smtp_port: std::env::var("SMTP_PORT")
-                .unwrap_or_else(|_| "587".to_string())
-                .parse()
-                .unwrap_or(587),
-            smtp_user: std::env::var("SMTP_USER").unwrap_or_default(),
-            smtp_password: std::env::var("SMTP_PASSWORD").unwrap_or_default(),
-            smtp_from: std::env::var("SMTP_FROM")
+            smtp_host: env::var("SMTP_HOST").unwrap_or_else(|_| "smtp.gmail.com".to_string()),
+            smtp_port,
+            smtp_user: env::var("SMTP_USER").unwrap_or_default(),
+            smtp_password: env::var("SMTP_PASSWORD").unwrap_or_default(),
+            smtp_from: env::var("SMTP_FROM")
                 .unwrap_or_else(|_| "noreply@precisionoptionsignals.com".to_string()),
-            app_url: std::env::var("APP_URL")
-                .unwrap_or_else(|_| "http://localhost:5173".to_string()),
-            app_env: std::env::var("APP_ENV").unwrap_or_else(|_| "development".to_string()),
+            app_url: env::var("APP_URL").unwrap_or_else(|_| "http://localhost:5173".to_string()),
+            app_env: env::var("APP_ENV").unwrap_or_else(|_| "development".to_string()),
             cors_allowed_origins,
-        }
+        })
     }
 
     pub fn is_production(&self) -> bool {
         self.app_env.eq_ignore_ascii_case("production")
     }
 
-    /// Panics in production when required secrets or URLs are missing. Call right after `from_env()`.
-    pub fn assert_production_ready(&self) {
+    /// Returns an error in production when required secrets or URLs are missing or invalid.
+    /// Call right after [`Config::from_env`].
+    pub fn assert_production_ready(&self) -> Result<()> {
         if !self.is_production() {
-            return;
+            return Ok(());
         }
 
         let mut missing: Vec<String> = Vec::new();
@@ -101,10 +114,18 @@ impl Config {
             missing.push("STRIPE_WEBHOOK_SECRET".into());
         }
 
-        if env::var("ADMIN_EMAIL").unwrap_or_default().trim().is_empty() {
+        if env::var("ADMIN_EMAIL")
+            .unwrap_or_default()
+            .trim()
+            .is_empty()
+        {
             missing.push("ADMIN_EMAIL".into());
         }
-        if env::var("ADMIN_PASSWORD").unwrap_or_default().trim().is_empty() {
+        if env::var("ADMIN_PASSWORD")
+            .unwrap_or_default()
+            .trim()
+            .is_empty()
+        {
             missing.push("ADMIN_PASSWORD".into());
         }
 
@@ -115,11 +136,38 @@ impl Config {
             );
         }
 
+        // FDN-09: when EMAIL_PROVIDER=resend (the production default), require
+        // both the API key for outbound sends and the webhook signing secret
+        // for inbound delivery callbacks. Mis-configuring either is a hard
+        // fail at startup so we never ship a half-wired email pipeline.
+        let email_provider = env::var("EMAIL_PROVIDER")
+            .unwrap_or_else(|_| "resend".to_string())
+            .trim()
+            .to_ascii_lowercase();
+        if email_provider == "resend" {
+            if env::var("RESEND_API_KEY")
+                .unwrap_or_default()
+                .trim()
+                .is_empty()
+            {
+                missing.push("RESEND_API_KEY".into());
+            }
+            if env::var("RESEND_WEBHOOK_SECRET")
+                .unwrap_or_default()
+                .trim()
+                .is_empty()
+            {
+                missing.push("RESEND_WEBHOOK_SECRET".into());
+            }
+        }
+
         if !missing.is_empty() {
-            panic!(
+            bail!(
                 "APP_ENV=production but required configuration is missing or invalid:\n  - {}",
                 missing.join("\n  - ")
             );
         }
+
+        Ok(())
     }
 }

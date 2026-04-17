@@ -208,7 +208,19 @@ fn hash_post_password(plain: &str) -> AppResult<String> {
         .map_err(|e| AppError::BadRequest(format!("Password hash error: {e}")))
 }
 
-async fn admin_create_post(
+#[utoipa::path(
+    post,
+    path = "/api/admin/blog/posts",
+    tag = "admin-blog",
+    security(("bearer_auth" = [])),
+    request_body = CreatePostRequest,
+    responses(
+        (status = 200, description = "Post created", body = BlogPostResponse),
+        (status = 403, description = "Forbidden"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn admin_create_post(
     State(state): State<AppState>,
     admin: AdminUser,
     Json(req): Json<CreatePostRequest>,
@@ -259,7 +271,21 @@ async fn admin_get_post(
     Ok(Json(response))
 }
 
-async fn admin_update_post(
+#[utoipa::path(
+    put,
+    path = "/api/admin/blog/posts/{id}",
+    tag = "admin-blog",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Post id")),
+    request_body = UpdatePostRequest,
+    responses(
+        (status = 200, description = "Post updated", body = BlogPostResponse),
+        (status = 400, description = "Post in trash"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Post not found")
+    )
+)]
+pub(crate) async fn admin_update_post(
     State(state): State<AppState>,
     admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -331,7 +357,20 @@ async fn admin_update_post(
     Ok(Json(response))
 }
 
-async fn admin_delete_post(
+#[utoipa::path(
+    delete,
+    path = "/api/admin/blog/posts/{id}",
+    tag = "admin-blog",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Post id")),
+    responses(
+        (status = 200, description = "Post permanently deleted"),
+        (status = 400, description = "Post not in trash"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Post not found")
+    )
+)]
+pub(crate) async fn admin_delete_post(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -351,7 +390,18 @@ async fn admin_delete_post(
     ))
 }
 
-async fn admin_restore_post_from_trash(
+#[utoipa::path(
+    post,
+    path = "/api/admin/blog/posts/{id}/restore",
+    tag = "admin-blog",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Post id")),
+    responses(
+        (status = 200, description = "Post restored from trash", body = BlogPostResponse),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub(crate) async fn admin_restore_post_from_trash(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -361,7 +411,21 @@ async fn admin_restore_post_from_trash(
     Ok(Json(response))
 }
 
-async fn admin_update_post_status(
+#[utoipa::path(
+    put,
+    path = "/api/admin/blog/posts/{id}/status",
+    tag = "admin-blog",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Post id")),
+    request_body = UpdatePostStatusRequest,
+    responses(
+        (status = 200, description = "Post status updated", body = BlogPostResponse),
+        (status = 400, description = "Post in trash"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Post not found")
+    )
+)]
+pub(crate) async fn admin_update_post_status(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -385,7 +449,19 @@ async fn admin_update_post_status(
     Ok(Json(response))
 }
 
-async fn admin_autosave_post(
+#[utoipa::path(
+    post,
+    path = "/api/admin/blog/posts/{id}/autosave",
+    tag = "admin-blog",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Post id")),
+    request_body = AutosaveRequest,
+    responses(
+        (status = 200, description = "Autosave recorded"),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub(crate) async fn admin_autosave_post(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -420,13 +496,28 @@ async fn admin_list_revisions(
     Ok(Json(items))
 }
 
-#[derive(serde::Deserialize)]
-struct RevisionRestorePath {
+#[derive(serde::Deserialize, utoipa::ToSchema)]
+pub struct RevisionRestorePath {
     id: Uuid,
     rev_id: Uuid,
 }
 
-async fn admin_restore_revision(
+#[utoipa::path(
+    post,
+    path = "/api/admin/blog/posts/{id}/revisions/{rev_id}/restore",
+    tag = "admin-blog",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Post id"),
+        ("rev_id" = Uuid, Path, description = "Revision id"),
+    ),
+    responses(
+        (status = 200, description = "Post restored from revision", body = BlogPostResponse),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Post or revision not found")
+    )
+)]
+pub(crate) async fn admin_restore_revision(
     State(state): State<AppState>,
     admin: AdminUser,
     Path(path): Path<RevisionRestorePath>,
@@ -491,7 +582,19 @@ async fn admin_list_categories(
     Ok(Json(cats))
 }
 
-async fn admin_create_category(
+#[utoipa::path(
+    post,
+    path = "/api/admin/blog/categories",
+    tag = "admin-blog",
+    security(("bearer_auth" = [])),
+    request_body = CreateCategoryRequest,
+    responses(
+        (status = 200, description = "Category created", body = BlogCategory),
+        (status = 403, description = "Forbidden"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn admin_create_category(
     State(state): State<AppState>,
     _admin: AdminUser,
     Json(req): Json<CreateCategoryRequest>,
@@ -502,7 +605,19 @@ async fn admin_create_category(
     Ok(Json(cat))
 }
 
-async fn admin_update_category(
+#[utoipa::path(
+    put,
+    path = "/api/admin/blog/categories/{id}",
+    tag = "admin-blog",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Category id")),
+    request_body = UpdateCategoryRequest,
+    responses(
+        (status = 200, description = "Category updated", body = BlogCategory),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub(crate) async fn admin_update_category(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -512,7 +627,18 @@ async fn admin_update_category(
     Ok(Json(cat))
 }
 
-async fn admin_delete_category(
+#[utoipa::path(
+    delete,
+    path = "/api/admin/blog/categories/{id}",
+    tag = "admin-blog",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Category id")),
+    responses(
+        (status = 200, description = "Category deleted"),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub(crate) async fn admin_delete_category(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -533,7 +659,19 @@ async fn admin_list_tags(
     Ok(Json(tags))
 }
 
-async fn admin_create_tag(
+#[utoipa::path(
+    post,
+    path = "/api/admin/blog/tags",
+    tag = "admin-blog",
+    security(("bearer_auth" = [])),
+    request_body = CreateTagRequest,
+    responses(
+        (status = 200, description = "Tag created", body = BlogTag),
+        (status = 403, description = "Forbidden"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn admin_create_tag(
     State(state): State<AppState>,
     _admin: AdminUser,
     Json(req): Json<CreateTagRequest>,
@@ -544,7 +682,18 @@ async fn admin_create_tag(
     Ok(Json(tag))
 }
 
-async fn admin_delete_tag(
+#[utoipa::path(
+    delete,
+    path = "/api/admin/blog/tags/{id}",
+    tag = "admin-blog",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Tag id")),
+    responses(
+        (status = 200, description = "Tag deleted"),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub(crate) async fn admin_delete_tag(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -578,7 +727,20 @@ async fn admin_list_media(
     }))
 }
 
-async fn admin_upload_media(
+#[utoipa::path(
+    post,
+    path = "/api/admin/blog/media/upload",
+    tag = "admin-blog",
+    security(("bearer_auth" = [])),
+    request_body(content_type = "multipart/form-data"),
+    responses(
+        (status = 200, description = "Media uploaded", body = Media),
+        (status = 400, description = "Invalid file or multipart error"),
+        (status = 403, description = "Forbidden"),
+        (status = 413, description = "Upload exceeds size cap")
+    )
+)]
+pub(crate) async fn admin_upload_media(
     State(state): State<AppState>,
     admin: AdminUser,
     mut multipart: Multipart,
@@ -620,6 +782,15 @@ async fn admin_upload_media(
 
     let data = file_data.ok_or(AppError::BadRequest("No file provided".to_string()))?;
 
+    // Enforce an explicit cap at the handler boundary. Matches Phase 3 §12 file-upload hardening.
+    const MAX_MEDIA_UPLOAD_BYTES: usize = 10 * 1024 * 1024;
+    if data.len() > MAX_MEDIA_UPLOAD_BYTES {
+        return Err(AppError::PayloadTooLarge(format!(
+            "Upload exceeds the {} MB limit",
+            MAX_MEDIA_UPLOAD_BYTES / (1024 * 1024)
+        )));
+    }
+
     // Validate MIME type
     let allowed = [
         "image/jpeg",
@@ -642,14 +813,8 @@ async fn admin_upload_media(
     let (storage_path, url, stored_filename) = match &state.media_backend {
         MediaBackend::R2(r2) => {
             let key = R2Storage::generate_key(&original_filename);
-            let url = r2
-                .upload(&key, Bytes::from(data), &content_type)
-                .await?;
-            let stored_filename = key
-                .rsplit('/')
-                .next()
-                .unwrap_or(key.as_str())
-                .to_string();
+            let url = r2.upload(&key, Bytes::from(data), &content_type).await?;
+            let stored_filename = key.rsplit('/').next().unwrap_or(key.as_str()).to_string();
             (key, url, stored_filename)
         }
         MediaBackend::Local { upload_dir } => {
@@ -701,7 +866,19 @@ async fn admin_upload_media(
     Ok(Json(media))
 }
 
-async fn admin_update_media(
+#[utoipa::path(
+    put,
+    path = "/api/admin/blog/media/{id}",
+    tag = "admin-blog",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Media id")),
+    request_body = UpdateMediaRequest,
+    responses(
+        (status = 200, description = "Media metadata updated", body = Media),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub(crate) async fn admin_update_media(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -711,7 +888,18 @@ async fn admin_update_media(
     Ok(Json(media))
 }
 
-async fn admin_delete_media(
+#[utoipa::path(
+    delete,
+    path = "/api/admin/blog/media/{id}",
+    tag = "admin-blog",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Media id")),
+    responses(
+        (status = 200, description = "Media deleted"),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub(crate) async fn admin_delete_media(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -784,7 +972,20 @@ async fn public_get_post(
     Ok(Json(response))
 }
 
-async fn public_unlock_post(
+#[utoipa::path(
+    post,
+    path = "/api/blog/posts/{slug}/unlock",
+    tag = "blog",
+    params(("slug" = String, Path, description = "Post slug")),
+    request_body = VerifyPostPasswordRequest,
+    responses(
+        (status = 200, description = "Password accepted; full post returned", body = BlogPostResponse),
+        (status = 400, description = "Post is not password protected"),
+        (status = 401, description = "Invalid password"),
+        (status = 404, description = "Post not found")
+    )
+)]
+pub(crate) async fn public_unlock_post(
     State(state): State<AppState>,
     Path(slug): Path<String>,
     Json(req): Json<VerifyPostPasswordRequest>,
@@ -895,7 +1096,19 @@ async fn admin_list_post_meta(
     Ok(Json(items))
 }
 
-async fn admin_upsert_post_meta(
+#[utoipa::path(
+    post,
+    path = "/api/admin/blog/posts/{id}/meta",
+    tag = "admin-blog",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Post id")),
+    request_body = UpsertPostMetaRequest,
+    responses(
+        (status = 200, description = "Meta upserted", body = PostMeta),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub(crate) async fn admin_upsert_post_meta(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -905,7 +1118,21 @@ async fn admin_upsert_post_meta(
     Ok(Json(item))
 }
 
-async fn admin_delete_post_meta(
+#[utoipa::path(
+    delete,
+    path = "/api/admin/blog/posts/{id}/meta/{key}",
+    tag = "admin-blog",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Post id"),
+        ("key" = String, Path, description = "Meta key to delete"),
+    ),
+    responses(
+        (status = 204, description = "Meta deleted"),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub(crate) async fn admin_delete_post_meta(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path((id, key)): Path<(Uuid, String)>,

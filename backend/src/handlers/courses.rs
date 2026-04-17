@@ -115,7 +115,19 @@ async fn admin_list_courses(
     }))
 }
 
-async fn create_course(
+#[utoipa::path(
+    post,
+    path = "/api/admin/courses",
+    tag = "courses",
+    security(("bearer_auth" = [])),
+    request_body = CreateCourseRequest,
+    responses(
+        (status = 200, description = "Course created", body = Course),
+        (status = 403, description = "Forbidden"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn create_course(
     State(state): State<AppState>,
     admin: AdminUser,
     Json(req): Json<CreateCourseRequest>,
@@ -255,7 +267,20 @@ async fn admin_get_course(
     }))
 }
 
-async fn update_course(
+#[utoipa::path(
+    put,
+    path = "/api/admin/courses/{id}",
+    tag = "courses",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Course id")),
+    request_body = UpdateCourseRequest,
+    responses(
+        (status = 200, description = "Course updated", body = Course),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Course not found")
+    )
+)]
+pub(crate) async fn update_course(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -315,7 +340,19 @@ async fn update_course(
     Ok(Json(course))
 }
 
-async fn delete_course(
+#[utoipa::path(
+    delete,
+    path = "/api/admin/courses/{id}",
+    tag = "courses",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Course id")),
+    responses(
+        (status = 200, description = "Course deleted"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Course not found")
+    )
+)]
+pub(crate) async fn delete_course(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -333,7 +370,19 @@ async fn delete_course(
     Ok(Json(serde_json::json!({ "deleted": true })))
 }
 
-async fn toggle_publish(
+#[utoipa::path(
+    post,
+    path = "/api/admin/courses/{id}/publish",
+    tag = "courses",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Course id")),
+    responses(
+        (status = 200, description = "Publish toggled", body = Course),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Course not found")
+    )
+)]
+pub(crate) async fn toggle_publish(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -364,7 +413,21 @@ async fn toggle_publish(
 
 // ── Module Handlers ──────────────────────────────────────────────────────
 
-async fn create_module(
+#[utoipa::path(
+    post,
+    path = "/api/admin/courses/{id}/modules",
+    tag = "courses",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Course id")),
+    request_body = CreateModuleRequest,
+    responses(
+        (status = 200, description = "Module created", body = CourseModule),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Course not found"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn create_module(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(course_id): Path<Uuid>,
@@ -399,7 +462,23 @@ async fn create_module(
     Ok(Json(module))
 }
 
-async fn update_module(
+#[utoipa::path(
+    put,
+    path = "/api/admin/courses/{course_id}/modules/{module_id}",
+    tag = "courses",
+    security(("bearer_auth" = [])),
+    params(
+        ("course_id" = Uuid, Path, description = "Course id"),
+        ("module_id" = Uuid, Path, description = "Module id")
+    ),
+    request_body = UpdateModuleRequest,
+    responses(
+        (status = 200, description = "Module updated", body = CourseModule),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Module not found")
+    )
+)]
+pub(crate) async fn update_module(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path((course_id, module_id)): Path<(Uuid, Uuid)>,
@@ -428,7 +507,22 @@ async fn update_module(
     Ok(Json(module))
 }
 
-async fn delete_module(
+#[utoipa::path(
+    delete,
+    path = "/api/admin/courses/{course_id}/modules/{module_id}",
+    tag = "courses",
+    security(("bearer_auth" = [])),
+    params(
+        ("course_id" = Uuid, Path, description = "Course id"),
+        ("module_id" = Uuid, Path, description = "Module id")
+    ),
+    responses(
+        (status = 200, description = "Module deleted"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Module not found")
+    )
+)]
+pub(crate) async fn delete_module(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path((course_id, module_id)): Path<(Uuid, Uuid)>,
@@ -449,7 +543,24 @@ async fn delete_module(
 
 // ── Lesson Handlers ──────────────────────────────────────────────────────
 
-async fn create_lesson(
+#[utoipa::path(
+    post,
+    path = "/api/admin/courses/{course_id}/modules/{module_id}/lessons",
+    tag = "courses",
+    security(("bearer_auth" = [])),
+    params(
+        ("course_id" = Uuid, Path, description = "Course id"),
+        ("module_id" = Uuid, Path, description = "Module id")
+    ),
+    request_body = CreateLessonRequest,
+    responses(
+        (status = 200, description = "Lesson created", body = CourseLesson),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Module not found"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn create_lesson(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path((course_id, module_id)): Path<(Uuid, Uuid)>,
@@ -502,7 +613,20 @@ async fn create_lesson(
     Ok(Json(lesson))
 }
 
-async fn update_lesson(
+#[utoipa::path(
+    put,
+    path = "/api/admin/lessons/{lesson_id}",
+    tag = "courses",
+    security(("bearer_auth" = [])),
+    params(("lesson_id" = Uuid, Path, description = "Lesson id")),
+    request_body = UpdateLessonRequest,
+    responses(
+        (status = 200, description = "Lesson updated", body = CourseLesson),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Lesson not found")
+    )
+)]
+pub(crate) async fn update_lesson(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(lesson_id): Path<Uuid>,
@@ -546,7 +670,19 @@ async fn update_lesson(
     Ok(Json(lesson))
 }
 
-async fn delete_lesson(
+#[utoipa::path(
+    delete,
+    path = "/api/admin/lessons/{lesson_id}",
+    tag = "courses",
+    security(("bearer_auth" = [])),
+    params(("lesson_id" = Uuid, Path, description = "Lesson id")),
+    responses(
+        (status = 200, description = "Lesson deleted"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Lesson not found")
+    )
+)]
+pub(crate) async fn delete_lesson(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(lesson_id): Path<Uuid>,
@@ -692,7 +828,19 @@ async fn public_get_course(
 
 // ── Member Handlers ──────────────────────────────────────────────────────
 
-async fn enroll_course(
+#[utoipa::path(
+    post,
+    path = "/api/member/courses/{course_id}/enroll",
+    tag = "courses",
+    security(("bearer_auth" = [])),
+    params(("course_id" = Uuid, Path, description = "Course id")),
+    responses(
+        (status = 200, description = "Enrolled", body = CourseEnrollment),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Course not found")
+    )
+)]
+pub(crate) async fn enroll_course(
     State(state): State<AppState>,
     auth: AuthUser,
     Path(course_id): Path<Uuid>,
@@ -765,7 +913,20 @@ async fn get_course_progress(
     }))
 }
 
-async fn update_lesson_progress(
+#[utoipa::path(
+    put,
+    path = "/api/member/lessons/{lesson_id}/progress",
+    tag = "courses",
+    security(("bearer_auth" = [])),
+    params(("lesson_id" = Uuid, Path, description = "Lesson id")),
+    request_body = UpdateLessonProgressRequest,
+    responses(
+        (status = 200, description = "Progress updated", body = LessonProgress),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Lesson not found")
+    )
+)]
+pub(crate) async fn update_lesson_progress(
     State(state): State<AppState>,
     auth: AuthUser,
     Path(lesson_id): Path<Uuid>,

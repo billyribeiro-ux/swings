@@ -1,0 +1,12 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"consent_banner_title": "Vi respekterer dit privatliv",
+	"consent_banner_accept_all": "Accepter alle",
+	"consent_banner_reject_all": "Afvis alle",
+	"consent_banner_customize": "Tilpas",
+	"consent_banner_save_preferences": "Gem præferencer",
+	"consent_banner_privacy_policy_label": "Privatlivspolitik",
+	"consent_preferences_cancel": "Annuller",
+	"consent_preferences_required_tag": "Obligatorisk",
+	"unsubscribe_title": "Afmeld"
+}

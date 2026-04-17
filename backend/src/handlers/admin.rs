@@ -3,7 +3,8 @@ use axum::{
     routing::{delete, get, post, put},
     Json, Router,
 };
-use chrono::{Duration, NaiveDate};
+use chrono::{Duration, NaiveDate, NaiveTime};
+use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -96,10 +97,9 @@ async fn analytics_summary(
         ));
     }
 
-    let start = from_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
+    let start = from_date.and_time(NaiveTime::MIN).and_utc();
     let end_exclusive = (to_date + Duration::days(1))
-        .and_hms_opt(0, 0, 0)
-        .unwrap()
+        .and_time(NaiveTime::MIN)
         .and_utc();
 
     let (total_page_views, total_sessions, total_impressions) =
@@ -206,10 +206,9 @@ async fn analytics_revenue(
         ));
     }
 
-    let start = from_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
+    let start = from_date.and_time(NaiveTime::MIN).and_utc();
     let end_exclusive = (to_date + Duration::days(1))
-        .and_hms_opt(0, 0, 0)
-        .unwrap()
+        .and_time(NaiveTime::MIN)
         .and_utc();
 
     let rows = db::analytics_sales_revenue_daily(&state.db, start, end_exclusive).await?;
@@ -279,7 +278,21 @@ async fn get_member_subscription_admin(
     }))
 }
 
-async fn admin_member_billing_portal(
+#[utoipa::path(
+    post,
+    path = "/api/admin/members/{id}/billing-portal",
+    tag = "admin",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Member id")),
+    request_body = BillingPortalRequest,
+    responses(
+        (status = 200, description = "Stripe billing portal URL", body = BillingPortalResponse),
+        (status = 400, description = "Member has no subscription"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Member not found")
+    )
+)]
+pub(crate) async fn admin_member_billing_portal(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(user_id): Path<Uuid>,
@@ -305,7 +318,20 @@ async fn admin_member_billing_portal(
     Ok(Json(BillingPortalResponse { url }))
 }
 
-async fn admin_member_subscription_cancel(
+#[utoipa::path(
+    post,
+    path = "/api/admin/members/{id}/subscription/cancel",
+    tag = "admin",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Member id")),
+    responses(
+        (status = 200, description = "Subscription scheduled to cancel at period end"),
+        (status = 400, description = "Member has no subscription"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Member not found")
+    )
+)]
+pub(crate) async fn admin_member_subscription_cancel(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(user_id): Path<Uuid>,
@@ -326,7 +352,20 @@ async fn admin_member_subscription_cancel(
     ))
 }
 
-async fn admin_member_subscription_resume(
+#[utoipa::path(
+    post,
+    path = "/api/admin/members/{id}/subscription/resume",
+    tag = "admin",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Member id")),
+    responses(
+        (status = 200, description = "Subscription cancellation reversed"),
+        (status = 400, description = "Member has no subscription"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Member not found")
+    )
+)]
+pub(crate) async fn admin_member_subscription_resume(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(user_id): Path<Uuid>,
@@ -347,12 +386,24 @@ async fn admin_member_subscription_resume(
     ))
 }
 
-#[derive(serde::Deserialize)]
-struct RoleUpdate {
+#[derive(serde::Deserialize, ToSchema)]
+pub struct RoleUpdate {
     role: UserRole,
 }
 
-async fn update_member_role(
+#[utoipa::path(
+    put,
+    path = "/api/admin/members/{id}/role",
+    tag = "admin",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Member id")),
+    request_body = RoleUpdate,
+    responses(
+        (status = 200, description = "Role updated", body = UserResponse),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub(crate) async fn update_member_role(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -362,7 +413,18 @@ async fn update_member_role(
     Ok(Json(user.into()))
 }
 
-async fn delete_member(
+#[utoipa::path(
+    delete,
+    path = "/api/admin/members/{id}",
+    tag = "admin",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Member id")),
+    responses(
+        (status = 200, description = "Member deleted"),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub(crate) async fn delete_member(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -394,7 +456,19 @@ async fn list_watchlists(
     }))
 }
 
-async fn create_watchlist(
+#[utoipa::path(
+    post,
+    path = "/api/admin/watchlists",
+    tag = "admin",
+    security(("bearer_auth" = [])),
+    request_body = CreateWatchlistRequest,
+    responses(
+        (status = 200, description = "Watchlist created", body = Watchlist),
+        (status = 403, description = "Forbidden"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn create_watchlist(
     State(state): State<AppState>,
     _admin: AdminUser,
     Json(req): Json<CreateWatchlistRequest>,
@@ -429,7 +503,19 @@ async fn get_watchlist(
     Ok(Json(WatchlistWithAlerts { watchlist, alerts }))
 }
 
-async fn update_watchlist(
+#[utoipa::path(
+    put,
+    path = "/api/admin/watchlists/{id}",
+    tag = "admin",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Watchlist id")),
+    request_body = UpdateWatchlistRequest,
+    responses(
+        (status = 200, description = "Watchlist updated", body = Watchlist),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub(crate) async fn update_watchlist(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -439,7 +525,18 @@ async fn update_watchlist(
     Ok(Json(watchlist))
 }
 
-async fn delete_watchlist(
+#[utoipa::path(
+    delete,
+    path = "/api/admin/watchlists/{id}",
+    tag = "admin",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Watchlist id")),
+    responses(
+        (status = 200, description = "Watchlist deleted"),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub(crate) async fn delete_watchlist(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -459,7 +556,20 @@ async fn get_watchlist_alerts(
     Ok(Json(alerts))
 }
 
-async fn create_alert(
+#[utoipa::path(
+    post,
+    path = "/api/admin/watchlists/{id}/alerts",
+    tag = "admin",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Watchlist id")),
+    request_body = CreateAlertRequest,
+    responses(
+        (status = 200, description = "Alert created", body = WatchlistAlert),
+        (status = 403, description = "Forbidden"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn create_alert(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(watchlist_id): Path<Uuid>,
@@ -472,7 +582,19 @@ async fn create_alert(
     Ok(Json(alert))
 }
 
-async fn update_alert(
+#[utoipa::path(
+    put,
+    path = "/api/admin/alerts/{id}",
+    tag = "admin",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Alert id")),
+    request_body = UpdateAlertRequest,
+    responses(
+        (status = 200, description = "Alert updated", body = WatchlistAlert),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub(crate) async fn update_alert(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -482,7 +604,18 @@ async fn update_alert(
     Ok(Json(alert))
 }
 
-async fn delete_alert(
+#[utoipa::path(
+    delete,
+    path = "/api/admin/alerts/{id}",
+    tag = "admin",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Alert id")),
+    responses(
+        (status = 200, description = "Alert deleted"),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub(crate) async fn delete_alert(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,

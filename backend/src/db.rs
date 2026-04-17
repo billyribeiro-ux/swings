@@ -96,7 +96,7 @@ pub async fn seed_admin(
     email: &str,
     password: &str,
     name: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> anyhow::Result<()> {
     use argon2::{
         password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
         Argon2,
@@ -105,7 +105,7 @@ pub async fn seed_admin(
     let salt = SaltString::generate(&mut OsRng);
     let password_hash = Argon2::default()
         .hash_password(password.as_bytes(), &salt)
-        .map_err(|e| format!("Password hash error: {e}"))?
+        .map_err(|e| anyhow::anyhow!("password hash error: {e}"))?
         .to_string();
 
     let email = normalize_email(email);
@@ -267,21 +267,41 @@ pub async fn delete_user_refresh_tokens(pool: &PgPool, user_id: Uuid) -> Result<
     Ok(())
 }
 
-/// Returns `true` if this event was newly claimed, `false` if it was already processed.
-pub async fn try_claim_stripe_webhook_event(
+/// Attempt to record a webhook event as processed. Returns `true` when the
+/// row was newly inserted (caller should process the event), `false` when it
+/// was already claimed (caller short-circuits).
+///
+/// `source` namespaces the idempotency key per-provider — `"stripe"` for the
+/// existing Stripe handler, `"resend"` for FDN-09's email delivery callbacks.
+/// See `migrations/023_webhook_source.sql` for the composite-PK rationale.
+pub async fn try_claim_webhook_event(
     pool: &PgPool,
+    source: &str,
     event_id: &str,
     event_type: &str,
 ) -> Result<bool, sqlx::Error> {
     let res = sqlx::query(
-        r#"INSERT INTO processed_webhook_events (event_id, event_type) VALUES ($1, $2)
-           ON CONFLICT (event_id) DO NOTHING"#,
+        r#"INSERT INTO processed_webhook_events (source, event_id, event_type)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (source, event_id) DO NOTHING"#,
     )
+    .bind(source)
     .bind(event_id)
     .bind(event_type)
     .execute(pool)
     .await?;
     Ok(res.rows_affected() > 0)
+}
+
+/// Back-compat alias: the Stripe handler predates the multi-source column;
+/// keeping the old name as a thin shim avoids churn in that handler and
+/// lets us thread `source='stripe'` without touching the call site.
+pub async fn try_claim_stripe_webhook_event(
+    pool: &PgPool,
+    event_id: &str,
+    event_type: &str,
+) -> Result<bool, sqlx::Error> {
+    try_claim_webhook_event(pool, "stripe", event_id, event_type).await
 }
 
 pub async fn cleanup_old_stripe_webhook_events(pool: &PgPool) -> Result<u64, sqlx::Error> {
@@ -593,25 +613,9 @@ pub async fn delete_alert(pool: &PgPool, alert_id: Uuid) -> Result<(), sqlx::Err
 
 // ── Course Enrollments ──────────────────────────────────────────────────
 
-#[allow(dead_code)]
-pub async fn enroll_user(
-    pool: &PgPool,
-    user_id: Uuid,
-    course_id: &str,
-) -> Result<CourseEnrollment, sqlx::Error> {
-    sqlx::query_as::<_, CourseEnrollment>(
-        r#"
-        INSERT INTO course_enrollments (id, user_id, course_id) VALUES ($1, $2, $3)
-        ON CONFLICT (user_id, course_id) DO NOTHING
-        RETURNING *
-        "#,
-    )
-    .bind(Uuid::new_v4())
-    .bind(user_id)
-    .bind(course_id)
-    .fetch_one(pool)
-    .await
-}
+// `enroll_user` was deleted in FDN-01 (no callers). When Phase 4 EC-10 adds the
+// membership-driven enrollment path, it should provide its own enroll function
+// alongside the membership grant logic rather than resurrecting this one.
 
 pub async fn get_user_enrollments(
     pool: &PgPool,
@@ -1765,9 +1769,7 @@ pub async fn pricing_monthly_annual_cents(pool: &PgPool) -> Result<(i32, i32), s
 }
 
 /// Estimated MRR / ARR from active subscription counts × public plan prices.
-pub async fn admin_estimated_mrr_arr_cents(
-    pool: &PgPool,
-) -> Result<(i64, i64, i64), sqlx::Error> {
+pub async fn admin_estimated_mrr_arr_cents(pool: &PgPool) -> Result<(i64, i64, i64), sqlx::Error> {
     let (monthly_price, annual_price) = pricing_monthly_annual_cents(pool).await?;
     let n_m = count_subscriptions_by_plan(pool, &SubscriptionPlan::Monthly).await?;
     let n_a = count_subscriptions_by_plan(pool, &SubscriptionPlan::Annual).await?;

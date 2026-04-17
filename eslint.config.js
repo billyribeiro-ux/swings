@@ -12,6 +12,11 @@ const gitignorePath = path.resolve(import.meta.dirname, '.gitignore');
 
 export default defineConfig(
 	includeIgnoreFile(gitignorePath),
+	{
+		// Rust build artifacts (including vendored swagger-ui JS from `utoipa-swagger-ui`)
+		// and rendered OpenAPI artifacts. These are generated, not authored.
+		ignores: ['backend/target/**', 'backend/tests/snapshots/**']
+	},
 	js.configs.recommended,
 	...ts.configs.recommended,
 	...svelte.configs.recommended,

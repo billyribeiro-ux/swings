@@ -7,6 +7,13 @@ on:
       - main
       - master
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   frontend:
     name: Frontend Quality
@@ -56,3 +63,47 @@ jobs:
           cargo clippy --all-targets -- -D warnings
           cargo test
           cargo build
+
+  backend-coverage:
+    # Informational: establishes a baseline for future gating. Do not block
+    # PRs on coverage numbers until we decide a threshold.
+    name: Backend Coverage (informational)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
+
+      - name: Cache cargo artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: backend
+          shared-key: backend-coverage
+
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@v1.10.24
+
+      - name: Install cargo-llvm-cov
+        # TODO: if cargo-llvm-cov proves too heavy on the default runner,
+        # swap to `cargo tarpaulin` (which avoids the llvm-tools download).
+        run: cargo binstall --no-confirm --force cargo-llvm-cov
+
+      - name: Generate coverage (lcov)
+        run: cargo llvm-cov --workspace --lcov --output-path lcov.info
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-lcov
+          path: backend/lcov.info
+          if-no-files-found: error
+          retention-days: 14

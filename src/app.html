@@ -9,11 +9,24 @@
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
+			id="swings-fonts"
 			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap"
 			rel="stylesheet"
 			media="print"
-			onload="this.media = 'all'"
 		/>
+		<!--
+			FDN-08: CSP bans inline event-handler attributes (`onload=…`), so the
+			non-blocking "print → all" font swap lives in a nonce'd <script>. The
+			nonce is substituted server-side by `src/hooks.server.ts`.
+		-->
+		<script nonce="%swings.nonce%">
+			(function () {
+				var el = document.getElementById('swings-fonts');
+				if (!el) return;
+				if (el.sheet) el.media = 'all';
+				else el.addEventListener('load', function () { el.media = 'all'; });
+			})();
+		</script>
 		<noscript>
 			<link
 				href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap"

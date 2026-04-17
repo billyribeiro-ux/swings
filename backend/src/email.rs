@@ -273,6 +273,20 @@ impl EmailService {
         Ok(())
     }
 
+    /// Send a fully-rendered e-mail. Used by the FDN-05 notifications
+    /// pipeline which resolves templates + preferences + suppression *before*
+    /// calling the provider. The legacy `send_*` helpers below remain for
+    /// call sites that have not been migrated yet.
+    pub async fn send_rendered(
+        &self,
+        to_email: &str,
+        to_name: &str,
+        subject: &str,
+        html_body: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self.send_email(to_email, to_name, subject, html_body).await
+    }
+
     pub async fn send_password_reset(
         &self,
         to_email: &str,

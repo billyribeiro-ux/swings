@@ -32,3 +32,12 @@ export const popupAdminItems: AdminNavItem[] = [
 	{ href: '/admin/popups', label: 'All Popups' },
 	{ href: '/admin/popups/new', label: 'Create Popup' }
 ];
+
+export const consentAdminItems: AdminNavItem[] = [
+	{ href: '/admin/consent', label: 'Overview' },
+	{ href: '/admin/consent/banner', label: 'Banners' },
+	{ href: '/admin/consent/categories', label: 'Categories' },
+	{ href: '/admin/consent/services', label: 'Services' },
+	{ href: '/admin/consent/policies', label: 'Policies' },
+	{ href: '/admin/consent/log', label: 'Log + integrity' }
+];

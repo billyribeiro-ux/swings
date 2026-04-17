@@ -1,0 +1,12 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"consent_banner_title": "プライバシーを大切にしています",
+	"consent_banner_accept_all": "すべて同意する",
+	"consent_banner_reject_all": "すべて拒否する",
+	"consent_banner_customize": "カスタマイズ",
+	"consent_banner_save_preferences": "設定を保存",
+	"consent_banner_privacy_policy_label": "プライバシーポリシー",
+	"consent_preferences_cancel": "キャンセル",
+	"consent_preferences_required_tag": "必須",
+	"unsubscribe_title": "配信停止"
+}

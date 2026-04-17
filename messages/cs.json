@@ -1,0 +1,12 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"consent_banner_title": "Vážíme si vašeho soukromí",
+	"consent_banner_accept_all": "Přijmout vše",
+	"consent_banner_reject_all": "Odmítnout vše",
+	"consent_banner_customize": "Přizpůsobit",
+	"consent_banner_save_preferences": "Uložit předvolby",
+	"consent_banner_privacy_policy_label": "Zásady ochrany osobních údajů",
+	"consent_preferences_cancel": "Zrušit",
+	"consent_preferences_required_tag": "Povinné",
+	"unsubscribe_title": "Odhlásit odběr"
+}

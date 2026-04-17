@@ -1,0 +1,12 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"consent_banner_title": "Vi respekterar din integritet",
+	"consent_banner_accept_all": "Acceptera alla",
+	"consent_banner_reject_all": "Avvisa alla",
+	"consent_banner_customize": "Anpassa",
+	"consent_banner_save_preferences": "Spara inställningar",
+	"consent_banner_privacy_policy_label": "Integritetspolicy",
+	"consent_preferences_cancel": "Avbryt",
+	"consent_preferences_required_tag": "Obligatoriskt",
+	"unsubscribe_title": "Avsluta prenumeration"
+}

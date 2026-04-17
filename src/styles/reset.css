@@ -1,127 +1,155 @@
-/* ===========================================
-   MODERN CSS RESET
-   Replaces Tailwind's preflight/base layer
-   =========================================== */
+/* ===========================================================================
+   PE7 MODERN CSS RESET — @layer reset
 
-*,
-*::before,
-*::after {
-	box-sizing: border-box;
-}
+   - Box-sizing normalization
+   - Margin reset on text / structural elements
+   - Logical properties throughout (no margin-top / padding-left / width / height)
+   - Media defaults (block display, fluid inline-size)
+   - Form controls inherit typography
+   - :focus-visible outline (componentized via overrides.css shim)
+   - prefers-reduced-motion blanket guard
+   =========================================================================== */
 
-* {
-	margin: 0;
-	padding: 0;
-}
-
-html {
-	-webkit-text-size-adjust: 100%;
-	text-rendering: optimizeLegibility;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	scroll-behavior: smooth;
-	tab-size: 4;
-	line-height: 1.5;
-}
-
-body {
-	min-height: 100vh;
-	line-height: inherit;
-}
-
-img,
-picture,
-video,
-canvas,
-svg {
-	display: block;
-	max-width: 100%;
-}
-
-input,
-button,
-textarea,
-select {
-	font: inherit;
-	color: inherit;
-}
-
-button {
-	cursor: pointer;
-	background: none;
-	border: none;
-}
-
-a {
-	color: inherit;
-	text-decoration: none;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-	overflow-wrap: break-word;
-	font-size: inherit;
-	font-weight: inherit;
-}
-
-p {
-	overflow-wrap: break-word;
-}
-
-ol,
-ul {
-	list-style: none;
-}
-
-table {
-	border-collapse: collapse;
-	border-spacing: 0;
-}
-
-hr {
-	border: none;
-	border-top: 1px solid;
-	color: inherit;
-	height: 0;
-}
-
-img {
-	border-style: none;
-}
-
-textarea {
-	resize: vertical;
-}
-
-input::placeholder,
-textarea::placeholder {
-	opacity: 1;
-}
-
-[hidden] {
-	display: none !important;
-}
-
-:focus-visible {
-	outline: 2px solid var(--color-teal);
-	outline-offset: 2px;
-}
-
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-	html {
-		scroll-behavior: auto;
-	}
+@layer reset {
 	*,
 	*::before,
 	*::after {
-		animation-duration: 0.01ms !important;
-		animation-iteration-count: 1 !important;
-		transition-duration: 0.01ms !important;
-		scroll-behavior: auto !important;
+		box-sizing: border-box;
+	}
+
+	body,
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6,
+	p,
+	figure,
+	blockquote,
+	dl,
+	dd {
+		margin: 0;
+	}
+
+	html {
+		line-height: 1.5;
+		-webkit-text-size-adjust: 100%;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		text-rendering: optimizeLegibility;
+		scroll-behavior: smooth;
+		tab-size: 4;
+		hyphens: auto;
+	}
+
+	body {
+		min-block-size: 100vh;
+		line-height: inherit;
+		text-rendering: optimizeLegibility;
+	}
+
+	img,
+	picture,
+	video,
+	canvas,
+	svg {
+		display: block;
+		max-inline-size: 100%;
+		block-size: auto;
+	}
+
+	input,
+	button,
+	textarea,
+	select {
+		font: inherit;
+		color: inherit;
+	}
+
+	button {
+		cursor: pointer;
+		background: none;
+		border: none;
+		padding: 0;
+	}
+
+	a {
+		color: inherit;
+		text-decoration: none;
+	}
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6,
+	p {
+		overflow-wrap: break-word;
+	}
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		font-size: inherit;
+		font-weight: inherit;
+	}
+
+	ul[role='list'],
+	ol[role='list'] {
+		list-style: none;
+		padding-inline-start: 0;
+	}
+
+	table {
+		border-collapse: collapse;
+		border-spacing: 0;
+	}
+
+	hr {
+		border: none;
+		border-block-start: 1px solid;
+		color: inherit;
+		block-size: 0;
+	}
+
+	img {
+		border-style: none;
+	}
+
+	textarea {
+		resize: vertical;
+	}
+
+	input::placeholder,
+	textarea::placeholder {
+		opacity: 1;
+	}
+
+	[hidden] {
+		display: none !important;
+	}
+
+	:focus-visible {
+		outline: 2px solid currentColor;
+		outline-offset: 2px;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		html {
+			scroll-behavior: auto;
+		}
+		*,
+		*::before,
+		*::after {
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.01ms !important;
+			scroll-behavior: auto !important;
+		}
 	}
 }

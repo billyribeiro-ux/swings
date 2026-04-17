@@ -1,0 +1,12 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"consent_banner_title": "Szanujemy Twoją prywatność",
+	"consent_banner_accept_all": "Zaakceptuj wszystkie",
+	"consent_banner_reject_all": "Odrzuć wszystkie",
+	"consent_banner_customize": "Dostosuj",
+	"consent_banner_save_preferences": "Zapisz preferencje",
+	"consent_banner_privacy_policy_label": "Polityka prywatności",
+	"consent_preferences_cancel": "Anuluj",
+	"consent_preferences_required_tag": "Wymagane",
+	"unsubscribe_title": "Wypisz się"
+}

@@ -1,12 +1,13 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
+use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
 // ── User ────────────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct User {
     pub id: Uuid,
     pub email: String,
@@ -26,14 +27,45 @@ pub struct User {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type, PartialEq, Eq, Hash, ToSchema)]
 #[sqlx(type_name = "user_role", rename_all = "lowercase")]
 pub enum UserRole {
     Member,
+    Author,
+    Support,
     Admin,
 }
 
-#[derive(Debug, Serialize)]
+impl UserRole {
+    /// Parse the lowercase database string (mirrors `#[sqlx(rename_all = "lowercase")]`).
+    ///
+    /// Returns `None` for unknown labels so the caller can decide how to surface
+    /// the error — typically via `AppError::Internal` when a JWT claim carries a
+    /// role string the backend doesn't recognize.
+    #[must_use]
+    pub fn from_str_lower(s: &str) -> Option<Self> {
+        match s {
+            "member" => Some(Self::Member),
+            "author" => Some(Self::Author),
+            "support" => Some(Self::Support),
+            "admin" => Some(Self::Admin),
+            _ => None,
+        }
+    }
+
+    /// Return the canonical lowercase database string — inverse of `from_str_lower`.
+    #[must_use]
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Member => "member",
+            Self::Author => "author",
+            Self::Support => "support",
+            Self::Admin => "admin",
+        }
+    }
+}
+
+#[derive(Debug, Serialize, ToSchema)]
 pub struct UserResponse {
     pub id: Uuid,
     pub email: String,
@@ -70,7 +102,7 @@ impl From<User> for UserResponse {
     }
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct RegisterRequest {
     #[validate(email(message = "Invalid email address"))]
     pub email: String,
@@ -80,26 +112,26 @@ pub struct RegisterRequest {
     pub name: String,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct LoginRequest {
     #[validate(email)]
     pub email: String,
     pub password: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AuthResponse {
     pub user: UserResponse,
     pub access_token: String,
     pub refresh_token: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct RefreshRequest {
     pub refresh_token: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct TokenResponse {
     pub access_token: String,
     pub refresh_token: String,
@@ -107,7 +139,7 @@ pub struct TokenResponse {
 
 // ── Password Reset ──────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct PasswordResetToken {
     pub id: Uuid,
     pub user_id: Uuid,
@@ -117,13 +149,13 @@ pub struct PasswordResetToken {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct ForgotPasswordRequest {
     #[validate(email(message = "Invalid email address"))]
     pub email: String,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct ResetPasswordRequest {
     pub token: String,
     #[validate(length(min = 8, message = "Password must be at least 8 characters"))]
@@ -132,7 +164,7 @@ pub struct ResetPasswordRequest {
 
 // ── Subscription ────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct Subscription {
     pub id: Uuid,
     pub user_id: Uuid,
@@ -146,14 +178,14 @@ pub struct Subscription {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, PartialEq, ToSchema)]
 #[sqlx(type_name = "subscription_plan", rename_all = "lowercase")]
 pub enum SubscriptionPlan {
     Monthly,
     Annual,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, PartialEq, ToSchema)]
 #[sqlx(type_name = "subscription_status", rename_all = "lowercase")]
 pub enum SubscriptionStatus {
     Active,
@@ -163,25 +195,25 @@ pub enum SubscriptionStatus {
     Unpaid,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct SubscriptionStatusResponse {
     pub subscription: Option<Subscription>,
     pub is_active: bool,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct BillingPortalResponse {
     pub url: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct BillingPortalRequest {
     pub return_url: Option<String>,
 }
 
 // ── Watchlist ───────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct Watchlist {
     pub id: Uuid,
     pub title: String,
@@ -194,7 +226,7 @@ pub struct Watchlist {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct CreateWatchlistRequest {
     #[validate(length(min = 1, message = "Title is required"))]
     pub title: String,
@@ -204,7 +236,7 @@ pub struct CreateWatchlistRequest {
     pub published: Option<bool>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct UpdateWatchlistRequest {
     pub title: Option<String>,
     pub week_of: Option<chrono::NaiveDate>,
@@ -215,7 +247,7 @@ pub struct UpdateWatchlistRequest {
 
 // ── Watchlist Alert ─────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct WatchlistAlert {
     pub id: Uuid,
     pub watchlist_id: Uuid,
@@ -229,14 +261,14 @@ pub struct WatchlistAlert {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, PartialEq, ToSchema)]
 #[sqlx(type_name = "trade_direction", rename_all = "lowercase")]
 pub enum TradeDirection {
     Bullish,
     Bearish,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct CreateAlertRequest {
     #[validate(length(min = 1, message = "Ticker is required"))]
     pub ticker: String,
@@ -250,7 +282,7 @@ pub struct CreateAlertRequest {
     pub chart_url: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct UpdateAlertRequest {
     pub ticker: Option<String>,
     pub direction: Option<TradeDirection>,
@@ -263,7 +295,7 @@ pub struct UpdateAlertRequest {
 
 // ── Course Enrollment ───────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct CourseEnrollment {
     pub id: Uuid,
     pub user_id: Uuid,
@@ -276,20 +308,16 @@ pub struct CourseEnrollment {
 // ── Refresh Token ───────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, FromRow)]
-#[allow(dead_code)]
 pub struct RefreshToken {
     pub id: Uuid,
     pub user_id: Uuid,
-    pub token_hash: String,
-    pub expires_at: DateTime<Utc>,
-    pub created_at: DateTime<Utc>,
     pub family_id: Uuid,
     pub used: bool,
 }
 
 // ── Watchlist with alerts (joined response) ─────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct WatchlistWithAlerts {
     #[serde(flatten)]
     pub watchlist: Watchlist,
@@ -298,7 +326,7 @@ pub struct WatchlistWithAlerts {
 
 // ── Admin dashboard stats ───────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AdminStats {
     pub total_members: i64,
     pub active_subscriptions: i64,
@@ -311,7 +339,7 @@ pub struct AdminStats {
 
 // ── Blog Post ──────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, PartialEq, ToSchema)]
 #[serde(rename_all = "snake_case")]
 #[sqlx(type_name = "post_status", rename_all = "snake_case")]
 pub enum PostStatus {
@@ -323,7 +351,7 @@ pub enum PostStatus {
     Trash,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct BlogPost {
     pub id: Uuid,
     pub author_id: Uuid,
@@ -353,7 +381,7 @@ pub struct BlogPost {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct BlogPostResponse {
     pub id: Uuid,
     pub author_id: Uuid,
@@ -394,7 +422,7 @@ pub struct BlogPostResponse {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct BlogPostListItem {
     pub id: Uuid,
     pub author_id: Uuid,
@@ -415,7 +443,7 @@ pub struct BlogPostListItem {
     pub tags: Vec<BlogTag>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct CreatePostRequest {
     #[validate(length(min = 1, message = "Title is required"))]
     pub title: String,
@@ -440,7 +468,7 @@ pub struct CreatePostRequest {
     pub format: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct UpdatePostRequest {
     pub title: Option<String>,
     pub slug: Option<String>,
@@ -464,19 +492,19 @@ pub struct UpdatePostRequest {
     pub format: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct UpdatePostStatusRequest {
     pub status: PostStatus,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct VerifyPostPasswordRequest {
     pub password: String,
 }
 
 // ── Post Meta ──────────────────────────────────────────────────────────────
 
-#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, Clone)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, Clone, ToSchema)]
 pub struct PostMeta {
     pub id: Uuid,
     pub post_id: Uuid,
@@ -486,26 +514,22 @@ pub struct PostMeta {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct UpsertPostMetaRequest {
     pub meta_key: String,
     pub meta_value: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct PostListParams {
     pub page: Option<i64>,
     pub per_page: Option<i64>,
     pub status: Option<PostStatus>,
     pub author_id: Option<Uuid>,
-    #[allow(dead_code)]
-    pub category_slug: Option<String>,
-    #[allow(dead_code)]
-    pub tag_slug: Option<String>,
     pub search: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct AutosaveRequest {
     pub title: Option<String>,
     pub content: Option<String>,
@@ -514,7 +538,7 @@ pub struct AutosaveRequest {
 
 // ── Blog Category ──────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct BlogCategory {
     pub id: Uuid,
     pub name: String,
@@ -525,7 +549,7 @@ pub struct BlogCategory {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct CreateCategoryRequest {
     #[validate(length(min = 1, message = "Name is required"))]
     pub name: String,
@@ -535,7 +559,7 @@ pub struct CreateCategoryRequest {
     pub sort_order: Option<i32>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct UpdateCategoryRequest {
     pub name: Option<String>,
     pub slug: Option<String>,
@@ -546,7 +570,7 @@ pub struct UpdateCategoryRequest {
 
 // ── Blog Tag ───────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct BlogTag {
     pub id: Uuid,
     pub name: String,
@@ -554,7 +578,7 @@ pub struct BlogTag {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct CreateTagRequest {
     #[validate(length(min = 1, message = "Name is required"))]
     pub name: String,
@@ -563,7 +587,7 @@ pub struct CreateTagRequest {
 
 // ── Blog Revision ──────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct BlogRevision {
     pub id: Uuid,
     pub post_id: Uuid,
@@ -575,7 +599,7 @@ pub struct BlogRevision {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct RevisionResponse {
     pub id: Uuid,
     pub post_id: Uuid,
@@ -588,7 +612,7 @@ pub struct RevisionResponse {
 
 // ── Media ──────────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct Media {
     pub id: Uuid,
     pub uploader_id: Uuid,
@@ -608,7 +632,7 @@ pub struct Media {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct UpdateMediaRequest {
     pub title: Option<String>,
     pub alt_text: Option<String>,
@@ -619,7 +643,7 @@ pub struct UpdateMediaRequest {
 
 // ── Pagination ──────────────────────────────────────────────────────────
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct PaginationParams {
     pub page: Option<i64>,
     pub per_page: Option<i64>,
@@ -637,7 +661,7 @@ impl PaginationParams {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct PaginatedResponse<T: Serialize> {
     pub data: Vec<T>,
     pub total: i64,
@@ -648,7 +672,7 @@ pub struct PaginatedResponse<T: Serialize> {
 
 // ── Analytics ───────────────────────────────────────────────────────────
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct AnalyticsIngestEvent {
     pub event_type: String,
     pub path: String,
@@ -657,13 +681,13 @@ pub struct AnalyticsIngestEvent {
     pub metadata: serde_json::Value,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct AnalyticsIngestRequest {
     pub session_id: Uuid,
     pub events: Vec<AnalyticsIngestEvent>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AnalyticsTimeBucket {
     pub date: String,
     pub page_views: i64,
@@ -671,14 +695,14 @@ pub struct AnalyticsTimeBucket {
     pub impressions: i64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AnalyticsTopPage {
     pub path: String,
     pub views: i64,
     pub sessions: i64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AnalyticsRecentSale {
     pub id: Uuid,
     pub event_type: String,
@@ -687,7 +711,7 @@ pub struct AnalyticsRecentSale {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AnalyticsCtrPoint {
     pub date: String,
     pub cta_id: String,
@@ -696,7 +720,7 @@ pub struct AnalyticsCtrPoint {
     pub ctr: f64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AnalyticsSummary {
     pub from: String,
     pub to: String,
@@ -720,18 +744,18 @@ pub struct AnalyticsSummary {
     pub recent_sales: Vec<AnalyticsRecentSale>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct DailyRevenuePoint {
     pub date: String,
     pub revenue_cents: i64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AdminRevenueResponse {
     pub data: Vec<DailyRevenuePoint>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct AnalyticsSummaryQuery {
     /// Inclusive start date `YYYY-MM-DD` (UTC).
     pub from: String,
@@ -741,7 +765,7 @@ pub struct AnalyticsSummaryQuery {
 
 // ── Course ─────────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct Course {
     pub id: Uuid,
     pub title: String,
@@ -764,7 +788,7 @@ pub struct Course {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct CourseModule {
     pub id: Uuid,
     pub course_id: Uuid,
@@ -775,7 +799,7 @@ pub struct CourseModule {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct CourseLesson {
     pub id: Uuid,
     pub module_id: Uuid,
@@ -792,7 +816,7 @@ pub struct CourseLesson {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct LessonProgress {
     pub id: Uuid,
     pub user_id: Uuid,
@@ -803,7 +827,7 @@ pub struct LessonProgress {
     pub last_accessed_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct CreateCourseRequest {
     #[validate(length(min = 1, message = "Title is required"))]
     pub title: String,
@@ -822,7 +846,7 @@ pub struct CreateCourseRequest {
     pub estimated_duration_minutes: Option<i32>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct UpdateCourseRequest {
     pub title: Option<String>,
     pub slug: Option<String>,
@@ -840,7 +864,7 @@ pub struct UpdateCourseRequest {
     pub estimated_duration_minutes: Option<i32>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct CreateModuleRequest {
     #[validate(length(min = 1, message = "Title is required"))]
     pub title: String,
@@ -848,14 +872,14 @@ pub struct CreateModuleRequest {
     pub sort_order: Option<i32>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct UpdateModuleRequest {
     pub title: Option<String>,
     pub description: Option<String>,
     pub sort_order: Option<i32>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct CreateLessonRequest {
     #[validate(length(min = 1, message = "Title is required"))]
     pub title: String,
@@ -869,7 +893,7 @@ pub struct CreateLessonRequest {
     pub is_preview: Option<bool>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct UpdateLessonRequest {
     pub title: Option<String>,
     pub slug: Option<String>,
@@ -882,13 +906,13 @@ pub struct UpdateLessonRequest {
     pub is_preview: Option<bool>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct UpdateLessonProgressRequest {
     pub progress_seconds: Option<i32>,
     pub completed: Option<bool>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct CourseWithModules {
     #[serde(flatten)]
     pub course: Course,
@@ -897,14 +921,14 @@ pub struct CourseWithModules {
     pub total_duration_seconds: i64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ModuleWithLessons {
     #[serde(flatten)]
     pub module: CourseModule,
     pub lessons: Vec<CourseLesson>,
 }
 
-#[derive(Debug, Serialize, FromRow)]
+#[derive(Debug, Serialize, FromRow, ToSchema)]
 pub struct CourseListItem {
     pub id: Uuid,
     pub title: String,
@@ -924,7 +948,7 @@ pub struct CourseListItem {
 
 // ── Pricing Plans ──────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct PricingPlan {
     pub id: Uuid,
     pub name: String,
@@ -946,7 +970,7 @@ pub struct PricingPlan {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct CreatePricingPlanRequest {
     #[validate(length(min = 1, message = "Name is required"))]
     pub name: String,
@@ -966,7 +990,7 @@ pub struct CreatePricingPlanRequest {
     pub sort_order: Option<i32>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct UpdatePricingPlanRequest {
     pub name: Option<String>,
     pub slug: Option<String>,
@@ -985,7 +1009,7 @@ pub struct UpdatePricingPlanRequest {
     pub sort_order: Option<i32>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct PricingChangeLog {
     pub id: Uuid,
     pub plan_id: Uuid,
@@ -998,7 +1022,7 @@ pub struct PricingChangeLog {
 
 // ── Coupons ────────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, PartialEq, ToSchema)]
 #[sqlx(type_name = "discount_type", rename_all = "lowercase")]
 pub enum DiscountType {
     Percentage,
@@ -1008,12 +1032,13 @@ pub enum DiscountType {
     FreeTrial,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct Coupon {
     pub id: Uuid,
     pub code: String,
     pub description: Option<String>,
     pub discount_type: DiscountType,
+    #[schema(value_type = String, format = "decimal")]
     pub discount_value: rust_decimal::Decimal,
     pub min_purchase_cents: Option<i32>,
     pub max_discount_cents: Option<i32>,
@@ -1035,7 +1060,7 @@ pub struct Coupon {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct CreateCouponRequest {
     pub code: Option<String>,
     pub description: Option<String>,
@@ -1055,7 +1080,7 @@ pub struct CreateCouponRequest {
     pub first_purchase_only: Option<bool>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct UpdateCouponRequest {
     pub description: Option<String>,
     pub discount_type: Option<DiscountType>,
@@ -1074,14 +1099,14 @@ pub struct UpdateCouponRequest {
     pub first_purchase_only: Option<bool>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct ValidateCouponRequest {
     pub code: String,
     pub plan_id: Option<Uuid>,
     pub course_id: Option<Uuid>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct CouponValidationResponse {
     pub valid: bool,
     pub coupon: Option<Coupon>,
@@ -1089,7 +1114,7 @@ pub struct CouponValidationResponse {
     pub message: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct CouponUsage {
     pub id: Uuid,
     pub coupon_id: Uuid,
@@ -1099,7 +1124,7 @@ pub struct CouponUsage {
     pub used_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct BulkCouponRequest {
     pub count: i32,
     pub prefix: Option<String>,
@@ -1111,7 +1136,7 @@ pub struct BulkCouponRequest {
 
 // ── Popups ─────────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct Popup {
     pub id: Uuid,
     pub name: String,
@@ -1134,7 +1159,7 @@ pub struct Popup {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct CreatePopupRequest {
     #[validate(length(min = 1, message = "Name is required"))]
     pub name: String,
@@ -1154,7 +1179,7 @@ pub struct CreatePopupRequest {
     pub priority: Option<i32>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct UpdatePopupRequest {
     pub name: Option<String>,
     pub popup_type: Option<String>,
@@ -1173,7 +1198,7 @@ pub struct UpdatePopupRequest {
     pub priority: Option<i32>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct PopupSubmission {
     pub id: Uuid,
     pub popup_id: Uuid,
@@ -1186,7 +1211,7 @@ pub struct PopupSubmission {
     pub submitted_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct PopupSubmitRequest {
     pub popup_id: Uuid,
     pub session_id: Option<Uuid>,
@@ -1194,7 +1219,7 @@ pub struct PopupSubmitRequest {
     pub page_url: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct PopupAnalytics {
     pub popup_id: Uuid,
     pub popup_name: String,
@@ -1204,76 +1229,8 @@ pub struct PopupAnalytics {
     pub conversion_rate: f64,
 }
 
-// ── Sales / Revenue Analytics ──────────────────────────────────────────
-
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
-#[allow(dead_code)]
-pub struct SalesEvent {
-    pub id: Uuid,
-    pub user_id: Uuid,
-    pub event_type: String,
-    pub amount_cents: i32,
-    pub currency: String,
-    pub plan_id: Option<Uuid>,
-    pub coupon_id: Option<Uuid>,
-    pub stripe_payment_intent_id: Option<String>,
-    pub stripe_invoice_id: Option<String>,
-    pub metadata: serde_json::Value,
-    pub created_at: DateTime<Utc>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
-#[allow(dead_code)]
-pub struct MonthlyRevenueSnapshot {
-    pub id: Uuid,
-    pub year: i32,
-    pub month: i32,
-    pub mrr_cents: i64,
-    pub arr_cents: i64,
-    pub total_revenue_cents: i64,
-    pub new_subscribers: i32,
-    pub churned_subscribers: i32,
-    pub net_subscriber_change: i32,
-    pub avg_revenue_per_user_cents: i32,
-    pub computed_at: DateTime<Utc>,
-}
-
-#[derive(Debug, Serialize)]
-#[allow(dead_code)]
-pub struct RevenueAnalytics {
-    pub total_revenue_cents: i64,
-    pub mrr_cents: i64,
-    pub arr_cents: i64,
-    pub total_subscribers: i64,
-    pub churn_rate: f64,
-    pub avg_revenue_per_user_cents: i64,
-    pub revenue_by_month: Vec<MonthlyRevenueSummary>,
-    pub revenue_by_plan: Vec<PlanRevenueSummary>,
-    pub recent_sales: Vec<SalesEvent>,
-}
-
-#[derive(Debug, Serialize)]
-#[allow(dead_code)]
-pub struct MonthlyRevenueSummary {
-    pub year: i32,
-    pub month: i32,
-    pub revenue_cents: i64,
-    pub new_subscribers: i64,
-    pub churned: i64,
-}
-
-#[derive(Debug, Serialize)]
-#[allow(dead_code)]
-pub struct PlanRevenueSummary {
-    pub plan_name: String,
-    pub subscriber_count: i64,
-    pub revenue_cents: i64,
-}
-
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-pub struct RevenueAnalyticsQuery {
-    pub from: Option<String>,
-    pub to: Option<String>,
-    pub granularity: Option<String>,
-}
+// Revenue analytics types (SalesEvent, MonthlyRevenueSnapshot, RevenueAnalytics,
+// MonthlyRevenueSummary, PlanRevenueSummary, RevenueAnalyticsQuery) were deleted in
+// FDN-01 because they had no callers. The underlying `sales_events` and
+// `monthly_revenue_snapshots` tables (migration 014) remain. Event-sourced revenue
+// analytics are scheduled for Phase 4 EC-12.

@@ -1,0 +1,69 @@
+# sqlfluff config — consumed by `.github/workflows/sql-lint.yml`.
+#
+# Scope: lint `backend/migrations/**/*.sql`. Keep rules permissive so the
+# existing migrations pass without churn; tighten incrementally as new rules
+# prove themselves non-intrusive.
+
+[sqlfluff]
+dialect = postgres
+templater = raw
+exclude_rules =
+    # Capitalisation rules would reformat 100s of lines across all existing
+    # migrations. Style in the repo is already consistent (UPPER keywords,
+    # lower identifiers) — we do not need sqlfluff to enforce it.
+    capitalisation.keywords,
+    capitalisation.identifiers,
+    capitalisation.functions,
+    capitalisation.literals,
+    capitalisation.types,
+    # Line-length: some check constraints and enum lists legitimately wrap;
+    # we rely on .editorconfig for general line-length hygiene.
+    layout.long_lines,
+    # Trailing comma / semicolon formatting — the migrations are
+    # hand-authored DDL, and reformatting whitespace there is high-risk /
+    # low-value.
+    layout.cte_newline,
+    layout.select_targets,
+    layout.commas,
+    layout.indent,
+    layout.spacing,
+    # Aliasing / references — not relevant for DDL-only migrations.
+    aliasing.table,
+    aliasing.column,
+    aliasing.expression,
+    references.qualification,
+    references.keywords,
+    references.special_chars,
+    # Structure — pure DDL, not SELECT-heavy code.
+    structure.column_order,
+    structure.unused_cte,
+    structure.using,
+    # Convention — these catch SELECT * and other query anti-patterns that
+    # do not apply to migrations.
+    convention.select_trailing_comma,
+    convention.terminator,
+    convention.count_rows,
+    convention.is_null,
+    convention.statement_brackets
+max_line_length = 160
+# Dialect/templater tweaks.
+large_file_skip_char_limit = 0
+large_file_skip_byte_limit = 0
+# Progress / output is not decorative — CI parses it.
+nocolor = true
+
+[sqlfluff:indentation]
+indent_unit = space
+tab_space_size = 4
+indented_joins = false
+indented_ctes = false
+
+[sqlfluff:rules]
+# Allow both UPPER and lower keywords — our migrations are UPPER, but the
+# capitalisation rules are already disabled above; this is a safety net.
+allow_scalar = true
+
+[sqlfluff:rules:convention.not_equal]
+# Prefer `<>` over `!=` — a low-cost Postgres idiom check that does fire
+# (and is easy to satisfy); our migrations do not use either form today.
+preferred_not_equal_style = consistent

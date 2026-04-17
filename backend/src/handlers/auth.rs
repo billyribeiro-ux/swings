@@ -14,6 +14,7 @@ use crate::{
     error::{AppError, AppResult},
     extractors::{AuthUser, Claims},
     models::*,
+    notifications::send::{send_notification, Recipient, SendOptions},
     AppState,
 };
 
@@ -40,7 +41,18 @@ pub fn router() -> Router<AppState> {
         .route("/reset-password", post(reset_password))
 }
 
-async fn register(
+#[utoipa::path(
+    post,
+    path = "/api/auth/register",
+    tag = "auth",
+    request_body = RegisterRequest,
+    responses(
+        (status = 200, description = "Account created and authenticated", body = AuthResponse),
+        (status = 409, description = "Email already registered"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn register(
     State(state): State<AppState>,
     Json(req): Json<RegisterRequest>,
 ) -> AppResult<Json<AuthResponse>> {
@@ -64,6 +76,29 @@ async fn register(
 
     let (access_token, refresh_token) = generate_tokens(&state, &user).await?;
 
+    // FDN-05: send the welcome email via the notifications pipeline. Errors
+    // here are logged but never block signup — the user must be able to
+    // complete registration even if the provider is momentarily down.
+    let ctx = serde_json::json!({
+        "name": user.name,
+        "app_url": state.config.app_url,
+        "year": chrono::Utc::now().format("%Y").to_string(),
+    });
+    if let Err(e) = send_notification(
+        &state.db,
+        "user.welcome",
+        &Recipient::User {
+            user_id: user.id,
+            email: user.email.clone(),
+        },
+        ctx,
+        SendOptions::default(),
+    )
+    .await
+    {
+        tracing::warn!(user_id = %user.id, error = %e, "failed to enqueue welcome email");
+    }
+
     Ok(Json(AuthResponse {
         user: user.into(),
         access_token,
@@ -71,7 +106,18 @@ async fn register(
     }))
 }
 
-async fn login(
+#[utoipa::path(
+    post,
+    path = "/api/auth/login",
+    tag = "auth",
+    request_body = LoginRequest,
+    responses(
+        (status = 200, description = "Authenticated", body = AuthResponse),
+        (status = 401, description = "Invalid credentials"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn login(
     State(state): State<AppState>,
     Json(req): Json<LoginRequest>,
 ) -> AppResult<Json<AuthResponse>> {
@@ -97,7 +143,17 @@ async fn login(
     }))
 }
 
-async fn refresh(
+#[utoipa::path(
+    post,
+    path = "/api/auth/refresh",
+    tag = "auth",
+    request_body = RefreshRequest,
+    responses(
+        (status = 200, description = "Token rotated", body = TokenResponse),
+        (status = 401, description = "Invalid or reused refresh token")
+    )
+)]
+pub(crate) async fn refresh(
     State(state): State<AppState>,
     Json(req): Json<RefreshRequest>,
 ) -> AppResult<Json<TokenResponse>> {
@@ -168,7 +224,17 @@ async fn me(State(state): State<AppState>, auth: AuthUser) -> AppResult<Json<Use
     Ok(Json(user.into()))
 }
 
-async fn logout(
+#[utoipa::path(
+    post,
+    path = "/api/auth/logout",
+    tag = "auth",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Logged out; refresh tokens revoked"),
+        (status = 401, description = "Unauthorized")
+    )
+)]
+pub(crate) async fn logout(
     State(state): State<AppState>,
     auth: AuthUser,
 ) -> AppResult<Json<serde_json::Value>> {
@@ -178,7 +244,17 @@ async fn logout(
 
 // ── Forgot / Reset Password ─────────────────────────────────────────────
 
-async fn forgot_password(
+#[utoipa::path(
+    post,
+    path = "/api/auth/forgot-password",
+    tag = "auth",
+    request_body = ForgotPasswordRequest,
+    responses(
+        (status = 200, description = "Reset email dispatched if account exists"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn forgot_password(
     State(state): State<AppState>,
     Json(req): Json<ForgotPasswordRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
@@ -201,13 +277,34 @@ async fn forgot_password(
             state.config.frontend_url, raw_token
         );
 
-        // TODO: Send email with reset_url in production
-        // For now, log the reset link for development
+        // FDN-05: send the reset email through the notifications pipeline.
+        // Failures are logged but not surfaced to the client — the response
+        // is identical on success or soft-failure to avoid email enumeration.
         tracing::info!(
             "Password reset requested for {}. Reset URL: {}",
             req.email,
             reset_url
         );
+        let ctx = serde_json::json!({
+            "name": user.name,
+            "reset_url": reset_url,
+            "app_url": state.config.app_url,
+            "year": chrono::Utc::now().format("%Y").to_string(),
+        });
+        if let Err(e) = send_notification(
+            &state.db,
+            "user.password_reset",
+            &Recipient::User {
+                user_id: user.id,
+                email: user.email.clone(),
+            },
+            ctx,
+            SendOptions::default(),
+        )
+        .await
+        {
+            tracing::warn!(user_id = %user.id, error = %e, "failed to enqueue password reset email");
+        }
     }
 
     Ok(Json(serde_json::json!({
@@ -215,7 +312,18 @@ async fn forgot_password(
     })))
 }
 
-async fn reset_password(
+#[utoipa::path(
+    post,
+    path = "/api/auth/reset-password",
+    tag = "auth",
+    request_body = ResetPasswordRequest,
+    responses(
+        (status = 200, description = "Password updated"),
+        (status = 400, description = "Invalid or expired reset token"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn reset_password(
     State(state): State<AppState>,
     Json(req): Json<ResetPasswordRequest>,
 ) -> AppResult<Json<serde_json::Value>> {

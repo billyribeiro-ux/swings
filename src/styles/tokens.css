@@ -1,150 +1,240 @@
-/* ===========================================
-   DESIGN TOKENS
-   1:1 mapping from Tailwind theme + defaults
-   =========================================== */
+/* ===========================================================================
+   DESIGN TOKENS — PE7 baseline
 
-:root {
-	/* ---- COLORS ---- */
-	--color-navy: #0b1d3a;
-	--color-navy-mid: #132b50;
-	--color-deep-blue: #1a3a6b;
-	--color-teal: #0fa4af;
-	--color-teal-light: #15c5d1;
-	--color-teal-glow: rgba(15, 164, 175, 0.15);
-	--color-gold: #d4a843;
-	--color-gold-light: #e8c76a;
-	--color-white: #ffffff;
-	--color-off-white: #f7f8fa;
-	--color-grey-100: #eef0f4;
-	--color-grey-200: #d8dce4;
-	--color-grey-300: #b8bec9;
-	--color-grey-400: #8b95a8;
-	--color-grey-500: #6f7a8c;
-	--color-grey-600: #5a6478;
-	--color-grey-700: #3f4a5e;
-	--color-grey-800: #2e3749;
-	--color-red: #e04848;
-	--color-green: #22b573;
+   - All colors authored in OKLCH (perceptually uniform, future-proof for P3).
+   - Source hex values documented inline for review traceability.
+   - Fluid type scale uses clamp(min, base + vw, max); per-breakpoint refinements
+     live in `breakpoints.css` and layer over these defaults.
+   - Spacing / radii / z-index / motion token names preserved so no component
+     style breaks; new names introduced are surfaced via overrides.css shim.
 
-	/* ---- TYPOGRAPHY ---- */
-	--font-heading: 'Montserrat', 'Inter', 'Segoe UI', Roboto, Arial, sans-serif;
-	--font-ui: 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+   Everything in this file is scoped to @layer tokens.
+   =========================================================================== */
 
-	--w-regular: 400;
-	--w-medium: 500;
-	--w-semibold: 600;
-	--w-bold: 700;
-	--w-extrabold: 800;
-
-	--lh-tight: 1.1;
-	--lh-snug: 1.25;
-	--lh-normal: 1.5;
-	--lh-relaxed: 1.65;
-
-	--ls-tight: -0.02em;
-	--ls-normal: 0;
-	--ls-wide: 0.01em;
-
-	/* MOBILE TYPE SCALE (default) */
-	--fs-2xs: 0.6875rem;
-	--fs-xs: 0.75rem;
-	--fs-sm: 0.875rem;
-	--fs-md: 1rem;
-	--fs-lg: 1.125rem;
-	--fs-xl: 1.25rem;
-	--fs-2xl: 1.5rem;
-	--fs-3xl: 1.875rem;
-	--fs-4xl: 2.25rem;
-
-	/* ---- SPACING (Tailwind default scale, only values used) ---- */
-	--space-0: 0;
-	--space-px: 1px;
-	--space-0-5: 0.125rem;
-	--space-1: 0.25rem;
-	--space-1-5: 0.375rem;
-	--space-2: 0.5rem;
-	--space-2-5: 0.625rem;
-	--space-3: 0.75rem;
-	--space-3-5: 0.875rem;
-	--space-4: 1rem;
-	--space-5: 1.25rem;
-	--space-6: 1.5rem;
-	--space-7: 1.75rem;
-	--space-8: 2rem;
-	--space-10: 2.5rem;
-	--space-12: 3rem;
-	--space-16: 4rem;
-	--space-20: 5rem;
-	--space-24: 6rem;
-	--space-28: 7rem;
-	--space-32: 8rem;
-
-	/* ---- BORDER RADIUS ---- */
-	--radius-none: 0;
-	--radius-sm: 0.125rem;
-	--radius-default: 0.25rem;
-	--radius-md: 0.375rem;
-	--radius-lg: 0.5rem;
-	--radius-xl: 0.75rem;
-	--radius-2xl: 1rem;
-	--radius-3xl: 1.5rem;
-	--radius-full: 9999px;
-
-	/* ---- SHADOWS ---- */
-	--shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-	--shadow-default: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-	--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-	--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-	--shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-	--shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-
-	/* ---- Z-INDEX ---- */
-	--z-0: 0;
-	--z-10: 10;
-	--z-20: 20;
-	--z-30: 30;
-	--z-40: 40;
-	--z-50: 50;
-
-	/* ---- TRANSITIONS ---- */
-	--duration-150: 150ms;
-	--duration-200: 200ms;
-	--duration-300: 300ms;
-	--duration-500: 500ms;
-	--ease-out: cubic-bezier(0, 0, 0.2, 1);
-	--ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-
-	/* ---- CONTAINER ---- */
-	--container-max: 1200px;
-	--container-md: 960px;
-	--container-sm: 820px;
-	--container-xs: 340px;
-}
-
-/* Responsive type scale -- tablet */
-@media (min-width: 768px) {
+@layer tokens {
 	:root {
-		--fs-xs: 0.8125rem;
-		--fs-sm: 0.9375rem;
-		--fs-md: 1rem;
-		--fs-lg: 1.1875rem;
-		--fs-xl: 1.375rem;
-		--fs-2xl: 1.75rem;
-		--fs-3xl: 2.125rem;
-		--fs-4xl: 2.75rem;
-	}
-}
+		/* ---------------------------------------------------------------------
+		   BRAND — Navy (deep blue ink, primary surface)
+		   ref hex: #0b1d3a (navy), #132b50 (navy-mid), #1a3a6b (deep blue), #0c1b2e (navy-deep)
+		   --------------------------------------------------------------------- */
+		--brand-navy-50: oklch(0.97 0.01 252);
+		--brand-navy-100: oklch(0.93 0.02 252);
+		--brand-navy-200: oklch(0.82 0.04 252);
+		--brand-navy-300: oklch(0.68 0.06 252);
+		--brand-navy-400: oklch(0.52 0.08 252);
+		--brand-navy-500: oklch(0.38 0.09 252); /* ≈ #1a3a6b */
+		--brand-navy-600: oklch(0.3 0.08 252); /* ≈ #132b50 */
+		--brand-navy-700: oklch(0.22 0.05 252); /* ≈ #0b1d3a */
+		--brand-navy-800: oklch(0.18 0.045 252); /* ≈ #0c1b2e */
+		--brand-navy-900: oklch(0.14 0.04 252);
 
-/* Responsive type scale -- desktop */
-@media (min-width: 1024px) {
-	:root {
-		--fs-xs: 0.875rem;
-		--fs-sm: 1rem;
-		--fs-md: 1.0625rem;
-		--fs-lg: 1.25rem;
-		--fs-xl: 1.5rem;
-		--fs-2xl: 2rem;
-		--fs-3xl: 2.5rem;
-		--fs-4xl: 3.25rem;
+		/* ---------------------------------------------------------------------
+		   BRAND — Teal (accent, interactive)
+		   ref hex: #0fa4af (teal), #15c5d1 (teal-light), #0d8a94 (teal-dark)
+		   --------------------------------------------------------------------- */
+		--brand-teal-50: oklch(0.97 0.02 197);
+		--brand-teal-100: oklch(0.92 0.04 197);
+		--brand-teal-200: oklch(0.85 0.07 197);
+		--brand-teal-300: oklch(0.78 0.1 197);
+		--brand-teal-400: oklch(0.72 0.12 197); /* ≈ #15c5d1 */
+		--brand-teal-500: oklch(0.66 0.12 197); /* ≈ #0fa4af */
+		--brand-teal-600: oklch(0.58 0.11 197); /* ≈ #0d8a94 */
+		--brand-teal-700: oklch(0.48 0.09 197);
+		--brand-teal-800: oklch(0.38 0.07 197);
+		--brand-teal-900: oklch(0.28 0.05 197);
+
+		/* ---------------------------------------------------------------------
+		   BRAND — Gold (highlight)
+		   ref hex: #d4a843 (gold), #e8c76a (gold-light)
+		   --------------------------------------------------------------------- */
+		--brand-gold-50: oklch(0.97 0.02 85);
+		--brand-gold-100: oklch(0.93 0.05 85);
+		--brand-gold-200: oklch(0.88 0.08 85);
+		--brand-gold-300: oklch(0.83 0.11 85); /* ≈ #e8c76a */
+		--brand-gold-400: oklch(0.78 0.12 85);
+		--brand-gold-500: oklch(0.74 0.12 85); /* ≈ #d4a843 */
+		--brand-gold-600: oklch(0.64 0.11 85);
+		--brand-gold-700: oklch(0.54 0.09 85);
+		--brand-gold-800: oklch(0.44 0.07 85);
+		--brand-gold-900: oklch(0.34 0.05 85);
+
+		/* ---------------------------------------------------------------------
+		   NEUTRAL — 9-step grey ramp (cool-tinted toward navy)
+		   ref hex anchors: #f7f8fa..#2e3749
+		   --------------------------------------------------------------------- */
+		--neutral-0: oklch(1 0 0); /* #ffffff */
+		--neutral-50: oklch(0.98 0.003 252); /* ≈ #f7f8fa */
+		--neutral-100: oklch(0.95 0.006 252); /* ≈ #eef0f4 */
+		--neutral-200: oklch(0.88 0.008 252); /* ≈ #d8dce4 */
+		--neutral-300: oklch(0.78 0.012 252); /* ≈ #b8bec9 */
+		--neutral-400: oklch(0.64 0.018 252); /* ≈ #8b95a8 */
+		--neutral-500: oklch(0.54 0.022 252); /* ≈ #6f7a8c */
+		--neutral-600: oklch(0.46 0.024 252); /* ≈ #5a6478 */
+		--neutral-700: oklch(0.36 0.028 252); /* ≈ #3f4a5e */
+		--neutral-800: oklch(0.3 0.03 252); /* ≈ #2e3749 */
+		--neutral-900: oklch(0.22 0.035 252);
+
+		/* ---------------------------------------------------------------------
+		   SEMANTIC — status
+		   success ≈ #22b573, warning ≈ #d4a843 (gold echo), danger ≈ #e04848, info = teal-500
+		   --------------------------------------------------------------------- */
+		--status-success-50: oklch(0.96 0.04 150);
+		--status-success-500: oklch(0.68 0.16 150); /* ≈ #22b573 */
+		--status-success-700: oklch(0.5 0.12 150);
+
+		--status-warning-50: oklch(0.97 0.04 85);
+		--status-warning-500: oklch(0.76 0.14 85);
+		--status-warning-700: oklch(0.55 0.1 85);
+
+		--status-danger-50: oklch(0.96 0.03 25);
+		--status-danger-500: oklch(0.62 0.2 25); /* ≈ #e04848 */
+		--status-danger-700: oklch(0.48 0.16 25);
+
+		--status-info-50: var(--brand-teal-50);
+		--status-info-500: var(--brand-teal-500);
+		--status-info-700: var(--brand-teal-700);
+
+		/* ---------------------------------------------------------------------
+		   SURFACE — semantic bg / fg pairs
+		   --------------------------------------------------------------------- */
+		--surface-bg-canvas: var(--neutral-0);
+		--surface-bg-subtle: var(--neutral-50);
+		--surface-bg-muted: var(--neutral-100);
+		--surface-bg-deep: var(--brand-navy-700);
+		--surface-bg-deeper: var(--brand-navy-800);
+		--surface-fg-default: var(--neutral-800);
+		--surface-fg-muted: var(--neutral-500);
+		--surface-fg-inverted: var(--neutral-0);
+		--surface-border-subtle: var(--neutral-200);
+		--surface-border-default: var(--neutral-300);
+
+		/* ---------------------------------------------------------------------
+		   TYPOGRAPHY — families, weights, line-heights, letter-spacing
+		   --------------------------------------------------------------------- */
+		--font-heading: 'Montserrat', 'Inter', 'Segoe UI', Roboto, Arial, sans-serif;
+		--font-ui: 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+		--font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+
+		--w-regular: 400;
+		--w-medium: 500;
+		--w-semibold: 600;
+		--w-bold: 700;
+		--w-extrabold: 800;
+
+		--lh-tight: 1.1;
+		--lh-snug: 1.25;
+		--lh-normal: 1.5;
+		--lh-relaxed: 1.65;
+
+		--ls-tight: -0.02em;
+		--ls-normal: 0;
+		--ls-wide: 0.01em;
+		--ls-wider: 0.04em;
+
+		/* ---------------------------------------------------------------------
+		   FLUID TYPE SCALE — clamp(min, base + vw-rate, max)
+		   Base defaults (xs viewport, <480px). breakpoints.css refines upward
+		   so the scale keeps reaching larger maxes on larger viewports.
+		   --------------------------------------------------------------------- */
+		--fs-2xs: clamp(0.6875rem, 0.66rem + 0.12vw, 0.75rem);
+		--fs-xs: clamp(0.75rem, 0.72rem + 0.15vw, 0.875rem);
+		--fs-sm: clamp(0.875rem, 0.84rem + 0.2vw, 1rem);
+		--fs-md: clamp(1rem, 0.96rem + 0.25vw, 1.125rem);
+		--fs-lg: clamp(1.125rem, 1.07rem + 0.3vw, 1.25rem);
+		--fs-xl: clamp(1.25rem, 1.18rem + 0.4vw, 1.5rem);
+		--fs-2xl: clamp(1.5rem, 1.38rem + 0.6vw, 2rem);
+		--fs-3xl: clamp(1.875rem, 1.68rem + 0.95vw, 2.5rem);
+		--fs-4xl: clamp(2.25rem, 1.92rem + 1.6vw, 3.25rem);
+
+		/* ---------------------------------------------------------------------
+		   SPACING — rem-based scale; names preserved verbatim for back-compat.
+		   --------------------------------------------------------------------- */
+		--space-0: 0;
+		--space-px: 1px;
+		--space-0-5: 0.125rem;
+		--space-1: 0.25rem;
+		--space-1-5: 0.375rem;
+		--space-2: 0.5rem;
+		--space-2-5: 0.625rem;
+		--space-3: 0.75rem;
+		--space-3-5: 0.875rem;
+		--space-4: 1rem;
+		--space-5: 1.25rem;
+		--space-6: 1.5rem;
+		--space-7: 1.75rem;
+		--space-8: 2rem;
+		--space-10: 2.5rem;
+		--space-12: 3rem;
+		--space-16: 4rem;
+		--space-20: 5rem;
+		--space-24: 6rem;
+		--space-28: 7rem;
+		--space-32: 8rem;
+
+		/* ---------------------------------------------------------------------
+		   RADII
+		   --------------------------------------------------------------------- */
+		--radius-none: 0;
+		--radius-sm: 0.125rem;
+		--radius-default: 0.25rem;
+		--radius-md: 0.375rem;
+		--radius-lg: 0.5rem;
+		--radius-xl: 0.75rem;
+		--radius-2xl: 1rem;
+		--radius-3xl: 1.5rem;
+		--radius-full: 9999px;
+
+		/* ---------------------------------------------------------------------
+		   SHADOWS — OKLCH-derived, with alpha for depth
+		   Ink color = neutral-900 at varied alpha, tuned for light surfaces.
+		   --------------------------------------------------------------------- */
+		--shadow-ink: oklch(0.15 0.03 252 / 0.1);
+		--shadow-ink-soft: oklch(0.15 0.03 252 / 0.06);
+		--shadow-ink-strong: oklch(0.12 0.03 252 / 0.25);
+
+		--shadow-sm: 0 1px 2px 0 var(--shadow-ink-soft);
+		--shadow-default: 0 1px 3px 0 var(--shadow-ink), 0 1px 2px -1px var(--shadow-ink);
+		--shadow-md: 0 4px 6px -1px var(--shadow-ink), 0 2px 4px -2px var(--shadow-ink);
+		--shadow-lg: 0 10px 15px -3px var(--shadow-ink), 0 4px 6px -4px var(--shadow-ink);
+		--shadow-xl: 0 20px 25px -5px var(--shadow-ink), 0 8px 10px -6px var(--shadow-ink);
+		--shadow-2xl: 0 25px 50px -12px var(--shadow-ink-strong);
+
+		/* ---------------------------------------------------------------------
+		   Z-INDEX
+		   --------------------------------------------------------------------- */
+		--z-0: 0;
+		--z-10: 10;
+		--z-20: 20;
+		--z-30: 30;
+		--z-40: 40;
+		--z-50: 50;
+
+		/* ---------------------------------------------------------------------
+		   MOTION — durations + easings
+		   --------------------------------------------------------------------- */
+		--duration-75: 75ms;
+		--duration-100: 100ms;
+		--duration-150: 150ms;
+		--duration-200: 200ms;
+		--duration-300: 300ms;
+		--duration-500: 500ms;
+		--duration-700: 700ms;
+		--duration-1000: 1000ms;
+
+		--ease-linear: linear;
+		--ease-in: cubic-bezier(0.4, 0, 1, 1);
+		--ease-out: cubic-bezier(0, 0, 0.2, 1);
+		--ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+		--ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+
+		/* ---------------------------------------------------------------------
+		   CONTAINERS — preserved names
+		   --------------------------------------------------------------------- */
+		--container-xs: 340px;
+		--container-sm: 820px;
+		--container-md: 960px;
+		--container-max: 1200px;
+		--container-lg: 1440px;
+		--container-xl: 1680px;
 	}
 }

@@ -1,3 +1,10 @@
+/**
+ * @deprecated FDN-02 — this file is the legacy hand-written DTO mirror. Prefer
+ * importing from `./schema.d.ts` (generated from the committed OpenAPI snapshot
+ * by `scripts/openapi-to-ts.mjs`). Kept alive because many consumers still
+ * import from here; new code should use the generated types.
+ */
+
 export interface AuthResponse {
 	user: UserResponse;
 	access_token: string;

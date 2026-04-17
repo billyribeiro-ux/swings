@@ -18,7 +18,18 @@ const MAX_EVENTS_PER_REQUEST: usize = 64;
 const MAX_PATH_LEN: usize = 2048;
 
 /// Public ingest for SPA analytics (optional Bearer links session to logged-in user).
-async fn ingest_events(
+#[utoipa::path(
+    post,
+    path = "/api/analytics/events",
+    tag = "analytics",
+    request_body = AnalyticsIngestRequest,
+    responses(
+        (status = 200, description = "Events accepted"),
+        (status = 400, description = "Malformed event batch"),
+        (status = 429, description = "Rate-limited")
+    )
+)]
+pub(crate) async fn ingest_events(
     State(state): State<AppState>,
     opt: OptionalAuthUser,
     Json(req): Json<AnalyticsIngestRequest>,

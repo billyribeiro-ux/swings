@@ -1,0 +1,12 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"consent_banner_title": "نحن نقدر خصوصيتك",
+	"consent_banner_accept_all": "قبول الكل",
+	"consent_banner_reject_all": "رفض الكل",
+	"consent_banner_customize": "تخصيص",
+	"consent_banner_save_preferences": "حفظ التفضيلات",
+	"consent_banner_privacy_policy_label": "سياسة الخصوصية",
+	"consent_preferences_cancel": "إلغاء",
+	"consent_preferences_required_tag": "مطلوب",
+	"unsubscribe_title": "إلغاء الاشتراك"
+}

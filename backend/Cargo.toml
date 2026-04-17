@@ -27,7 +27,7 @@ uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 dotenvy = "0.15"
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 thiserror = "2"
 anyhow = "1"
 sha2 = "0.10"
@@ -46,9 +46,21 @@ sanitize-filename = "0.6"
 lettre = { version = "0.11", default-features = false, features = ["tokio1-rustls-tls", "builder", "smtp-transport", "tokio1"] }
 tera = "1"
 rand = "0.8"
+# Resend provider HTTP client. Using `reqwest` directly (rather than `resend-rs`)
+# keeps the dependency tree narrow: rustls-only TLS, JSON body builder, no
+# default-features OpenSSL pull. async-trait only lands because the provider
+# trait returns `async fn` — without it the trait is not object-safe.
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+async-trait = "0.1"
 
 # Decimal
 rust_decimal = { version = "1", features = ["serde-with-str"] }
+
+# FORM-02: validation engine dependencies. `regex` for `pattern` rules,
+# `url` for `url` format parsing, both already transitively in the tree so
+# the build is cheap.
+regex = "1"
+url = "2"
 
 # R2 (S3 API)
 aws-sdk-s3 = { version = "1", default-features = false, features = ["rt-tokio", "rustls"] }
@@ -57,3 +69,32 @@ bytes = "1"
 # Rate limiting
 governor = "0.10"
 tower_governor = "0.8"
+
+# Geo (GeoLite2-Country reader)
+maxminddb = "0.25"
+
+# User-agent parsing + cache
+woothee = "0.13"
+moka = { version = "0.12", features = ["sync"] }
+
+# HTML sanitization
+ammonia = "4"
+
+# OpenAPI (FDN-02)
+utoipa = { version = "5.4", features = ["axum_extras", "chrono", "uuid", "preserve_order"] }
+utoipa-axum = "0.2"
+utoipa-swagger-ui = { version = "9.0", features = ["axum"] }
+
+# Observability (Phase 4 follow-on to FDN-08)
+metrics = "0.24"
+metrics-exporter-prometheus = "0.17"
+
+# EC-06: PDF invoice / receipt / credit-note generation. `printpdf` is pure
+# Rust, has no system deps, and ships with its own Helvetica subset so we do
+# not need to bundle a TTF for first-line invoices.
+printpdf = "0.7"
+
+[dev-dependencies]
+# Mock HTTP server for provider tests. Pinned to 0.6 (hyper 1 / rustls) to
+# match reqwest 0.12's transport stack so the TLS runtime doesn't fork.
+wiremock = "0.6"
