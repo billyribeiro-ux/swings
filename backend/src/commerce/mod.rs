@@ -27,9 +27,15 @@ pub mod downloads;
 pub mod memberships;
 pub mod orders;
 pub mod products;
+pub mod reports;
 pub mod repo;
 pub mod subscriptions;
 pub mod tax;
+
+pub use reports::{
+    churn_rate, cohort_ltv, coupon_performance, lifetime_value_for_user, mrr_arr,
+    revenue_summary, ChurnRate, CohortPoint, CouponPerformance, MrrArr, RevenueSummary,
+};
 
 pub use memberships::{
     can_access, cancel_membership, create_plan as create_membership_plan, grant_membership,
