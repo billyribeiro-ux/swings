@@ -1,5 +1,6 @@
 use axum::{
     extract::{Path, Query, State},
+    response::IntoResponse,
     routing::{delete, get, post, put},
     Json, Router,
 };
@@ -33,6 +34,8 @@ pub fn admin_router() -> Router<AppState> {
         .route("/popups/{id}/duplicate", post(admin_duplicate_popup))
         .route("/popups/{id}/submissions", get(admin_list_submissions))
         .route("/popups/{id}/analytics", get(admin_get_analytics))
+        // POP-02 significance test across all variants.
+        .route("/popups/{id}/significance", get(admin_variant_significance))
 }
 
 pub fn public_router() -> Router<AppState> {
@@ -42,6 +45,8 @@ pub fn public_router() -> Router<AppState> {
     // served cache-friendly and relies on the global governor only.
     Router::new()
         .route("/popups/active", get(public_active_popups))
+        // POP-02: sticky per-visitor variant assignment + cookie bake.
+        .route("/popups/{id}/variant", get(public_variant_for_popup))
         .merge(
             Router::new()
                 .route("/popups/event", post(public_track_event))
@@ -827,4 +832,166 @@ fn granularity_to_trunc(granularity: &str) -> &str {
         "month" => "month",
         _ => "day",
     }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// POP-02: A/B VARIANTS
+// ══════════════════════════════════════════════════════════════════════
+
+use crate::popups::{
+    significance::{self, SamplePoint},
+    variants::{self as variants_mod, PopupVariant},
+};
+
+const ANONYMOUS_ID_HEADER: &str = "X-Anonymous-Id";
+
+#[utoipa::path(
+    get,
+    path = "/api/popups/{id}/variant",
+    tag = "popups",
+    params(("id" = Uuid, Path, description = "Popup id")),
+    responses(
+        (status = 200, description = "Assigned variant"),
+        (status = 400, description = "Missing anonymous id"),
+        (status = 404, description = "Popup not found or has no variants")
+    )
+)]
+pub(crate) async fn public_variant_for_popup(
+    State(state): State<AppState>,
+    headers: axum::http::HeaderMap,
+    Path(id): Path<Uuid>,
+) -> AppResult<axum::response::Response> {
+    let anon_raw = headers
+        .get(ANONYMOUS_ID_HEADER)
+        .and_then(|v| v.to_str().ok())
+        .ok_or_else(|| {
+            AppError::BadRequest(format!("Missing {ANONYMOUS_ID_HEADER} header"))
+        })?;
+    let anon = Uuid::parse_str(anon_raw)
+        .map_err(|_| AppError::BadRequest(format!("{ANONYMOUS_ID_HEADER} is not a valid UUID")))?;
+
+    let rows = sqlx::query_as::<_, PopupVariant>(
+        r#"
+        SELECT id, popup_id, name, content_json, style_json, traffic_weight,
+               is_winner, created_at
+        FROM popup_variants
+        WHERE popup_id = $1
+        ORDER BY created_at ASC
+        "#,
+    )
+    .bind(id)
+    .fetch_all(&state.db)
+    .await?;
+
+    let chosen = variants_mod::assign_variant(id, anon, &rows)
+        .ok_or(AppError::NotFound("No variants configured".to_string()))?;
+
+    let body = serde_json::json!({
+        "popup_id": id,
+        "variant_id": chosen.id,
+        "name": chosen.name,
+        "content_json": chosen.content_json,
+        "style_json": chosen.style_json,
+    });
+
+    let cookie = format!(
+        "{name}={value}; Path=/; Max-Age={ttl}; SameSite=Lax",
+        name = variants_mod::cookie_name(id),
+        value = chosen.id,
+        ttl = 60 * 60 * 24 * 30,
+    );
+    let mut resp = Json(body).into_response();
+    resp.headers_mut().insert(
+        axum::http::header::SET_COOKIE,
+        axum::http::HeaderValue::from_str(&cookie)
+            .map_err(|e| AppError::Internal(anyhow::anyhow!("cookie build: {e}")))?,
+    );
+    Ok(resp)
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/admin/popups/{id}/significance",
+    tag = "popups",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Popup id")),
+    responses(
+        (status = 200, description = "Pairwise z-test results"),
+        (status = 404, description = "Popup not found")
+    )
+)]
+pub(crate) async fn admin_variant_significance(
+    State(state): State<AppState>,
+    _admin: AdminUser,
+    Path(id): Path<Uuid>,
+) -> AppResult<Json<serde_json::Value>> {
+    let popup_exists: bool =
+        sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM popups WHERE id = $1)")
+            .bind(id)
+            .fetch_one(&state.db)
+            .await?;
+    if !popup_exists {
+        return Err(AppError::NotFound("Popup not found".to_string()));
+    }
+
+    let variants = sqlx::query_as::<_, PopupVariant>(
+        r#"
+        SELECT id, popup_id, name, content_json, style_json, traffic_weight,
+               is_winner, created_at
+        FROM popup_variants
+        WHERE popup_id = $1
+        ORDER BY created_at ASC
+        "#,
+    )
+    .bind(id)
+    .fetch_all(&state.db)
+    .await?;
+
+    // For each variant, impressions = events.count where event_type='impression',
+    // conversions = submissions.count. Scoped to variant_id so we isolate
+    // each arm even if the legacy rows (NULL variant_id) exist.
+    let mut samples: Vec<SamplePoint> = Vec::with_capacity(variants.len());
+    for v in &variants {
+        let impressions: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM popup_events WHERE variant_id = $1 AND event_type = 'impression'",
+        )
+        .bind(v.id)
+        .fetch_one(&state.db)
+        .await?;
+        let conversions: i64 =
+            sqlx::query_scalar("SELECT COUNT(*) FROM popup_submissions WHERE variant_id = $1")
+                .bind(v.id)
+                .fetch_one(&state.db)
+                .await?;
+        samples.push(SamplePoint {
+            variant_id: v.id,
+            impressions,
+            conversions,
+        });
+    }
+
+    // Pairwise z-tests. For 2 variants this is the classic control-vs-
+    // treatment; for 3+ we report every pair so the admin can pick the
+    // dominant arm without re-running the math client-side.
+    let mut pairs = Vec::new();
+    for i in 0..samples.len() {
+        for j in (i + 1)..samples.len() {
+            let r = significance::two_proportion_z_test(samples[i], samples[j], 0.05);
+            pairs.push(r);
+        }
+    }
+
+    Ok(Json(serde_json::json!({
+        "popup_id": id,
+        "variants": variants,
+        "samples": samples
+            .iter()
+            .map(|s| serde_json::json!({
+                "variant_id": s.variant_id,
+                "impressions": s.impressions,
+                "conversions": s.conversions,
+            }))
+            .collect::<Vec<_>>(),
+        "pairwise": pairs,
+    })))
 }
