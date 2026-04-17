@@ -158,6 +158,17 @@
 		return out;
 	});
 
+	/** Page break labels become step names. First step falls back to 'Start'. */
+	const stepLabels = $derived.by(() => {
+		const out: string[] = ['Start'];
+		for (const f of schema) {
+			if (f.type === 'page_break') {
+				out.push(f.label && f.label.length > 0 ? f.label : `Step ${out.length + 1}`);
+			}
+		}
+		return out;
+	});
+
 	const totalSteps = $derived(steps.length);
 	const isMultiStep = $derived(totalSteps > 1);
 	const currentFields = $derived(steps[Math.min(currentStep, steps.length - 1)] ?? []);
@@ -289,7 +300,7 @@
 
 <form class="fm-form" novalidate onsubmit={handleSubmit} aria-labelledby="fm-form-title">
 	{#if isMultiStep}
-		<StepProgress current={currentStep} total={totalSteps} />
+		<StepProgress current={currentStep} total={totalSteps} labels={stepLabels} />
 	{/if}
 
 	{#if errors.length > 0}
