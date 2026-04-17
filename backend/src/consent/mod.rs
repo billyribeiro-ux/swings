@@ -11,9 +11,11 @@
 //!     swap is mechanical.
 
 pub mod dsar_export;
+pub mod geo;
 pub mod records;
 pub mod repo;
 
+pub use geo::resolve_region;
 pub use records::{
     count_dsar_requests, create_dsar_request, fulfill_dsar, get_dsar, hash_ip, hash_ip_at,
     insert_consent_record, list_dsar_requests, list_records_for_subject, ConsentRecordInput,

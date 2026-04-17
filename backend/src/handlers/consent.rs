@@ -1,23 +1,24 @@
 //! CONSENT-01 — public banner config endpoint.
 //! CONSENT-03 — consent event log (`POST /record`, `GET /me`) + DSAR workflow
 //! (`POST /api/dsar`, admin router under `/api/admin/consent`).
+//! CONSENT-05 — geo-resolved banner region variants.
 //!
-//! `GET /api/consent/banner?locale=<bcp47>` resolves the active banner config
-//! for the request's `(region, locale)` pair via
+//! `GET /api/consent/banner?locale=<bcp47>&region=<override>` resolves the
+//! active banner config for the request's `(region, locale)` pair via
 //! [`crate::consent::repo::resolve_banner`] and returns it alongside the
 //! category catalogue and current policy version.
 //!
-//! Region resolution is a CONSENT-05 concern; this handler currently passes
-//! `"default"` so the single seeded row is always returned. When CONSENT-05
-//! lands the geo resolver, only [`resolve_region`] below changes — the rest
-//! of the response shape is already region-aware.
+//! Region is resolved server-side from the request headers (Cloudflare /
+//! Vercel country headers + MaxMind fallback) through
+//! [`crate::consent::geo::resolve_region`]. The optional `region` query
+//! parameter is a dev/test affordance; production callers should omit it.
 //!
 //! The response shape is the wire contract consumed by `src/lib/api/consent.ts`
 //! on the frontend; the Svelte banner hydrates directly from this payload.
 //! Admin CRUD for banners/categories/services/policies belongs to CONSENT-07
 //! and lives under `/api/admin/consent/*`.
 
-use std::net::SocketAddr;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use axum::{
     extract::{ConnectInfo, Path, Query, State},
@@ -32,8 +33,10 @@ use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
 use crate::{
+    common::geo::country_from_request,
     consent::{
         dsar_export,
+        geo as region_resolver,
         records::{
             self, ConsentRecordInput, ConsentRecordRow, DsarCreateInput, DsarRow, SubjectSelector,
         },
@@ -81,6 +84,10 @@ pub fn admin_router() -> Router<AppState> {
 pub struct BannerQuery {
     /// BCP-47 locale tag. Falls back to `en` when missing or unrecognised.
     pub locale: Option<String>,
+    /// Optional region override. Production clients should omit this — the
+    /// server resolves the region from request headers. Dev / admin preview
+    /// forces it so an admin can see the EU banner without spoofing headers.
+    pub region: Option<String>,
 }
 
 /// Single-category entry in the banner response.
@@ -191,7 +198,8 @@ pub struct BannerConfig {
     path = "/api/consent/banner",
     tag = "consent",
     params(
-        ("locale" = Option<String>, Query, description = "BCP-47 locale tag; defaults to 'en'.")
+        ("locale" = Option<String>, Query, description = "BCP-47 locale tag; defaults to 'en'."),
+        ("region" = Option<String>, Query, description = "Regulatory region override (EU, UK, US-CA, …). Usually omitted — server resolves from request headers.")
     ),
     responses(
         (status = 200, description = "Resolved banner config", body = BannerConfig),
@@ -200,10 +208,12 @@ pub struct BannerConfig {
 )]
 pub async fn get_banner(
     State(state): State<AppState>,
+    headers: HeaderMap,
+    connect: ConnectInfo<SocketAddr>,
     Query(q): Query<BannerQuery>,
 ) -> AppResult<Json<BannerConfig>> {
     let locale = normalise_locale(q.locale.as_deref());
-    let region = resolve_region();
+    let region = resolve_region_from_request(&headers, Some(connect), q.region.as_deref());
 
     let banner = repo::resolve_banner(&state.db, &region, &locale)
         .await?
@@ -264,11 +274,37 @@ fn normalise_locale(raw: Option<&str>) -> String {
     }
 }
 
-/// Region resolver. CONSENT-01 returns the literal `"default"`; CONSENT-05
-/// will replace this with a `common::geo`-backed lookup that maps
-/// country-codes onto the `EU` / `US-CA` / etc. buckets the admin configures.
-fn resolve_region() -> String {
-    "default".to_string()
+/// CONSENT-05 region resolver. Honors (in order):
+///
+///   1. An explicit `?region=` query override (dev / admin preview only —
+///      trimmed + truncated to 16 chars so a malicious caller can't force an
+///      index scan on a giant string).
+///   2. `common::geo::country_from_request(..)` → `consent::geo::resolve_region`.
+///   3. The literal `"default"` bucket when no country can be determined.
+///
+/// The resulting string is always one of the admin-configured bucket names
+/// (`default`, `EU`, `UK`, `US-CA`, `US-CO`, `US-STATE`, `CA`, `CA-QC`, `BR`).
+fn resolve_region_from_request(
+    headers: &HeaderMap,
+    connect: Option<ConnectInfo<SocketAddr>>,
+    override_param: Option<&str>,
+) -> String {
+    if let Some(raw) = override_param {
+        let trimmed = raw.trim();
+        if !trimmed.is_empty() {
+            // Bound the string so a pathological query can't OOM a row lookup.
+            let bounded: String = trimmed.chars().take(16).collect();
+            return bounded;
+        }
+    }
+
+    let remote_ip: IpAddr = connect
+        .as_ref()
+        .map(|c| c.0.ip())
+        .unwrap_or_else(|| IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)));
+
+    let country = country_from_request(headers, remote_ip);
+    region_resolver::resolve_region(country).to_string()
 }
 
 fn parse_copy(value: &serde_json::Value) -> Option<BannerCopy> {
@@ -382,7 +418,7 @@ pub(crate) async fn post_record(
     // Resolve banner/policy versions. If the client did not supply them, look
     // up the current active banner for the request's region+locale so the
     // audit row carries the version the subject actually saw.
-    let region = resolve_region();
+    let region = resolve_region_from_request(&headers, Some(ConnectInfo(peer)), None);
     let (banner_version, policy_version) =
         if let (Some(bv), Some(pv)) = (req.banner_version, req.policy_version) {
             (bv, pv)

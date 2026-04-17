@@ -147,11 +147,26 @@ export const STUB_BANNER_CONFIG: BannerConfig = {
  * observability still picks it up without polluting the console in the
  * common-case dev flow where the backend is offline.
  *
- * `locale` accepts any BCP-47 tag; the server normalises to its primary
- * subtag until CONSENT-06 lands the translation catalogues.
+ * `locale` accepts any BCP-47 tag. When omitted, the caller's
+ * `navigator.language` is used so the server can pick a matching banner
+ * locale without a second round-trip.
+ *
+ * `region` is normally NOT passed by the client — the server resolves the
+ * regulatory bucket from request headers (CF-IPCountry etc.). The override
+ * exists for admin-preview flows where the admin wants to see the EU
+ * banner without spoofing headers.
  */
-export async function fetchBannerConfig(locale?: string): Promise<BannerConfig> {
-	const qs = locale ? `?locale=${encodeURIComponent(locale)}` : '';
+export async function fetchBannerConfig(
+	locale?: string,
+	region?: string
+): Promise<BannerConfig> {
+	const params = new URLSearchParams();
+	const resolvedLocale =
+		locale ??
+		(typeof navigator !== 'undefined' && navigator.language ? navigator.language : undefined);
+	if (resolvedLocale) params.set('locale', resolvedLocale);
+	if (region) params.set('region', region);
+	const qs = params.toString() ? `?${params.toString()}` : '';
 	try {
 		return await api.get<BannerConfig>(`/api/consent/banner${qs}`, { skipAuth: true });
 	} catch (err) {
