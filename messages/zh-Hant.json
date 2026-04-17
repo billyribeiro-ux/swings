@@ -1,0 +1,12 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"consent_banner_title": "我們重視您的隱私",
+	"consent_banner_accept_all": "全部接受",
+	"consent_banner_reject_all": "全部拒絕",
+	"consent_banner_customize": "自訂",
+	"consent_banner_save_preferences": "儲存偏好",
+	"consent_banner_privacy_policy_label": "隱私權政策",
+	"consent_preferences_cancel": "取消",
+	"consent_preferences_required_tag": "必需",
+	"unsubscribe_title": "取消訂閱"
+}

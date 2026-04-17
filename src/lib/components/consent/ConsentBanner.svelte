@@ -36,11 +36,36 @@
 	import Button from '$lib/components/shared/Button.svelte';
 	import Dialog from '$lib/components/shared/Dialog.svelte';
 	import ConsentPreferencesModal from './ConsentPreferencesModal.svelte';
+	import { translateOrFallback } from '$lib/i18n/paraglide';
 
 	const { config, layout, position, forceOpen = false }: ConsentBannerProps = $props();
 
 	const effectiveLayout = $derived<BannerLayout>(layout ?? config.layout);
 	const effectivePosition = $derived<BannerPosition>(position ?? config.position);
+
+	// CONSENT-06: translation-with-fallback. The server-provided `config.copy`
+	// is authoritative — translations merely override. A missing catalogue key
+	// therefore never shows a raw `consent_banner_title` identifier to the
+	// user; it always degrades to the English copy from the admin payload.
+	const title = $derived(translateOrFallback('consent_banner_title', config.copy.title));
+	const body = $derived(translateOrFallback('consent_banner_body', config.copy.body));
+	const acceptAllLabel = $derived(
+		translateOrFallback('consent_banner_accept_all', config.copy.acceptAll)
+	);
+	const rejectAllLabel = $derived(
+		translateOrFallback('consent_banner_reject_all', config.copy.rejectAll)
+	);
+	const customizeLabel = $derived(
+		translateOrFallback('consent_banner_customize', config.copy.customize)
+	);
+	const privacyPolicyLabel = $derived(
+		config.copy.privacyPolicyLabel
+			? translateOrFallback(
+					'consent_banner_privacy_policy_label',
+					config.copy.privacyPolicyLabel
+				)
+			: undefined
+	);
 
 	let preferencesOpen = $state(false);
 
@@ -66,25 +91,25 @@
 {#snippet bannerBody()}
 	<div class="content">
 		<div class="copy">
-			<h2 id="consent-banner-title" class="title">{config.copy.title}</h2>
+			<h2 id="consent-banner-title" class="title">{title}</h2>
 			<p class="body">
-				{config.copy.body}
-				{#if config.copy.privacyPolicyHref && config.copy.privacyPolicyLabel}
+				{body}
+				{#if config.copy.privacyPolicyHref && privacyPolicyLabel}
 					<a class="policy-link" href={config.copy.privacyPolicyHref}>
-						{config.copy.privacyPolicyLabel}
+						{privacyPolicyLabel}
 					</a>
 				{/if}
 			</p>
 		</div>
 		<div class="actions" role="group" aria-label="Consent actions">
 			<Button variant="tertiary" size="md" onclick={handleCustomize}>
-				{config.copy.customize}
+				{customizeLabel}
 			</Button>
 			<Button variant="secondary" size="md" onclick={handleRejectAll}>
-				{config.copy.rejectAll}
+				{rejectAllLabel}
 			</Button>
 			<Button variant="primary" size="md" onclick={handleAcceptAll}>
-				{config.copy.acceptAll}
+				{acceptAllLabel}
 			</Button>
 		</div>
 	</div>
@@ -93,8 +118,8 @@
 {#if isVisible && effectiveLayout === 'popup'}
 	<Dialog
 		open
-		title={config.copy.title}
-		description={config.copy.body}
+		title={title}
+		description={body}
 		size="md"
 		closeOnBackdrop={false}
 		closeOnEscape={false}
@@ -102,19 +127,19 @@
 		<div class="popup-inner" role="region" aria-label="Cookie consent">
 			<div class="actions" role="group" aria-label="Consent actions">
 				<Button variant="tertiary" size="md" fullWidth onclick={handleCustomize}>
-					{config.copy.customize}
+					{customizeLabel}
 				</Button>
 				<Button variant="secondary" size="md" fullWidth onclick={handleRejectAll}>
-					{config.copy.rejectAll}
+					{rejectAllLabel}
 				</Button>
 				<Button variant="primary" size="md" fullWidth onclick={handleAcceptAll}>
-					{config.copy.acceptAll}
+					{acceptAllLabel}
 				</Button>
 			</div>
-			{#if config.copy.privacyPolicyHref && config.copy.privacyPolicyLabel}
+			{#if config.copy.privacyPolicyHref && privacyPolicyLabel}
 				<p class="policy-note">
 					<a class="policy-link" href={config.copy.privacyPolicyHref}>
-						{config.copy.privacyPolicyLabel}
+						{privacyPolicyLabel}
 					</a>
 				</p>
 			{/if}

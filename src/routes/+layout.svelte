@@ -18,6 +18,7 @@
 	import { installGcmBridge } from '$lib/consent/gcm';
 	import { installTcfApi } from '$lib/consent/tcf';
 	import { consent } from '$lib/stores/consent.svelte';
+	import { setLocale } from '$lib/i18n/paraglide';
 
 	let { children } = $props();
 
@@ -27,8 +28,17 @@
 	let bannerConfig = $state<BannerConfig>(STUB_BANNER_CONFIG);
 	$effect(() => {
 		if (!browser) return;
+		// CONSENT-06: pick up `navigator.language` before the fetch so the
+		// i18n layer renders in the subject's preferred locale before the
+		// network response lands. The server-side banner response then
+		// overrides both the copy and (if the admin configured a locale
+		// variant) the locale itself.
+		if (typeof navigator !== 'undefined' && navigator.language) {
+			setLocale(navigator.language);
+		}
 		void fetchBannerConfig().then((cfg) => {
 			bannerConfig = cfg;
+			if (cfg.locale) setLocale(cfg.locale);
 		});
 	});
 

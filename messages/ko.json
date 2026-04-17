@@ -1,0 +1,12 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"consent_banner_title": "개인정보를 소중히 여깁니다",
+	"consent_banner_accept_all": "모두 동의",
+	"consent_banner_reject_all": "모두 거부",
+	"consent_banner_customize": "맞춤 설정",
+	"consent_banner_save_preferences": "기본 설정 저장",
+	"consent_banner_privacy_policy_label": "개인정보 처리방침",
+	"consent_preferences_cancel": "취소",
+	"consent_preferences_required_tag": "필수",
+	"unsubscribe_title": "수신 거부"
+}

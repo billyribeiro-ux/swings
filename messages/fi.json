@@ -1,0 +1,12 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"consent_banner_title": "Kunnioitamme yksityisyyttäsi",
+	"consent_banner_accept_all": "Hyväksy kaikki",
+	"consent_banner_reject_all": "Hylkää kaikki",
+	"consent_banner_customize": "Mukauta",
+	"consent_banner_save_preferences": "Tallenna asetukset",
+	"consent_banner_privacy_policy_label": "Tietosuojaseloste",
+	"consent_preferences_cancel": "Peruuta",
+	"consent_preferences_required_tag": "Pakollinen",
+	"unsubscribe_title": "Lopeta tilaus"
+}

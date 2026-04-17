@@ -32,8 +32,25 @@
 	import { consent } from '$lib/stores/consent.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
 	import Dialog from '$lib/components/shared/Dialog.svelte';
+	import { translateOrFallback } from '$lib/i18n/paraglide';
 
 	const { open, categories, copy, onclose }: ConsentPreferencesModalProps = $props();
+
+	// CONSENT-06: translation-with-fallback. Server copy is authoritative.
+	const modalTitle = $derived(translateOrFallback('consent_preferences_title', copy.customize));
+	const modalDescription = $derived(
+		translateOrFallback(
+			'consent_preferences_description',
+			"Choose exactly which categories we're allowed to use. Your choice is saved locally and applies to every page on this site."
+		)
+	);
+	const cancelLabel = $derived(translateOrFallback('consent_preferences_cancel', 'Cancel'));
+	const requiredTag = $derived(
+		translateOrFallback('consent_preferences_required_tag', 'Required')
+	);
+	const saveLabel = $derived(
+		translateOrFallback('consent_banner_save_preferences', copy.savePreferences)
+	);
 
 	// Local draft — the user can toggle freely and only commit on "Save".
 	// Reseed only on `open` transitions; changes to `categories` or the consent
@@ -68,8 +85,8 @@
 <Dialog
 	{open}
 	{onclose}
-	title={copy.customize}
-	description="Choose exactly which categories we're allowed to use. Your choice is saved locally and applies to every page on this site."
+	title={modalTitle}
+	description={modalDescription}
 	size="md"
 >
 	<ul class="category-list" aria-label="Consent categories">
@@ -81,7 +98,7 @@
 					<p class="category-label">
 						{cat.label}
 						{#if cat.required}
-							<span class="required-tag" aria-hidden="true">Required</span>
+							<span class="required-tag" aria-hidden="true">{requiredTag}</span>
 							<span class="sr-only"> (always on)</span>
 						{/if}
 					</p>
@@ -108,8 +125,8 @@
 		{/each}
 	</ul>
 	{#snippet footer()}
-		<Button variant="tertiary" onclick={onclose}>Cancel</Button>
-		<Button variant="primary" onclick={handleSave}>{copy.savePreferences}</Button>
+		<Button variant="tertiary" onclick={onclose}>{cancelLabel}</Button>
+		<Button variant="primary" onclick={handleSave}>{saveLabel}</Button>
 	{/snippet}
 </Dialog>
 

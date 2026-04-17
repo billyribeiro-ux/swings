@@ -1,0 +1,15 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"consent_banner_title": "Valorizamos sua privacidade",
+	"consent_banner_body": "Usamos cookies e tecnologias semelhantes para operar o site, entender seu uso e — com sua permissão — personalizar o conteúdo.",
+	"consent_banner_accept_all": "Aceitar tudo",
+	"consent_banner_reject_all": "Rejeitar tudo",
+	"consent_banner_customize": "Personalizar",
+	"consent_banner_save_preferences": "Salvar preferências",
+	"consent_banner_privacy_policy_label": "Política de privacidade",
+	"consent_preferences_title": "Preferências de cookies",
+	"consent_preferences_cancel": "Cancelar",
+	"consent_preferences_required_tag": "Obrigatório",
+	"unsubscribe_title": "Cancelar inscrição",
+	"unsubscribe_confirm": "Confirmar cancelamento"
+}
