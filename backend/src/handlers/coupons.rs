@@ -34,9 +34,16 @@ pub fn admin_router() -> Router<AppState> {
 // ── Public Coupon Router ───────────────────────────────────────────────
 
 pub fn public_router() -> Router<AppState> {
+    // FDN-08: apply is authenticated + side-effectful (consumes coupon
+    // redemptions), so it's rate-limited 5/min/user. `validate` is a pure
+    // preview and stays on the global governor only.
     Router::new()
         .route("/coupons/validate", post(public_validate_coupon))
-        .route("/coupons/apply", post(public_apply_coupon))
+        .merge(
+            Router::new()
+                .route("/coupons/apply", post(public_apply_coupon))
+                .layer(crate::middleware::rate_limit::coupon_apply_layer()),
+        )
 }
 
 // ── Query / Request / Response types ───────────────────────────────────

@@ -15,7 +15,10 @@ use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use swings_api::{authz, config::Config, db, email, events, handlers, openapi, services, AppState};
+use swings_api::{
+    authz, config::Config, db, email, events, handlers, middleware::rate_limit, openapi, services,
+    AppState,
+};
 
 /// `dotenvy::dotenv()` only reads `./.env` from the process CWD. When invoked as
 /// `cargo run --manifest-path backend/Cargo.toml` from the repo root, CWD is the root and env
@@ -113,6 +116,10 @@ async fn main() -> Result<()> {
     // handlers (and `main` itself) can trigger a cooperative shutdown.
     let outbox_shutdown = events::WorkerShutdown::new();
 
+    // FDN-08: rate-limit backend selection (governor in-process vs Postgres
+    // sliding-window). Honors `RATE_LIMIT_BACKEND=inprocess|postgres`.
+    let rate_limit_backend = rate_limit::Backend::from_env(pool.clone());
+
     let state = AppState {
         db: pool,
         config: Arc::new(config),
@@ -120,6 +127,7 @@ async fn main() -> Result<()> {
         media_backend,
         policy: Arc::new(policy),
         outbox_shutdown: outbox_shutdown.clone(),
+        rate_limit: rate_limit_backend,
     };
 
     // FDN-04: build the outbox dispatcher (pattern → handler registry) and
@@ -219,7 +227,9 @@ async fn main() -> Result<()> {
         .nest("/api/member", handlers::member::router())
         .nest("/api/member", handlers::courses::member_router())
         // Webhooks
-        .nest("/api/webhooks", handlers::webhooks::router());
+        .nest("/api/webhooks", handlers::webhooks::router())
+        // Security reports (FDN-08)
+        .nest("/api", handlers::csp_report::router());
 
     if mount_local_uploads {
         app = app.nest_service("/uploads", ServeDir::new(&upload_dir));

@@ -4,6 +4,7 @@ pub mod auth;
 pub mod blog;
 pub mod coupons;
 pub mod courses;
+pub mod csp_report;
 pub mod member;
 pub mod outbox;
 pub mod popups;

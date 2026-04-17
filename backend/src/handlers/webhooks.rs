@@ -12,7 +12,11 @@ use sha2::Sha256;
 use crate::{db, models::*, AppState};
 
 pub fn router() -> Router<AppState> {
-    Router::new().route("/stripe", post(stripe_webhook))
+    // FDN-08: 500/min/source. Burst-friendly (Stripe retry storms) but
+    // guards against a wedged sender from flooding the pipe.
+    Router::new()
+        .route("/stripe", post(stripe_webhook))
+        .layer(crate::middleware::rate_limit::webhooks_layer())
 }
 
 #[utoipa::path(

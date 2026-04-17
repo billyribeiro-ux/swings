@@ -37,4 +37,8 @@ pub struct AppState {
     /// FDN-04 broadcast handle used to tell outbox workers (spawned in
     /// `main.rs`) to drain and exit at shutdown time.
     pub outbox_shutdown: events::WorkerShutdown,
+    /// FDN-08: distributed-quota rate-limit backend. Selected via
+    /// `RATE_LIMIT_BACKEND=inprocess|postgres` at startup; used by the
+    /// Postgres middleware path, inert for the in-process (governor) path.
+    pub rate_limit: middleware::rate_limit::Backend,
 }

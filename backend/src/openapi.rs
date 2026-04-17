@@ -21,7 +21,10 @@ use utoipa_swagger_ui::SwaggerUi;
 
 use crate::{
     extractors::AdminUser,
-    handlers::{admin, analytics, auth, blog, coupons, courses, member, outbox, popups, webhooks},
+    handlers::{
+        admin, analytics, auth, blog, coupons, courses, csp_report, member, outbox, popups,
+        webhooks,
+    },
     AppState,
 };
 
@@ -63,6 +66,7 @@ impl Modify for SecurityAddon {
         (name = "member", description = "Authenticated member self-service"),
         (name = "popups", description = "Popup campaigns + submissions"),
         (name = "pricing", description = "Subscription pricing plans"),
+        (name = "security", description = "Security telemetry (CSP violation reports, etc.)"),
         (name = "webhooks", description = "Inbound provider webhooks")
     ),
     paths(
@@ -152,6 +156,8 @@ impl Modify for SecurityAddon {
         crate::handlers::pricing::admin_toggle_plan,
         // Webhooks
         webhooks::stripe_webhook,
+        // Security (FDN-08)
+        csp_report::csp_report,
     ),
     components(
         schemas(

@@ -34,10 +34,22 @@ pub fn admin_router() -> Router<AppState> {
 }
 
 pub fn public_router() -> Router<AppState> {
+    // FDN-08: apply distinct rate-limit layers per submission shape.
+    // Tight (20/min/IP) on form submissions; looser (120/min/IP) on
+    // impression/close event beacons. The `active-popups` listing is
+    // served cache-friendly and relies on the global governor only.
     Router::new()
         .route("/popups/active", get(public_active_popups))
-        .route("/popups/event", post(public_track_event))
-        .route("/popups/submit", post(public_submit_form))
+        .merge(
+            Router::new()
+                .route("/popups/event", post(public_track_event))
+                .layer(crate::middleware::rate_limit::popup_event_layer()),
+        )
+        .merge(
+            Router::new()
+                .route("/popups/submit", post(public_submit_form))
+                .layer(crate::middleware::rate_limit::popup_submit_layer()),
+        )
 }
 
 // ══════════════════════════════════════════════════════════════════════

@@ -15,6 +15,9 @@ use crate::{
 };
 
 pub fn router() -> Router<AppState> {
+    // FDN-08: 120/min/user governs the whole authenticated member surface.
+    // Keying prefers the Bearer `sub` when the Postgres backend is active;
+    // the in-process governor falls back to IP.
     Router::new()
         // Profile
         .route("/profile", get(get_profile))
@@ -30,6 +33,7 @@ pub fn router() -> Router<AppState> {
         // Courses
         .route("/courses", get(get_enrollments))
         .route("/courses/{course_id}/progress", put(update_progress))
+        .layer(crate::middleware::rate_limit::member_layer())
 }
 
 // ── Profile ─────────────────────────────────────────────────────────────

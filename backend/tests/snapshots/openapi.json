@@ -2793,6 +2793,40 @@
         }
       }
     },
+    "/api/csp-report": {
+      "post": {
+        "tags": [
+          "security"
+        ],
+        "summary": "POST /api/csp-report — accept a browser violation report, log it, and\nreturn 204 No Content. Never exposes internal state or reflects the body.",
+        "operationId": "csp_report",
+        "requestBody": {
+          "description": "CSP violation report (application/csp-report or application/reports+json)",
+          "content": {
+            "text/plain": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Report accepted"
+          },
+          "400": {
+            "description": "Malformed report body"
+          },
+          "413": {
+            "description": "Report body exceeds 8KB"
+          },
+          "429": {
+            "description": "Rate-limited"
+          }
+        }
+      }
+    },
     "/api/member/billing-portal": {
       "post": {
         "tags": [
@@ -7294,6 +7328,10 @@
     {
       "name": "pricing",
       "description": "Subscription pricing plans"
+    },
+    {
+      "name": "security",
+      "description": "Security telemetry (CSP violation reports, etc.)"
     },
     {
       "name": "webhooks",

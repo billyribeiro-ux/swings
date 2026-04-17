@@ -873,6 +873,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/csp-report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * POST /api/csp-report — accept a browser violation report, log it, and
+         *     return 204 No Content. Never exposes internal state or reflects the body.
+         */
+        post: operations["csp_report"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/member/billing-portal": {
         parameters: {
             query?: never;
@@ -4505,6 +4525,50 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CouponValidationResponse"];
                 };
+            };
+        };
+    };
+    csp_report: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CSP violation report (application/csp-report or application/reports+json) */
+        requestBody: {
+            content: {
+                "text/plain": string;
+            };
+        };
+        responses: {
+            /** @description Report accepted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Malformed report body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Report body exceeds 8KB */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Rate-limited */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
