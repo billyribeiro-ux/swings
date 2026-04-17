@@ -21,6 +21,7 @@
 //! newtype is applied in the service + handler layers, never in the row layer.
 
 pub mod cart;
+pub mod catalog;
 pub mod checkout;
 pub mod coupons;
 pub mod downloads;
