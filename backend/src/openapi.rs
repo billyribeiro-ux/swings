@@ -22,7 +22,7 @@ use utoipa_swagger_ui::SwaggerUi;
 use crate::{
     extractors::AdminUser,
     handlers::{
-        admin, admin_consent, analytics, auth, blog, consent, coupons, courses, csp_report, member,
+        admin, analytics, auth, blog, consent, coupons, courses, csp_report, forms, member,
         notifications, outbox, popups, webhooks,
     },
     AppState,
@@ -65,6 +65,7 @@ impl Modify for SecurityAddon {
         (name = "consent", description = "Cookie / tracking consent banner + category lookup"),
         (name = "coupons", description = "Discount coupon management"),
         (name = "courses", description = "Course catalog, modules, lessons, progress"),
+        (name = "forms", description = "Form schema + submission endpoints"),
         (name = "member", description = "Authenticated member self-service"),
         (name = "popups", description = "Popup campaigns + submissions"),
         (name = "pricing", description = "Subscription pricing plans"),
@@ -164,6 +165,11 @@ impl Modify for SecurityAddon {
         notifications::remove_suppression,
         notifications::get_member_preferences,
         notifications::update_member_preferences,
+        // Forms (FORM-03)
+        forms::public_get_form,
+        forms::public_submit,
+        forms::public_save_partial,
+        forms::admin_bulk_update_submissions,
         // Popups
         popups::admin_create_popup,
         popups::admin_update_popup,
@@ -268,18 +274,17 @@ impl Modify for SecurityAddon {
             consent::BannerLayout,
             consent::BannerPosition,
             consent::ConsentCategoryDef,
-            // Consent admin (CONSENT-07)
-            admin_consent::BannerUpsertRequest,
-            admin_consent::CategoryUpsertRequest,
-            admin_consent::ServiceUpsertRequest,
-            admin_consent::PolicyCreateRequest,
-            admin_consent::PolicyDetail,
-            admin_consent::ConsentLogRow,
-            admin_consent::ConsentLogResponse,
-            admin_consent::IntegrityAnchorDto,
-            crate::consent::BannerConfigRow,
-            crate::consent::CategoryRow,
-            crate::consent::ServiceRow,
+            // Forms (FORM-03)
+            forms::FormDefinition,
+            forms::SubmitRequest,
+            forms::SubmitResponse,
+            forms::PartialRequest,
+            forms::PartialResponse,
+            forms::BulkActionRequest,
+            forms::BulkActionResponse,
+            forms::PaginatedSubmissions,
+            crate::forms::repo::SubmissionRow,
+            crate::forms::validation::ValidationError,
             // Popups
             crate::models::Popup,
             crate::models::CreatePopupRequest,

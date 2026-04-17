@@ -94,6 +94,12 @@ pub enum AppError {
     #[error("Validation error: {0}")]
     Validation(String),
 
+    /// FORM-03: structured 422 body carrying per-field validation errors.
+    /// Rendered as `application/problem+json` with an `errors: [...]`
+    /// extension field (RFC 7807 §3.2 allows custom extensions).
+    #[error("Validation failed")]
+    ValidationBody(serde_json::Value),
+
     #[error("{0}")]
     TokenReuseDetected(String),
 
@@ -161,6 +167,15 @@ impl AppError {
                 StatusCode::UNPROCESSABLE_ENTITY,
                 problem("validation", "Validation Error", 422, msg.clone()),
             ),
+            AppError::ValidationBody(_) => (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                problem(
+                    "validation",
+                    "Validation Error",
+                    422,
+                    "One or more fields failed validation.".into(),
+                ),
+            ),
             AppError::TokenReuseDetected(msg) => (
                 StatusCode::UNAUTHORIZED,
                 problem("token-reuse", "Token Reuse Detected", 401, msg.clone()),
@@ -214,6 +229,26 @@ impl AppError {
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
+        // FORM-03: `ValidationBody` inlines a structured `errors` field
+        // alongside the Problem document so the client can pin messages
+        // to fields without string-matching on `detail`.
+        if let AppError::ValidationBody(errors) = &self {
+            let (status, p) = self.to_problem();
+            let body = serde_json::json!({
+                "type": p.type_uri,
+                "title": p.title,
+                "status": p.status,
+                "detail": p.detail,
+                "errors": errors,
+            });
+            let mut resp = Json(body).into_response();
+            resp.headers_mut().insert(
+                header::CONTENT_TYPE,
+                HeaderValue::from_static("application/problem+json"),
+            );
+            *resp.status_mut() = status;
+            return resp;
+        }
         let (status, body) = self.to_problem();
         let mut resp = Json(body).into_response();
         resp.headers_mut().insert(

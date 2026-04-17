@@ -442,6 +442,22 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/forms/{id}/submissions/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["admin_bulk_update_submissions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/lessons/{lesson_id}": {
         parameters: {
             query?: never;
@@ -1095,7 +1111,23 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/api/dsar": {
+    "/api/forms/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["public_get_form"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forms/{slug}/partial": {
         parameters: {
             query?: never;
             header?: never;
@@ -1104,8 +1136,23 @@ export type paths = {
         };
         get?: never;
         put?: never;
-        /** `POST /api/dsar` (public — no auth required). */
-        post: operations["post_dsar"];
+        post: operations["public_save_partial"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forms/{slug}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["public_submit"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1560,6 +1607,15 @@ export type components = {
             slug: string;
             /** Format: date-time */
             created_at: string;
+        };
+        BulkActionRequest: {
+            ids: string[];
+            /** @description `delete` | `mark_spam` | `restore`. */
+            action: string;
+        };
+        BulkActionResponse: {
+            /** Format: int64 */
+            updated: number;
         };
         BulkCouponRequest: {
             /** Format: int32 */
@@ -2034,18 +2090,20 @@ export type components = {
         ForgotPasswordRequest: {
             email: string;
         };
-        IntegrityAnchorDto: {
+        /** @description Payload of `GET /api/forms/{slug}` — the shape FORM-10's renderer hydrates. */
+        FormDefinition: {
             /** Format: uuid */
             id: string;
-            anchor_hash: string;
+            slug: string;
+            name: string;
+            description?: string | null;
+            settings: unknown;
+            /** @description Active version's `schema_json` — a JSON array of `FieldSchema` variants. */
+            schema: unknown;
+            /** @description Active version's `logic_json` — a JSON array of `LogicRule`. */
+            logic: unknown;
             /** Format: int32 */
-            record_count: number;
-            /** Format: date-time */
-            window_start_at?: string | null;
-            /** Format: date-time */
-            window_end_at?: string | null;
-            /** Format: date-time */
-            anchored_at: string;
+            version: number;
         };
         LessonProgress: {
             /** Format: uuid */
@@ -2189,6 +2247,17 @@ export type components = {
             /** Format: int64 */
             total_pages: number;
         };
+        PaginatedSubmissions: {
+            data: components["schemas"]["SubmissionRow"][];
+            /** Format: int64 */
+            total: number;
+            /** Format: int64 */
+            page: number;
+            /** Format: int64 */
+            per_page: number;
+            /** Format: int64 */
+            total_pages: number;
+        };
         PaginatedSuppressionResponse: {
             data: components["schemas"]["Suppression"][];
             /** Format: int64 */
@@ -2217,21 +2286,19 @@ export type components = {
             /** Format: int64 */
             per_page?: number | null;
         };
-        PolicyCreateRequest: {
-            markdown: string;
-            locale?: string;
+        PartialRequest: {
+            data: unknown;
+            /**
+             * @description Optional: rotate an existing resume token. The server returns a fresh
+             *     token in the response regardless; supplying the old one extends the
+             *     window without creating a duplicate row.
+             */
+            resume_token?: string | null;
         };
-        PolicyDetail: {
-            /** Format: uuid */
-            id: string;
-            /** Format: int32 */
-            version: number;
-            markdown: string;
-            locale: string;
+        PartialResponse: {
+            resume_token: string;
             /** Format: date-time */
-            effective_at: string;
-            /** Format: date-time */
-            created_at: string;
+            expires_at: string;
         };
         Popup: {
             /** Format: uuid */
@@ -2395,29 +2462,48 @@ export type components = {
         RoleUpdate: {
             role: components["schemas"]["UserRole"];
         };
-        ServiceRow: {
+        SubmissionRow: {
             /** Format: uuid */
             id: string;
-            slug: string;
-            name: string;
-            vendor: string;
-            category: string;
-            domains: string[];
-            cookies: unknown;
-            privacy_url?: string | null;
-            description?: string | null;
-            is_active: boolean;
+            /** Format: uuid */
+            form_id: string;
+            /** Format: uuid */
+            form_version_id: string;
+            /** Format: uuid */
+            subject_id?: string | null;
+            /** Format: uuid */
+            anonymous_id?: string | null;
+            status: string;
+            data_json: unknown;
+            files_json: unknown;
+            ip_hash: string;
+            user_agent: string;
+            referrer?: string | null;
+            utm: unknown;
+            validation_errors?: unknown;
+            /** Format: date-time */
+            submitted_at: string;
         };
-        ServiceUpsertRequest: {
-            slug: string;
-            name: string;
-            vendor: string;
-            category: string;
-            domains?: string[];
-            cookies?: unknown;
-            privacy_url?: string | null;
-            description?: string | null;
-            is_active?: boolean;
+        SubmitRequest: {
+            data: unknown;
+            /** @description Optional UTM block captured from the query-string at render time. */
+            utm?: unknown;
+            /**
+             * @description Optional file descriptors from FORM-05. Shape `[{ field_key, file_id,
+             *     filename, size, sha256, mime_type }]`.
+             */
+            files?: unknown;
+            /**
+             * Format: uuid
+             * @description Optional anonymous id cookie — the frontend generates one for
+             *     unauthenticated sessions so repeat submissions tie back together.
+             */
+            anonymous_id?: string | null;
+        };
+        SubmitResponse: {
+            /** Format: uuid */
+            id: string;
+            status: string;
         };
         Subscription: {
             /** Format: uuid */
@@ -2750,6 +2836,15 @@ export type components = {
             plan_id?: string | null;
             /** Format: uuid */
             course_id?: string | null;
+        };
+        /**
+         * @description Structured validation failure. Stable `code` strings are the shared contract
+         *     with `src/lib/forms/validate.ts`.
+         */
+        ValidationError: {
+            field_key: string;
+            code: string;
+            message: string;
         };
         VerifyPostPasswordRequest: {
             password: string;
@@ -4049,6 +4144,47 @@ export interface operations {
             };
             /** @description Course not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    admin_bulk_update_submissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Form id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkActionRequest"];
+            };
+        };
+        responses: {
+            /** @description Bulk action applied */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkActionResponse"];
+                };
+            };
+            /** @description Unknown action */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5785,30 +5921,104 @@ export interface operations {
             };
         };
     };
-    post_dsar: {
+    public_get_form: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** @description Form URL slug */
+                slug: string;
+            };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DsarSubmitRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
-            /** @description DSAR request accepted */
+            /** @description Active form definition */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DsarSubmitResponse"];
+                    "application/json": components["schemas"]["FormDefinition"];
                 };
             };
-            /** @description Missing or invalid fields */
-            400: {
+            /** @description Form not found or has no published version */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    public_save_partial: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Form URL slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PartialRequest"];
+            };
+        };
+        responses: {
+            /** @description Partial saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartialResponse"];
+                };
+            };
+            /** @description Form not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    public_submit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Form URL slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitRequest"];
+            };
+        };
+        responses: {
+            /** @description Submission accepted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmitResponse"];
+                };
+            };
+            /** @description Form not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation failed; response body carries per-field errors */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

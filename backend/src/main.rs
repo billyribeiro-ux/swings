@@ -302,6 +302,7 @@ async fn main() -> Result<()> {
         .nest("/api/admin/pricing", handlers::pricing::admin_router())
         .nest("/api/admin/coupons", handlers::coupons::admin_router())
         .nest("/api/admin/popups", handlers::popups::admin_router())
+        .nest("/api/admin/forms", handlers::forms::admin_router())
         .nest("/api/admin/outbox", handlers::outbox::router())
         .nest(
             "/api/admin/notifications",
@@ -316,8 +317,8 @@ async fn main() -> Result<()> {
         .nest("/api/pricing", handlers::pricing::public_router())
         .nest("/api/coupons", handlers::coupons::public_router())
         .nest("/api/popups", handlers::popups::public_router())
-        // Consent (CONSENT-01: public banner + category lookup;
-        // CONSENT-03: record + me + admin DSAR)
+        .nest("/api/forms", handlers::forms::public_router())
+        // Consent (CONSENT-01: public banner + category lookup; admin lives under /api/admin/consent in CONSENT-07)
         .nest("/api/consent", handlers::consent::public_router())
         .nest("/api/dsar", handlers::consent::public_dsar_router())
         .nest("/api/admin/consent", handlers::consent::admin_router())

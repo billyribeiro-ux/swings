@@ -1562,6 +1562,59 @@
         ]
       }
     },
+    "/api/admin/forms/{id}/submissions/bulk": {
+      "post": {
+        "tags": [
+          "forms"
+        ],
+        "operationId": "admin_bulk_update_submissions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Form id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Bulk action applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkActionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown action"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/admin/lessons/{lesson_id}": {
       "put": {
         "tags": [
@@ -3605,18 +3658,62 @@
         }
       }
     },
-    "/api/dsar": {
+    "/api/forms/{slug}": {
+      "get": {
+        "tags": [
+          "forms"
+        ],
+        "operationId": "public_get_form",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "Form URL slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Active form definition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormDefinition"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Form not found or has no published version"
+          }
+        }
+      }
+    },
+    "/api/forms/{slug}/partial": {
       "post": {
         "tags": [
-          "consent"
+          "forms"
         ],
-        "summary": "`POST /api/dsar` (public — no auth required).",
-        "operationId": "post_dsar",
+        "operationId": "public_save_partial",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "Form URL slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DsarSubmitRequest"
+                "$ref": "#/components/schemas/PartialRequest"
               }
             }
           },
@@ -3624,17 +3721,64 @@
         },
         "responses": {
           "200": {
-            "description": "DSAR request accepted",
+            "description": "Partial saved",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DsarSubmitResponse"
+                  "$ref": "#/components/schemas/PartialResponse"
                 }
               }
             }
           },
-          "400": {
-            "description": "Missing or invalid fields"
+          "404": {
+            "description": "Form not found"
+          }
+        }
+      }
+    },
+    "/api/forms/{slug}/submit": {
+      "post": {
+        "tags": [
+          "forms"
+        ],
+        "operationId": "public_submit",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "Form URL slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Submission accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Form not found"
+          },
+          "422": {
+            "description": "Validation failed; response body carries per-field errors"
           }
         }
       }
@@ -4994,6 +5138,39 @@
           "created_at": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "BulkActionRequest": {
+        "type": "object",
+        "required": [
+          "ids",
+          "action"
+        ],
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "action": {
+            "type": "string",
+            "description": "`delete` | `mark_spam` | `restore`."
+          }
+        }
+      },
+      "BulkActionResponse": {
+        "type": "object",
+        "required": [
+          "updated"
+        ],
+        "properties": {
+          "updated": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
           }
         }
       },
@@ -6738,43 +6915,45 @@
           }
         }
       },
-      "IntegrityAnchorDto": {
+      "FormDefinition": {
         "type": "object",
+        "description": "Payload of `GET /api/forms/{slug}` — the shape FORM-10's renderer hydrates.",
         "required": [
           "id",
-          "anchor_hash",
-          "record_count",
-          "anchored_at"
+          "slug",
+          "name",
+          "settings",
+          "schema",
+          "logic",
+          "version"
         ],
         "properties": {
           "id": {
             "type": "string",
             "format": "uuid"
           },
-          "anchor_hash": {
+          "slug": {
             "type": "string"
           },
-          "record_count": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "settings": {},
+          "schema": {
+            "description": "Active version's `schema_json` — a JSON array of `FieldSchema` variants."
+          },
+          "logic": {
+            "description": "Active version's `logic_json` — a JSON array of `LogicRule`."
+          },
+          "version": {
             "type": "integer",
             "format": "int32"
-          },
-          "window_start_at": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date-time"
-          },
-          "window_end_at": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date-time"
-          },
-          "anchored_at": {
-            "type": "string",
-            "format": "date-time"
           }
         }
       },
@@ -7198,6 +7377,40 @@
           }
         }
       },
+      "PaginatedSubmissions": {
+        "type": "object",
+        "required": [
+          "data",
+          "total",
+          "page",
+          "per_page",
+          "total_pages"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubmissionRow"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "per_page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total_pages": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "PaginatedSuppressionResponse": {
         "type": "object",
         "required": [
@@ -7285,50 +7498,33 @@
           }
         }
       },
-      "PolicyCreateRequest": {
+      "PartialRequest": {
         "type": "object",
         "required": [
-          "markdown"
+          "data"
         ],
         "properties": {
-          "markdown": {
-            "type": "string"
-          },
-          "locale": {
-            "type": "string"
+          "data": {},
+          "resume_token": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional: rotate an existing resume token. The server returns a fresh\ntoken in the response regardless; supplying the old one extends the\nwindow without creating a duplicate row."
           }
         }
       },
-      "PolicyDetail": {
+      "PartialResponse": {
         "type": "object",
         "required": [
-          "id",
-          "version",
-          "markdown",
-          "locale",
-          "effective_at",
-          "created_at"
+          "resume_token",
+          "expires_at"
         ],
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "markdown": {
+          "resume_token": {
             "type": "string"
           },
-          "locale": {
-            "type": "string"
-          },
-          "effective_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "created_at": {
+          "expires_at": {
             "type": "string",
             "format": "date-time"
           }
@@ -7863,101 +8059,108 @@
           }
         }
       },
-      "ServiceRow": {
+      "SubmissionRow": {
         "type": "object",
         "required": [
           "id",
-          "slug",
-          "name",
-          "vendor",
-          "category",
-          "domains",
-          "cookies",
-          "is_active"
+          "form_id",
+          "form_version_id",
+          "status",
+          "data_json",
+          "files_json",
+          "ip_hash",
+          "user_agent",
+          "utm",
+          "submitted_at"
         ],
         "properties": {
           "id": {
             "type": "string",
             "format": "uuid"
           },
-          "slug": {
+          "form_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "form_version_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subject_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "anonymous_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "status": {
             "type": "string"
           },
-          "name": {
+          "data_json": {},
+          "files_json": {},
+          "ip_hash": {
             "type": "string"
           },
-          "vendor": {
+          "user_agent": {
             "type": "string"
           },
-          "category": {
-            "type": "string"
-          },
-          "domains": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "cookies": {},
-          "privacy_url": {
+          "referrer": {
             "type": [
               "string",
               "null"
             ]
           },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "is_active": {
-            "type": "boolean"
+          "utm": {},
+          "validation_errors": {},
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
-      "ServiceUpsertRequest": {
+      "SubmitRequest": {
         "type": "object",
         "required": [
-          "slug",
-          "name",
-          "vendor",
-          "category"
+          "data"
         ],
         "properties": {
-          "slug": {
-            "type": "string"
+          "data": {},
+          "utm": {
+            "description": "Optional UTM block captured from the query-string at render time."
           },
-          "name": {
-            "type": "string"
+          "files": {
+            "description": "Optional file descriptors from FORM-05. Shape `[{ field_key, file_id,\nfilename, size, sha256, mime_type }]`."
           },
-          "vendor": {
-            "type": "string"
-          },
-          "category": {
-            "type": "string"
-          },
-          "domains": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "cookies": {},
-          "privacy_url": {
+          "anonymous_id": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "format": "uuid",
+            "description": "Optional anonymous id cookie — the frontend generates one for\nunauthenticated sessions so repeat submissions tie back together."
+          }
+        }
+      },
+      "SubmitResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
           },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "is_active": {
-            "type": "boolean"
+          "status": {
+            "type": "string"
           }
         }
       },
@@ -9342,6 +9545,26 @@
           }
         }
       },
+      "ValidationError": {
+        "type": "object",
+        "description": "Structured validation failure. Stable `code` strings are the shared contract\nwith `src/lib/forms/validate.ts`.",
+        "required": [
+          "field_key",
+          "code",
+          "message"
+        ],
+        "properties": {
+          "field_key": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
       "VerifyPostPasswordRequest": {
         "type": "object",
         "required": [
@@ -9529,6 +9752,10 @@
     {
       "name": "courses",
       "description": "Course catalog, modules, lessons, progress"
+    },
+    {
+      "name": "forms",
+      "description": "Form schema + submission endpoints"
     },
     {
       "name": "member",
