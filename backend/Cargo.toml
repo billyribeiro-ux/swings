@@ -89,6 +89,11 @@ utoipa-swagger-ui = { version = "9.0", features = ["axum"] }
 metrics = "0.24"
 metrics-exporter-prometheus = "0.17"
 
+# EC-06: PDF invoice / receipt / credit-note generation. `printpdf` is pure
+# Rust, has no system deps, and ships with its own Helvetica subset so we do
+# not need to bundle a TTF for first-line invoices.
+printpdf = "0.7"
+
 [dev-dependencies]
 # Mock HTTP server for provider tests. Pinned to 0.6 (hyper 1 / rustls) to
 # match reqwest 0.12's transport stack so the TLS runtime doesn't fork.

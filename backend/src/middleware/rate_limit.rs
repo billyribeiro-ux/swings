@@ -168,6 +168,19 @@ pub const FORM_PARTIAL: Policy = Policy {
     window_secs: 60,
     key: KeyStrategy::Ip,
 };
+// CONSENT-03: public consent record + DSAR endpoints.
+pub const CONSENT_RECORD: Policy = Policy {
+    name: "consent-record",
+    max_requests: 30,
+    window_secs: 60,
+    key: KeyStrategy::Ip,
+};
+pub const DSAR_SUBMIT: Policy = Policy {
+    name: "dsar-submit",
+    max_requests: 5,
+    window_secs: 3600,
+    key: KeyStrategy::Ip,
+};
 
 // ── Backend abstraction ──────────────────────────────────────────────────
 
@@ -376,6 +389,14 @@ pub fn form_submit_layer() -> AuthGovernorLayer {
 pub fn form_partial_layer() -> AuthGovernorLayer {
     governor_layer_for(FORM_PARTIAL)
 }
+/// CONSENT-03: public `/api/consent/record` — 30/min/IP.
+pub fn consent_record_layer() -> AuthGovernorLayer {
+    governor_layer_for(CONSENT_RECORD)
+}
+/// CONSENT-03: public `/api/dsar` — 5/hour/IP.
+pub fn dsar_submit_layer() -> AuthGovernorLayer {
+    governor_layer_for(DSAR_SUBMIT)
+}
 
 // ── Postgres-backed middleware ──────────────────────────────────────────
 
@@ -555,6 +576,8 @@ mod tests {
             MEMBER,
             FORM_SUBMIT,
             FORM_PARTIAL,
+            CONSENT_RECORD,
+            DSAR_SUBMIT,
         ] {
             assert!(p.governor_period() >= Duration::from_secs(1), "{}", p.name);
         }

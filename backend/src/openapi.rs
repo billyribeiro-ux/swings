@@ -22,8 +22,8 @@ use utoipa_swagger_ui::SwaggerUi;
 use crate::{
     extractors::AdminUser,
     handlers::{
-        admin, analytics, auth, blog, consent, coupons, courses, csp_report, member, notifications,
-        outbox, popups, products, webhooks,
+        admin, analytics, auth, blog, consent, coupons, courses, csp_report, forms, member,
+        notifications, outbox, popups, products, webhooks,
     },
     AppState,
 };

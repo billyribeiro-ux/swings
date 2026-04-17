@@ -4201,6 +4201,40 @@
         }
       }
     },
+    "/api/dsar": {
+      "post": {
+        "tags": [
+          "consent"
+        ],
+        "summary": "`POST /api/dsar` (public — no auth required).",
+        "operationId": "post_dsar",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DsarSubmitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "DSAR request accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DsarSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid fields"
+          }
+        }
+      }
+    },
     "/api/forms/{slug}": {
       "get": {
         "tags": [
@@ -4970,52 +5004,6 @@
           }
         }
       },
-      "BannerConfigRow": {
-        "type": "object",
-        "required": [
-          "id",
-          "region",
-          "locale",
-          "version",
-          "layout",
-          "position",
-          "theme_json",
-          "copy_json",
-          "is_active",
-          "updated_at"
-        ],
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "region": {
-            "type": "string"
-          },
-          "locale": {
-            "type": "string"
-          },
-          "version": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "layout": {
-            "type": "string"
-          },
-          "position": {
-            "type": "string"
-          },
-          "theme_json": {},
-          "copy_json": {},
-          "is_active": {
-            "type": "boolean"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
       "BannerCopy": {
         "type": "object",
         "required": [
@@ -5077,35 +5065,6 @@
           "bottom-start",
           "bottom-end"
         ]
-      },
-      "BannerUpsertRequest": {
-        "type": "object",
-        "required": [
-          "region",
-          "locale",
-          "layout",
-          "position",
-          "copy_json"
-        ],
-        "properties": {
-          "region": {
-            "type": "string"
-          },
-          "locale": {
-            "type": "string"
-          },
-          "layout": {
-            "type": "string"
-          },
-          "position": {
-            "type": "string"
-          },
-          "copy_json": {},
-          "theme_json": {},
-          "is_active": {
-            "type": "boolean"
-          }
-        }
       },
       "BillingPortalRequest": {
         "type": "object",
@@ -5709,6 +5668,39 @@
           }
         }
       },
+      "BulkActionRequest": {
+        "type": "object",
+        "required": [
+          "ids",
+          "action"
+        ],
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "action": {
+            "type": "string",
+            "description": "`delete` | `mark_spam` | `restore`."
+          }
+        }
+      },
+      "BulkActionResponse": {
+        "type": "object",
+        "required": [
+          "updated"
+        ],
+        "properties": {
+          "updated": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        }
+      },
       "BulkCouponRequest": {
         "type": "object",
         "required": [
@@ -5865,53 +5857,135 @@
           }
         }
       },
-      "ConsentLogResponse": {
+      "ConsentRecordRequest": {
         "type": "object",
         "required": [
-          "rows",
-          "table_present",
-          "total"
+          "action",
+          "categories"
         ],
         "properties": {
-          "rows": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ConsentLogRow"
-            }
+          "action": {
+            "type": "string",
+            "description": "One of `granted` / `denied` / `updated` / `revoked` / `expired` /\n`prefill`. Enforced at the DB CHECK level; validated here for a\nfriendlier 400."
           },
-          "table_present": {
-            "type": "boolean"
+          "categories": {
+            "description": "Map of category key → granted bool. Must include every category the\ncurrent banner version exposes."
           },
-          "total": {
-            "type": "integer",
-            "format": "int64"
+          "services": {
+            "description": "Optional per-service overrides (when the subject used the advanced\npicker). Empty object is fine."
+          },
+          "tcfString": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "gpcSignal": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "anonymousId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Browser-generated anonymous id (UUID cookie). Used when the subject\nis not signed in so the audit log can still be linked across sessions."
+          },
+          "bannerVersion": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Optional banner / policy version overrides — defaults come from the\nauthoritative banner config when omitted. Kept as options so the\nclient can send them when it already has a cached banner copy."
+          },
+          "policyVersion": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
           }
         }
       },
-      "ConsentLogRow": {
+      "ConsentRecordResponse": {
         "type": "object",
         "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "ConsentRecordRow": {
+        "type": "object",
+        "description": "Serialized row shape — shared across `POST /record` response and\n`GET /me` listings.",
+        "required": [
           "id",
-          "action",
+          "bannerVersion",
+          "policyVersion",
           "categories",
-          "created_at"
+          "services",
+          "action",
+          "createdAt"
         ],
         "properties": {
           "id": {
             "type": "string",
             "format": "uuid"
           },
-          "subject_id": {
+          "subjectId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "anonymousId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "bannerVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "policyVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "categories": {},
+          "services": {},
+          "action": {
+            "type": "string"
+          },
+          "tcfString": {
             "type": [
               "string",
               "null"
             ]
           },
-          "action": {
-            "type": "string"
+          "gpcSignal": {
+            "type": [
+              "boolean",
+              "null"
+            ]
           },
-          "categories": {},
-          "created_at": {
+          "country": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
             "type": "string",
             "format": "date-time"
           }
@@ -7663,6 +7737,168 @@
           }
         }
       },
+      "DsarFulfillRequest": {
+        "type": "object",
+        "properties": {
+          "fulfillmentUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "adminNotes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "DsarFulfillResponse": {
+        "type": "object",
+        "description": "Admin fulfill response. When the DSAR is `access` / `portability` and the\nadmin did not provide a URL, the exported JSON is inlined in `export` so\nthe caller can pipe it to a download without a second round-trip.",
+        "required": [
+          "request"
+        ],
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/DsarRow"
+          },
+          "export": {}
+        }
+      },
+      "DsarListResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "total",
+          "page",
+          "perPage",
+          "totalPages"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DsarRow"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "perPage": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "DsarRow": {
+        "type": "object",
+        "description": "Row shape returned from the admin list + the subject submission response.",
+        "required": [
+          "id",
+          "email",
+          "kind",
+          "status",
+          "payload",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "payload": {},
+          "fulfilledAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "fulfilledBy": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "fulfillmentUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "adminNotes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DsarSubmitRequest": {
+        "type": "object",
+        "required": [
+          "email",
+          "kind"
+        ],
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "payload": {}
+        }
+      },
+      "DsarSubmitResponse": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
       "ForgotPasswordRequest": {
         "type": "object",
         "required": [
@@ -8116,40 +8352,6 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OutboxRowDto"
-            }
-          },
-          "total": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "page": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "per_page": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "total_pages": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "PaginatedSubmissions": {
-        "type": "object",
-        "required": [
-          "data",
-          "total",
-          "page",
-          "per_page",
-          "total_pages"
-        ],
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SubmissionRow"
             }
           },
           "total": {
@@ -9086,6 +9288,45 @@
         "properties": {
           "status": {
             "$ref": "#/components/schemas/ProductStatus"
+          }
+        }
+      },
+      "SubmitRequest": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {},
+          "utm": {
+            "description": "Optional UTM block captured from the query-string at render time."
+          },
+          "files": {
+            "description": "Optional file descriptors from FORM-05. Shape `[{ field_key, file_id,\nfilename, size, sha256, mime_type }]`."
+          },
+          "anonymous_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Optional anonymous id cookie — the frontend generates one for\nunauthenticated sessions so repeat submissions tie back together."
+          }
+        }
+      },
+      "SubmitResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
           }
         }
       },
@@ -10683,26 +10924,6 @@
               "null"
             ],
             "format": "uuid"
-          }
-        }
-      },
-      "ValidationError": {
-        "type": "object",
-        "description": "Structured validation failure. Stable `code` strings are the shared contract\nwith `src/lib/forms/validate.ts`.",
-        "required": [
-          "field_key",
-          "code",
-          "message"
-        ],
-        "properties": {
-          "field_key": {
-            "type": "string"
-          },
-          "code": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
           }
         }
       },

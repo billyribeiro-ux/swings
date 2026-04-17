@@ -318,6 +318,8 @@ async fn main() -> Result<()> {
         .nest("/api/coupons", handlers::coupons::public_router())
         .nest("/api/popups", handlers::popups::public_router())
         .nest("/api/products", handlers::products::public_router())
+        // EC-03: persistent cart — guest + authed; OptionalAuthUser extractor.
+        .nest("/api/cart", handlers::cart::router())
         // Consent (CONSENT-01: public banner + category lookup; admin lives under /api/admin/consent in CONSENT-07)
         .nest("/api/consent", handlers::consent::public_router())
         .nest("/api/dsar", handlers::consent::public_dsar_router())

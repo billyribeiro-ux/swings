@@ -3,6 +3,7 @@ pub mod admin_consent;
 pub mod analytics;
 pub mod auth;
 pub mod blog;
+pub mod cart;
 pub mod consent;
 pub mod coupons;
 pub mod courses;

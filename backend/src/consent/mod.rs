@@ -13,6 +13,7 @@
 pub mod dsar_export;
 pub mod geo;
 pub mod integrity;
+pub mod records;
 pub mod repo;
 
 pub use geo::resolve_region;
