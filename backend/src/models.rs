@@ -27,11 +27,42 @@ pub struct User {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, PartialEq, ToSchema)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type, PartialEq, Eq, Hash, ToSchema)]
 #[sqlx(type_name = "user_role", rename_all = "lowercase")]
 pub enum UserRole {
     Member,
+    Author,
+    Support,
     Admin,
+}
+
+impl UserRole {
+    /// Parse the lowercase database string (mirrors `#[sqlx(rename_all = "lowercase")]`).
+    ///
+    /// Returns `None` for unknown labels so the caller can decide how to surface
+    /// the error — typically via `AppError::Internal` when a JWT claim carries a
+    /// role string the backend doesn't recognize.
+    #[must_use]
+    pub fn from_str_lower(s: &str) -> Option<Self> {
+        match s {
+            "member" => Some(Self::Member),
+            "author" => Some(Self::Author),
+            "support" => Some(Self::Support),
+            "admin" => Some(Self::Admin),
+            _ => None,
+        }
+    }
+
+    /// Return the canonical lowercase database string — inverse of `from_str_lower`.
+    #[must_use]
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Member => "member",
+            Self::Author => "author",
+            Self::Support => "support",
+            Self::Admin => "admin",
+        }
+    }
 }
 
 #[derive(Debug, Serialize, ToSchema)]

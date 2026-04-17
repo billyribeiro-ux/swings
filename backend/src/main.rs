@@ -15,7 +15,7 @@ use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use swings_api::{config::Config, db, email, handlers, openapi, services, AppState};
+use swings_api::{authz, config::Config, db, email, handlers, openapi, services, AppState};
 
 /// `dotenvy::dotenv()` only reads `./.env` from the process CWD. When invoked as
 /// `cargo run --manifest-path backend/Cargo.toml` from the repo root, CWD is the root and env
@@ -98,11 +98,23 @@ async fn main() -> Result<()> {
 
     let media_backend = services::MediaBackend::resolve(config.upload_dir.clone());
 
+    // FDN-07: hydrate the role → permission policy from the catalogue the
+    // `021_rbac.sql` migration seeded. Must run after `sqlx::migrate!` so the
+    // tables exist; wrap in `Arc` so handlers can clone the cache cheaply.
+    let policy = authz::Policy::load(&pool)
+        .await
+        .context("failed to load authz policy from role_permissions")?;
+    tracing::info!(
+        pairs = policy.len(),
+        "authz policy loaded from role_permissions"
+    );
+
     let state = AppState {
         db: pool,
         config: Arc::new(config),
         email_service,
         media_backend,
+        policy: Arc::new(policy),
     };
 
     let allowed_origins = state

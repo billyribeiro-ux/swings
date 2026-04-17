@@ -1959,7 +1959,7 @@ export type components = {
             created_at: string;
         };
         /** @enum {string} */
-        UserRole: "Member" | "Admin";
+        UserRole: "Member" | "Author" | "Support" | "Admin";
         ValidateCouponRequest: {
             code: string;
             /** Format: uuid */

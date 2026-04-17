@@ -6783,6 +6783,8 @@
         "type": "string",
         "enum": [
           "Member",
+          "Author",
+          "Support",
           "Admin"
         ]
       },

@@ -8,6 +8,7 @@
 
 use std::sync::Arc;
 
+pub mod authz;
 pub mod common;
 pub mod config;
 pub mod db;
@@ -28,4 +29,8 @@ pub struct AppState {
     pub config: Arc<config::Config>,
     pub email_service: Option<Arc<email::EmailService>>,
     pub media_backend: services::MediaBackend,
+    /// FDN-07 authz policy cache. Loaded once at startup from the
+    /// `role_permissions` catalogue; swap the Arc via
+    /// [`authz::Policy::reload`] after admin mutations.
+    pub policy: Arc<authz::Policy>,
 }
