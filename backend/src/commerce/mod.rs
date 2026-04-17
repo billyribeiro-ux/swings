@@ -27,7 +27,15 @@ pub mod downloads;
 pub mod orders;
 pub mod products;
 pub mod repo;
+pub mod subscriptions;
 pub mod tax;
+
+pub use subscriptions::{
+    next_dunning_attempt, pause as pause_subscription, prorate,
+    record_change as record_sub_change, record_dunning_result,
+    resume as resume_subscription, schedule_dunning, DunningAttempt, SubscriptionChange,
+    SubscriptionError,
+};
 
 pub use checkout::{
     create_checkout_session, delete_address, list_addresses, save_address, Address,
