@@ -10,9 +10,11 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
+    common::{geo::country_from_request, ua::parse_ua},
     error::{AppError, AppResult},
     extractors::{AdminUser, OptionalAuthUser},
     models::*,
+    popups::targeting::{self, TargetingRules, VisitorContext},
     AppState,
 };
 
@@ -61,6 +63,18 @@ pub struct ActivePopupsQuery {
     pub page: Option<String>,
     pub device: Option<String>,
     pub user_status: Option<String>,
+    // POP-01: optional query-string overrides so test callers and server-side
+    // renderers can drive the targeting predicate without faking headers.
+    pub utm_source: Option<String>,
+    pub utm_medium: Option<String>,
+    pub utm_campaign: Option<String>,
+    pub geo: Option<String>,
+    pub returning: Option<bool>,
+    pub cart_value_cents: Option<i64>,
+    #[serde(default)]
+    pub cart_sku: Vec<String>,
+    pub membership_tier: Option<String>,
+    pub pageview_count: Option<i64>,
 }
 
 #[derive(Debug, Deserialize, ToSchema)]
@@ -567,9 +581,13 @@ async fn admin_get_analytics(
 
 async fn public_active_popups(
     State(state): State<AppState>,
+    headers: axum::http::HeaderMap,
+    axum::extract::ConnectInfo(addr): axum::extract::ConnectInfo<std::net::SocketAddr>,
     Query(query): Query<ActivePopupsQuery>,
 ) -> AppResult<Json<Vec<Popup>>> {
-    // Fetch all active popups within their date window
+    // Fetch all active popups within their date window. The is_template
+    // column is filtered here so template rows never leak to the public
+    // endpoint even if someone flips is_active by hand (POP-03).
     let popups = sqlx::query_as::<_, Popup>(
         r#"
         SELECT id, name, popup_type, trigger_type, trigger_config, content_json,
@@ -578,6 +596,7 @@ async fn public_active_popups(
                priority, created_by, created_at, updated_at
         FROM popups
         WHERE is_active = TRUE
+          AND COALESCE(is_template, FALSE) = FALSE
           AND (starts_at IS NULL OR starts_at <= NOW())
           AND (expires_at IS NULL OR expires_at >= NOW())
         ORDER BY priority DESC, created_at DESC
@@ -586,18 +605,72 @@ async fn public_active_popups(
     .fetch_all(&state.db)
     .await?;
 
-    let page_path = query.page.as_deref().unwrap_or("*");
-    let device = query.device.as_deref().unwrap_or("desktop");
-    let user_status = query.user_status.as_deref().unwrap_or("all");
-
+    let ctx = build_visitor_context(&headers, addr.ip(), &query);
     let filtered: Vec<Popup> = popups
         .into_iter()
         .filter(|popup| {
-            matches_targeting_rules(&popup.targeting_rules, page_path, device, user_status)
+            // Popups with malformed targeting_rules fail open on the
+            // legacy schema (pages/devices/userStatus) so an admin typo
+            // in a new field does not black-hole the whole popup.
+            match TargetingRules::from_json(&popup.targeting_rules) {
+                Ok(rules) => targeting::matches_targeting_rules(&rules, &ctx),
+                Err(_) => true,
+            }
         })
         .collect();
 
     Ok(Json(filtered))
+}
+
+/// Build a [`VisitorContext`] from headers + query string. Geo comes from the
+/// CDN headers (FDN-06); browser family + device kind come from the parsed
+/// user-agent; everything else is either request-scoped (UTM, returning) or
+/// caller-supplied (cart state, membership tier).
+fn build_visitor_context(
+    headers: &axum::http::HeaderMap,
+    remote_ip: std::net::IpAddr,
+    query: &ActivePopupsQuery,
+) -> VisitorContext {
+    let ua_header = headers
+        .get(axum::http::header::USER_AGENT)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("");
+    let ua = parse_ua(ua_header);
+    let device = query
+        .device
+        .clone()
+        .unwrap_or_else(|| match ua.device_kind {
+            crate::common::ua::DeviceKind::Mobile => "mobile".to_string(),
+            crate::common::ua::DeviceKind::Desktop => "desktop".to_string(),
+            _ => "desktop".to_string(),
+        });
+    let geo_country = query
+        .geo
+        .clone()
+        .or_else(|| country_from_request(headers, remote_ip).map(|cc| cc.as_str().to_owned()));
+    let returning_visitor = query.returning.unwrap_or_else(|| {
+        headers
+            .get(axum::http::header::COOKIE)
+            .and_then(|v| v.to_str().ok())
+            .map(|c| c.contains("swings_visitor="))
+            .unwrap_or(false)
+    });
+    VisitorContext {
+        page_path: query.page.clone().unwrap_or_else(|| "*".into()),
+        device,
+        user_status: query.user_status.clone().unwrap_or_else(|| "all".into()),
+        geo_country,
+        utm_source: query.utm_source.clone(),
+        utm_medium: query.utm_medium.clone(),
+        utm_campaign: query.utm_campaign.clone(),
+        cart_value_cents: query.cart_value_cents,
+        cart_skus: query.cart_sku.clone(),
+        membership_tier: query.membership_tier.clone(),
+        returning_visitor,
+        browser_family: Some(ua.family.clone()),
+        pageview_count: query.pageview_count.unwrap_or(0),
+        now: Utc::now(),
+    }
 }
 
 #[utoipa::path(
@@ -743,73 +816,6 @@ async fn build_popup_analytics(pool: &sqlx::PgPool, popup: &Popup) -> AppResult<
         total_submissions: submissions,
         conversion_rate,
     })
-}
-
-/// Match a popup's targeting_rules JSON against the requested page, device, and user status.
-fn matches_targeting_rules(
-    rules: &serde_json::Value,
-    page_path: &str,
-    device: &str,
-    user_status: &str,
-) -> bool {
-    // Check page patterns
-    if let Some(pages) = rules.get("pages").and_then(|v| v.as_array()) {
-        let page_match = pages.iter().any(|p| {
-            if let Some(pattern) = p.as_str() {
-                matches_page_pattern(pattern, page_path)
-            } else {
-                false
-            }
-        });
-        if !page_match {
-            return false;
-        }
-    }
-
-    // Check device targeting
-    if let Some(devices) = rules.get("devices").and_then(|v| v.as_array()) {
-        let device_match = devices.iter().any(|d| {
-            d.as_str()
-                .map(|s| s.eq_ignore_ascii_case(device))
-                .unwrap_or(false)
-        });
-        if !device_match {
-            return false;
-        }
-    }
-
-    // Check user status targeting
-    if let Some(statuses) = rules.get("userStatus").and_then(|v| v.as_array()) {
-        let status_match = statuses.iter().any(|s| {
-            if let Some(st) = s.as_str() {
-                st == "all" || st.eq_ignore_ascii_case(user_status)
-            } else {
-                false
-            }
-        });
-        if !status_match {
-            return false;
-        }
-    }
-
-    true
-}
-
-/// Simple glob-like page pattern matching.
-/// Supports:
-///   "*"         -> matches everything
-///   "/blog/*"   -> matches /blog/ and anything under it
-///   "/pricing"  -> exact match
-fn matches_page_pattern(pattern: &str, path: &str) -> bool {
-    if pattern == "*" {
-        return true;
-    }
-
-    if let Some(prefix) = pattern.strip_suffix('*') {
-        return path.starts_with(prefix);
-    }
-
-    pattern == path
 }
 
 /// Convert user-facing granularity to a Postgres date_trunc argument.
