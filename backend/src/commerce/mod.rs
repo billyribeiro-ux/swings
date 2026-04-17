@@ -21,11 +21,18 @@
 //! newtype is applied in the service + handler layers, never in the row layer.
 
 pub mod cart;
+pub mod checkout;
 pub mod coupons;
+pub mod downloads;
 pub mod orders;
 pub mod products;
 pub mod repo;
 pub mod tax;
+
+pub use checkout::{
+    create_checkout_session, delete_address, list_addresses, save_address, Address,
+    CheckoutError, CheckoutSession, MintedIntent, StripeIntentMinter, UpsertAddress,
+};
 
 pub use cart::{Cart, CartIdentity, CartItem, CartTotals};
 pub use orders::{
