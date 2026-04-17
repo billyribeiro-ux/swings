@@ -80,6 +80,8 @@ pub struct ActivePopupsQuery {
     pub cart_sku: Vec<String>,
     pub membership_tier: Option<String>,
     pub pageview_count: Option<i64>,
+    // POP-05: sessionStorage-backed "already shown this session" flag.
+    pub session_shown: Option<bool>,
 }
 
 #[derive(Debug, Deserialize, ToSchema)]
@@ -611,20 +613,56 @@ async fn public_active_popups(
     .await?;
 
     let ctx = build_visitor_context(&headers, addr.ip(), &query);
-    let filtered: Vec<Popup> = popups
-        .into_iter()
-        .filter(|popup| {
-            // Popups with malformed targeting_rules fail open on the
-            // legacy schema (pages/devices/userStatus) so an admin typo
-            // in a new field does not black-hole the whole popup.
-            match TargetingRules::from_json(&popup.targeting_rules) {
-                Ok(rules) => targeting::matches_targeting_rules(&rules, &ctx),
-                Err(_) => true,
-            }
-        })
-        .collect();
 
-    Ok(Json(filtered))
+    // POP-05: frequency gate. Anonymous id rides in an `X-Anonymous-Id`
+    // header (matches the cart identity convention). Missing id means "no
+    // persisted state" — the frequency predicate defaults to "show".
+    let anon_id = headers
+        .get(ANONYMOUS_ID_HEADER)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|s| Uuid::parse_str(s).ok());
+    let session_shown = query.session_shown.unwrap_or(false);
+    let now = Utc::now();
+
+    let mut allowed: Vec<Popup> = Vec::with_capacity(popups.len());
+    for popup in popups {
+        // Popups with malformed targeting_rules fail open on the legacy
+        // schema (pages/devices/userStatus) so an admin typo in a new
+        // field does not black-hole the whole popup.
+        let target_ok = match TargetingRules::from_json(&popup.targeting_rules) {
+            Ok(rules) => targeting::matches_targeting_rules(&rules, &ctx),
+            Err(_) => true,
+        };
+        if !target_ok {
+            continue;
+        }
+
+        let freq_ok = match crate::popups::frequency::FrequencyConfig::from_json(
+            &popup.frequency_config,
+        ) {
+            Ok(cfg) => {
+                let state_row = if let Some(aid) = anon_id {
+                    crate::popups::repo::load_visitor_state(&state.db, aid, popup.id).await?
+                } else {
+                    None
+                };
+                crate::popups::frequency::should_show(
+                    &cfg,
+                    state_row.as_ref(),
+                    crate::popups::frequency::SessionFlags {
+                        shown_this_session: session_shown,
+                    },
+                    now,
+                )
+            }
+            Err(_) => true,
+        };
+        if freq_ok {
+            allowed.push(popup);
+        }
+    }
+
+    Ok(Json(allowed))
 }
 
 /// Build a [`VisitorContext`] from headers + query string. Geo comes from the
@@ -691,6 +729,7 @@ fn build_visitor_context(
 )]
 pub(crate) async fn public_track_event(
     State(state): State<AppState>,
+    headers: axum::http::HeaderMap,
     Json(req): Json<TrackEventRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
     let event_type = req.event_type.to_lowercase();
@@ -722,6 +761,26 @@ pub(crate) async fn public_track_event(
     .execute(&state.db)
     .await?;
 
+    // POP-05: fan the event out to popup_visitor_state so the frequency
+    // gate has something to read on the next GET /api/popups/active.
+    // Missing X-Anonymous-Id is not an error — we just skip the UPSERT.
+    if let Some(anon_id) = headers
+        .get(ANONYMOUS_ID_HEADER)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|s| Uuid::parse_str(s).ok())
+    {
+        let now = Utc::now();
+        match event_type.as_str() {
+            "impression" => {
+                crate::popups::repo::record_impression(&state.db, anon_id, req.popup_id, now).await?;
+            }
+            "close" => {
+                crate::popups::repo::record_dismissal(&state.db, anon_id, req.popup_id, now).await?;
+            }
+            _ => {}
+        }
+    }
+
     Ok(Json(serde_json::json!({ "ok": true })))
 }
 
@@ -737,6 +796,7 @@ pub(crate) async fn public_track_event(
 )]
 pub(crate) async fn public_submit_form(
     State(state): State<AppState>,
+    headers: axum::http::HeaderMap,
     opt: OptionalAuthUser,
     Json(req): Json<PopupSubmitRequest>,
 ) -> AppResult<Json<PopupSubmission>> {
@@ -777,6 +837,17 @@ pub(crate) async fn public_submit_form(
     .bind(req.session_id)
     .execute(&state.db)
     .await?;
+
+    // POP-05: flag the visitor as converted so `until_converted` caps
+    // take effect on the next listing request.
+    if let Some(anon_id) = headers
+        .get(ANONYMOUS_ID_HEADER)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|s| Uuid::parse_str(s).ok())
+    {
+        crate::popups::repo::record_conversion(&state.db, anon_id, req.popup_id, Utc::now())
+            .await?;
+    }
 
     Ok(Json(submission))
 }
