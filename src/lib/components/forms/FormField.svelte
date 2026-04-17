@@ -30,6 +30,23 @@
 	import SignatureField from './fields/SignatureField.svelte';
 	import RichTextField from './fields/RichTextField.svelte';
 	import AddressField from './fields/AddressField.svelte';
+	import HtmlBlockField from './fields/HtmlBlockField.svelte';
+	import SectionBreakField from './fields/SectionBreakField.svelte';
+	import PageBreakField from './fields/PageBreakField.svelte';
+	import GdprConsentField from './fields/GdprConsentField.svelte';
+	import TermsField from './fields/TermsField.svelte';
+	import CustomHtmlField from './fields/CustomHtmlField.svelte';
+	import PaymentField from './fields/PaymentField.svelte';
+	import SubscriptionField from './fields/SubscriptionField.svelte';
+	import QuizField from './fields/QuizField.svelte';
+	import NpsField from './fields/NpsField.svelte';
+	import LikertField from './fields/LikertField.svelte';
+	import MatrixField from './fields/MatrixField.svelte';
+	import RankingField from './fields/RankingField.svelte';
+	import CalculationField from './fields/CalculationField.svelte';
+	import DynamicDropdownField from './fields/DynamicDropdownField.svelte';
+	import CountryStateField from './fields/CountryStateField.svelte';
+	import PostProductSelectorField from './fields/PostProductSelectorField.svelte';
 
 	const props: FieldProps = $props();
 	const type = $derived(props.field.type);
@@ -77,4 +94,38 @@
 	<RichTextField {...props} />
 {:else if type === 'address'}
 	<AddressField {...props} />
+{:else if type === 'html_block'}
+	<HtmlBlockField {...props} />
+{:else if type === 'section_break'}
+	<SectionBreakField {...props} />
+{:else if type === 'page_break'}
+	<PageBreakField {...props} />
+{:else if type === 'gdpr_consent'}
+	<GdprConsentField {...props} />
+{:else if type === 'terms'}
+	<TermsField {...props} />
+{:else if type === 'custom_html'}
+	<CustomHtmlField {...props} />
+{:else if type === 'payment'}
+	<PaymentField {...props} />
+{:else if type === 'subscription'}
+	<SubscriptionField {...props} />
+{:else if type === 'quiz'}
+	<QuizField {...props} />
+{:else if type === 'nps'}
+	<NpsField {...props} />
+{:else if type === 'likert'}
+	<LikertField {...props} />
+{:else if type === 'matrix'}
+	<MatrixField {...props} />
+{:else if type === 'ranking'}
+	<RankingField {...props} />
+{:else if type === 'calculation'}
+	<CalculationField {...props} />
+{:else if type === 'dynamic_dropdown'}
+	<DynamicDropdownField {...props} />
+{:else if type === 'country_state'}
+	<CountryStateField {...props} />
+{:else if type === 'post_product_selector'}
+	<PostProductSelectorField {...props} />
 {/if}
