@@ -16,8 +16,8 @@ use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use swings_api::{
-    authz, config::Config, db, email, events, handlers, middleware::rate_limit, openapi, services,
-    AppState,
+    authz, config::Config, db, email, events, handlers, middleware::rate_limit, notifications,
+    openapi, services, AppState,
 };
 
 /// `dotenvy::dotenv()` only reads `./.env` from the process CWD. When invoked as
@@ -120,6 +120,12 @@ async fn main() -> Result<()> {
     // sliding-window). Honors `RATE_LIMIT_BACKEND=inprocess|postgres`.
     let rate_limit_backend = rate_limit::Backend::from_env(pool.clone());
 
+    // FDN-05: notifications service (template registry + channel dispatch).
+    // Constructed before we register the outbox `NotifyHandler` so both can
+    // share the `Arc<ChannelRegistry>` without cloning the underlying
+    // provider wrappers.
+    let notifications_service = Arc::new(notifications::Service::new(email_service.clone()));
+
     let state = AppState {
         db: pool,
         config: Arc::new(config),
@@ -128,6 +134,7 @@ async fn main() -> Result<()> {
         policy: Arc::new(policy),
         outbox_shutdown: outbox_shutdown.clone(),
         rate_limit: rate_limit_backend,
+        notifications: notifications_service.clone(),
     };
 
     // FDN-04: build the outbox dispatcher (pattern → handler registry) and
@@ -146,13 +153,18 @@ async fn main() -> Result<()> {
         .unwrap_or(16);
     let dispatcher = Arc::new(
         events::Dispatcher::new()
-            // Stub subscribers. Real targets land under FDN-05 (notify) and
-            // FORM-07 (webhook_out). Patterns are deliberately broad — the
-            // stubs log and no-op, so fan-out is cheap.
+            // FDN-05: real notifications adapter. Narrowly scoped to the
+            // `notification.*` pattern so unrelated events (e.g. future
+            // `form.*` fan-out) do not run through the channel registry.
             .register(
-                "*",
-                Arc::new(events::handlers::notify::NotifyHandler::new()),
+                "notification.*",
+                Arc::new(events::handlers::notify::NotifyHandler::new(
+                    state.db.clone(),
+                    notifications_service.channels().clone(),
+                )),
             )
+            // FORM-07 will land a real implementation; the stub keeps the
+            // dispatcher from reporting NoHandler for outbound webhook events.
             .register(
                 "*",
                 Arc::new(events::handlers::webhook_out::WebhookOutHandler::new()),
@@ -217,6 +229,10 @@ async fn main() -> Result<()> {
         .nest("/api/admin/coupons", handlers::coupons::admin_router())
         .nest("/api/admin/popups", handlers::popups::admin_router())
         .nest("/api/admin/outbox", handlers::outbox::router())
+        .nest(
+            "/api/admin/notifications",
+            handlers::notifications::admin_router(),
+        )
         // Public routes
         .nest("/api/blog", handlers::blog::public_router())
         .nest("/api/courses", handlers::courses::public_router())
@@ -226,10 +242,14 @@ async fn main() -> Result<()> {
         // Member routes
         .nest("/api/member", handlers::member::router())
         .nest("/api/member", handlers::courses::member_router())
+        .nest("/api/member", handlers::notifications::member_router())
         // Webhooks
         .nest("/api/webhooks", handlers::webhooks::router())
         // Security reports (FDN-08)
-        .nest("/api", handlers::csp_report::router());
+        .nest("/api", handlers::csp_report::router())
+        // FDN-05 public unsubscribe — no /api prefix so bounce links work
+        // from any mailbox client.
+        .nest("/u", handlers::notifications::public_router());
 
     if mount_local_uploads {
         app = app.nest_service("/uploads", ServeDir::new(&upload_dir));

@@ -6,6 +6,7 @@ pub mod coupons;
 pub mod courses;
 pub mod csp_report;
 pub mod member;
+pub mod notifications;
 pub mod outbox;
 pub mod popups;
 pub mod pricing;

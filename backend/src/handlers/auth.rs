@@ -14,6 +14,7 @@ use crate::{
     error::{AppError, AppResult},
     extractors::{AuthUser, Claims},
     models::*,
+    notifications::send::{send_notification, Recipient, SendOptions},
     AppState,
 };
 
@@ -74,6 +75,29 @@ pub(crate) async fn register(
     let user = db::create_user(&state.db, &req.email, &password_hash, &req.name).await?;
 
     let (access_token, refresh_token) = generate_tokens(&state, &user).await?;
+
+    // FDN-05: send the welcome email via the notifications pipeline. Errors
+    // here are logged but never block signup — the user must be able to
+    // complete registration even if the provider is momentarily down.
+    let ctx = serde_json::json!({
+        "name": user.name,
+        "app_url": state.config.app_url,
+        "year": chrono::Utc::now().format("%Y").to_string(),
+    });
+    if let Err(e) = send_notification(
+        &state.db,
+        "user.welcome",
+        &Recipient::User {
+            user_id: user.id,
+            email: user.email.clone(),
+        },
+        ctx,
+        SendOptions::default(),
+    )
+    .await
+    {
+        tracing::warn!(user_id = %user.id, error = %e, "failed to enqueue welcome email");
+    }
 
     Ok(Json(AuthResponse {
         user: user.into(),
@@ -253,13 +277,34 @@ pub(crate) async fn forgot_password(
             state.config.frontend_url, raw_token
         );
 
-        // TODO: Send email with reset_url in production
-        // For now, log the reset link for development
+        // FDN-05: send the reset email through the notifications pipeline.
+        // Failures are logged but not surfaced to the client — the response
+        // is identical on success or soft-failure to avoid email enumeration.
         tracing::info!(
             "Password reset requested for {}. Reset URL: {}",
             req.email,
             reset_url
         );
+        let ctx = serde_json::json!({
+            "name": user.name,
+            "reset_url": reset_url,
+            "app_url": state.config.app_url,
+            "year": chrono::Utc::now().format("%Y").to_string(),
+        });
+        if let Err(e) = send_notification(
+            &state.db,
+            "user.password_reset",
+            &Recipient::User {
+                user_id: user.id,
+                email: user.email.clone(),
+            },
+            ctx,
+            SendOptions::default(),
+        )
+        .await
+        {
+            tracing::warn!(user_id = %user.id, error = %e, "failed to enqueue password reset email");
+        }
     }
 
     Ok(Json(serde_json::json!({

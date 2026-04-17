@@ -9,7 +9,12 @@ use hmac::{Hmac, Mac};
 use rand::Rng;
 use sha2::Sha256;
 
-use crate::{db, models::*, AppState};
+use crate::{
+    db,
+    models::*,
+    notifications::send::{send_notification, Recipient, SendOptions},
+    AppState,
+};
 
 pub fn router() -> Router<AppState> {
     // FDN-08: 500/min/source. Burst-friendly (Stripe retry storms) but
@@ -246,6 +251,31 @@ async fn handle_subscription_deleted(
             existing.current_period_end,
         )
         .await?;
+
+        // FDN-05: notify the member that their subscription is cancelled.
+        if let Some(user) = db::find_user_by_id(&state.db, existing.user_id).await? {
+            let end_date = existing.current_period_end.format("%B %-d, %Y").to_string();
+            let ctx = serde_json::json!({
+                "name": user.name,
+                "end_date": end_date,
+                "app_url": state.config.app_url,
+                "year": chrono::Utc::now().format("%Y").to_string(),
+            });
+            if let Err(e) = send_notification(
+                &state.db,
+                "subscription.cancelled",
+                &Recipient::User {
+                    user_id: user.id,
+                    email: user.email.clone(),
+                },
+                ctx,
+                SendOptions::default(),
+            )
+            .await
+            {
+                tracing::warn!(user_id = %user.id, error = %e, "failed to enqueue subscription.cancelled email");
+            }
+        }
     }
 
     Ok(())
@@ -280,6 +310,30 @@ async fn handle_checkout_completed(
             now + chrono::Duration::days(30),
         )
         .await?;
+
+        // FDN-05: send confirmation. Plan name is best-effort — the authoritative
+        // plan arrives on `customer.subscription.updated` so we use "Monthly"
+        // here to match the upsert above.
+        let ctx = serde_json::json!({
+            "name": user.name,
+            "plan_name": "Monthly",
+            "app_url": state.config.app_url,
+            "year": chrono::Utc::now().format("%Y").to_string(),
+        });
+        if let Err(e) = send_notification(
+            &state.db,
+            "subscription.confirmed",
+            &Recipient::User {
+                user_id: user.id,
+                email: user.email.clone(),
+            },
+            ctx,
+            SendOptions::default(),
+        )
+        .await
+        {
+            tracing::warn!(user_id = %user.id, error = %e, "failed to enqueue subscription.confirmed email");
+        }
     }
 
     Ok(())

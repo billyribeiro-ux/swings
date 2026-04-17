@@ -39,10 +39,11 @@ use swings_api::{
     config::Config,
     events::WorkerShutdown,
     handlers::{
-        admin, analytics, auth, blog, coupons, courses, csp_report, member, outbox, popups,
-        pricing, webhooks,
+        admin, analytics, auth, blog, coupons, courses, csp_report, member, notifications, outbox,
+        popups, pricing, webhooks,
     },
     middleware::rate_limit::Backend as RateLimitBackend,
+    notifications::Service as NotificationsService,
     services::MediaBackend,
     AppState,
 };
@@ -140,6 +141,10 @@ impl TestApp {
             // accidentally hitting the Postgres bucket table from whatever
             // env vars the developer happens to have set.
             rate_limit: RateLimitBackend::InProcess(Arc::new(Default::default())),
+            // FDN-05: notifications service with no wired email provider so
+            // channel.send paths short-circuit. Admin preview/test-send
+            // routes remain reachable for assertion-only tests.
+            notifications: Arc::new(NotificationsService::new(None)),
         };
 
         let router = build_router(&state);
@@ -315,6 +320,7 @@ fn build_router(state: &AppState) -> Router<()> {
         .nest("/api/admin/coupons", coupons::admin_router())
         .nest("/api/admin/popups", popups::admin_router())
         .nest("/api/admin/outbox", outbox::router())
+        .nest("/api/admin/notifications", notifications::admin_router())
         // Public routes
         .nest("/api/blog", blog::public_router())
         .nest("/api/courses", courses::public_router())
@@ -324,10 +330,12 @@ fn build_router(state: &AppState) -> Router<()> {
         // Member routes
         .nest("/api/member", member::router())
         .nest("/api/member", courses::member_router())
+        .nest("/api/member", notifications::member_router())
         // Webhooks
         .nest("/api/webhooks", webhooks::router())
         // Security reports (FDN-08)
-        .nest("/api", csp_report::router());
+        .nest("/api", csp_report::router())
+        .nest("/u", notifications::public_router());
 
     router.with_state(state.clone())
 }

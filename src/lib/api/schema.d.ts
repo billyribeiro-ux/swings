@@ -504,6 +504,118 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/notifications/deliveries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_deliveries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/notifications/suppression": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_suppression"];
+        put?: never;
+        post: operations["add_suppression"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/notifications/suppression/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["remove_suppression"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/notifications/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_templates"];
+        put?: never;
+        post: operations["create_template"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/notifications/templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_template"];
+        put: operations["update_template"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/notifications/templates/{id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["preview_template"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/notifications/templates/{id}/test-send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["test_send_template"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/outbox": {
         parameters: {
             query?: never;
@@ -957,6 +1069,22 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/member/notification-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_member_preferences"];
+        put: operations["update_member_preferences"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/member/profile": {
         parameters: {
             query?: never;
@@ -1057,6 +1185,10 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
+        AddSuppressionRequest: {
+            email: string;
+            reason: string;
+        };
         AdminStats: {
             /** Format: int64 */
             total_members: number;
@@ -1258,6 +1390,9 @@ export type components = {
             usage_limit?: number | null;
             /** Format: date-time */
             expires_at?: string | null;
+        };
+        BulkPreferenceUpdate: {
+            items: components["schemas"]["PreferenceUpdate"][];
         };
         Coupon: {
             /** Format: uuid */
@@ -1559,6 +1694,15 @@ export type components = {
             name: string;
             slug?: string | null;
         };
+        CreateTemplateRequest: {
+            key: string;
+            channel: string;
+            locale?: string | null;
+            subject?: string | null;
+            body_source: string;
+            variables?: unknown;
+            is_active?: boolean | null;
+        };
         CreateWatchlistRequest: {
             title: string;
             /** Format: date */
@@ -1566,6 +1710,33 @@ export type components = {
             video_url?: string | null;
             notes?: string | null;
             published?: boolean | null;
+        };
+        DeliveryListQuery: {
+            status?: string | null;
+            /** Format: uuid */
+            user_id?: string | null;
+            /** Format: int64 */
+            page?: number | null;
+            /** Format: int64 */
+            per_page?: number | null;
+        };
+        DeliveryRow: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            user_id?: string | null;
+            anonymous_email?: string | null;
+            template_key: string;
+            channel: string;
+            provider_id?: string | null;
+            status: string;
+            subject?: string | null;
+            rendered_body: string;
+            metadata: unknown;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
         };
         /** @enum {string} */
         DiscountType: "Percentage" | "FixedAmount" | "FreeTrial";
@@ -1617,8 +1788,27 @@ export type components = {
             /** Format: date-time */
             created_at: string;
         };
+        MemberPreferencesResponse: {
+            preferences: components["schemas"]["NotificationPreference"][];
+        };
         ModuleWithLessons: components["schemas"]["CourseModule"] & {
             lessons: components["schemas"]["CourseLesson"][];
+        };
+        /**
+         * @description A (user, category, channel) preference row as stored in
+         *     `notification_preferences`.
+         */
+        NotificationPreference: {
+            /** Format: uuid */
+            user_id: string;
+            category: string;
+            channel: string;
+            enabled: boolean;
+            quiet_hours_start?: string | null;
+            quiet_hours_end?: string | null;
+            timezone: string;
+            /** Format: date-time */
+            updated_at: string;
         };
         /** @description Response body for `POST /api/admin/outbox/{id}/retry`. */
         OutboxRetryResponse: {
@@ -1659,12 +1849,45 @@ export type components = {
          * @enum {string}
          */
         OutboxStatus: "pending" | "in_flight" | "delivered" | "failed" | "dead_letter";
+        PaginatedDeliveriesResponse: {
+            data: components["schemas"]["DeliveryRow"][];
+            /** Format: int64 */
+            total: number;
+            /** Format: int64 */
+            page: number;
+            /** Format: int64 */
+            per_page: number;
+            /** Format: int64 */
+            total_pages: number;
+        };
         /**
          * @description OpenAPI wrapper so the snapshot carries a concrete `PaginatedResponse<OutboxRowDto>`
          *     schema without bleeding the generic into `ApiDoc`.
          */
         PaginatedOutboxResponse: {
             data: components["schemas"]["OutboxRowDto"][];
+            /** Format: int64 */
+            total: number;
+            /** Format: int64 */
+            page: number;
+            /** Format: int64 */
+            per_page: number;
+            /** Format: int64 */
+            total_pages: number;
+        };
+        PaginatedSuppressionResponse: {
+            data: components["schemas"]["Suppression"][];
+            /** Format: int64 */
+            total: number;
+            /** Format: int64 */
+            page: number;
+            /** Format: int64 */
+            per_page: number;
+            /** Format: int64 */
+            total_pages: number;
+        };
+        PaginatedTemplatesResponse: {
+            data: components["schemas"]["Template"][];
             /** Format: int64 */
             total: number;
             /** Format: int64 */
@@ -1759,6 +1982,18 @@ export type components = {
         };
         /** @enum {string} */
         PostStatus: "draft" | "pending_review" | "published" | "private" | "scheduled" | "trash";
+        /** @description Input shape for the bulk set endpoint. Missing timezone defaults to UTC. */
+        PreferenceUpdate: {
+            category: string;
+            channel: string;
+            enabled: boolean;
+            quiet_hours_start?: string | null;
+            quiet_hours_end?: string | null;
+            timezone?: string | null;
+        };
+        PreviewRequest: {
+            context: unknown;
+        };
         PricingPlan: {
             /** Format: uuid */
             id: string;
@@ -1797,6 +2032,17 @@ export type components = {
             email: string;
             password: string;
             name: string;
+        };
+        RemoveSuppressionRequest: {
+            email: string;
+        };
+        /**
+         * @description Output of [`Template::render`]. Kept narrow so channels do not have to
+         *     re-parse Tera output.
+         */
+        RenderedTemplate: {
+            subject?: string | null;
+            body: string;
         };
         ResetPasswordRequest: {
             token: string;
@@ -1844,6 +2090,62 @@ export type components = {
         SubscriptionStatusResponse: {
             subscription?: null | components["schemas"]["Subscription"];
             is_active: boolean;
+        };
+        /** @description Row shape for `notification_suppression`. */
+        Suppression: {
+            email: string;
+            reason: string;
+            /** Format: date-time */
+            suppressed_at: string;
+        };
+        SuppressionListQuery: {
+            /** Format: int64 */
+            page?: number | null;
+            /** Format: int64 */
+            per_page?: number | null;
+        };
+        /**
+         * @description A concrete template row loaded from `notification_templates`.
+         *
+         *     `body_compiled` is maintained by the admin API at save time (currently a
+         *     straight copy of `body_source` until MJML compilation lands in FDN-09);
+         *     rendering reads `body_compiled` so the hot path never re-parses MJML.
+         */
+        Template: {
+            /** Format: uuid */
+            id: string;
+            key: string;
+            channel: string;
+            locale: string;
+            subject?: string | null;
+            body_source: string;
+            body_compiled: string;
+            variables: unknown;
+            /** Format: int32 */
+            version: number;
+            is_active: boolean;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        TemplateListQuery: {
+            key?: string | null;
+            channel?: string | null;
+            locale?: string | null;
+            active_only?: boolean | null;
+            /** Format: int64 */
+            page?: number | null;
+            /** Format: int64 */
+            per_page?: number | null;
+        };
+        TestSendRequest: {
+            to: string;
+            context: unknown;
+        };
+        TestSendResponse: {
+            provider_id: string;
+            subject?: string | null;
         };
         TokenResponse: {
             access_token: string;
@@ -2031,6 +2333,12 @@ export type components = {
             linkedin_url?: string | null;
             youtube_url?: string | null;
             instagram_url?: string | null;
+        };
+        UpdateTemplateRequest: {
+            subject?: string | null;
+            body_source: string;
+            variables?: unknown;
+            is_active?: boolean | null;
         };
         UpdateWatchlistRequest: {
             title?: string | null;
@@ -3592,6 +3900,395 @@ export interface operations {
             };
         };
     };
+    list_deliveries: {
+        parameters: {
+            query?: {
+                status?: string | null;
+                user_id?: string | null;
+                page?: number | null;
+                per_page?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated delivery log */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedDeliveriesResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_suppression: {
+        parameters: {
+            query?: {
+                page?: number | null;
+                per_page?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated suppression entries */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedSuppressionResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    add_suppression: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddSuppressionRequest"];
+            };
+        };
+        responses: {
+            /** @description Address suppressed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Suppression"];
+                };
+            };
+            /** @description Invalid payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    remove_suppression: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemoveSuppressionRequest"];
+            };
+        };
+        responses: {
+            /** @description Whether a row was removed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_templates: {
+        parameters: {
+            query?: {
+                key?: string | null;
+                channel?: string | null;
+                locale?: string | null;
+                active_only?: boolean | null;
+                page?: number | null;
+                per_page?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated template rows */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedTemplatesResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    create_template: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTemplateRequest"];
+            };
+        };
+        responses: {
+            /** @description New template version */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Template"];
+                };
+            };
+            /** @description Invalid payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_template: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Template id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Template row */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Template"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    update_template: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Base template id (read for key/channel/locale lookup) */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTemplateRequest"];
+            };
+        };
+        responses: {
+            /** @description New version row */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Template"];
+                };
+            };
+            /** @description Invalid payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    preview_template: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Template id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Rendered template */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RenderedTemplate"];
+                };
+            };
+            /** @description Invalid template or context */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    test_send_template: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Template id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TestSendRequest"];
+            };
+        };
+        responses: {
+            /** @description Delivered via the live channel */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TestSendResponse"];
+                };
+            };
+            /** @description Invalid payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Channel provider unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     list_outbox: {
         parameters: {
             query?: {
@@ -4715,6 +5412,71 @@ export interface operations {
             };
             /** @description Lesson not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_member_preferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current user's notification preferences */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberPreferencesResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    update_member_preferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkPreferenceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated preferences */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberPreferencesResponse"];
+                };
+            };
+            /** @description Invalid payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

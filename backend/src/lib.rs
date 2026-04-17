@@ -19,6 +19,7 @@ pub mod extractors;
 pub mod handlers;
 pub mod middleware;
 pub mod models;
+pub mod notifications;
 pub mod openapi;
 pub mod services;
 pub mod stripe_api;
@@ -41,4 +42,9 @@ pub struct AppState {
     /// `RATE_LIMIT_BACKEND=inprocess|postgres` at startup; used by the
     /// Postgres middleware path, inert for the in-process (governor) path.
     pub rate_limit: middleware::rate_limit::Backend,
+    /// FDN-05: notifications service — template registry, preference engine,
+    /// and channel dispatch. Constructed in `main.rs`; handlers reach for
+    /// `state.notifications.channels()` to send outside the outbox path
+    /// (e.g. admin `test-send`).
+    pub notifications: Arc<notifications::Service>,
 }

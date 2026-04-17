@@ -22,8 +22,8 @@ use utoipa_swagger_ui::SwaggerUi;
 use crate::{
     extractors::AdminUser,
     handlers::{
-        admin, analytics, auth, blog, coupons, courses, csp_report, member, outbox, popups,
-        webhooks,
+        admin, analytics, auth, blog, coupons, courses, csp_report, member, notifications, outbox,
+        popups, webhooks,
     },
     AppState,
 };
@@ -59,6 +59,7 @@ impl Modify for SecurityAddon {
         (name = "auth", description = "Authentication and password flows"),
         (name = "admin", description = "Admin-only dashboard and member management"),
         (name = "admin-blog", description = "Admin-only blog management"),
+        (name = "admin-notifications", description = "Admin-only notification template + delivery ops"),
         (name = "analytics", description = "Client-side analytics ingestion"),
         (name = "blog", description = "Public blog endpoints"),
         (name = "coupons", description = "Discount coupon management"),
@@ -141,6 +142,19 @@ impl Modify for SecurityAddon {
         outbox::list_outbox,
         outbox::get_outbox,
         outbox::retry_outbox,
+        // Notifications (FDN-05 admin + member)
+        notifications::list_templates,
+        notifications::create_template,
+        notifications::get_template,
+        notifications::update_template,
+        notifications::preview_template,
+        notifications::test_send_template,
+        notifications::list_deliveries,
+        notifications::list_suppression,
+        notifications::add_suppression,
+        notifications::remove_suppression,
+        notifications::get_member_preferences,
+        notifications::update_member_preferences,
         // Popups
         popups::admin_create_popup,
         popups::admin_update_popup,
@@ -258,6 +272,28 @@ impl Modify for SecurityAddon {
             outbox::OutboxRetryResponse,
             outbox::PaginatedOutboxResponse,
             crate::events::outbox::OutboxStatus,
+            // Notifications (FDN-05)
+            notifications::TemplateListQuery,
+            notifications::CreateTemplateRequest,
+            notifications::UpdateTemplateRequest,
+            notifications::PreviewRequest,
+            notifications::TestSendRequest,
+            notifications::TestSendResponse,
+            notifications::DeliveryListQuery,
+            notifications::DeliveryRow,
+            notifications::PaginatedDeliveriesResponse,
+            notifications::SuppressionListQuery,
+            notifications::PaginatedSuppressionResponse,
+            notifications::AddSuppressionRequest,
+            notifications::RemoveSuppressionRequest,
+            notifications::BulkPreferenceUpdate,
+            notifications::MemberPreferencesResponse,
+            notifications::PaginatedTemplatesResponse,
+            crate::notifications::templates::Template,
+            crate::notifications::templates::RenderedTemplate,
+            crate::notifications::preferences::NotificationPreference,
+            crate::notifications::preferences::PreferenceUpdate,
+            crate::notifications::suppression::Suppression,
         )
     )
 )]
