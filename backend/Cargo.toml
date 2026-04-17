@@ -57,3 +57,13 @@ bytes = "1"
 # Rate limiting
 governor = "0.10"
 tower_governor = "0.8"
+
+# Geo (GeoLite2-Country reader)
+maxminddb = "0.25"
+
+# User-agent parsing + cache
+woothee = "0.13"
+moka = { version = "0.12", features = ["sync"] }
+
+# HTML sanitization
+ammonia = "4"
