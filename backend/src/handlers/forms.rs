@@ -112,11 +112,15 @@ pub struct SubmitResponse {
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct PartialRequest {
     pub data: serde_json::Value,
-    /// Optional: rotate an existing resume token. The server returns a fresh
-    /// token in the response regardless; supplying the old one extends the
-    /// window without creating a duplicate row.
+    /// Optional: extend an existing resume token in place. When set + the
+    /// token is valid, the existing row is updated and the same token is
+    /// returned; otherwise a fresh token is minted.
     #[serde(default)]
     pub resume_token: Option<String>,
+    /// Zero-based page-break index the draft was on when saved. Lets the
+    /// renderer jump straight back to the right step on resume.
+    #[serde(default)]
+    pub current_step: Option<i32>,
 }
 
 #[derive(Debug, Serialize, ToSchema)]
@@ -128,6 +132,13 @@ pub struct PartialResponse {
 #[derive(Debug, Deserialize)]
 pub struct PartialLoadQuery {
     pub token: String,
+}
+
+#[derive(Debug, Serialize, ToSchema)]
+pub struct PartialLoadResponse {
+    pub data: serde_json::Value,
+    pub current_step: i32,
+    pub expires_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -332,23 +343,43 @@ pub async fn public_save_partial(
 
     // Mint a fresh token (32 random bytes, hex-encoded for the URL) — only
     // the SHA-256 hash is stored server-side.
+    // FORM-04: if the client supplies an existing resume token, extend the
+    // same row in place; the plaintext never re-leaves the server. Otherwise
+    // mint a fresh random token, hash it, insert, and return the plaintext
+    // exactly once.
+    if let Some(existing) = req.resume_token.as_deref() {
+        let existing_hash = hash_bytes(existing);
+        if let Some(row) = repo::update_partial_by_hash(
+            &state.db,
+            form.id,
+            &existing_hash,
+            &req.data,
+            req.current_step.unwrap_or(0),
+            expires_at,
+        )
+        .await?
+        {
+            return Ok(Json(PartialResponse {
+                resume_token: existing.to_string(),
+                expires_at: row.expires_at,
+            }));
+        }
+        // Token unknown or expired — fall through and mint a fresh row.
+    }
+
     let token = mint_token_hex();
-    let token_hash = hash_hex(&token);
+    let token_hash = hash_bytes(&token);
 
     repo::insert_partial(
         &state.db,
         form.id,
         &token_hash,
         &req.data,
+        req.current_step.unwrap_or(0),
         opt.user_id,
         expires_at,
     )
     .await?;
-
-    // If the client supplied an old token we silently ignore it; the insert
-    // above already stored a fresh row. TODO (FORM-04): rotate vs replace
-    // behaviour belongs with the save-and-resume work.
-    let _ = req.resume_token;
 
     Ok(Json(PartialResponse {
         resume_token: token,
@@ -360,15 +391,19 @@ pub async fn public_load_partial(
     State(state): State<AppState>,
     Path(slug): Path<String>,
     Query(q): Query<PartialLoadQuery>,
-) -> AppResult<Json<serde_json::Value>> {
+) -> AppResult<Json<PartialLoadResponse>> {
     let form = repo::get_form_by_slug(&state.db, &slug)
         .await?
         .ok_or_else(|| AppError::NotFound(format!("form `{slug}` not found")))?;
-    let token_hash = hash_hex(&q.token);
+    let token_hash = hash_bytes(&q.token);
     let row = repo::resolve_partial(&state.db, form.id, &token_hash)
         .await?
         .ok_or_else(|| AppError::NotFound("partial not found or expired".into()))?;
-    Ok(Json(row.data_json))
+    Ok(Json(PartialLoadResponse {
+        data: row.data_json,
+        current_step: row.current_step,
+        expires_at: row.expires_at,
+    }))
 }
 
 // ── Admin handlers ─────────────────────────────────────────────────────
@@ -502,14 +537,13 @@ fn ip_hash_daily(ip: &str) -> String {
         .collect()
 }
 
-fn hash_hex(input: &str) -> String {
+/// FORM-04: the `form_partials.resume_token_hash` column is BYTEA, so the
+/// handler hashes tokens straight to the 32-byte digest instead of taking
+/// a round trip through hex.
+fn hash_bytes(input: &str) -> [u8; 32] {
     let mut hasher = Sha256::new();
     hasher.update(input.as_bytes());
-    hasher
-        .finalize()
-        .iter()
-        .map(|b| format!("{b:02x}"))
-        .collect()
+    hasher.finalize().into()
 }
 
 fn mint_token_hex() -> String {
@@ -641,11 +675,13 @@ mod tests {
     }
 
     #[test]
-    fn hash_hex_is_stable() {
-        let a = hash_hex("token");
-        // Known SHA-256("token") prefix.
-        assert!(a.starts_with("3c469e9d"));
-        assert_eq!(a.len(), 64);
+    fn hash_bytes_is_stable() {
+        let a = hash_bytes("token");
+        let b = hash_bytes("token");
+        assert_eq!(a, b);
+        assert_eq!(a.len(), 32);
+        // Known SHA-256("token") first byte.
+        assert_eq!(a[0], 0x3c);
     }
 
     #[test]
