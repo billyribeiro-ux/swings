@@ -1,1 +1,16 @@
+/* ===========================================================================
+   App entry stylesheet — orchestrates the PE7 cascade.
+
+   Order matters: layer declaration first, then each layer's contents in the
+   declared order. Later-listed @layer blocks still participate in the order
+   declared in layers.css, so the sequence below reflects intent, not
+   specificity resolution.
+   =========================================================================== */
+
+@import './styles/layers.css';
+@import './styles/reset.css';
+@import './styles/tokens.css';
+@import './styles/breakpoints.css';
 @import './styles/global.css';
+@import './styles/utilities.css';
+@import './styles/overrides.css';

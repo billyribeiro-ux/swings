@@ -1,0 +1,83 @@
+/* ===========================================================================
+   LEGACY CUSTOM-PROPERTY SHIM — @layer overrides
+
+   Purpose: every legacy custom-property name referenced by existing Svelte
+   components must continue to resolve while the underlying scale has moved to
+   OKLCH. This file is a one-way mapping from old names → new tokens.
+
+   Enumeration methodology: `grep -rohE 'var\(--[a-zA-Z0-9_-]+' src | sort -u`.
+   Locally-scoped names (those beginning with `--_` or single-letter / per-row
+   custom properties like `--i`, `--stagger`, `--card-delay`, `--kpi-accent`,
+   `--accent`) are declared at component scope and deliberately NOT shimmed
+   here.
+
+   Rule: never break a component. If a component references a name that isn't
+   in tokens.css, shim it here.
+   =========================================================================== */
+
+@layer overrides {
+	:root {
+		/* -----------------------------------------------------------------
+		   BRAND + NAVY
+		   ----------------------------------------------------------------- */
+		--color-navy: var(--brand-navy-700); /* legacy #0b1d3a */
+		--color-navy-mid: var(--brand-navy-600); /* legacy #132b50 */
+		--color-navy-deep: var(--brand-navy-800); /* legacy #0c1b2e */
+		--color-deep-blue: var(--brand-navy-500); /* legacy #1a3a6b */
+
+		/* -----------------------------------------------------------------
+		   TEAL
+		   ----------------------------------------------------------------- */
+		--color-teal: var(--brand-teal-500); /* legacy #0fa4af */
+		--color-teal-light: var(--brand-teal-400); /* legacy #15c5d1 */
+		--color-teal-dark: var(--brand-teal-600); /* legacy #0d8a94 */
+		--color-teal-glow: oklch(0.66 0.12 197 / 0.15); /* legacy rgba(15,164,175,.15) */
+
+		/* -----------------------------------------------------------------
+		   GOLD
+		   ----------------------------------------------------------------- */
+		--color-gold: var(--brand-gold-500); /* legacy #d4a843 */
+		--color-gold-light: var(--brand-gold-300); /* legacy #e8c76a */
+
+		/* -----------------------------------------------------------------
+		   NEUTRAL + WHITES
+		   ----------------------------------------------------------------- */
+		--color-white: var(--neutral-0);
+		--color-off-white: var(--neutral-50); /* legacy #f7f8fa */
+		--color-grey-50: var(--neutral-50);
+		--color-grey-100: var(--neutral-100); /* legacy #eef0f4 */
+		--color-grey-200: var(--neutral-200); /* legacy #d8dce4 */
+		--color-grey-300: var(--neutral-300); /* legacy #b8bec9 */
+		--color-grey-400: var(--neutral-400); /* legacy #8b95a8 */
+		--color-grey-500: var(--neutral-500); /* legacy #6f7a8c */
+		--color-grey-600: var(--neutral-600); /* legacy #5a6478 */
+		--color-grey-700: var(--neutral-700); /* legacy #3f4a5e */
+		--color-grey-800: var(--neutral-800); /* legacy #2e3749 */
+		--color-grey-900: var(--neutral-900);
+
+		/* -----------------------------------------------------------------
+		   STATUS
+		   ----------------------------------------------------------------- */
+		--color-red: var(--status-danger-500); /* legacy #e04848 */
+		--color-green: var(--status-success-500); /* legacy #22b573 */
+
+		/* -----------------------------------------------------------------
+		   SURFACE (referenced directly by a few components)
+		   ----------------------------------------------------------------- */
+		--color-surface: var(--surface-bg-canvas);
+
+		/* -----------------------------------------------------------------
+		   TYPOGRAPHY — legacy weight + size aliases
+		   ----------------------------------------------------------------- */
+		--w-normal: var(--w-regular); /* legacy alias; both = 400 */
+		--fs-base: var(--fs-md); /* legacy alias for body size */
+
+		/* -----------------------------------------------------------------
+		   Everything else (fs-*, space-*, radius-*, shadow-*, lh-*, ls-*,
+		   font-*, duration-*, ease-*, container-*, z-*) is already defined
+		   in tokens.css under the identical legacy names, so no shim line
+		   is required for those. A grep-enumerated audit has confirmed no
+		   additional component-referenced names are missing.
+		   ----------------------------------------------------------------- */
+	}
+}

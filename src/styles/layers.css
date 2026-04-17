@@ -1,0 +1,14 @@
+/* ===========================================================================
+   CASCADE LAYERS — single declaration of layer order for the whole app.
+
+   Cascade rules mean: rules inside an earlier-listed layer lose to rules inside
+   a later-listed layer, regardless of specificity. This buys us:
+   - Predictable baseline (reset never fights component styles).
+   - A controlled escape hatch ("overrides") to back-compat legacy custom
+     property names onto the new OKLCH scale without touching components.
+
+   DO NOT redeclare this statement anywhere else. Every other stylesheet
+   assigns itself to one of these named layers via `@layer <name> { ... }`.
+   =========================================================================== */
+
+@layer reset, base, tokens, layout, components, utilities, overrides;

@@ -1,0 +1,160 @@
+/* ===========================================================================
+   UTILITIES — @layer utilities
+
+   Small, composable single-purpose classes. Keyframes declarations live at
+   root scope (not inside @layer); layers do not nest @keyframes semantics.
+   =========================================================================== */
+
+@keyframes pulse {
+	50% {
+		opacity: 0.5;
+	}
+}
+
+@keyframes ping {
+	75%,
+	100% {
+		transform: scale(2);
+		opacity: 0;
+	}
+}
+
+@keyframes shimmer {
+	0% {
+		background-position: -200% 0;
+	}
+	100% {
+		background-position: 200% 0;
+	}
+}
+
+@keyframes float {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-6px);
+	}
+}
+
+@layer utilities {
+	/* ---------------------------------------------------------------------
+	   KPI typographic roles (financial UI).
+	   --------------------------------------------------------------------- */
+	.kpi-value {
+		font-family: var(--font-ui);
+		font-size: var(--fs-2xl);
+		font-weight: var(--w-bold);
+		line-height: var(--lh-tight);
+		font-variant-numeric: tabular-nums lining-nums;
+	}
+
+	.kpi-label {
+		font-size: var(--fs-xs);
+		font-weight: var(--w-medium);
+		text-transform: uppercase;
+		letter-spacing: var(--ls-wide);
+	}
+
+	/* ---------------------------------------------------------------------
+	   Hero typography (targeted by GSAP via class selectors).
+	   --------------------------------------------------------------------- */
+	.hero-eyebrow {
+		font-family: var(--font-ui);
+		font-size: var(--fs-xs);
+		font-weight: var(--w-semibold);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	.hero-title {
+		font-family: var(--font-heading);
+		font-size: clamp(1.875rem, 1.4rem + 2.6vw, 3.75rem);
+		font-weight: var(--w-extrabold);
+		line-height: 1.05;
+		letter-spacing: -0.025em;
+	}
+
+	.hero-subtitle {
+		font-size: var(--fs-md);
+		line-height: var(--lh-relaxed);
+		max-inline-size: 65ch;
+	}
+
+	/* ---------------------------------------------------------------------
+	   Cinematic hover-lift (opt-in).
+	   --------------------------------------------------------------------- */
+	.hover-lift {
+		transition:
+			transform 350ms var(--ease-spring),
+			box-shadow 350ms var(--ease-spring);
+		will-change: transform;
+	}
+
+	.hover-lift:hover {
+		transform: translateY(-4px);
+		box-shadow: var(--shadow-xl);
+	}
+
+	.hover-lift:active {
+		transform: translateY(-1px);
+	}
+
+	/* ---------------------------------------------------------------------
+	   Animations.
+	   --------------------------------------------------------------------- */
+	.animate-pulse {
+		animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+	}
+
+	.animate-ping {
+		animation: ping 1s var(--ease-out) infinite;
+	}
+
+	.animate-shimmer {
+		background-size: 200% 100%;
+		animation: shimmer 3s var(--ease-in-out) infinite;
+	}
+
+	.animate-float {
+		animation: float 4s var(--ease-in-out) infinite;
+	}
+
+	/* ---------------------------------------------------------------------
+	   Accessibility — visually hidden (PE7 standard).
+	   --------------------------------------------------------------------- */
+	.visually-hidden {
+		position: absolute;
+		inline-size: 1px;
+		block-size: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	/* ---------------------------------------------------------------------
+	   Layout primitives (every-layout style).
+	   --------------------------------------------------------------------- */
+	.stack {
+		--stack-gap: var(--space-4);
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+	}
+
+	.stack > * + * {
+		margin-block-start: var(--stack-gap);
+	}
+
+	.cluster {
+		--cluster-gap: var(--space-3);
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--cluster-gap);
+		align-items: center;
+	}
+}
