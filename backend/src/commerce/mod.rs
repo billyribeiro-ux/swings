@@ -22,10 +22,16 @@
 
 pub mod cart;
 pub mod coupons;
+pub mod orders;
 pub mod products;
 pub mod repo;
+pub mod tax;
 
 pub use cart::{Cart, CartIdentity, CartItem, CartTotals};
+pub use orders::{
+    can_transition, create_order, get_order, get_order_by_payment_intent, next_order_number,
+    transition, CreateOrderInput, Order, OrderError, OrderItem, OrderNote, OrderRefund, OrderStatus,
+};
 pub use coupons::{
     AppliedCoupon, BogoConfig, CartLine, CouponEngine, CouponInput, CouponScope, RecurringMode,
 };
