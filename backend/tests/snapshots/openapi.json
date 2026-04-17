@@ -3012,6 +3012,496 @@
         ]
       }
     },
+    "/api/admin/products": {
+      "post": {
+        "tags": [
+          "products"
+        ],
+        "operationId": "admin_create_product",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Product created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Slug conflict"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/products/{id}": {
+      "put": {
+        "tags": [
+          "products"
+        ],
+        "operationId": "admin_update_product",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Product id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Product updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "products"
+        ],
+        "operationId": "admin_delete_product",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Product id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product deleted"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/products/{id}/assets": {
+      "post": {
+        "tags": [
+          "products"
+        ],
+        "operationId": "admin_add_asset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Product id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAssetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Asset created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadableAsset"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/products/{id}/assets/{asset_id}": {
+      "delete": {
+        "tags": [
+          "products"
+        ],
+        "operationId": "admin_delete_asset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Product id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "asset_id",
+            "in": "path",
+            "description": "Asset id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Asset deleted"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Asset not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/products/{id}/bundle-items": {
+      "put": {
+        "tags": [
+          "products"
+        ],
+        "operationId": "admin_set_bundle_items",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Bundle product id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetBundleItemsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Bundle items replaced",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BundleItem"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Bundle not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/products/{id}/status": {
+      "post": {
+        "tags": [
+          "products"
+        ],
+        "operationId": "admin_set_status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Product id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Product status updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Product not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/products/{id}/variants": {
+      "post": {
+        "tags": [
+          "products"
+        ],
+        "operationId": "admin_add_variant",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Product id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVariantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Variant created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductVariant"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/products/{id}/variants/{variant_id}": {
+      "put": {
+        "tags": [
+          "products"
+        ],
+        "operationId": "admin_update_variant",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Product id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "variant_id",
+            "in": "path",
+            "description": "Variant id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVariantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Variant updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductVariant"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Variant not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "products"
+        ],
+        "operationId": "admin_delete_variant",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Product id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "variant_id",
+            "in": "path",
+            "description": "Variant id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Variant deleted"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Variant not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/admin/watchlists": {
       "post": {
         "tags": [
@@ -5229,55 +5719,71 @@
           }
         }
       },
-      "CategoryRow": {
+      "BundleItem": {
         "type": "object",
+        "description": "`bundle_items` row. `quantity` is always positive (CHECK-enforced).\n`child_variant_id` is optional; when set, the bundle includes that specific\nvariant, otherwise it includes the default/any variant of the child product.",
         "required": [
-          "key",
-          "label",
-          "description",
-          "is_required",
-          "sort_order"
+          "id",
+          "bundle_product_id",
+          "child_product_id",
+          "quantity",
+          "position"
         ],
         "properties": {
-          "key": {
-            "type": "string"
+          "id": {
+            "type": "string",
+            "format": "uuid"
           },
-          "label": {
-            "type": "string"
+          "bundle_product_id": {
+            "type": "string",
+            "format": "uuid"
           },
-          "description": {
-            "type": "string"
+          "child_product_id": {
+            "type": "string",
+            "format": "uuid"
           },
-          "is_required": {
-            "type": "boolean"
+          "child_variant_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
           },
-          "sort_order": {
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "position": {
             "type": "integer",
             "format": "int32"
           }
         }
       },
-      "CategoryUpsertRequest": {
+      "BundleItemInput": {
         "type": "object",
+        "description": "Admin-only payload for a single bundle component.",
         "required": [
-          "key",
-          "label",
-          "description"
+          "child_product_id",
+          "quantity",
+          "position"
         ],
         "properties": {
-          "key": {
-            "type": "string"
+          "child_product_id": {
+            "type": "string",
+            "format": "uuid"
           },
-          "label": {
-            "type": "string"
+          "child_variant_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
           },
-          "description": {
-            "type": "string"
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
           },
-          "is_required": {
-            "type": "boolean"
-          },
-          "sort_order": {
+          "position": {
             "type": "integer",
             "format": "int32"
           }
@@ -5925,6 +6431,68 @@
           }
         }
       },
+      "CreateAssetRequest": {
+        "type": "object",
+        "description": "Admin-only payload for adding a downloadable asset.",
+        "required": [
+          "storage_key",
+          "filename",
+          "mime_type",
+          "size_bytes",
+          "sha256"
+        ],
+        "properties": {
+          "variant_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "storage_key": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "mime_type": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "access_policy": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "required_tier": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "download_limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "expires_after_hours": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "CreateCategoryRequest": {
         "type": "object",
         "required": [
@@ -6548,6 +7116,110 @@
           }
         }
       },
+      "CreateProductRequest": {
+        "type": "object",
+        "description": "Admin-only payload for `POST /api/admin/products`. `product_type` + `slug`\nare mandatory; everything else is optional on create and can be updated\nlater.",
+        "required": [
+          "slug",
+          "name",
+          "product_type"
+        ],
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "product_type": {
+            "$ref": "#/components/schemas/ProductType"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ProductStatus"
+              }
+            ]
+          },
+          "price_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "compare_at_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tax_class": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stripe_product_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stripe_price_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "gallery_media_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "featured_media_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "seo_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "seo_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "metadata": {}
+        }
+      },
       "CreateTagRequest": {
         "type": "object",
         "required": [
@@ -6595,6 +7267,57 @@
             "type": "string"
           },
           "variables": {},
+          "is_active": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      },
+      "CreateVariantRequest": {
+        "type": "object",
+        "description": "Admin-only payload for creating a variant.",
+        "properties": {
+          "sku": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "price_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attributes": {},
+          "stripe_price_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "position": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
           "is_active": {
             "type": [
               "boolean",
@@ -6742,165 +7465,78 @@
           "FreeTrial"
         ]
       },
-      "DsarFulfillRequest": {
+      "DownloadableAsset": {
         "type": "object",
-        "properties": {
-          "fulfillmentUrl": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "adminNotes": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
-        }
-      },
-      "DsarFulfillResponse": {
-        "type": "object",
-        "description": "Admin fulfill response. When the DSAR is `access` / `portability` and the\nadmin did not provide a URL, the exported JSON is inlined in `export` so\nthe caller can pipe it to a download without a second round-trip.",
-        "required": [
-          "request"
-        ],
-        "properties": {
-          "request": {
-            "$ref": "#/components/schemas/DsarRow"
-          },
-          "export": {}
-        }
-      },
-      "DsarListResponse": {
-        "type": "object",
-        "required": [
-          "data",
-          "total",
-          "page",
-          "perPage",
-          "totalPages"
-        ],
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DsarRow"
-            }
-          },
-          "total": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "page": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "perPage": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "totalPages": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "DsarRow": {
-        "type": "object",
-        "description": "Row shape returned from the admin list + the subject submission response.",
+        "description": "`downloadable_assets` row. `storage_key` is the R2 object key; EC-07 will\nwire signed-URL issuance against it. `access_policy` gates who can request\na fresh signed URL.",
         "required": [
           "id",
-          "email",
-          "kind",
-          "status",
-          "payload",
-          "createdAt",
-          "updatedAt"
+          "product_id",
+          "storage_key",
+          "filename",
+          "mime_type",
+          "size_bytes",
+          "sha256",
+          "access_policy",
+          "created_at"
         ],
         "properties": {
           "id": {
             "type": "string",
             "format": "uuid"
           },
-          "userId": {
+          "product_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "variant_id": {
             "type": [
               "string",
               "null"
             ],
             "format": "uuid"
           },
-          "email": {
+          "storage_key": {
             "type": "string"
           },
-          "kind": {
+          "filename": {
             "type": "string"
           },
-          "status": {
+          "mime_type": {
             "type": "string"
           },
-          "payload": {},
-          "fulfilledAt": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date-time"
+          "size_bytes": {
+            "type": "integer",
+            "format": "int64"
           },
-          "fulfilledBy": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "uuid"
+          "sha256": {
+            "type": "string"
           },
-          "fulfillmentUrl": {
+          "access_policy": {
+            "type": "string"
+          },
+          "required_tier": {
             "type": [
               "string",
               "null"
             ]
           },
-          "adminNotes": {
+          "download_limit": {
             "type": [
-              "string",
+              "integer",
               "null"
-            ]
+            ],
+            "format": "int32"
           },
-          "createdAt": {
+          "expires_after_hours": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "created_at": {
             "type": "string",
             "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
-      "DsarSubmitRequest": {
-        "type": "object",
-        "required": [
-          "email",
-          "kind"
-        ],
-        "properties": {
-          "email": {
-            "type": "string"
-          },
-          "kind": {
-            "type": "string"
-          },
-          "payload": {}
-        }
-      },
-      "DsarSubmitResponse": {
-        "type": "object",
-        "required": [
-          "id"
-        ],
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
           }
         }
       },
@@ -7922,6 +8558,241 @@
           }
         }
       },
+      "Product": {
+        "type": "object",
+        "description": "`products` row. Money fields are `BIGINT` cents; translate via\n[`crate::common::money::Money::cents`] when arithmetic is needed.",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "product_type",
+          "status",
+          "currency",
+          "tax_class",
+          "gallery_media_ids",
+          "metadata",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "product_type": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "price_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "compare_at_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "tax_class": {
+            "type": "string"
+          },
+          "stripe_product_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stripe_price_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "gallery_media_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "featured_media_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "seo_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "seo_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "metadata": {},
+          "created_by": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProductDetail": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Product"
+          },
+          {
+            "type": "object",
+            "required": [
+              "variants",
+              "assets",
+              "bundle_items"
+            ],
+            "properties": {
+              "variants": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ProductVariant"
+                }
+              },
+              "assets": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/DownloadableAsset"
+                }
+              },
+              "bundle_items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BundleItem"
+                }
+              }
+            }
+          }
+        ],
+        "description": "Bundle of a product + its first-class children. Returned by `GET\n/api/admin/products/{id}` and `GET /api/products/{slug}` so the admin UI\nand the public PDP both receive a single hydrated document."
+      },
+      "ProductStatus": {
+        "type": "string",
+        "description": "Publication lifecycle. `draft` is the default on insert; only `published`\nrows surface through the public router. `archived` is terminal and hides\nthe product from every lookup except admin list views.",
+        "enum": [
+          "draft",
+          "published",
+          "archived"
+        ]
+      },
+      "ProductType": {
+        "type": "string",
+        "description": "Top-level product archetype. Matches the CHECK constraint in\n`migrations/040_products.sql`.",
+        "enum": [
+          "simple",
+          "subscription",
+          "downloadable",
+          "bundle"
+        ]
+      },
+      "ProductVariant": {
+        "type": "object",
+        "description": "`product_variants` row. A variant overrides product pricing when\n`price_cents` is set; otherwise it inherits.",
+        "required": [
+          "id",
+          "product_id",
+          "attributes",
+          "position",
+          "is_active",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "product_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sku": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "price_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attributes": {},
+          "stripe_price_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "position": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ProgressUpdate": {
         "type": "object",
         "required": [
@@ -8059,108 +8930,30 @@
           }
         }
       },
-      "SubmissionRow": {
+      "SetBundleItemsRequest": {
         "type": "object",
+        "description": "Admin-only payload for `PUT /api/admin/products/{id}/bundle-items`.",
         "required": [
-          "id",
-          "form_id",
-          "form_version_id",
-          "status",
-          "data_json",
-          "files_json",
-          "ip_hash",
-          "user_agent",
-          "utm",
-          "submitted_at"
+          "items"
         ],
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "form_id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "form_version_id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "subject_id": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "uuid"
-          },
-          "anonymous_id": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "uuid"
-          },
-          "status": {
-            "type": "string"
-          },
-          "data_json": {},
-          "files_json": {},
-          "ip_hash": {
-            "type": "string"
-          },
-          "user_agent": {
-            "type": "string"
-          },
-          "referrer": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "utm": {},
-          "validation_errors": {},
-          "submitted_at": {
-            "type": "string",
-            "format": "date-time"
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BundleItemInput"
+            }
           }
         }
       },
-      "SubmitRequest": {
+      "SetStatusRequest": {
         "type": "object",
+        "description": "Admin-only payload for `POST /api/admin/products/{id}/status`.",
         "required": [
-          "data"
-        ],
-        "properties": {
-          "data": {},
-          "utm": {
-            "description": "Optional UTM block captured from the query-string at render time."
-          },
-          "files": {
-            "description": "Optional file descriptors from FORM-05. Shape `[{ field_key, file_id,\nfilename, size, sha256, mime_type }]`."
-          },
-          "anonymous_id": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "uuid",
-            "description": "Optional anonymous id cookie — the frontend generates one for\nunauthenticated sessions so repeat submissions tie back together."
-          }
-        }
-      },
-      "SubmitResponse": {
-        "type": "object",
-        "required": [
-          "id",
           "status"
         ],
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
           "status": {
-            "type": "string"
+            "$ref": "#/components/schemas/ProductStatus"
           }
         }
       },
@@ -9218,6 +10011,98 @@
           }
         }
       },
+      "UpdateProductRequest": {
+        "type": "object",
+        "description": "Admin-only payload for `PUT /api/admin/products/{id}`. Every field is\noptional — `None` means \"leave the existing value alone\" (COALESCE in the\nrepo layer). `product_type` is deliberately not update-able because\nchanging it post-creation would invalidate variant + asset + bundle rows.",
+        "properties": {
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "price_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "compare_at_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tax_class": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stripe_product_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stripe_price_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "gallery_media_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "featured_media_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "seo_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "seo_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "metadata": {}
+        }
+      },
       "UpdateProfileRequest": {
         "type": "object",
         "properties": {
@@ -9293,6 +10178,57 @@
             "type": "string"
           },
           "variables": {},
+          "is_active": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      },
+      "UpdateVariantRequest": {
+        "type": "object",
+        "description": "Admin-only payload for updating a variant.",
+        "properties": {
+          "sku": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "price_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attributes": {},
+          "stripe_price_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "position": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
           "is_active": {
             "type": [
               "boolean",
@@ -9768,6 +10704,10 @@
     {
       "name": "pricing",
       "description": "Subscription pricing plans"
+    },
+    {
+      "name": "products",
+      "description": "EC-01 digital-goods product catalogue (admin + public)"
     },
     {
       "name": "security",

@@ -826,6 +826,134 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["admin_create_product"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/products/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["admin_update_product"];
+        post?: never;
+        delete: operations["admin_delete_product"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/products/{id}/assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["admin_add_asset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/products/{id}/assets/{asset_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["admin_delete_asset"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/products/{id}/bundle-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["admin_set_bundle_items"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/products/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["admin_set_status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/products/{id}/variants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["admin_add_variant"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/products/{id}/variants/{variant_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["admin_update_variant"];
+        post?: never;
+        delete: operations["admin_delete_variant"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/watchlists": {
         parameters: {
             query?: never;
@@ -1649,6 +1777,36 @@ export type components = {
             sort_order?: number;
         };
         /**
+         * @description `bundle_items` row. `quantity` is always positive (CHECK-enforced).
+         *     `child_variant_id` is optional; when set, the bundle includes that specific
+         *     variant, otherwise it includes the default/any variant of the child product.
+         */
+        BundleItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            bundle_product_id: string;
+            /** Format: uuid */
+            child_product_id: string;
+            /** Format: uuid */
+            child_variant_id?: string | null;
+            /** Format: int32 */
+            quantity: number;
+            /** Format: int32 */
+            position: number;
+        };
+        /** @description Admin-only payload for a single bundle component. */
+        BundleItemInput: {
+            /** Format: uuid */
+            child_product_id: string;
+            /** Format: uuid */
+            child_variant_id?: string | null;
+            /** Format: int32 */
+            quantity: number;
+            /** Format: int32 */
+            position: number;
+        };
+        /**
          * @description Single-category entry in the banner response.
          *
          *     Wire fields are camelCased to match the frontend stub at
@@ -1845,6 +2003,23 @@ export type components = {
             notes?: string | null;
             chart_url?: string | null;
         };
+        /** @description Admin-only payload for adding a downloadable asset. */
+        CreateAssetRequest: {
+            /** Format: uuid */
+            variant_id?: string | null;
+            storage_key: string;
+            filename: string;
+            mime_type: string;
+            /** Format: int64 */
+            size_bytes: number;
+            sha256: string;
+            access_policy?: string | null;
+            required_tier?: string | null;
+            /** Format: int32 */
+            download_limit?: number | null;
+            /** Format: int32 */
+            expires_after_hours?: number | null;
+        };
         CreateCategoryRequest: {
             name: string;
             slug?: string | null;
@@ -1983,6 +2158,32 @@ export type components = {
             /** Format: int32 */
             sort_order?: number | null;
         };
+        /**
+         * @description Admin-only payload for `POST /api/admin/products`. `product_type` + `slug`
+         *     are mandatory; everything else is optional on create and can be updated
+         *     later.
+         */
+        CreateProductRequest: {
+            slug: string;
+            name: string;
+            product_type: components["schemas"]["ProductType"];
+            description?: string | null;
+            status?: null | components["schemas"]["ProductStatus"];
+            /** Format: int64 */
+            price_cents?: number | null;
+            /** Format: int64 */
+            compare_at_cents?: number | null;
+            currency?: string | null;
+            tax_class?: string | null;
+            stripe_product_id?: string | null;
+            stripe_price_id?: string | null;
+            gallery_media_ids?: string[] | null;
+            /** Format: uuid */
+            featured_media_id?: string | null;
+            seo_title?: string | null;
+            seo_description?: string | null;
+            metadata?: unknown;
+        };
         CreateTagRequest: {
             name: string;
             slug?: string | null;
@@ -1994,6 +2195,19 @@ export type components = {
             subject?: string | null;
             body_source: string;
             variables?: unknown;
+            is_active?: boolean | null;
+        };
+        /** @description Admin-only payload for creating a variant. */
+        CreateVariantRequest: {
+            sku?: string | null;
+            name?: string | null;
+            /** Format: int64 */
+            price_cents?: number | null;
+            currency?: string | null;
+            attributes?: unknown;
+            stripe_price_id?: string | null;
+            /** Format: int32 */
+            position?: number | null;
             is_active?: boolean | null;
         };
         CreateWatchlistRequest: {
@@ -2033,59 +2247,32 @@ export type components = {
         };
         /** @enum {string} */
         DiscountType: "Percentage" | "FixedAmount" | "FreeTrial";
-        DsarFulfillRequest: {
-            fulfillmentUrl?: string | null;
-            adminNotes?: string | null;
-        };
         /**
-         * @description Admin fulfill response. When the DSAR is `access` / `portability` and the
-         *     admin did not provide a URL, the exported JSON is inlined in `export` so
-         *     the caller can pipe it to a download without a second round-trip.
+         * @description `downloadable_assets` row. `storage_key` is the R2 object key; EC-07 will
+         *     wire signed-URL issuance against it. `access_policy` gates who can request
+         *     a fresh signed URL.
          */
-        DsarFulfillResponse: {
-            request: components["schemas"]["DsarRow"];
-            export?: unknown;
-        };
-        DsarListResponse: {
-            data: components["schemas"]["DsarRow"][];
-            /** Format: int64 */
-            total: number;
-            /** Format: int64 */
-            page: number;
-            /** Format: int64 */
-            perPage: number;
-            /** Format: int64 */
-            totalPages: number;
-        };
-        /** @description Row shape returned from the admin list + the subject submission response. */
-        DsarRow: {
+        DownloadableAsset: {
             /** Format: uuid */
             id: string;
             /** Format: uuid */
-            userId?: string | null;
-            email: string;
-            kind: string;
-            status: string;
-            payload: unknown;
-            /** Format: date-time */
-            fulfilledAt?: string | null;
+            product_id: string;
             /** Format: uuid */
-            fulfilledBy?: string | null;
-            fulfillmentUrl?: string | null;
-            adminNotes?: string | null;
+            variant_id?: string | null;
+            storage_key: string;
+            filename: string;
+            mime_type: string;
+            /** Format: int64 */
+            size_bytes: number;
+            sha256: string;
+            access_policy: string;
+            required_tier?: string | null;
+            /** Format: int32 */
+            download_limit?: number | null;
+            /** Format: int32 */
+            expires_after_hours?: number | null;
             /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        DsarSubmitRequest: {
-            email: string;
-            kind: string;
-            payload?: unknown;
-        };
-        DsarSubmitResponse: {
-            /** Format: uuid */
-            id: string;
+            created_at: string;
         };
         ForgotPasswordRequest: {
             email: string;
@@ -2418,6 +2605,84 @@ export type components = {
             /** Format: date-time */
             updated_at: string;
         };
+        /**
+         * @description `products` row. Money fields are `BIGINT` cents; translate via
+         *     [`crate::common::money::Money::cents`] when arithmetic is needed.
+         */
+        Product: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            name: string;
+            description?: string | null;
+            product_type: string;
+            status: string;
+            /** Format: int64 */
+            price_cents?: number | null;
+            /** Format: int64 */
+            compare_at_cents?: number | null;
+            currency: string;
+            tax_class: string;
+            stripe_product_id?: string | null;
+            stripe_price_id?: string | null;
+            gallery_media_ids: string[];
+            /** Format: uuid */
+            featured_media_id?: string | null;
+            seo_title?: string | null;
+            seo_description?: string | null;
+            metadata: unknown;
+            /** Format: uuid */
+            created_by?: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        /**
+         * @description Bundle of a product + its first-class children. Returned by `GET
+         *     /api/admin/products/{id}` and `GET /api/products/{slug}` so the admin UI
+         *     and the public PDP both receive a single hydrated document.
+         */
+        ProductDetail: components["schemas"]["Product"] & {
+            variants: components["schemas"]["ProductVariant"][];
+            assets: components["schemas"]["DownloadableAsset"][];
+            bundle_items: components["schemas"]["BundleItem"][];
+        };
+        /**
+         * @description Publication lifecycle. `draft` is the default on insert; only `published`
+         *     rows surface through the public router. `archived` is terminal and hides
+         *     the product from every lookup except admin list views.
+         * @enum {string}
+         */
+        ProductStatus: "draft" | "published" | "archived";
+        /**
+         * @description Top-level product archetype. Matches the CHECK constraint in
+         *     `migrations/040_products.sql`.
+         * @enum {string}
+         */
+        ProductType: "simple" | "subscription" | "downloadable" | "bundle";
+        /**
+         * @description `product_variants` row. A variant overrides product pricing when
+         *     `price_cents` is set; otherwise it inherits.
+         */
+        ProductVariant: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            product_id: string;
+            sku?: string | null;
+            name?: string | null;
+            /** Format: int64 */
+            price_cents?: number | null;
+            currency?: string | null;
+            attributes: unknown;
+            stripe_price_id?: string | null;
+            /** Format: int32 */
+            position: number;
+            is_active: boolean;
+            /** Format: date-time */
+            created_at: string;
+        };
         ProgressUpdate: {
             /** Format: int32 */
             progress: number;
@@ -2462,48 +2727,13 @@ export type components = {
         RoleUpdate: {
             role: components["schemas"]["UserRole"];
         };
-        SubmissionRow: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            form_id: string;
-            /** Format: uuid */
-            form_version_id: string;
-            /** Format: uuid */
-            subject_id?: string | null;
-            /** Format: uuid */
-            anonymous_id?: string | null;
-            status: string;
-            data_json: unknown;
-            files_json: unknown;
-            ip_hash: string;
-            user_agent: string;
-            referrer?: string | null;
-            utm: unknown;
-            validation_errors?: unknown;
-            /** Format: date-time */
-            submitted_at: string;
+        /** @description Admin-only payload for `PUT /api/admin/products/{id}/bundle-items`. */
+        SetBundleItemsRequest: {
+            items: components["schemas"]["BundleItemInput"][];
         };
-        SubmitRequest: {
-            data: unknown;
-            /** @description Optional UTM block captured from the query-string at render time. */
-            utm?: unknown;
-            /**
-             * @description Optional file descriptors from FORM-05. Shape `[{ field_key, file_id,
-             *     filename, size, sha256, mime_type }]`.
-             */
-            files?: unknown;
-            /**
-             * Format: uuid
-             * @description Optional anonymous id cookie — the frontend generates one for
-             *     unauthenticated sessions so repeat submissions tie back together.
-             */
-            anonymous_id?: string | null;
-        };
-        SubmitResponse: {
-            /** Format: uuid */
-            id: string;
-            status: string;
+        /** @description Admin-only payload for `POST /api/admin/products/{id}/status`. */
+        SetStatusRequest: {
+            status: components["schemas"]["ProductStatus"];
         };
         Subscription: {
             /** Format: uuid */
@@ -2763,6 +2993,31 @@ export type components = {
             /** Format: int32 */
             sort_order?: number | null;
         };
+        /**
+         * @description Admin-only payload for `PUT /api/admin/products/{id}`. Every field is
+         *     optional — `None` means "leave the existing value alone" (COALESCE in the
+         *     repo layer). `product_type` is deliberately not update-able because
+         *     changing it post-creation would invalidate variant + asset + bundle rows.
+         */
+        UpdateProductRequest: {
+            slug?: string | null;
+            name?: string | null;
+            description?: string | null;
+            /** Format: int64 */
+            price_cents?: number | null;
+            /** Format: int64 */
+            compare_at_cents?: number | null;
+            currency?: string | null;
+            tax_class?: string | null;
+            stripe_product_id?: string | null;
+            stripe_price_id?: string | null;
+            gallery_media_ids?: string[] | null;
+            /** Format: uuid */
+            featured_media_id?: string | null;
+            seo_title?: string | null;
+            seo_description?: string | null;
+            metadata?: unknown;
+        };
         UpdateProfileRequest: {
             name?: string | null;
             avatar_url?: string | null;
@@ -2778,6 +3033,19 @@ export type components = {
             subject?: string | null;
             body_source: string;
             variables?: unknown;
+            is_active?: boolean | null;
+        };
+        /** @description Admin-only payload for updating a variant. */
+        UpdateVariantRequest: {
+            sku?: string | null;
+            name?: string | null;
+            /** Format: int64 */
+            price_cents?: number | null;
+            currency?: string | null;
+            attributes?: unknown;
+            stripe_price_id?: string | null;
+            /** Format: int32 */
+            position?: number | null;
             is_active?: boolean | null;
         };
         UpdateWatchlistRequest: {
@@ -5302,6 +5570,387 @@ export interface operations {
                 content?: never;
             };
             /** @description Plan not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    admin_create_product: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProductRequest"];
+            };
+        };
+        responses: {
+            /** @description Product created */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Product"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Slug conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    admin_update_product: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Product id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProductRequest"];
+            };
+        };
+        responses: {
+            /** @description Product updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Product"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Product not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    admin_delete_product: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Product id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Product deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Product not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    admin_add_asset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Product id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAssetRequest"];
+            };
+        };
+        responses: {
+            /** @description Asset created */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DownloadableAsset"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    admin_delete_asset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Product id */
+                id: string;
+                /** @description Asset id */
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Asset deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Asset not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    admin_set_bundle_items: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Bundle product id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetBundleItemsRequest"];
+            };
+        };
+        responses: {
+            /** @description Bundle items replaced */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BundleItem"][];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bundle not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    admin_set_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Product id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description Product status updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Product"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Product not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    admin_add_variant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Product id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateVariantRequest"];
+            };
+        };
+        responses: {
+            /** @description Variant created */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductVariant"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    admin_update_variant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Product id */
+                id: string;
+                /** @description Variant id */
+                variant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateVariantRequest"];
+            };
+        };
+        responses: {
+            /** @description Variant updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductVariant"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Variant not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    admin_delete_variant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Product id */
+                id: string;
+                /** @description Variant id */
+                variant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Variant deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Variant not found */
             404: {
                 headers: {
                     [name: string]: unknown;

@@ -13,4 +13,5 @@ pub mod notifications;
 pub mod outbox;
 pub mod popups;
 pub mod pricing;
+pub mod products;
 pub mod webhooks;

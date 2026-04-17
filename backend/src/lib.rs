@@ -9,6 +9,7 @@
 use std::sync::Arc;
 
 pub mod authz;
+pub mod commerce;
 pub mod common;
 pub mod config;
 pub mod consent;
