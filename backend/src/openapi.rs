@@ -22,8 +22,8 @@ use utoipa_swagger_ui::SwaggerUi;
 use crate::{
     extractors::AdminUser,
     handlers::{
-        admin, analytics, auth, blog, consent, coupons, courses, csp_report, member, notifications,
-        outbox, popups, webhooks,
+        admin, admin_consent, analytics, auth, blog, consent, coupons, courses, csp_report, member,
+        notifications, outbox, popups, webhooks,
     },
     AppState,
 };
@@ -268,17 +268,18 @@ impl Modify for SecurityAddon {
             consent::BannerLayout,
             consent::BannerPosition,
             consent::ConsentCategoryDef,
-            // Consent event log + DSAR (CONSENT-03)
-            consent::ConsentRecordRequest,
-            consent::ConsentRecordResponse,
-            consent::MyConsentResponse,
-            consent::DsarSubmitRequest,
-            consent::DsarSubmitResponse,
-            consent::DsarListResponse,
-            consent::DsarFulfillRequest,
-            consent::DsarFulfillResponse,
-            crate::consent::records::ConsentRecordRow,
-            crate::consent::records::DsarRow,
+            // Consent admin (CONSENT-07)
+            admin_consent::BannerUpsertRequest,
+            admin_consent::CategoryUpsertRequest,
+            admin_consent::ServiceUpsertRequest,
+            admin_consent::PolicyCreateRequest,
+            admin_consent::PolicyDetail,
+            admin_consent::ConsentLogRow,
+            admin_consent::ConsentLogResponse,
+            admin_consent::IntegrityAnchorDto,
+            crate::consent::BannerConfigRow,
+            crate::consent::CategoryRow,
+            crate::consent::ServiceRow,
             // Popups
             crate::models::Popup,
             crate::models::CreatePopupRequest,

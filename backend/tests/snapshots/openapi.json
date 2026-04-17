@@ -3412,6 +3412,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "description": "Regulatory region override (EU, UK, US-CA, …). Usually omitted — server resolves from request headers.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4274,6 +4283,52 @@
           }
         }
       },
+      "BannerConfigRow": {
+        "type": "object",
+        "required": [
+          "id",
+          "region",
+          "locale",
+          "version",
+          "layout",
+          "position",
+          "theme_json",
+          "copy_json",
+          "is_active",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "region": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "layout": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string"
+          },
+          "theme_json": {},
+          "copy_json": {},
+          "is_active": {
+            "type": "boolean"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "BannerCopy": {
         "type": "object",
         "required": [
@@ -4335,6 +4390,35 @@
           "bottom-start",
           "bottom-end"
         ]
+      },
+      "BannerUpsertRequest": {
+        "type": "object",
+        "required": [
+          "region",
+          "locale",
+          "layout",
+          "position",
+          "copy_json"
+        ],
+        "properties": {
+          "region": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "layout": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string"
+          },
+          "copy_json": {},
+          "theme_json": {},
+          "is_active": {
+            "type": "boolean"
+          }
+        }
       },
       "BillingPortalRequest": {
         "type": "object",
@@ -4968,6 +5052,60 @@
           }
         }
       },
+      "CategoryRow": {
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "description",
+          "is_required",
+          "sort_order"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "is_required": {
+            "type": "boolean"
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CategoryUpsertRequest": {
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "description"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "is_required": {
+            "type": "boolean"
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "ConsentCategoryDef": {
         "type": "object",
         "description": "Single-category entry in the banner response.\n\nWire fields are camelCased to match the frontend stub at\n`src/lib/api/consent.ts`; when schema codegen replaces the stub the\nSvelte components consume this shape unchanged.",
@@ -4999,135 +5137,53 @@
           }
         }
       },
-      "ConsentRecordRequest": {
+      "ConsentLogResponse": {
         "type": "object",
         "required": [
-          "action",
-          "categories"
+          "rows",
+          "table_present",
+          "total"
         ],
         "properties": {
-          "action": {
-            "type": "string",
-            "description": "One of `granted` / `denied` / `updated` / `revoked` / `expired` /\n`prefill`. Enforced at the DB CHECK level; validated here for a\nfriendlier 400."
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsentLogRow"
+            }
           },
-          "categories": {
-            "description": "Map of category key → granted bool. Must include every category the\ncurrent banner version exposes."
+          "table_present": {
+            "type": "boolean"
           },
-          "services": {
-            "description": "Optional per-service overrides (when the subject used the advanced\npicker). Empty object is fine."
-          },
-          "tcfString": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "gpcSignal": {
-            "type": [
-              "boolean",
-              "null"
-            ]
-          },
-          "anonymousId": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "uuid",
-            "description": "Browser-generated anonymous id (UUID cookie). Used when the subject\nis not signed in so the audit log can still be linked across sessions."
-          },
-          "bannerVersion": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "format": "int32",
-            "description": "Optional banner / policy version overrides — defaults come from the\nauthoritative banner config when omitted. Kept as options so the\nclient can send them when it already has a cached banner copy."
-          },
-          "policyVersion": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "format": "int32"
+          "total": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
-      "ConsentRecordResponse": {
+      "ConsentLogRow": {
         "type": "object",
-        "required": [
-          "id"
-        ],
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          }
-        }
-      },
-      "ConsentRecordRow": {
-        "type": "object",
-        "description": "Serialized row shape — shared across `POST /record` response and\n`GET /me` listings.",
         "required": [
           "id",
-          "bannerVersion",
-          "policyVersion",
-          "categories",
-          "services",
           "action",
-          "createdAt"
+          "categories",
+          "created_at"
         ],
         "properties": {
           "id": {
             "type": "string",
             "format": "uuid"
           },
-          "subjectId": {
+          "subject_id": {
             "type": [
               "string",
               "null"
-            ],
-            "format": "uuid"
+            ]
           },
-          "anonymousId": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "uuid"
-          },
-          "bannerVersion": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "policyVersion": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "categories": {},
-          "services": {},
           "action": {
             "type": "string"
           },
-          "tcfString": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "gpcSignal": {
-            "type": [
-              "boolean",
-              "null"
-            ]
-          },
-          "country": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "createdAt": {
+          "categories": {},
+          "created_at": {
             "type": "string",
             "format": "date-time"
           }
@@ -6682,6 +6738,46 @@
           }
         }
       },
+      "IntegrityAnchorDto": {
+        "type": "object",
+        "required": [
+          "id",
+          "anchor_hash",
+          "record_count",
+          "anchored_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "anchor_hash": {
+            "type": "string"
+          },
+          "record_count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "window_start_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "window_end_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "anchored_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "LessonProgress": {
         "type": "object",
         "required": [
@@ -7186,6 +7282,55 @@
               "null"
             ],
             "format": "int64"
+          }
+        }
+      },
+      "PolicyCreateRequest": {
+        "type": "object",
+        "required": [
+          "markdown"
+        ],
+        "properties": {
+          "markdown": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string"
+          }
+        }
+      },
+      "PolicyDetail": {
+        "type": "object",
+        "required": [
+          "id",
+          "version",
+          "markdown",
+          "locale",
+          "effective_at",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "markdown": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "effective_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -7715,6 +7860,104 @@
         "properties": {
           "role": {
             "$ref": "#/components/schemas/UserRole"
+          }
+        }
+      },
+      "ServiceRow": {
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "vendor",
+          "category",
+          "domains",
+          "cookies",
+          "is_active"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "vendor": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "domains": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cookies": {},
+          "privacy_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ServiceUpsertRequest": {
+        "type": "object",
+        "required": [
+          "slug",
+          "name",
+          "vendor",
+          "category"
+        ],
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "vendor": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "domains": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cookies": {},
+          "privacy_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_active": {
+            "type": "boolean"
           }
         }
       },

@@ -1369,6 +1369,21 @@ export type components = {
             /** @description Opaque theme overrides; the frontend maps known keys to PE7 CSS vars. */
             theme: unknown;
         };
+        BannerConfigRow: {
+            /** Format: uuid */
+            id: string;
+            region: string;
+            locale: string;
+            /** Format: int32 */
+            version: number;
+            layout: string;
+            position: string;
+            theme_json: unknown;
+            copy_json: unknown;
+            is_active: boolean;
+            /** Format: date-time */
+            updated_at: string;
+        };
         BannerCopy: {
             title: string;
             body: string;
@@ -1383,6 +1398,15 @@ export type components = {
         BannerLayout: "bar" | "box" | "popup" | "fullscreen";
         /** @enum {string} */
         BannerPosition: "top" | "bottom" | "center" | "bottom-start" | "bottom-end";
+        BannerUpsertRequest: {
+            region: string;
+            locale: string;
+            layout: string;
+            position: string;
+            copy_json: unknown;
+            theme_json?: unknown;
+            is_active?: boolean;
+        };
         BillingPortalRequest: {
             return_url?: string | null;
         };
@@ -1552,6 +1576,22 @@ export type components = {
         BulkPreferenceUpdate: {
             items: components["schemas"]["PreferenceUpdate"][];
         };
+        CategoryRow: {
+            key: string;
+            label: string;
+            description: string;
+            is_required: boolean;
+            /** Format: int32 */
+            sort_order: number;
+        };
+        CategoryUpsertRequest: {
+            key: string;
+            label: string;
+            description: string;
+            is_required?: boolean;
+            /** Format: int32 */
+            sort_order?: number;
+        };
         /**
          * @description Single-category entry in the banner response.
          *
@@ -1576,68 +1616,20 @@ export type components = {
              */
             defaultEnabled: boolean;
         };
-        ConsentRecordRequest: {
-            /**
-             * @description One of `granted` / `denied` / `updated` / `revoked` / `expired` /
-             *     `prefill`. Enforced at the DB CHECK level; validated here for a
-             *     friendlier 400.
-             */
-            action: string;
-            /**
-             * @description Map of category key → granted bool. Must include every category the
-             *     current banner version exposes.
-             */
-            categories: unknown;
-            /**
-             * @description Optional per-service overrides (when the subject used the advanced
-             *     picker). Empty object is fine.
-             */
-            services?: unknown;
-            tcfString?: string | null;
-            gpcSignal?: boolean | null;
-            /**
-             * Format: uuid
-             * @description Browser-generated anonymous id (UUID cookie). Used when the subject
-             *     is not signed in so the audit log can still be linked across sessions.
-             */
-            anonymousId?: string | null;
-            /**
-             * Format: int32
-             * @description Optional banner / policy version overrides — defaults come from the
-             *     authoritative banner config when omitted. Kept as options so the
-             *     client can send them when it already has a cached banner copy.
-             */
-            bannerVersion?: number | null;
-            /** Format: int32 */
-            policyVersion?: number | null;
+        ConsentLogResponse: {
+            rows: components["schemas"]["ConsentLogRow"][];
+            table_present: boolean;
+            /** Format: int64 */
+            total: number;
         };
-        ConsentRecordResponse: {
+        ConsentLogRow: {
             /** Format: uuid */
             id: string;
-        };
-        /**
-         * @description Serialized row shape — shared across `POST /record` response and
-         *     `GET /me` listings.
-         */
-        ConsentRecordRow: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            subjectId?: string | null;
-            /** Format: uuid */
-            anonymousId?: string | null;
-            /** Format: int32 */
-            bannerVersion: number;
-            /** Format: int32 */
-            policyVersion: number;
-            categories: unknown;
-            services: unknown;
+            subject_id?: string | null;
             action: string;
-            tcfString?: string | null;
-            gpcSignal?: boolean | null;
-            country?: string | null;
+            categories: unknown;
             /** Format: date-time */
-            createdAt: string;
+            created_at: string;
         };
         Coupon: {
             /** Format: uuid */
@@ -2042,6 +2034,19 @@ export type components = {
         ForgotPasswordRequest: {
             email: string;
         };
+        IntegrityAnchorDto: {
+            /** Format: uuid */
+            id: string;
+            anchor_hash: string;
+            /** Format: int32 */
+            record_count: number;
+            /** Format: date-time */
+            window_start_at?: string | null;
+            /** Format: date-time */
+            window_end_at?: string | null;
+            /** Format: date-time */
+            anchored_at: string;
+        };
         LessonProgress: {
             /** Format: uuid */
             id: string;
@@ -2212,6 +2217,22 @@ export type components = {
             /** Format: int64 */
             per_page?: number | null;
         };
+        PolicyCreateRequest: {
+            markdown: string;
+            locale?: string;
+        };
+        PolicyDetail: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            version: number;
+            markdown: string;
+            locale: string;
+            /** Format: date-time */
+            effective_at: string;
+            /** Format: date-time */
+            created_at: string;
+        };
         Popup: {
             /** Format: uuid */
             id: string;
@@ -2373,6 +2394,30 @@ export type components = {
         };
         RoleUpdate: {
             role: components["schemas"]["UserRole"];
+        };
+        ServiceRow: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            name: string;
+            vendor: string;
+            category: string;
+            domains: string[];
+            cookies: unknown;
+            privacy_url?: string | null;
+            description?: string | null;
+            is_active: boolean;
+        };
+        ServiceUpsertRequest: {
+            slug: string;
+            name: string;
+            vendor: string;
+            category: string;
+            domains?: string[];
+            cookies?: unknown;
+            privacy_url?: string | null;
+            description?: string | null;
+            is_active?: boolean;
         };
         Subscription: {
             /** Format: uuid */
@@ -5556,6 +5601,8 @@ export interface operations {
             query?: {
                 /** @description BCP-47 locale tag; defaults to 'en'. */
                 locale?: string;
+                /** @description Regulatory region override (EU, UK, US-CA, …). Usually omitted — server resolves from request headers. */
+                region?: string;
             };
             header?: never;
             path?: never;

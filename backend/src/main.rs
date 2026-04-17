@@ -307,6 +307,9 @@ async fn main() -> Result<()> {
             "/api/admin/notifications",
             handlers::notifications::admin_router(),
         )
+        // CONSENT-07 admin CRUD (banners / categories / services / policies
+        // + log view + integrity anchor list).
+        .nest("/api/admin/consent", handlers::admin_consent::router())
         // Public routes
         .nest("/api/blog", handlers::blog::public_router())
         .nest("/api/courses", handlers::courses::public_router())
