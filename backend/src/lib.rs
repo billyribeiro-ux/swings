@@ -25,6 +25,7 @@ pub mod models;
 pub mod notifications;
 pub mod observability;
 pub mod openapi;
+pub mod popups;
 pub mod services;
 pub mod stripe_api;
 

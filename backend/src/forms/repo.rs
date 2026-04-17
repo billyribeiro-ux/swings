@@ -62,14 +62,34 @@ pub struct SubmissionRow {
 }
 
 #[derive(Debug, Clone, Serialize, FromRow, ToSchema)]
+pub struct UploadRow {
+    pub id: Uuid,
+    pub form_id: Uuid,
+    pub partial_id: Option<Uuid>,
+    pub submission_id: Option<Uuid>,
+    pub field_key: String,
+    pub storage_key: String,
+    pub mime_type: String,
+    pub size_bytes: i64,
+    #[serde(skip)]
+    #[schema(value_type = String, format = "binary")]
+    pub sha256: Vec<u8>,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, FromRow, ToSchema)]
 pub struct PartialRow {
     pub id: Uuid,
     pub form_id: Uuid,
-    pub resume_token_hash: String,
+    #[serde(skip)]
+    #[schema(value_type = String, format = "binary")]
+    pub resume_token_hash: Vec<u8>,
     pub data_json: serde_json::Value,
+    pub current_step: i32,
     pub subject_id: Option<Uuid>,
     pub expires_at: DateTime<Utc>,
     pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 
 // ── Forms ──────────────────────────────────────────────────────────────
@@ -377,27 +397,33 @@ pub async fn bulk_update_submission_status(
     Ok(result.rows_affected())
 }
 
-// ── Partials ───────────────────────────────────────────────────────────
+// ── Partials (FORM-04) ─────────────────────────────────────────────────
 
+/// Insert a fresh partial draft. `resume_token_hash` is the 32-byte SHA-256
+/// digest of a server-minted random token; the plaintext is returned to the
+/// caller exactly once so only a browser with the resume link can reload it.
 pub async fn insert_partial(
     pool: &PgPool,
     form_id: Uuid,
-    resume_token_hash: &str,
+    resume_token_hash: &[u8],
     data_json: &serde_json::Value,
+    current_step: i32,
     subject_id: Option<Uuid>,
     expires_at: DateTime<Utc>,
 ) -> AppResult<PartialRow> {
     let row = sqlx::query_as::<_, PartialRow>(
         r#"
-        INSERT INTO form_partials (form_id, resume_token_hash, data_json, subject_id, expires_at)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING id, form_id, resume_token_hash, data_json, subject_id,
-                  expires_at, created_at
+        INSERT INTO form_partials
+            (form_id, resume_token_hash, data_json, current_step, subject_id, expires_at)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING id, form_id, resume_token_hash, data_json, current_step,
+                  subject_id, expires_at, created_at, updated_at
         "#,
     )
     .bind(form_id)
     .bind(resume_token_hash)
     .bind(data_json)
+    .bind(current_step)
     .bind(subject_id)
     .bind(expires_at)
     .fetch_one(pool)
@@ -410,12 +436,12 @@ pub async fn insert_partial(
 pub async fn resolve_partial(
     pool: &PgPool,
     form_id: Uuid,
-    resume_token_hash: &str,
+    resume_token_hash: &[u8],
 ) -> AppResult<Option<PartialRow>> {
     let row = sqlx::query_as::<_, PartialRow>(
         r#"
-        SELECT id, form_id, resume_token_hash, data_json, subject_id,
-               expires_at, created_at
+        SELECT id, form_id, resume_token_hash, data_json, current_step,
+               subject_id, expires_at, created_at, updated_at
         FROM form_partials
         WHERE form_id = $1 AND resume_token_hash = $2 AND expires_at > NOW()
         "#,
@@ -425,4 +451,109 @@ pub async fn resolve_partial(
     .fetch_optional(pool)
     .await?;
     Ok(row)
+}
+
+/// Replace a partial draft's payload in place and extend its TTL. Used when
+/// the client resubmits its existing resume token — the same row is extended
+/// rather than minting a new one.
+pub async fn update_partial_by_hash(
+    pool: &PgPool,
+    form_id: Uuid,
+    resume_token_hash: &[u8],
+    data_json: &serde_json::Value,
+    current_step: i32,
+    new_expires_at: DateTime<Utc>,
+) -> AppResult<Option<PartialRow>> {
+    let row = sqlx::query_as::<_, PartialRow>(
+        r#"
+        UPDATE form_partials
+           SET data_json    = $3,
+               current_step = $4,
+               expires_at   = $5,
+               updated_at   = NOW()
+         WHERE form_id = $1
+           AND resume_token_hash = $2
+           AND expires_at > NOW()
+        RETURNING id, form_id, resume_token_hash, data_json, current_step,
+                  subject_id, expires_at, created_at, updated_at
+        "#,
+    )
+    .bind(form_id)
+    .bind(resume_token_hash)
+    .bind(data_json)
+    .bind(current_step)
+    .bind(new_expires_at)
+    .fetch_optional(pool)
+    .await?;
+    Ok(row)
+}
+
+/// Delete partials whose `expires_at` is in the past. Returns the number
+/// of rows reaped so the scheduled worker can log the sweep.
+pub async fn gc_expired_partials(pool: &PgPool) -> AppResult<u64> {
+    let result = sqlx::query("DELETE FROM form_partials WHERE expires_at <= NOW()")
+        .execute(pool)
+        .await?;
+    Ok(result.rows_affected())
+}
+
+// ── Uploads (FORM-05) ──────────────────────────────────────────────────
+
+/// Arguments for [`insert_upload`] — bundled so call sites aren't 9-wide.
+pub struct InsertUpload<'a> {
+    pub form_id: Uuid,
+    pub partial_id: Option<Uuid>,
+    pub submission_id: Option<Uuid>,
+    pub field_key: &'a str,
+    pub storage_key: &'a str,
+    pub mime_type: &'a str,
+    pub size_bytes: i64,
+    pub sha256: &'a [u8],
+}
+
+pub async fn insert_upload(pool: &PgPool, args: InsertUpload<'_>) -> AppResult<UploadRow> {
+    let row = sqlx::query_as::<_, UploadRow>(
+        r#"
+        INSERT INTO form_uploads
+            (form_id, partial_id, submission_id, field_key, storage_key,
+             mime_type, size_bytes, sha256)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id, form_id, partial_id, submission_id, field_key,
+                  storage_key, mime_type, size_bytes, sha256, created_at
+        "#,
+    )
+    .bind(args.form_id)
+    .bind(args.partial_id)
+    .bind(args.submission_id)
+    .bind(args.field_key)
+    .bind(args.storage_key)
+    .bind(args.mime_type)
+    .bind(args.size_bytes)
+    .bind(args.sha256)
+    .fetch_one(pool)
+    .await?;
+    Ok(row)
+}
+
+/// Promote every upload currently attached to `partial_id` to `submission_id`
+/// so that finalising a draft re-homes its files onto the completed submission
+/// row without re-uploading.
+pub async fn promote_partial_uploads(
+    pool: &PgPool,
+    partial_id: Uuid,
+    submission_id: Uuid,
+) -> AppResult<u64> {
+    let result = sqlx::query(
+        r#"
+        UPDATE form_uploads
+           SET submission_id = $2,
+               partial_id    = NULL
+         WHERE partial_id = $1
+        "#,
+    )
+    .bind(partial_id)
+    .bind(submission_id)
+    .execute(pool)
+    .await?;
+    Ok(result.rows_affected())
 }

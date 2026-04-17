@@ -12,9 +12,11 @@ use super::dispatcher::DispatchError;
 use super::outbox::OutboxRecord;
 
 pub mod notify;
+pub mod popup_attribution;
 pub mod webhook_out;
 
 pub use notify::NotifyHandler;
+pub use popup_attribution::PopupAttributionHandler;
 pub use webhook_out::WebhookOutHandler;
 
 /// Boxed, pinned, `Send` future alias used in the trait signature. Lifetime

@@ -1,5 +1,6 @@
 use axum::{
     extract::{Path, Query, State},
+    response::IntoResponse,
     routing::{delete, get, post, put},
     Json, Router,
 };
@@ -10,9 +11,11 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
+    common::{geo::country_from_request, ua::parse_ua},
     error::{AppError, AppResult},
     extractors::{AdminUser, OptionalAuthUser},
     models::*,
+    popups::targeting::{self, TargetingRules, VisitorContext},
     AppState,
 };
 
@@ -31,6 +34,8 @@ pub fn admin_router() -> Router<AppState> {
         .route("/popups/{id}/duplicate", post(admin_duplicate_popup))
         .route("/popups/{id}/submissions", get(admin_list_submissions))
         .route("/popups/{id}/analytics", get(admin_get_analytics))
+        // POP-02 significance test across all variants.
+        .route("/popups/{id}/significance", get(admin_variant_significance))
 }
 
 pub fn public_router() -> Router<AppState> {
@@ -40,6 +45,8 @@ pub fn public_router() -> Router<AppState> {
     // served cache-friendly and relies on the global governor only.
     Router::new()
         .route("/popups/active", get(public_active_popups))
+        // POP-02: sticky per-visitor variant assignment + cookie bake.
+        .route("/popups/{id}/variant", get(public_variant_for_popup))
         .merge(
             Router::new()
                 .route("/popups/event", post(public_track_event))
@@ -61,6 +68,20 @@ pub struct ActivePopupsQuery {
     pub page: Option<String>,
     pub device: Option<String>,
     pub user_status: Option<String>,
+    // POP-01: optional query-string overrides so test callers and server-side
+    // renderers can drive the targeting predicate without faking headers.
+    pub utm_source: Option<String>,
+    pub utm_medium: Option<String>,
+    pub utm_campaign: Option<String>,
+    pub geo: Option<String>,
+    pub returning: Option<bool>,
+    pub cart_value_cents: Option<i64>,
+    #[serde(default)]
+    pub cart_sku: Vec<String>,
+    pub membership_tier: Option<String>,
+    pub pageview_count: Option<i64>,
+    // POP-05: sessionStorage-backed "already shown this session" flag.
+    pub session_shown: Option<bool>,
 }
 
 #[derive(Debug, Deserialize, ToSchema)]
@@ -567,9 +588,13 @@ async fn admin_get_analytics(
 
 async fn public_active_popups(
     State(state): State<AppState>,
+    headers: axum::http::HeaderMap,
+    axum::extract::ConnectInfo(addr): axum::extract::ConnectInfo<std::net::SocketAddr>,
     Query(query): Query<ActivePopupsQuery>,
 ) -> AppResult<Json<Vec<Popup>>> {
-    // Fetch all active popups within their date window
+    // Fetch all active popups within their date window. The is_template
+    // column is filtered here so template rows never leak to the public
+    // endpoint even if someone flips is_active by hand (POP-03).
     let popups = sqlx::query_as::<_, Popup>(
         r#"
         SELECT id, name, popup_type, trigger_type, trigger_config, content_json,
@@ -578,6 +603,7 @@ async fn public_active_popups(
                priority, created_by, created_at, updated_at
         FROM popups
         WHERE is_active = TRUE
+          AND COALESCE(is_template, FALSE) = FALSE
           AND (starts_at IS NULL OR starts_at <= NOW())
           AND (expires_at IS NULL OR expires_at >= NOW())
         ORDER BY priority DESC, created_at DESC
@@ -586,18 +612,116 @@ async fn public_active_popups(
     .fetch_all(&state.db)
     .await?;
 
-    let page_path = query.page.as_deref().unwrap_or("*");
-    let device = query.device.as_deref().unwrap_or("desktop");
-    let user_status = query.user_status.as_deref().unwrap_or("all");
+    let ctx = build_visitor_context(&headers, addr.ip(), &query);
 
-    let filtered: Vec<Popup> = popups
-        .into_iter()
-        .filter(|popup| {
-            matches_targeting_rules(&popup.targeting_rules, page_path, device, user_status)
-        })
-        .collect();
+    // POP-05: frequency gate. Anonymous id rides in an `X-Anonymous-Id`
+    // header (matches the cart identity convention). Missing id means "no
+    // persisted state" — the frequency predicate defaults to "show".
+    let anon_id = headers
+        .get(ANONYMOUS_ID_HEADER)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|s| Uuid::parse_str(s).ok());
+    let session_shown = query.session_shown.unwrap_or(false);
+    let now = Utc::now();
 
-    Ok(Json(filtered))
+    let mut allowed: Vec<Popup> = Vec::with_capacity(popups.len());
+    for popup in popups {
+        // Popups with malformed targeting_rules fail open on the legacy
+        // schema (pages/devices/userStatus) so an admin typo in a new
+        // field does not black-hole the whole popup.
+        let target_ok = match TargetingRules::from_json(&popup.targeting_rules) {
+            Ok(rules) => targeting::matches_targeting_rules(&rules, &ctx),
+            Err(_) => true,
+        };
+        if !target_ok {
+            continue;
+        }
+
+        let freq_ok = match crate::popups::frequency::FrequencyConfig::from_json(
+            &popup.frequency_config,
+        ) {
+            Ok(cfg) => {
+                let state_row = if let Some(aid) = anon_id {
+                    crate::popups::repo::load_visitor_state(&state.db, aid, popup.id).await?
+                } else {
+                    None
+                };
+                crate::popups::frequency::should_show(
+                    &cfg,
+                    state_row.as_ref(),
+                    crate::popups::frequency::SessionFlags {
+                        shown_this_session: session_shown,
+                    },
+                    now,
+                )
+            }
+            Err(_) => true,
+        };
+        if !freq_ok {
+            continue;
+        }
+
+        // POP-06: hydrate any form_ref elements so the client receives
+        // a self-contained popup payload.
+        let mut popup = popup;
+        popup.content_json =
+            crate::popups::content::hydrate_content(&state.db, popup.content_json.clone())
+                .await?;
+        allowed.push(popup);
+    }
+
+    Ok(Json(allowed))
+}
+
+/// Build a [`VisitorContext`] from headers + query string. Geo comes from the
+/// CDN headers (FDN-06); browser family + device kind come from the parsed
+/// user-agent; everything else is either request-scoped (UTM, returning) or
+/// caller-supplied (cart state, membership tier).
+fn build_visitor_context(
+    headers: &axum::http::HeaderMap,
+    remote_ip: std::net::IpAddr,
+    query: &ActivePopupsQuery,
+) -> VisitorContext {
+    let ua_header = headers
+        .get(axum::http::header::USER_AGENT)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("");
+    let ua = parse_ua(ua_header);
+    let device = query
+        .device
+        .clone()
+        .unwrap_or_else(|| match ua.device_kind {
+            crate::common::ua::DeviceKind::Mobile => "mobile".to_string(),
+            crate::common::ua::DeviceKind::Desktop => "desktop".to_string(),
+            _ => "desktop".to_string(),
+        });
+    let geo_country = query
+        .geo
+        .clone()
+        .or_else(|| country_from_request(headers, remote_ip).map(|cc| cc.as_str().to_owned()));
+    let returning_visitor = query.returning.unwrap_or_else(|| {
+        headers
+            .get(axum::http::header::COOKIE)
+            .and_then(|v| v.to_str().ok())
+            .map(|c| c.contains("swings_visitor="))
+            .unwrap_or(false)
+    });
+    VisitorContext {
+        page_path: query.page.clone().unwrap_or_else(|| "*".into()),
+        device,
+        user_status: query.user_status.clone().unwrap_or_else(|| "all".into()),
+        geo_country,
+        utm_source: query.utm_source.clone(),
+        utm_medium: query.utm_medium.clone(),
+        utm_campaign: query.utm_campaign.clone(),
+        cart_value_cents: query.cart_value_cents,
+        cart_skus: query.cart_sku.clone(),
+        membership_tier: query.membership_tier.clone(),
+        returning_visitor,
+        browser_family: Some(ua.family.clone()),
+        pageview_count: query.pageview_count.unwrap_or(0),
+        now: Utc::now(),
+    }
 }
 
 #[utoipa::path(
@@ -613,6 +737,7 @@ async fn public_active_popups(
 )]
 pub(crate) async fn public_track_event(
     State(state): State<AppState>,
+    headers: axum::http::HeaderMap,
     Json(req): Json<TrackEventRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
     let event_type = req.event_type.to_lowercase();
@@ -644,6 +769,26 @@ pub(crate) async fn public_track_event(
     .execute(&state.db)
     .await?;
 
+    // POP-05: fan the event out to popup_visitor_state so the frequency
+    // gate has something to read on the next GET /api/popups/active.
+    // Missing X-Anonymous-Id is not an error — we just skip the UPSERT.
+    if let Some(anon_id) = headers
+        .get(ANONYMOUS_ID_HEADER)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|s| Uuid::parse_str(s).ok())
+    {
+        let now = Utc::now();
+        match event_type.as_str() {
+            "impression" => {
+                crate::popups::repo::record_impression(&state.db, anon_id, req.popup_id, now).await?;
+            }
+            "close" => {
+                crate::popups::repo::record_dismissal(&state.db, anon_id, req.popup_id, now).await?;
+            }
+            _ => {}
+        }
+    }
+
     Ok(Json(serde_json::json!({ "ok": true })))
 }
 
@@ -659,6 +804,7 @@ pub(crate) async fn public_track_event(
 )]
 pub(crate) async fn public_submit_form(
     State(state): State<AppState>,
+    headers: axum::http::HeaderMap,
     opt: OptionalAuthUser,
     Json(req): Json<PopupSubmitRequest>,
 ) -> AppResult<Json<PopupSubmission>> {
@@ -699,6 +845,17 @@ pub(crate) async fn public_submit_form(
     .bind(req.session_id)
     .execute(&state.db)
     .await?;
+
+    // POP-05: flag the visitor as converted so `until_converted` caps
+    // take effect on the next listing request.
+    if let Some(anon_id) = headers
+        .get(ANONYMOUS_ID_HEADER)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|s| Uuid::parse_str(s).ok())
+    {
+        crate::popups::repo::record_conversion(&state.db, anon_id, req.popup_id, Utc::now())
+            .await?;
+    }
 
     Ok(Json(submission))
 }
@@ -745,73 +902,6 @@ async fn build_popup_analytics(pool: &sqlx::PgPool, popup: &Popup) -> AppResult<
     })
 }
 
-/// Match a popup's targeting_rules JSON against the requested page, device, and user status.
-fn matches_targeting_rules(
-    rules: &serde_json::Value,
-    page_path: &str,
-    device: &str,
-    user_status: &str,
-) -> bool {
-    // Check page patterns
-    if let Some(pages) = rules.get("pages").and_then(|v| v.as_array()) {
-        let page_match = pages.iter().any(|p| {
-            if let Some(pattern) = p.as_str() {
-                matches_page_pattern(pattern, page_path)
-            } else {
-                false
-            }
-        });
-        if !page_match {
-            return false;
-        }
-    }
-
-    // Check device targeting
-    if let Some(devices) = rules.get("devices").and_then(|v| v.as_array()) {
-        let device_match = devices.iter().any(|d| {
-            d.as_str()
-                .map(|s| s.eq_ignore_ascii_case(device))
-                .unwrap_or(false)
-        });
-        if !device_match {
-            return false;
-        }
-    }
-
-    // Check user status targeting
-    if let Some(statuses) = rules.get("userStatus").and_then(|v| v.as_array()) {
-        let status_match = statuses.iter().any(|s| {
-            if let Some(st) = s.as_str() {
-                st == "all" || st.eq_ignore_ascii_case(user_status)
-            } else {
-                false
-            }
-        });
-        if !status_match {
-            return false;
-        }
-    }
-
-    true
-}
-
-/// Simple glob-like page pattern matching.
-/// Supports:
-///   "*"         -> matches everything
-///   "/blog/*"   -> matches /blog/ and anything under it
-///   "/pricing"  -> exact match
-fn matches_page_pattern(pattern: &str, path: &str) -> bool {
-    if pattern == "*" {
-        return true;
-    }
-
-    if let Some(prefix) = pattern.strip_suffix('*') {
-        return path.starts_with(prefix);
-    }
-
-    pattern == path
-}
-
 /// Convert user-facing granularity to a Postgres date_trunc argument.
 fn granularity_to_trunc(granularity: &str) -> &str {
     match granularity {
@@ -821,4 +911,166 @@ fn granularity_to_trunc(granularity: &str) -> &str {
         "month" => "month",
         _ => "day",
     }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// POP-02: A/B VARIANTS
+// ══════════════════════════════════════════════════════════════════════
+
+use crate::popups::{
+    significance::{self, SamplePoint},
+    variants::{self as variants_mod, PopupVariant},
+};
+
+const ANONYMOUS_ID_HEADER: &str = "X-Anonymous-Id";
+
+#[utoipa::path(
+    get,
+    path = "/api/popups/{id}/variant",
+    tag = "popups",
+    params(("id" = Uuid, Path, description = "Popup id")),
+    responses(
+        (status = 200, description = "Assigned variant"),
+        (status = 400, description = "Missing anonymous id"),
+        (status = 404, description = "Popup not found or has no variants")
+    )
+)]
+pub(crate) async fn public_variant_for_popup(
+    State(state): State<AppState>,
+    headers: axum::http::HeaderMap,
+    Path(id): Path<Uuid>,
+) -> AppResult<axum::response::Response> {
+    let anon_raw = headers
+        .get(ANONYMOUS_ID_HEADER)
+        .and_then(|v| v.to_str().ok())
+        .ok_or_else(|| {
+            AppError::BadRequest(format!("Missing {ANONYMOUS_ID_HEADER} header"))
+        })?;
+    let anon = Uuid::parse_str(anon_raw)
+        .map_err(|_| AppError::BadRequest(format!("{ANONYMOUS_ID_HEADER} is not a valid UUID")))?;
+
+    let rows = sqlx::query_as::<_, PopupVariant>(
+        r#"
+        SELECT id, popup_id, name, content_json, style_json, traffic_weight,
+               is_winner, created_at
+        FROM popup_variants
+        WHERE popup_id = $1
+        ORDER BY created_at ASC
+        "#,
+    )
+    .bind(id)
+    .fetch_all(&state.db)
+    .await?;
+
+    let chosen = variants_mod::assign_variant(id, anon, &rows)
+        .ok_or(AppError::NotFound("No variants configured".to_string()))?;
+
+    let body = serde_json::json!({
+        "popup_id": id,
+        "variant_id": chosen.id,
+        "name": chosen.name,
+        "content_json": chosen.content_json,
+        "style_json": chosen.style_json,
+    });
+
+    let cookie = format!(
+        "{name}={value}; Path=/; Max-Age={ttl}; SameSite=Lax",
+        name = variants_mod::cookie_name(id),
+        value = chosen.id,
+        ttl = 60 * 60 * 24 * 30,
+    );
+    let mut resp = Json(body).into_response();
+    resp.headers_mut().insert(
+        axum::http::header::SET_COOKIE,
+        axum::http::HeaderValue::from_str(&cookie)
+            .map_err(|e| AppError::Internal(anyhow::anyhow!("cookie build: {e}")))?,
+    );
+    Ok(resp)
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/admin/popups/{id}/significance",
+    tag = "popups",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Popup id")),
+    responses(
+        (status = 200, description = "Pairwise z-test results"),
+        (status = 404, description = "Popup not found")
+    )
+)]
+pub(crate) async fn admin_variant_significance(
+    State(state): State<AppState>,
+    _admin: AdminUser,
+    Path(id): Path<Uuid>,
+) -> AppResult<Json<serde_json::Value>> {
+    let popup_exists: bool =
+        sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM popups WHERE id = $1)")
+            .bind(id)
+            .fetch_one(&state.db)
+            .await?;
+    if !popup_exists {
+        return Err(AppError::NotFound("Popup not found".to_string()));
+    }
+
+    let variants = sqlx::query_as::<_, PopupVariant>(
+        r#"
+        SELECT id, popup_id, name, content_json, style_json, traffic_weight,
+               is_winner, created_at
+        FROM popup_variants
+        WHERE popup_id = $1
+        ORDER BY created_at ASC
+        "#,
+    )
+    .bind(id)
+    .fetch_all(&state.db)
+    .await?;
+
+    // For each variant, impressions = events.count where event_type='impression',
+    // conversions = submissions.count. Scoped to variant_id so we isolate
+    // each arm even if the legacy rows (NULL variant_id) exist.
+    let mut samples: Vec<SamplePoint> = Vec::with_capacity(variants.len());
+    for v in &variants {
+        let impressions: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM popup_events WHERE variant_id = $1 AND event_type = 'impression'",
+        )
+        .bind(v.id)
+        .fetch_one(&state.db)
+        .await?;
+        let conversions: i64 =
+            sqlx::query_scalar("SELECT COUNT(*) FROM popup_submissions WHERE variant_id = $1")
+                .bind(v.id)
+                .fetch_one(&state.db)
+                .await?;
+        samples.push(SamplePoint {
+            variant_id: v.id,
+            impressions,
+            conversions,
+        });
+    }
+
+    // Pairwise z-tests. For 2 variants this is the classic control-vs-
+    // treatment; for 3+ we report every pair so the admin can pick the
+    // dominant arm without re-running the math client-side.
+    let mut pairs = Vec::new();
+    for i in 0..samples.len() {
+        for j in (i + 1)..samples.len() {
+            let r = significance::two_proportion_z_test(samples[i], samples[j], 0.05);
+            pairs.push(r);
+        }
+    }
+
+    Ok(Json(serde_json::json!({
+        "popup_id": id,
+        "variants": variants,
+        "samples": samples
+            .iter()
+            .map(|s| serde_json::json!({
+                "variant_id": s.variant_id,
+                "impressions": s.impressions,
+                "conversions": s.conversions,
+            }))
+            .collect::<Vec<_>>(),
+        "pairwise": pairs,
+    })))
 }
