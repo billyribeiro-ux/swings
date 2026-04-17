@@ -127,6 +127,12 @@ impl Modify for SecurityAddon {
         courses::update_lesson_progress,
         // Consent (CONSENT-01)
         consent::get_banner,
+        // Consent event log + DSAR (CONSENT-03)
+        consent::post_record,
+        consent::get_my_consent,
+        consent::post_dsar,
+        consent::admin_list_dsar,
+        consent::admin_fulfill_dsar,
         // Coupons
         coupons::admin_create_coupon,
         coupons::admin_update_coupon,
@@ -262,6 +268,17 @@ impl Modify for SecurityAddon {
             consent::BannerLayout,
             consent::BannerPosition,
             consent::ConsentCategoryDef,
+            // Consent event log + DSAR (CONSENT-03)
+            consent::ConsentRecordRequest,
+            consent::ConsentRecordResponse,
+            consent::MyConsentResponse,
+            consent::DsarSubmitRequest,
+            consent::DsarSubmitResponse,
+            consent::DsarListResponse,
+            consent::DsarFulfillRequest,
+            consent::DsarFulfillResponse,
+            crate::consent::records::ConsentRecordRow,
+            crate::consent::records::DsarRow,
             // Popups
             crate::models::Popup,
             crate::models::CreatePopupRequest,

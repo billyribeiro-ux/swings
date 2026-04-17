@@ -155,6 +155,22 @@ pub const MEMBER: Policy = Policy {
     window_secs: 60,
     key: KeyStrategy::UserThenIp,
 };
+/// CONSENT-03 — banner-decision writes. Public (no auth), IP-keyed, modestly
+/// bounded so a single client can't flood the audit log.
+pub const CONSENT_RECORD: Policy = Policy {
+    name: "consent-record",
+    max_requests: 30,
+    window_secs: 60,
+    key: KeyStrategy::Ip,
+};
+/// CONSENT-03 — DSAR submission. Deliberately slow; 5 per hour per IP. A
+/// legitimate subject files one request and waits for the verification email.
+pub const DSAR_SUBMIT: Policy = Policy {
+    name: "dsar-submit",
+    max_requests: 5,
+    window_secs: 3_600,
+    key: KeyStrategy::Ip,
+};
 
 // ── Backend abstraction ──────────────────────────────────────────────────
 
@@ -355,6 +371,14 @@ pub fn csp_report_layer() -> AuthGovernorLayer {
 pub fn member_layer() -> AuthGovernorLayer {
     governor_layer_for(MEMBER)
 }
+/// 30/min/IP (CONSENT-03 `POST /api/consent/record`).
+pub fn consent_record_layer() -> AuthGovernorLayer {
+    governor_layer_for(CONSENT_RECORD)
+}
+/// 5/hr/IP (CONSENT-03 `POST /api/dsar`).
+pub fn dsar_submit_layer() -> AuthGovernorLayer {
+    governor_layer_for(DSAR_SUBMIT)
+}
 
 // ── Postgres-backed middleware ──────────────────────────────────────────
 
@@ -532,6 +556,8 @@ mod tests {
             COUPON_APPLY,
             CSP_REPORT,
             MEMBER,
+            CONSENT_RECORD,
+            DSAR_SUBMIT,
         ] {
             assert!(p.governor_period() >= Duration::from_secs(1), "{}", p.name);
         }

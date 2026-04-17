@@ -830,6 +830,126 @@
         ]
       }
     },
+    "/api/admin/consent/dsar": {
+      "get": {
+        "tags": [
+          "consent"
+        ],
+        "summary": "`GET /api/admin/consent/dsar` (AdminUser).",
+        "operationId": "admin_list_dsar",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            }
+          },
+          {
+            "name": "perPage",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated DSAR list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DsarListResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/consent/dsar/{id}/fulfill": {
+      "post": {
+        "tags": [
+          "consent"
+        ],
+        "summary": "`POST /api/admin/consent/dsar/{id}/fulfill` (AdminUser).",
+        "operationId": "admin_fulfill_dsar",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "DSAR request id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DsarFulfillRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "DSAR fulfilled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DsarFulfillResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "DSAR not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/admin/coupons": {
       "post": {
         "tags": [
@@ -3311,6 +3431,69 @@
         }
       }
     },
+    "/api/consent/me": {
+      "get": {
+        "tags": [
+          "consent"
+        ],
+        "summary": "`GET /api/consent/me`",
+        "operationId": "get_my_consent",
+        "responses": {
+          "200": {
+            "description": "Subject consent state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyConsentResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/consent/record": {
+      "post": {
+        "tags": [
+          "consent"
+        ],
+        "summary": "`POST /api/consent/record`",
+        "operationId": "post_record",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsentRecordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Consent event recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentRecordResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid action or missing subject identifier"
+          }
+        }
+      }
+    },
     "/api/coupons/apply": {
       "post": {
         "tags": [
@@ -3409,6 +3592,40 @@
           },
           "429": {
             "description": "Rate-limited"
+          }
+        }
+      }
+    },
+    "/api/dsar": {
+      "post": {
+        "tags": [
+          "consent"
+        ],
+        "summary": "`POST /api/dsar` (public — no auth required).",
+        "operationId": "post_dsar",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DsarSubmitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "DSAR request accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DsarSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid fields"
           }
         }
       }
@@ -4779,6 +4996,140 @@
           "defaultEnabled": {
             "type": "boolean",
             "description": "Whether the category is pre-checked before the user interacts.\nGDPR Art. 4(11) + EDPB 05/2020 §86: non-required categories MUST default\nto `false`. Derived here rather than stored so a data fix is cheap."
+          }
+        }
+      },
+      "ConsentRecordRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "categories"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "One of `granted` / `denied` / `updated` / `revoked` / `expired` /\n`prefill`. Enforced at the DB CHECK level; validated here for a\nfriendlier 400."
+          },
+          "categories": {
+            "description": "Map of category key → granted bool. Must include every category the\ncurrent banner version exposes."
+          },
+          "services": {
+            "description": "Optional per-service overrides (when the subject used the advanced\npicker). Empty object is fine."
+          },
+          "tcfString": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "gpcSignal": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "anonymousId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Browser-generated anonymous id (UUID cookie). Used when the subject\nis not signed in so the audit log can still be linked across sessions."
+          },
+          "bannerVersion": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Optional banner / policy version overrides — defaults come from the\nauthoritative banner config when omitted. Kept as options so the\nclient can send them when it already has a cached banner copy."
+          },
+          "policyVersion": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "ConsentRecordResponse": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "ConsentRecordRow": {
+        "type": "object",
+        "description": "Serialized row shape — shared across `POST /record` response and\n`GET /me` listings.",
+        "required": [
+          "id",
+          "bannerVersion",
+          "policyVersion",
+          "categories",
+          "services",
+          "action",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subjectId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "anonymousId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "bannerVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "policyVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "categories": {},
+          "services": {},
+          "action": {
+            "type": "string"
+          },
+          "tcfString": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "gpcSignal": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "country": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -6158,6 +6509,168 @@
           "FreeTrial"
         ]
       },
+      "DsarFulfillRequest": {
+        "type": "object",
+        "properties": {
+          "fulfillmentUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "adminNotes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "DsarFulfillResponse": {
+        "type": "object",
+        "description": "Admin fulfill response. When the DSAR is `access` / `portability` and the\nadmin did not provide a URL, the exported JSON is inlined in `export` so\nthe caller can pipe it to a download without a second round-trip.",
+        "required": [
+          "request"
+        ],
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/DsarRow"
+          },
+          "export": {}
+        }
+      },
+      "DsarListResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "total",
+          "page",
+          "perPage",
+          "totalPages"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DsarRow"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "perPage": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "DsarRow": {
+        "type": "object",
+        "description": "Row shape returned from the admin list + the subject submission response.",
+        "required": [
+          "id",
+          "email",
+          "kind",
+          "status",
+          "payload",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "payload": {},
+          "fulfilledAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "fulfilledBy": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "fulfillmentUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "adminNotes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DsarSubmitRequest": {
+        "type": "object",
+        "required": [
+          "email",
+          "kind"
+        ],
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "payload": {}
+        }
+      },
+      "DsarSubmitResponse": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
       "ForgotPasswordRequest": {
         "type": "object",
         "required": [
@@ -6350,6 +6863,32 @@
             }
           }
         ]
+      },
+      "MyConsentResponse": {
+        "type": "object",
+        "required": [
+          "categories",
+          "records"
+        ],
+        "properties": {
+          "categories": {
+            "description": "Flattened category → granted map, derived from the most recent record."
+          },
+          "decidedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "ISO-8601 UTC. `None` if the subject has no recorded decisions yet."
+          },
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsentRecordRow"
+            }
+          }
+        }
       },
       "NotificationPreference": {
         "type": "object",

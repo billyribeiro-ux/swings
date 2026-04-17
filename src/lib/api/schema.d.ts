@@ -248,6 +248,40 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/consent/dsar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** `GET /api/admin/consent/dsar` (AdminUser). */
+        get: operations["admin_list_dsar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/consent/dsar/{id}/fulfill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** `POST /api/admin/consent/dsar/{id}/fulfill` (AdminUser). */
+        post: operations["admin_fulfill_dsar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/coupons": {
         parameters: {
             query?: never;
@@ -975,6 +1009,40 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/consent/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** `GET /api/consent/me` */
+        get: operations["get_my_consent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/consent/record": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** `POST /api/consent/record` */
+        post: operations["post_record"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/coupons/apply": {
         parameters: {
             query?: never;
@@ -1021,6 +1089,23 @@ export type paths = {
          *     return 204 No Content. Never exposes internal state or reflects the body.
          */
         post: operations["csp_report"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dsar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** `POST /api/dsar` (public — no auth required). */
+        post: operations["post_dsar"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1491,6 +1576,69 @@ export type components = {
              */
             defaultEnabled: boolean;
         };
+        ConsentRecordRequest: {
+            /**
+             * @description One of `granted` / `denied` / `updated` / `revoked` / `expired` /
+             *     `prefill`. Enforced at the DB CHECK level; validated here for a
+             *     friendlier 400.
+             */
+            action: string;
+            /**
+             * @description Map of category key → granted bool. Must include every category the
+             *     current banner version exposes.
+             */
+            categories: unknown;
+            /**
+             * @description Optional per-service overrides (when the subject used the advanced
+             *     picker). Empty object is fine.
+             */
+            services?: unknown;
+            tcfString?: string | null;
+            gpcSignal?: boolean | null;
+            /**
+             * Format: uuid
+             * @description Browser-generated anonymous id (UUID cookie). Used when the subject
+             *     is not signed in so the audit log can still be linked across sessions.
+             */
+            anonymousId?: string | null;
+            /**
+             * Format: int32
+             * @description Optional banner / policy version overrides — defaults come from the
+             *     authoritative banner config when omitted. Kept as options so the
+             *     client can send them when it already has a cached banner copy.
+             */
+            bannerVersion?: number | null;
+            /** Format: int32 */
+            policyVersion?: number | null;
+        };
+        ConsentRecordResponse: {
+            /** Format: uuid */
+            id: string;
+        };
+        /**
+         * @description Serialized row shape — shared across `POST /record` response and
+         *     `GET /me` listings.
+         */
+        ConsentRecordRow: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            subjectId?: string | null;
+            /** Format: uuid */
+            anonymousId?: string | null;
+            /** Format: int32 */
+            bannerVersion: number;
+            /** Format: int32 */
+            policyVersion: number;
+            categories: unknown;
+            services: unknown;
+            action: string;
+            tcfString?: string | null;
+            gpcSignal?: boolean | null;
+            country?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
         Coupon: {
             /** Format: uuid */
             id: string;
@@ -1837,6 +1985,60 @@ export type components = {
         };
         /** @enum {string} */
         DiscountType: "Percentage" | "FixedAmount" | "FreeTrial";
+        DsarFulfillRequest: {
+            fulfillmentUrl?: string | null;
+            adminNotes?: string | null;
+        };
+        /**
+         * @description Admin fulfill response. When the DSAR is `access` / `portability` and the
+         *     admin did not provide a URL, the exported JSON is inlined in `export` so
+         *     the caller can pipe it to a download without a second round-trip.
+         */
+        DsarFulfillResponse: {
+            request: components["schemas"]["DsarRow"];
+            export?: unknown;
+        };
+        DsarListResponse: {
+            data: components["schemas"]["DsarRow"][];
+            /** Format: int64 */
+            total: number;
+            /** Format: int64 */
+            page: number;
+            /** Format: int64 */
+            perPage: number;
+            /** Format: int64 */
+            totalPages: number;
+        };
+        /** @description Row shape returned from the admin list + the subject submission response. */
+        DsarRow: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId?: string | null;
+            email: string;
+            kind: string;
+            status: string;
+            payload: unknown;
+            /** Format: date-time */
+            fulfilledAt?: string | null;
+            /** Format: uuid */
+            fulfilledBy?: string | null;
+            fulfillmentUrl?: string | null;
+            adminNotes?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        DsarSubmitRequest: {
+            email: string;
+            kind: string;
+            payload?: unknown;
+        };
+        DsarSubmitResponse: {
+            /** Format: uuid */
+            id: string;
+        };
         ForgotPasswordRequest: {
             email: string;
         };
@@ -1890,6 +2092,16 @@ export type components = {
         };
         ModuleWithLessons: components["schemas"]["CourseModule"] & {
             lessons: components["schemas"]["CourseLesson"][];
+        };
+        MyConsentResponse: {
+            /** @description Flattened category → granted map, derived from the most recent record. */
+            categories: unknown;
+            /**
+             * Format: date-time
+             * @description ISO-8601 UTC. `None` if the subject has no recorded decisions yet.
+             */
+            decidedAt?: string | null;
+            records: components["schemas"]["ConsentRecordRow"][];
         };
         /**
          * @description A (user, category, channel) preference row as stored in
@@ -3209,6 +3421,78 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    admin_list_dsar: {
+        parameters: {
+            query?: {
+                status?: string | null;
+                page?: number | null;
+                perPage?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated DSAR list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DsarListResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    admin_fulfill_dsar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description DSAR request id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DsarFulfillRequest"];
+            };
+        };
+        responses: {
+            /** @description DSAR fulfilled */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DsarFulfillResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description DSAR not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5297,6 +5581,64 @@ export interface operations {
             };
         };
     };
+    get_my_consent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Subject consent state */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyConsentResponse"];
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    post_record: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsentRecordRequest"];
+            };
+        };
+        responses: {
+            /** @description Consent event recorded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsentRecordResponse"];
+                };
+            };
+            /** @description Invalid action or missing subject identifier */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     public_apply_coupon: {
         parameters: {
             query?: never;
@@ -5389,6 +5731,37 @@ export interface operations {
             };
             /** @description Rate-limited */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    post_dsar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DsarSubmitRequest"];
+            };
+        };
+        responses: {
+            /** @description DSAR request accepted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DsarSubmitResponse"];
+                };
+            };
+            /** @description Missing or invalid fields */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };

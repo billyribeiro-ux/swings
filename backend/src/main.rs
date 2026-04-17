@@ -313,8 +313,11 @@ async fn main() -> Result<()> {
         .nest("/api/pricing", handlers::pricing::public_router())
         .nest("/api/coupons", handlers::coupons::public_router())
         .nest("/api/popups", handlers::popups::public_router())
-        // Consent (CONSENT-01: public banner + category lookup; admin lives under /api/admin/consent in CONSENT-07)
+        // Consent (CONSENT-01: public banner + category lookup;
+        // CONSENT-03: record + me + admin DSAR)
         .nest("/api/consent", handlers::consent::public_router())
+        .nest("/api/dsar", handlers::consent::public_dsar_router())
+        .nest("/api/admin/consent", handlers::consent::admin_router())
         // Member routes
         .nest("/api/member", handlers::member::router())
         .nest("/api/member", handlers::courses::member_router())
