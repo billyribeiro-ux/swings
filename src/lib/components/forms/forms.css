@@ -319,7 +319,233 @@
 		transition: inline-size var(--duration-300) var(--ease-out);
 	}
 
+	/* ── Grouped fields (radio, multi-select, rating, address) ────────── */
+
+	.fm-field--group {
+		border: 0;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+	}
+
+	.fm-choices {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+	}
+
+	/* ── Slider ───────────────────────────────────────────────────────── */
+
+	.fm-slider {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+	}
+
+	.fm-slider__input {
+		inline-size: 100%;
+		accent-color: var(--brand-teal-500);
+	}
+
+	.fm-slider__input:focus-visible {
+		outline: 2px solid var(--brand-teal-500);
+		outline-offset: 2px;
+	}
+
+	.fm-slider__output {
+		min-inline-size: 3.5ch;
+		font-variant-numeric: tabular-nums;
+		font-weight: var(--w-semibold);
+		color: var(--surface-fg-default);
+	}
+
+	/* ── Rating ───────────────────────────────────────────────────────── */
+
+	.fm-rating {
+		display: inline-flex;
+		gap: var(--space-1);
+	}
+
+	.fm-rating__star {
+		display: inline-flex;
+		cursor: pointer;
+		color: var(--neutral-300);
+		transition: color var(--duration-150) var(--ease-out);
+	}
+
+	.fm-rating__star--on {
+		color: var(--brand-gold-500);
+	}
+
+	.fm-rating__star:has(.fm-rating__input:focus-visible) {
+		outline: 2px solid var(--brand-teal-500);
+		outline-offset: 2px;
+		border-radius: var(--radius-sm);
+	}
+
+	.fm-rating__input {
+		position: absolute;
+		inline-size: 1px;
+		block-size: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	/* ── Uploads ──────────────────────────────────────────────────────── */
+
+	.fm-upload {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+	}
+
+	.fm-upload__input {
+		position: absolute;
+		inline-size: 1px;
+		block-size: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	.fm-upload__trigger {
+		align-self: flex-start;
+	}
+
+	.fm-upload__list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+	}
+
+	.fm-upload__item {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding-block: var(--space-1-5);
+		padding-inline: var(--space-2-5);
+		background-color: var(--surface-bg-muted);
+		border-radius: var(--radius-md);
+		font-size: var(--fs-sm);
+	}
+
+	.fm-upload__filename {
+		flex: 1;
+		min-inline-size: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.fm-upload__remove {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		inline-size: 1.75rem;
+		block-size: 1.75rem;
+		padding: 0;
+		border-radius: var(--radius-full);
+		background: transparent;
+		border: 0;
+		color: var(--surface-fg-muted);
+		cursor: pointer;
+	}
+
+	.fm-upload__remove:hover:not(:disabled) {
+		color: var(--status-danger-500);
+		background-color: var(--status-danger-50);
+	}
+
+	.fm-upload__remove:focus-visible {
+		outline: 2px solid var(--brand-teal-500);
+		outline-offset: 2px;
+	}
+
+	/* ── Signature ────────────────────────────────────────────────────── */
+
+	.fm-signature {
+		inline-size: 100%;
+		max-inline-size: 30rem;
+		block-size: 10rem;
+		background-color: var(--surface-bg-canvas);
+		border: 1px dashed var(--surface-border-default);
+		border-radius: var(--radius-md);
+		touch-action: none;
+		cursor: crosshair;
+	}
+
+	.fm-signature:focus-visible {
+		outline: 2px solid var(--brand-teal-500);
+		outline-offset: 2px;
+	}
+
+	.fm-signature__actions {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+	}
+
+	.fm-signature__ok {
+		font-size: var(--fs-xs);
+		color: var(--status-success-700);
+	}
+
+	/* ── Rich text ────────────────────────────────────────────────────── */
+
+	.fm-richtext {
+		min-block-size: 6rem;
+		padding: var(--space-3);
+		background-color: var(--surface-bg-canvas);
+		border: 1px solid var(--surface-border-default);
+		border-radius: var(--radius-md);
+		font-size: var(--fs-md);
+		line-height: var(--lh-normal);
+	}
+
+	.fm-richtext:focus-visible {
+		outline: none;
+		border-color: var(--brand-teal-500);
+		box-shadow: 0 0 0 3px oklch(0.66 0.12 197 / 0.25);
+	}
+
+	/* ── Address (grid layout) ────────────────────────────────────────── */
+
+	.fm-address {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: var(--space-3);
+	}
+
+	.fm-address__row {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+	}
+
 	/* ── Breakpoint refinements (9-tier) ──────────────────────────────── */
+
+	@media (min-width: 640px) {
+		.fm-address {
+			grid-template-columns: 1fr 1fr;
+		}
+
+		.fm-address__row--full {
+			grid-column: 1 / -1;
+		}
+	}
+
 
 	@media (min-width: 640px) {
 		.fm-actions {
