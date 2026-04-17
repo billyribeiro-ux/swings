@@ -11,11 +11,17 @@
 //!
 //! The tables these modules read/write live in migration `025_forms.sql`.
 
+pub mod antispam;
 pub mod logic;
 pub mod repo;
 pub mod schema;
 pub mod uploads;
 pub mod validation;
+
+pub use antispam::{
+    Akismet, AntispamPipeline, Dedup, Honeypot, SpamCheck, SpamVerdict, SubmissionContext,
+    Turnstile,
+};
 
 pub use logic::{Action, Condition, LogicRule};
 pub use schema::{
