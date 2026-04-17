@@ -9,9 +9,11 @@
 	import AnalyticsBeacon from '$lib/analytics/AnalyticsBeacon.svelte';
 	import AdminSiteBar from '$lib/components/admin/AdminSiteBar.svelte';
 	import PopupEngine from '$lib/components/popups/PopupEngine.svelte';
+	import ConsentBanner from '$lib/components/consent/ConsentBanner.svelte';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { organizationSchema, webSiteSchema, buildJsonLd } from '$lib/seo/jsonld';
 	import { SITE } from '$lib/seo/config';
+	import { STUB_BANNER_CONFIG } from '$lib/api/consent';
 
 	let { children } = $props();
 
@@ -67,6 +69,7 @@
 {/if}
 
 {#if browser}
+	<ConsentBanner config={STUB_BANNER_CONFIG} />
 	<PopupEngine />
 {/if}
 
