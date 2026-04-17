@@ -330,6 +330,22 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/coupons/{id}/engine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["admin_update_coupon_engine"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/coupons/{id}/toggle": {
         parameters: {
             query?: never;
@@ -1736,14 +1752,22 @@ export type components = {
             /** Format: date-time */
             created_at: string;
         };
-        BulkActionRequest: {
-            ids: string[];
-            /** @description `delete` | `mark_spam` | `restore`. */
-            action: string;
-        };
-        BulkActionResponse: {
-            /** Format: int64 */
-            updated: number;
+        /**
+         * @description Configuration for a "buy N, get M free" promotion.
+         *
+         *     The engine groups cart lines matching `applies_to_product_ids` (empty = any
+         *     product), totals their quantity, and emits `floor(total / (buy + get)) * get`
+         *     free units, evaluated at the cheapest matching unit price so the customer's
+         *     "free" units come off the least-expensive line first. That rule mirrors
+         *     WooCommerce's default BOGO behaviour and avoids the abuse of stacking a
+         *     high-priced free unit onto a low-priced purchase.
+         */
+        BogoConfig: {
+            /** Format: int32 */
+            buy_qty: number;
+            /** Format: int32 */
+            get_qty: number;
+            applies_to_product_ids?: string[];
         };
         BulkCouponRequest: {
             /** Format: int32 */
@@ -1882,6 +1906,31 @@ export type components = {
             /** Format: date-time */
             updated_at: string;
         };
+        /**
+         * @description Row shape covering the EC-11 fields plus the legacy `is_active` flag so
+         *     the response mirrors the admin's view after mutation.
+         */
+        CouponEngineView: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            scope: string;
+            /** Format: int64 */
+            discount_value_cents?: number | null;
+            /** Format: int32 */
+            discount_percent_bps?: number | null;
+            bogo_config?: unknown;
+            includes_product_ids: string[];
+            excludes_product_ids: string[];
+            includes_category_ids: string[];
+            recurring_mode: string;
+            is_active: boolean;
+        };
+        /**
+         * @description Discount scope — where on the cart the discount applies.
+         * @enum {string}
+         */
+        CouponScope: "cart" | "product" | "category" | "subscription";
         CouponValidationResponse: {
             valid: boolean;
             coupon?: null | components["schemas"]["Coupon"];
@@ -2687,6 +2736,11 @@ export type components = {
             /** Format: int32 */
             progress: number;
         };
+        /**
+         * @description Subscription billing applicability for a coupon.
+         * @enum {string}
+         */
+        RecurringMode: "one_time" | "forever" | "repeating";
         RefreshRequest: {
             refresh_token: string;
         };
@@ -2847,6 +2901,31 @@ export type components = {
             parent_id?: string | null;
             /** Format: int32 */
             sort_order?: number | null;
+        };
+        /**
+         * @description Admin-only payload for `PUT /api/admin/coupons/{id}/engine`. Every field
+         *     is optional; `None` means "leave the existing value alone". Pass an empty
+         *     array to clear an includes/excludes list.
+         */
+        UpdateCouponEngineRequest: {
+            /**
+             * Format: int64
+             * @description Flat discount value in minor units (cents). Setting both this and
+             *     `discount_percent_bps` is accepted but only one takes effect — the
+             *     engine prefers the cents field.
+             */
+            discount_value_cents?: number | null;
+            /**
+             * Format: int32
+             * @description Percentage discount in basis points (`10_000 bps = 100%`).
+             */
+            discount_percent_bps?: number | null;
+            scope?: null | components["schemas"]["CouponScope"];
+            bogo_config?: unknown;
+            includes_product_ids?: string[] | null;
+            excludes_product_ids?: string[] | null;
+            includes_category_ids?: string[] | null;
+            recurring_mode?: null | components["schemas"]["RecurringMode"];
         };
         UpdateCouponRequest: {
             description?: string | null;
@@ -4036,6 +4115,47 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Coupon not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    admin_update_coupon_engine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Coupon id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCouponEngineRequest"];
+            };
+        };
+        responses: {
+            /** @description Coupon engine fields updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CouponEngineView"];
+                };
             };
             /** @description Forbidden */
             403: {

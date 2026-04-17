@@ -1119,6 +1119,59 @@
         ]
       }
     },
+    "/api/admin/coupons/{id}/engine": {
+      "put": {
+        "tags": [
+          "coupons"
+        ],
+        "operationId": "admin_update_coupon_engine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Coupon id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCouponEngineRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Coupon engine fields updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouponEngineView"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Coupon not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/admin/coupons/{id}/toggle": {
       "post": {
         "tags": [
@@ -5631,36 +5684,28 @@
           }
         }
       },
-      "BulkActionRequest": {
+      "BogoConfig": {
         "type": "object",
+        "description": "Configuration for a \"buy N, get M free\" promotion.\n\nThe engine groups cart lines matching `applies_to_product_ids` (empty = any\nproduct), totals their quantity, and emits `floor(total / (buy + get)) * get`\nfree units, evaluated at the cheapest matching unit price so the customer's\n\"free\" units come off the least-expensive line first. That rule mirrors\nWooCommerce's default BOGO behaviour and avoids the abuse of stacking a\nhigh-priced free unit onto a low-priced purchase.",
         "required": [
-          "ids",
-          "action"
+          "buy_qty",
+          "get_qty"
         ],
         "properties": {
-          "ids": {
+          "buy_qty": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "get_qty": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "applies_to_product_ids": {
             "type": "array",
             "items": {
               "type": "string",
               "format": "uuid"
             }
-          },
-          "action": {
-            "type": "string",
-            "description": "`delete` | `mark_spam` | `restore`."
-          }
-        }
-      },
-      "BulkActionResponse": {
-        "type": "object",
-        "required": [
-          "updated"
-        ],
-        "properties": {
-          "updated": {
-            "type": "integer",
-            "format": "int64",
-            "minimum": 0
           }
         }
       },
@@ -6006,6 +6051,84 @@
             "format": "date-time"
           }
         }
+      },
+      "CouponEngineView": {
+        "type": "object",
+        "description": "Row shape covering the EC-11 fields plus the legacy `is_active` flag so\nthe response mirrors the admin's view after mutation.",
+        "required": [
+          "id",
+          "code",
+          "scope",
+          "includes_product_ids",
+          "excludes_product_ids",
+          "includes_category_ids",
+          "recurring_mode",
+          "is_active"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "discount_value_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "discount_percent_bps": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "bogo_config": {},
+          "includes_product_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "excludes_product_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "includes_category_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "recurring_mode": {
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CouponScope": {
+        "type": "string",
+        "description": "Discount scope — where on the cart the discount applies.",
+        "enum": [
+          "cart",
+          "product",
+          "category",
+          "subscription"
+        ]
       },
       "CouponValidationResponse": {
         "type": "object",
@@ -8805,6 +8928,15 @@
           }
         }
       },
+      "RecurringMode": {
+        "type": "string",
+        "description": "Subscription billing applicability for a coupon.",
+        "enum": [
+          "one_time",
+          "forever",
+          "repeating"
+        ]
+      },
       "RefreshRequest": {
         "type": "object",
         "required": [
@@ -9354,6 +9486,79 @@
               "null"
             ],
             "format": "int32"
+          }
+        }
+      },
+      "UpdateCouponEngineRequest": {
+        "type": "object",
+        "description": "Admin-only payload for `PUT /api/admin/coupons/{id}/engine`. Every field\nis optional; `None` means \"leave the existing value alone\". Pass an empty\narray to clear an includes/excludes list.",
+        "properties": {
+          "discount_value_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Flat discount value in minor units (cents). Setting both this and\n`discount_percent_bps` is accepted but only one takes effect — the\nengine prefers the cents field."
+          },
+          "discount_percent_bps": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Percentage discount in basis points (`10_000 bps = 100%`)."
+          },
+          "scope": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CouponScope"
+              }
+            ]
+          },
+          "bogo_config": {},
+          "includes_product_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "excludes_product_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "includes_category_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "recurring_mode": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RecurringMode"
+              }
+            ]
           }
         }
       },

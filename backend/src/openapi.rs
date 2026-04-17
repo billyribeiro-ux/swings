@@ -141,6 +141,7 @@ impl Modify for SecurityAddon {
         coupons::admin_delete_coupon,
         coupons::admin_toggle_coupon,
         coupons::admin_bulk_create_coupons,
+        coupons::admin_update_coupon_engine,
         coupons::public_validate_coupon,
         coupons::public_apply_coupon,
         // Member
@@ -280,6 +281,12 @@ impl Modify for SecurityAddon {
             crate::models::ValidateCouponRequest,
             crate::models::CouponValidationResponse,
             crate::models::BulkCouponRequest,
+            // EC-11 coupon-engine DTOs
+            coupons::UpdateCouponEngineRequest,
+            coupons::CouponEngineView,
+            crate::commerce::coupons::CouponScope,
+            crate::commerce::coupons::RecurringMode,
+            crate::commerce::coupons::BogoConfig,
             // Consent (CONSENT-01)
             consent::BannerConfig,
             consent::BannerCopy,

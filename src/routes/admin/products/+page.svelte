@@ -17,7 +17,6 @@
 	} from '$lib/api/products';
 	import { ApiError } from '$lib/api/client';
 	import Plus from 'phosphor-svelte/lib/Plus';
-	import PencilSimple from 'phosphor-svelte/lib/PencilSimple';
 	import Package from 'phosphor-svelte/lib/Package';
 
 	let rows = $state<Product[]>([]);

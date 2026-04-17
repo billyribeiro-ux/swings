@@ -7,10 +7,15 @@ use chrono::Utc;
 use rand::Rng;
 use rust_decimal::prelude::ToPrimitive;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
+    commerce::coupons::{
+        BogoConfig, CartLine, CouponEngine, CouponInput, CouponScope, RecurringMode,
+    },
+    common::money::Money,
     error::{AppError, AppResult},
     extractors::{AdminUser, AuthUser},
     models::*,
@@ -29,6 +34,10 @@ pub fn admin_router() -> Router<AppState> {
         .route("/coupons/{id}", delete(admin_delete_coupon))
         .route("/coupons/{id}/toggle", post(admin_toggle_coupon))
         .route("/coupons/{id}/usages", get(admin_list_coupon_usages))
+        // EC-11 additions — scope / BOGO / category / recurring fields.
+        // Kept on a dedicated endpoint so the legacy CreateCouponRequest +
+        // UpdateCouponRequest DTOs stay stable for pre-migration clients.
+        .route("/coupons/{id}/engine", put(admin_update_coupon_engine))
 }
 
 // ── Public Coupon Router ───────────────────────────────────────────────
@@ -106,28 +115,161 @@ fn generate_coupon_code(prefix: Option<&str>) -> String {
     }
 }
 
-/// Calculate the discount amount in cents for a given coupon and purchase amount.
-fn calculate_discount(coupon: &Coupon, amount_cents: i32) -> Option<i32> {
-    match coupon.discount_type {
-        DiscountType::Percentage => {
-            let value = coupon.discount_value.to_f64().unwrap_or(0.0);
-            let raw = (amount_cents as f64 * value / 100.0).round() as i32;
-            let capped = match coupon.max_discount_cents {
-                Some(max) => raw.min(max),
-                None => raw,
-            };
-            Some(capped.min(amount_cents).max(0))
-        }
-        DiscountType::FixedAmount => {
-            let raw = coupon.discount_value.to_i32().unwrap_or(0);
-            let capped = match coupon.max_discount_cents {
-                Some(max) => raw.min(max),
-                None => raw,
-            };
-            Some(capped.min(amount_cents).max(0))
-        }
-        DiscountType::FreeTrial => None,
+/// Shape fetched out of the `coupons` table carrying the EC-11 enriched
+/// columns. Read via a separate query so the legacy [`Coupon`] struct can
+/// stay unchanged this cycle — the compat migration keeps both column sets.
+#[derive(Debug, Clone, sqlx::FromRow)]
+struct CouponExtras {
+    discount_value_cents: Option<i64>,
+    discount_percent_bps: Option<i32>,
+    scope: String,
+    bogo_config: Option<serde_json::Value>,
+    includes_product_ids: Vec<Uuid>,
+    excludes_product_ids: Vec<Uuid>,
+    #[allow(dead_code)] // Category scope wires in once the category table lands (EC-02).
+    includes_category_ids: Vec<Uuid>,
+    recurring_mode: String,
+}
+
+/// Load the EC-11 enriched columns for a coupon. Decouples the pricing logic
+/// from the legacy `discount_type` + `discount_value` decimal pair.
+async fn load_coupon_extras(pool: &sqlx::PgPool, coupon_id: Uuid) -> AppResult<CouponExtras> {
+    let row = sqlx::query_as::<_, CouponExtras>(
+        r#"
+        SELECT discount_value_cents, discount_percent_bps, scope, bogo_config,
+               includes_product_ids, excludes_product_ids, includes_category_ids,
+               recurring_mode
+        FROM coupons WHERE id = $1
+        "#,
+    )
+    .bind(coupon_id)
+    .fetch_one(pool)
+    .await?;
+    Ok(row)
+}
+
+/// Build a [`CouponInput`] from the legacy [`Coupon`] row + the EC-11 extras.
+///
+/// When the new columns are NULL the helper falls back to the legacy
+/// `discount_type` + `discount_value` pair, converting dollars→cents /
+/// percent→basis-points so the engine can run against pre-migration rows.
+fn coupon_input_for(coupon: &Coupon, extras: &CouponExtras) -> CouponInput {
+    // Prefer the new columns; fall back to the legacy decimal on a miss so
+    // rows not yet touched by the admin UI still price correctly.
+    let legacy_cents = if coupon.discount_type == DiscountType::FixedAmount {
+        coupon
+            .discount_value
+            .to_f64()
+            .map(|v| Money::cents((v * 100.0).round() as i64))
+    } else {
+        None
+    };
+    let legacy_bps = if coupon.discount_type == DiscountType::Percentage {
+        coupon
+            .discount_value
+            .to_f64()
+            .map(|v| (v * 100.0).round() as u32)
+    } else {
+        None
+    };
+
+    let discount_value_cents = extras
+        .discount_value_cents
+        .map(Money::cents)
+        .or(legacy_cents);
+    let discount_percent_bps = extras
+        .discount_percent_bps
+        .and_then(|v| u32::try_from(v).ok())
+        .or(legacy_bps);
+
+    let scope = CouponScope::from_str_lower(&extras.scope).unwrap_or(CouponScope::Cart);
+    let recurring_mode = RecurringMode::from_str_lower(&extras.recurring_mode)
+        .unwrap_or(RecurringMode::OneTime);
+
+    let bogo_config: Option<BogoConfig> = extras
+        .bogo_config
+        .as_ref()
+        .and_then(|v| serde_json::from_value(v.clone()).ok());
+
+    CouponInput {
+        code: coupon.code.clone(),
+        scope,
+        discount_value_cents,
+        discount_percent_bps,
+        max_discount: coupon
+            .max_discount_cents
+            .map(|c| Money::cents(i64::from(c))),
+        min_purchase: coupon
+            .min_purchase_cents
+            .map(|c| Money::cents(i64::from(c))),
+        bogo_config,
+        includes_product_ids: extras.includes_product_ids.clone(),
+        excludes_product_ids: extras.excludes_product_ids.clone(),
+        includes_category_ids: extras.includes_category_ids.clone(),
+        recurring_mode,
     }
+}
+
+/// Legacy entry point — preserved for callers that cannot reach the `PgPool`
+/// (e.g. Stripe-driven invoice finalization where the engine runs without a
+/// DB round-trip). `amount_cents` is treated as a single-line cart whose
+/// product-id is the zero UUID; EC-11's engine handles the math with the
+/// scope downgraded to `Cart`.
+#[allow(dead_code)]
+fn calculate_discount_legacy(coupon: &Coupon, amount_cents: i32) -> Option<i32> {
+    // Synthesize extras purely from the legacy columns — pre-migration rows
+    // or call sites without per-cart detail land here.
+    let extras = CouponExtras {
+        discount_value_cents: None,
+        discount_percent_bps: None,
+        scope: "cart".to_string(),
+        bogo_config: None,
+        includes_product_ids: vec![],
+        excludes_product_ids: vec![],
+        includes_category_ids: vec![],
+        recurring_mode: "one_time".to_string(),
+    };
+    let input = coupon_input_for(coupon, &extras);
+    let cart = vec![CartLine {
+        product_id: Uuid::nil(),
+        variant_id: None,
+        category_id: None,
+        unit_price: Money::cents(i64::from(amount_cents)),
+        quantity: 1,
+        is_subscription: false,
+    }];
+    let applied = CouponEngine::apply(&cart, &input);
+    match coupon.discount_type {
+        DiscountType::FreeTrial => None,
+        _ => Some(applied.discount.as_cents().clamp(0, i64::from(amount_cents)) as i32),
+    }
+}
+
+/// DB-enriched variant used when a call site has a `PgPool`. Delegates to
+/// the engine with the EC-11 extras loaded from the database so scope,
+/// recurring, product-filter + BOGO all apply.
+async fn calculate_discount_with_db(
+    pool: &sqlx::PgPool,
+    coupon: &Coupon,
+    amount_cents: i32,
+) -> AppResult<Option<i32>> {
+    if coupon.discount_type == DiscountType::FreeTrial {
+        return Ok(None);
+    }
+    let extras = load_coupon_extras(pool, coupon.id).await?;
+    let input = coupon_input_for(coupon, &extras);
+    let cart = vec![CartLine {
+        product_id: Uuid::nil(),
+        variant_id: None,
+        category_id: None,
+        unit_price: Money::cents(i64::from(amount_cents)),
+        quantity: 1,
+        is_subscription: false,
+    }];
+    let applied = CouponEngine::apply(&cart, &input);
+    Ok(Some(
+        applied.discount.as_cents().clamp(0, i64::from(amount_cents)) as i32,
+    ))
 }
 
 /// Shared validation logic. Returns the coupon if valid, or an error message.
@@ -886,8 +1028,10 @@ pub(crate) async fn public_apply_coupon(
         }
     }
 
-    // Calculate discount
-    let discount_applied_cents = calculate_discount(&coupon, req.amount_cents).unwrap_or(0);
+    // Calculate discount via the EC-11 engine (DB-enriched path).
+    let discount_applied_cents = calculate_discount_with_db(&state.db, &coupon, req.amount_cents)
+        .await?
+        .unwrap_or(0);
 
     // Insert usage record and increment usage_count in a transaction
     let mut tx = state.db.begin().await?;
@@ -917,4 +1061,102 @@ pub(crate) async fn public_apply_coupon(
     tx.commit().await?;
 
     Ok(Json(usage))
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// EC-11 ADMIN ENDPOINTS
+// ══════════════════════════════════════════════════════════════════════
+
+/// Admin-only payload for `PUT /api/admin/coupons/{id}/engine`. Every field
+/// is optional; `None` means "leave the existing value alone". Pass an empty
+/// array to clear an includes/excludes list.
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct UpdateCouponEngineRequest {
+    /// Flat discount value in minor units (cents). Setting both this and
+    /// `discount_percent_bps` is accepted but only one takes effect — the
+    /// engine prefers the cents field.
+    pub discount_value_cents: Option<i64>,
+    /// Percentage discount in basis points (`10_000 bps = 100%`).
+    pub discount_percent_bps: Option<i32>,
+    pub scope: Option<CouponScope>,
+    pub bogo_config: Option<serde_json::Value>,
+    pub includes_product_ids: Option<Vec<Uuid>>,
+    pub excludes_product_ids: Option<Vec<Uuid>>,
+    pub includes_category_ids: Option<Vec<Uuid>>,
+    pub recurring_mode: Option<RecurringMode>,
+}
+
+/// Row shape covering the EC-11 fields plus the legacy `is_active` flag so
+/// the response mirrors the admin's view after mutation.
+#[derive(Debug, Serialize, sqlx::FromRow, ToSchema)]
+pub struct CouponEngineView {
+    pub id: Uuid,
+    pub code: String,
+    pub scope: String,
+    pub discount_value_cents: Option<i64>,
+    pub discount_percent_bps: Option<i32>,
+    pub bogo_config: Option<serde_json::Value>,
+    pub includes_product_ids: Vec<Uuid>,
+    pub excludes_product_ids: Vec<Uuid>,
+    pub includes_category_ids: Vec<Uuid>,
+    pub recurring_mode: String,
+    pub is_active: bool,
+}
+
+#[utoipa::path(
+    put,
+    path = "/api/admin/coupons/{id}/engine",
+    tag = "coupons",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Coupon id")),
+    request_body = UpdateCouponEngineRequest,
+    responses(
+        (status = 200, description = "Coupon engine fields updated", body = CouponEngineView),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Coupon not found")
+    )
+)]
+pub(crate) async fn admin_update_coupon_engine(
+    State(state): State<AppState>,
+    _admin: AdminUser,
+    Path(id): Path<Uuid>,
+    Json(req): Json<UpdateCouponEngineRequest>,
+) -> AppResult<Json<CouponEngineView>> {
+    // COALESCE pattern via per-field `is_some()` flags — mirrors the
+    // commerce::repo::update_product approach.
+    let row = sqlx::query_as::<_, CouponEngineView>(
+        r#"
+        UPDATE coupons SET
+            discount_value_cents  = CASE WHEN $2::bool THEN $1  ELSE discount_value_cents END,
+            discount_percent_bps  = CASE WHEN $4::bool THEN $3  ELSE discount_percent_bps END,
+            scope                 = COALESCE($5, scope),
+            bogo_config           = CASE WHEN $7::bool THEN $6  ELSE bogo_config END,
+            includes_product_ids  = COALESCE($8,  includes_product_ids),
+            excludes_product_ids  = COALESCE($9,  excludes_product_ids),
+            includes_category_ids = COALESCE($10, includes_category_ids),
+            recurring_mode        = COALESCE($11, recurring_mode),
+            updated_at            = NOW()
+        WHERE id = $12
+        RETURNING id, code, scope, discount_value_cents, discount_percent_bps,
+                  bogo_config, includes_product_ids, excludes_product_ids,
+                  includes_category_ids, recurring_mode, is_active
+        "#,
+    )
+    .bind(req.discount_value_cents)
+    .bind(req.discount_value_cents.is_some())
+    .bind(req.discount_percent_bps)
+    .bind(req.discount_percent_bps.is_some())
+    .bind(req.scope.map(|s| s.as_str().to_string()))
+    .bind(req.bogo_config.as_ref())
+    .bind(req.bogo_config.is_some())
+    .bind(req.includes_product_ids.as_deref())
+    .bind(req.excludes_product_ids.as_deref())
+    .bind(req.includes_category_ids.as_deref())
+    .bind(req.recurring_mode.map(|r| r.as_str().to_string()))
+    .bind(id)
+    .fetch_optional(&state.db)
+    .await?
+    .ok_or(AppError::NotFound("Coupon not found".to_string()))?;
+
+    Ok(Json(row))
 }
