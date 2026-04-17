@@ -1,0 +1,65 @@
+name: OpenAPI Drift
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  openapi-drift:
+    name: OpenAPI Snapshot + Generated Types
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: backend
+          shared-key: openapi-drift
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install JS dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run OpenAPI snapshot test
+        # `cargo test --test openapi_snapshot` asserts the committed
+        # `backend/tests/snapshots/openapi.json` matches the live spec from
+        # the Rust source. Failure means the PR forgot to run
+        # `UPDATE_OPENAPI_SNAPSHOT=1 cargo test --test openapi_snapshot`.
+        working-directory: backend
+        run: cargo test --test openapi_snapshot --no-fail-fast
+
+      - name: Regenerate frontend types from snapshot
+        run: pnpm gen:types
+
+      - name: Verify generated types are committed
+        # If `pnpm gen:types` mutates `src/lib/api/schema.d.ts`, the
+        # committed copy is stale. Fail fast with a clear diff so the PR
+        # can re-run gen:types locally.
+        run: |
+          if ! git diff --exit-code -- src/lib/api/schema.d.ts; then
+            echo "::error::src/lib/api/schema.d.ts drift detected — run 'pnpm gen:types' and commit the result." >&2
+            exit 1
+          fi

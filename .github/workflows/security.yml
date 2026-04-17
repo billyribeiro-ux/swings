@@ -1,0 +1,115 @@
+name: Security
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+  schedule:
+    # Nightly at 03:00 UTC — picks up newly disclosed advisories even on
+    # quiet branches.
+    - cron: '0 3 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  cargo-audit:
+    name: Cargo Audit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: backend
+          shared-key: cargo-audit
+
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@v1.10.24
+
+      - name: Install cargo-audit
+        run: cargo binstall --no-confirm --force cargo-audit
+
+      - name: Run cargo audit
+        # Pin the RustSec advisory DB to a known branch. `--deny warnings`
+        # treats unmaintained / yanked crates as hard failures alongside
+        # CVEs; loosen if the noise becomes unmanageable.
+        run: cargo audit --deny warnings --db-url https://github.com/rustsec/advisory-db
+
+  pnpm-audit:
+    name: pnpm Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: pnpm audit — high / critical (blocking)
+        run: pnpm audit --audit-level=high
+
+      - name: pnpm audit — moderate (visibility only)
+        # Non-blocking: surfaces moderate advisories in the build log for
+        # triage without failing the PR. Remove `continue-on-error` once the
+        # moderate backlog is groomed.
+        continue-on-error: true
+        run: pnpm audit --audit-level=moderate
+
+  trivy-fs:
+    name: Trivy Filesystem Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Trivy filesystem scan
+        # Pinned to a release tag (not @master) so a supply-chain compromise
+        # on the action repo cannot alter scanner behaviour silently.
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true
+          trivyignores: .trivyignore
+          format: sarif
+          output: trivy-results.sarif
+
+      - name: Upload Trivy SARIF (best effort)
+        if: always()
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy-fs
