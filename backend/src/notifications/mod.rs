@@ -44,7 +44,10 @@ pub mod templates;
 pub mod unsubscribe;
 pub mod webhooks;
 
-pub use channels::{Channel, ChannelError, ChannelRegistry, DeliveryRequest, ProviderId};
+pub use channels::{
+    Channel, ChannelError, ChannelRegistry, DeliveryRequest, EmailProvider, EmailProviderError,
+    EmailSendRequest, ProviderId,
+};
 pub use preferences::{is_allowed, NotificationPreference, PreferenceUpdate};
 pub use send::{send_notification, NotifyError, Recipient, SendOptions};
 pub use suppression::{is_suppressed, suppress, unsuppress, Suppression};
@@ -52,8 +55,6 @@ pub use templates::{RenderedTemplate, Template, TemplateError};
 pub use unsubscribe::{consume_token, mint_token, UnsubscribeAction, UnsubscribeError};
 
 use std::sync::Arc;
-
-use crate::email::EmailService;
 
 /// Application-scoped handle held on [`crate::AppState`].
 ///
@@ -66,13 +67,16 @@ pub struct Service {
 }
 
 impl Service {
-    /// Build a service wired for the current runtime. Wires the email channel
-    /// only when an [`EmailService`] is available; otherwise delivery attempts
-    /// for `channel='email'` fail with [`ChannelError::Permanent`] so the
-    /// outbox routes them to the DLQ rather than retrying forever.
+    /// Build a service wired for the current runtime.
+    ///
+    /// `email_provider` is the concrete transport (Resend, Lettre, Noop) that
+    /// `main.rs` selected via the `EMAIL_PROVIDER` env var. When `None` the
+    /// email channel is replaced by a `DisabledChannel` that fails every send
+    /// permanently — so the outbox DLQs stuck deliveries instead of retrying
+    /// forever.
     #[must_use]
-    pub fn new(email_service: Option<Arc<EmailService>>) -> Self {
-        let registry = ChannelRegistry::build(email_service);
+    pub fn new(email_provider: Option<Arc<dyn EmailProvider>>, default_from: String) -> Self {
+        let registry = ChannelRegistry::build(email_provider, default_from);
         Self {
             channels: Arc::new(registry),
         }

@@ -25,7 +25,7 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
-use crate::email::EmailService;
+pub use email::{EmailProvider, EmailProviderError, EmailSendRequest};
 
 /// Provider-side identifier returned on a successful send (Resend message id,
 /// Twilio sid, …). Kept opaque so channels are free to pick their own shape.
@@ -98,21 +98,23 @@ pub struct ChannelRegistry {
 impl ChannelRegistry {
     /// Construct the registry with the default channel set.
     ///
-    /// * `email` — real [`email::EmailChannel`] when an [`EmailService`] is
+    /// * `email` — real [`email::EmailChannel`] when an [`EmailProvider`] is
     ///   provided, otherwise a [`DisabledChannel`] that fails permanently.
+    ///   Selection of the concrete provider (Resend / Lettre / Noop) happens
+    ///   up the stack in `main.rs`; this registry stays provider-agnostic.
     /// * `sms`, `push`, `in_app`, `slack`, `discord`, `webhook` — stubs
     ///   returning [`ChannelError::Permanent`] with a "not implemented"
     ///   message. Swapping a stub for a real impl is a one-line change in
     ///   this function.
     #[must_use]
-    pub fn build(email_service: Option<Arc<EmailService>>) -> Self {
+    pub fn build(email_provider: Option<Arc<dyn EmailProvider>>, default_from: String) -> Self {
         let mut by_name: HashMap<&'static str, Arc<dyn Channel>> = HashMap::new();
 
-        let email_channel: Arc<dyn Channel> = match email_service {
-            Some(svc) => Arc::new(email::EmailChannel::new(svc)),
+        let email_channel: Arc<dyn Channel> = match email_provider {
+            Some(prov) => Arc::new(email::EmailChannel::new(prov, default_from)),
             None => Arc::new(DisabledChannel {
                 name: "email",
-                reason: "email service not configured (missing SMTP_USER)",
+                reason: "no email provider configured (set EMAIL_PROVIDER=resend|smtp|noop)",
             }),
         };
         by_name.insert(email_channel.name(), email_channel);
@@ -189,8 +191,8 @@ mod tests {
     }
 
     #[test]
-    fn registry_without_email_service_still_has_all_channels() {
-        let r = ChannelRegistry::build(None);
+    fn registry_without_email_provider_still_has_all_channels() {
+        let r = ChannelRegistry::build(None, "noreply@example.test".into());
         assert!(r.get("email").is_some());
         assert!(r.get("sms").is_some());
         assert!(r.get("push").is_some());
@@ -199,5 +201,23 @@ mod tests {
         assert!(r.get("discord").is_some());
         assert!(r.get("webhook").is_some());
         assert!(r.get("carrier_pigeon").is_none());
+    }
+
+    #[tokio::test]
+    async fn registry_with_noop_email_provider_dispatches_send() {
+        let provider: Arc<dyn EmailProvider> = Arc::new(email::NoopProvider::new());
+        let r = ChannelRegistry::build(Some(provider), "Swings <noreply@example.test>".into());
+        let ch = r.get("email").expect("wired");
+        let req = DeliveryRequest {
+            to: "a@b.co",
+            to_name: None,
+            template_key: "t",
+            subject: Some("Hi"),
+            body: "x",
+            locale: "en",
+            idempotency_key: None,
+        };
+        let id = ch.send(&req).await.expect("ok");
+        assert!(id.starts_with("noop-"));
     }
 }

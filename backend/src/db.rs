@@ -267,21 +267,41 @@ pub async fn delete_user_refresh_tokens(pool: &PgPool, user_id: Uuid) -> Result<
     Ok(())
 }
 
-/// Returns `true` if this event was newly claimed, `false` if it was already processed.
-pub async fn try_claim_stripe_webhook_event(
+/// Attempt to record a webhook event as processed. Returns `true` when the
+/// row was newly inserted (caller should process the event), `false` when it
+/// was already claimed (caller short-circuits).
+///
+/// `source` namespaces the idempotency key per-provider — `"stripe"` for the
+/// existing Stripe handler, `"resend"` for FDN-09's email delivery callbacks.
+/// See `migrations/023_webhook_source.sql` for the composite-PK rationale.
+pub async fn try_claim_webhook_event(
     pool: &PgPool,
+    source: &str,
     event_id: &str,
     event_type: &str,
 ) -> Result<bool, sqlx::Error> {
     let res = sqlx::query(
-        r#"INSERT INTO processed_webhook_events (event_id, event_type) VALUES ($1, $2)
-           ON CONFLICT (event_id) DO NOTHING"#,
+        r#"INSERT INTO processed_webhook_events (source, event_id, event_type)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (source, event_id) DO NOTHING"#,
     )
+    .bind(source)
     .bind(event_id)
     .bind(event_type)
     .execute(pool)
     .await?;
     Ok(res.rows_affected() > 0)
+}
+
+/// Back-compat alias: the Stripe handler predates the multi-source column;
+/// keeping the old name as a thin shim avoids churn in that handler and
+/// lets us thread `source='stripe'` without touching the call site.
+pub async fn try_claim_stripe_webhook_event(
+    pool: &PgPool,
+    event_id: &str,
+    event_type: &str,
+) -> Result<bool, sqlx::Error> {
+    try_claim_webhook_event(pool, "stripe", event_id, event_type).await
 }
 
 pub async fn cleanup_old_stripe_webhook_events(pool: &PgPool) -> Result<u64, sqlx::Error> {

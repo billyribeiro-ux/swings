@@ -3778,6 +3778,34 @@
         }
       }
     },
+    "/api/webhooks/email/resend": {
+      "post": {
+        "tags": [
+          "webhooks"
+        ],
+        "operationId": "resend_email_webhook",
+        "requestBody": {
+          "description": "Resend webhook JSON payload (email.sent, email.delivered, email.bounced, email.complained, email.opened, email.clicked, email.delivery_delayed)",
+          "content": {
+            "application/json": {}
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook processed (or duplicate)"
+          },
+          "400": {
+            "description": "Invalid payload"
+          },
+          "401": {
+            "description": "Invalid or missing signature"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
     "/api/webhooks/stripe": {
       "post": {
         "tags": [

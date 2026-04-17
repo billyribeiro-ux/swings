@@ -141,10 +141,16 @@ impl TestApp {
             // accidentally hitting the Postgres bucket table from whatever
             // env vars the developer happens to have set.
             rate_limit: RateLimitBackend::InProcess(Arc::new(Default::default())),
-            // FDN-05: notifications service with no wired email provider so
-            // channel.send paths short-circuit. Admin preview/test-send
-            // routes remain reachable for assertion-only tests.
-            notifications: Arc::new(NotificationsService::new(None)),
+            // FDN-05: notifications service wired with a Noop email provider
+            // so admin preview / test-send routes remain reachable without
+            // hitting the network. Assertion-only tests inspect the
+            // synthesised `"noop-{uuid}"` provider id.
+            notifications: Arc::new(NotificationsService::new(
+                Some(Arc::new(
+                    swings_api::notifications::channels::email::NoopProvider::new(),
+                )),
+                "Swings <noreply@example.test>".into(),
+            )),
         };
 
         let router = build_router(&state);

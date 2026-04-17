@@ -46,6 +46,12 @@ sanitize-filename = "0.6"
 lettre = { version = "0.11", default-features = false, features = ["tokio1-rustls-tls", "builder", "smtp-transport", "tokio1"] }
 tera = "1"
 rand = "0.8"
+# Resend provider HTTP client. Using `reqwest` directly (rather than `resend-rs`)
+# keeps the dependency tree narrow: rustls-only TLS, JSON body builder, no
+# default-features OpenSSL pull. async-trait only lands because the provider
+# trait returns `async fn` — without it the trait is not object-safe.
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+async-trait = "0.1"
 
 # Decimal
 rust_decimal = { version = "1", features = ["serde-with-str"] }
@@ -76,3 +82,8 @@ utoipa-swagger-ui = { version = "9.0", features = ["axum"] }
 # Observability (Phase 4 follow-on to FDN-08)
 metrics = "0.24"
 metrics-exporter-prometheus = "0.17"
+
+[dev-dependencies]
+# Mock HTTP server for provider tests. Pinned to 0.6 (hyper 1 / rustls) to
+# match reqwest 0.12's transport stack so the TLS runtime doesn't fork.
+wiremock = "0.6"

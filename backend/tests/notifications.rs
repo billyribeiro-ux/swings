@@ -209,8 +209,8 @@ async fn unsubscribe_token_consume_flow() {
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn registry_has_every_declared_channel() {
     // Cheap sanity check that the runtime registry is wired whether or not an
-    // e-mail service is configured.
-    let svc = Arc::new(notifications::Service::new(None));
+    // e-mail provider is configured.
+    let svc = Arc::new(notifications::Service::new(None, "noreply@test".into()));
     let reg = svc.channels();
     for name in [
         "email", "sms", "push", "in_app", "slack", "discord", "webhook",

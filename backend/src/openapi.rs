@@ -170,6 +170,7 @@ impl Modify for SecurityAddon {
         crate::handlers::pricing::admin_toggle_plan,
         // Webhooks
         webhooks::stripe_webhook,
+        webhooks::resend_email_webhook,
         // Security (FDN-08)
         csp_report::csp_report,
     ),

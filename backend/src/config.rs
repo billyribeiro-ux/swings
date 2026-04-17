@@ -136,6 +136,31 @@ impl Config {
             );
         }
 
+        // FDN-09: when EMAIL_PROVIDER=resend (the production default), require
+        // both the API key for outbound sends and the webhook signing secret
+        // for inbound delivery callbacks. Mis-configuring either is a hard
+        // fail at startup so we never ship a half-wired email pipeline.
+        let email_provider = env::var("EMAIL_PROVIDER")
+            .unwrap_or_else(|_| "resend".to_string())
+            .trim()
+            .to_ascii_lowercase();
+        if email_provider == "resend" {
+            if env::var("RESEND_API_KEY")
+                .unwrap_or_default()
+                .trim()
+                .is_empty()
+            {
+                missing.push("RESEND_API_KEY".into());
+            }
+            if env::var("RESEND_WEBHOOK_SECRET")
+                .unwrap_or_default()
+                .trim()
+                .is_empty()
+            {
+                missing.push("RESEND_WEBHOOK_SECRET".into());
+            }
+        }
+
         if !missing.is_empty() {
             bail!(
                 "APP_ENV=production but required configuration is missing or invalid:\n  - {}",

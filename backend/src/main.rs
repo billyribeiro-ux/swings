@@ -87,18 +87,80 @@ async fn main() -> Result<()> {
     // Ensure uploads directory exists
     let upload_dir = config.upload_dir.clone();
 
-    let email_service = if config.smtp_user.is_empty() {
-        tracing::warn!("SMTP_USER not configured — email sending is disabled");
+    // FDN-09: select the email provider from the `EMAIL_PROVIDER` env var.
+    //
+    // Matrix:
+    //   * EMAIL_PROVIDER=resend  -> Resend HTTP API (always, regardless of env)
+    //   * EMAIL_PROVIDER=smtp    -> Lettre SMTP transport (reuses EmailService)
+    //   * EMAIL_PROVIDER=noop    -> log-only stub (never hits the wire)
+    //   * unset + production     -> resend (fails fast if RESEND_API_KEY missing
+    //                                via Config::assert_production_ready)
+    //   * unset + dev + SMTP_USER-> smtp  (legacy dev workflow preserved)
+    //   * unset + dev + no SMTP  -> noop  (`pnpm dev` runs without an inbox)
+    //
+    // We still construct a full [`email::EmailService`] for Lettre mode to keep
+    // the SMTP codepath unchanged. Resend + Noop never touch it, so missing
+    // SMTP config is fine when they are active.
+    let email_service: Option<Arc<email::EmailService>> = if config.smtp_user.is_empty() {
         None
     } else {
         match email::EmailService::new(&config) {
-            Ok(svc) => {
-                tracing::info!("Email service initialized (SMTP: {})", config.smtp_host);
-                Some(Arc::new(svc))
-            }
+            Ok(svc) => Some(Arc::new(svc)),
             Err(e) => {
-                tracing::error!("Failed to initialize email service: {e}");
+                tracing::error!("SMTP EmailService init failed: {e}");
                 None
+            }
+        }
+    };
+    let email_provider: Option<Arc<dyn notifications::EmailProvider>> = {
+        use notifications::channels::email::{LettreProvider, NoopProvider, ResendProvider};
+        let selection = std::env::var("EMAIL_PROVIDER").ok();
+        let selection = match selection.as_deref() {
+            Some(s) => s.trim().to_ascii_lowercase(),
+            None => {
+                if config.is_production() {
+                    "resend".to_string()
+                } else if email_service.is_some() {
+                    "smtp".to_string()
+                } else {
+                    "noop".to_string()
+                }
+            }
+        };
+        match selection.as_str() {
+            "resend" => match ResendProvider::from_env() {
+                Ok(p) => {
+                    tracing::info!("email provider: resend");
+                    Some(Arc::new(p) as Arc<dyn notifications::EmailProvider>)
+                }
+                Err(e) => {
+                    // In production, treat as a hard failure — `assert_production_ready`
+                    // enforces the key already, so we should never land here. In
+                    // dev, fall back to the noop provider so `cargo run` does not
+                    // bail when `RESEND_API_KEY` is intentionally unset.
+                    if config.is_production() {
+                        bail!("EMAIL_PROVIDER=resend but config invalid: {e}");
+                    }
+                    tracing::warn!("resend provider init failed ({e}); falling back to noop");
+                    Some(Arc::new(NoopProvider::new()) as Arc<dyn notifications::EmailProvider>)
+                }
+            },
+            "smtp" => match email_service.clone() {
+                Some(svc) => {
+                    tracing::info!("email provider: lettre (SMTP {})", config.smtp_host);
+                    Some(Arc::new(LettreProvider::new(svc)) as Arc<dyn notifications::EmailProvider>)
+                }
+                None => {
+                    tracing::warn!("EMAIL_PROVIDER=smtp but SMTP_USER missing; disabling email");
+                    None
+                }
+            },
+            "noop" => {
+                tracing::info!("email provider: noop");
+                Some(Arc::new(NoopProvider::new()) as Arc<dyn notifications::EmailProvider>)
+            }
+            other => {
+                bail!("EMAIL_PROVIDER={other} is not recognised (expected `resend`|`smtp`|`noop`)");
             }
         }
     };
@@ -127,8 +189,16 @@ async fn main() -> Result<()> {
     // FDN-05: notifications service (template registry + channel dispatch).
     // Constructed before we register the outbox `NotifyHandler` so both can
     // share the `Arc<ChannelRegistry>` without cloning the underlying
-    // provider wrappers.
-    let notifications_service = Arc::new(notifications::Service::new(email_service.clone()));
+    // provider wrappers. FDN-09: the concrete provider (Resend / Lettre /
+    // Noop) is resolved above; only its trait object is threaded here.
+    let default_from = std::env::var("RESEND_FROM")
+        .ok()
+        .filter(|s| !s.trim().is_empty())
+        .unwrap_or_else(|| config.smtp_from.clone());
+    let notifications_service = Arc::new(notifications::Service::new(
+        email_provider.clone(),
+        default_from,
+    ));
 
     let state = AppState {
         db: pool,

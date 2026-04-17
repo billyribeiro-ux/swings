@@ -12,15 +12,21 @@ use sha2::Sha256;
 use crate::{
     db,
     models::*,
-    notifications::send::{send_notification, Recipient, SendOptions},
+    notifications::{
+        send::{send_notification, Recipient, SendOptions},
+        webhooks::resend as resend_webhook,
+    },
     AppState,
 };
 
 pub fn router() -> Router<AppState> {
     // FDN-08: 500/min/source. Burst-friendly (Stripe retry storms) but
-    // guards against a wedged sender from flooding the pipe.
+    // guards against a wedged sender from flooding the pipe. The Resend
+    // endpoint shares the same bucket so a burst on either provider does
+    // not silently starve the other.
     Router::new()
         .route("/stripe", post(stripe_webhook))
+        .route("/email/resend", post(resend_email_webhook))
         .layer(crate::middleware::rate_limit::webhooks_layer())
 }
 
@@ -337,6 +343,102 @@ async fn handle_checkout_completed(
     }
 
     Ok(())
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// FDN-09: Resend delivery-status webhook.
+// ────────────────────────────────────────────────────────────────────────
+
+/// Configured secret for Resend webhooks. We purposefully read from
+/// `RESEND_WEBHOOK_SECRET` via `std::env` at request time (rather than
+/// plumbing it onto `Config`) so operators can rotate the secret without a
+/// binary redeploy — `assert_production_ready` still enforces presence.
+fn resend_webhook_secret() -> Option<String> {
+    std::env::var("RESEND_WEBHOOK_SECRET")
+        .ok()
+        .filter(|v| !v.trim().is_empty())
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/webhooks/email/resend",
+    tag = "webhooks",
+    request_body(
+        content_type = "application/json",
+        description = "Resend webhook JSON payload (email.sent, email.delivered, email.bounced, email.complained, email.opened, email.clicked, email.delivery_delayed)"
+    ),
+    responses(
+        (status = 200, description = "Webhook processed (or duplicate)"),
+        (status = 400, description = "Invalid payload"),
+        (status = 401, description = "Invalid or missing signature"),
+        (status = 500, description = "Server error")
+    )
+)]
+pub(crate) async fn resend_email_webhook(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    body: Bytes,
+) -> StatusCode {
+    let Some(secret) = resend_webhook_secret() else {
+        tracing::warn!("Rejected Resend webhook — RESEND_WEBHOOK_SECRET is not configured");
+        return StatusCode::INTERNAL_SERVER_ERROR;
+    };
+
+    // Resend ships the Svix header trio; the optional `resend-*` variants
+    // accommodate early-alpha tenants and our own fixture tests.
+    let sig_header = headers
+        .get("svix-signature")
+        .or_else(|| headers.get("resend-signature"))
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("");
+    let timestamp = headers
+        .get("svix-timestamp")
+        .or_else(|| headers.get("resend-timestamp"))
+        .and_then(|v| v.to_str().ok())
+        .and_then(|s| s.parse::<i64>().ok());
+    let svix_id = headers
+        .get("svix-id")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("");
+
+    let Some(ts) = timestamp else {
+        tracing::warn!("Rejected Resend webhook — missing svix-timestamp header");
+        return StatusCode::BAD_REQUEST;
+    };
+    if sig_header.is_empty() {
+        tracing::warn!("Rejected Resend webhook — missing svix-signature header");
+        return StatusCode::BAD_REQUEST;
+    }
+
+    if !resend_webhook::verify_signature(&body, secret.as_bytes(), svix_id, ts, sig_header) {
+        tracing::warn!("Rejected Resend webhook due to invalid signature");
+        return StatusCode::UNAUTHORIZED;
+    }
+
+    let envelope: resend_webhook::ResendWebhookEnvelope = match serde_json::from_slice(&body) {
+        Ok(e) => e,
+        Err(e) => {
+            tracing::warn!("Invalid Resend webhook JSON: {e}");
+            return StatusCode::BAD_REQUEST;
+        }
+    };
+
+    tracing::info!(
+        event_id = %envelope.event_id,
+        event_type = %envelope.event_type,
+        "Resend webhook received"
+    );
+
+    match resend_webhook::process_event(&state.db, &envelope).await {
+        Ok(outcome) => {
+            tracing::debug!(outcome = ?outcome, "resend webhook processed");
+            StatusCode::OK
+        }
+        Err(e) => {
+            tracing::error!(error = %e, "resend webhook processing failed");
+            StatusCode::INTERNAL_SERVER_ERROR
+        }
+    }
 }
 
 #[cfg(test)]
