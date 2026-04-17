@@ -12,11 +12,21 @@
 //! The tables these modules read/write live in migration `025_forms.sql`.
 
 pub mod antispam;
+pub mod integration_config;
+pub mod integrations;
 pub mod logic;
 pub mod repo;
 pub mod schema;
 pub mod uploads;
 pub mod validation;
+
+pub use integration_config::{
+    decrypt as decrypt_credential, encrypt as encrypt_credential, integration_id, CryptoError,
+    IntegrationConfig, SealedCredential,
+};
+pub use integrations::{
+    adapter_for, IntegrationAdapter, IntegrationError, SubmissionPayload,
+};
 
 pub use antispam::{
     Akismet, AntispamPipeline, Dedup, Honeypot, SpamCheck, SpamVerdict, SubmissionContext,
