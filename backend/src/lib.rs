@@ -20,6 +20,7 @@ pub mod handlers;
 pub mod middleware;
 pub mod models;
 pub mod notifications;
+pub mod observability;
 pub mod openapi;
 pub mod services;
 pub mod stripe_api;

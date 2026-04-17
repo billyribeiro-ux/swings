@@ -27,7 +27,7 @@ uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 dotenvy = "0.15"
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 thiserror = "2"
 anyhow = "1"
 sha2 = "0.10"
@@ -72,3 +72,7 @@ ammonia = "4"
 utoipa = { version = "5.4", features = ["axum_extras", "chrono", "uuid", "preserve_order"] }
 utoipa-axum = "0.2"
 utoipa-swagger-ui = { version = "9.0", features = ["axum"] }
+
+# Observability (Phase 4 follow-on to FDN-08)
+metrics = "0.24"
+metrics-exporter-prometheus = "0.17"

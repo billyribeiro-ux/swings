@@ -17,7 +17,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use swings_api::{
     authz, config::Config, db, email, events, handlers, middleware::rate_limit, notifications,
-    openapi, services, AppState,
+    observability, openapi, services, AppState,
 };
 
 /// `dotenvy::dotenv()` only reads `./.env` from the process CWD. When invoked as
@@ -37,8 +37,12 @@ async fn main() -> Result<()> {
             tracing_subscriber::EnvFilter::try_from_default_env()
                 .unwrap_or_else(|_| "swings_api=debug,tower_http=debug".into()),
         )
-        .with(tracing_subscriber::fmt::layer())
+        .with(observability::tracing_layer())
         .init();
+
+    // Observability: install the Prometheus recorder exactly once so the
+    // `/metrics` endpoint + the http_middleware below can emit against it.
+    let metrics_handle = observability::install_recorder();
 
     load_dotenv();
 
@@ -258,7 +262,24 @@ async fn main() -> Result<()> {
     // FDN-02: OpenAPI spec + SwaggerUI. Mount before CORS so gated responses still get the layer.
     app = openapi::mount(app, &state);
 
+    // Observability: /metrics is admin-gated in production, public in dev,
+    // mirroring the openapi::mount gating pattern.
+    let metrics_route = if state.config.is_production() {
+        axum::routing::get(observability::handler::admin_metrics_handler)
+    } else {
+        axum::routing::get(observability::handler::public_metrics_handler)
+    };
+    app = app.route("/metrics", metrics_route);
+
     let app = app
+        .layer(axum::Extension(metrics_handle))
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            observability::metrics::http_middleware,
+        ))
+        .layer(axum::middleware::from_fn(
+            observability::correlation::middleware,
+        ))
         .layer(cors)
         .layer(TraceLayer::new_for_http())
         .with_state(state);
