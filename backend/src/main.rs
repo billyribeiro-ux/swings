@@ -15,7 +15,7 @@ use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use swings_api::{authz, config::Config, db, email, handlers, openapi, services, AppState};
+use swings_api::{authz, config::Config, db, email, events, handlers, openapi, services, AppState};
 
 /// `dotenvy::dotenv()` only reads `./.env` from the process CWD. When invoked as
 /// `cargo run --manifest-path backend/Cargo.toml` from the repo root, CWD is the root and env
@@ -109,13 +109,66 @@ async fn main() -> Result<()> {
         "authz policy loaded from role_permissions"
     );
 
+    // FDN-04: outbox worker shutdown broadcaster. Stored on `AppState` so
+    // handlers (and `main` itself) can trigger a cooperative shutdown.
+    let outbox_shutdown = events::WorkerShutdown::new();
+
     let state = AppState {
         db: pool,
         config: Arc::new(config),
         email_service,
         media_backend,
         policy: Arc::new(policy),
+        outbox_shutdown: outbox_shutdown.clone(),
     };
+
+    // FDN-04: build the outbox dispatcher (pattern → handler registry) and
+    // spawn the configured number of worker tasks. Workers each open their
+    // own cloned PgPool handle and lease rows via `SELECT … FOR UPDATE SKIP
+    // LOCKED`, so spawning N never races more than the pool's max_connections.
+    let outbox_workers_count = std::env::var("OUTBOX_WORKERS")
+        .ok()
+        .and_then(|v| v.parse::<usize>().ok())
+        .filter(|n| *n > 0)
+        .unwrap_or(4);
+    let outbox_batch_size = std::env::var("OUTBOX_BATCH_SIZE")
+        .ok()
+        .and_then(|v| v.parse::<i64>().ok())
+        .filter(|n| *n > 0)
+        .unwrap_or(16);
+    let dispatcher = Arc::new(
+        events::Dispatcher::new()
+            // Stub subscribers. Real targets land under FDN-05 (notify) and
+            // FORM-07 (webhook_out). Patterns are deliberately broad — the
+            // stubs log and no-op, so fan-out is cheap.
+            .register(
+                "*",
+                Arc::new(events::handlers::notify::NotifyHandler::new()),
+            )
+            .register(
+                "*",
+                Arc::new(events::handlers::webhook_out::WebhookOutHandler::new()),
+            ),
+    );
+    let worker_config = events::WorkerConfig {
+        batch_size: outbox_batch_size,
+    };
+    let mut worker_handles: Vec<events::WorkerHandle> = Vec::with_capacity(outbox_workers_count);
+    for idx in 0..outbox_workers_count {
+        let handle = events::Worker::spawn(
+            idx,
+            state.db.clone(),
+            dispatcher.clone(),
+            worker_config,
+            outbox_shutdown.subscribe(),
+        );
+        worker_handles.push(handle);
+    }
+    tracing::info!(
+        workers = outbox_workers_count,
+        batch_size = outbox_batch_size,
+        "outbox worker pool started"
+    );
 
     let allowed_origins = state
         .config
@@ -155,6 +208,7 @@ async fn main() -> Result<()> {
         .nest("/api/admin/pricing", handlers::pricing::admin_router())
         .nest("/api/admin/coupons", handlers::coupons::admin_router())
         .nest("/api/admin/popups", handlers::popups::admin_router())
+        .nest("/api/admin/outbox", handlers::outbox::router())
         // Public routes
         .nest("/api/blog", handlers::blog::public_router())
         .nest("/api/courses", handlers::courses::public_router())
@@ -184,12 +238,72 @@ async fn main() -> Result<()> {
         .with_context(|| format!("failed to bind TCP listener on port {port}"))?;
 
     tracing::info!("Swings API listening on port {port}");
-    axum::serve(
+    let serve = axum::serve(
         listener,
         app.into_make_service_with_connect_info::<SocketAddr>(),
     )
-    .await
-    .context("axum server terminated unexpectedly")?;
+    .with_graceful_shutdown(shutdown_signal());
+    serve.await.context("axum server terminated unexpectedly")?;
+
+    // FDN-04: tell outbox workers to drain. `shutdown()` is a broadcast — each
+    // worker wakes, finishes its in-flight claim, and exits. A bounded grace
+    // window keeps a hung handler from blocking process exit forever.
+    let fired = outbox_shutdown.shutdown();
+    tracing::info!(
+        workers_notified = fired,
+        "outbox worker shutdown signal broadcast"
+    );
+    let grace = Duration::from_secs(10);
+    let join_all = async {
+        for handle in worker_handles {
+            let id = handle.id();
+            if let Err(e) = handle.join().await {
+                tracing::warn!(worker = id, error = %e, "outbox worker exited with error");
+            }
+        }
+    };
+    if tokio::time::timeout(grace, join_all).await.is_err() {
+        tracing::warn!(
+            grace_secs = grace.as_secs(),
+            "outbox workers did not drain within grace window; forcing process exit"
+        );
+    } else {
+        tracing::info!("outbox workers drained cleanly");
+    }
 
     Ok(())
+}
+
+/// Resolve either `ctrl_c` or (on Unix) `SIGTERM` — whichever arrives first —
+/// and return so the caller can kick off the shutdown sequence.
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        if let Err(e) = tokio::signal::ctrl_c().await {
+            tracing::error!(error = %e, "failed to install ctrl_c handler");
+            // Fall back to never resolving so SIGTERM can still win.
+            std::future::pending::<()>().await;
+        }
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        use tokio::signal::unix::{signal, SignalKind};
+        match signal(SignalKind::terminate()) {
+            Ok(mut stream) => {
+                stream.recv().await;
+            }
+            Err(e) => {
+                tracing::error!(error = %e, "failed to install SIGTERM handler");
+                std::future::pending::<()>().await;
+            }
+        }
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => tracing::info!("ctrl_c received; shutting down"),
+        _ = terminate => tracing::info!("SIGTERM received; shutting down"),
+    }
 }

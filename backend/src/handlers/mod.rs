@@ -5,6 +5,7 @@ pub mod blog;
 pub mod coupons;
 pub mod courses;
 pub mod member;
+pub mod outbox;
 pub mod popups;
 pub mod pricing;
 pub mod webhooks;

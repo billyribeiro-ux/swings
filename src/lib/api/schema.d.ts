@@ -504,6 +504,54 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/outbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_outbox"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/outbox/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_outbox"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/outbox/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["retry_outbox"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/popups": {
         parameters: {
             query?: never;
@@ -1551,6 +1599,60 @@ export type components = {
         };
         ModuleWithLessons: components["schemas"]["CourseModule"] & {
             lessons: components["schemas"]["CourseLesson"][];
+        };
+        /** @description Response body for `POST /api/admin/outbox/{id}/retry`. */
+        OutboxRetryResponse: {
+            /** Format: uuid */
+            id: string;
+            status: components["schemas"]["OutboxStatus"];
+            /** Format: date-time */
+            next_attempt_at: string;
+        };
+        /**
+         * @description Paginated outbox row. Kept in sync with [`OutboxRecord`] but serialises the
+         *     status as a lowercase string for frontend friendliness.
+         */
+        OutboxRowDto: {
+            /** Format: uuid */
+            id: string;
+            aggregate_type: string;
+            aggregate_id: string;
+            event_type: string;
+            payload: unknown;
+            headers: unknown;
+            status: components["schemas"]["OutboxStatus"];
+            /** Format: int32 */
+            attempts: number;
+            /** Format: int32 */
+            max_attempts: number;
+            /** Format: date-time */
+            next_attempt_at: string;
+            last_error?: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        /**
+         * @description Lifecycle states for an outbox row. Mirrors the `CHECK` constraint in
+         *     `019_outbox.sql`.
+         * @enum {string}
+         */
+        OutboxStatus: "pending" | "in_flight" | "delivered" | "failed" | "dead_letter";
+        /**
+         * @description OpenAPI wrapper so the snapshot carries a concrete `PaginatedResponse<OutboxRowDto>`
+         *     schema without bleeding the generic into `ApiDoc`.
+         */
+        PaginatedOutboxResponse: {
+            data: components["schemas"]["OutboxRowDto"][];
+            /** Format: int64 */
+            total: number;
+            /** Format: int64 */
+            page: number;
+            /** Format: int64 */
+            per_page: number;
+            /** Format: int64 */
+            total_pages: number;
         };
         PaginationParams: {
             /** Format: int64 */
@@ -3463,6 +3565,126 @@ export interface operations {
             };
             /** @description Member not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_outbox: {
+        parameters: {
+            query?: {
+                /** @description Filter by lifecycle state. Omit to return every row. */
+                status?: string | null;
+                page?: number | null;
+                per_page?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated outbox rows */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedOutboxResponse"];
+                };
+            };
+            /** @description Invalid status filter */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_outbox: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Outbox event id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Outbox row */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutboxRowDto"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    retry_outbox: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Outbox event id to retry */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Event re-queued */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutboxRetryResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Event already delivered */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -21,7 +21,7 @@ use utoipa_swagger_ui::SwaggerUi;
 
 use crate::{
     extractors::AdminUser,
-    handlers::{admin, analytics, auth, blog, coupons, courses, member, popups, webhooks},
+    handlers::{admin, analytics, auth, blog, coupons, courses, member, outbox, popups, webhooks},
     AppState,
 };
 
@@ -133,6 +133,10 @@ impl Modify for SecurityAddon {
         member::post_subscription_cancel,
         member::post_subscription_resume,
         member::update_progress,
+        // Outbox (FDN-04 admin ops)
+        outbox::list_outbox,
+        outbox::get_outbox,
+        outbox::retry_outbox,
         // Popups
         popups::admin_create_popup,
         popups::admin_update_popup,
@@ -243,6 +247,11 @@ impl Modify for SecurityAddon {
             // Handler-local
             admin::RoleUpdate,
             member::UpdateProfileRequest,
+            // Outbox DTOs (FDN-04)
+            outbox::OutboxRowDto,
+            outbox::OutboxRetryResponse,
+            outbox::PaginatedOutboxResponse,
+            crate::events::outbox::OutboxStatus,
         )
     )
 )]

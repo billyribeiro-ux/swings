@@ -14,6 +14,7 @@ pub mod config;
 pub mod db;
 pub mod email;
 pub mod error;
+pub mod events;
 pub mod extractors;
 pub mod handlers;
 pub mod middleware;
@@ -33,4 +34,7 @@ pub struct AppState {
     /// `role_permissions` catalogue; swap the Arc via
     /// [`authz::Policy::reload`] after admin mutations.
     pub policy: Arc<authz::Policy>,
+    /// FDN-04 broadcast handle used to tell outbox workers (spawned in
+    /// `main.rs`) to drain and exit at shutdown time.
+    pub outbox_shutdown: events::WorkerShutdown,
 }
