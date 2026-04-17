@@ -24,11 +24,17 @@ pub mod cart;
 pub mod checkout;
 pub mod coupons;
 pub mod downloads;
+pub mod memberships;
 pub mod orders;
 pub mod products;
 pub mod repo;
 pub mod subscriptions;
 pub mod tax;
+
+pub use memberships::{
+    can_access, cancel_membership, create_plan as create_membership_plan, grant_membership,
+    list_user_memberships, plan_grants, Membership, MembershipPlan, Resource,
+};
 
 pub use subscriptions::{
     next_dunning_attempt, pause as pause_subscription, prorate,
