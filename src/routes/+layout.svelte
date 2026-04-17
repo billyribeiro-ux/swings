@@ -15,6 +15,9 @@
 	import { SITE } from '$lib/seo/config';
 	import { STUB_BANNER_CONFIG, fetchBannerConfig, type BannerConfig } from '$lib/api/consent';
 	import { setupGateScanner } from '$lib/consent/gate';
+	import { installGcmBridge } from '$lib/consent/gcm';
+	import { installTcfApi } from '$lib/consent/tcf';
+	import { consent } from '$lib/stores/consent.svelte';
 
 	let { children } = $props();
 
@@ -33,8 +36,15 @@
 	// re-scans on every consent update. Scripts gated via `data-consent-category`
 	// (in `app.html` or injected by MDX content) activate as soon as the
 	// matching category is granted.
+	//
+	// CONSENT-04: install GCM v2 + TCF v2.2 bridges in the same browser-only
+	// effect. Both are idempotent so a hot-reload cycle doesn't double-push
+	// frames. Order matters: GCM defaults must be written before any tag
+	// script fires, so this installer runs before the script-gate scanner.
 	$effect(() => {
 		if (!browser) return;
+		installGcmBridge(consent.state.categories);
+		installTcfApi(consent.state.categories);
 		setupGateScanner();
 	});
 
