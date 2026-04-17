@@ -67,3 +67,8 @@ moka = { version = "0.12", features = ["sync"] }
 
 # HTML sanitization
 ammonia = "4"
+
+# OpenAPI (FDN-02)
+utoipa = { version = "5.4", features = ["axum_extras", "chrono", "uuid", "preserve_order"] }
+utoipa-axum = "0.2"
+utoipa-swagger-ui = { version = "9.0", features = ["axum"] }

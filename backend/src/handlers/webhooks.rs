@@ -15,7 +15,18 @@ pub fn router() -> Router<AppState> {
     Router::new().route("/stripe", post(stripe_webhook))
 }
 
-async fn stripe_webhook(
+#[utoipa::path(
+    post,
+    path = "/api/webhooks/stripe",
+    tag = "webhooks",
+    request_body(content_type = "application/json", description = "Raw Stripe webhook JSON payload"),
+    responses(
+        (status = 200, description = "Webhook processed"),
+        (status = 400, description = "Invalid signature or payload"),
+        (status = 500, description = "Server error")
+    )
+)]
+pub(crate) async fn stripe_webhook(
     State(state): State<AppState>,
     headers: HeaderMap,
     body: Bytes,

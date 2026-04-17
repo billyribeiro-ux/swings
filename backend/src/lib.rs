@@ -1,0 +1,31 @@
+#![deny(warnings)]
+#![forbid(unsafe_code)]
+
+//! Shared library crate for the Swings API binary. The library form is used by the
+//! binary (`main.rs`) and by integration tests under `backend/tests/` — most notably
+//! `tests/openapi_snapshot.rs`, which needs `openapi::ApiDoc` to compare the generated
+//! OpenAPI document against the committed snapshot.
+
+use std::sync::Arc;
+
+pub mod common;
+pub mod config;
+pub mod db;
+pub mod email;
+pub mod error;
+pub mod extractors;
+pub mod handlers;
+pub mod middleware;
+pub mod models;
+pub mod openapi;
+pub mod services;
+pub mod stripe_api;
+
+/// Shared application state passed to all Axum handlers.
+#[derive(Clone)]
+pub struct AppState {
+    pub db: sqlx::PgPool,
+    pub config: Arc<config::Config>,
+    pub email_service: Option<Arc<email::EmailService>>,
+    pub media_backend: services::MediaBackend,
+}

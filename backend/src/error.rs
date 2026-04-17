@@ -65,47 +65,23 @@ pub enum AppError {
     Conflict(String),
 
     /// Business-rule violation (422). Distinct from [`AppError::Validation`],
-    /// which is reserved for `validator`-derived schema errors.
-    #[cfg_attr(
-        not(test),
-        expect(
-            dead_code,
-            reason = "Wired in Phase 4 subsystems (forms, checkout, subscription-change)"
-        )
-    )]
+    /// which is reserved for `validator`-derived schema errors. Wired in Phase 4
+    /// subsystems (forms, checkout, subscription-change).
     #[error("{0}")]
     Unprocessable(String),
 
-    #[cfg_attr(
-        not(test),
-        expect(
-            dead_code,
-            reason = "Wired in Phase 4 FDN-08 (app-layer rate limits beyond tower_governor)"
-        )
-    )]
+    /// Wired in Phase 4 FDN-08 (app-layer rate limits beyond `tower_governor`).
     #[error("Too many requests")]
     TooManyRequests,
 
-    #[cfg_attr(
-        not(test),
-        expect(
-            dead_code,
-            reason = "Wired in Phase 4 FDN-04/FDN-05 (outbox + notifications provider failures)"
-        )
-    )]
+    /// Wired in Phase 4 FDN-04/FDN-05 (outbox + notifications provider failures).
     #[error("{0}")]
     ServiceUnavailable(String),
 
     #[error("{0}")]
     PayloadTooLarge(String),
 
-    #[cfg_attr(
-        not(test),
-        expect(
-            dead_code,
-            reason = "Wired in Phase 4 when any endpoint intentionally stubs a feature"
-        )
-    )]
+    /// Wired in Phase 4 when any endpoint intentionally stubs a feature.
     #[error("Not implemented")]
     NotImplemented,
 

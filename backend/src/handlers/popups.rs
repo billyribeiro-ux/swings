@@ -5,6 +5,7 @@ use axum::{
 };
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -50,7 +51,7 @@ pub struct ActivePopupsQuery {
     pub user_status: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct TrackEventRequest {
     pub popup_id: Uuid,
     pub event_type: String,
@@ -123,7 +124,19 @@ async fn admin_list_popups(
     }))
 }
 
-async fn admin_create_popup(
+#[utoipa::path(
+    post,
+    path = "/api/admin/popups",
+    tag = "popups",
+    security(("bearer_auth" = [])),
+    request_body = CreatePopupRequest,
+    responses(
+        (status = 200, description = "Popup created", body = Popup),
+        (status = 403, description = "Forbidden"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn admin_create_popup(
     State(state): State<AppState>,
     admin: AdminUser,
     Json(req): Json<CreatePopupRequest>,
@@ -222,7 +235,20 @@ async fn admin_get_popup(
     Ok(Json(PopupDetailResponse { popup, analytics }))
 }
 
-async fn admin_update_popup(
+#[utoipa::path(
+    put,
+    path = "/api/admin/popups/{id}",
+    tag = "popups",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Popup id")),
+    request_body = UpdatePopupRequest,
+    responses(
+        (status = 200, description = "Popup updated", body = Popup),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Popup not found")
+    )
+)]
+pub(crate) async fn admin_update_popup(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -286,7 +312,19 @@ async fn admin_update_popup(
     Ok(Json(popup))
 }
 
-async fn admin_delete_popup(
+#[utoipa::path(
+    delete,
+    path = "/api/admin/popups/{id}",
+    tag = "popups",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Popup id")),
+    responses(
+        (status = 200, description = "Popup deleted"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Popup not found")
+    )
+)]
+pub(crate) async fn admin_delete_popup(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -303,7 +341,19 @@ async fn admin_delete_popup(
     Ok(Json(serde_json::json!({ "message": "Popup deleted" })))
 }
 
-async fn admin_toggle_popup(
+#[utoipa::path(
+    post,
+    path = "/api/admin/popups/{id}/toggle",
+    tag = "popups",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Popup id")),
+    responses(
+        (status = 200, description = "Popup active flag toggled", body = Popup),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Popup not found")
+    )
+)]
+pub(crate) async fn admin_toggle_popup(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -328,7 +378,19 @@ async fn admin_toggle_popup(
     Ok(Json(popup))
 }
 
-async fn admin_duplicate_popup(
+#[utoipa::path(
+    post,
+    path = "/api/admin/popups/{id}/duplicate",
+    tag = "popups",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Popup id")),
+    responses(
+        (status = 200, description = "Popup duplicated", body = Popup),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Popup not found")
+    )
+)]
+pub(crate) async fn admin_duplicate_popup(
     State(state): State<AppState>,
     admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -526,7 +588,18 @@ async fn public_active_popups(
     Ok(Json(filtered))
 }
 
-async fn public_track_event(
+#[utoipa::path(
+    post,
+    path = "/api/popups/event",
+    tag = "popups",
+    request_body = TrackEventRequest,
+    responses(
+        (status = 200, description = "Event tracked"),
+        (status = 400, description = "Invalid event_type"),
+        (status = 404, description = "Popup not found")
+    )
+)]
+pub(crate) async fn public_track_event(
     State(state): State<AppState>,
     Json(req): Json<TrackEventRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
@@ -562,7 +635,17 @@ async fn public_track_event(
     Ok(Json(serde_json::json!({ "ok": true })))
 }
 
-async fn public_submit_form(
+#[utoipa::path(
+    post,
+    path = "/api/popups/submit",
+    tag = "popups",
+    request_body = PopupSubmitRequest,
+    responses(
+        (status = 200, description = "Form submitted", body = PopupSubmission),
+        (status = 404, description = "Popup not found")
+    )
+)]
+pub(crate) async fn public_submit_form(
     State(state): State<AppState>,
     opt: OptionalAuthUser,
     Json(req): Json<PopupSubmitRequest>,

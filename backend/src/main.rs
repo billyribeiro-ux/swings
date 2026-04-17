@@ -15,19 +15,7 @@ use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-mod common;
-mod config;
-mod db;
-mod email;
-mod error;
-mod extractors;
-mod handlers;
-mod middleware;
-mod models;
-mod services;
-mod stripe_api;
-
-use config::Config;
+use swings_api::{config::Config, db, email, handlers, openapi, services, AppState};
 
 /// `dotenvy::dotenv()` only reads `./.env` from the process CWD. When invoked as
 /// `cargo run --manifest-path backend/Cargo.toml` from the repo root, CWD is the root and env
@@ -37,14 +25,6 @@ fn load_dotenv() {
     if std::env::var("DATABASE_URL").is_err() {
         let _ = dotenvy::from_filename("backend/.env");
     }
-}
-
-#[derive(Clone)]
-pub struct AppState {
-    pub db: sqlx::PgPool,
-    pub config: Arc<Config>,
-    pub email_service: Option<Arc<email::EmailService>>,
-    pub media_backend: services::MediaBackend,
 }
 
 #[tokio::main]
@@ -178,6 +158,9 @@ async fn main() -> Result<()> {
     if mount_local_uploads {
         app = app.nest_service("/uploads", ServeDir::new(&upload_dir));
     }
+
+    // FDN-02: OpenAPI spec + SwaggerUI. Mount before CORS so gated responses still get the layer.
+    app = openapi::mount(app, &state);
 
     let app = app
         .layer(cors)

@@ -359,7 +359,19 @@ async fn admin_list_coupons(
     }))
 }
 
-async fn admin_create_coupon(
+#[utoipa::path(
+    post,
+    path = "/api/admin/coupons",
+    tag = "coupons",
+    security(("bearer_auth" = [])),
+    request_body = CreateCouponRequest,
+    responses(
+        (status = 200, description = "Coupon created", body = Coupon),
+        (status = 403, description = "Forbidden"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn admin_create_coupon(
     State(state): State<AppState>,
     admin: AdminUser,
     Json(req): Json<CreateCouponRequest>,
@@ -459,7 +471,20 @@ async fn admin_get_coupon(
     }))
 }
 
-async fn admin_update_coupon(
+#[utoipa::path(
+    put,
+    path = "/api/admin/coupons/{id}",
+    tag = "coupons",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Coupon id")),
+    request_body = UpdateCouponRequest,
+    responses(
+        (status = 200, description = "Coupon updated", body = Coupon),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Coupon not found")
+    )
+)]
+pub(crate) async fn admin_update_coupon(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -541,7 +566,19 @@ async fn admin_update_coupon(
     Ok(Json(coupon))
 }
 
-async fn admin_delete_coupon(
+#[utoipa::path(
+    delete,
+    path = "/api/admin/coupons/{id}",
+    tag = "coupons",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Coupon id")),
+    responses(
+        (status = 200, description = "Coupon deleted"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Coupon not found")
+    )
+)]
+pub(crate) async fn admin_delete_coupon(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -558,7 +595,19 @@ async fn admin_delete_coupon(
     Ok(Json(serde_json::json!({ "deleted": true })))
 }
 
-async fn admin_toggle_coupon(
+#[utoipa::path(
+    post,
+    path = "/api/admin/coupons/{id}/toggle",
+    tag = "coupons",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Coupon id")),
+    responses(
+        (status = 200, description = "Coupon active flag toggled", body = Coupon),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Coupon not found")
+    )
+)]
+pub(crate) async fn admin_toggle_coupon(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -579,7 +628,18 @@ async fn admin_toggle_coupon(
     Ok(Json(coupon))
 }
 
-async fn admin_bulk_create_coupons(
+#[utoipa::path(
+    post,
+    path = "/api/admin/coupons/bulk",
+    tag = "coupons",
+    security(("bearer_auth" = [])),
+    request_body = BulkCouponRequest,
+    responses(
+        (status = 200, description = "Bulk coupons created", body = [Coupon]),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub(crate) async fn admin_bulk_create_coupons(
     State(state): State<AppState>,
     admin: AdminUser,
     Json(req): Json<BulkCouponRequest>,
@@ -724,7 +784,16 @@ async fn admin_list_coupon_usages(
 // PUBLIC HANDLERS
 // ══════════════════════════════════════════════════════════════════════
 
-async fn public_validate_coupon(
+#[utoipa::path(
+    post,
+    path = "/api/coupons/validate",
+    tag = "coupons",
+    request_body = ValidateCouponRequest,
+    responses(
+        (status = 200, description = "Coupon validation result", body = CouponValidationResponse)
+    )
+)]
+pub(crate) async fn public_validate_coupon(
     State(state): State<AppState>,
     Json(req): Json<ValidateCouponRequest>,
 ) -> AppResult<Json<CouponValidationResponse>> {
@@ -758,7 +827,18 @@ async fn public_validate_coupon(
     }
 }
 
-async fn public_apply_coupon(
+#[utoipa::path(
+    post,
+    path = "/api/coupons/apply",
+    tag = "coupons",
+    security(("bearer_auth" = [])),
+    request_body = ValidateCouponRequest,
+    responses(
+        (status = 200, description = "Coupon applied", body = CouponValidationResponse),
+        (status = 401, description = "Unauthorized")
+    )
+)]
+pub(crate) async fn public_apply_coupon(
     State(state): State<AppState>,
     auth: AuthUser,
     Json(req): Json<ApplyCouponRequest>,

@@ -40,7 +40,18 @@ pub fn router() -> Router<AppState> {
         .route("/reset-password", post(reset_password))
 }
 
-async fn register(
+#[utoipa::path(
+    post,
+    path = "/api/auth/register",
+    tag = "auth",
+    request_body = RegisterRequest,
+    responses(
+        (status = 200, description = "Account created and authenticated", body = AuthResponse),
+        (status = 409, description = "Email already registered"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn register(
     State(state): State<AppState>,
     Json(req): Json<RegisterRequest>,
 ) -> AppResult<Json<AuthResponse>> {
@@ -71,7 +82,18 @@ async fn register(
     }))
 }
 
-async fn login(
+#[utoipa::path(
+    post,
+    path = "/api/auth/login",
+    tag = "auth",
+    request_body = LoginRequest,
+    responses(
+        (status = 200, description = "Authenticated", body = AuthResponse),
+        (status = 401, description = "Invalid credentials"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn login(
     State(state): State<AppState>,
     Json(req): Json<LoginRequest>,
 ) -> AppResult<Json<AuthResponse>> {
@@ -97,7 +119,17 @@ async fn login(
     }))
 }
 
-async fn refresh(
+#[utoipa::path(
+    post,
+    path = "/api/auth/refresh",
+    tag = "auth",
+    request_body = RefreshRequest,
+    responses(
+        (status = 200, description = "Token rotated", body = TokenResponse),
+        (status = 401, description = "Invalid or reused refresh token")
+    )
+)]
+pub(crate) async fn refresh(
     State(state): State<AppState>,
     Json(req): Json<RefreshRequest>,
 ) -> AppResult<Json<TokenResponse>> {
@@ -168,7 +200,17 @@ async fn me(State(state): State<AppState>, auth: AuthUser) -> AppResult<Json<Use
     Ok(Json(user.into()))
 }
 
-async fn logout(
+#[utoipa::path(
+    post,
+    path = "/api/auth/logout",
+    tag = "auth",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Logged out; refresh tokens revoked"),
+        (status = 401, description = "Unauthorized")
+    )
+)]
+pub(crate) async fn logout(
     State(state): State<AppState>,
     auth: AuthUser,
 ) -> AppResult<Json<serde_json::Value>> {
@@ -178,7 +220,17 @@ async fn logout(
 
 // ── Forgot / Reset Password ─────────────────────────────────────────────
 
-async fn forgot_password(
+#[utoipa::path(
+    post,
+    path = "/api/auth/forgot-password",
+    tag = "auth",
+    request_body = ForgotPasswordRequest,
+    responses(
+        (status = 200, description = "Reset email dispatched if account exists"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn forgot_password(
     State(state): State<AppState>,
     Json(req): Json<ForgotPasswordRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
@@ -215,7 +267,18 @@ async fn forgot_password(
     })))
 }
 
-async fn reset_password(
+#[utoipa::path(
+    post,
+    path = "/api/auth/reset-password",
+    tag = "auth",
+    request_body = ResetPasswordRequest,
+    responses(
+        (status = 200, description = "Password updated"),
+        (status = 400, description = "Invalid or expired reset token"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn reset_password(
     State(state): State<AppState>,
     Json(req): Json<ResetPasswordRequest>,
 ) -> AppResult<Json<serde_json::Value>> {

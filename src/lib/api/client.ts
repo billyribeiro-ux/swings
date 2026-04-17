@@ -1,5 +1,13 @@
 import { auth } from '$lib/stores/auth.svelte';
 import { getPublicApiBase } from '$lib/api/publicApiBase';
+import type { components } from '$lib/api/schema';
+
+/**
+ * FDN-02 migration demonstration: the refresh flow uses the OpenAPI-derived
+ * `TokenResponse` type sourced from `schema.d.ts` (generated from the committed
+ * backend snapshot). New call sites should follow this pattern.
+ */
+type TokenResponse = components['schemas']['TokenResponse'];
 
 const API_BASE = getPublicApiBase();
 
@@ -86,7 +94,7 @@ class ApiClient {
 
 			if (!res.ok) return false;
 
-			const data: { access_token: string; refresh_token: string } = await res.json();
+			const data: TokenResponse = await res.json();
 			auth.setTokens(data.access_token, data.refresh_token);
 			return true;
 		} catch {

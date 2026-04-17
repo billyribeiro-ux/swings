@@ -1,0 +1,7011 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Swings API",
+    "description": "Swings public + admin HTTP API. Mutating endpoints are annotated; GETs are still fully callable but not listed here (see FDN-02 scope).",
+    "license": {
+      "name": ""
+    },
+    "version": "0.1.0"
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Relative to deploying host"
+    }
+  ],
+  "paths": {
+    "/api/admin/alerts/{id}": {
+      "put": {
+        "tags": [
+          "admin"
+        ],
+        "operationId": "update_alert",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Alert id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAlertRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Alert updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchlistAlert"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "admin"
+        ],
+        "operationId": "delete_alert",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Alert id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Alert deleted"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/blog/categories": {
+      "post": {
+        "tags": [
+          "admin-blog"
+        ],
+        "operationId": "admin_create_category",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Category created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlogCategory"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/blog/categories/{id}": {
+      "put": {
+        "tags": [
+          "admin-blog"
+        ],
+        "operationId": "admin_update_category",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Category id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCategoryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Category updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlogCategory"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "admin-blog"
+        ],
+        "operationId": "admin_delete_category",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Category id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category deleted"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/blog/media/upload": {
+      "post": {
+        "tags": [
+          "admin-blog"
+        ],
+        "operationId": "admin_upload_media",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {}
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Media uploaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Media"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid file or multipart error"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "413": {
+            "description": "Upload exceeds size cap"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/blog/media/{id}": {
+      "put": {
+        "tags": [
+          "admin-blog"
+        ],
+        "operationId": "admin_update_media",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Media id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMediaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Media metadata updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Media"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "admin-blog"
+        ],
+        "operationId": "admin_delete_media",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Media id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Media deleted"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/blog/posts": {
+      "post": {
+        "tags": [
+          "admin-blog"
+        ],
+        "operationId": "admin_create_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePostRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Post created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlogPostResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/blog/posts/{id}": {
+      "put": {
+        "tags": [
+          "admin-blog"
+        ],
+        "operationId": "admin_update_post",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Post id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePostRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Post updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlogPostResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Post in trash"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "admin-blog"
+        ],
+        "operationId": "admin_delete_post",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Post id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post permanently deleted"
+          },
+          "400": {
+            "description": "Post not in trash"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/blog/posts/{id}/autosave": {
+      "post": {
+        "tags": [
+          "admin-blog"
+        ],
+        "operationId": "admin_autosave_post",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Post id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AutosaveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Autosave recorded"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/blog/posts/{id}/meta": {
+      "post": {
+        "tags": [
+          "admin-blog"
+        ],
+        "operationId": "admin_upsert_post_meta",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Post id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertPostMetaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Meta upserted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostMeta"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/blog/posts/{id}/meta/{key}": {
+      "delete": {
+        "tags": [
+          "admin-blog"
+        ],
+        "operationId": "admin_delete_post_meta",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Post id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "key",
+            "in": "path",
+            "description": "Meta key to delete",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Meta deleted"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/blog/posts/{id}/restore": {
+      "post": {
+        "tags": [
+          "admin-blog"
+        ],
+        "operationId": "admin_restore_post_from_trash",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Post id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post restored from trash",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlogPostResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/blog/posts/{id}/revisions/{rev_id}/restore": {
+      "post": {
+        "tags": [
+          "admin-blog"
+        ],
+        "operationId": "admin_restore_revision",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Post id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "rev_id",
+            "in": "path",
+            "description": "Revision id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post restored from revision",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlogPostResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Post or revision not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/blog/posts/{id}/status": {
+      "put": {
+        "tags": [
+          "admin-blog"
+        ],
+        "operationId": "admin_update_post_status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Post id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePostStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Post status updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlogPostResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Post in trash"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/blog/tags": {
+      "post": {
+        "tags": [
+          "admin-blog"
+        ],
+        "operationId": "admin_create_tag",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTagRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Tag created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlogTag"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/blog/tags/{id}": {
+      "delete": {
+        "tags": [
+          "admin-blog"
+        ],
+        "operationId": "admin_delete_tag",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Tag id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tag deleted"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/coupons": {
+      "post": {
+        "tags": [
+          "coupons"
+        ],
+        "operationId": "admin_create_coupon",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCouponRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Coupon created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Coupon"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/coupons/bulk": {
+      "post": {
+        "tags": [
+          "coupons"
+        ],
+        "operationId": "admin_bulk_create_coupons",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkCouponRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Bulk coupons created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Coupon"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/coupons/{id}": {
+      "put": {
+        "tags": [
+          "coupons"
+        ],
+        "operationId": "admin_update_coupon",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Coupon id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCouponRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Coupon updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Coupon"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Coupon not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "coupons"
+        ],
+        "operationId": "admin_delete_coupon",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Coupon id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Coupon deleted"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Coupon not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/coupons/{id}/toggle": {
+      "post": {
+        "tags": [
+          "coupons"
+        ],
+        "operationId": "admin_toggle_coupon",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Coupon id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Coupon active flag toggled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Coupon"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Coupon not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/courses": {
+      "post": {
+        "tags": [
+          "courses"
+        ],
+        "operationId": "create_course",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCourseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Course created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Course"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/courses/{course_id}/modules/{module_id}": {
+      "put": {
+        "tags": [
+          "courses"
+        ],
+        "operationId": "update_module",
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "description": "Course id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "module_id",
+            "in": "path",
+            "description": "Module id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateModuleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Module updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseModule"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Module not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "courses"
+        ],
+        "operationId": "delete_module",
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "description": "Course id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "module_id",
+            "in": "path",
+            "description": "Module id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Module deleted"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Module not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/courses/{course_id}/modules/{module_id}/lessons": {
+      "post": {
+        "tags": [
+          "courses"
+        ],
+        "operationId": "create_lesson",
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "description": "Course id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "module_id",
+            "in": "path",
+            "description": "Module id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLessonRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Lesson created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseLesson"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Module not found"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/courses/{id}": {
+      "put": {
+        "tags": [
+          "courses"
+        ],
+        "operationId": "update_course",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Course id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCourseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Course updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Course"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Course not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "courses"
+        ],
+        "operationId": "delete_course",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Course id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Course deleted"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Course not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/courses/{id}/modules": {
+      "post": {
+        "tags": [
+          "courses"
+        ],
+        "operationId": "create_module",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Course id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateModuleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Module created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseModule"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Course not found"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/courses/{id}/publish": {
+      "post": {
+        "tags": [
+          "courses"
+        ],
+        "operationId": "toggle_publish",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Course id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Publish toggled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Course"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Course not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/lessons/{lesson_id}": {
+      "put": {
+        "tags": [
+          "courses"
+        ],
+        "operationId": "update_lesson",
+        "parameters": [
+          {
+            "name": "lesson_id",
+            "in": "path",
+            "description": "Lesson id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLessonRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Lesson updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseLesson"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Lesson not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "courses"
+        ],
+        "operationId": "delete_lesson",
+        "parameters": [
+          {
+            "name": "lesson_id",
+            "in": "path",
+            "description": "Lesson id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lesson deleted"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Lesson not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/members/{id}": {
+      "delete": {
+        "tags": [
+          "admin"
+        ],
+        "operationId": "delete_member",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Member id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member deleted"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/members/{id}/billing-portal": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "operationId": "admin_member_billing_portal",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Member id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BillingPortalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Stripe billing portal URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingPortalResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Member has no subscription"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Member not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/members/{id}/role": {
+      "put": {
+        "tags": [
+          "admin"
+        ],
+        "operationId": "update_member_role",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Member id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Role updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/members/{id}/subscription/cancel": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "operationId": "admin_member_subscription_cancel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Member id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subscription scheduled to cancel at period end"
+          },
+          "400": {
+            "description": "Member has no subscription"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Member not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/members/{id}/subscription/resume": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "operationId": "admin_member_subscription_resume",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Member id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subscription cancellation reversed"
+          },
+          "400": {
+            "description": "Member has no subscription"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Member not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/popups": {
+      "post": {
+        "tags": [
+          "popups"
+        ],
+        "operationId": "admin_create_popup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePopupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Popup created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Popup"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/popups/{id}": {
+      "put": {
+        "tags": [
+          "popups"
+        ],
+        "operationId": "admin_update_popup",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Popup id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePopupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Popup updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Popup"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Popup not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "popups"
+        ],
+        "operationId": "admin_delete_popup",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Popup id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Popup deleted"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Popup not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/popups/{id}/duplicate": {
+      "post": {
+        "tags": [
+          "popups"
+        ],
+        "operationId": "admin_duplicate_popup",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Popup id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Popup duplicated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Popup"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Popup not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/popups/{id}/toggle": {
+      "post": {
+        "tags": [
+          "popups"
+        ],
+        "operationId": "admin_toggle_popup",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Popup id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Popup active flag toggled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Popup"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Popup not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/pricing/plans": {
+      "post": {
+        "tags": [
+          "pricing"
+        ],
+        "operationId": "admin_create_plan",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePricingPlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Plan created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricingPlan"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/pricing/plans/{id}": {
+      "put": {
+        "tags": [
+          "pricing"
+        ],
+        "operationId": "admin_update_plan",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Plan id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePricingPlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Plan updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricingPlan"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Plan not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "pricing"
+        ],
+        "operationId": "admin_delete_plan",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Plan id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Plan deleted"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Plan not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/pricing/plans/{id}/toggle": {
+      "post": {
+        "tags": [
+          "pricing"
+        ],
+        "operationId": "admin_toggle_plan",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Plan id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Plan active flag toggled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricingPlan"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Plan not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/watchlists": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "operationId": "create_watchlist",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWatchlistRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Watchlist created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Watchlist"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/watchlists/{id}": {
+      "put": {
+        "tags": [
+          "admin"
+        ],
+        "operationId": "update_watchlist",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Watchlist id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWatchlistRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Watchlist updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Watchlist"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "admin"
+        ],
+        "operationId": "delete_watchlist",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Watchlist id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Watchlist deleted"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/watchlists/{id}/alerts": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "operationId": "create_alert",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Watchlist id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAlertRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Alert created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchlistAlert"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/analytics/events": {
+      "post": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Public ingest for SPA analytics (optional Bearer links session to logged-in user).",
+        "operationId": "ingest_events",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalyticsIngestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Events accepted"
+          },
+          "400": {
+            "description": "Malformed event batch"
+          },
+          "429": {
+            "description": "Rate-limited"
+          }
+        }
+      }
+    },
+    "/api/auth/forgot-password": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "forgot_password",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Reset email dispatched if account exists"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "logout",
+        "responses": {
+          "200": {
+            "description": "Logged out; refresh tokens revoked"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "refresh",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Token rotated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or reused refresh token"
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Account created and authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email already registered"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        }
+      }
+    },
+    "/api/auth/reset-password": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "reset_password",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Password updated"
+          },
+          "400": {
+            "description": "Invalid or expired reset token"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        }
+      }
+    },
+    "/api/blog/posts/{slug}/unlock": {
+      "post": {
+        "tags": [
+          "blog"
+        ],
+        "operationId": "public_unlock_post",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "Post slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyPostPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Password accepted; full post returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlogPostResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Post is not password protected"
+          },
+          "401": {
+            "description": "Invalid password"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        }
+      }
+    },
+    "/api/coupons/apply": {
+      "post": {
+        "tags": [
+          "coupons"
+        ],
+        "operationId": "public_apply_coupon",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidateCouponRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Coupon applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouponValidationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/coupons/validate": {
+      "post": {
+        "tags": [
+          "coupons"
+        ],
+        "operationId": "public_validate_coupon",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidateCouponRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Coupon validation result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouponValidationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/member/billing-portal": {
+      "post": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "post_billing_portal",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BillingPortalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Stripe billing portal session URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingPortalResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No subscription on file"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/courses/{course_id}/enroll": {
+      "post": {
+        "tags": [
+          "courses"
+        ],
+        "operationId": "enroll_course",
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "description": "Course id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Enrolled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseEnrollment"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Course not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/courses/{course_id}/progress": {
+      "put": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "update_progress",
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "description": "Course identifier",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProgressUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Enrollment progress updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseEnrollment"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/lessons/{lesson_id}/progress": {
+      "put": {
+        "tags": [
+          "courses"
+        ],
+        "operationId": "update_lesson_progress",
+        "parameters": [
+          {
+            "name": "lesson_id",
+            "in": "path",
+            "description": "Lesson id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLessonProgressRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Progress updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LessonProgress"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Lesson not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/profile": {
+      "put": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "update_profile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/subscription/cancel": {
+      "post": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "post_subscription_cancel",
+        "responses": {
+          "200": {
+            "description": "Subscription scheduled to cancel at period end"
+          },
+          "400": {
+            "description": "No subscription on file"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/subscription/resume": {
+      "post": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "post_subscription_resume",
+        "responses": {
+          "200": {
+            "description": "Subscription cancellation reversed"
+          },
+          "400": {
+            "description": "No subscription on file"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/popups/event": {
+      "post": {
+        "tags": [
+          "popups"
+        ],
+        "operationId": "public_track_event",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrackEventRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Event tracked"
+          },
+          "400": {
+            "description": "Invalid event_type"
+          },
+          "404": {
+            "description": "Popup not found"
+          }
+        }
+      }
+    },
+    "/api/popups/submit": {
+      "post": {
+        "tags": [
+          "popups"
+        ],
+        "operationId": "public_submit_form",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PopupSubmitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Form submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PopupSubmission"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Popup not found"
+          }
+        }
+      }
+    },
+    "/api/webhooks/stripe": {
+      "post": {
+        "tags": [
+          "webhooks"
+        ],
+        "operationId": "stripe_webhook",
+        "requestBody": {
+          "description": "Raw Stripe webhook JSON payload",
+          "content": {
+            "application/json": {}
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook processed"
+          },
+          "400": {
+            "description": "Invalid signature or payload"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AdminStats": {
+        "type": "object",
+        "required": [
+          "total_members",
+          "active_subscriptions",
+          "monthly_subscriptions",
+          "annual_subscriptions",
+          "total_watchlists",
+          "total_enrollments",
+          "recent_members"
+        ],
+        "properties": {
+          "total_members": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "active_subscriptions": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "monthly_subscriptions": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "annual_subscriptions": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total_watchlists": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total_enrollments": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "recent_members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserResponse"
+            }
+          }
+        }
+      },
+      "AnalyticsIngestEvent": {
+        "type": "object",
+        "required": [
+          "event_type",
+          "path"
+        ],
+        "properties": {
+          "event_type": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "referrer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "metadata": {}
+        }
+      },
+      "AnalyticsIngestRequest": {
+        "type": "object",
+        "required": [
+          "session_id",
+          "events"
+        ],
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsIngestEvent"
+            }
+          }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "required": [
+          "user",
+          "access_token",
+          "refresh_token"
+        ],
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/UserResponse"
+          },
+          "access_token": {
+            "type": "string"
+          },
+          "refresh_token": {
+            "type": "string"
+          }
+        }
+      },
+      "AutosaveRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_json": {}
+        }
+      },
+      "BillingPortalRequest": {
+        "type": "object",
+        "properties": {
+          "return_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "BillingPortalResponse": {
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "BlogCategory": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "sort_order",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BlogPost": {
+        "type": "object",
+        "required": [
+          "id",
+          "author_id",
+          "title",
+          "slug",
+          "content",
+          "status",
+          "visibility",
+          "format",
+          "is_sticky",
+          "allow_comments",
+          "reading_time_minutes",
+          "word_count",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "author_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "content_json": {},
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "featured_image_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PostStatus"
+          },
+          "pre_trash_status": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PostStatus"
+              }
+            ]
+          },
+          "trashed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "visibility": {
+            "type": "string"
+          },
+          "password_hash": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "format": {
+            "type": "string"
+          },
+          "is_sticky": {
+            "type": "boolean"
+          },
+          "allow_comments": {
+            "type": "boolean"
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "canonical_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "og_image_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reading_time_minutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "word_count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "scheduled_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BlogPostListItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "author_id",
+          "author_name",
+          "title",
+          "slug",
+          "status",
+          "format",
+          "is_sticky",
+          "reading_time_minutes",
+          "word_count",
+          "created_at",
+          "updated_at",
+          "categories",
+          "tags"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "author_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "author_name": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "featured_image_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/PostStatus"
+          },
+          "format": {
+            "type": "string"
+          },
+          "is_sticky": {
+            "type": "boolean"
+          },
+          "reading_time_minutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "word_count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BlogCategory"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BlogTag"
+            }
+          }
+        }
+      },
+      "BlogPostResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "author_id",
+          "author_name",
+          "title",
+          "slug",
+          "content",
+          "status",
+          "visibility",
+          "is_password_protected",
+          "format",
+          "is_sticky",
+          "allow_comments",
+          "reading_time_minutes",
+          "word_count",
+          "categories",
+          "tags",
+          "meta",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "author_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "author_name": {
+            "type": "string"
+          },
+          "author_avatar": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "author_position": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "author_bio": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "author_website": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "author_twitter": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "author_linkedin": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "author_youtube": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "content_json": {},
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "featured_image_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/PostStatus"
+          },
+          "pre_trash_status": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PostStatus"
+              }
+            ]
+          },
+          "trashed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "visibility": {
+            "type": "string"
+          },
+          "is_password_protected": {
+            "type": "boolean"
+          },
+          "format": {
+            "type": "string"
+          },
+          "is_sticky": {
+            "type": "boolean"
+          },
+          "allow_comments": {
+            "type": "boolean"
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "canonical_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "og_image_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reading_time_minutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "word_count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BlogCategory"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BlogTag"
+            }
+          },
+          "meta": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PostMeta"
+            }
+          },
+          "scheduled_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BlogRevision": {
+        "type": "object",
+        "required": [
+          "id",
+          "post_id",
+          "author_id",
+          "title",
+          "content",
+          "revision_number",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "post_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "author_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "content_json": {},
+          "revision_number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BlogTag": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BulkCouponRequest": {
+        "type": "object",
+        "required": [
+          "count",
+          "discount_type",
+          "discount_value"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "prefix": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "discount_type": {
+            "$ref": "#/components/schemas/DiscountType"
+          },
+          "discount_value": {
+            "type": "number",
+            "format": "double"
+          },
+          "usage_limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "Coupon": {
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "discount_type",
+          "discount_value",
+          "applies_to",
+          "applicable_plan_ids",
+          "applicable_course_ids",
+          "usage_count",
+          "per_user_limit",
+          "is_active",
+          "stackable",
+          "first_purchase_only",
+          "created_by",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "discount_type": {
+            "$ref": "#/components/schemas/DiscountType"
+          },
+          "discount_value": {
+            "type": "string",
+            "format": "decimal"
+          },
+          "min_purchase_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "max_discount_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "applies_to": {
+            "type": "string"
+          },
+          "applicable_plan_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "applicable_course_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "usage_limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "usage_count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "per_user_limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "starts_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "stackable": {
+            "type": "boolean"
+          },
+          "first_purchase_only": {
+            "type": "boolean"
+          },
+          "stripe_coupon_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stripe_promotion_code_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CouponValidationResponse": {
+        "type": "object",
+        "required": [
+          "valid",
+          "message"
+        ],
+        "properties": {
+          "valid": {
+            "type": "boolean"
+          },
+          "coupon": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Coupon"
+              }
+            ]
+          },
+          "discount_amount_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "Course": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "slug",
+          "description",
+          "difficulty",
+          "instructor_id",
+          "price_cents",
+          "currency",
+          "is_free",
+          "is_included_in_subscription",
+          "sort_order",
+          "published",
+          "estimated_duration_minutes",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "short_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "thumbnail_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "trailer_video_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "difficulty": {
+            "type": "string"
+          },
+          "instructor_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "price_cents": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "is_free": {
+            "type": "boolean"
+          },
+          "is_included_in_subscription": {
+            "type": "boolean"
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "estimated_duration_minutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CourseEnrollment": {
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "course_id",
+          "progress",
+          "enrolled_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "course_id": {
+            "type": "string"
+          },
+          "progress": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "enrolled_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "CourseLesson": {
+        "type": "object",
+        "required": [
+          "id",
+          "module_id",
+          "title",
+          "slug",
+          "content",
+          "sort_order",
+          "is_preview",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "module_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content": {
+            "type": "string"
+          },
+          "content_json": {},
+          "video_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "video_duration_seconds": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "is_preview": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CourseListItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "slug",
+          "difficulty",
+          "instructor_name",
+          "price_cents",
+          "is_free",
+          "is_included_in_subscription",
+          "published",
+          "estimated_duration_minutes",
+          "total_lessons",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "short_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "thumbnail_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "difficulty": {
+            "type": "string"
+          },
+          "instructor_name": {
+            "type": "string"
+          },
+          "price_cents": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "is_free": {
+            "type": "boolean"
+          },
+          "is_included_in_subscription": {
+            "type": "boolean"
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "estimated_duration_minutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total_lessons": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CourseModule": {
+        "type": "object",
+        "required": [
+          "id",
+          "course_id",
+          "title",
+          "sort_order",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "course_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CourseWithModules": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Course"
+          },
+          {
+            "type": "object",
+            "required": [
+              "modules",
+              "total_lessons",
+              "total_duration_seconds"
+            ],
+            "properties": {
+              "modules": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ModuleWithLessons"
+                }
+              },
+              "total_lessons": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "total_duration_seconds": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          }
+        ]
+      },
+      "CreateAlertRequest": {
+        "type": "object",
+        "required": [
+          "ticker",
+          "direction",
+          "entry_zone",
+          "invalidation",
+          "profit_zones"
+        ],
+        "properties": {
+          "ticker": {
+            "type": "string"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/TradeDirection"
+          },
+          "entry_zone": {
+            "type": "string"
+          },
+          "invalidation": {
+            "type": "string"
+          },
+          "profit_zones": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "chart_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "CreateCategoryRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "CreateCouponRequest": {
+        "type": "object",
+        "required": [
+          "discount_type",
+          "discount_value"
+        ],
+        "properties": {
+          "code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "discount_type": {
+            "$ref": "#/components/schemas/DiscountType"
+          },
+          "discount_value": {
+            "type": "number",
+            "format": "double"
+          },
+          "min_purchase_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "max_discount_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "applies_to": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "applicable_plan_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "applicable_course_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "usage_limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "per_user_limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "starts_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "is_active": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "stackable": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "first_purchase_only": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      },
+      "CreateCourseRequest": {
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "short_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "thumbnail_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "trailer_video_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "difficulty": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "price_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_free": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "is_included_in_subscription": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "published": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "estimated_duration_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "CreateLessonRequest": {
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_json": {},
+          "video_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "video_duration_seconds": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "is_preview": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      },
+      "CreateModuleRequest": {
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "CreatePopupRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "popup_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "trigger_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "trigger_config": {},
+          "content_json": {},
+          "style_json": {},
+          "targeting_rules": {},
+          "display_frequency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "frequency_config": {},
+          "success_message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "redirect_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_active": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "starts_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "priority": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "CreatePostRequest": {
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_json": {},
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "featured_image_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "status": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PostStatus"
+              }
+            ]
+          },
+          "visibility": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_sticky": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "allow_comments": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "canonical_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "og_image_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "category_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "tag_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "scheduled_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "post_password": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "author_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "format": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "CreatePricingPlanRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "amount_cents"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stripe_price_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stripe_product_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "amount_cents": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "interval": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "interval_count": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "trial_days": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "features": {},
+          "highlight_text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_popular": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "is_active": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "CreateTagRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "CreateWatchlistRequest": {
+        "type": "object",
+        "required": [
+          "title",
+          "week_of"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "week_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "video_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "published": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      },
+      "DiscountType": {
+        "type": "string",
+        "enum": [
+          "Percentage",
+          "FixedAmount",
+          "FreeTrial"
+        ]
+      },
+      "ForgotPasswordRequest": {
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "LessonProgress": {
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "lesson_id",
+          "completed",
+          "progress_seconds",
+          "last_accessed_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lesson_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "completed": {
+            "type": "boolean"
+          },
+          "progress_seconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "last_accessed_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "Media": {
+        "type": "object",
+        "required": [
+          "id",
+          "uploader_id",
+          "filename",
+          "original_filename",
+          "mime_type",
+          "file_size",
+          "storage_path",
+          "url",
+          "focal_x",
+          "focal_y",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "uploader_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "original_filename": {
+            "type": "string"
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mime_type": {
+            "type": "string"
+          },
+          "file_size": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "width": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "height": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "alt_text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "caption": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "storage_path": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "focal_x": {
+            "type": "number",
+            "format": "double"
+          },
+          "focal_y": {
+            "type": "number",
+            "format": "double"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ModuleWithLessons": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CourseModule"
+          },
+          {
+            "type": "object",
+            "required": [
+              "lessons"
+            ],
+            "properties": {
+              "lessons": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CourseLesson"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "PaginationParams": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "per_page": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          }
+        }
+      },
+      "Popup": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "popup_type",
+          "trigger_type",
+          "trigger_config",
+          "content_json",
+          "style_json",
+          "targeting_rules",
+          "display_frequency",
+          "frequency_config",
+          "is_active",
+          "priority",
+          "created_by",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "popup_type": {
+            "type": "string"
+          },
+          "trigger_type": {
+            "type": "string"
+          },
+          "trigger_config": {},
+          "content_json": {},
+          "style_json": {},
+          "targeting_rules": {},
+          "display_frequency": {
+            "type": "string"
+          },
+          "frequency_config": {},
+          "success_message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "redirect_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "starts_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "priority": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PopupAnalytics": {
+        "type": "object",
+        "required": [
+          "popup_id",
+          "popup_name",
+          "total_impressions",
+          "total_closes",
+          "total_submissions",
+          "conversion_rate"
+        ],
+        "properties": {
+          "popup_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "popup_name": {
+            "type": "string"
+          },
+          "total_impressions": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total_closes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total_submissions": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "conversion_rate": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PopupSubmission": {
+        "type": "object",
+        "required": [
+          "id",
+          "popup_id",
+          "form_data",
+          "submitted_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "popup_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "session_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "form_data": {},
+          "ip_address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "user_agent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "page_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PopupSubmitRequest": {
+        "type": "object",
+        "required": [
+          "popup_id",
+          "form_data"
+        ],
+        "properties": {
+          "popup_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "session_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "form_data": {},
+          "page_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "PostMeta": {
+        "type": "object",
+        "required": [
+          "id",
+          "post_id",
+          "meta_key",
+          "meta_value",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "post_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "meta_key": {
+            "type": "string"
+          },
+          "meta_value": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PostStatus": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "pending_review",
+          "published",
+          "private",
+          "scheduled",
+          "trash"
+        ]
+      },
+      "PricingPlan": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "amount_cents",
+          "currency",
+          "interval",
+          "interval_count",
+          "trial_days",
+          "features",
+          "is_popular",
+          "is_active",
+          "sort_order",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stripe_price_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stripe_product_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "amount_cents": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "interval": {
+            "type": "string"
+          },
+          "interval_count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "trial_days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "features": {},
+          "highlight_text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_popular": {
+            "type": "boolean"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProgressUpdate": {
+        "type": "object",
+        "required": [
+          "progress"
+        ],
+        "properties": {
+          "progress": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "RefreshRequest": {
+        "type": "object",
+        "required": [
+          "refresh_token"
+        ],
+        "properties": {
+          "refresh_token": {
+            "type": "string"
+          }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "required": [
+          "email",
+          "password",
+          "name"
+        ],
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "ResetPasswordRequest": {
+        "type": "object",
+        "required": [
+          "token",
+          "new_password"
+        ],
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "new_password": {
+            "type": "string"
+          }
+        }
+      },
+      "RevisionResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "post_id",
+          "author_id",
+          "author_name",
+          "title",
+          "revision_number",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "post_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "author_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "author_name": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "revision_number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RoleUpdate": {
+        "type": "object",
+        "required": [
+          "role"
+        ],
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          }
+        }
+      },
+      "Subscription": {
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "stripe_customer_id",
+          "stripe_subscription_id",
+          "plan",
+          "status",
+          "current_period_start",
+          "current_period_end",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stripe_customer_id": {
+            "type": "string"
+          },
+          "stripe_subscription_id": {
+            "type": "string"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/SubscriptionPlan"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SubscriptionStatus"
+          },
+          "current_period_start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "current_period_end": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SubscriptionPlan": {
+        "type": "string",
+        "enum": [
+          "Monthly",
+          "Annual"
+        ]
+      },
+      "SubscriptionStatus": {
+        "type": "string",
+        "enum": [
+          "Active",
+          "Canceled",
+          "PastDue",
+          "Trialing",
+          "Unpaid"
+        ]
+      },
+      "SubscriptionStatusResponse": {
+        "type": "object",
+        "required": [
+          "is_active"
+        ],
+        "properties": {
+          "subscription": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Subscription"
+              }
+            ]
+          },
+          "is_active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TokenResponse": {
+        "type": "object",
+        "required": [
+          "access_token",
+          "refresh_token"
+        ],
+        "properties": {
+          "access_token": {
+            "type": "string"
+          },
+          "refresh_token": {
+            "type": "string"
+          }
+        }
+      },
+      "TrackEventRequest": {
+        "type": "object",
+        "required": [
+          "popup_id",
+          "event_type"
+        ],
+        "properties": {
+          "popup_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "event_type": {
+            "type": "string"
+          },
+          "session_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "TradeDirection": {
+        "type": "string",
+        "enum": [
+          "Bullish",
+          "Bearish"
+        ]
+      },
+      "UpdateAlertRequest": {
+        "type": "object",
+        "properties": {
+          "ticker": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "direction": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TradeDirection"
+              }
+            ]
+          },
+          "entry_zone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "invalidation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "profit_zones": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "chart_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "UpdateCategoryRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "UpdateCouponRequest": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "discount_type": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DiscountType"
+              }
+            ]
+          },
+          "discount_value": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "min_purchase_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "max_discount_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "applies_to": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "applicable_plan_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "applicable_course_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "usage_limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "per_user_limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "starts_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "is_active": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "stackable": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "first_purchase_only": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      },
+      "UpdateCourseRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "short_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "thumbnail_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "trailer_video_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "difficulty": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "price_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_free": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "is_included_in_subscription": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "published": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "estimated_duration_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "UpdateLessonProgressRequest": {
+        "type": "object",
+        "properties": {
+          "progress_seconds": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "completed": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      },
+      "UpdateLessonRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_json": {},
+          "video_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "video_duration_seconds": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "is_preview": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      },
+      "UpdateMediaRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "alt_text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "caption": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "focal_x": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "focal_y": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "UpdateModuleRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "UpdatePopupRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "popup_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "trigger_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "trigger_config": {},
+          "content_json": {},
+          "style_json": {},
+          "targeting_rules": {},
+          "display_frequency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "frequency_config": {},
+          "success_message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "redirect_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_active": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "starts_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "priority": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "UpdatePostRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_json": {},
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "featured_image_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "status": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PostStatus"
+              }
+            ]
+          },
+          "visibility": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_sticky": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "allow_comments": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "canonical_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "og_image_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "category_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "tag_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "scheduled_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "post_password": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "author_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "format": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "UpdatePostStatusRequest": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/PostStatus"
+          }
+        }
+      },
+      "UpdatePricingPlanRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stripe_price_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stripe_product_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "amount_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "interval": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "interval_count": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "trial_days": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "features": {},
+          "highlight_text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_popular": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "is_active": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "UpdateProfileRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "avatar_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "bio": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "position": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "website_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "twitter_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "linkedin_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "youtube_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "instagram_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "UpdateWatchlistRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "week_of": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "video_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "published": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      },
+      "UpsertPostMetaRequest": {
+        "type": "object",
+        "required": [
+          "meta_key",
+          "meta_value"
+        ],
+        "properties": {
+          "meta_key": {
+            "type": "string"
+          },
+          "meta_value": {
+            "type": "string"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "name",
+          "role",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "avatar_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "bio": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "position": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "website_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "twitter_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "linkedin_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "youtube_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "instagram_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "UserResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "name",
+          "role",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "avatar_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "bio": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "position": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "website_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "twitter_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "linkedin_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "youtube_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "instagram_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "UserRole": {
+        "type": "string",
+        "enum": [
+          "Member",
+          "Admin"
+        ]
+      },
+      "ValidateCouponRequest": {
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "plan_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "course_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "VerifyPostPasswordRequest": {
+        "type": "object",
+        "required": [
+          "password"
+        ],
+        "properties": {
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "Watchlist": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "week_of",
+          "published",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "week_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "video_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "WatchlistAlert": {
+        "type": "object",
+        "required": [
+          "id",
+          "watchlist_id",
+          "ticker",
+          "direction",
+          "entry_zone",
+          "invalidation",
+          "profit_zones",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "watchlist_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ticker": {
+            "type": "string"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/TradeDirection"
+          },
+          "entry_zone": {
+            "type": "string"
+          },
+          "invalidation": {
+            "type": "string"
+          },
+          "profit_zones": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "chart_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "WatchlistWithAlerts": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Watchlist"
+          },
+          {
+            "type": "object",
+            "required": [
+              "alerts"
+            ],
+            "properties": {
+              "alerts": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/WatchlistAlert"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "securitySchemes": {
+      "bearer_auth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "auth",
+      "description": "Authentication and password flows"
+    },
+    {
+      "name": "admin",
+      "description": "Admin-only dashboard and member management"
+    },
+    {
+      "name": "admin-blog",
+      "description": "Admin-only blog management"
+    },
+    {
+      "name": "analytics",
+      "description": "Client-side analytics ingestion"
+    },
+    {
+      "name": "blog",
+      "description": "Public blog endpoints"
+    },
+    {
+      "name": "coupons",
+      "description": "Discount coupon management"
+    },
+    {
+      "name": "courses",
+      "description": "Course catalog, modules, lessons, progress"
+    },
+    {
+      "name": "member",
+      "description": "Authenticated member self-service"
+    },
+    {
+      "name": "popups",
+      "description": "Popup campaigns + submissions"
+    },
+    {
+      "name": "pricing",
+      "description": "Subscription pricing plans"
+    },
+    {
+      "name": "webhooks",
+      "description": "Inbound provider webhooks"
+    }
+  ]
+}

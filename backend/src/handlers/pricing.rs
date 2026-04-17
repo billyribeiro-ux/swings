@@ -74,7 +74,19 @@ async fn admin_list_plans(
     Ok(Json(plans))
 }
 
-async fn admin_create_plan(
+#[utoipa::path(
+    post,
+    path = "/api/admin/pricing/plans",
+    tag = "pricing",
+    security(("bearer_auth" = [])),
+    request_body = CreatePricingPlanRequest,
+    responses(
+        (status = 200, description = "Plan created", body = PricingPlan),
+        (status = 403, description = "Forbidden"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn admin_create_plan(
     State(state): State<AppState>,
     _admin: AdminUser,
     Json(req): Json<CreatePricingPlanRequest>,
@@ -168,7 +180,20 @@ async fn admin_get_plan(
     }))
 }
 
-async fn admin_update_plan(
+#[utoipa::path(
+    put,
+    path = "/api/admin/pricing/plans/{id}",
+    tag = "pricing",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Plan id")),
+    request_body = UpdatePricingPlanRequest,
+    responses(
+        (status = 200, description = "Plan updated", body = PricingPlan),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Plan not found")
+    )
+)]
+pub(crate) async fn admin_update_plan(
     State(state): State<AppState>,
     admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -386,7 +411,19 @@ async fn admin_update_plan(
     Ok(Json(updated))
 }
 
-async fn admin_delete_plan(
+#[utoipa::path(
+    delete,
+    path = "/api/admin/pricing/plans/{id}",
+    tag = "pricing",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Plan id")),
+    responses(
+        (status = 200, description = "Plan deleted"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Plan not found")
+    )
+)]
+pub(crate) async fn admin_delete_plan(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,
@@ -411,7 +448,19 @@ async fn admin_delete_plan(
     ))
 }
 
-async fn admin_toggle_plan(
+#[utoipa::path(
+    post,
+    path = "/api/admin/pricing/plans/{id}/toggle",
+    tag = "pricing",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Plan id")),
+    responses(
+        (status = 200, description = "Plan active flag toggled", body = PricingPlan),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Plan not found")
+    )
+)]
+pub(crate) async fn admin_toggle_plan(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<Uuid>,

@@ -3,6 +3,7 @@ use axum::{
     routing::{get, post, put},
     Json, Router,
 };
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
@@ -43,8 +44,8 @@ async fn get_profile(
     Ok(Json(user.into()))
 }
 
-#[derive(serde::Deserialize)]
-struct UpdateProfileRequest {
+#[derive(serde::Deserialize, ToSchema)]
+pub struct UpdateProfileRequest {
     name: Option<String>,
     avatar_url: Option<String>,
     bio: Option<String>,
@@ -56,7 +57,18 @@ struct UpdateProfileRequest {
     instagram_url: Option<String>,
 }
 
-async fn update_profile(
+#[utoipa::path(
+    put,
+    path = "/api/member/profile",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    request_body = UpdateProfileRequest,
+    responses(
+        (status = 200, description = "Profile updated", body = UserResponse),
+        (status = 401, description = "Unauthorized")
+    )
+)]
+pub(crate) async fn update_profile(
     State(state): State<AppState>,
     auth: AuthUser,
     Json(req): Json<UpdateProfileRequest>,
@@ -119,7 +131,19 @@ async fn get_subscription(
     }))
 }
 
-async fn post_billing_portal(
+#[utoipa::path(
+    post,
+    path = "/api/member/billing-portal",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    request_body = BillingPortalRequest,
+    responses(
+        (status = 200, description = "Stripe billing portal session URL", body = BillingPortalResponse),
+        (status = 400, description = "No subscription on file"),
+        (status = 401, description = "Unauthorized")
+    )
+)]
+pub(crate) async fn post_billing_portal(
     State(state): State<AppState>,
     auth: AuthUser,
     Json(req): Json<BillingPortalRequest>,
@@ -140,7 +164,18 @@ async fn post_billing_portal(
     Ok(Json(BillingPortalResponse { url }))
 }
 
-async fn post_subscription_cancel(
+#[utoipa::path(
+    post,
+    path = "/api/member/subscription/cancel",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Subscription scheduled to cancel at period end"),
+        (status = 400, description = "No subscription on file"),
+        (status = 401, description = "Unauthorized")
+    )
+)]
+pub(crate) async fn post_subscription_cancel(
     State(state): State<AppState>,
     auth: AuthUser,
 ) -> AppResult<Json<serde_json::Value>> {
@@ -156,7 +191,18 @@ async fn post_subscription_cancel(
     ))
 }
 
-async fn post_subscription_resume(
+#[utoipa::path(
+    post,
+    path = "/api/member/subscription/resume",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Subscription cancellation reversed"),
+        (status = 400, description = "No subscription on file"),
+        (status = 401, description = "Unauthorized")
+    )
+)]
+pub(crate) async fn post_subscription_resume(
     State(state): State<AppState>,
     auth: AuthUser,
 ) -> AppResult<Json<serde_json::Value>> {
@@ -222,12 +268,24 @@ async fn get_enrollments(
     Ok(Json(enrollments))
 }
 
-#[derive(serde::Deserialize)]
-struct ProgressUpdate {
+#[derive(serde::Deserialize, ToSchema)]
+pub struct ProgressUpdate {
     progress: i32,
 }
 
-async fn update_progress(
+#[utoipa::path(
+    put,
+    path = "/api/member/courses/{course_id}/progress",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    params(("course_id" = String, Path, description = "Course identifier")),
+    request_body = ProgressUpdate,
+    responses(
+        (status = 200, description = "Enrollment progress updated", body = CourseEnrollment),
+        (status = 401, description = "Unauthorized")
+    )
+)]
+pub(crate) async fn update_progress(
     State(state): State<AppState>,
     auth: AuthUser,
     Path(course_id): Path<String>,
