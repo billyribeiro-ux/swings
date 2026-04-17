@@ -8,9 +8,7 @@ use std::time::Duration;
 use axum::body::Body;
 use governor::middleware::NoOpMiddleware;
 use tower_governor::{
-    governor::GovernorConfigBuilder,
-    key_extractor::SmartIpKeyExtractor,
-    GovernorLayer,
+    governor::GovernorConfigBuilder, key_extractor::SmartIpKeyExtractor, GovernorLayer,
 };
 
 type AuthGovernorLayer = GovernorLayer<SmartIpKeyExtractor, NoOpMiddleware, Body>;
@@ -19,7 +17,14 @@ fn ip_layer(period: Duration, burst: u32) -> AuthGovernorLayer {
     let mut b = GovernorConfigBuilder::default();
     b.period(period);
     b.burst_size(burst);
-    GovernorLayer::new(b.key_extractor(SmartIpKeyExtractor).finish().expect("non-zero quota"))
+    // SAFETY: `GovernorConfigBuilder::finish()` only fails when `period` or
+    // `burst_size` is zero. Every call site below passes hard-coded non-zero
+    // constants, so this is structurally infallible.
+    GovernorLayer::new(
+        b.key_extractor(SmartIpKeyExtractor)
+            .finish()
+            .expect("rate-limit quota is statically non-zero"),
+    )
 }
 
 /// ~5 requests per minute per IP (burst 5, one token every 12s).

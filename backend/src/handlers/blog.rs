@@ -620,6 +620,15 @@ async fn admin_upload_media(
 
     let data = file_data.ok_or(AppError::BadRequest("No file provided".to_string()))?;
 
+    // Enforce an explicit cap at the handler boundary. Matches Phase 3 §12 file-upload hardening.
+    const MAX_MEDIA_UPLOAD_BYTES: usize = 10 * 1024 * 1024;
+    if data.len() > MAX_MEDIA_UPLOAD_BYTES {
+        return Err(AppError::PayloadTooLarge(format!(
+            "Upload exceeds the {} MB limit",
+            MAX_MEDIA_UPLOAD_BYTES / (1024 * 1024)
+        )));
+    }
+
     // Validate MIME type
     let allowed = [
         "image/jpeg",
@@ -642,14 +651,8 @@ async fn admin_upload_media(
     let (storage_path, url, stored_filename) = match &state.media_backend {
         MediaBackend::R2(r2) => {
             let key = R2Storage::generate_key(&original_filename);
-            let url = r2
-                .upload(&key, Bytes::from(data), &content_type)
-                .await?;
-            let stored_filename = key
-                .rsplit('/')
-                .next()
-                .unwrap_or(key.as_str())
-                .to_string();
+            let url = r2.upload(&key, Bytes::from(data), &content_type).await?;
+            let stored_filename = key.rsplit('/').next().unwrap_or(key.as_str()).to_string();
             (key, url, stored_filename)
         }
         MediaBackend::Local { upload_dir } => {

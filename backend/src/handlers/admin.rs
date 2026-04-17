@@ -3,7 +3,7 @@ use axum::{
     routing::{delete, get, post, put},
     Json, Router,
 };
-use chrono::{Duration, NaiveDate};
+use chrono::{Duration, NaiveDate, NaiveTime};
 use uuid::Uuid;
 use validator::Validate;
 
@@ -96,10 +96,9 @@ async fn analytics_summary(
         ));
     }
 
-    let start = from_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
+    let start = from_date.and_time(NaiveTime::MIN).and_utc();
     let end_exclusive = (to_date + Duration::days(1))
-        .and_hms_opt(0, 0, 0)
-        .unwrap()
+        .and_time(NaiveTime::MIN)
         .and_utc();
 
     let (total_page_views, total_sessions, total_impressions) =
@@ -206,10 +205,9 @@ async fn analytics_revenue(
         ));
     }
 
-    let start = from_date.and_hms_opt(0, 0, 0).unwrap().and_utc();
+    let start = from_date.and_time(NaiveTime::MIN).and_utc();
     let end_exclusive = (to_date + Duration::days(1))
-        .and_hms_opt(0, 0, 0)
-        .unwrap()
+        .and_time(NaiveTime::MIN)
         .and_utc();
 
     let rows = db::analytics_sales_revenue_daily(&state.db, start, end_exclusive).await?;

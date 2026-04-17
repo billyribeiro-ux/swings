@@ -276,13 +276,9 @@ pub struct CourseEnrollment {
 // ── Refresh Token ───────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, FromRow)]
-#[allow(dead_code)]
 pub struct RefreshToken {
     pub id: Uuid,
     pub user_id: Uuid,
-    pub token_hash: String,
-    pub expires_at: DateTime<Utc>,
-    pub created_at: DateTime<Utc>,
     pub family_id: Uuid,
     pub used: bool,
 }
@@ -498,10 +494,6 @@ pub struct PostListParams {
     pub per_page: Option<i64>,
     pub status: Option<PostStatus>,
     pub author_id: Option<Uuid>,
-    #[allow(dead_code)]
-    pub category_slug: Option<String>,
-    #[allow(dead_code)]
-    pub tag_slug: Option<String>,
     pub search: Option<String>,
 }
 
@@ -1204,76 +1196,8 @@ pub struct PopupAnalytics {
     pub conversion_rate: f64,
 }
 
-// ── Sales / Revenue Analytics ──────────────────────────────────────────
-
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
-#[allow(dead_code)]
-pub struct SalesEvent {
-    pub id: Uuid,
-    pub user_id: Uuid,
-    pub event_type: String,
-    pub amount_cents: i32,
-    pub currency: String,
-    pub plan_id: Option<Uuid>,
-    pub coupon_id: Option<Uuid>,
-    pub stripe_payment_intent_id: Option<String>,
-    pub stripe_invoice_id: Option<String>,
-    pub metadata: serde_json::Value,
-    pub created_at: DateTime<Utc>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
-#[allow(dead_code)]
-pub struct MonthlyRevenueSnapshot {
-    pub id: Uuid,
-    pub year: i32,
-    pub month: i32,
-    pub mrr_cents: i64,
-    pub arr_cents: i64,
-    pub total_revenue_cents: i64,
-    pub new_subscribers: i32,
-    pub churned_subscribers: i32,
-    pub net_subscriber_change: i32,
-    pub avg_revenue_per_user_cents: i32,
-    pub computed_at: DateTime<Utc>,
-}
-
-#[derive(Debug, Serialize)]
-#[allow(dead_code)]
-pub struct RevenueAnalytics {
-    pub total_revenue_cents: i64,
-    pub mrr_cents: i64,
-    pub arr_cents: i64,
-    pub total_subscribers: i64,
-    pub churn_rate: f64,
-    pub avg_revenue_per_user_cents: i64,
-    pub revenue_by_month: Vec<MonthlyRevenueSummary>,
-    pub revenue_by_plan: Vec<PlanRevenueSummary>,
-    pub recent_sales: Vec<SalesEvent>,
-}
-
-#[derive(Debug, Serialize)]
-#[allow(dead_code)]
-pub struct MonthlyRevenueSummary {
-    pub year: i32,
-    pub month: i32,
-    pub revenue_cents: i64,
-    pub new_subscribers: i64,
-    pub churned: i64,
-}
-
-#[derive(Debug, Serialize)]
-#[allow(dead_code)]
-pub struct PlanRevenueSummary {
-    pub plan_name: String,
-    pub subscriber_count: i64,
-    pub revenue_cents: i64,
-}
-
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-pub struct RevenueAnalyticsQuery {
-    pub from: Option<String>,
-    pub to: Option<String>,
-    pub granularity: Option<String>,
-}
+// Revenue analytics types (SalesEvent, MonthlyRevenueSnapshot, RevenueAnalytics,
+// MonthlyRevenueSummary, PlanRevenueSummary, RevenueAnalyticsQuery) were deleted in
+// FDN-01 because they had no callers. The underlying `sales_events` and
+// `monthly_revenue_snapshots` tables (migration 014) remain. Event-sourced revenue
+// analytics are scheduled for Phase 4 EC-12.

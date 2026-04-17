@@ -39,10 +39,7 @@ impl R2Storage {
         let public_url = env::var("R2_PUBLIC_URL")
             .map_err(|_| StorageError::Config("R2_PUBLIC_URL not set".into()))?;
 
-        let endpoint = format!(
-            "https://{}.r2.cloudflarestorage.com",
-            account_id.trim()
-        );
+        let endpoint = format!("https://{}.r2.cloudflarestorage.com", account_id.trim());
         let credentials = aws_sdk_s3::config::Credentials::new(
             access_key.trim(),
             secret_key.trim(),
@@ -135,7 +132,11 @@ impl MediaBackend {
                 MediaBackend::R2(r2)
             }
             Err(e) => {
-                tracing::warn!("R2 not configured ({}); using local uploads at {}", e, upload_dir);
+                tracing::warn!(
+                    "R2 not configured ({}); using local uploads at {}",
+                    e,
+                    upload_dir
+                );
                 MediaBackend::Local { upload_dir }
             }
         }

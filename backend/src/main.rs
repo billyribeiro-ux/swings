@@ -1,7 +1,11 @@
+#![deny(warnings)]
+#![forbid(unsafe_code)]
+
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
+use anyhow::{bail, Context, Result};
 use axum::http::HeaderValue;
 use axum::http::Method;
 use axum::Router;
@@ -43,7 +47,7 @@ pub struct AppState {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -54,8 +58,8 @@ async fn main() {
 
     load_dotenv();
 
-    let config = Config::from_env();
-    config.assert_production_ready();
+    let config = Config::from_env()?;
+    config.assert_production_ready()?;
     let port = config.port;
 
     let pool = PgPoolOptions::new()
@@ -66,12 +70,12 @@ async fn main() {
         .max_lifetime(Duration::from_secs(1800))
         .connect(&config.database_url)
         .await
-        .expect("Failed to connect to database");
+        .context("failed to connect to database")?;
 
     sqlx::migrate!("./migrations")
         .run(&pool)
         .await
-        .expect("Failed to run migrations");
+        .context("failed to run database migrations")?;
 
     let admin_email = std::env::var("ADMIN_EMAIL").ok();
     let admin_password = std::env::var("ADMIN_PASSWORD").ok();
@@ -80,10 +84,10 @@ async fn main() {
         (Some(email), Some(password)) => {
             db::seed_admin(&pool, &email, &password, &admin_name)
                 .await
-                .expect("Failed to seed admin user");
+                .context("failed to seed admin user")?;
         }
         _ if config.is_production() => {
-            panic!("ADMIN_EMAIL and ADMIN_PASSWORD must be set in production");
+            bail!("ADMIN_EMAIL and ADMIN_PASSWORD must be set in production");
         }
         _ => {
             tracing::warn!(
@@ -127,7 +131,7 @@ async fn main() {
         .filter_map(|origin| HeaderValue::from_str(origin).ok())
         .collect::<Vec<_>>();
     if allowed_origins.is_empty() {
-        panic!("CORS_ALLOWED_ORIGINS (or FRONTEND_URL) must contain at least one valid origin");
+        bail!("CORS_ALLOWED_ORIGINS (or FRONTEND_URL) must contain at least one valid origin");
     }
 
     let cors = CorsLayer::new()
@@ -143,10 +147,9 @@ async fn main() {
         .allow_headers(Any);
     tokio::fs::create_dir_all(&upload_dir)
         .await
-        .expect("Failed to create uploads directory");
+        .with_context(|| format!("failed to create upload directory at {upload_dir}"))?;
 
-    let mount_local_uploads =
-        !(state.config.is_production() && state.media_backend.is_r2());
+    let mount_local_uploads = !(state.config.is_production() && state.media_backend.is_r2());
 
     let mut app = Router::new()
         // Auth & analytics
@@ -182,7 +185,7 @@ async fn main() {
 
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}"))
         .await
-        .unwrap();
+        .with_context(|| format!("failed to bind TCP listener on port {port}"))?;
 
     tracing::info!("Swings API listening on port {port}");
     axum::serve(
@@ -190,5 +193,7 @@ async fn main() {
         app.into_make_service_with_connect_info::<SocketAddr>(),
     )
     .await
-    .unwrap();
+    .context("axum server terminated unexpectedly")?;
+
+    Ok(())
 }

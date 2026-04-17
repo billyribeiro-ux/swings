@@ -96,7 +96,7 @@ pub async fn seed_admin(
     email: &str,
     password: &str,
     name: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> anyhow::Result<()> {
     use argon2::{
         password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
         Argon2,
@@ -105,7 +105,7 @@ pub async fn seed_admin(
     let salt = SaltString::generate(&mut OsRng);
     let password_hash = Argon2::default()
         .hash_password(password.as_bytes(), &salt)
-        .map_err(|e| format!("Password hash error: {e}"))?
+        .map_err(|e| anyhow::anyhow!("password hash error: {e}"))?
         .to_string();
 
     let email = normalize_email(email);
@@ -593,25 +593,9 @@ pub async fn delete_alert(pool: &PgPool, alert_id: Uuid) -> Result<(), sqlx::Err
 
 // ── Course Enrollments ──────────────────────────────────────────────────
 
-#[allow(dead_code)]
-pub async fn enroll_user(
-    pool: &PgPool,
-    user_id: Uuid,
-    course_id: &str,
-) -> Result<CourseEnrollment, sqlx::Error> {
-    sqlx::query_as::<_, CourseEnrollment>(
-        r#"
-        INSERT INTO course_enrollments (id, user_id, course_id) VALUES ($1, $2, $3)
-        ON CONFLICT (user_id, course_id) DO NOTHING
-        RETURNING *
-        "#,
-    )
-    .bind(Uuid::new_v4())
-    .bind(user_id)
-    .bind(course_id)
-    .fetch_one(pool)
-    .await
-}
+// `enroll_user` was deleted in FDN-01 (no callers). When Phase 4 EC-10 adds the
+// membership-driven enrollment path, it should provide its own enroll function
+// alongside the membership grant logic rather than resurrecting this one.
 
 pub async fn get_user_enrollments(
     pool: &PgPool,
@@ -1765,9 +1749,7 @@ pub async fn pricing_monthly_annual_cents(pool: &PgPool) -> Result<(i32, i32), s
 }
 
 /// Estimated MRR / ARR from active subscription counts × public plan prices.
-pub async fn admin_estimated_mrr_arr_cents(
-    pool: &PgPool,
-) -> Result<(i64, i64, i64), sqlx::Error> {
+pub async fn admin_estimated_mrr_arr_cents(pool: &PgPool) -> Result<(i64, i64, i64), sqlx::Error> {
     let (monthly_price, annual_price) = pricing_monthly_annual_cents(pool).await?;
     let n_m = count_subscriptions_by_plan(pool, &SubscriptionPlan::Monthly).await?;
     let n_a = count_subscriptions_by_plan(pool, &SubscriptionPlan::Annual).await?;
