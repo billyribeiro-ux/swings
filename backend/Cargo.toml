@@ -66,6 +66,16 @@ url = "2"
 aws-sdk-s3 = { version = "1", default-features = false, features = ["rt-tokio", "rustls"] }
 bytes = "1"
 
+# FORM-05: magic-number MIME sniffing on the first 512 B of an upload.
+# Pure-Rust, no build script — rejects spoofed Content-Types before the
+# bytes hit storage.
+infer = { version = "0.19", default-features = false }
+
+# FORM-07: AES-GCM envelope encryption for per-form integration credentials.
+# Pure-Rust AEAD from the RustCrypto tree.
+aes-gcm = "0.10"
+base64 = "0.22"
+
 # Rate limiting
 governor = "0.10"
 tower_governor = "0.8"

@@ -14,10 +14,15 @@
 pub mod logic;
 pub mod repo;
 pub mod schema;
+pub mod uploads;
 pub mod validation;
 
 pub use logic::{Action, Condition, LogicRule};
 pub use schema::{
     AsyncRule, ChoiceOption, FieldMeta, FieldSchema, FileRules, LengthRules, NumberRules,
+};
+pub use uploads::{
+    finalize_upload, make_storage_key, sniff_and_enforce, ChunkedUploadStore, ContentRange,
+    InMemoryStorage, StorageProvider, StoredUpload, UploadError,
 };
 pub use validation::{validate, AsyncRuleRunner, ValidationError};

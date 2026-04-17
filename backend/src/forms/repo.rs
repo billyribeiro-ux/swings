@@ -62,6 +62,22 @@ pub struct SubmissionRow {
 }
 
 #[derive(Debug, Clone, Serialize, FromRow, ToSchema)]
+pub struct UploadRow {
+    pub id: Uuid,
+    pub form_id: Uuid,
+    pub partial_id: Option<Uuid>,
+    pub submission_id: Option<Uuid>,
+    pub field_key: String,
+    pub storage_key: String,
+    pub mime_type: String,
+    pub size_bytes: i64,
+    #[serde(skip)]
+    #[schema(value_type = String, format = "binary")]
+    pub sha256: Vec<u8>,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, FromRow, ToSchema)]
 pub struct PartialRow {
     pub id: Uuid,
     pub form_id: Uuid,
@@ -478,5 +494,66 @@ pub async fn gc_expired_partials(pool: &PgPool) -> AppResult<u64> {
     let result = sqlx::query("DELETE FROM form_partials WHERE expires_at <= NOW()")
         .execute(pool)
         .await?;
+    Ok(result.rows_affected())
+}
+
+// ── Uploads (FORM-05) ──────────────────────────────────────────────────
+
+/// Arguments for [`insert_upload`] — bundled so call sites aren't 9-wide.
+pub struct InsertUpload<'a> {
+    pub form_id: Uuid,
+    pub partial_id: Option<Uuid>,
+    pub submission_id: Option<Uuid>,
+    pub field_key: &'a str,
+    pub storage_key: &'a str,
+    pub mime_type: &'a str,
+    pub size_bytes: i64,
+    pub sha256: &'a [u8],
+}
+
+pub async fn insert_upload(pool: &PgPool, args: InsertUpload<'_>) -> AppResult<UploadRow> {
+    let row = sqlx::query_as::<_, UploadRow>(
+        r#"
+        INSERT INTO form_uploads
+            (form_id, partial_id, submission_id, field_key, storage_key,
+             mime_type, size_bytes, sha256)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id, form_id, partial_id, submission_id, field_key,
+                  storage_key, mime_type, size_bytes, sha256, created_at
+        "#,
+    )
+    .bind(args.form_id)
+    .bind(args.partial_id)
+    .bind(args.submission_id)
+    .bind(args.field_key)
+    .bind(args.storage_key)
+    .bind(args.mime_type)
+    .bind(args.size_bytes)
+    .bind(args.sha256)
+    .fetch_one(pool)
+    .await?;
+    Ok(row)
+}
+
+/// Promote every upload currently attached to `partial_id` to `submission_id`
+/// so that finalising a draft re-homes its files onto the completed submission
+/// row without re-uploading.
+pub async fn promote_partial_uploads(
+    pool: &PgPool,
+    partial_id: Uuid,
+    submission_id: Uuid,
+) -> AppResult<u64> {
+    let result = sqlx::query(
+        r#"
+        UPDATE form_uploads
+           SET submission_id = $2,
+               partial_id    = NULL
+         WHERE partial_id = $1
+        "#,
+    )
+    .bind(partial_id)
+    .bind(submission_id)
+    .execute(pool)
+    .await?;
     Ok(result.rows_affected())
 }
