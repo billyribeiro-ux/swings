@@ -56,6 +56,12 @@ async-trait = "0.1"
 # Decimal
 rust_decimal = { version = "1", features = ["serde-with-str"] }
 
+# FORM-02: validation engine dependencies. `regex` for `pattern` rules,
+# `url` for `url` format parsing, both already transitively in the tree so
+# the build is cheap.
+regex = "1"
+url = "2"
+
 # R2 (S3 API)
 aws-sdk-s3 = { version = "1", default-features = false, features = ["rt-tokio", "rustls"] }
 bytes = "1"
