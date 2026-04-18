@@ -165,10 +165,7 @@ pub struct CohortPoint {
 /// Cohort LTV: rows where `cohort_month` is the customer's first-order
 /// month, `month_offset` is months since cohort start, and
 /// `revenue_cents` is the cohort's net revenue in that month.
-pub async fn cohort_ltv(
-    pool: &PgPool,
-    cohorts_back_months: i32,
-) -> AppResult<Vec<CohortPoint>> {
+pub async fn cohort_ltv(pool: &PgPool, cohorts_back_months: i32) -> AppResult<Vec<CohortPoint>> {
     let earliest = Utc::now() - Duration::days(31 * cohorts_back_months as i64);
     let rows: Vec<(String, i32, i64, i64)> = sqlx::query_as(
         r#"
@@ -196,12 +193,14 @@ pub async fn cohort_ltv(
     .await?;
     Ok(rows
         .into_iter()
-        .map(|(cohort_month, month_offset, revenue_cents, customers)| CohortPoint {
-            cohort_month,
-            month_offset,
-            revenue_cents,
-            customers,
-        })
+        .map(
+            |(cohort_month, month_offset, revenue_cents, customers)| CohortPoint {
+                cohort_month,
+                month_offset,
+                revenue_cents,
+                customers,
+            },
+        )
         .collect())
 }
 
@@ -241,12 +240,14 @@ pub async fn coupon_performance(
     .unwrap_or_default();
     Ok(rows
         .into_iter()
-        .map(|(coupon_id, code, redemptions, total_discount_cents)| CouponPerformance {
-            coupon_id,
-            code,
-            redemptions,
-            total_discount_cents,
-        })
+        .map(
+            |(coupon_id, code, redemptions, total_discount_cents)| CouponPerformance {
+                coupon_id,
+                code,
+                redemptions,
+                total_discount_cents,
+            },
+        )
         .collect())
 }
 

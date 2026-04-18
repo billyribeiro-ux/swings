@@ -38,7 +38,9 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-use crate::forms::schema::{AsyncRule, FieldMeta, FieldSchema, FileRules, LengthRules, NumberRules};
+use crate::forms::schema::{
+    AsyncRule, FieldMeta, FieldSchema, FileRules, LengthRules, NumberRules,
+};
 
 /// Structured validation failure. Stable `code` strings are the shared contract
 /// with `src/lib/forms/validate.ts`.
@@ -130,20 +132,18 @@ pub async fn validate(
     // Async rules run separately so the sync walk stays cheap and the DB
     // round-trip is deferred to the end.
     for field in schema {
-        match field {
-            FieldSchema::Email {
-                meta,
-                async_rule: Some(rule),
-            } => {
-                if let Some(value) = data.get(&meta.key) {
-                    if !is_empty(value) {
-                        if let Some(err) = runner.run(&meta.key, rule, value).await {
-                            errors.push(err);
-                        }
+        if let FieldSchema::Email {
+            meta,
+            async_rule: Some(rule),
+        } = field
+        {
+            if let Some(value) = data.get(&meta.key) {
+                if !is_empty(value) {
+                    if let Some(err) = runner.run(&meta.key, rule, value).await {
+                        errors.push(err);
                     }
                 }
             }
-            _ => {}
         }
     }
 
@@ -174,7 +174,9 @@ fn validate_field(
     }
 
     match field {
-        FieldSchema::Text { length, pattern, .. } => {
+        FieldSchema::Text {
+            length, pattern, ..
+        } => {
             check_string(meta, value, length, errors);
             if let Some(pat) = pattern {
                 check_pattern(meta, value, pat, errors);
@@ -198,9 +200,15 @@ fn validate_field(
             );
         }
         FieldSchema::Rating { max_stars, .. } => check_rating(meta, value, *max_stars, errors),
-        FieldSchema::Date { min_date, max_date, .. } => {
-            check_date(meta, value, min_date.as_deref(), max_date.as_deref(), errors)
-        }
+        FieldSchema::Date {
+            min_date, max_date, ..
+        } => check_date(
+            meta,
+            value,
+            min_date.as_deref(),
+            max_date.as_deref(),
+            errors,
+        ),
         FieldSchema::Time { .. } => check_time(meta, value, errors),
         FieldSchema::Datetime { .. } => check_datetime(meta, value, errors),
         FieldSchema::FileUpload { rules, .. } | FieldSchema::ImageUpload { rules, .. } => {
@@ -477,7 +485,10 @@ fn check_time(meta: &FieldMeta, value: &serde_json::Value, errors: &mut Vec<Vali
         errors.push(ValidationError::new(
             &meta.key,
             "time",
-            format!("{} must be a 24-hour time (HH:MM or HH:MM:SS).", label(meta)),
+            format!(
+                "{} must be a 24-hour time (HH:MM or HH:MM:SS).",
+                label(meta)
+            ),
         ));
     }
 }
@@ -558,7 +569,11 @@ fn check_files(
                 errors.push(ValidationError::new(
                     &meta.key,
                     "mime_type",
-                    format!("File #{} on {} has an unsupported type.", idx + 1, label(meta)),
+                    format!(
+                        "File #{} on {} has an unsupported type.",
+                        idx + 1,
+                        label(meta)
+                    ),
                 ));
             }
         }
@@ -711,7 +726,12 @@ mod tests {
             meta: optional_meta("email"),
             async_rule: None,
         }];
-        let ok = validate(&schema, &json!({ "email": "jane@example.com" }), &NoopRunner).await;
+        let ok = validate(
+            &schema,
+            &json!({ "email": "jane@example.com" }),
+            &NoopRunner,
+        )
+        .await;
         assert!(ok.is_empty(), "valid email should pass");
         let bad = validate(&schema, &json!({ "email": "not-an-email" }), &NoopRunner).await;
         assert!(bad.iter().any(|e| e.code == "email"));

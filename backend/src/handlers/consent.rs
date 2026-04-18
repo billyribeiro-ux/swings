@@ -35,8 +35,7 @@ use uuid::Uuid;
 use crate::{
     common::geo::country_from_request,
     consent::{
-        dsar_export,
-        geo as region_resolver,
+        dsar_export, geo as region_resolver,
         records::{
             self, ConsentRecordInput, ConsentRecordRow, DsarCreateInput, DsarRow, SubjectSelector,
         },
@@ -427,7 +426,10 @@ pub(crate) async fn post_record(
             let bv = banner.as_ref().map(|b| b.version).unwrap_or(1);
             let policy = repo::latest_policy(&state.db, "en").await?;
             let pv = policy.map(|p| p.version).unwrap_or(1);
-            (req.banner_version.unwrap_or(bv), req.policy_version.unwrap_or(pv))
+            (
+                req.banner_version.unwrap_or(bv),
+                req.policy_version.unwrap_or(pv),
+            )
         };
 
     let ip = client_ip_from(&headers, peer);
@@ -708,20 +710,19 @@ pub(crate) async fn admin_fulfill_dsar(
     // For access / portability requests with no admin-supplied URL, build a
     // JSON export of the subject's data and inline it as a data: URI. Full
     // R2 upload is tracked for a later subsystem.
-    let (effective_url, export_json): (Option<String>, Option<serde_json::Value>) = if req
-        .fulfillment_url
-        .is_none()
-        && matches!(existing.kind.as_str(), "access" | "portability")
-    {
-        let export = dsar_export::build_export(&state.db, &existing).await?;
-        let value = serde_json::to_value(&export).map_err(|e| {
-            AppError::Internal(anyhow::anyhow!("dsar export serialization failed: {e}"))
-        })?;
-        let uri = dsar_export::export_to_data_uri(&export);
-        (Some(uri), Some(value))
-    } else {
-        (req.fulfillment_url.clone(), None)
-    };
+    let (effective_url, export_json): (Option<String>, Option<serde_json::Value>) =
+        if req.fulfillment_url.is_none()
+            && matches!(existing.kind.as_str(), "access" | "portability")
+        {
+            let export = dsar_export::build_export(&state.db, &existing).await?;
+            let value = serde_json::to_value(&export).map_err(|e| {
+                AppError::Internal(anyhow::anyhow!("dsar export serialization failed: {e}"))
+            })?;
+            let uri = dsar_export::export_to_data_uri(&export);
+            (Some(uri), Some(value))
+        } else {
+            (req.fulfillment_url.clone(), None)
+        };
 
     let updated = records::fulfill_dsar(
         &state.db,
@@ -837,14 +838,22 @@ mod tests {
     fn consent_actions_match_migration() {
         // The DB CHECK enforces the same set; the handler refuses unknown
         // strings early so the caller sees a friendly 400 not a sqlx error.
-        for a in ["granted", "denied", "updated", "revoked", "expired", "prefill"] {
+        for a in [
+            "granted", "denied", "updated", "revoked", "expired", "prefill",
+        ] {
             assert!(CONSENT_ACTIONS.contains(&a), "missing action {a}");
         }
     }
 
     #[test]
     fn dsar_kinds_match_migration() {
-        for k in ["access", "delete", "portability", "rectification", "opt_out_sale"] {
+        for k in [
+            "access",
+            "delete",
+            "portability",
+            "rectification",
+            "opt_out_sale",
+        ] {
             assert!(DSAR_KINDS.contains(&k), "missing kind {k}");
         }
     }

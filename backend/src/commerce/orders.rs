@@ -72,10 +72,7 @@ pub enum OrderError {
     #[error("order not found: {0}")]
     NotFound(Uuid),
     #[error("illegal transition {from:?} → {to:?}")]
-    IllegalTransition {
-        from: OrderStatus,
-        to: OrderStatus,
-    },
+    IllegalTransition { from: OrderStatus, to: OrderStatus },
     #[error("refund {requested_cents} exceeds remaining balance {remaining_cents}")]
     RefundOverbalance {
         requested_cents: i64,
@@ -258,10 +255,7 @@ pub async fn get_order(pool: &PgPool, id: Uuid) -> AppResult<Option<Order>> {
     Ok(row)
 }
 
-pub async fn get_order_by_payment_intent(
-    pool: &PgPool,
-    pi: &str,
-) -> AppResult<Option<Order>> {
+pub async fn get_order_by_payment_intent(pool: &PgPool, pi: &str) -> AppResult<Option<Order>> {
     let row = sqlx::query_as::<_, Order>(
         r#"
         SELECT id, number, user_id, cart_id, status::text AS status, currency,
@@ -286,15 +280,18 @@ pub async fn transition(
     actor_id: Option<Uuid>,
     reason: Option<&str>,
 ) -> Result<Order, OrderError> {
-    let mut tx: Transaction<'_, Postgres> =
-        pool.begin().await.map_err(|_| OrderError::NotFound(order_id))?;
-
-    let from: String = sqlx::query_scalar("SELECT status::text FROM orders WHERE id = $1 FOR UPDATE")
-        .bind(order_id)
-        .fetch_optional(&mut *tx)
+    let mut tx: Transaction<'_, Postgres> = pool
+        .begin()
         .await
-        .map_err(|_| OrderError::NotFound(order_id))?
-        .ok_or(OrderError::NotFound(order_id))?;
+        .map_err(|_| OrderError::NotFound(order_id))?;
+
+    let from: String =
+        sqlx::query_scalar("SELECT status::text FROM orders WHERE id = $1 FOR UPDATE")
+            .bind(order_id)
+            .fetch_optional(&mut *tx)
+            .await
+            .map_err(|_| OrderError::NotFound(order_id))?
+            .ok_or(OrderError::NotFound(order_id))?;
     let from_status = OrderStatus::parse(&from).ok_or(OrderError::NotFound(order_id))?;
 
     if !can_transition(from_status, to) {
@@ -338,7 +335,9 @@ pub async fn transition(
     .await
     .map_err(|_| OrderError::NotFound(order_id))?;
 
-    tx.commit().await.map_err(|_| OrderError::NotFound(order_id))?;
+    tx.commit()
+        .await
+        .map_err(|_| OrderError::NotFound(order_id))?;
     Ok(updated)
 }
 
@@ -348,14 +347,26 @@ mod tests {
 
     #[test]
     fn pending_can_advance_to_processing() {
-        assert!(can_transition(OrderStatus::Pending, OrderStatus::Processing));
+        assert!(can_transition(
+            OrderStatus::Pending,
+            OrderStatus::Processing
+        ));
     }
 
     #[test]
     fn completed_can_only_refund() {
-        assert!(can_transition(OrderStatus::Completed, OrderStatus::Refunded));
-        assert!(!can_transition(OrderStatus::Completed, OrderStatus::Pending));
-        assert!(!can_transition(OrderStatus::Completed, OrderStatus::Cancelled));
+        assert!(can_transition(
+            OrderStatus::Completed,
+            OrderStatus::Refunded
+        ));
+        assert!(!can_transition(
+            OrderStatus::Completed,
+            OrderStatus::Pending
+        ));
+        assert!(!can_transition(
+            OrderStatus::Completed,
+            OrderStatus::Cancelled
+        ));
     }
 
     #[test]

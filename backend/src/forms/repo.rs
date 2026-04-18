@@ -245,10 +245,7 @@ pub async fn publish_form_version(
     Ok(row)
 }
 
-pub async fn get_active_version(
-    pool: &PgPool,
-    form_id: Uuid,
-) -> AppResult<Option<FormVersionRow>> {
+pub async fn get_active_version(pool: &PgPool, form_id: Uuid) -> AppResult<Option<FormVersionRow>> {
     let row = sqlx::query_as::<_, FormVersionRow>(
         r#"
         SELECT id, form_id, version, schema_json, logic_json,

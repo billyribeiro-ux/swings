@@ -1,3 +1,7 @@
+// Doc lists in this module use a layout clippy classifies as
+// "overindented"; rewriting to satisfy the lint hurts readability.
+#![allow(clippy::doc_overindented_list_items)]
+
 //! POP-05: frequency capping.
 //!
 //! Given a popup's `frequency_config` and a visitor's current state, decide
@@ -151,7 +155,12 @@ mod tests {
         let s = state(3, 1, 0, false);
         assert!(!should_show(&cfg, Some(&s), SessionFlags::default(), now()));
         let old = state(10, 1, 0, false);
-        assert!(should_show(&cfg, Some(&old), SessionFlags::default(), now()));
+        assert!(should_show(
+            &cfg,
+            Some(&old),
+            SessionFlags::default(),
+            now()
+        ));
     }
 
     #[test]
@@ -173,9 +182,19 @@ mod tests {
             ..Default::default()
         };
         let at_cap = state(1, 3, 3, false);
-        assert!(!should_show(&cfg, Some(&at_cap), SessionFlags::default(), now()));
+        assert!(!should_show(
+            &cfg,
+            Some(&at_cap),
+            SessionFlags::default(),
+            now()
+        ));
         let below = state(1, 1, 2, false);
-        assert!(should_show(&cfg, Some(&below), SessionFlags::default(), now()));
+        assert!(should_show(
+            &cfg,
+            Some(&below),
+            SessionFlags::default(),
+            now()
+        ));
     }
 
     #[test]
@@ -185,10 +204,31 @@ mod tests {
             ..Default::default()
         };
         let s = state(1, 1, 0, false);
-        assert!(should_show(&cfg, Some(&s), SessionFlags { shown_this_session: false }, now()));
-        assert!(!should_show(&cfg, Some(&s), SessionFlags { shown_this_session: true }, now()));
+        assert!(should_show(
+            &cfg,
+            Some(&s),
+            SessionFlags {
+                shown_this_session: false
+            },
+            now()
+        ));
+        assert!(!should_show(
+            &cfg,
+            Some(&s),
+            SessionFlags {
+                shown_this_session: true
+            },
+            now()
+        ));
         // Even with no persisted state, session flag wins.
-        assert!(!should_show(&cfg, None, SessionFlags { shown_this_session: true }, now()));
+        assert!(!should_show(
+            &cfg,
+            None,
+            SessionFlags {
+                shown_this_session: true
+            },
+            now()
+        ));
     }
 
     #[test]
@@ -200,6 +240,11 @@ mod tests {
         let s = state(90, 1, 0, false);
         assert!(!should_show(&cfg, Some(&s), SessionFlags::default(), now()));
         let fresh = state(0, 0, 0, false);
-        assert!(should_show(&cfg, Some(&fresh), SessionFlags::default(), now()));
+        assert!(should_show(
+            &cfg,
+            Some(&fresh),
+            SessionFlags::default(),
+            now()
+        ));
     }
 }

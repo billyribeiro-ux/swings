@@ -1255,6 +1255,61 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/dsar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** `POST /api/dsar` (public — no auth required). */
+        post: operations["post_dsar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forms/geo/countries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** FORM-10: ISO 3166-1 alpha-2 country list for the chained dropdown. */
+        get: operations["public_geo_countries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forms/geo/states": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * FORM-10: ISO 3166-2 state / province list for the supplied alpha-2
+         *     country. Returns an empty array for uncovered countries — the
+         *     renderer falls back to a free-text input in that case.
+         */
+        get: operations["public_geo_states"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/forms/{slug}": {
         parameters: {
             query?: never;
@@ -1281,6 +1336,27 @@ export type paths = {
         get?: never;
         put?: never;
         post: operations["public_save_partial"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forms/{slug}/payment-intent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * FORM-08: mint a Stripe PaymentIntent for a payment / donation field.
+         * @description Required header: `Idempotency-Key` (UUID-ish opaque token). Replays
+         *     short-circuit at the DB lookup before we ever round-trip Stripe.
+         */
+        post: operations["public_create_payment_intent"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1560,21 +1636,6 @@ export type components = {
             /** @description Opaque theme overrides; the frontend maps known keys to PE7 CSS vars. */
             theme: unknown;
         };
-        BannerConfigRow: {
-            /** Format: uuid */
-            id: string;
-            region: string;
-            locale: string;
-            /** Format: int32 */
-            version: number;
-            layout: string;
-            position: string;
-            theme_json: unknown;
-            copy_json: unknown;
-            is_active: boolean;
-            /** Format: date-time */
-            updated_at: string;
-        };
         BannerCopy: {
             title: string;
             body: string;
@@ -1589,15 +1650,6 @@ export type components = {
         BannerLayout: "bar" | "box" | "popup" | "fullscreen";
         /** @enum {string} */
         BannerPosition: "top" | "bottom" | "center" | "bottom-start" | "bottom-end";
-        BannerUpsertRequest: {
-            region: string;
-            locale: string;
-            layout: string;
-            position: string;
-            copy_json: unknown;
-            theme_json?: unknown;
-            is_active?: boolean;
-        };
         BillingPortalRequest: {
             return_url?: string | null;
         };
@@ -1769,6 +1821,15 @@ export type components = {
             get_qty: number;
             applies_to_product_ids?: string[];
         };
+        BulkActionRequest: {
+            ids: string[];
+            /** @description `delete` | `mark_spam` | `restore`. */
+            action: string;
+        };
+        BulkActionResponse: {
+            /** Format: int64 */
+            updated: number;
+        };
         BulkCouponRequest: {
             /** Format: int32 */
             count: number;
@@ -1783,22 +1844,6 @@ export type components = {
         };
         BulkPreferenceUpdate: {
             items: components["schemas"]["PreferenceUpdate"][];
-        };
-        CategoryRow: {
-            key: string;
-            label: string;
-            description: string;
-            is_required: boolean;
-            /** Format: int32 */
-            sort_order: number;
-        };
-        CategoryUpsertRequest: {
-            key: string;
-            label: string;
-            description: string;
-            is_required?: boolean;
-            /** Format: int32 */
-            sort_order?: number;
         };
         /**
          * @description `bundle_items` row. `quantity` is always positive (CHECK-enforced).
@@ -1854,20 +1899,73 @@ export type components = {
              */
             defaultEnabled: boolean;
         };
-        ConsentLogResponse: {
-            rows: components["schemas"]["ConsentLogRow"][];
-            table_present: boolean;
-            /** Format: int64 */
-            total: number;
+        ConsentRecordRequest: {
+            /**
+             * @description One of `granted` / `denied` / `updated` / `revoked` / `expired` /
+             *     `prefill`. Enforced at the DB CHECK level; validated here for a
+             *     friendlier 400.
+             */
+            action: string;
+            /**
+             * @description Map of category key → granted bool. Must include every category the
+             *     current banner version exposes.
+             */
+            categories: unknown;
+            /**
+             * @description Optional per-service overrides (when the subject used the advanced
+             *     picker). Empty object is fine.
+             */
+            services?: unknown;
+            tcfString?: string | null;
+            gpcSignal?: boolean | null;
+            /**
+             * Format: uuid
+             * @description Browser-generated anonymous id (UUID cookie). Used when the subject
+             *     is not signed in so the audit log can still be linked across sessions.
+             */
+            anonymousId?: string | null;
+            /**
+             * Format: int32
+             * @description Optional banner / policy version overrides — defaults come from the
+             *     authoritative banner config when omitted. Kept as options so the
+             *     client can send them when it already has a cached banner copy.
+             */
+            bannerVersion?: number | null;
+            /** Format: int32 */
+            policyVersion?: number | null;
         };
-        ConsentLogRow: {
+        ConsentRecordResponse: {
             /** Format: uuid */
             id: string;
-            subject_id?: string | null;
-            action: string;
+        };
+        /**
+         * @description Serialized row shape — shared across `POST /record` response and
+         *     `GET /me` listings.
+         */
+        ConsentRecordRow: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            subjectId?: string | null;
+            /** Format: uuid */
+            anonymousId?: string | null;
+            /** Format: int32 */
+            bannerVersion: number;
+            /** Format: int32 */
+            policyVersion: number;
             categories: unknown;
+            services: unknown;
+            action: string;
+            tcfString?: string | null;
+            gpcSignal?: boolean | null;
+            country?: string | null;
             /** Format: date-time */
-            created_at: string;
+            createdAt: string;
+        };
+        Country: {
+            /** @description ISO 3166-1 alpha-2 (`"US"`, `"GB"`, `"DE"`). */
+            code: string;
+            name: string;
         };
         Coupon: {
             /** Format: uuid */
@@ -2323,6 +2421,60 @@ export type components = {
             /** Format: date-time */
             created_at: string;
         };
+        DsarFulfillRequest: {
+            fulfillmentUrl?: string | null;
+            adminNotes?: string | null;
+        };
+        /**
+         * @description Admin fulfill response. When the DSAR is `access` / `portability` and the
+         *     admin did not provide a URL, the exported JSON is inlined in `export` so
+         *     the caller can pipe it to a download without a second round-trip.
+         */
+        DsarFulfillResponse: {
+            request: components["schemas"]["DsarRow"];
+            export?: unknown;
+        };
+        DsarListResponse: {
+            data: components["schemas"]["DsarRow"][];
+            /** Format: int64 */
+            total: number;
+            /** Format: int64 */
+            page: number;
+            /** Format: int64 */
+            perPage: number;
+            /** Format: int64 */
+            totalPages: number;
+        };
+        /** @description Row shape returned from the admin list + the subject submission response. */
+        DsarRow: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId?: string | null;
+            email: string;
+            kind: string;
+            status: string;
+            payload: unknown;
+            /** Format: date-time */
+            fulfilledAt?: string | null;
+            /** Format: uuid */
+            fulfilledBy?: string | null;
+            fulfillmentUrl?: string | null;
+            adminNotes?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        DsarSubmitRequest: {
+            email: string;
+            kind: string;
+            payload?: unknown;
+        };
+        DsarSubmitResponse: {
+            /** Format: uuid */
+            id: string;
+        };
         ForgotPasswordRequest: {
             email: string;
         };
@@ -2340,6 +2492,36 @@ export type components = {
             logic: unknown;
             /** Format: int32 */
             version: number;
+        };
+        FormRow: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            name: string;
+            description?: string | null;
+            is_active: boolean;
+            settings: unknown;
+            /** Format: uuid */
+            created_by?: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        FormVersionRow: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            form_id: string;
+            /** Format: int32 */
+            version: number;
+            schema_json: unknown;
+            logic_json: unknown;
+            is_published: boolean;
+            /** Format: date-time */
+            published_at?: string | null;
+            /** Format: date-time */
+            created_at: string;
         };
         LessonProgress: {
             /** Format: uuid */
@@ -2522,19 +2704,73 @@ export type components = {
             /** Format: int64 */
             per_page?: number | null;
         };
+        PartialLoadResponse: {
+            data: unknown;
+            /** Format: int32 */
+            current_step: number;
+            /** Format: date-time */
+            expires_at: string;
+        };
         PartialRequest: {
             data: unknown;
             /**
-             * @description Optional: rotate an existing resume token. The server returns a fresh
-             *     token in the response regardless; supplying the old one extends the
-             *     window without creating a duplicate row.
+             * @description Optional: extend an existing resume token in place. When set + the
+             *     token is valid, the existing row is updated and the same token is
+             *     returned; otherwise a fresh token is minted.
              */
             resume_token?: string | null;
+            /**
+             * Format: int32
+             * @description Zero-based page-break index the draft was on when saved. Lets the
+             *     renderer jump straight back to the right step on resume.
+             */
+            current_step?: number | null;
         };
         PartialResponse: {
             resume_token: string;
             /** Format: date-time */
             expires_at: string;
+        };
+        PartialRow: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            form_id: string;
+            data_json: unknown;
+            /** Format: int32 */
+            current_step: number;
+            /** Format: uuid */
+            subject_id?: string | null;
+            /** Format: date-time */
+            expires_at: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        PaymentIntentClientResponse: {
+            intent_id: string;
+            client_secret: string;
+            /** Format: int64 */
+            amount_cents: number;
+            currency: string;
+        };
+        PaymentIntentRequest: {
+            /** @description FieldSchema `key` of the payment field on the form. */
+            field_key: string;
+            /**
+             * Format: int64
+             * @description Donor-supplied amount for `payment_kind = donation`. Ignored for
+             *     fixed-amount one-time payments — the schema's `amount_cents` wins.
+             */
+            amount_cents?: number | null;
+            /** @description Donor email — receipts are sent to this address. */
+            email: string;
+            /**
+             * @description Optional resume token if the field is on a draft (so we can
+             *     later cross-link `form_payment_intents.partial_id`).
+             */
+            resume_token?: string | null;
         };
         Popup: {
             /** Format: uuid */
@@ -2788,6 +3024,54 @@ export type components = {
         /** @description Admin-only payload for `POST /api/admin/products/{id}/status`. */
         SetStatusRequest: {
             status: components["schemas"]["ProductStatus"];
+        };
+        State: {
+            /** @description ISO 3166-2 (`"US-CA"`, `"CA-ON"`). */
+            code: string;
+            name: string;
+        };
+        SubmissionRow: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            form_id: string;
+            /** Format: uuid */
+            form_version_id: string;
+            /** Format: uuid */
+            subject_id?: string | null;
+            /** Format: uuid */
+            anonymous_id?: string | null;
+            status: string;
+            data_json: unknown;
+            files_json: unknown;
+            ip_hash: string;
+            user_agent: string;
+            referrer?: string | null;
+            utm: unknown;
+            validation_errors?: unknown;
+            /** Format: date-time */
+            submitted_at: string;
+        };
+        SubmitRequest: {
+            data: unknown;
+            /** @description Optional UTM block captured from the query-string at render time. */
+            utm?: unknown;
+            /**
+             * @description Optional file descriptors from FORM-05. Shape `[{ field_key, file_id,
+             *     filename, size, sha256, mime_type }]`.
+             */
+            files?: unknown;
+            /**
+             * Format: uuid
+             * @description Optional anonymous id cookie — the frontend generates one for
+             *     unauthenticated sessions so repeat submissions tie back together.
+             */
+            anonymous_id?: string | null;
+        };
+        SubmitResponse: {
+            /** Format: uuid */
+            id: string;
+            status: string;
         };
         Subscription: {
             /** Format: uuid */
@@ -6690,6 +6974,80 @@ export interface operations {
             };
         };
     };
+    post_dsar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DsarSubmitRequest"];
+            };
+        };
+        responses: {
+            /** @description DSAR request accepted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DsarSubmitResponse"];
+                };
+            };
+            /** @description Missing or invalid fields */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    public_geo_countries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Country list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Country"][];
+                };
+            };
+        };
+    };
+    public_geo_states: {
+        parameters: {
+            query: {
+                /** @description ISO 3166-1 alpha-2 */
+                country: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description State list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["State"][];
+                };
+            };
+        };
+    };
     public_get_form: {
         parameters: {
             query?: never;
@@ -6746,6 +7104,47 @@ export interface operations {
                 };
             };
             /** @description Form not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    public_create_payment_intent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Form URL slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentIntentRequest"];
+            };
+        };
+        responses: {
+            /** @description Intent created */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentIntentClientResponse"];
+                };
+            };
+            /** @description Missing Idempotency-Key or invalid amount */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Form / field not found */
             404: {
                 headers: {
                     [name: string]: unknown;

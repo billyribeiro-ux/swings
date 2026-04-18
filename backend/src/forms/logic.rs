@@ -234,15 +234,9 @@ mod tests {
     #[test]
     fn action_variants_round_trip() {
         let actions = vec![
-            Action::Show {
-                field: "a".into(),
-            },
-            Action::Hide {
-                field: "b".into(),
-            },
-            Action::RequireField {
-                field: "c".into(),
-            },
+            Action::Show { field: "a".into() },
+            Action::Hide { field: "b".into() },
+            Action::RequireField { field: "c".into() },
             Action::SkipStep { step: 2 },
             Action::SetValue {
                 field: "total".into(),

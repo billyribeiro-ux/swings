@@ -214,6 +214,9 @@ mod tests {
             signing_secret: None,
         };
         let id = integration_id(Uuid::nil(), &cfg);
-        assert_eq!(id, "00000000-0000-0000-0000-000000000000:zapier:https://hooks.zapier.com/abc");
+        assert_eq!(
+            id,
+            "00000000-0000-0000-0000-000000000000:zapier:https://hooks.zapier.com/abc"
+        );
     }
 }

@@ -240,7 +240,10 @@ impl Akismet {
 
     fn url(&self) -> String {
         self.endpoint.clone().unwrap_or_else(|| {
-            format!("https://{}.rest.akismet.com/1.1/comment-check", self.api_key)
+            format!(
+                "https://{}.rest.akismet.com/1.1/comment-check",
+                self.api_key
+            )
         })
     }
 }

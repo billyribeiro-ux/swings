@@ -38,7 +38,10 @@ pub enum IntegrationError {
 
 impl IntegrationError {
     pub fn is_retriable(&self) -> bool {
-        matches!(self, IntegrationError::Transient(_) | IntegrationError::Http(_))
+        matches!(
+            self,
+            IntegrationError::Transient(_) | IntegrationError::Http(_)
+        )
     }
 }
 
@@ -95,9 +98,9 @@ async fn classify(res: reqwest::Response) -> Result<reqwest::Response, Integrati
 }
 
 fn require_email<'a>(p: &'a SubmissionPayload<'_>) -> Result<&'a str, IntegrationError> {
-    p.email
-        .as_deref()
-        .ok_or(IntegrationError::Permanent("submission has no email field".into()))
+    p.email.as_deref().ok_or(IntegrationError::Permanent(
+        "submission has no email field".into(),
+    ))
 }
 
 fn extract_first_last(data: &serde_json::Value) -> (Option<String>, Option<String>) {
@@ -108,8 +111,12 @@ fn extract_first_last(data: &serde_json::Value) -> (Option<String>, Option<Strin
             .map(|s| s.to_string())
     };
     (
-        take("first_name").or_else(|| take("firstName")).or_else(|| take("FNAME")),
-        take("last_name").or_else(|| take("lastName")).or_else(|| take("LNAME")),
+        take("first_name")
+            .or_else(|| take("firstName"))
+            .or_else(|| take("FNAME")),
+        take("last_name")
+            .or_else(|| take("lastName"))
+            .or_else(|| take("LNAME")),
     )
 }
 
@@ -134,7 +141,9 @@ impl IntegrationAdapter for Mailchimp {
         let dc = key
             .split_once('-')
             .map(|(_, dc)| dc)
-            .ok_or(IntegrationError::Permanent("malformed mailchimp key".into()))?;
+            .ok_or(IntegrationError::Permanent(
+                "malformed mailchimp key".into(),
+            ))?;
         let email = require_email(p)?;
         let (first, last) = extract_first_last(p.data);
         let url = format!("https://{dc}.api.mailchimp.com/3.0/lists/{list_id}/members");
@@ -143,7 +152,13 @@ impl IntegrationAdapter for Mailchimp {
             "status_if_new": "subscribed",
             "merge_fields": { "FNAME": first, "LNAME": last },
         });
-        post_json(client, &url, Some(("Authorization", &format!("apikey {key}"))), &body).await?;
+        post_json(
+            client,
+            &url,
+            Some(("Authorization", &format!("apikey {key}"))),
+            &body,
+        )
+        .await?;
         Ok(())
     }
 }
@@ -160,7 +175,11 @@ impl IntegrationAdapter for ActiveCampaign {
         cfg: &IntegrationConfig,
         p: &SubmissionPayload<'_>,
     ) -> Result<(), IntegrationError> {
-        let IntegrationConfig::ActiveCampaign { account_url, api_key } = cfg else {
+        let IntegrationConfig::ActiveCampaign {
+            account_url,
+            api_key,
+        } = cfg
+        else {
             return Err(IntegrationError::NotConfigured("activecampaign"));
         };
         let key = api_key.unseal()?;
@@ -222,7 +241,13 @@ impl IntegrationAdapter for HubSpot {
         let body = serde_json::json!({
             "properties": { "email": email, "firstname": first, "lastname": last }
         });
-        post_json(client, url, Some(("Authorization", &format!("Bearer {token}"))), &body).await?;
+        post_json(
+            client,
+            url,
+            Some(("Authorization", &format!("Bearer {token}"))),
+            &body,
+        )
+        .await?;
         Ok(())
     }
 }
@@ -239,7 +264,11 @@ impl IntegrationAdapter for Salesforce {
         cfg: &IntegrationConfig,
         p: &SubmissionPayload<'_>,
     ) -> Result<(), IntegrationError> {
-        let IntegrationConfig::Salesforce { instance_url, access_token } = cfg else {
+        let IntegrationConfig::Salesforce {
+            instance_url,
+            access_token,
+        } = cfg
+        else {
             return Err(IntegrationError::NotConfigured("salesforce"));
         };
         let token = access_token.unseal()?;
@@ -254,7 +283,13 @@ impl IntegrationAdapter for Salesforce {
         let body = serde_json::json!({
             "FirstName": first, "LastName": last, "Email": email, "Company": company
         });
-        post_json(client, &url, Some(("Authorization", &format!("Bearer {token}"))), &body).await?;
+        post_json(
+            client,
+            &url,
+            Some(("Authorization", &format!("Bearer {token}"))),
+            &body,
+        )
+        .await?;
         Ok(())
     }
 }
@@ -271,7 +306,11 @@ impl IntegrationAdapter for Zapier {
         cfg: &IntegrationConfig,
         p: &SubmissionPayload<'_>,
     ) -> Result<(), IntegrationError> {
-        let IntegrationConfig::Zapier { hook_url, signing_secret } = cfg else {
+        let IntegrationConfig::Zapier {
+            hook_url,
+            signing_secret,
+        } = cfg
+        else {
             return Err(IntegrationError::NotConfigured("zapier"));
         };
         webhook_post(client, hook_url, signing_secret.as_ref(), p).await
@@ -290,7 +329,11 @@ impl IntegrationAdapter for Make {
         cfg: &IntegrationConfig,
         p: &SubmissionPayload<'_>,
     ) -> Result<(), IntegrationError> {
-        let IntegrationConfig::Make { hook_url, signing_secret } = cfg else {
+        let IntegrationConfig::Make {
+            hook_url,
+            signing_secret,
+        } = cfg
+        else {
             return Err(IntegrationError::NotConfigured("make"));
         };
         webhook_post(client, hook_url, signing_secret.as_ref(), p).await
@@ -366,7 +409,13 @@ impl IntegrationAdapter for Sheets {
             serde_json::Value::String(p.data.to_string()),
         ];
         let body = serde_json::json!({ "values": [row] });
-        post_json(client, &url, Some(("Authorization", &format!("Bearer {token}"))), &body).await?;
+        post_json(
+            client,
+            &url,
+            Some(("Authorization", &format!("Bearer {token}"))),
+            &body,
+        )
+        .await?;
         Ok(())
     }
 }
@@ -460,7 +509,11 @@ impl IntegrationAdapter for Notion {
         cfg: &IntegrationConfig,
         p: &SubmissionPayload<'_>,
     ) -> Result<(), IntegrationError> {
-        let IntegrationConfig::Notion { database_id, api_key } = cfg else {
+        let IntegrationConfig::Notion {
+            database_id,
+            api_key,
+        } = cfg
+        else {
             return Err(IntegrationError::NotConfigured("notion"));
         };
         let key = api_key.unseal()?;
@@ -498,7 +551,12 @@ impl IntegrationAdapter for Airtable {
         cfg: &IntegrationConfig,
         p: &SubmissionPayload<'_>,
     ) -> Result<(), IntegrationError> {
-        let IntegrationConfig::Airtable { base_id, table, api_key } = cfg else {
+        let IntegrationConfig::Airtable {
+            base_id,
+            table,
+            api_key,
+        } = cfg
+        else {
             return Err(IntegrationError::NotConfigured("airtable"));
         };
         let key = api_key.unseal()?;
@@ -510,7 +568,13 @@ impl IntegrationAdapter for Airtable {
                 "FormId": p.form_id.to_string(),
             }
         });
-        post_json(client, &url, Some(("Authorization", &format!("Bearer {key}"))), &body).await?;
+        post_json(
+            client,
+            &url,
+            Some(("Authorization", &format!("Bearer {key}"))),
+            &body,
+        )
+        .await?;
         Ok(())
     }
 }
@@ -527,7 +591,11 @@ impl IntegrationAdapter for Zoho {
         cfg: &IntegrationConfig,
         p: &SubmissionPayload<'_>,
     ) -> Result<(), IntegrationError> {
-        let IntegrationConfig::Zoho { api_domain, access_token } = cfg else {
+        let IntegrationConfig::Zoho {
+            api_domain,
+            access_token,
+        } = cfg
+        else {
             return Err(IntegrationError::NotConfigured("zoho"));
         };
         let token = access_token.unseal()?;
@@ -542,7 +610,13 @@ impl IntegrationAdapter for Zoho {
                 "Company": "Web Lead",
             }]
         });
-        post_json(client, &url, Some(("Authorization", &format!("Zoho-oauthtoken {token}"))), &body).await?;
+        post_json(
+            client,
+            &url,
+            Some(("Authorization", &format!("Zoho-oauthtoken {token}"))),
+            &body,
+        )
+        .await?;
         Ok(())
     }
 }

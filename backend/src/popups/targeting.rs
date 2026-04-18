@@ -1,3 +1,12 @@
+// POP-01 tests use `Default::default() + field assigns` to keep each rule
+// dimension visually isolated; that style is intentional here.
+#![allow(clippy::field_reassign_with_default)]
+// Doc lists in this module mix prose + bullet variants; clippy's
+// indentation lint flips between "without indentation" and "overindented"
+// based on which bullet style is used. The lint adds noise without
+// materially improving the rendered docs.
+#![allow(clippy::doc_lazy_continuation, clippy::doc_overindented_list_items)]
+
 //! POP-01: server-side targeting predicate.
 //!
 //! The function [`matches_targeting_rules`] is the single authority for
@@ -98,7 +107,10 @@ pub struct VisitorContext {
 /// with *no* targeting_rules matches every visitor.
 pub fn matches_targeting_rules(rules: &TargetingRules, ctx: &VisitorContext) -> bool {
     if let Some(pages) = rules.pages.as_ref() {
-        if !pages.iter().any(|p| matches_page_pattern(p, &ctx.page_path)) {
+        if !pages
+            .iter()
+            .any(|p| matches_page_pattern(p, &ctx.page_path))
+        {
             return false;
         }
     }
@@ -287,10 +299,7 @@ mod tests {
 
     #[test]
     fn empty_rules_match_everything() {
-        assert!(matches_targeting_rules(
-            &TargetingRules::default(),
-            &ctx()
-        ));
+        assert!(matches_targeting_rules(&TargetingRules::default(), &ctx()));
     }
 
     #[test]

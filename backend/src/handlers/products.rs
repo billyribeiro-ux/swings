@@ -46,7 +46,10 @@ use crate::commerce::products::{BundleItem, DownloadableAsset, Product, ProductV
 
 pub fn admin_router() -> Router<AppState> {
     Router::new()
-        .route("/products", get(admin_list_products).post(admin_create_product))
+        .route(
+            "/products",
+            get(admin_list_products).post(admin_create_product),
+        )
         .route(
             "/products/{id}",
             get(admin_get_product)
@@ -68,7 +71,10 @@ pub fn admin_router() -> Router<AppState> {
             "/products/{id}/assets",
             get(admin_list_assets).post(admin_add_asset),
         )
-        .route("/products/{id}/assets/{asset_id}", delete(admin_delete_asset))
+        .route(
+            "/products/{id}/assets/{asset_id}",
+            delete(admin_delete_asset),
+        )
         // Bundle items
         .route(
             "/products/{id}/bundle-items",
@@ -195,11 +201,10 @@ pub(crate) async fn admin_create_product(
 ) -> AppResult<Json<Product>> {
     // Slug uniqueness is also enforced at the DB via the UNIQUE constraint;
     // we check up-front for a human-friendly 409.
-    let existing: Option<(Uuid,)> =
-        sqlx::query_as("SELECT id FROM products WHERE slug = $1")
-            .bind(&req.slug)
-            .fetch_optional(&state.db)
-            .await?;
+    let existing: Option<(Uuid,)> = sqlx::query_as("SELECT id FROM products WHERE slug = $1")
+        .bind(&req.slug)
+        .fetch_optional(&state.db)
+        .await?;
     if existing.is_some() {
         return Err(AppError::Conflict(format!(
             "Product with slug '{}' already exists",
@@ -208,10 +213,7 @@ pub(crate) async fn admin_create_product(
     }
 
     let product_type = req.product_type.as_str();
-    let status = req
-        .status
-        .unwrap_or(ProductStatus::Draft)
-        .as_str();
+    let status = req.status.unwrap_or(ProductStatus::Draft).as_str();
     let currency = req.currency.as_deref().unwrap_or("USD");
     let tax_class = req.tax_class.as_deref().unwrap_or("standard");
     let gallery_ids = req.gallery_media_ids.clone().unwrap_or_default();

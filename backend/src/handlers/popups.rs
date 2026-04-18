@@ -637,26 +637,25 @@ async fn public_active_popups(
             continue;
         }
 
-        let freq_ok = match crate::popups::frequency::FrequencyConfig::from_json(
-            &popup.frequency_config,
-        ) {
-            Ok(cfg) => {
-                let state_row = if let Some(aid) = anon_id {
-                    crate::popups::repo::load_visitor_state(&state.db, aid, popup.id).await?
-                } else {
-                    None
-                };
-                crate::popups::frequency::should_show(
-                    &cfg,
-                    state_row.as_ref(),
-                    crate::popups::frequency::SessionFlags {
-                        shown_this_session: session_shown,
-                    },
-                    now,
-                )
-            }
-            Err(_) => true,
-        };
+        let freq_ok =
+            match crate::popups::frequency::FrequencyConfig::from_json(&popup.frequency_config) {
+                Ok(cfg) => {
+                    let state_row = if let Some(aid) = anon_id {
+                        crate::popups::repo::load_visitor_state(&state.db, aid, popup.id).await?
+                    } else {
+                        None
+                    };
+                    crate::popups::frequency::should_show(
+                        &cfg,
+                        state_row.as_ref(),
+                        crate::popups::frequency::SessionFlags {
+                            shown_this_session: session_shown,
+                        },
+                        now,
+                    )
+                }
+                Err(_) => true,
+            };
         if !freq_ok {
             continue;
         }
@@ -665,8 +664,7 @@ async fn public_active_popups(
         // a self-contained popup payload.
         let mut popup = popup;
         popup.content_json =
-            crate::popups::content::hydrate_content(&state.db, popup.content_json.clone())
-                .await?;
+            crate::popups::content::hydrate_content(&state.db, popup.content_json.clone()).await?;
         allowed.push(popup);
     }
 
@@ -780,10 +778,12 @@ pub(crate) async fn public_track_event(
         let now = Utc::now();
         match event_type.as_str() {
             "impression" => {
-                crate::popups::repo::record_impression(&state.db, anon_id, req.popup_id, now).await?;
+                crate::popups::repo::record_impression(&state.db, anon_id, req.popup_id, now)
+                    .await?;
             }
             "close" => {
-                crate::popups::repo::record_dismissal(&state.db, anon_id, req.popup_id, now).await?;
+                crate::popups::repo::record_dismissal(&state.db, anon_id, req.popup_id, now)
+                    .await?;
             }
             _ => {}
         }
@@ -943,9 +943,7 @@ pub(crate) async fn public_variant_for_popup(
     let anon_raw = headers
         .get(ANONYMOUS_ID_HEADER)
         .and_then(|v| v.to_str().ok())
-        .ok_or_else(|| {
-            AppError::BadRequest(format!("Missing {ANONYMOUS_ID_HEADER} header"))
-        })?;
+        .ok_or_else(|| AppError::BadRequest(format!("Missing {ANONYMOUS_ID_HEADER} header")))?;
     let anon = Uuid::parse_str(anon_raw)
         .map_err(|_| AppError::BadRequest(format!("{ANONYMOUS_ID_HEADER} is not a valid UUID")))?;
 

@@ -259,7 +259,11 @@ mod tests {
 
     #[test]
     fn payment_kind_round_trip() {
-        for k in [PaymentKind::OneTime, PaymentKind::Donation, PaymentKind::Subscription] {
+        for k in [
+            PaymentKind::OneTime,
+            PaymentKind::Donation,
+            PaymentKind::Subscription,
+        ] {
             assert_eq!(PaymentKind::parse(k.as_str()), Some(k));
         }
         assert_eq!(PaymentKind::parse("bogus"), None);

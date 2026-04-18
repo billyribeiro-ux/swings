@@ -1,3 +1,7 @@
+// Doc lists in this module use a bullet layout clippy classifies as
+// "overindented"; rewriting to satisfy the lint hurts readability.
+#![allow(clippy::doc_overindented_list_items)]
+
 //! CONSENT-05: country-code → regulatory region resolver.
 //!
 //! Maps an ISO 3166-1 alpha-2 country code onto one of a small, closed set of

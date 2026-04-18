@@ -51,8 +51,7 @@ pub async fn build_export(pool: &PgPool, request: &DsarRow) -> AppResult<DsarExp
     let user = fetch_user(pool, request).await?;
     let effective_user_id = request.user_id.or_else(|| user_id_from_value(&user));
 
-    let notification_deliveries =
-        fetch_deliveries(pool, effective_user_id, &request.email).await?;
+    let notification_deliveries = fetch_deliveries(pool, effective_user_id, &request.email).await?;
     let notification_preferences = match effective_user_id {
         Some(id) => fetch_preferences(pool, id).await?,
         None => Vec::new(),
@@ -110,7 +109,10 @@ fn percent_encode_basic(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for b in s.bytes() {
         let allowed = b.is_ascii_alphanumeric()
-            || matches!(b, b'-' | b'_' | b'.' | b'~' | b'/' | b':' | b'{' | b'}' | b',' | b' ');
+            || matches!(
+                b,
+                b'-' | b'_' | b'.' | b'~' | b'/' | b':' | b'{' | b'}' | b',' | b' '
+            );
         if allowed {
             out.push(b as char);
         } else {
@@ -133,12 +135,10 @@ fn hex_nibble(v: u8) -> char {
 // ── Private fetchers ────────────────────────────────────────────────────
 
 async fn table_exists(pool: &PgPool, table: &str) -> AppResult<bool> {
-    let exists: Option<String> = sqlx::query_scalar(
-        r#"SELECT to_regclass($1)::text"#,
-    )
-    .bind(table)
-    .fetch_one(pool)
-    .await?;
+    let exists: Option<String> = sqlx::query_scalar(r#"SELECT to_regclass($1)::text"#)
+        .bind(table)
+        .fetch_one(pool)
+        .await?;
     Ok(exists.is_some())
 }
 

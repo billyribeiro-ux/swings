@@ -259,13 +259,7 @@ fn render(data: &dyn InvoiceData, heading: &str, footer: &str) -> Vec<u8> {
     let tax = data.tax_cents();
     let total = data.total_cents();
 
-    layer.use_text(
-        "Subtotal:",
-        10.0,
-        Mm(totals_label_x),
-        Mm(y),
-        &font_regular,
-    );
+    layer.use_text("Subtotal:", 10.0, Mm(totals_label_x), Mm(y), &font_regular);
     layer.use_text(
         format_money(subtotal, currency),
         10.0,
@@ -276,13 +270,7 @@ fn render(data: &dyn InvoiceData, heading: &str, footer: &str) -> Vec<u8> {
     y -= ROW_H_MM;
 
     if discount > 0 {
-        layer.use_text(
-            "Discount:",
-            10.0,
-            Mm(totals_label_x),
-            Mm(y),
-            &font_regular,
-        );
+        layer.use_text("Discount:", 10.0, Mm(totals_label_x), Mm(y), &font_regular);
         layer.use_text(
             format!("-{}", format_money(discount, currency)),
             10.0,

@@ -70,6 +70,13 @@ impl ContentRange {
         self.end - self.start + 1
     }
 
+    /// Always false — a `ContentRange` always describes ≥ 1 byte by
+    /// construction (the parser rejects zero-length ranges). Present so
+    /// clippy's `len_without_is_empty` lint stays quiet.
+    pub fn is_empty(&self) -> bool {
+        false
+    }
+
     pub fn is_last(&self) -> bool {
         self.end + 1 == self.total
     }
@@ -102,7 +109,8 @@ pub fn sniff_and_enforce(bytes: &[u8], rules: &FileRules) -> Result<String, Uplo
     let detected = infer::get(bytes)
         .map(|t| t.mime_type().to_string())
         .unwrap_or_else(|| "application/octet-stream".to_string());
-    if !rules.allowed_mime_types.is_empty() && !rules.allowed_mime_types.iter().any(|m| m == &detected)
+    if !rules.allowed_mime_types.is_empty()
+        && !rules.allowed_mime_types.iter().any(|m| m == &detected)
     {
         return Err(UploadError::MimeRejected(detected));
     }
@@ -347,6 +355,9 @@ mod tests {
             .unwrap();
         assert_eq!(stored.mime_type, "image/png");
         assert_eq!(stored.size_bytes, PNG_MAGIC.len() as i64);
-        assert_eq!(storage.head(&key).await.unwrap(), Some(PNG_MAGIC.len() as u64));
+        assert_eq!(
+            storage.head(&key).await.unwrap(),
+            Some(PNG_MAGIC.len() as u64)
+        );
     }
 }

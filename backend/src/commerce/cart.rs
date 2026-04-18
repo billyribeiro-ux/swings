@@ -251,11 +251,7 @@ pub async fn clear_cart(pool: &PgPool, cart_id: Uuid) -> AppResult<()> {
 /// quantities on duplicate lines. The anonymous cart is deleted on success.
 /// This is the only path that takes the `user_id` + `anonymous_id` pair —
 /// every other API requires the user to have already merged.
-pub async fn merge_carts(
-    pool: &PgPool,
-    anonymous_id: Uuid,
-    user_id: Uuid,
-) -> AppResult<Cart> {
+pub async fn merge_carts(pool: &PgPool, anonymous_id: Uuid, user_id: Uuid) -> AppResult<Cart> {
     let mut tx = pool.begin().await?;
 
     let authed = sqlx::query_as::<_, Cart>(
