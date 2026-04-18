@@ -47,6 +47,11 @@ pub fn public_router() -> Router<AppState> {
     // FDN-08: separate rate-limit layers for submit vs partial. The schema
     // GET stays on the global governor only.
     Router::new()
+        // FORM-10 CountryStateField backing data — must be declared
+        // before the catch-all `/{slug}` route below to avoid the slug
+        // matcher swallowing the literal "geo" segment.
+        .route("/geo/countries", get(public_geo_countries))
+        .route("/geo/states", get(public_geo_states))
         .route("/{slug}", get(public_get_form))
         .merge(
             Router::new()
@@ -58,6 +63,13 @@ pub fn public_router() -> Router<AppState> {
                 .route("/{slug}/partial", post(public_save_partial))
                 .route("/{slug}/partial", get(public_load_partial))
                 .layer(crate::middleware::rate_limit::form_partial_layer()),
+        )
+        // FORM-08: payment-intent endpoint shares the submit rate-limit
+        // layer — it costs a Stripe round-trip on every call.
+        .merge(
+            Router::new()
+                .route("/{slug}/payment-intent", post(public_create_payment_intent))
+                .layer(crate::middleware::rate_limit::form_submit_layer()),
         )
 }
 
@@ -132,6 +144,30 @@ pub struct PartialResponse {
 #[derive(Debug, Deserialize)]
 pub struct PartialLoadQuery {
     pub token: String,
+}
+
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct PaymentIntentRequest {
+    /// FieldSchema `key` of the payment field on the form.
+    pub field_key: String,
+    /// Donor-supplied amount for `payment_kind = donation`. Ignored for
+    /// fixed-amount one-time payments — the schema's `amount_cents` wins.
+    #[serde(default)]
+    pub amount_cents: Option<i64>,
+    /// Donor email — receipts are sent to this address.
+    pub email: String,
+    /// Optional resume token if the field is on a draft (so we can
+    /// later cross-link `form_payment_intents.partial_id`).
+    #[serde(default)]
+    pub resume_token: Option<String>,
+}
+
+#[derive(Debug, Serialize, ToSchema)]
+pub struct PaymentIntentClientResponse {
+    pub intent_id: String,
+    pub client_secret: String,
+    pub amount_cents: i64,
+    pub currency: String,
 }
 
 #[derive(Debug, Serialize, ToSchema)]
@@ -384,6 +420,183 @@ pub async fn public_save_partial(
     Ok(Json(PartialResponse {
         resume_token: token,
         expires_at,
+    }))
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GeoStatesQuery {
+    pub country: String,
+}
+
+/// FORM-10: ISO 3166-1 alpha-2 country list for the chained dropdown.
+#[utoipa::path(
+    get,
+    path = "/api/forms/geo/countries",
+    tag = "forms",
+    responses((status = 200, description = "Country list", body = [crate::forms::geo::Country]))
+)]
+pub async fn public_geo_countries() -> Json<Vec<crate::forms::geo::Country>> {
+    Json(crate::forms::geo::countries())
+}
+
+/// FORM-10: ISO 3166-2 state / province list for the supplied alpha-2
+/// country. Returns an empty array for uncovered countries — the
+/// renderer falls back to a free-text input in that case.
+#[utoipa::path(
+    get,
+    path = "/api/forms/geo/states",
+    tag = "forms",
+    params(("country" = String, Query, description = "ISO 3166-1 alpha-2")),
+    responses((status = 200, description = "State list", body = [crate::forms::geo::State]))
+)]
+pub async fn public_geo_states(
+    Query(q): Query<GeoStatesQuery>,
+) -> Json<Vec<crate::forms::geo::State>> {
+    Json(crate::forms::geo::states_for(&q.country.to_uppercase()))
+}
+
+/// FORM-08: mint a Stripe PaymentIntent for a payment / donation field.
+///
+/// Required header: `Idempotency-Key` (UUID-ish opaque token). Replays
+/// short-circuit at the DB lookup before we ever round-trip Stripe.
+#[utoipa::path(
+    post,
+    path = "/api/forms/{slug}/payment-intent",
+    tag = "forms",
+    params(("slug" = String, Path, description = "Form URL slug")),
+    request_body = PaymentIntentRequest,
+    responses(
+        (status = 200, description = "Intent created", body = PaymentIntentClientResponse),
+        (status = 400, description = "Missing Idempotency-Key or invalid amount"),
+        (status = 404, description = "Form / field not found")
+    )
+)]
+pub async fn public_create_payment_intent(
+    State(state): State<AppState>,
+    Path(slug): Path<String>,
+    headers: HeaderMap,
+    Json(req): Json<PaymentIntentRequest>,
+) -> AppResult<Json<PaymentIntentClientResponse>> {
+    let idempotency_key = headers
+        .get("idempotency-key")
+        .and_then(|v| v.to_str().ok())
+        .ok_or_else(|| AppError::BadRequest("Missing Idempotency-Key header".into()))?;
+
+    if idempotency_key.len() < 8 || idempotency_key.len() > 128 {
+        return Err(AppError::BadRequest(
+            "Idempotency-Key must be 8..128 chars".into(),
+        ));
+    }
+
+    // Replay short-circuit — return the stored secret without touching Stripe.
+    if let Some(existing) =
+        crate::forms::find_payment_intent_by_key(&state.db, idempotency_key).await?
+    {
+        return Ok(Json(PaymentIntentClientResponse {
+            intent_id: existing.stripe_payment_intent_id,
+            client_secret: existing.stripe_client_secret,
+            amount_cents: existing.amount_cents,
+            currency: existing.currency,
+        }));
+    }
+
+    let form = repo::get_form_by_slug(&state.db, &slug)
+        .await?
+        .ok_or_else(|| AppError::NotFound(format!("form `{slug}` not found")))?;
+    if !form.is_active {
+        return Err(AppError::NotFound(format!("form `{slug}` is not active")));
+    }
+    let version = repo::get_active_version(&state.db, form.id)
+        .await?
+        .ok_or_else(|| AppError::NotFound(format!("form `{slug}` has no published version")))?;
+
+    // Locate the named field + extract its payment config from schema_json.
+    let fields: Vec<FieldSchema> = serde_json::from_value(version.schema_json.clone())
+        .map_err(|e| {
+            AppError::Internal(anyhow::anyhow!(
+                "form schema is not a FieldSchema array: {e}"
+            ))
+        })?;
+    let field = fields
+        .into_iter()
+        .find(|f| f.meta().key == req.field_key)
+        .ok_or_else(|| {
+            AppError::NotFound(format!("field `{}` not on form `{}`", req.field_key, slug))
+        })?;
+
+    let (kind, amount_cents, currency) = match field {
+        FieldSchema::Payment {
+            amount_cents: schema_amount,
+            currency,
+            payment_kind,
+            suggested_amounts,
+            allow_custom,
+            ..
+        } => {
+            let kind = crate::forms::PaymentKind::parse(&payment_kind).ok_or_else(|| {
+                AppError::BadRequest(format!("unknown payment_kind `{payment_kind}`"))
+            })?;
+            let resolved = match kind {
+                crate::forms::PaymentKind::Donation => {
+                    let req_amount = req.amount_cents.unwrap_or(schema_amount);
+                    crate::forms::validate_donation_amount(
+                        req_amount,
+                        &suggested_amounts,
+                        allow_custom,
+                    )
+                    .map_err(|e| AppError::BadRequest(format!("{e}")))?;
+                    req_amount
+                }
+                _ => schema_amount,
+            };
+            (kind, resolved, currency)
+        }
+        FieldSchema::Subscription { .. } => {
+            return Err(AppError::BadRequest(
+                "subscription fields require the dedicated subscription endpoint".into(),
+            ));
+        }
+        _ => {
+            return Err(AppError::BadRequest(format!(
+                "field `{}` is not a payment field",
+                req.field_key
+            )));
+        }
+    };
+
+    let metadata_id = format!("form:{}", form.id);
+    let (pi_id, client_secret) = crate::stripe_api::create_form_payment_intent(
+        &state,
+        amount_cents,
+        &currency,
+        &req.email,
+        &metadata_id,
+        Some(idempotency_key),
+    )
+    .await?;
+
+    crate::forms::insert_payment_intent(
+        &state.db,
+        form.id,
+        &req.field_key,
+        None,
+        &pi_id,
+        &client_secret,
+        None,
+        None,
+        amount_cents,
+        &currency,
+        kind,
+        idempotency_key,
+        "requires_payment_method",
+    )
+    .await?;
+
+    Ok(Json(PaymentIntentClientResponse {
+        intent_id: pi_id,
+        client_secret,
+        amount_cents,
+        currency,
     }))
 }
 

@@ -285,13 +285,30 @@ pub enum FieldSchema {
         html: String,
     },
     /// Stripe Elements card; FORM-08 wires the PaymentIntent.
+    /// Stripe Elements card; FORM-08 wires the PaymentIntent.
+    ///
+    /// Two shapes via `payment_kind`:
+    ///   * `one_time` (default) — fixed `amount_cents` charge.
+    ///   * `donation` — donor picks from `suggested_amounts` (minor units)
+    ///     or supplies a custom amount when `allow_custom` is true.
     Payment {
         #[serde(flatten)]
         meta: FieldMeta,
-        /// Amount in minor currency units (cents).
-        amount_cents: i32,
+        /// Amount in minor currency units (cents). For donation kind this
+        /// is the default fallback when the donor sends no amount.
+        amount_cents: i64,
         #[serde(default = "default_currency")]
         currency: String,
+        /// `"one_time"` (default) or `"donation"`.
+        #[serde(default = "default_payment_kind")]
+        payment_kind: String,
+        /// Donation preset amounts (minor units). Empty ⇒ free-form only.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        suggested_amounts: Vec<i64>,
+        /// When true + `payment_kind = donation`, donors may enter a
+        /// custom amount that is not in `suggested_amounts`.
+        #[serde(default)]
+        allow_custom: bool,
     },
     /// Stripe subscription plan; FORM-08.
     Subscription {
@@ -428,6 +445,10 @@ fn default_max_stars() -> u32 {
 
 fn default_currency() -> String {
     "usd".to_string()
+}
+
+fn default_payment_kind() -> String {
+    "one_time".to_string()
 }
 
 fn default_quiz_points() -> u32 {
@@ -734,6 +755,9 @@ mod tests {
                 meta: meta("pay"),
                 amount_cents: 1999,
                 currency: "usd".into(),
+                payment_kind: "one_time".into(),
+                suggested_amounts: vec![],
+                allow_custom: false,
             },
             "payment",
             "pay",
