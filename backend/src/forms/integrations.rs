@@ -371,14 +371,81 @@ impl IntegrationAdapter for Sheets {
     }
 }
 
-/// Mint an OAuth2 access token for a Google service account JSON.
-/// Implemented via JWT bearer assertion (RS256) — out of scope for this
-/// commit; returns NotConfigured so the adapter is wired but unusable
-/// until the JWT minter lands. The runbook calls this out.
-async fn google_oauth_token(_service_account_json: &str) -> Result<String, IntegrationError> {
-    Err(IntegrationError::NotConfigured(
-        "sheets: service-account JWT bearer flow pending",
-    ))
+/// Mint an OAuth2 access token for a Google service account.
+///
+/// Implements the [JWT bearer flow][rfc7523]: build an RS256-signed
+/// claim with the service-account email as `iss`, the requested scope,
+/// `https://oauth2.googleapis.com/token` as `aud`, and a 1-hour
+/// expiry. POST `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
+/// &assertion=…` to the token endpoint and return the response's
+/// `access_token`.
+///
+/// [rfc7523]: https://datatracker.ietf.org/doc/html/rfc7523
+async fn google_oauth_token(service_account_json: &str) -> Result<String, IntegrationError> {
+    use jsonwebtoken::{Algorithm, EncodingKey, Header};
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    #[derive(serde::Deserialize)]
+    struct ServiceAccount {
+        client_email: String,
+        private_key: String,
+        token_uri: Option<String>,
+    }
+
+    #[derive(serde::Serialize)]
+    struct Claims<'a> {
+        iss: &'a str,
+        scope: &'a str,
+        aud: &'a str,
+        exp: u64,
+        iat: u64,
+    }
+
+    #[derive(serde::Deserialize)]
+    struct TokenResponse {
+        access_token: String,
+    }
+
+    let sa: ServiceAccount = serde_json::from_str(service_account_json).map_err(|e| {
+        IntegrationError::Permanent(format!("sheets service-account JSON malformed: {e}"))
+    })?;
+
+    let token_uri = sa
+        .token_uri
+        .as_deref()
+        .unwrap_or("https://oauth2.googleapis.com/token");
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|_| IntegrationError::Permanent("system clock before unix epoch".into()))?
+        .as_secs();
+    let claims = Claims {
+        iss: &sa.client_email,
+        scope: "https://www.googleapis.com/auth/spreadsheets",
+        aud: token_uri,
+        exp: now + 3600,
+        iat: now,
+    };
+    let key = EncodingKey::from_rsa_pem(sa.private_key.as_bytes())
+        .map_err(|e| IntegrationError::Permanent(format!("sheets private_key not RSA PEM: {e}")))?;
+    let assertion = jsonwebtoken::encode(&Header::new(Algorithm::RS256), &claims, &key)
+        .map_err(|e| IntegrationError::Permanent(format!("sheets JWT encode failed: {e}")))?;
+
+    let client = reqwest::Client::new();
+    let res = client
+        .post(token_uri)
+        .form(&[
+            ("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer"),
+            ("assertion", &assertion),
+        ])
+        .send()
+        .await
+        .map_err(|e| IntegrationError::Transient(e.to_string()))?;
+    let res = classify(res).await?;
+    let body: TokenResponse = res
+        .json()
+        .await
+        .map_err(|e| IntegrationError::Permanent(format!("sheets token response decode: {e}")))?;
+    Ok(body.access_token)
 }
 
 pub struct Notion;
