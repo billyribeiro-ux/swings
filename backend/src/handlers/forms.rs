@@ -47,6 +47,11 @@ pub fn public_router() -> Router<AppState> {
     // FDN-08: separate rate-limit layers for submit vs partial. The schema
     // GET stays on the global governor only.
     Router::new()
+        // FORM-10 CountryStateField backing data — must be declared
+        // before the catch-all `/{slug}` route below to avoid the slug
+        // matcher swallowing the literal "geo" segment.
+        .route("/geo/countries", get(public_geo_countries))
+        .route("/geo/states", get(public_geo_states))
         .route("/{slug}", get(public_get_form))
         .merge(
             Router::new()
@@ -416,6 +421,38 @@ pub async fn public_save_partial(
         resume_token: token,
         expires_at,
     }))
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GeoStatesQuery {
+    pub country: String,
+}
+
+/// FORM-10: ISO 3166-1 alpha-2 country list for the chained dropdown.
+#[utoipa::path(
+    get,
+    path = "/api/forms/geo/countries",
+    tag = "forms",
+    responses((status = 200, description = "Country list", body = [crate::forms::geo::Country]))
+)]
+pub async fn public_geo_countries() -> Json<Vec<crate::forms::geo::Country>> {
+    Json(crate::forms::geo::countries())
+}
+
+/// FORM-10: ISO 3166-2 state / province list for the supplied alpha-2
+/// country. Returns an empty array for uncovered countries — the
+/// renderer falls back to a free-text input in that case.
+#[utoipa::path(
+    get,
+    path = "/api/forms/geo/states",
+    tag = "forms",
+    params(("country" = String, Query, description = "ISO 3166-1 alpha-2")),
+    responses((status = 200, description = "State list", body = [crate::forms::geo::State]))
+)]
+pub async fn public_geo_states(
+    Query(q): Query<GeoStatesQuery>,
+) -> Json<Vec<crate::forms::geo::State>> {
+    Json(crate::forms::geo::states_for(&q.country.to_uppercase()))
 }
 
 /// FORM-08: mint a Stripe PaymentIntent for a payment / donation field.

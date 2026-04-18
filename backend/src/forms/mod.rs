@@ -12,6 +12,7 @@
 //! The tables these modules read/write live in migration `025_forms.sql`.
 
 pub mod antispam;
+pub mod geo;
 pub mod integration_config;
 pub mod integrations;
 pub mod logic;
