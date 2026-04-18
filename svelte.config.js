@@ -25,6 +25,22 @@ const config = {
 			handleMissingId: 'warn',
 			crawl: true,
 			entries: ['/', '/about', '/courses', '/blog', '/pricing', '/pricing/monthly', '/pricing/annual']
+		},
+		// SvelteKit 2.27+ experimental: type-safe server↔client RPC via
+		// `.remote.ts` files exporting `query` / `form` / `command` / `prerender`
+		// helpers from `$app/server`. Still flagged experimental upstream; opt-in
+		// is required. See https://svelte.dev/docs/kit/remote-functions
+		experimental: {
+			remoteFunctions: true
+		}
+	},
+	// Paired with the Kit flag: enables top-level `await` inside `<script>` and
+	// markup `{#await}` shortcut via bare `await` expressions (e.g.
+	// `{await getPosts()}`) resolved during SSR. Required for remote query
+	// consumption from `.svelte` files.
+	compilerOptions: {
+		experimental: {
+			async: true
 		}
 	}
 };

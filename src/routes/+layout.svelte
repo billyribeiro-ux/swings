@@ -73,6 +73,10 @@
 			!['/dashboard', '/login', '/register'].some((p) => page.url.pathname.startsWith(p))
 	);
 
+	// Prefixed with `_` so `@typescript-eslint/no-unused-vars` (configured in
+	// `eslint.config.js` with `varsIgnorePattern: '^_'`) does not flag it —
+	// the linter does not trace usage through `{@html …}` inside a raw-text
+	// `<script type="application/ld+json">` tag in `<svelte:head>`.
 	const _globalJsonLd = buildJsonLd([organizationSchema(), webSiteSchema()]);
 </script>
 
@@ -83,7 +87,7 @@
 	{#if isNoindexRoute}
 		<meta name="robots" content="noindex, nofollow" />
 	{/if}
-	<script type="application/ld+json">{_globalJsonLd}</script>
+	<script type="application/ld+json">{@html _globalJsonLd}</script>
 </svelte:head>
 
 <AnalyticsBeacon />

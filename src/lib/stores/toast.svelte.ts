@@ -1,4 +1,10 @@
-// Svelte 5 runes-based toast store
+// Svelte 5 runes-based toast store.
+//
+// @deprecated Use `toasts` from `$lib/stores/toasts.svelte.ts` instead — that
+// is the canonical PE7 toast store paired with `ToastRegion` from
+// `$lib/components/shared`. This legacy store pairs with the orphaned
+// `$lib/components/ui/Toast.svelte` and has no active consumers; kept until
+// the next minor release to avoid breaking any out-of-tree imports.
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
 export interface Toast {

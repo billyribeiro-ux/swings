@@ -5,12 +5,10 @@ import type { BlogPostListItem, BlogCategory, PaginatedResponse } from '$lib/api
 const API = getPublicApiBase();
 
 export const load: PageServerLoad = async ({ url, fetch }) => {
-	let page: number;
-	try {
-		page = Number(url.searchParams.get('page') || '1');
-	} catch {
-		page = 1;
-	}
+	// `Number()` never throws but returns NaN for non-numeric input; guard so the
+	// API call always receives a valid positive integer page number.
+	const rawPage = Number(url.searchParams.get('page') ?? '1');
+	const page = Number.isFinite(rawPage) && rawPage >= 1 ? Math.floor(rawPage) : 1;
 	const per_page = 12;
 
 	const [postsRes, catsRes] = await Promise.allSettled([
