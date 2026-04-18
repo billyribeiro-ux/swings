@@ -48,10 +48,9 @@ jobs:
         run: cargo binstall --no-confirm --force cargo-audit
 
       - name: Run cargo audit
-        # Pin the RustSec advisory DB to a known branch. `--deny warnings`
-        # treats unmaintained / yanked crates as hard failures alongside
-        # CVEs; loosen if the noise becomes unmanageable.
-        run: cargo audit --deny warnings --db-url https://github.com/rustsec/advisory-db
+        # `--deny warnings` treats unmaintained / yanked crates as hard
+        # failures alongside CVEs; loosen if the noise becomes unmanageable.
+        run: cargo audit --deny warnings
 
   pnpm-audit:
     name: pnpm Audit
