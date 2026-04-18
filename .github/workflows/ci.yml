@@ -90,7 +90,7 @@ jobs:
           shared-key: backend-coverage
 
       - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@v1.10.24
+        uses: cargo-bins/cargo-binstall@v1.12.0
 
       - name: Install cargo-llvm-cov
         # TODO: if cargo-llvm-cov proves too heavy on the default runner,
