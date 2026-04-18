@@ -117,6 +117,13 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: '1'
           ignore-unfixed: true
+          # IMPORTANT: honour the `severity` filter for the exit-code gate.
+          # Without this, trivy-action's entrypoint UNSETs TRIVY_SEVERITY
+          # when generating SARIF (so the SARIF upload covers every level
+          # for Code Scanning), which silently causes any LOW/MEDIUM
+          # finding to blow up the job. See `entrypoint.sh` in the
+          # action source: `unset TRIVY_SEVERITY`.
+          limit-severities-for-sarif: true
           # Path-based exclusions. Trivy's `.trivyignore` file is specifically
           # for vulnerability-ID suppressions (CVE-XXXX, GHSA-XXXX); use the
           # action's first-class `skip-dirs` / `skip-files` inputs for paths
