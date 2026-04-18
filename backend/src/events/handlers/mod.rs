@@ -11,10 +11,12 @@ use std::pin::Pin;
 use super::dispatcher::DispatchError;
 use super::outbox::OutboxRecord;
 
+pub mod digital_delivery;
 pub mod notify;
 pub mod popup_attribution;
 pub mod webhook_out;
 
+pub use digital_delivery::DigitalDeliveryHandler;
 pub use notify::NotifyHandler;
 pub use popup_attribution::PopupAttributionHandler;
 pub use webhook_out::WebhookOutHandler;

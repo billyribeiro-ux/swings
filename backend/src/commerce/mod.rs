@@ -21,11 +21,45 @@
 //! newtype is applied in the service + handler layers, never in the row layer.
 
 pub mod cart;
+pub mod catalog;
+pub mod checkout;
 pub mod coupons;
+pub mod downloads;
+pub mod memberships;
+pub mod orders;
 pub mod products;
+pub mod reports;
 pub mod repo;
+pub mod subscriptions;
+pub mod tax;
+
+pub use reports::{
+    churn_rate, cohort_ltv, coupon_performance, lifetime_value_for_user, mrr_arr,
+    revenue_summary, ChurnRate, CohortPoint, CouponPerformance, MrrArr, RevenueSummary,
+};
+
+pub use memberships::{
+    can_access, cancel_membership, create_plan as create_membership_plan, grant_membership,
+    list_user_memberships, plan_grants, Membership, MembershipPlan, Resource,
+};
+
+pub use subscriptions::{
+    next_dunning_attempt, pause as pause_subscription, prorate,
+    record_change as record_sub_change, record_dunning_result,
+    resume as resume_subscription, schedule_dunning, DunningAttempt, SubscriptionChange,
+    SubscriptionError,
+};
+
+pub use checkout::{
+    create_checkout_session, delete_address, list_addresses, save_address, Address,
+    CheckoutError, CheckoutSession, MintedIntent, StripeIntentMinter, UpsertAddress,
+};
 
 pub use cart::{Cart, CartIdentity, CartItem, CartTotals};
+pub use orders::{
+    can_transition, create_order, get_order, get_order_by_payment_intent, next_order_number,
+    transition, CreateOrderInput, Order, OrderError, OrderItem, OrderNote, OrderRefund, OrderStatus,
+};
 pub use coupons::{
     AppliedCoupon, BogoConfig, CartLine, CouponEngine, CouponInput, CouponScope, RecurringMode,
 };
