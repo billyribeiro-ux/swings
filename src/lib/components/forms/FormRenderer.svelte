@@ -42,6 +42,7 @@
 <script lang="ts">
 	import './forms.css';
 	import { onMount, tick } from 'svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 	import {
 		loadPartial,
 		savePartial,
@@ -108,10 +109,10 @@
 
 	/** Returns the per-rule verdicts for the current data map. */
 	const verdict = $derived.by(() => {
-		const hidden = new Set<string>();
-		const shown = new Set<string>();
-		const required = new Set<string>();
-		const skippedSteps = new Set<number>();
+		const hidden = new SvelteSet<string>();
+		const shown = new SvelteSet<string>();
+		const required = new SvelteSet<string>();
+		const skippedSteps = new SvelteSet<number>();
 		const setValues: Array<{ field: string; value: unknown }> = [];
 		for (const rule of logic) {
 			if (!evaluateCondition(rule.condition, data)) continue;

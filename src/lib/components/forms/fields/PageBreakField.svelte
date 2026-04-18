@@ -8,6 +8,5 @@
 	import type { FieldProps } from '../types.ts';
 	// Accept the full FieldProps bag for dispatcher-splat compatibility; the
 	// body renders nothing, so the prop values are intentionally unused.
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const _ignored: FieldProps = $props();
 </script>

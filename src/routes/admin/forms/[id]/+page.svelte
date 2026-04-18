@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { goto } from '$app/navigation';
 	import FloppyDisk from 'phosphor-svelte/lib/FloppyDisk';
 	import Eye from 'phosphor-svelte/lib/Eye';
 	import { api } from '$lib/api/client';

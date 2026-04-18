@@ -17,10 +17,13 @@
 	);
 
 	function handleToggle(optValue: string, checked: boolean) {
-		const set = new Set(selected);
-		if (checked) set.add(optValue);
-		else set.delete(optValue);
-		onChange(field.key, Array.from(set));
+		// Local-scope dedupe — the Set never escapes the function and the
+		// array shipped via onChange is what the renderer consumes.
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity
+		const next = new Set<string>(selected);
+		if (checked) next.add(optValue);
+		else next.delete(optValue);
+		onChange(field.key, Array.from(next));
 	}
 </script>
 
