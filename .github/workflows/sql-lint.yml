@@ -38,12 +38,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          cache: pip
+          # No `cache: pip` — we have no requirements.txt / pyproject.toml
+          # to drive the cache key. sqlfluff is a single pinned install,
+          # downloading it each run (~2 s) costs less than maintaining a
+          # sidecar lockfile just for the cache.
 
       - name: Install sqlfluff
-        # Use pipx so the CLI is isolated from system Python and survives
-        # runner caching cleanly. Pin the version so new rule defaults do
-        # not quietly start failing existing migrations.
+        # Pin the version so new rule defaults do not quietly start
+        # failing existing migrations; upgrade deliberately.
         run: |
           python -m pip install --upgrade pip
           pip install --user 'sqlfluff==3.2.5'
