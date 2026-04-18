@@ -37,10 +37,10 @@ BEFORE INSERT OR UPDATE OF name, description, seo_description ON products
 FOR EACH ROW EXECUTE FUNCTION products_search_tsv_update();
 
 -- Backfill every existing row so the index is complete.
-UPDATE products SET search_tsv =
-    setweight(to_tsvector('simple', coalesce(name, '')), 'A') ||
-    setweight(to_tsvector('simple', coalesce(description, '')), 'B') ||
-    setweight(to_tsvector('simple', coalesce(seo_description, '')), 'C');
+UPDATE products SET search_tsv
+    = setweight(to_tsvector('simple', coalesce(name, '')), 'A')
+        || setweight(to_tsvector('simple', coalesce(description, '')), 'B')
+        || setweight(to_tsvector('simple', coalesce(seo_description, '')), 'C');
 
 CREATE INDEX IF NOT EXISTS products_search_tsv_idx ON products USING gin (search_tsv);
 
@@ -109,8 +109,8 @@ SELECT
     c.slug                   AS facet_label,
     COUNT(DISTINCT p.id)::bigint AS product_count
 FROM product_categories c
-LEFT JOIN product_category_links l ON l.category_id = c.id
-LEFT JOIN products p ON p.id = l.product_id AND p.status = 'published'
+LEFT JOIN product_category_links l ON c.id = l.category_id
+LEFT JOIN products p ON l.product_id = p.id AND p.status = 'published'
 GROUP BY c.id, c.slug
 UNION ALL
 SELECT

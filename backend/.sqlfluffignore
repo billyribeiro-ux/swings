@@ -1,0 +1,13 @@
+# sqlfluff ignore list (gitignore-style patterns).
+#
+# Only files that the linter CANNOT process — never use this as a
+# convenience escape hatch for style findings. Each entry must cite the
+# reason inline.
+
+# `interval` is a Postgres reserved keyword that sqlfluff's DDL parser
+# cannot resolve as a column identifier. Renaming the column is a wider
+# refactor (see the file's header comment for the full rationale). Skip
+# it entirely until sqlfluff upstream learns reserved-word columns
+# (tracked at https://github.com/sqlfluff/sqlfluff). Path is relative to
+# this .sqlfluffignore (the `backend/` directory).
+migrations/012_pricing_plans.sql

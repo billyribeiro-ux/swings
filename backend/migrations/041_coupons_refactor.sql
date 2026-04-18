@@ -26,11 +26,9 @@ ALTER TABLE coupons
 UPDATE coupons
    SET discount_value_cents = CASE
            WHEN discount_type = 'fixed_amount' THEN (discount_value * 100)::BIGINT
-           ELSE NULL
        END,
        discount_percent_bps = CASE
            WHEN discount_type = 'percentage' THEN (discount_value * 100)::INT
-           ELSE NULL
        END
  WHERE discount_value_cents IS NULL
    AND discount_percent_bps IS NULL;

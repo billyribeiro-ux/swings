@@ -242,5 +242,3 @@ ON CONFLICT (role, permission) DO NOTHING;
 INSERT INTO role_permissions (role, permission)
 SELECT 'admin'::user_role, p.key FROM permissions p
 ON CONFLICT (role, permission) DO NOTHING;
-</content>
-</invoke>

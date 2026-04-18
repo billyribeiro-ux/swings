@@ -1,4 +1,12 @@
 -- Migration 012: Admin-configurable pricing plans with change audit log
+--
+-- Parser note: the `interval` column uses the Postgres reserved keyword.
+-- PostgreSQL accepts it unquoted in this position and sqlx handles the
+-- quoting transparently at runtime. sqlfluff 3.x's parser, however, cannot
+-- reconcile reserved-word column identifiers — see the `.sqlfluff` config
+-- where this file is listed under `exclude_files` with a cross-reference
+-- back to this note. Renaming the column would ripple through `models.rs`,
+-- `db.rs`, `handlers/pricing.rs`, and production data.
 
 CREATE TABLE pricing_plans (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
