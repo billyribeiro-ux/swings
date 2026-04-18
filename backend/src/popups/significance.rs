@@ -187,7 +187,10 @@ mod tests {
         let a = pt(1000, 200);
         let b = pt(1000, 201);
         let r = two_proportion_z_test(a, b, 0.05);
-        assert!(r.winner.is_none(), "tiny differences should not trip α=0.05");
+        assert!(
+            r.winner.is_none(),
+            "tiny differences should not trip α=0.05"
+        );
     }
 
     #[test]

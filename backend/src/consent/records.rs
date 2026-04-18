@@ -148,10 +148,7 @@ pub struct ConsentRecordRow {
 }
 
 /// Insert a single consent event and return its new id.
-pub async fn insert_consent_record(
-    pool: &PgPool,
-    input: &ConsentRecordInput,
-) -> AppResult<Uuid> {
+pub async fn insert_consent_record(pool: &PgPool, input: &ConsentRecordInput) -> AppResult<Uuid> {
     let row: (Uuid,) = sqlx::query_as(
         r#"
         INSERT INTO consent_records
@@ -266,10 +263,7 @@ pub struct DsarCreateInput {
 }
 
 /// Insert a new DSAR request; row always starts in `status='pending'`.
-pub async fn create_dsar_request(
-    pool: &PgPool,
-    input: &DsarCreateInput,
-) -> AppResult<DsarRow> {
+pub async fn create_dsar_request(pool: &PgPool, input: &DsarCreateInput) -> AppResult<DsarRow> {
     let row = sqlx::query_as::<_, DsarRow>(
         r#"
         INSERT INTO dsar_requests

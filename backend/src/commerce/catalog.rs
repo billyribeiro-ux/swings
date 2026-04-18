@@ -102,7 +102,9 @@ pub fn build_where_fragment(params: &SearchParams) -> (String, usize) {
     if let Some(q) = params.q.as_ref().filter(|s| !s.trim().is_empty()) {
         let _ = q;
         binds += 1;
-        parts.push(format!("p.search_tsv @@ plainto_tsquery('simple', ${binds})"));
+        parts.push(format!(
+            "p.search_tsv @@ plainto_tsquery('simple', ${binds})"
+        ));
     }
 
     if params.category_id.is_some() {
@@ -142,10 +144,7 @@ pub fn build_where_fragment(params: &SearchParams) -> (String, usize) {
 // ── Public API ─────────────────────────────────────────────────────────
 
 /// Run the search. Returns products + total count + facets.
-pub async fn search_products(
-    pool: &PgPool,
-    params: &SearchParams,
-) -> AppResult<SearchResponse> {
+pub async fn search_products(pool: &PgPool, params: &SearchParams) -> AppResult<SearchResponse> {
     let per_page = params.per_page.unwrap_or(20).clamp(1, 100);
     let page = params.page.unwrap_or(1).max(1);
     let offset = (page - 1) * per_page;

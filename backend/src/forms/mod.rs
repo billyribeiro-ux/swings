@@ -23,19 +23,16 @@ pub mod uploads;
 pub mod validation;
 
 pub use payment::{
-    find_by_idempotency_key as find_payment_intent_by_key,
-    insert_intent as insert_payment_intent, mark_succeeded as mark_payment_succeeded,
-    validate_donation_amount, FormPaymentIntent, PaymentError, PaymentIntentResponse,
-    PaymentKind,
+    find_by_idempotency_key as find_payment_intent_by_key, insert_intent as insert_payment_intent,
+    mark_succeeded as mark_payment_succeeded, validate_donation_amount, FormPaymentIntent,
+    PaymentError, PaymentIntentResponse, PaymentKind,
 };
 
 pub use integration_config::{
     decrypt as decrypt_credential, encrypt as encrypt_credential, integration_id, CryptoError,
     IntegrationConfig, SealedCredential,
 };
-pub use integrations::{
-    adapter_for, IntegrationAdapter, IntegrationError, SubmissionPayload,
-};
+pub use integrations::{adapter_for, IntegrationAdapter, IntegrationError, SubmissionPayload};
 
 pub use antispam::{
     Akismet, AntispamPipeline, Dedup, Honeypot, SpamCheck, SpamVerdict, SubmissionContext,

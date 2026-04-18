@@ -18,9 +18,7 @@ use crate::error::AppResult;
 pub enum PopupElement {
     /// Reference to a Domain-2 form. Hydrated server-side into
     /// [`PopupElement::FormEmbed`] before the popup is served.
-    FormRef {
-        form_id: Uuid,
-    },
+    FormRef { form_id: Uuid },
     /// Inlined form schema, populated by [`hydrate_content`].
     FormEmbed {
         form_id: Uuid,

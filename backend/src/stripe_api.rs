@@ -72,11 +72,12 @@ pub async fn create_form_payment_intent(
     metadata.insert("ref".to_string(), metadata_id.to_string());
     params.metadata = Some(metadata);
 
-    let pi = PaymentIntent::create(&c, params).await.map_err(map_stripe)?;
-    let secret = pi
-        .client_secret
-        .clone()
-        .ok_or_else(|| AppError::BadRequest("Stripe returned PI without client_secret".to_string()))?;
+    let pi = PaymentIntent::create(&c, params)
+        .await
+        .map_err(map_stripe)?;
+    let secret = pi.client_secret.clone().ok_or_else(|| {
+        AppError::BadRequest("Stripe returned PI without client_secret".to_string())
+    })?;
     Ok((pi.id.to_string(), secret))
 }
 

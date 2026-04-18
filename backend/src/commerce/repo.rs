@@ -90,20 +90,16 @@ pub async fn list_products(
 pub async fn get_product(pool: &PgPool, lookup: ProductLookup<'_>) -> AppResult<Product> {
     let row: Option<Product> = match lookup {
         ProductLookup::Id(id) => {
-            sqlx::query_as::<_, Product>(
-                r#"SELECT * FROM products WHERE id = $1"#,
-            )
-            .bind(id)
-            .fetch_optional(pool)
-            .await?
+            sqlx::query_as::<_, Product>(r#"SELECT * FROM products WHERE id = $1"#)
+                .bind(id)
+                .fetch_optional(pool)
+                .await?
         }
         ProductLookup::Slug(slug) => {
-            sqlx::query_as::<_, Product>(
-                r#"SELECT * FROM products WHERE slug = $1"#,
-            )
-            .bind(slug)
-            .fetch_optional(pool)
-            .await?
+            sqlx::query_as::<_, Product>(r#"SELECT * FROM products WHERE slug = $1"#)
+                .bind(slug)
+                .fetch_optional(pool)
+                .await?
         }
     };
     row.ok_or_else(|| AppError::NotFound("Product not found".to_string()))

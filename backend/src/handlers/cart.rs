@@ -145,8 +145,9 @@ pub(crate) async fn add_item(
     // Resolve the unit price at add-time so later price edits don't
     // retroactively change a visitor's open cart. Variant price overrides
     // product price when set.
-    let product = product_repo::get_product(&state.db, product_repo::ProductLookup::Id(req.product_id))
-        .await?;
+    let product =
+        product_repo::get_product(&state.db, product_repo::ProductLookup::Id(req.product_id))
+            .await?;
     let unit_price = if let Some(var_id) = req.variant_id {
         let variants = product_repo::list_variants(&state.db, product.id).await?;
         let variant = variants

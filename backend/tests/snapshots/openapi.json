@@ -4235,6 +4235,65 @@
         }
       }
     },
+    "/api/forms/geo/countries": {
+      "get": {
+        "tags": [
+          "forms"
+        ],
+        "summary": "FORM-10: ISO 3166-1 alpha-2 country list for the chained dropdown.",
+        "operationId": "public_geo_countries",
+        "responses": {
+          "200": {
+            "description": "Country list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Country"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/forms/geo/states": {
+      "get": {
+        "tags": [
+          "forms"
+        ],
+        "summary": "FORM-10: ISO 3166-2 state / province list for the supplied alpha-2\ncountry. Returns an empty array for uncovered countries — the\nrenderer falls back to a free-text input in that case.",
+        "operationId": "public_geo_states",
+        "parameters": [
+          {
+            "name": "country",
+            "in": "query",
+            "description": "ISO 3166-1 alpha-2",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "State list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/State"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/forms/{slug}": {
       "get": {
         "tags": [
@@ -4309,6 +4368,55 @@
           },
           "404": {
             "description": "Form not found"
+          }
+        }
+      }
+    },
+    "/api/forms/{slug}/payment-intent": {
+      "post": {
+        "tags": [
+          "forms"
+        ],
+        "summary": "FORM-08: mint a Stripe PaymentIntent for a payment / donation field.",
+        "description": "Required header: `Idempotency-Key` (UUID-ish opaque token). Replays\nshort-circuit at the DB lookup before we ever round-trip Stripe.",
+        "operationId": "public_create_payment_intent",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "Form URL slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentIntentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Intent created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentIntentClientResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing Idempotency-Key or invalid amount"
+          },
+          "404": {
+            "description": "Form / field not found"
           }
         }
       }
@@ -5988,6 +6096,22 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "Country": {
+        "type": "object",
+        "required": [
+          "code",
+          "name"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "ISO 3166-1 alpha-2 (`\"US\"`, `\"GB\"`, `\"DE\"`)."
+          },
+          "name": {
+            "type": "string"
           }
         }
       },
@@ -7952,6 +8076,97 @@
           }
         }
       },
+      "FormRow": {
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "is_active",
+          "settings",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "settings": {},
+          "created_by": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FormVersionRow": {
+        "type": "object",
+        "required": [
+          "id",
+          "form_id",
+          "version",
+          "schema_json",
+          "logic_json",
+          "is_published",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "form_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "schema_json": {},
+          "logic_json": {},
+          "is_published": {
+            "type": "boolean"
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "LessonProgress": {
         "type": "object",
         "required": [
@@ -8372,6 +8587,40 @@
           }
         }
       },
+      "PaginatedSubmissions": {
+        "type": "object",
+        "required": [
+          "data",
+          "total",
+          "page",
+          "per_page",
+          "total_pages"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubmissionRow"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "per_page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total_pages": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "PaginatedSuppressionResponse": {
         "type": "object",
         "required": [
@@ -8459,6 +8708,25 @@
           }
         }
       },
+      "PartialLoadResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "current_step",
+          "expires_at"
+        ],
+        "properties": {
+          "data": {},
+          "current_step": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "PartialRequest": {
         "type": "object",
         "required": [
@@ -8471,7 +8739,15 @@
               "string",
               "null"
             ],
-            "description": "Optional: rotate an existing resume token. The server returns a fresh\ntoken in the response regardless; supplying the old one extends the\nwindow without creating a duplicate row."
+            "description": "Optional: extend an existing resume token in place. When set + the\ntoken is valid, the existing row is updated and the same token is\nreturned; otherwise a fresh token is minted."
+          },
+          "current_step": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Zero-based page-break index the draft was on when saved. Lets the\nrenderer jump straight back to the right step on resume."
           }
         }
       },
@@ -8488,6 +8764,108 @@
           "expires_at": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "PartialRow": {
+        "type": "object",
+        "required": [
+          "id",
+          "form_id",
+          "data_json",
+          "current_step",
+          "expires_at",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "form_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "data_json": {},
+          "current_step": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "subject_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PaymentIntentClientResponse": {
+        "type": "object",
+        "required": [
+          "intent_id",
+          "client_secret",
+          "amount_cents",
+          "currency"
+        ],
+        "properties": {
+          "intent_id": {
+            "type": "string"
+          },
+          "client_secret": {
+            "type": "string"
+          },
+          "amount_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "currency": {
+            "type": "string"
+          }
+        }
+      },
+      "PaymentIntentRequest": {
+        "type": "object",
+        "required": [
+          "field_key",
+          "email"
+        ],
+        "properties": {
+          "field_key": {
+            "type": "string",
+            "description": "FieldSchema `key` of the payment field on the form."
+          },
+          "amount_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Donor-supplied amount for `payment_kind = donation`. Ignored for\nfixed-amount one-time payments — the schema's `amount_cents` wins."
+          },
+          "email": {
+            "type": "string",
+            "description": "Donor email — receipts are sent to this address."
+          },
+          "resume_token": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional resume token if the field is on a draft (so we can\nlater cross-link `form_payment_intents.partial_id`)."
           }
         }
       },
@@ -9288,6 +9666,88 @@
         "properties": {
           "status": {
             "$ref": "#/components/schemas/ProductStatus"
+          }
+        }
+      },
+      "State": {
+        "type": "object",
+        "required": [
+          "code",
+          "name"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "ISO 3166-2 (`\"US-CA\"`, `\"CA-ON\"`)."
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "SubmissionRow": {
+        "type": "object",
+        "required": [
+          "id",
+          "form_id",
+          "form_version_id",
+          "status",
+          "data_json",
+          "files_json",
+          "ip_hash",
+          "user_agent",
+          "utm",
+          "submitted_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "form_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "form_version_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subject_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "anonymous_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "data_json": {},
+          "files_json": {},
+          "ip_hash": {
+            "type": "string"
+          },
+          "user_agent": {
+            "type": "string"
+          },
+          "referrer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "utm": {},
+          "validation_errors": {},
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -10924,6 +11384,26 @@
               "null"
             ],
             "format": "uuid"
+          }
+        }
+      },
+      "ValidationError": {
+        "type": "object",
+        "description": "Structured validation failure. Stable `code` strings are the shared contract\nwith `src/lib/forms/validate.ts`.",
+        "required": [
+          "field_key",
+          "code",
+          "message"
+        ],
+        "properties": {
+          "field_key": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
           }
         }
       },

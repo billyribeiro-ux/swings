@@ -101,11 +101,7 @@ pub async fn attribute_order(
 /// as its own function so unit tests can exercise the window math without
 /// a database.
 #[must_use]
-pub fn is_in_window(
-    submitted_at: DateTime<Utc>,
-    now: DateTime<Utc>,
-    window: Duration,
-) -> bool {
+pub fn is_in_window(submitted_at: DateTime<Utc>, now: DateTime<Utc>, window: Duration) -> bool {
     let cutoff = now - window;
     submitted_at >= cutoff && submitted_at <= now
 }

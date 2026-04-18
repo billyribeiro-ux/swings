@@ -229,10 +229,7 @@ mod tests {
                 coupon_code_pattern: None,
             }],
         };
-        assert!(matches!(
-            pick_prize(&c, 0),
-            Err(GamifiedError::ZeroWeight)
-        ));
+        assert!(matches!(pick_prize(&c, 0), Err(GamifiedError::ZeroWeight)));
     }
 
     #[test]

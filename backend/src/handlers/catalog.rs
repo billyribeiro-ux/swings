@@ -20,9 +20,7 @@ use axum::{
 };
 use serde::Deserialize;
 
-use crate::commerce::catalog::{
-    self, Category, SearchParams, SearchResponse,
-};
+use crate::commerce::catalog::{self, Category, SearchParams, SearchResponse};
 use crate::error::AppResult;
 use crate::AppState;
 

@@ -36,11 +36,11 @@ pub struct PopupVariant {
 /// Returns `None` only when `variants` is empty; any non-empty slice yields a
 /// winner even if every weight is zero (we clamp to the first entry).
 #[must_use]
-pub fn assign_variant<'a>(
+pub fn assign_variant(
     popup_id: Uuid,
     anonymous_id: Uuid,
-    variants: &'a [PopupVariant],
-) -> Option<&'a PopupVariant> {
+    variants: &[PopupVariant],
+) -> Option<&PopupVariant> {
     if variants.is_empty() {
         return None;
     }
@@ -240,10 +240,7 @@ mod tests {
 
     #[test]
     fn zero_total_weight_returns_first() {
-        let v = [
-            variant(Uuid::new_v4(), 0),
-            variant(Uuid::new_v4(), 0),
-        ];
+        let v = [variant(Uuid::new_v4(), 0), variant(Uuid::new_v4(), 0)];
         let got = assign_variant(Uuid::new_v4(), Uuid::new_v4(), &v).unwrap();
         assert_eq!(got.id, v[0].id);
     }
@@ -264,8 +261,14 @@ mod tests {
         // points of the configured weight on both sides. Uses a fixed RNG
         // seed so the test is deterministic across runs.
         let popup = Uuid::parse_str("00000000-0000-0000-0000-000000000001").unwrap();
-        let a = variant(Uuid::parse_str("00000000-0000-0000-0000-0000000000aa").unwrap(), 70);
-        let b = variant(Uuid::parse_str("00000000-0000-0000-0000-0000000000bb").unwrap(), 30);
+        let a = variant(
+            Uuid::parse_str("00000000-0000-0000-0000-0000000000aa").unwrap(),
+            70,
+        );
+        let b = variant(
+            Uuid::parse_str("00000000-0000-0000-0000-0000000000bb").unwrap(),
+            30,
+        );
         let variants = [a.clone(), b.clone()];
 
         let mut count_a = 0usize;
@@ -301,7 +304,10 @@ mod tests {
         let p2 = Uuid::new_v4();
         let h1 = stable_hash(p1, anon);
         let h2 = stable_hash(p2, anon);
-        assert_ne!(h1, h2, "same anon + different popup should hash differently");
+        assert_ne!(
+            h1, h2,
+            "same anon + different popup should hash differently"
+        );
         let _ = assign_variant(p1, anon, &v);
         let _ = assign_variant(p2, anon, &v);
     }

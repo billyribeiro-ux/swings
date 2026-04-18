@@ -28,14 +28,14 @@ pub mod downloads;
 pub mod memberships;
 pub mod orders;
 pub mod products;
-pub mod reports;
 pub mod repo;
+pub mod reports;
 pub mod subscriptions;
 pub mod tax;
 
 pub use reports::{
-    churn_rate, cohort_ltv, coupon_performance, lifetime_value_for_user, mrr_arr,
-    revenue_summary, ChurnRate, CohortPoint, CouponPerformance, MrrArr, RevenueSummary,
+    churn_rate, cohort_ltv, coupon_performance, lifetime_value_for_user, mrr_arr, revenue_summary,
+    ChurnRate, CohortPoint, CouponPerformance, MrrArr, RevenueSummary,
 };
 
 pub use memberships::{
@@ -44,24 +44,24 @@ pub use memberships::{
 };
 
 pub use subscriptions::{
-    next_dunning_attempt, pause as pause_subscription, prorate,
-    record_change as record_sub_change, record_dunning_result,
-    resume as resume_subscription, schedule_dunning, DunningAttempt, SubscriptionChange,
-    SubscriptionError,
+    next_dunning_attempt, pause as pause_subscription, prorate, record_change as record_sub_change,
+    record_dunning_result, resume as resume_subscription, schedule_dunning, DunningAttempt,
+    SubscriptionChange, SubscriptionError,
 };
 
 pub use checkout::{
-    create_checkout_session, delete_address, list_addresses, save_address, Address,
-    CheckoutError, CheckoutSession, MintedIntent, StripeIntentMinter, UpsertAddress,
+    create_checkout_session, delete_address, list_addresses, save_address, Address, CheckoutError,
+    CheckoutSession, MintedIntent, StripeIntentMinter, UpsertAddress,
 };
 
 pub use cart::{Cart, CartIdentity, CartItem, CartTotals};
-pub use orders::{
-    can_transition, create_order, get_order, get_order_by_payment_intent, next_order_number,
-    transition, CreateOrderInput, Order, OrderError, OrderItem, OrderNote, OrderRefund, OrderStatus,
-};
 pub use coupons::{
     AppliedCoupon, BogoConfig, CartLine, CouponEngine, CouponInput, CouponScope, RecurringMode,
+};
+pub use orders::{
+    can_transition, create_order, get_order, get_order_by_payment_intent, next_order_number,
+    transition, CreateOrderInput, Order, OrderError, OrderItem, OrderNote, OrderRefund,
+    OrderStatus,
 };
 pub use products::{
     BundleItem, DownloadableAsset, Product, ProductStatus, ProductType, ProductVariant,

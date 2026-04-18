@@ -583,11 +583,7 @@ mod tests {
             "dob",
         );
         round_trip(FieldSchema::Time { meta: meta("t") }, "time", "t");
-        round_trip(
-            FieldSchema::Datetime { meta: meta("ts") },
-            "datetime",
-            "ts",
-        );
+        round_trip(FieldSchema::Datetime { meta: meta("ts") }, "datetime", "ts");
     }
 
     #[test]
@@ -706,9 +702,7 @@ mod tests {
             "banner",
         );
         round_trip(
-            FieldSchema::SectionBreak {
-                meta: meta("sep1"),
-            },
+            FieldSchema::SectionBreak { meta: meta("sep1") },
             "section_break",
             "sep1",
         );

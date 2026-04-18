@@ -608,7 +608,16 @@ async fn list_log(
     let limit = q.limit.unwrap_or(50).clamp(1, 500);
     let offset = q.offset.unwrap_or(0).max(0);
 
-    let rows = sqlx::query_as::<_, (Uuid, Option<String>, String, serde_json::Value, DateTime<Utc>)>(
+    let rows = sqlx::query_as::<
+        _,
+        (
+            Uuid,
+            Option<String>,
+            String,
+            serde_json::Value,
+            DateTime<Utc>,
+        ),
+    >(
         r#"
         SELECT id, subject_id::text, action::text, categories, created_at
         FROM consent_records
@@ -629,13 +638,15 @@ async fn list_log(
 
     let mapped: Vec<ConsentLogRow> = rows
         .into_iter()
-        .map(|(id, subject_id, action, categories, created_at)| ConsentLogRow {
-            id,
-            subject_id,
-            action,
-            categories,
-            created_at,
-        })
+        .map(
+            |(id, subject_id, action, categories, created_at)| ConsentLogRow {
+                id,
+                subject_id,
+                action,
+                categories,
+                created_at,
+            },
+        )
         .collect();
 
     Ok(Json(ConsentLogResponse {
@@ -675,5 +686,7 @@ async fn list_integrity(
     _admin: AdminUser,
 ) -> AppResult<Json<Vec<IntegrityAnchorDto>>> {
     let rows = integrity::list_anchors(&state.db, 100).await?;
-    Ok(Json(rows.into_iter().map(IntegrityAnchorDto::from).collect()))
+    Ok(Json(
+        rows.into_iter().map(IntegrityAnchorDto::from).collect(),
+    ))
 }

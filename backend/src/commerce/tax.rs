@@ -192,8 +192,8 @@ pub async fn is_exempt(pool: &PgPool, user_id: Uuid) -> AppResult<bool> {
 
 /// Compute the tax portion for a cart. The cart module owns the items list;
 /// this helper exists here so `cart.rs` stays ignorant of regional VAT
-/// rules. The checkout handler calls this with the resolved billing region
-/// + the customer's id and passes the result into
+/// rules. The checkout handler calls this with the resolved billing region +
+/// the customer's id and passes the result into
 /// [`crate::commerce::cart::compute_totals`] as the `tax_cents` adjustment.
 ///
 /// `region` and `class` are already resolved by the caller (checkout maps

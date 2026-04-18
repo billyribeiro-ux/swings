@@ -125,6 +125,7 @@ pub async fn can_access(
 
 // ── Repository ─────────────────────────────────────────────────────────
 
+#[allow(clippy::too_many_arguments)]
 pub async fn create_plan(
     pool: &PgPool,
     slug: &str,
@@ -183,10 +184,7 @@ pub async fn grant_membership(
     Ok(row)
 }
 
-pub async fn list_user_memberships(
-    pool: &PgPool,
-    user_id: Uuid,
-) -> AppResult<Vec<Membership>> {
+pub async fn list_user_memberships(pool: &PgPool, user_id: Uuid) -> AppResult<Vec<Membership>> {
     let rows = sqlx::query_as::<_, Membership>(
         r#"
         SELECT id, user_id, plan_id, granted_by, status,
@@ -233,7 +231,10 @@ mod tests {
     fn plan_grants_url_with_glob() {
         let g = json!({ "urls": ["/courses/intro/*"] });
         assert!(plan_grants(&g, &Resource::Url("/courses/intro".into())));
-        assert!(plan_grants(&g, &Resource::Url("/courses/intro/lesson-1".into())));
+        assert!(plan_grants(
+            &g,
+            &Resource::Url("/courses/intro/lesson-1".into())
+        ));
         assert!(!plan_grants(&g, &Resource::Url("/courses/advanced".into())));
     }
 

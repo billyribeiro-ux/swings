@@ -250,8 +250,7 @@ fn product_matches(coupon: &CouponInput, line: &CartLine) -> bool {
     if coupon.excludes_product_ids.contains(&line.product_id) {
         return false;
     }
-    coupon.includes_product_ids.is_empty()
-        || coupon.includes_product_ids.contains(&line.product_id)
+    coupon.includes_product_ids.is_empty() || coupon.includes_product_ids.contains(&line.product_id)
 }
 
 /// Does the line participate in `coupon`'s category filter?
@@ -293,7 +292,8 @@ fn apply_cart(cart: &[CartLine], coupon: &CouponInput, subtotal: Money) -> Appli
     }
     if let Some(flat) = coupon.discount_value_cents {
         let discount = clamp_to_subtotal(flat, subtotal);
-        let recurring = cart.iter().any(|l| l.is_subscription) && permits_recurring(coupon.recurring_mode);
+        let recurring =
+            cart.iter().any(|l| l.is_subscription) && permits_recurring(coupon.recurring_mode);
         return AppliedCoupon {
             discount,
             applicable_to_recurring: recurring,
@@ -309,7 +309,8 @@ fn apply_cart(cart: &[CartLine], coupon: &CouponInput, subtotal: Money) -> Appli
             _ => raw,
         };
         let discount = clamp_to_subtotal(capped, subtotal);
-        let recurring = cart.iter().any(|l| l.is_subscription) && permits_recurring(coupon.recurring_mode);
+        let recurring =
+            cart.iter().any(|l| l.is_subscription) && permits_recurring(coupon.recurring_mode);
         return AppliedCoupon {
             discount,
             applicable_to_recurring: recurring,

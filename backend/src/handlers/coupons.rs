@@ -183,8 +183,8 @@ fn coupon_input_for(coupon: &Coupon, extras: &CouponExtras) -> CouponInput {
         .or(legacy_bps);
 
     let scope = CouponScope::from_str_lower(&extras.scope).unwrap_or(CouponScope::Cart);
-    let recurring_mode = RecurringMode::from_str_lower(&extras.recurring_mode)
-        .unwrap_or(RecurringMode::OneTime);
+    let recurring_mode =
+        RecurringMode::from_str_lower(&extras.recurring_mode).unwrap_or(RecurringMode::OneTime);
 
     let bogo_config: Option<BogoConfig> = extras
         .bogo_config
@@ -241,7 +241,12 @@ fn calculate_discount_legacy(coupon: &Coupon, amount_cents: i32) -> Option<i32> 
     let applied = CouponEngine::apply(&cart, &input);
     match coupon.discount_type {
         DiscountType::FreeTrial => None,
-        _ => Some(applied.discount.as_cents().clamp(0, i64::from(amount_cents)) as i32),
+        _ => Some(
+            applied
+                .discount
+                .as_cents()
+                .clamp(0, i64::from(amount_cents)) as i32,
+        ),
     }
 }
 
@@ -268,7 +273,10 @@ async fn calculate_discount_with_db(
     }];
     let applied = CouponEngine::apply(&cart, &input);
     Ok(Some(
-        applied.discount.as_cents().clamp(0, i64::from(amount_cents)) as i32,
+        applied
+            .discount
+            .as_cents()
+            .clamp(0, i64::from(amount_cents)) as i32,
     ))
 }
 

@@ -148,18 +148,17 @@ pub async fn create_checkout_session(
 /// Persist the Stripe PaymentIntent id on the order. The webhook
 /// reconciler uses this to find the order from `payment_intent.succeeded`.
 pub async fn link_payment_intent(pool: &PgPool, order_id: Uuid, pi_id: &str) -> AppResult<()> {
-    sqlx::query("UPDATE orders SET stripe_payment_intent_id = $2, updated_at = NOW() WHERE id = $1")
-        .bind(order_id)
-        .bind(pi_id)
-        .execute(pool)
-        .await?;
+    sqlx::query(
+        "UPDATE orders SET stripe_payment_intent_id = $2, updated_at = NOW() WHERE id = $1",
+    )
+    .bind(order_id)
+    .bind(pi_id)
+    .execute(pool)
+    .await?;
     Ok(())
 }
 
-async fn find_order_by_idempotency_key(
-    pool: &PgPool,
-    key: &str,
-) -> AppResult<Option<Order>> {
+async fn find_order_by_idempotency_key(pool: &PgPool, key: &str) -> AppResult<Option<Order>> {
     let row = sqlx::query_as::<_, Order>(
         r#"
         SELECT id, number, user_id, cart_id, status::text AS status, currency,

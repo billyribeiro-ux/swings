@@ -237,7 +237,7 @@ mod tests {
     #[test]
     fn mutating_any_field_flips_the_hash() {
         let base = input(1, "alice", "granted", 1_700_000_000);
-        let h_base = compute_anchor(&[base.clone()]);
+        let h_base = compute_anchor(std::slice::from_ref(&base));
 
         let with_subject_changed = AnchorInput {
             subject: "eve".into(),

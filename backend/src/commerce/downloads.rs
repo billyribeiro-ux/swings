@@ -93,7 +93,7 @@ pub fn encode_token(bytes: &[u8]) -> String {
 /// don't leak whether the token existed at all.
 #[must_use]
 pub fn decode_token(s: &str) -> Option<Vec<u8>> {
-    if s.len() % 2 != 0 {
+    if !s.len().is_multiple_of(2) {
         return None;
     }
     let mut out = Vec::with_capacity(s.len() / 2);
@@ -207,11 +207,13 @@ pub async fn consume_download(
     .bind(raw_token)
     .fetch_optional(pool)
     .await?;
-    Ok(row.map(|(storage_key, mime_type, remaining)| ResolvedDownload {
-        storage_key,
-        mime_type,
-        downloads_remaining: remaining,
-    }))
+    Ok(
+        row.map(|(storage_key, mime_type, remaining)| ResolvedDownload {
+            storage_key,
+            mime_type,
+            downloads_remaining: remaining,
+        }),
+    )
 }
 
 /// List every active grant for a user. Used by the `my-account/downloads`
@@ -264,7 +266,9 @@ pub async fn make_presigned_or_local_url(
         match r2.presign_get(storage_key, std_ttl).await {
             Ok(url) => return url,
             Err(e) => {
-                tracing::warn!("R2 presign failed for {storage_key}: {e}; falling back to local URL");
+                tracing::warn!(
+                    "R2 presign failed for {storage_key}: {e}; falling back to local URL"
+                );
             }
         }
     }

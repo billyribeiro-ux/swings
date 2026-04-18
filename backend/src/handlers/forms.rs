@@ -289,8 +289,8 @@ pub async fn public_submit(
     let runner = UniqueEmailRunner::new(state.db.clone());
     let errors = validate(&schema, &req.data, &runner).await;
     if !errors.is_empty() {
-        let body = serde_json::to_value(&errors)
-            .map_err(|e| AppError::Internal(anyhow::anyhow!(e)))?;
+        let body =
+            serde_json::to_value(&errors).map_err(|e| AppError::Internal(anyhow::anyhow!(e)))?;
         return Err(AppError::ValidationBody(body));
     }
 
@@ -299,7 +299,9 @@ pub async fn public_submit(
     // so trusting them behind the reverse proxy is safe. See the "Trust note"
     // in `middleware::rate_limit`.
     let ip_hash = ip_hash_daily(&client_ip_str(&headers));
-    let user_agent = header_str(&headers, header::USER_AGENT).unwrap_or("").to_string();
+    let user_agent = header_str(&headers, header::USER_AGENT)
+        .unwrap_or("")
+        .to_string();
     let referrer = header_str(&headers, header::REFERER).map(|s| s.to_string());
     let utm = if req.utm.is_object() {
         req.utm.clone()
@@ -511,8 +513,8 @@ pub async fn public_create_payment_intent(
         .ok_or_else(|| AppError::NotFound(format!("form `{slug}` has no published version")))?;
 
     // Locate the named field + extract its payment config from schema_json.
-    let fields: Vec<FieldSchema> = serde_json::from_value(version.schema_json.clone())
-        .map_err(|e| {
+    let fields: Vec<FieldSchema> =
+        serde_json::from_value(version.schema_json.clone()).map_err(|e| {
             AppError::Internal(anyhow::anyhow!(
                 "form schema is not a FieldSchema array: {e}"
             ))
@@ -698,14 +700,13 @@ pub async fn admin_bulk_update_submissions(
             )));
         }
     };
-    let updated =
-        repo::bulk_update_submission_status(&state.db, form_id, &req.ids, status).await?;
+    let updated = repo::bulk_update_submission_status(&state.db, form_id, &req.ids, status).await?;
     Ok(Json(BulkActionResponse { updated }))
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
-fn header_str<'a>(headers: &'a HeaderMap, key: header::HeaderName) -> Option<&'a str> {
+fn header_str(headers: &HeaderMap, key: header::HeaderName) -> Option<&str> {
     headers.get(key).and_then(|v| v.to_str().ok())
 }
 
@@ -767,7 +768,9 @@ fn mint_token_hex() -> String {
 
 fn submissions_to_csv(rows: &[SubmissionRow]) -> String {
     let mut out = String::new();
-    out.push_str("id,form_id,form_version_id,subject_id,status,submitted_at,ip_hash,user_agent,referrer\n");
+    out.push_str(
+        "id,form_id,form_version_id,subject_id,status,submitted_at,ip_hash,user_agent,referrer\n",
+    );
     for r in rows {
         out.push_str(&csv_field(&r.id.to_string()));
         out.push(',');
