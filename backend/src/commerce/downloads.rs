@@ -233,14 +233,14 @@ pub async fn list_for_user(pool: &PgPool, user_id: Uuid) -> AppResult<Vec<UserDo
     Ok(rows)
 }
 
-// ── Signed URL stub ────────────────────────────────────────────────────
+// ── Signed URL ─────────────────────────────────────────────────────────
 
 /// Produce a short-lived internal redirect URL pointing at the R2 object.
 ///
-/// This is a placeholder: real R2 presigning (AWS SigV4 over the S3 API)
-/// lands in a follow-up ticket. The format here intentionally mirrors what
-/// the real presigner will emit (`/internal/r2/{key}?expires={epoch}`) so
-/// handler code doesn't need to change when the signer swaps in.
+/// Used when no R2 client is in scope (tests, CLI, dev without R2 env
+/// vars). The handler 302s to this URL and an internal `/internal/r2/`
+/// route streams the bytes from local disk — same UX as the production
+/// presigner without requiring a real bucket.
 #[must_use]
 pub fn make_signed_url(storage_key: &str, ttl: Duration) -> String {
     let now = SystemTime::now()
@@ -249,6 +249,26 @@ pub fn make_signed_url(storage_key: &str, ttl: Duration) -> String {
         .unwrap_or(0);
     let expires = now.saturating_add(ttl.num_seconds());
     format!("/internal/r2/{storage_key}?expires={expires}")
+}
+
+/// EC-07: produce a real R2 presigned GET URL for the supplied storage
+/// key, valid for `ttl`. Falls back to [`make_signed_url`] when the
+/// supplied storage backend is not R2-backed (dev / tests).
+pub async fn make_presigned_or_local_url(
+    backend: &crate::services::storage::MediaBackend,
+    storage_key: &str,
+    ttl: Duration,
+) -> String {
+    if let crate::services::storage::MediaBackend::R2(r2) = backend {
+        let std_ttl = std::time::Duration::from_secs(ttl.num_seconds().max(1) as u64);
+        match r2.presign_get(storage_key, std_ttl).await {
+            Ok(url) => return url,
+            Err(e) => {
+                tracing::warn!("R2 presign failed for {storage_key}: {e}; falling back to local URL");
+            }
+        }
+    }
+    make_signed_url(storage_key, ttl)
 }
 
 // ── Unit tests ─────────────────────────────────────────────────────────

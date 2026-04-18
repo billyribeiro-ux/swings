@@ -86,6 +86,29 @@ impl R2Storage {
         Ok(self.public_url_for_key(key))
     }
 
+    /// EC-07: produce a short-lived (TTL-bounded) presigned GET URL for a
+    /// downloadable asset. The URL is valid for the supplied duration and
+    /// MUST NOT be reused — the consume_download repo helper decrements
+    /// the download quota before this call so a stolen link cannot be
+    /// replayed past its TTL or quota.
+    pub async fn presign_get(
+        &self,
+        key: &str,
+        ttl: std::time::Duration,
+    ) -> Result<String, StorageError> {
+        let presigning = aws_sdk_s3::presigning::PresigningConfig::expires_in(ttl)
+            .map_err(|e| StorageError::Config(format!("presigning: {e}")))?;
+        let req = self
+            .client
+            .get_object()
+            .bucket(&self.bucket)
+            .key(key)
+            .presigned(presigning)
+            .await
+            .map_err(|e| StorageError::Upload(e.to_string()))?;
+        Ok(req.uri().to_string())
+    }
+
     pub async fn delete_object(&self, key: &str) -> Result<(), StorageError> {
         self.client
             .delete_object()
