@@ -11,6 +11,9 @@
 			"allowedVersions": {
 				"vite-plugin-devtools-json>vite": "*"
 			}
+		},
+		"overrides": {
+			"rollup": ">=4.59.0"
 		}
 	},
 	"scripts": {
