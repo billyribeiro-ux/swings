@@ -12,6 +12,11 @@ import type { FormDefinition } from '$lib/api/forms';
 
 const API = getPublicApiBase();
 
+// Dynamic route backed by a live API fetch — cannot be prerendered.
+// Explicitly opt out so the build-time crawler does not try to resolve
+// concrete `[slug]` values it has no way to know.
+export const prerender = false;
+
 export const load: PageServerLoad = async ({ params, fetch }) => {
 	const res = await fetch(`${API}/api/forms/${encodeURIComponent(params.slug)}`);
 
