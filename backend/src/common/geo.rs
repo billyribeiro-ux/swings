@@ -114,11 +114,17 @@ static MAXMIND_READER: OnceLock<Option<maxminddb::Reader<Vec<u8>>>> = OnceLock::
 ///
 /// Returns `None` if the DB is not configured, cannot be opened, or does not
 /// contain the address.
+///
+/// Uses the `maxminddb` 0.27+ `LookupResult` API: the reader returns a lazy
+/// handle from which we decode a typed `Country` record. Nested struct fields
+/// (e.g. `country`) are non-optional in this API; only the leaf fields such
+/// as `iso_code` remain `Option`, reflecting what is present in the database.
 #[must_use]
 pub fn country_from_ip(ip: IpAddr) -> Option<CountryCode> {
     let reader = MAXMIND_READER.get_or_init(load_reader).as_ref()?;
-    let record: maxminddb::geoip2::Country<'_> = reader.lookup(ip).ok()?;
-    let iso = record.country.and_then(|c| c.iso_code)?;
+    let result = reader.lookup(ip).ok()?;
+    let record = result.decode::<maxminddb::geoip2::Country<'_>>().ok()??;
+    let iso = record.country.iso_code?;
     CountryCode::parse(iso)
 }
 

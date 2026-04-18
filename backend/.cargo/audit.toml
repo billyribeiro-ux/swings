@@ -1,0 +1,65 @@
+# cargo-audit configuration for swings-api
+#
+# Every entry in `ignore` documents WHY we cannot fix the advisory locally
+# (transitive dependency, upstream has not released a fix, or we are not
+# exposed to the vulnerable code path). Each entry is a debt we revisit when
+# (a) the upstream dependency ships a fix, or (b) the advisory DB rates the
+# finding as directly reachable at runtime.
+#
+# Maintenance workflow:
+#   1. Run `cargo audit` locally. Any NEW advisory must be triaged before
+#      adding it here. Prefer upgrading the direct dep first.
+#   2. When upstream resolves an ignored advisory, remove the entry and let
+#      `--deny warnings` enforce the baseline.
+#   3. Audit this file quarterly even without CI churn so stale ignores don't
+#      silently outlive their usefulness.
+
+[advisories]
+ignore = [
+    # RUSTSEC-2023-0071 — `rsa 0.9.x` Marvin Attack (timing sidechannel on
+    # RSA decryption). Pulled in transitively by `sqlx-mysql`, which is
+    # compiled because `sqlx-macros` enables it unconditionally for
+    # query-macro validation. The swings-api runtime ONLY uses PostgreSQL
+    # (see sqlx features in Cargo.toml: postgres, not mysql). Upstream has
+    # no fixed version of `rsa`; monitor https://github.com/RustCrypto/RSA.
+    "RUSTSEC-2023-0071",
+
+    # RUSTSEC-2026-0098 / 0099 — `rustls-webpki 0.101.x` name-constraints
+    # bugs. Pulled in via the bundled `rustls 0.21` inside
+    # `aws-smithy-http-client 1.1.12` (the current latest). The rest of the
+    # tree already runs on `rustls 0.23` + `rustls-webpki 0.103.12`. AWS SDK
+    # team tracking the migration upstream. Re-check on every aws-sdk-s3
+    # bump; drop both entries when the smithy client ships rustls >= 0.23.
+    "RUSTSEC-2026-0098",
+    "RUSTSEC-2026-0099",
+
+    # RUSTSEC-2024-0384 — `instant 0.1.x` unmaintained. Pulled in via
+    # `async-stripe 0.39` → `http-types` → `futures-lite 1` → `fastrand 1`.
+    # async-stripe 1.0 (currently rc.5) drops this chain; planned upgrade
+    # in the Stripe billing refresh — tracked separately.
+    "RUSTSEC-2024-0384",
+
+    # RUSTSEC-2024-0436 — `paste 1.0.x` archived by upstream. Pulled in via
+    # `utoipa-axum 0.2` (our OpenAPI macro layer). utoipa is actively
+    # maintained and plans to remove the `paste` dependency; no user-facing
+    # impact since the crate only runs at compile time.
+    "RUSTSEC-2024-0436",
+
+    # RUSTSEC-2026-0002 — `lru 0.12.x` Stacked Borrows violation in
+    # `IterMut`. Pulled in via `aws-sdk-s3`. Resolved in `lru 0.13`; waiting
+    # on AWS SDK to bump.
+    "RUSTSEC-2026-0002",
+
+    # RUSTSEC-2026-0097 — `rand 0.7.x` unsoundness with custom loggers.
+    # Pulled in via `async-stripe 0.39 → http-types 2.12`. Swings-api does
+    # not install a custom `log::Logger` so we are not exposed. Cleared by
+    # the same async-stripe 1.0 upgrade that resolves `instant`.
+    "RUSTSEC-2026-0097",
+]
+informational_warnings = ["unmaintained", "unsound"]
+
+[output]
+deny = ["warnings"]
+format = "terminal"
+quiet = false
+show_tree = true

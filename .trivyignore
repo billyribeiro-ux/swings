@@ -1,28 +1,18 @@
-# Trivy ignore patterns for filesystem scans run in CI.
+# Trivy vulnerability-ID suppressions for CI filesystem scans.
 #
 # Scope: this file is consumed by the `.github/workflows/security.yml`
-# `trivy-fs` job. Paths are patterns relative to the scanned root (the repo
-# root). Directories listed here are skipped entirely — either because they
-# are auto-generated, produced by builds, or covered by a different scanner
-# (cargo-audit / pnpm-audit already own their respective dependency trees).
-
-# Node / frontend build artefacts
-node_modules/
-.svelte-kit/
-.vercel/
-.netlify/
-dist/
-build/
-
-# Rust build artefacts
-backend/target/
-
-# Test snapshots / fixtures (reviewed by humans, not scanned)
-backend/tests/snapshots/
-
-# Uploaded user content in dev
-backend/uploads/
-
-# Lockfiles — Trivy reads these for config scans, but they are covered
-# by cargo-audit and pnpm-audit in dedicated jobs.
-# (No suppression here — kept for reference.)
+# `trivy-fs` job. It accepts vulnerability identifiers (CVE, GHSA, DLA,
+# KHV, AVD) — **one per line**. Path-based exclusions live in the action's
+# `skip-dirs` input, not here (see security.yml).
+#
+# Maintenance policy:
+#   * Every suppression must cite (a) the finding URL, (b) WHY we are not
+#     exposed (unreachable code path / compile-time only / runtime mitigated),
+#     and (c) an upstream tracking issue. An entry without justification is
+#     grounds for rejecting the PR that adds it.
+#   * Entries expire when the advisory database resolves them or the
+#     dependency is upgraded; run `cargo audit` / scan output quarterly and
+#     prune stale lines.
+#
+# (Empty list — no active Trivy suppressions at the moment. Cargo and pnpm
+# advisories are handled by their dedicated scanners; see `backend/.cargo/audit.toml`.)

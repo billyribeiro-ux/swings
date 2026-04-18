@@ -18,6 +18,10 @@ concurrency:
 permissions:
   contents: read
 
+# Opt JS actions into Node.js 24 ahead of GitHub's June 2026 forced switch.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 jobs:
   cargo-audit:
     name: Cargo Audit
@@ -94,13 +98,31 @@ jobs:
       - name: Run Trivy filesystem scan
         # Pinned to a release tag (not @master) so a supply-chain compromise
         # on the action repo cannot alter scanner behaviour silently.
+        #
+        # Scanner scoping — we intentionally narrow Trivy to:
+        #   * secret   — committed credentials / API keys (Trivy's strongest
+        #                unique contribution)
+        #   * misconfig — Dockerfile, Terraform, Kubernetes manifests, CI
+        #                workflows (catches IaC drift / insecure defaults)
+        # Language-ecosystem vulns (cargo / pnpm) are owned by the dedicated
+        # `cargo-audit` and `pnpm-audit` jobs above. Those scanners track
+        # RustSec / GHSA directly and have higher precision than Trivy's
+        # language plugin. Double-scanning produces duplicate findings and
+        # encourages suppressing the same CVE in two places.
         uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: fs
           scan-ref: .
+          scanners: secret,misconfig
           severity: HIGH,CRITICAL
           exit-code: '1'
           ignore-unfixed: true
+          # Path-based exclusions. Trivy's `.trivyignore` file is specifically
+          # for vulnerability-ID suppressions (CVE-XXXX, GHSA-XXXX); use the
+          # action's first-class `skip-dirs` / `skip-files` inputs for paths
+          # so the scanner's own glob matcher handles them consistently with
+          # its internal engine.
+          skip-dirs: 'node_modules,.svelte-kit,.vercel,.netlify,dist,build,backend/target,backend/tests/snapshots,backend/uploads'
           trivyignores: .trivyignore
           format: sarif
           output: trivy-results.sarif
