@@ -358,6 +358,29 @@ async fn main() -> Result<()> {
         "dsar-artifact-sweep worker spawned"
     );
 
+    // ADM-20: garbage collector for the `idempotency_keys` cache.
+    // The middleware writes one row per admin POST with a 24h TTL;
+    // without this loop the table grows unbounded. Tunable via
+    // `IDEMPOTENCY_GC_INTERVAL_SECS` (default 5 min) plus the
+    // `idempotency.gc_batch_size` setting for batch sizing.
+    let idempotency_gc_interval_secs = std::env::var("IDEMPOTENCY_GC_INTERVAL_SECS")
+        .ok()
+        .and_then(|s| s.parse::<u64>().ok())
+        .filter(|n| *n > 0)
+        .unwrap_or(300);
+    let idempotency_gc_handle = tokio::spawn(
+        swings_api::services::idempotency_gc::run_loop(
+            state.db.clone(),
+            state.settings.clone(),
+            outbox_shutdown.subscribe(),
+            std::time::Duration::from_secs(idempotency_gc_interval_secs),
+        ),
+    );
+    tracing::info!(
+        interval_secs = idempotency_gc_interval_secs,
+        "idempotency-gc worker spawned"
+    );
+
     let allowed_origins = state
         .config
         .cors_allowed_origins
@@ -651,6 +674,15 @@ async fn main() -> Result<()> {
         tracing::warn!("dsar-artifact-sweep worker did not stop within grace window");
     } else {
         tracing::info!("dsar-artifact-sweep worker stopped");
+    }
+
+    if tokio::time::timeout(Duration::from_secs(5), idempotency_gc_handle)
+        .await
+        .is_err()
+    {
+        tracing::warn!("idempotency-gc worker did not stop within grace window");
+    } else {
+        tracing::info!("idempotency-gc worker stopped");
     }
 
     Ok(())
