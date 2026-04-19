@@ -5,7 +5,7 @@ module to the live `swings-api` binary. The module lands in isolation
 (new files only, byte-identical `Cargo.toml` / `main.rs` / `lib.rs`); the
 three edits below turn it on.
 
-Spec: see `AUDIT_PHASE3_PLAN.md` §11 ("Observability"). Scope:
+Spec: see `../archive/AUDIT_PHASE3_PLAN.md` §11 ("Observability"). Scope:
 structured JSON logs, `X-Request-Id` correlation middleware, Prometheus
 metrics with bounded cardinality, admin-gated `/metrics` endpoint. No
 OpenTelemetry (Phase 5).
@@ -227,7 +227,7 @@ once the wiring lands.
   by trace-id propagation as a follow-up.
 * **Alerts**: PagerDuty / Grafana wiring lives at the
   infrastructure repo level; metric names here are chosen to match the
-  catalogue in `AUDIT_PHASE3_PLAN.md` §11.
+  catalogue in `../archive/AUDIT_PHASE3_PLAN.md` §11.
 * **Per-handler business spans**: every handler already uses
   `#[tracing::instrument(…)]`; correlation-id binding is enough to tie
   logs back to a request. Business-level span conventions

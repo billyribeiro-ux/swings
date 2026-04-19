@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Generate project-audit.md with verbatim file contents per audit specification."""
+"""Generate docs/archive/project-audit.md with verbatim file contents per audit spec."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-OUT_MAIN = REPO / "project-audit.md"
+OUT_MAIN = REPO / "docs" / "archive" / "project-audit.md"
 # Rotate to part2+ if a single output would grow too large (rare for this repo).
 MAX_BYTES_PER_FILE = 9 * 1024 * 1024
 

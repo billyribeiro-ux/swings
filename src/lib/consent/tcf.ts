@@ -14,7 +14,7 @@
  * is `buildTcString` — the `__tcfapi` plumbing stays.
  *
  * TODO: wire `@iabtcf/core` + scheduled GVL refresh. See CONSENT-04 v2 in
- *       AUDIT_PHASE3_PLAN.md §3.
+ *       docs/archive/AUDIT_PHASE3_PLAN.md §3.
  */
 
 import { CONSENT_EVENT_NAME, type ConsentEventDetail } from '$lib/stores/consent.svelte';

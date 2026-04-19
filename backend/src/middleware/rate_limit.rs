@@ -91,7 +91,7 @@ impl Policy {
     }
 }
 
-// ── Policy catalog (per §12 of AUDIT_PHASE3_PLAN.md) ─────────────────────
+// ── Policy catalog (per §12 of docs/archive/AUDIT_PHASE3_PLAN.md) ────────
 
 pub const LOGIN: Policy = Policy {
     name: "login",

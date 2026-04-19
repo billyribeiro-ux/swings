@@ -1,6 +1,6 @@
 //! EC — e-commerce domain module (digital-goods trim).
 //!
-//! Subsystem scope (per AUDIT_PHASE3_PLAN §0 D1):
+//! Subsystem scope (per docs/archive/AUDIT_PHASE3_PLAN.md §0 D1):
 //!   * **EC-01** — product model: simple + subscription + downloadable +
 //!     bundle types, variants, downloadable assets, bundle items.
 //!   * **EC-03** — [`cart`]: persistent guest + authed cart with post-login

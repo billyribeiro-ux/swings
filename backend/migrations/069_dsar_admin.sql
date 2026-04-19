@@ -102,7 +102,7 @@ INSERT INTO permissions (key, description) VALUES
     ('admin.dsar.read',           'List and read admin DSAR jobs')
 ON CONFLICT (key) DO NOTHING;
 
-INSERT INTO role_permissions (role, permission_key)
+INSERT INTO role_permissions (role, permission)
 SELECT 'admin'::user_role, k
 FROM (VALUES
     ('admin.dsar.export'),
@@ -114,6 +114,6 @@ ON CONFLICT DO NOTHING;
 
 -- Support agents can read jobs (so they can answer "did we delete
 -- this user?" without escalating) but cannot mint or approve.
-INSERT INTO role_permissions (role, permission_key)
+INSERT INTO role_permissions (role, permission)
 VALUES ('support'::user_role, 'admin.dsar.read')
 ON CONFLICT DO NOTHING;

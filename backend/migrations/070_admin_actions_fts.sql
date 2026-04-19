@@ -48,12 +48,12 @@ CREATE TRIGGER admin_actions_search_tsv_trg
 
 -- Backfill existing rows so historic data is searchable too.
 UPDATE admin_actions
-   SET search_tsv =
-       setweight(to_tsvector('simple', coalesce(action,        '')), 'A') ||
-       setweight(to_tsvector('simple', coalesce(target_kind,   '')), 'B') ||
-       setweight(to_tsvector('simple', coalesce(target_id,     '')), 'B') ||
-       setweight(to_tsvector('simple', coalesce(jsonb_pretty(metadata), '')), 'C')
- WHERE search_tsv IS NULL;
+SET search_tsv
+    = setweight(to_tsvector('simple', coalesce(action, '')), 'A')
+    || setweight(to_tsvector('simple', coalesce(target_kind, '')), 'B')
+    || setweight(to_tsvector('simple', coalesce(target_id, '')), 'B')
+    || setweight(to_tsvector('simple', coalesce(jsonb_pretty(metadata), '')), 'C')
+WHERE search_tsv IS NULL;
 
 CREATE INDEX IF NOT EXISTS admin_actions_search_tsv_idx
     ON admin_actions USING gin (search_tsv);
@@ -71,13 +71,13 @@ INSERT INTO permissions (key, description) VALUES
     ('admin.audit.export', 'Export filtered admin audit log as CSV')
 ON CONFLICT (key) DO NOTHING;
 
-INSERT INTO role_permissions (role, permission_key)
+INSERT INTO role_permissions (role, permission)
 SELECT 'admin'::user_role, k FROM (VALUES
     ('admin.audit.read'),
     ('admin.audit.export')
 ) AS p(k)
 ON CONFLICT DO NOTHING;
 
-INSERT INTO role_permissions (role, permission_key)
+INSERT INTO role_permissions (role, permission)
 VALUES ('support'::user_role, 'admin.audit.read')
 ON CONFLICT DO NOTHING;

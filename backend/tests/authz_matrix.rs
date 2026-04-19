@@ -4,7 +4,7 @@
 //! FDN-07 integration test.
 //!
 //! Exhaustively asserts every row of the §12 authz matrix in
-//! `AUDIT_PHASE3_PLAN.md`. The fixture below mirrors the `role_permissions`
+//! `docs/archive/AUDIT_PHASE3_PLAN.md`. The fixture below mirrors the `role_permissions`
 //! seed in `backend/migrations/021_rbac.sql`; if either side diverges, one of
 //! the assertions fires immediately and the divergence is surfaced in CI.
 //!

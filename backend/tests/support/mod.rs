@@ -31,7 +31,7 @@
 //! The tests in `backend/tests/` run in parallel by default; because each
 //! [`TestApp`] is scoped to its own schema, they do not interfere.
 //!
-//! See `FDN-TESTHARNESS-WIRING.md` at the repo root for environment
+//! See `docs/wiring/FDN-TESTHARNESS-WIRING.md` for environment
 //! prerequisites and a cleanup script for orphaned schemas.
 
 // `cargo test` compiles each `tests/<name>.rs` as its own crate; any helper

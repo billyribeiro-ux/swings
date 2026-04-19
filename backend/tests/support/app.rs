@@ -9,7 +9,7 @@
 //!
 //! The router hierarchy mirrors what `src/main.rs` composes at startup. Any
 //! time a new `.nest(…)` / `.merge(…)` is added there, it MUST be added here
-//! too. See `FDN-TESTHARNESS-WIRING.md` for the recommended long-term
+//! too. See `docs/wiring/FDN-TESTHARNESS-WIRING.md` for the recommended long-term
 //! refactor (extracting a `build_router(state) -> Router`) that would let
 //! the harness reuse the canonical wiring instead of mirroring it.
 //!

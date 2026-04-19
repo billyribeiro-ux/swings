@@ -15,12 +15,12 @@
 //! * [`handler`] — the `/metrics` endpoint itself, admin-gated in production
 //!   and publicly accessible in dev (same pattern as `/api/openapi.json`).
 //!
-//! See `OBSERVABILITY-WIRING.md` at the repo root for the exact `Cargo.toml`,
+//! See `docs/wiring/OBSERVABILITY-WIRING.md` for the exact `Cargo.toml`,
 //! `main.rs`, and `lib.rs` additions the integrator needs to apply to wire
 //! this module into the live binary.
 //!
 //! OpenTelemetry integration is deliberately left out — it's the Phase 5
-//! follow-up per `AUDIT_PHASE3_PLAN.md` §11.
+//! follow-up per `docs/archive/AUDIT_PHASE3_PLAN.md` §11.
 
 pub mod correlation;
 pub mod handler;

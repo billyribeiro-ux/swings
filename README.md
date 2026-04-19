@@ -1,180 +1,276 @@
-# Precision Options Signals — SvelteKit Landing Page
+# swings
 
-Premium stock alert service landing page built with **SvelteKit** (Svelte 5), **TailwindCSS v4**, **GSAP**, and **Stripe** integration.
+[![CI](https://github.com/billyribeiro-ux/swings/actions/workflows/ci.yml/badge.svg)](https://github.com/billyribeiro-ux/swings/actions/workflows/ci.yml)
+[![SQL Lint](https://github.com/billyribeiro-ux/swings/actions/workflows/sql-lint.yml/badge.svg)](https://github.com/billyribeiro-ux/swings/actions/workflows/sql-lint.yml)
+[![OpenAPI Drift](https://github.com/billyribeiro-ux/swings/actions/workflows/openapi-drift.yml/badge.svg)](https://github.com/billyribeiro-ux/swings/actions/workflows/openapi-drift.yml)
+[![Security](https://github.com/billyribeiro-ux/swings/actions/workflows/security.yml/badge.svg)](https://github.com/billyribeiro-ux/swings/actions/workflows/security.yml)
 
-## 🚀 Features
+> **Last revised:** 2026-04-19
+> **Status:** active
+> **Frontend (Vercel):** SvelteKit · Svelte 5 · TailwindCSS v4
+> **Backend (Railway):** Rust · Axum · SQLx · PostgreSQL 16
+> **Deployment target:** swings-gamma.vercel.app + swings-production.up.railway.app
 
-- ✅ **Svelte 5 Runes** — Modern reactive patterns (`$state`, `$derived`, `$effect`, `$props`)
-- ✅ **Stripe Checkout** — Subscription payments for monthly/annual plans
-- ✅ **Courses System** — Full course listing and detail pages
-- ✅ **GSAP Animations** — Cinematic scroll-triggered animations
-- ✅ **Responsive Design** — Mobile-first with TailwindCSS v4
-- ✅ **TypeScript Strict Mode** — Zero `any`, full type safety
-- ✅ **Traders Modal** — Interactive modal with grid and profile views
-- ✅ **SEO Optimized** — Meta tags, semantic HTML, accessibility
+`swings` is a full-stack membership and content platform: a SvelteKit
+marketing/member experience on the front, a hardened Rust admin/back-office
+on the back, and a Postgres data plane in between. The repository is a single
+pnpm workspace plus a Cargo crate at `backend/`.
 
-## 📋 Prerequisites
+---
 
-- **Node.js** 18+
-- **pnpm** (required — not npm or yarn)
-- **Stripe Account** (for payment processing)
+## Table of contents
 
-## 🛠️ Setup
+1. [Architecture at a glance](#architecture-at-a-glance)
+2. [Repository layout](#repository-layout)
+3. [Quick start](#quick-start)
+4. [Common workflows](#common-workflows)
+5. [Testing](#testing)
+6. [Deployment](#deployment)
+7. [Operations](#operations)
+8. [Documentation index](#documentation-index)
+9. [Conventions](#conventions)
+10. [Contributing & support](#contributing--support)
 
-### 1. Install Dependencies
+---
+
+## Architecture at a glance
+
+```
+                    ┌─────────────────────────┐
+                    │    Cloudflare R2        │  (media + DSAR artefacts)
+                    └─────────────┬───────────┘
+                                  │ S3 API
+┌──────────────┐  HTTPS  ┌────────┴──────────┐  Postgres TLS  ┌─────────────┐
+│  SvelteKit   ├────────▶│   Rust / Axum     ├───────────────▶│ Postgres 16 │
+│   (Vercel)   │ JSON    │  swings-api       │                │  (Railway)  │
+└──────┬───────┘         │  (Railway)        │                └─────────────┘
+       │                 └──────┬─────────┬──┘
+       │ SSR fetch              │         │
+       ▼                        ▼         ▼
+   browser            Prometheus    Stripe / Postmark
+                       /metrics
+```
+
+* **Frontend** — SvelteKit (Svelte 5 runes), TailwindCSS v4, GSAP, Three.js,
+  Tiptap. Deployed to Vercel via `@sveltejs/adapter-vercel`.
+* **Backend** — Axum-on-Tokio with SQLx and an in-process worker pool for
+  background tasks (DSAR export, audit-log retention, idempotency-cache GC,
+  artefact TTL sweep). Built and shipped from `backend/`.
+* **Database** — PostgreSQL 16 with 74 forward-only sqlx migrations
+  (`backend/migrations/`).
+* **Object storage** — Cloudflare R2 (S3-compatible) for media and DSAR
+  exports, with a `Local` filesystem fallback for development.
+* **Observability** — Prometheus metrics on `/metrics`; provisioning-ready
+  rules and Grafana dashboard live in [`ops/`](./ops/).
+
+For the full RBAC/audit/security model, see
+[`docs/archive/AUDIT_PHASE3_PLAN.md`](./docs/archive/AUDIT_PHASE3_PLAN.md) §12
+(authz matrix) and [`docs/INFRASTRUCTURE.md`](./docs/INFRASTRUCTURE.md).
+
+---
+
+## Repository layout
+
+```
+.
+├── src/                  # SvelteKit app (routes, lib, components, stores)
+├── static/               # Static frontend assets
+├── messages/             # Inlang (i18n) message catalogues
+├── e2e/                  # Playwright end-to-end specs
+├── backend/              # Rust crate — Axum API, workers, migrations, tests
+│   ├── src/
+│   │   ├── handlers/     # HTTP handlers (admin, member, public, webhooks)
+│   │   ├── services/     # Background workers + cross-cutting services
+│   │   ├── middleware/   # Tower layers (idempotency, rate limit, IP allowlist…)
+│   │   ├── security/     # Impersonation + IP allowlist primitives
+│   │   ├── observability/# Tracing + metrics scaffolding
+│   │   └── …             # commerce, consent, popups, forms, notifications, pdf
+│   ├── migrations/       # sqlx forward-only migrations (001 → 074)
+│   └── tests/            # Integration tests against a real Postgres
+├── ops/                  # Prometheus rules + Grafana dashboard + provisioning README
+├── docs/                 # All long-form documentation (see index below)
+├── scripts/              # Repo automation (audit dump, OpenAPI → TS, SEO check)
+├── .github/workflows/    # CI: ci.yml, sql-lint.yml, openapi-drift.yml, security.yml
+├── docker-compose.yml    # Full local stack (api + db on :5432)
+├── Dockerfile            # PaaS image (build context = repo root)
+├── render.yaml           # Render blueprint (canonical)
+├── vercel.json           # Vercel routing/env hints
+└── package.json          # pnpm workspace root
+```
+
+---
+
+## Quick start
+
+### Prerequisites
+
+| Tool       | Version            | Notes                                          |
+| ---------- | ------------------ | ---------------------------------------------- |
+| Node.js    | `>=24.14.1`        | Pinned in `package.json#engines`               |
+| pnpm       | `10.33.0`          | `corepack enable` then `corepack prepare`      |
+| Rust       | `1.83+` stable     | `rustup default stable`                        |
+| PostgreSQL | `16.x`             | Local install or via `docker compose up -d db` |
+| sqlx-cli   | `0.8.x`            | `cargo install sqlx-cli --no-default-features --features postgres` |
+| Docker     | `24+` *(optional)* | Only needed for compose / R2 emulator (MinIO)  |
+
+### Clone & install
 
 ```bash
+git clone https://github.com/billyribeiro-ux/swings.git
+cd swings
 pnpm install
 ```
 
-### 2. Configure Environment Variables
-
-Create a `.env` file in the root directory:
+### Spin up Postgres
 
 ```bash
-cp .env.example .env
+docker compose up -d db        # full stack DB on :5432, user/pass swings/swings_secret
 ```
 
-Edit `.env` and add your Stripe keys:
+Or use a local `psql` install — see `.env.example` for the expected
+connection string format.
 
-```env
-# Stripe API Keys (get from https://dashboard.stripe.com/apikeys)
-STRIPE_SECRET_KEY=sk_test_your_secret_key_here
-PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key_here
-
-# Stripe Price IDs (create products in Stripe Dashboard)
-STRIPE_MONTHLY_PRICE_ID=price_monthly_id_here
-STRIPE_ANNUAL_PRICE_ID=price_annual_id_here
-
-# App URL (for Stripe redirects)
-PUBLIC_APP_URL=http://localhost:5173
-```
-
-### 3. Set Up Stripe Products
-
-1. Go to [Stripe Dashboard](https://dashboard.stripe.com/)
-2. Create two **Products**:
-   - **Monthly Plan** — $49/month recurring
-   - **Annual Plan** — $399/year recurring
-3. Copy the **Price IDs** and add them to your `.env` file
-
-### 4. Run Development Server
+### Run the backend
 
 ```bash
-pnpm run dev
+cp backend/.env.example backend/.env   # then fill in JWT_SECRET, ADMIN_*, …
+pnpm dev:api                            # cargo run inside backend/
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+The API listens on `http://localhost:3001`. On first boot it runs
+migrations, seeds the admin user, and starts every background worker.
 
-## 📁 Project Structure
-
-```
-src/
-├── routes/
-│   ├── +page.svelte              # Landing page
-│   ├── +layout.svelte            # Root layout (nav + footer)
-│   ├── success/+page.svelte      # Stripe success page
-│   ├── courses/+page.svelte      # Courses listing
-│   ├── courses/[slug]/+page.svelte  # Individual course pages
-│   └── api/
-│       └── create-checkout-session/+server.ts  # Stripe API
-├── lib/
-│   ├── components/
-│   │   ├── landing/              # Landing page sections
-│   │   ├── traders/              # Traders modal system
-│   │   └── ui/                   # Reusable UI components
-│   ├── data/                     # Static data (traders, courses, pricing)
-│   ├── stores/                   # Svelte 5 reactive stores
-│   └── utils/                    # Utilities (Stripe helpers)
-└── app.css                       # Global styles + Tailwind
-```
-
-## 🎨 Tech Stack
-
-- **Framework**: SvelteKit (Svelte 5)
-- **Styling**: TailwindCSS v4
-- **Animations**: GSAP + ScrollTrigger
-- **Icons**: Phosphor Icons
-- **Payments**: Stripe
-- **Fonts**: Montserrat + Inter (Google Fonts)
-- **Package Manager**: pnpm
-
-## 🧪 Testing
+### Run the frontend
 
 ```bash
-# Type checking
-pnpm run check
-
-# Build for production
-pnpm run build
-
-# Preview production build
-pnpm run preview
-
-# SEO policy checks
-pnpm run ci:seo
+pnpm dev                       # http://localhost:5173
 ```
 
-SEO operational guidance lives in `SEO_RUNBOOK.md`.
-
-## 🚢 Deployment
-
-### Environment Variables (Production)
-
-Set these in your deployment platform (Vercel, Netlify, etc.):
-
-```
-STRIPE_SECRET_KEY=sk_live_...
-PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
-STRIPE_MONTHLY_PRICE_ID=price_...
-STRIPE_ANNUAL_PRICE_ID=price_...
-PUBLIC_APP_URL=https://your-domain.com
-```
-
-### Build Command
+Or run both simultaneously with live reload:
 
 ```bash
-pnpm run build
+pnpm dev:all
 ```
 
-### Recommended Adapters
+---
 
-- **Vercel**: `@sveltejs/adapter-vercel`
-- **Netlify**: `@sveltejs/adapter-netlify`
-- **Node**: `@sveltejs/adapter-node`
+## Common workflows
 
-## 📝 Key Pages
+| Goal                              | Command                                         |
+| --------------------------------- | ----------------------------------------------- |
+| Regenerate frontend OpenAPI types | `pnpm gen:types`                                |
+| Type-check + lint frontend        | `pnpm check && pnpm lint`                       |
+| Format everything                 | `pnpm format` · `cargo fmt --manifest-path backend/Cargo.toml` |
+| Backend lint (CI parity)          | `cargo clippy --manifest-path backend/Cargo.toml --all-targets -- -D warnings` |
+| Add a new SQL migration           | Drop a `0NN_description.sql` into `backend/migrations/` (forward-only, no edits after deploy) |
+| Tail prod logs                    | `railway logs --service swings`                 |
 
-- `/` — Landing page with all sections
-- `/courses` — Course listing
-- `/courses/beginning-options-trading` — Beginner course
-- `/courses/options-trading-101` — Intermediate course
-- `/success` — Post-checkout success page
+---
 
-## 🎯 Stripe Webhook Setup (Optional)
+## Testing
 
-For production, set up webhooks to handle subscription events:
+```bash
+# ── Frontend ──────────────────────────────────────────────────────────────
+pnpm test:unit          # vitest, ~67 specs, runs under the pre-commit hook
+pnpm test:browser       # vitest + playwright browser env
+pnpm test:e2e           # full Playwright suite (e2e/)
 
-1. Go to Stripe Dashboard → Developers → Webhooks
-2. Add endpoint: `https://your-domain.com/api/webhooks/stripe`
-3. Select events: `checkout.session.completed`, `customer.subscription.updated`, etc.
-4. Add webhook secret to `.env`: `STRIPE_WEBHOOK_SECRET=whsec_...`
+# ── Backend ───────────────────────────────────────────────────────────────
+cd backend
+cargo test              # unit + integration tests (requires DATABASE_URL_TEST)
+cargo test --test admin_idempotency concurrent_same_key_creates_exactly_one_resource
 
-## 🔒 Security Notes
+# ── Whole-repo CI parity ──────────────────────────────────────────────────
+pnpm ci:all             # ci:frontend + ci:backend
+```
 
-- Never commit `.env` to version control
-- Use Stripe test keys in development
-- Switch to live keys only in production
-- Validate all webhook signatures
+The integration test harness brings up its own isolated Postgres on
+`:5433` via `backend/docker-compose.yml` — see
+[`docs/wiring/FDN-TESTHARNESS-WIRING.md`](./docs/wiring/FDN-TESTHARNESS-WIRING.md).
 
-## 📚 Documentation
+R2-dependent tests are gated on `R2_TEST_*` env vars and skip cleanly when
+no S3-compatible emulator (MinIO/LocalStack) is running.
 
-- [SvelteKit Docs](https://svelte.dev/docs/kit)
-- [Svelte 5 Runes](https://svelte.dev/docs/svelte/$state)
-- [Stripe Checkout](https://stripe.com/docs/payments/checkout)
-- [GSAP ScrollTrigger](https://greensock.com/docs/v3/Plugins/ScrollTrigger)
-- [TailwindCSS v4](https://tailwindcss.com/docs)
+---
 
-## 📄 License
+## Deployment
 
-Private — All Rights Reserved
+| Surface  | Platform | Source of truth                 | Runtime                       |
+| -------- | -------- | ------------------------------- | ----------------------------- |
+| Frontend | Vercel   | `vercel.json` + `svelte.config.js` (`adapter-vercel`) | Edge / Node (auto)         |
+| Backend  | Railway  | root `Dockerfile`, `render.yaml` mirror | `swings-api` service        |
+| Database | Railway  | provisioned Postgres add-on     | Postgres 16, persistent volume |
+
+A successful Railway boot:
+
+```
+✓ database connected
+✓ migrations applied (74)
+✓ workers started (audit-retention, dsar-worker, dsar-artifact-sweep, idempotency-gc)
+✓ listening on 0.0.0.0:3001
+```
+
+Full guide: [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md). For
+infra topology, see [`docs/INFRASTRUCTURE.md`](./docs/INFRASTRUCTURE.md).
+
+---
+
+## Operations
+
+* **Metrics & alerts** — Prometheus rules in
+  [`ops/prometheus/admin-alerts.rules.yml`](./ops/prometheus/admin-alerts.rules.yml),
+  Grafana dashboard in
+  [`ops/grafana/admin-overview.dashboard.json`](./ops/grafana/admin-overview.dashboard.json),
+  provisioning instructions in [`ops/README.md`](./ops/README.md).
+* **On-call runbook** — [`docs/RUNBOOK.md`](./docs/RUNBOOK.md). Every alert in
+  the rules file links here via `runbook_url`.
+* **Security policy** — [`SECURITY.md`](./SECURITY.md).
+* **CI policy** — [`docs/ci.md`](./docs/ci.md).
+
+---
+
+## Documentation index
+
+The canonical list lives in [`docs/README.md`](./docs/README.md). Quick
+shortcuts:
+
+* [`docs/RUNBOOK.md`](./docs/RUNBOOK.md) — operator runbook for new alerts.
+* [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) — Vercel + Railway go-live.
+* [`docs/INFRASTRUCTURE.md`](./docs/INFRASTRUCTURE.md) — full stack topology.
+* [`docs/SEO_RUNBOOK.md`](./docs/SEO_RUNBOOK.md) — SEO operating standard.
+* [`docs/wiring/`](./docs/wiring/) — integrator-facing wiring docs
+  (test harness, observability, common utilities).
+* [`docs/archive/`](./docs/archive/) — historical audit phases and reports
+  kept for traceability; **not** the source of truth for current behaviour.
+
+---
+
+## Conventions
+
+* **Languages** — Rust 2024 edition, TypeScript strict, Svelte 5 runes only.
+* **No `any`, no `unwrap()`** in checked-in code paths (tests excluded).
+* **Migrations are forward-only.** Edit a migration after it has been
+  applied to *any* environment and the next boot will fail the sqlx
+  checksum guard. Add a new migration instead.
+* **Audit everything** — admin mutations route through
+  `services::audit::record(...)` so the action lands in `admin_actions`.
+* **No mutation without a permission check** — every admin handler calls
+  `policy.require(ctx, "<perm>")`. The matrix is seeded by migration 21.
+* **Idempotency-Key** — required on admin POSTs; middleware + GC are
+  documented in [`docs/RUNBOOK.md`](./docs/RUNBOOK.md).
+
+For agent-tool-specific guidance (Cursor, Codex, Claude Code, Copilot),
+see [`AGENTS.md`](./AGENTS.md).
+
+---
+
+## Contributing & support
+
+* File issues / PRs on GitHub.
+* Use [Conventional Commits](https://www.conventionalcommits.org/) for
+  commit subjects (`feat:`, `fix:`, `docs:`, `chore:`, …).
+* Pre-commit hook runs `pnpm lint` and `pnpm test:unit -- --run`. Don't
+  bypass it without a documented reason.
+* Security-sensitive issues: see [`SECURITY.md`](./SECURITY.md).
+
+— Maintained by the swings core team.

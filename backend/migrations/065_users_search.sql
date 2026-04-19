@@ -34,9 +34,11 @@ CREATE INDEX IF NOT EXISTS idx_users_search_fts
     ON users USING GIN (
         to_tsvector(
             'simple',
-            coalesce(name, '') || ' ' ||
-            coalesce(email, '') || ' ' ||
-            coalesce(position, '')
+            coalesce(name, '')
+            || ' '
+            || coalesce(email, '')
+            || ' '
+            || coalesce(position, '')
         )
     );
 

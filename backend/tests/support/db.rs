@@ -27,7 +27,7 @@
 //! effort basis: if the user's test panicked while holding a connection, the
 //! drop blocks only briefly before the pool is torn down by Tokio. Orphans are
 //! harmless beyond disk usage and can be cleaned up with the SQL one-liner
-//! documented in `FDN-TESTHARNESS-WIRING.md`.
+//! documented in `docs/wiring/FDN-TESTHARNESS-WIRING.md`.
 
 use std::time::Duration;
 
