@@ -601,6 +601,7 @@ pub struct RevisionRestorePath {
 pub(crate) async fn admin_restore_revision(
     State(state): State<AppState>,
     admin: AdminUser,
+    client: ClientInfo,
     Path(path): Path<RevisionRestorePath>,
 ) -> AppResult<Json<BlogPostResponse>> {
     let existing = db::get_blog_post(&state.db, path.id)
@@ -648,6 +649,22 @@ pub(crate) async fn admin_restore_revision(
 
     let post = db::update_blog_post(&state.db, path.id, &req, None, None).await?;
     let response = build_post_response(&state.db, post).await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "blog.post.revision.restore",
+        "blog_post",
+        response.id,
+        serde_json::json!({
+            "slug": response.slug,
+            "revision_id": path.rev_id,
+            "revision_number": revision.revision_number,
+        }),
+    )
+    .await;
+
     Ok(Json(response))
 }
 
@@ -677,12 +694,25 @@ async fn admin_list_categories(
 )]
 pub(crate) async fn admin_create_category(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Json(req): Json<CreateCategoryRequest>,
 ) -> AppResult<Json<BlogCategory>> {
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
     let cat = db::create_blog_category(&state.db, &req).await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "blog.category.create",
+        "blog_category",
+        cat.id,
+        serde_json::json!({ "slug": cat.slug, "name": cat.name }),
+    )
+    .await;
+
     Ok(Json(cat))
 }
 
@@ -700,11 +730,24 @@ pub(crate) async fn admin_create_category(
 )]
 pub(crate) async fn admin_update_category(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateCategoryRequest>,
 ) -> AppResult<Json<BlogCategory>> {
     let cat = db::update_blog_category(&state.db, id, &req).await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "blog.category.update",
+        "blog_category",
+        cat.id,
+        serde_json::json!({ "slug": cat.slug, "name": cat.name }),
+    )
+    .await;
+
     Ok(Json(cat))
 }
 
@@ -721,10 +764,23 @@ pub(crate) async fn admin_update_category(
 )]
 pub(crate) async fn admin_delete_category(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
     db::delete_blog_category(&state.db, id).await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "blog.category.delete",
+        "blog_category",
+        id,
+        serde_json::json!({}),
+    )
+    .await;
+
     Ok(Json(serde_json::json!({ "message": "Category deleted" })))
 }
 
@@ -754,12 +810,25 @@ async fn admin_list_tags(
 )]
 pub(crate) async fn admin_create_tag(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Json(req): Json<CreateTagRequest>,
 ) -> AppResult<Json<BlogTag>> {
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
     let tag = db::create_blog_tag(&state.db, &req).await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "blog.tag.create",
+        "blog_tag",
+        tag.id,
+        serde_json::json!({ "slug": tag.slug, "name": tag.name }),
+    )
+    .await;
+
     Ok(Json(tag))
 }
 
@@ -776,10 +845,23 @@ pub(crate) async fn admin_create_tag(
 )]
 pub(crate) async fn admin_delete_tag(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
     db::delete_blog_tag(&state.db, id).await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "blog.tag.delete",
+        "blog_tag",
+        id,
+        serde_json::json!({}),
+    )
+    .await;
+
     Ok(Json(serde_json::json!({ "message": "Tag deleted" })))
 }
 
@@ -824,6 +906,7 @@ async fn admin_list_media(
 pub(crate) async fn admin_upload_media(
     State(state): State<AppState>,
     admin: AdminUser,
+    client: ClientInfo,
     mut multipart: Multipart,
 ) -> AppResult<Json<Media>> {
     let api_url = &state.config.api_url;
@@ -944,6 +1027,21 @@ pub(crate) async fn admin_upload_media(
     )
     .await?;
 
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "blog.media.create",
+        "media",
+        media.id,
+        serde_json::json!({
+            "filename": media.original_filename,
+            "mime_type": media.mime_type,
+            "size_bytes": media.file_size,
+        }),
+    )
+    .await;
+
     Ok(Json(media))
 }
 
@@ -961,11 +1059,26 @@ pub(crate) async fn admin_upload_media(
 )]
 pub(crate) async fn admin_update_media(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateMediaRequest>,
 ) -> AppResult<Json<Media>> {
     let media = db::update_media(&state.db, id, &req).await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "blog.media.update",
+        "media",
+        media.id,
+        serde_json::json!({
+            "filename": media.original_filename,
+        }),
+    )
+    .await;
+
     Ok(Json(media))
 }
 
@@ -982,12 +1095,13 @@ pub(crate) async fn admin_update_media(
 )]
 pub(crate) async fn admin_delete_media(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
     let media = db::delete_media(&state.db, id).await?;
 
-    if let Some(m) = media {
+    if let Some(m) = &media {
         match &state.media_backend {
             MediaBackend::R2(r2) if m.storage_path.starts_with("media/") => {
                 if let Err(e) = r2.delete_object(&m.storage_path).await {
@@ -1003,6 +1117,19 @@ pub(crate) async fn admin_delete_media(
             }
         }
     }
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "blog.media.delete",
+        "media",
+        id,
+        serde_json::json!({
+            "filename": media.as_ref().map(|m| m.original_filename.clone()),
+        }),
+    )
+    .await;
 
     Ok(Json(serde_json::json!({ "message": "Media deleted" })))
 }
@@ -1191,11 +1318,27 @@ async fn admin_list_post_meta(
 )]
 pub(crate) async fn admin_upsert_post_meta(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<UpsertPostMetaRequest>,
 ) -> AppResult<Json<PostMeta>> {
     let item = db::upsert_post_meta(&state.db, id, &req.meta_key, &req.meta_value).await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "blog.post_meta.upsert",
+        "blog_post_meta",
+        item.id,
+        serde_json::json!({
+            "post_id": id,
+            "meta_key": req.meta_key,
+        }),
+    )
+    .await;
+
     Ok(Json(item))
 }
 
@@ -1215,9 +1358,25 @@ pub(crate) async fn admin_upsert_post_meta(
 )]
 pub(crate) async fn admin_delete_post_meta(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path((id, key)): Path<(Uuid, String)>,
 ) -> AppResult<axum::http::StatusCode> {
     db::delete_post_meta(&state.db, id, &key).await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "blog.post_meta.delete",
+        "blog_post_meta",
+        format!("{}:{}", id, key),
+        serde_json::json!({
+            "post_id": id,
+            "meta_key": key,
+        }),
+    )
+    .await;
+
     Ok(axum::http::StatusCode::NO_CONTENT)
 }

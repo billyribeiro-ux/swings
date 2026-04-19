@@ -13,9 +13,10 @@ use validator::Validate;
 use crate::{
     common::{geo::country_from_request, ua::parse_ua},
     error::{AppError, AppResult},
-    extractors::{AdminUser, OptionalAuthUser},
+    extractors::{AdminUser, ClientInfo, OptionalAuthUser},
     models::*,
     popups::targeting::{self, TargetingRules, VisitorContext},
+    services::audit::audit_admin,
     AppState,
 };
 
@@ -172,6 +173,7 @@ async fn admin_list_popups(
 pub(crate) async fn admin_create_popup(
     State(state): State<AppState>,
     admin: AdminUser,
+    client: ClientInfo,
     Json(req): Json<CreatePopupRequest>,
 ) -> AppResult<Json<Popup>> {
     req.validate()
@@ -240,6 +242,22 @@ pub(crate) async fn admin_create_popup(
     .fetch_one(&state.db)
     .await?;
 
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "popup.create",
+        "popup",
+        popup.id,
+        serde_json::json!({
+            "name": popup.name,
+            "popup_type": popup.popup_type,
+            "trigger_type": popup.trigger_type,
+            "is_active": popup.is_active,
+        }),
+    )
+    .await;
+
     Ok(Json(popup))
 }
 
@@ -283,11 +301,11 @@ async fn admin_get_popup(
 )]
 pub(crate) async fn admin_update_popup(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<UpdatePopupRequest>,
 ) -> AppResult<Json<Popup>> {
-    // Ensure popup exists
     let existing = sqlx::query_as::<_, Popup>("SELECT * FROM popups WHERE id = $1")
         .bind(id)
         .fetch_optional(&state.db)
@@ -339,8 +357,69 @@ pub(crate) async fn admin_update_popup(
     .fetch_one(&state.db)
     .await?;
 
-    // Suppress unused variable warning — we read existing to confirm it exists
+    let mut changed: Vec<&'static str> = Vec::new();
+    if req.name.is_some() {
+        changed.push("name");
+    }
+    if req.popup_type.is_some() {
+        changed.push("popup_type");
+    }
+    if req.trigger_type.is_some() {
+        changed.push("trigger_type");
+    }
+    if req.trigger_config.is_some() {
+        changed.push("trigger_config");
+    }
+    if req.content_json.is_some() {
+        changed.push("content_json");
+    }
+    if req.style_json.is_some() {
+        changed.push("style_json");
+    }
+    if req.targeting_rules.is_some() {
+        changed.push("targeting_rules");
+    }
+    if req.display_frequency.is_some() {
+        changed.push("display_frequency");
+    }
+    if req.frequency_config.is_some() {
+        changed.push("frequency_config");
+    }
+    if req.success_message.is_some() {
+        changed.push("success_message");
+    }
+    if req.redirect_url.is_some() {
+        changed.push("redirect_url");
+    }
+    if req.is_active.is_some() {
+        changed.push("is_active");
+    }
+    if req.starts_at.is_some() {
+        changed.push("starts_at");
+    }
+    if req.expires_at.is_some() {
+        changed.push("expires_at");
+    }
+    if req.priority.is_some() {
+        changed.push("priority");
+    }
+
     let _ = existing;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "popup.update",
+        "popup",
+        popup.id,
+        serde_json::json!({
+            "name": popup.name,
+            "is_active": popup.is_active,
+            "changed_fields": changed,
+        }),
+    )
+    .await;
 
     Ok(Json(popup))
 }
@@ -359,9 +438,16 @@ pub(crate) async fn admin_update_popup(
 )]
 pub(crate) async fn admin_delete_popup(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    let snapshot: Option<(String, String)> =
+        sqlx::query_as("SELECT name, popup_type FROM popups WHERE id = $1")
+            .bind(id)
+            .fetch_optional(&state.db)
+            .await?;
+
     let result = sqlx::query("DELETE FROM popups WHERE id = $1")
         .bind(id)
         .execute(&state.db)
@@ -370,6 +456,21 @@ pub(crate) async fn admin_delete_popup(
     if result.rows_affected() == 0 {
         return Err(AppError::NotFound("Popup not found".to_string()));
     }
+
+    let (name, popup_type) = snapshot.unwrap_or_default();
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "popup.delete",
+        "popup",
+        id,
+        serde_json::json!({
+            "name": name,
+            "popup_type": popup_type,
+        }),
+    )
+    .await;
 
     Ok(Json(serde_json::json!({ "message": "Popup deleted" })))
 }
@@ -388,7 +489,8 @@ pub(crate) async fn admin_delete_popup(
 )]
 pub(crate) async fn admin_toggle_popup(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Popup>> {
     let popup = sqlx::query_as::<_, Popup>(
@@ -408,6 +510,20 @@ pub(crate) async fn admin_toggle_popup(
     .await?
     .ok_or(AppError::NotFound("Popup not found".to_string()))?;
 
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "popup.toggle",
+        "popup",
+        popup.id,
+        serde_json::json!({
+            "name": popup.name,
+            "is_active": popup.is_active,
+        }),
+    )
+    .await;
+
     Ok(Json(popup))
 }
 
@@ -426,6 +542,7 @@ pub(crate) async fn admin_toggle_popup(
 pub(crate) async fn admin_duplicate_popup(
     State(state): State<AppState>,
     admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Popup>> {
     let source = sqlx::query_as::<_, Popup>("SELECT * FROM popups WHERE id = $1")
@@ -468,6 +585,20 @@ pub(crate) async fn admin_duplicate_popup(
     .bind(admin.user_id)
     .fetch_one(&state.db)
     .await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "popup.duplicate",
+        "popup",
+        popup.id,
+        serde_json::json!({
+            "source_popup_id": id,
+            "new_name": popup.name,
+        }),
+    )
+    .await;
 
     Ok(Json(popup))
 }

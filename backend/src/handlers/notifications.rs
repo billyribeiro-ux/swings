@@ -20,7 +20,7 @@ use uuid::Uuid;
 use crate::{
     common::html::sanitize_rich_text,
     error::{AppError, AppResult},
-    extractors::AdminUser,
+    extractors::{AdminUser, ClientInfo},
     models::PaginatedResponse,
     notifications::{
         channels::DeliveryRequest,
@@ -31,6 +31,7 @@ use crate::{
         unsubscribe::{self, UnsubscribeAction, UnsubscribeError},
         ChannelError,
     },
+    services::audit::audit_admin,
     AppState,
 };
 
@@ -220,7 +221,8 @@ pub async fn list_templates(
 )]
 pub async fn create_template(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Json(req): Json<CreateTemplateRequest>,
 ) -> AppResult<Json<Template>> {
     if req.key.trim().is_empty() {
@@ -260,6 +262,22 @@ pub async fn create_template(
     .bind(is_active)
     .fetch_one(&state.db)
     .await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "notification_template.create",
+        "notification_template",
+        row.id,
+        serde_json::json!({
+            "key": row.key,
+            "channel": row.channel,
+            "locale": row.locale,
+            "version": row.version,
+        }),
+    )
+    .await;
 
     Ok(Json(row))
 }
@@ -312,7 +330,8 @@ pub async fn get_template(
 )]
 pub async fn update_template(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateTemplateRequest>,
 ) -> AppResult<Json<Template>> {
@@ -357,6 +376,23 @@ pub async fn update_template(
     .bind(is_active)
     .fetch_one(&state.db)
     .await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "notification_template.update",
+        "notification_template",
+        row.id,
+        serde_json::json!({
+            "base_id": id,
+            "key": row.key,
+            "channel": row.channel,
+            "locale": row.locale,
+            "version": row.version,
+        }),
+    )
+    .await;
 
     Ok(Json(row))
 }
@@ -415,7 +451,8 @@ pub async fn preview_template(
 )]
 pub async fn test_send_template(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<TestSendRequest>,
 ) -> AppResult<Json<TestSendResponse>> {
@@ -457,6 +494,22 @@ pub async fn test_send_template(
         ChannelError::Permanent(msg) => AppError::BadRequest(msg),
         ChannelError::Transient(msg) => AppError::ServiceUnavailable(msg),
     })?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "notification_template.test_send",
+        "notification_template",
+        id,
+        serde_json::json!({
+            "key": row.key,
+            "channel": row.channel,
+            "to": req.to,
+            "provider_id": provider_id,
+        }),
+    )
+    .await;
 
     Ok(Json(TestSendResponse {
         provider_id,
@@ -668,7 +721,8 @@ pub async fn list_suppression(
 )]
 pub async fn add_suppression(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Json(req): Json<AddSuppressionRequest>,
 ) -> AppResult<Json<Suppression>> {
     if req.email.trim().is_empty() {
@@ -678,6 +732,21 @@ pub async fn add_suppression(
         return Err(AppError::BadRequest("reason is required".into()));
     }
     let row = suppression::suppress(&state.db, &req.email, &req.reason).await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "notification.suppression.add",
+        "suppression",
+        row.email.clone(),
+        serde_json::json!({
+            "email": row.email,
+            "reason": req.reason,
+        }),
+    )
+    .await;
+
     Ok(Json(row))
 }
 
@@ -694,10 +763,26 @@ pub async fn add_suppression(
 )]
 pub async fn remove_suppression(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Json(req): Json<RemoveSuppressionRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
     let removed = suppression::unsuppress(&state.db, &req.email).await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "notification.suppression.remove",
+        "suppression",
+        req.email.clone(),
+        serde_json::json!({
+            "email": req.email,
+            "removed": removed,
+        }),
+    )
+    .await;
+
     Ok(Json(serde_json::json!({ "removed": removed })))
 }
 

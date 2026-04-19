@@ -32,12 +32,13 @@ use uuid::Uuid;
 use crate::{
     error::{AppError, AppResult},
     events::{publish_in_tx, Event},
-    extractors::{AdminUser, OptionalAuthUser},
+    extractors::{AdminUser, ClientInfo, OptionalAuthUser},
     forms::{
         repo::{self, InsertSubmission, SubmissionListFilter, SubmissionRow},
         schema::FieldSchema,
         validation::{validate, AsyncRuleRunner, ValidationError},
     },
+    services::audit::audit_admin,
     AppState,
 };
 
