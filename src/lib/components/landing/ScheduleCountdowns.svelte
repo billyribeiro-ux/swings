@@ -4,7 +4,7 @@
 	import Calendar from 'phosphor-svelte/lib/Calendar';
 	import Clock from 'phosphor-svelte/lib/Clock';
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
-	import { createCinematicReveal, DURATION, EASE } from '$lib/utils/animations';
+	import { createCinematicReveal, DURATION, EASE, hoverTilt } from '$lib/utils/animations';
 	import {
 		EASTERN_TZ,
 		getMarketCountdown,
@@ -147,7 +147,7 @@
 				</p>
 			</article>
 
-			<article class="schedule-countdowns__card">
+			<article class="schedule-countdowns__card" {@attach hoverTilt({ maxTilt: 4, scale: 1.01 })}>
 				<div class="schedule-countdowns__icon-wrap" aria-hidden="true">
 					<Clock size={26} weight="duotone" color="#0FA4AF" />
 				</div>
@@ -233,19 +233,25 @@
 
 	.schedule-countdowns__card {
 		position: relative;
-		background-color: var(--color-off-white);
+		background: linear-gradient(150deg, #ffffff 0%, #f4f7fb 100%);
 		border-radius: var(--radius-xl);
-		padding: 2rem;
-		box-shadow: var(--shadow-sm);
-		border: 1px solid var(--color-grey-100);
+		padding: 2.25rem;
+		box-shadow: 
+			0 4px 6px -1px rgba(11, 29, 58, 0.04), 
+			0 2px 4px -2px rgba(11, 29, 58, 0.03),
+			inset 0 1px 0 rgba(255, 255, 255, 1);
+		border: 1px solid rgba(226, 232, 240, 0.9);
 		transition:
 			box-shadow 400ms var(--ease-out),
-			transform 400ms var(--ease-out);
+			border-color 400ms var(--ease-out);
 	}
 
 	.schedule-countdowns__card:hover {
-		box-shadow: var(--shadow-xl);
-		transform: translateY(-4px);
+		box-shadow: 
+			0 20px 25px -5px rgba(11, 29, 58, 0.08), 
+			0 8px 10px -6px rgba(11, 29, 58, 0.04),
+			inset 0 1px 0 rgba(255, 255, 255, 1);
+		border-color: rgba(203, 213, 225, 0.8);
 	}
 
 	.schedule-countdowns__icon-wrap {
@@ -323,12 +329,16 @@
 
 	.schedule-countdowns__clock {
 		font-size: clamp(2rem, 6vw, 3rem);
-		font-weight: var(--w-bold);
+		font-weight: var(--w-extrabold);
 		font-variant-numeric: tabular-nums lining-nums;
 		color: var(--color-navy);
-		letter-spacing: 0.04em;
+		letter-spacing: 0.02em;
 		margin-bottom: 1.25rem;
 		line-height: 1.1;
+		background: linear-gradient(135deg, var(--color-navy) 0%, var(--color-teal-dark, #0d8a94) 100%);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
 	}
 
 	.schedule-countdowns__placeholder {

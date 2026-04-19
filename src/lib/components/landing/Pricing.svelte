@@ -277,7 +277,10 @@
 		padding-block-start: calc(var(--_card-pad) + 0.25rem);
 		outline: 1px solid var(--_card-border);
 		outline-offset: -1px;
-		box-shadow: var(--_shadow-card);
+		box-shadow: 
+			0 4px 6px -1px rgba(11, 29, 58, 0.04), 
+			0 2px 4px -2px rgba(11, 29, 58, 0.03),
+			inset 0 1px 0 rgba(255, 255, 255, 1);
 		transition:
 			box-shadow var(--_dur-normal) var(--_ease-out),
 			outline-color var(--_dur-normal) var(--_ease-out),
@@ -286,23 +289,75 @@
 	}
 
 	.pricing__card:hover {
-		box-shadow: var(--_shadow-card-hover);
+		box-shadow: 
+			0 20px 25px -5px rgba(11, 29, 58, 0.08), 
+			0 8px 10px -6px rgba(11, 29, 58, 0.04),
+			inset 0 1px 0 rgba(255, 255, 255, 1);
 		outline-color: oklch(0.68 0.14 192 / 0.3);
 		transform: translateY(-2px);
 	}
 
 	/* Featured card */
 	.pricing__card--featured {
-		outline: 2px solid var(--_teal);
-		outline-offset: -2px;
-		background-color: var(--_card-bg-featured);
-		box-shadow: var(--_shadow-featured);
+		outline: none;
+		background: linear-gradient(135deg, var(--_navy), var(--_navy-mid));
+		box-shadow: 
+			0 12px 32px -4px rgba(15, 164, 175, 0.2), 
+			inset 0 1px 1px rgba(255, 255, 255, 0.1);
+	}
+
+	.pricing__card--featured::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		padding: 2px;
+		background: conic-gradient(
+			from var(--border-angle) at 50% 50%,
+			transparent,
+			var(--_teal),
+			var(--_teal-light),
+			transparent 25%
+		);
+		-webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+		mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+		-webkit-mask-composite: xor;
+		mask-composite: exclude;
+		pointer-events: none;
+		animation: spin 4s linear infinite;
+	}
+
+	@property --border-angle {
+		syntax: '<angle>';
+		inherits: true;
+		initial-value: 0turn;
+	}
+
+	@keyframes spin {
+		to {
+			--border-angle: 1turn;
+		}
 	}
 
 	.pricing__card--featured:hover {
-		box-shadow: var(--_shadow-featured-hover);
-		outline-color: var(--_teal-light);
+		box-shadow: 
+			0 20px 48px -4px rgba(15, 164, 175, 0.3), 
+			inset 0 1px 1px rgba(255, 255, 255, 0.1);
 		transform: translateY(-4px);
+	}
+
+	/* Text overrides for dark featured card */
+	.pricing__card--featured .pricing__plan-name,
+	.pricing__card--featured .pricing__note,
+	.pricing__card--featured .pricing__suffix,
+	.pricing__card--featured .pricing__trust {
+		color: rgba(255, 255, 255, 0.7);
+	}
+
+	.pricing__card--featured .pricing__amount {
+		color: #ffffff;
+		background: none;
+		-webkit-text-fill-color: initial;
 	}
 
 	/* ── Card glow (featured only) ───────────────────────────────────────── */
