@@ -39,10 +39,10 @@ use swings_api::{
     config::Config,
     events::WorkerShutdown,
     handlers::{
-        admin, admin_consent, admin_security, analytics, auth, blog, coupons, courses, csp_report,
-        member, notifications, outbox, popups, pricing, webhooks,
+        admin, admin_consent, admin_ip_allowlist, admin_security, analytics, auth, blog, coupons,
+        courses, csp_report, member, notifications, outbox, popups, pricing, webhooks,
     },
-    middleware::rate_limit::Backend as RateLimitBackend,
+    middleware::{admin_ip_allowlist as admin_ip_allowlist_mw, rate_limit::Backend as RateLimitBackend},
     notifications::Service as NotificationsService,
     services::MediaBackend,
     AppState,
@@ -319,15 +319,17 @@ impl TestApp {
 /// introduced there, mirror it here or integration tests will 404 the new
 /// endpoints.
 fn build_router(state: &AppState) -> Router<()> {
-    let router: Router<AppState> = Router::new()
-        // Auth & analytics
-        .nest("/api/auth", auth::router())
-        .nest("/api/analytics", analytics::router())
-        // Admin routes — `admin_security` is merged INTO `admin` so the two
-        // share the same `/api/admin` nest (Axum panics on duplicate prefix).
+    // ADM-06: same wrapping pattern used in `main.rs` so the IP allowlist
+    // middleware is exercised end-to-end by integration tests.
+    let admin_routes: Router<AppState> = Router::new()
         .nest(
             "/api/admin",
-            admin::router().merge(admin_security::router()),
+            admin::router()
+                .merge(admin_security::router())
+                .nest(
+                    "/security/ip-allowlist",
+                    admin_ip_allowlist::router(),
+                ),
         )
         .nest("/api/admin/blog", blog::admin_router())
         .nest("/api/admin/courses", courses::admin_router())
@@ -337,6 +339,16 @@ fn build_router(state: &AppState) -> Router<()> {
         .nest("/api/admin/outbox", outbox::router())
         .nest("/api/admin/notifications", notifications::admin_router())
         .nest("/api/admin/consent", admin_consent::router())
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            admin_ip_allowlist_mw::enforce,
+        ));
+
+    let router: Router<AppState> = Router::new()
+        // Auth & analytics
+        .nest("/api/auth", auth::router())
+        .nest("/api/analytics", analytics::router())
+        .merge(admin_routes)
         // Public routes
         .nest("/api/blog", blog::public_router())
         .nest("/api/courses", courses::public_router())

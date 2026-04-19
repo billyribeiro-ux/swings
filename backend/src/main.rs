@@ -306,18 +306,24 @@ async fn main() -> Result<()> {
 
     let mount_local_uploads = !(state.config.is_production() && state.media_backend.is_r2());
 
-    let mut app = Router::new()
-        // Auth & analytics
-        .nest("/api/auth", handlers::auth::router())
-        .nest("/api/analytics", handlers::analytics::router())
-        // Admin routes
+    // ADM-06: gather every `/api/admin/*` nest into one Router so the IP
+    // allowlist middleware can be applied a single time. The middleware is a
+    // no-op when the allowlist table is empty (open-mode default), so this is
+    // always safe to wire up.
+    let admin_routes = Router::<AppState>::new()
         // ADM-05: the admin security console is merged INTO the same
         // `/api/admin` nest as the legacy member/dashboard routes so the two
         // routers share one path prefix (Axum panics on duplicate `.nest`
         // calls with the same prefix).
         .nest(
             "/api/admin",
-            handlers::admin::router().merge(handlers::admin_security::router()),
+            handlers::admin::router()
+                .merge(handlers::admin_security::router())
+                // ADM-06: IP-allowlist CRUD lives under /api/admin/security/ip-allowlist.
+                .nest(
+                    "/security/ip-allowlist",
+                    handlers::admin_ip_allowlist::router(),
+                ),
         )
         .nest("/api/admin/blog", handlers::blog::admin_router())
         .nest("/api/admin/courses", handlers::courses::admin_router())
@@ -333,6 +339,19 @@ async fn main() -> Result<()> {
         // CONSENT-07 admin CRUD (banners / categories / services / policies
         // + log view + integrity anchor list).
         .nest("/api/admin/consent", handlers::admin_consent::router())
+        // CONSENT-03: admin DSAR fulfilment (separate sub-router from
+        // CONSENT-07 so both can mount under /api/admin/consent).
+        .nest("/api/admin/consent", handlers::consent::admin_router())
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            swings_api::middleware::admin_ip_allowlist::enforce,
+        ));
+
+    let mut app = Router::new()
+        // Auth & analytics
+        .nest("/api/auth", handlers::auth::router())
+        .nest("/api/analytics", handlers::analytics::router())
+        .merge(admin_routes)
         // Public routes
         .nest("/api/blog", handlers::blog::public_router())
         .nest("/api/courses", handlers::courses::public_router())
@@ -347,7 +366,6 @@ async fn main() -> Result<()> {
         // Consent (CONSENT-01: public banner + category lookup; admin lives under /api/admin/consent in CONSENT-07)
         .nest("/api/consent", handlers::consent::public_router())
         .nest("/api/dsar", handlers::consent::public_dsar_router())
-        .nest("/api/admin/consent", handlers::consent::admin_router())
         // Member routes
         .nest("/api/member", handlers::member::router())
         .nest("/api/member", handlers::courses::member_router())

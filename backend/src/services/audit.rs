@@ -30,7 +30,7 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::error::{AppError, AppResult};
-use crate::extractors::{AdminUser, ClientInfo};
+use crate::extractors::{AdminUser, ClientInfo, PrivilegedUser};
 use crate::models::UserRole;
 
 /// Structured payload for a single audit row.
@@ -215,6 +215,47 @@ pub async fn audit_admin_no_target(
     record_admin_action_best_effort(
         pool,
         AdminAction::new(admin.user_id, role, action, target_kind)
+            .with_client(client)
+            .with_metadata(metadata),
+    )
+    .await
+}
+
+/// [`audit_admin`] equivalent for handlers that already have a typed
+/// [`PrivilegedUser`] (i.e. the FDN-07 helpdesk-aware extractor) instead
+/// of the legacy stringly-typed [`AdminUser`]. Skips the role-string
+/// reparsing step because the extractor already proved the role.
+pub async fn audit_admin_priv<T: ToString>(
+    pool: &PgPool,
+    admin: &PrivilegedUser,
+    client: &ClientInfo,
+    action: &'static str,
+    target_kind: &'static str,
+    target_id: T,
+    metadata: JsonValue,
+) -> Option<Uuid> {
+    record_admin_action_best_effort(
+        pool,
+        AdminAction::new(admin.user_id, admin.role, action, target_kind)
+            .with_target_id(target_id)
+            .with_client(client)
+            .with_metadata(metadata),
+    )
+    .await
+}
+
+/// `target_id`-less twin of [`audit_admin_priv`] for bulk operations.
+pub async fn audit_admin_priv_no_target(
+    pool: &PgPool,
+    admin: &PrivilegedUser,
+    client: &ClientInfo,
+    action: &'static str,
+    target_kind: &'static str,
+    metadata: JsonValue,
+) -> Option<Uuid> {
+    record_admin_action_best_effort(
+        pool,
+        AdminAction::new(admin.user_id, admin.role, action, target_kind)
             .with_client(client)
             .with_metadata(metadata),
     )

@@ -27,6 +27,7 @@ pub mod observability;
 pub mod openapi;
 pub mod pdf;
 pub mod popups;
+pub mod security;
 pub mod services;
 pub mod stripe_api;
 
