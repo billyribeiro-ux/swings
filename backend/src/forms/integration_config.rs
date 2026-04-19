@@ -79,7 +79,9 @@ pub struct Cipher {
 impl std::fmt::Debug for Cipher {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // Never leak key material via Debug, even in test logs.
-        f.debug_struct("Cipher").field("key", &"[redacted]").finish()
+        f.debug_struct("Cipher")
+            .field("key", &"[redacted]")
+            .finish()
     }
 }
 
@@ -415,4 +417,3 @@ mod tests {
         ));
     }
 }
-
