@@ -50,6 +50,23 @@ pub const MAX_TTL_MINUTES: i64 = 60;
 /// Default TTL when the caller does not specify `ttl_minutes`.
 pub const DEFAULT_TTL_MINUTES: i64 = 30;
 
+/// Per-actor mint cap (rolling 60s window).
+///
+/// Defence against a compromised admin session or a bug-stricken UI:
+/// even with the `user.impersonate` permission, an actor can only mint
+/// `MAX_MINTS_PER_MINUTE` fresh tokens per minute. The check is
+/// portable across instances because it counts the canonical
+/// `impersonation_sessions` rows rather than relying on per-process
+/// state. Operators who legitimately need a higher burst can bump this
+/// constant — the cap is intentionally tight so the default is safe.
+pub const MAX_MINTS_PER_MINUTE: i64 = 6;
+
+/// Pagination upper bound for [`list_active_paginated`].
+pub const LIST_MAX_LIMIT: i64 = 100;
+
+/// Pagination default page size when caller omits `limit`.
+pub const LIST_DEFAULT_LIMIT: i64 = 25;
+
 /// Materialised impersonation-session row as returned by the admin CRUD
 /// endpoints and consumed by [`crate::extractors::AuthUser`].
 #[derive(Debug, Clone, Serialize, ToSchema, sqlx::FromRow)]
@@ -141,6 +158,9 @@ pub fn resolve_ttl(input_ttl: Option<i64>) -> Duration {
 /// Insert a new active session. Caller is responsible for ensuring the
 /// caller has the `user.impersonate` permission and that the target
 /// passes the safety checks in [`assert_target_safe`].
+///
+/// Emits a `impersonation.mint` counter labelled by `actor_role` for
+/// the Prometheus exporter (Phase-4 observability).
 pub async fn create(
     pool: &PgPool,
     actor_user_id: Uuid,
@@ -182,6 +202,12 @@ pub async fn create(
     .bind(user_agent)
     .fetch_one(pool)
     .await?;
+
+    metrics::counter!(
+        "impersonation_mint_total",
+        "actor_role" => actor_role.as_str().to_string(),
+    )
+    .increment(1);
 
     Ok(row)
 }
@@ -238,8 +264,27 @@ pub async fn get(pool: &PgPool, id: Uuid) -> AppResult<Option<ImpersonationSessi
 
 /// List currently-honoured sessions, newest first. Filters at the DB
 /// level so the `idx_impersonation_sessions_active` partial index is
-/// usable.
+/// usable. Capped at [`LIST_MAX_LIMIT`] rows; callers expecting more
+/// must paginate via [`list_active_paginated`].
 pub async fn list_active(pool: &PgPool) -> AppResult<Vec<ImpersonationSession>> {
+    list_active_paginated(pool, None, LIST_MAX_LIMIT).await
+}
+
+/// Cursor-paginated variant. The cursor is the `issued_at` of the last
+/// row from the previous page; passing `None` returns the newest page.
+/// `limit` is clamped to `1..=`[`LIST_MAX_LIMIT`].
+///
+/// Cursoring on `issued_at` is acceptable because the column is
+/// monotonic (default `NOW()` at insert), small ties between two rows
+/// inserted in the same microsecond are extremely rare in practice for
+/// this table, and the index `idx_impersonation_sessions_active` is on
+/// `issued_at DESC` so seeks are O(log n).
+pub async fn list_active_paginated(
+    pool: &PgPool,
+    after: Option<DateTime<Utc>>,
+    limit: i64,
+) -> AppResult<Vec<ImpersonationSession>> {
+    let limit = limit.clamp(1, LIST_MAX_LIMIT);
     let rows = sqlx::query_as::<_, ImpersonationSession>(
         r#"
         SELECT
@@ -251,13 +296,39 @@ pub async fn list_active(pool: &PgPool) -> AppResult<Vec<ImpersonationSession>> 
         FROM impersonation_sessions
         WHERE revoked_at IS NULL
           AND expires_at > NOW()
+          AND ($1::timestamptz IS NULL OR issued_at < $1)
         ORDER BY issued_at DESC
-        LIMIT 200
+        LIMIT $2
         "#,
     )
+    .bind(after)
+    .bind(limit)
     .fetch_all(pool)
     .await?;
     Ok(rows)
+}
+
+/// Count fresh sessions an actor has minted inside the last
+/// `window_seconds`. Used by the mint handler to enforce the per-actor
+/// burst cap ([`MAX_MINTS_PER_MINUTE`]).
+pub async fn count_recent_for_actor(
+    pool: &PgPool,
+    actor_user_id: Uuid,
+    window_seconds: i64,
+) -> AppResult<i64> {
+    let count: (i64,) = sqlx::query_as(
+        r#"
+        SELECT COUNT(*)::bigint
+        FROM impersonation_sessions
+        WHERE actor_user_id = $1
+          AND issued_at > NOW() - make_interval(secs => $2)
+        "#,
+    )
+    .bind(actor_user_id)
+    .bind(window_seconds as f64)
+    .fetch_one(pool)
+    .await?;
+    Ok(count.0)
 }
 
 /// Mark a session revoked. Idempotent: re-revoking an already-revoked
@@ -289,6 +360,11 @@ pub async fn revoke(
     .bind(reason.map(str::trim).filter(|s| !s.is_empty()))
     .fetch_optional(pool)
     .await?;
+
+    if row.is_some() {
+        metrics::counter!("impersonation_revoke_total").increment(1);
+    }
+
     Ok(row)
 }
 

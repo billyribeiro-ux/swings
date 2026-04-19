@@ -36,7 +36,7 @@
 //! the JWT's `imp_session` claim must point at a still-active row.
 
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     routing::{get, post},
     Json, Router,
@@ -44,7 +44,7 @@ use axum::{
 use chrono::{DateTime, Utc};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
+use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
 use crate::{
@@ -52,14 +52,16 @@ use crate::{
     error::{AppError, AppResult},
     extractors::{AuthUser, Claims, ClientInfo, PrivilegedUser},
     models::UserRole,
+    notifications::send::{send_notification, Recipient, SendOptions},
     security::impersonation::{
-        self, CreateImpersonationInput, ImpersonationSession,
+        self, CreateImpersonationInput, ImpersonationSession, MAX_MINTS_PER_MINUTE,
     },
     services::audit::audit_admin_priv,
     AppState,
 };
 
 const IMPERSONATE_PERMISSION: &str = "user.impersonate";
+const MINT_RATE_WINDOW_SECS: i64 = 60;
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -92,6 +94,23 @@ pub struct MintResponse {
 pub struct ListResponse {
     pub data: Vec<ImpersonationSession>,
     pub total: i64,
+    /// Cursor (`issued_at` of the last row) to pass back via `?after=`
+    /// to fetch the next page; `None` when the page is not full.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_cursor: Option<DateTime<Utc>>,
+}
+
+/// Pagination + filter inputs for `GET /api/admin/security/impersonation`.
+#[derive(Debug, Deserialize, IntoParams, Default)]
+#[into_params(parameter_in = Query)]
+pub struct ListQuery {
+    /// Cursor — `issued_at` of the last row from the previous page.
+    /// Returns the newest page when omitted.
+    #[serde(default)]
+    pub after: Option<DateTime<Utc>>,
+    /// Page size, clamped to 1..=100. Defaults to 25 when omitted.
+    #[serde(default)]
+    pub limit: Option<i64>,
 }
 
 #[derive(Debug, Deserialize, ToSchema, Default)]
@@ -125,6 +144,22 @@ pub(crate) async fn mint(
 ) -> AppResult<Json<MintResponse>> {
     admin.require(&state.policy, IMPERSONATE_PERMISSION)?;
     impersonation::validate_input(&input)?;
+
+    // Per-actor burst cap (defence-in-depth on top of admin auth + IP
+    // allowlist + permission gate). Counts the canonical session rows
+    // so the cap is portable across instances and survives restart.
+    let recent =
+        impersonation::count_recent_for_actor(&state.db, admin.user_id, MINT_RATE_WINDOW_SECS)
+            .await?;
+    if recent >= MAX_MINTS_PER_MINUTE {
+        tracing::warn!(
+            actor_id = %admin.user_id,
+            recent_mints = recent,
+            "impersonation mint blocked: per-actor rate limit"
+        );
+        metrics::counter!("impersonation_mint_rate_limited_total").increment(1);
+        return Err(AppError::TooManyRequests);
+    }
 
     let target_role = impersonation::assert_target_safe(
         &state.db,
@@ -175,6 +210,12 @@ pub(crate) async fn mint(
     )
     .await;
 
+    // GDPR Art. 32 contemporaneous notification. Best-effort: a
+    // notification failure must never block the support flow because
+    // the audit row is already persisted. We dispatch in the
+    // background so the admin response latency is unaffected.
+    notify_target_session_started(&state, &session, target_role).await;
+
     Ok(Json(MintResponse {
         access_token,
         expires_at: session.expires_at,
@@ -182,10 +223,67 @@ pub(crate) async fn mint(
     }))
 }
 
+/// Fire-and-forget the "support session started" email to the target
+/// user. Errors are logged at WARN — never propagated.
+async fn notify_target_session_started(
+    state: &AppState,
+    session: &ImpersonationSession,
+    _target_role: UserRole,
+) {
+    let target = match db::find_user_by_id(&state.db, session.target_user_id).await {
+        Ok(Some(u)) => u,
+        Ok(None) => {
+            tracing::warn!(
+                target_user_id = %session.target_user_id,
+                "impersonation notify skipped: target user vanished between mint and notify"
+            );
+            return;
+        }
+        Err(err) => {
+            tracing::warn!(
+                error = %err,
+                target_user_id = %session.target_user_id,
+                "impersonation notify skipped: lookup error"
+            );
+            return;
+        }
+    };
+
+    let ttl_minutes = (session.expires_at - session.issued_at).num_minutes();
+    let ctx = serde_json::json!({
+        "name":         target.name,
+        "reason":       session.reason,
+        "issued_at":    session.issued_at.to_rfc3339(),
+        "expires_at":   session.expires_at.to_rfc3339(),
+        "ttl_minutes":  ttl_minutes,
+        "app_url":      state.config.app_url,
+        "year":         chrono::Utc::now().format("%Y").to_string(),
+    });
+    if let Err(err) = send_notification(
+        &state.db,
+        "admin.impersonation_started",
+        &Recipient::User {
+            user_id: target.id,
+            email: target.email.clone(),
+        },
+        ctx,
+        SendOptions::default(),
+    )
+    .await
+    {
+        tracing::warn!(
+            error = %err,
+            target_user_id = %target.id,
+            "failed to enqueue impersonation-started email"
+        );
+    }
+}
+
 #[utoipa::path(
     get,
     path = "/api/admin/security/impersonation",
     tag = "admin-impersonation",
+    params(ListQuery),
     security(("bearer_auth" = [])),
     responses(
         (status = 200, description = "Active impersonation sessions", body = ListResponse),
@@ -195,11 +293,25 @@ pub(crate) async fn mint(
 pub(crate) async fn list(
     State(state): State<AppState>,
     admin: PrivilegedUser,
+    Query(q): Query<ListQuery>,
 ) -> AppResult<Json<ListResponse>> {
     admin.require(&state.policy, IMPERSONATE_PERMISSION)?;
-    let data = impersonation::list_active(&state.db).await?;
+    let limit = q
+        .limit
+        .unwrap_or(impersonation::LIST_DEFAULT_LIMIT)
+        .clamp(1, impersonation::LIST_MAX_LIMIT);
+    let data = impersonation::list_active_paginated(&state.db, q.after, limit).await?;
     let total = data.len() as i64;
-    Ok(Json(ListResponse { data, total }))
+    let next_cursor = if total == limit {
+        data.last().map(|s| s.issued_at)
+    } else {
+        None
+    };
+    Ok(Json(ListResponse {
+        data,
+        total,
+        next_cursor,
+    }))
 }
 
 #[utoipa::path(

@@ -30,7 +30,7 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::error::{AppError, AppResult};
-use crate::extractors::{AdminUser, ClientInfo, PrivilegedUser};
+use crate::extractors::{AdminUser, AuthUser, ClientInfo, PrivilegedUser};
 use crate::models::UserRole;
 
 /// Structured payload for a single audit row.
@@ -256,6 +256,63 @@ pub async fn audit_admin_priv_no_target(
     record_admin_action_best_effort(
         pool,
         AdminAction::new(admin.user_id, admin.role, action, target_kind)
+            .with_client(client)
+            .with_metadata(metadata),
+    )
+    .await
+}
+
+/// Audit a user-facing action that runs *under* an active impersonation
+/// session. Attribution flips to the **real admin** (not the
+/// impersonated target) so the audit trail answers "who actually did
+/// this", and the metadata captures the target so post-incident review
+/// can reconstruct the customer-visible side.
+///
+/// Falls back to a normal user-attributed audit row when the caller is
+/// not impersonating; this lets handlers call the helper unconditionally
+/// without branching on `auth.is_impersonating()` themselves.
+///
+/// Returns the inserted row id when persistence succeeds.
+pub async fn audit_admin_under_impersonation<T: ToString>(
+    pool: &PgPool,
+    auth: &AuthUser,
+    client: &ClientInfo,
+    action: &'static str,
+    target_kind: &'static str,
+    target_id: T,
+    metadata: JsonValue,
+) -> Option<Uuid> {
+    let (actor_id, actor_role, mut metadata) = if let (Some(real_id), Some(role_str)) =
+        (auth.impersonator_id, auth.impersonator_role.as_deref())
+    {
+        let role = UserRole::from_str_lower(role_str).unwrap_or(UserRole::Admin);
+        // Splice impersonation context onto the metadata so the audit
+        // viewer can render a "via impersonation of <target>" badge.
+        let mut meta = metadata;
+        if let JsonValue::Object(ref mut map) = meta {
+            map.insert(
+                "via_impersonation".to_string(),
+                serde_json::json!({
+                    "session_id":     auth.impersonation_session_id,
+                    "target_user_id": auth.user_id,
+                }),
+            );
+        }
+        (real_id, role, meta)
+    } else {
+        // Not impersonating; attribute to the user themselves at the
+        // role they presented in the JWT. We default to Member when
+        // the role string is unknown — matches the behaviour of the
+        // other audit helpers in this module.
+        let role = UserRole::from_str_lower(&auth.role).unwrap_or(UserRole::Member);
+        (auth.user_id, role, metadata)
+    };
+    let _ = &mut metadata; // silence dead-code lint when both branches cover it.
+
+    record_admin_action_best_effort(
+        pool,
+        AdminAction::new(actor_id, actor_role, action, target_kind)
+            .with_target_id(target_id)
             .with_client(client)
             .with_metadata(metadata),
     )

@@ -50,11 +50,31 @@ pub async fn enforce(
 
     let allowed = ip_allowlist::is_ip_allowed(&state.db, ip).await;
     if !allowed {
+        let path = request.uri().path().to_string();
+        let user_agent = headers
+            .get(axum::http::header::USER_AGENT)
+            .and_then(|v| v.to_str().ok())
+            .map(str::to_owned);
+
+        // Structured log + metric. We deliberately do NOT write to
+        // `admin_actions` because that table FKs `actor_id ->
+        // users(id) ON DELETE RESTRICT` — a rejected request never
+        // authenticated, so there is no actor to attribute. SIEMs
+        // should ingest the structured log via the JSON tracing
+        // exporter; alerting fires off the metric counter.
         tracing::warn!(
+            event = "admin_ip_allowlist.rejected",
             client_ip = %ip,
-            path = %request.uri().path(),
+            path = %path,
+            user_agent = %user_agent.as_deref().unwrap_or("-"),
             "admin_ip_allowlist: rejected request from non-allowlisted IP"
         );
+        metrics::counter!(
+            "admin_ip_allowlist_rejections_total",
+            "path" => path,
+        )
+        .increment(1);
+
         return Err(AppError::Forbidden);
     }
 

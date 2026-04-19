@@ -203,8 +203,24 @@ async fn log_failed_login(state: &AppState, email: &str, client: &ClientInfo, re
 )]
 pub(crate) async fn refresh(
     State(state): State<AppState>,
+    headers: axum::http::HeaderMap,
     Json(req): Json<RefreshRequest>,
 ) -> AppResult<Json<TokenResponse>> {
+    // ADM-07-α: refuse refresh attempts whose Authorization header
+    // carries an active impersonation token. Impersonation JWTs are
+    // intentionally not paired with a refresh token (see
+    // `admin_impersonation::mint`); a refresh attempt under an
+    // impersonation context can only be the result of a buggy or
+    // malicious client trying to extend a support session beyond
+    // its TTL. Failing closed here is cheap and removes the entire
+    // class of "silent re-elevation via refresh" attacks.
+    if bearer_is_impersonation(&headers) {
+        tracing::warn!(
+            "refresh blocked: bearer token is an impersonation token"
+        );
+        return Err(AppError::Forbidden);
+    }
+
     let token_hash = hash_token(&req.refresh_token);
 
     let stored = db::find_refresh_token(&state.db, &token_hash)
@@ -281,14 +297,67 @@ async fn me(State(state): State<AppState>, auth: AuthUser) -> AppResult<Json<Use
     tag = "auth",
     security(("bearer_auth" = [])),
     responses(
-        (status = 200, description = "Logged out; refresh tokens revoked"),
+        (status = 200, description = "Logged out; refresh tokens revoked. \
+            When called under an impersonation token, ends the impersonation \
+            session instead and returns `{ \"message\": \"Impersonation ended\" }`."),
         (status = 401, description = "Unauthorized")
     )
 )]
 pub(crate) async fn logout(
     State(state): State<AppState>,
     auth: AuthUser,
+    client: ClientInfo,
 ) -> AppResult<Json<serde_json::Value>> {
+    // ADM-07-α: when the caller's session is an impersonation token,
+    // a naive `delete_user_refresh_tokens(auth.user_id)` would punt
+    // every refresh token of the *target* user — i.e. the admin would
+    // accidentally log the customer out of every device. Detect the
+    // impersonation context and revoke the impersonation row instead;
+    // the admin's own real session is unaffected because impersonation
+    // tokens are never refresh-paired.
+    if let (Some(session_id), Some(actor_id)) =
+        (auth.impersonation_session_id, auth.impersonator_id)
+    {
+        let revoked = crate::security::impersonation::revoke(
+            &state.db,
+            session_id,
+            actor_id,
+            Some("logout-while-impersonating"),
+        )
+        .await?;
+
+        // Mirror the audit shape of `admin_impersonation::exit` so the
+        // audit-log viewer treats this as a single class of action.
+        let actor_role = db::find_user_by_id(&state.db, actor_id)
+            .await
+            .ok()
+            .flatten()
+            .map(|u| u.role)
+            .unwrap_or(crate::models::UserRole::Admin);
+        crate::services::audit::record_admin_action_best_effort(
+            &state.db,
+            crate::services::audit::AdminAction::new(
+                actor_id,
+                actor_role,
+                "admin.impersonation.exit",
+                "impersonation_session",
+            )
+            .with_target_id(session_id)
+            .with_client(&client)
+            .with_metadata(serde_json::json!({
+                "target_user_id":   auth.user_id,
+                "session_was_live": revoked.is_some(),
+                "via":              "logout",
+            })),
+        )
+        .await;
+
+        return Ok(Json(serde_json::json!({
+            "message": "Impersonation ended",
+            "impersonation_ended": true
+        })));
+    }
+
     db::delete_user_refresh_tokens(&state.db, auth.user_id).await?;
     Ok(Json(serde_json::json!({ "message": "Logged out" })))
 }
@@ -458,4 +527,85 @@ fn hash_token(token: &str) -> String {
         .iter()
         .map(|b| format!("{b:02x}"))
         .collect()
+}
+
+/// Inspect the `Authorization` header for an impersonation JWT — without
+/// validating signature or expiry. We only care about the *intent*
+/// (presence of `imp_session`) so the refresh endpoint can fail closed
+/// before the heavier refresh-token lookup runs. See [`refresh`].
+fn bearer_is_impersonation(headers: &axum::http::HeaderMap) -> bool {
+    let Some(token) = headers
+        .get(axum::http::header::AUTHORIZATION)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|h| h.strip_prefix("Bearer "))
+    else {
+        return false;
+    };
+    let Some(payload_b64) = token.split('.').nth(1) else {
+        return false;
+    };
+    use base64::Engine;
+    let Ok(bytes) = base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(payload_b64) else {
+        return false;
+    };
+    serde_json::from_slice::<serde_json::Value>(&bytes)
+        .ok()
+        .as_ref()
+        .and_then(|v| v.get("imp_session"))
+        .is_some_and(|v| !v.is_null())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::http::{HeaderMap, HeaderValue};
+    use base64::Engine;
+
+    fn make_jwt_with_payload(payload: serde_json::Value) -> String {
+        let header_b64 = base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(b"{}");
+        let payload_b64 = base64::engine::general_purpose::URL_SAFE_NO_PAD
+            .encode(serde_json::to_vec(&payload).unwrap());
+        format!("{header_b64}.{payload_b64}.sig")
+    }
+
+    #[test]
+    fn bearer_is_impersonation_detects_imp_session() {
+        let mut headers = HeaderMap::new();
+        let token = make_jwt_with_payload(
+            serde_json::json!({"sub":"x","imp_session":"00000000-0000-0000-0000-000000000001"}),
+        );
+        headers.insert(
+            axum::http::header::AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {token}")).unwrap(),
+        );
+        assert!(bearer_is_impersonation(&headers));
+    }
+
+    #[test]
+    fn bearer_is_impersonation_false_for_normal_token() {
+        let mut headers = HeaderMap::new();
+        let token = make_jwt_with_payload(serde_json::json!({"sub":"x"}));
+        headers.insert(
+            axum::http::header::AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {token}")).unwrap(),
+        );
+        assert!(!bearer_is_impersonation(&headers));
+    }
+
+    #[test]
+    fn bearer_is_impersonation_false_when_imp_session_null() {
+        let mut headers = HeaderMap::new();
+        let token = make_jwt_with_payload(serde_json::json!({"sub":"x","imp_session":null}));
+        headers.insert(
+            axum::http::header::AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {token}")).unwrap(),
+        );
+        assert!(!bearer_is_impersonation(&headers));
+    }
+
+    #[test]
+    fn bearer_is_impersonation_false_without_header() {
+        let headers = HeaderMap::new();
+        assert!(!bearer_is_impersonation(&headers));
+    }
 }
