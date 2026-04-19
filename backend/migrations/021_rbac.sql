@@ -20,8 +20,16 @@
 -- in Round 2b; FDN-07 ships the infrastructure only.
 
 -- ── Enum extension ──────────────────────────────────────────────────────
+-- IMPORTANT: an explicit COMMIT terminates the implicit transaction that
+-- the Postgres simple-query protocol opens around any multi-statement Query
+-- message (see PG docs §53.2.2.1). Without it, the seed statements below —
+-- which reference the freshly-added 'author'/'support' values — would still
+-- share a transaction with the ALTER TYPEs and trip the
+-- "unsafe use of new value" guard, even though sqlx already honours the
+-- file's `-- no-transaction` marker.
 ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'author';
 ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'support';
+COMMIT;
 
 -- ── Catalogue tables ────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS permissions (
