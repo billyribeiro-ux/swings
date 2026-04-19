@@ -309,6 +309,147 @@ async fn failed_responses_are_not_cached() {
     );
 }
 
+/// ADM-15 race-condition coverage. The middleware claims a row by
+/// inserting `(user_id, key)` with `in_flight = TRUE` under the PK
+/// uniqueness constraint, so concurrent requests with the same key
+/// race for that INSERT. Whoever loses the race re-reads the row,
+/// sees `in_flight = TRUE`, and returns `409 idempotency-in-flight`.
+///
+/// We fan out N parallel POSTs against the same `(actor, key, body)`
+/// and assert the only invariant that actually matters in production:
+/// **exactly one order is created**. The HTTP response distribution
+/// is timing-dependent (a fast first request finishes before the
+/// next claim starts → the rest get cached 201s; a slow first request
+/// is still in flight when others claim → the rest get 409s), so we
+/// assert the union: every response is either a successful 201 (one
+/// real, the rest replays) or a 409 in-flight error.
+///
+/// The unique-constraint approach in `try_claim` is the load-bearing
+/// guarantee here; if anyone ever weakens it (e.g. swaps to an
+/// upsert that overwrites in-flight rows), this test catches it.
+#[tokio::test]
+async fn concurrent_same_key_creates_exactly_one_resource() {
+    let Some(app) = TestApp::try_new().await else {
+        return;
+    };
+    let admin = app.seed_admin().await.expect("seed admin");
+    let product_id = seed_product(&app).await;
+    let key = "race-key-001";
+    let email = "race-buyer@example.com";
+
+    let body = json!({
+        "email": email,
+        "currency": "usd",
+        "items": [{
+            "product_id": product_id,
+            "quantity": 1,
+            "unit_price_cents": 1999,
+            "name": "Race Item",
+        }],
+    });
+
+    // Fan out 16 parallel requests. The number is deliberately well
+    // above the connection-pool size so we exercise both the
+    // "second request lands while first is in flight" path (→ 409)
+    // and the "second request lands after first completes" path
+    // (→ cached 201) in the same run.
+    // Share the app across tasks via Arc — TestApp owns a TempDir
+    // that must not be dropped twice, so we cannot derive Clone on
+    // the struct itself. tokio::spawn requires 'static, hence the Arc.
+    const PARALLELISM: usize = 16;
+    let app = std::sync::Arc::new(app);
+    // Synchronise all spawned tasks at a barrier just before the
+    // request goes out so they actually race. Without the barrier,
+    // the early-spawned tasks would often complete before the
+    // late-spawned ones even start, collapsing this back to a serial
+    // replay test.
+    let barrier = std::sync::Arc::new(tokio::sync::Barrier::new(PARALLELISM));
+    let mut handles = Vec::with_capacity(PARALLELISM);
+    for _ in 0..PARALLELISM {
+        let app_for_task = app.clone();
+        let barrier_for_task = barrier.clone();
+        let token = admin.access_token.clone();
+        let body_clone = body.clone();
+        handles.push(tokio::spawn(async move {
+            barrier_for_task.wait().await;
+            app_for_task
+                .post_json_with_idempotency_key(
+                    "/api/admin/orders",
+                    &body_clone,
+                    Some(&token),
+                    key,
+                )
+                .await
+        }));
+    }
+
+    let mut created = 0;
+    let mut in_flight = 0;
+    for h in handles {
+        let resp = h.await.expect("join task");
+        let status = resp.status();
+        if status == StatusCode::CREATED {
+            created += 1;
+        } else if status == StatusCode::CONFLICT {
+            in_flight += 1;
+            // Confirm the problem document is the one we expect, not
+            // some other 409 (e.g. an order-state transition error).
+            let body: Value = resp.json().expect("problem body");
+            assert_eq!(
+                body["type"], "/problems/idempotency-in-flight",
+                "409s during the race must be the in-flight problem, not some other conflict"
+            );
+        } else {
+            panic!(
+                "unexpected status {status} during idempotency race: {:?}",
+                resp.json::<Value>().ok()
+            );
+        }
+    }
+
+    assert!(
+        created >= 1,
+        "at least one parallel request must have claimed the key and run the side effect"
+    );
+    assert_eq!(
+        created + in_flight,
+        PARALLELISM,
+        "every response must be 201 (real or replayed) or 409 in-flight"
+    );
+
+    // The one that matters: the side effect ran exactly once, no
+    // matter how the responses got distributed.
+    let count: (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM orders WHERE email = $1")
+            .bind(email)
+            .fetch_one(app.db())
+            .await
+            .expect("count orders");
+    assert_eq!(
+        count.0, 1,
+        "{PARALLELISM} parallel requests must produce exactly one order row, got {}",
+        count.0
+    );
+
+    // And the cache row must reflect the completed state: in_flight
+    // cleared, status_code=201, response_body populated. If any
+    // 409-losers wrote a stale row this assertion will catch it.
+    let row = sqlx::query(
+        "SELECT in_flight, status_code FROM idempotency_keys WHERE key = $1",
+    )
+    .bind(key)
+    .fetch_one(app.db())
+    .await
+    .expect("fetch cache row");
+    let in_flight_final: bool = row.get("in_flight");
+    let status_code_final: i32 = row.get("status_code");
+    assert!(
+        !in_flight_final,
+        "after the race the cache row must be marked completed"
+    );
+    assert_eq!(status_code_final, 201);
+}
+
 #[tokio::test]
 async fn cache_row_is_persisted_with_response_metadata() {
     let Some(app) = TestApp::try_new().await else {

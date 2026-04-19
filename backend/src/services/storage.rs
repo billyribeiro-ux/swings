@@ -120,6 +120,99 @@ impl R2Storage {
         Ok(())
     }
 
+    /// Build an `R2Storage` against an arbitrary S3-compatible
+    /// endpoint, used by tests + dev fixtures that point at MinIO,
+    /// LocalStack, or a self-hosted Ceph/Garage node.
+    ///
+    /// Production code should keep using [`Self::from_env`] which
+    /// hardcodes the `*.r2.cloudflarestorage.com` endpoint to match
+    /// the credentials Cloudflare issues. This constructor only
+    /// exists so we can run integration tests against the same
+    /// upload + presign + delete code paths the production worker
+    /// uses, without a real Cloudflare account.
+    ///
+    /// `region` is mostly ignored by S3-compatible servers but must
+    /// be a non-empty string for the SDK; pass `"us-east-1"` if you
+    /// have no preference. `force_path_style` is always on so we
+    /// work with single-host emulators (MinIO etc.) that don't
+    /// resolve virtual-hosted bucket subdomains.
+    pub fn for_endpoint(
+        endpoint: impl Into<String>,
+        region: impl Into<String>,
+        bucket: impl Into<String>,
+        public_base: impl Into<String>,
+        access_key: impl Into<String>,
+        secret_key: impl Into<String>,
+    ) -> Self {
+        let credentials = aws_sdk_s3::config::Credentials::new(
+            access_key.into(),
+            secret_key.into(),
+            None,
+            None,
+            "for-endpoint",
+        );
+        let s3_config = aws_sdk_s3::config::Builder::new()
+            .behavior_version(aws_sdk_s3::config::BehaviorVersion::latest())
+            .endpoint_url(endpoint.into())
+            .credentials_provider(credentials)
+            .region(aws_sdk_s3::config::Region::new(region.into()))
+            .force_path_style(true)
+            .build();
+        Self {
+            client: Client::from_conf(s3_config),
+            bucket: bucket.into(),
+            public_base: public_base.into().trim_end_matches('/').to_string(),
+        }
+    }
+
+    /// Create the configured bucket if it does not already exist.
+    /// Used by tests to bootstrap a fresh emulator; in production
+    /// the bucket is created out-of-band by IaC.
+    pub async fn ensure_bucket(&self) -> Result<(), StorageError> {
+        // `head_bucket` is the cheapest probe; if it 404s we create.
+        let head = self.client.head_bucket().bucket(&self.bucket).send().await;
+        if head.is_ok() {
+            return Ok(());
+        }
+        self.client
+            .create_bucket()
+            .bucket(&self.bucket)
+            .send()
+            .await
+            .map(|_| ())
+            .map_err(|e| StorageError::Config(format!("create_bucket: {e}")))
+    }
+
+    /// Probe-only existence check on a key. `Ok(true)` means the
+    /// object exists, `Ok(false)` means it does not, and `Err` is
+    /// reserved for transport / config failures. Used by the TTL
+    /// sweep tests to assert the R2 object is actually gone after
+    /// the worker scrubs the row.
+    pub async fn object_exists(&self, key: &str) -> Result<bool, StorageError> {
+        match self
+            .client
+            .head_object()
+            .bucket(&self.bucket)
+            .key(key)
+            .send()
+            .await
+        {
+            Ok(_) => Ok(true),
+            // S3 wraps the 404 in a service error — match on the
+            // textual marker rather than coupling to the SDK's
+            // generated error variants (which churn between
+            // versions of `aws-sdk-s3`).
+            Err(e) => {
+                let msg = e.to_string();
+                if msg.contains("NotFound") || msg.contains("NoSuchKey") {
+                    Ok(false)
+                } else {
+                    Err(StorageError::Upload(msg))
+                }
+            }
+        }
+    }
+
     /// `media/{year}/{month}/{uuid8}-{sanitized_name}`
     pub fn generate_key(original_filename: &str) -> String {
         let now = chrono::Utc::now();

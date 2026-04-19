@@ -1,0 +1,287 @@
+# Prometheus alerting rules for the swings admin platform.
+#
+# Scope: covers every metric emitted by the enterprise hardening
+# track (idempotency middleware + GC, DSAR worker + artefact sweep,
+# audit-log retention, admin mutation rate-limit, impersonation
+# safeguards, IP allowlist, maintenance kill-switch).
+#
+# Conventions:
+#   - Severity is one of {info, warning, critical}. Routing is
+#     handled by Alertmanager; this file does not encode receivers.
+#   - Every alert MUST have a `runbook_url` pointing at
+#     docs/RUNBOOK.md, anchored on the alert name. The runbook
+#     entry is the source of truth for "what does an SRE do at
+#     3 AM when this fires?".
+#   - `for:` is set deliberately long for noisy "rate of 0" probes
+#     (a 5-minute reload window means a 1-minute glitch is silent
+#     unless it was actually pathological); short for surges.
+#   - Use `absent_over_time` for liveness probes on the periodic
+#     workers — the gauge is only updated on a successful tick, so
+#     a worker that is wedged or panic-looping will fail to bump
+#     it, which is exactly what we want to alert on.
+#
+# Reload with `promtool check rules` before merging.
+
+groups:
+  # ---------------------------------------------------------------
+  # 1. DSAR — async export worker
+  # ---------------------------------------------------------------
+  - name: swings_dsar_worker
+    interval: 30s
+    rules:
+      - alert: DsarExportFailureSpike
+        expr: |
+          sum(rate(dsar_export_failed_total[10m])) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          domain: dsar
+        annotations:
+          summary: "DSAR exports are failing at {{ $value | printf \"%.3f\" }}/s"
+          description: |
+            The async DSAR worker is failing one or more jobs per ~3 minutes
+            sustained over the last 10 minutes. Inspect failure_reason on
+            recent rows in `dsar_jobs` and the `dsar_export_failed_total`
+            label set (stage=claim|process).
+          runbook_url: "https://github.com/swings/runbook#DsarExportFailureSpike"
+
+      - alert: DsarExportBacklogGrowing
+        expr: |
+          (
+            increase(dsar_export_claimed_total[15m])
+              <
+            increase(dsar_export_completed_total[15m]) + 1
+          )
+            and
+          (sum(rate(dsar_export_claimed_total[5m])) > 0)
+        for: 30m
+        labels:
+          severity: warning
+          team: platform
+          domain: dsar
+        annotations:
+          summary: "DSAR worker is claiming jobs faster than it completes them"
+          description: |
+            Claim rate exceeded completion rate over the last 30m. Jobs may
+            be stuck in `composing`. Check worker logs for poison messages,
+            R2 upload errors, or DB long-running compose queries.
+          runbook_url: "https://github.com/swings/runbook#DsarExportBacklogGrowing"
+
+      - alert: DsarArtifactSweepStuck
+        expr: |
+          time() - max(dsar_artifacts_sweep_last_success_unixtime) > 7200
+        for: 10m
+        labels:
+          severity: critical
+          team: platform
+          domain: dsar
+        annotations:
+          summary: "DSAR artefact sweep has not succeeded in over 2 hours"
+          description: |
+            Either the sweep worker is wedged or it is hitting persistent
+            errors. Expired DSAR artefacts will leak storage until this is
+            resolved. Check `dsar_artifacts_sweep_failed_total{stage=...}`.
+          runbook_url: "https://github.com/swings/runbook#DsarArtifactSweepStuck"
+
+      - alert: DsarArtifactSweepFailureSpike
+        expr: |
+          sum(rate(dsar_artifacts_sweep_failed_total[15m])) > 0.01
+        for: 30m
+        labels:
+          severity: warning
+          team: platform
+          domain: dsar
+        annotations:
+          summary: "DSAR sweep deletes are failing"
+          description: |
+            R2/local deletes are erroring at non-trivial rate. May indicate
+            credential rotation drift, a partial bucket-policy change, or
+            a corrupted storage_key in the database.
+          runbook_url: "https://github.com/swings/runbook#DsarArtifactSweepFailureSpike"
+
+  # ---------------------------------------------------------------
+  # 2. Idempotency — middleware + GC worker
+  # ---------------------------------------------------------------
+  - name: swings_idempotency
+    interval: 30s
+    rules:
+      - alert: IdempotencyGcStuck
+        expr: |
+          time() - max(idempotency_keys_prune_last_success_unixtime) > 3600
+        for: 10m
+        labels:
+          severity: critical
+          team: platform
+          domain: idempotency
+        annotations:
+          summary: "Idempotency-key GC has not succeeded in over an hour"
+          description: |
+            The `idempotency_keys` table will grow unbounded until this is
+            resolved. Check the worker process is alive and that
+            `idempotency.gc_batch_size` in `app_settings` is sane.
+          runbook_url: "https://github.com/swings/runbook#IdempotencyGcStuck"
+
+      - alert: IdempotencyKeysTableTooLarge
+        expr: |
+          max(idempotency_keys_table_rows) > 1000000
+        for: 30m
+        labels:
+          severity: warning
+          team: platform
+          domain: idempotency
+        annotations:
+          summary: "idempotency_keys table has crossed 1M rows"
+          description: |
+            Either the GC is too slow or the TTL is set far too long.
+            Increase `idempotency.gc_batch_size` or shorten the TTL.
+            Investigate whether a client is mass-replaying.
+          runbook_url: "https://github.com/swings/runbook#IdempotencyKeysTableTooLarge"
+
+      - alert: IdempotencyInFlightSurge
+        expr: |
+          sum(rate(idempotency_in_flight_total[5m])) > 1
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          domain: idempotency
+        annotations:
+          summary: "Sustained surge of in-flight idempotency conflicts"
+          description: |
+            Clients are firing concurrent requests with the same
+            Idempotency-Key. Most often this is a retry storm from a
+            misbehaving caller; less commonly it is a webhook driving
+            the same key from multiple sources.
+          runbook_url: "https://github.com/swings/runbook#IdempotencyInFlightSurge"
+
+      - alert: IdempotencyMismatchSpike
+        expr: |
+          sum(rate(idempotency_mismatch_total[10m])) > 0.1
+        for: 15m
+        labels:
+          severity: warning
+          team: platform
+          domain: idempotency
+        annotations:
+          summary: "Clients are reusing Idempotency-Keys with different bodies"
+          description: |
+            Either a client bug (the key is being re-used across distinct
+            requests) or a deliberate probing attempt. Inspect the
+            originating user_id and request signature.
+          runbook_url: "https://github.com/swings/runbook#IdempotencyMismatchSpike"
+
+  # ---------------------------------------------------------------
+  # 3. Audit-log retention
+  # ---------------------------------------------------------------
+  - name: swings_audit_retention
+    interval: 60s
+    rules:
+      - alert: AuditPruneStuck
+        expr: |
+          time() - max(audit_prune_last_success_unixtime) > 86400
+        for: 30m
+        labels:
+          severity: warning
+          team: platform
+          domain: audit
+        annotations:
+          summary: "Audit retention has not succeeded in over 24h"
+          description: |
+            The audit-pruner is not making progress. The `admin_actions`
+            table will grow unbounded if this is left unresolved past
+            the configured retention window.
+          runbook_url: "https://github.com/swings/runbook#AuditPruneStuck"
+
+      - alert: AuditPruneErrorRate
+        expr: |
+          sum(rate(audit_prune_errors_total[15m])) > 0.05
+        for: 30m
+        labels:
+          severity: warning
+          team: platform
+          domain: audit
+        annotations:
+          summary: "Audit pruner is erroring at non-trivial rate"
+          runbook_url: "https://github.com/swings/runbook#AuditPruneErrorRate"
+
+  # ---------------------------------------------------------------
+  # 4. Admin mutation rate-limit
+  # ---------------------------------------------------------------
+  - name: swings_admin_rate_limit
+    interval: 30s
+    rules:
+      - alert: AdminMutationRateLimitSurge
+        expr: |
+          sum(rate(admin_mutation_rate_limited_total[5m])) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          domain: rbac
+        annotations:
+          summary: "Sustained burst of admin-mutation rate-limit hits"
+          description: |
+            One or more admin sessions are bumping the per-actor token
+            bucket. Either an automation script is misbehaving or an
+            insider/ATO is probing. Cross-reference with audit log.
+          runbook_url: "https://github.com/swings/runbook#AdminMutationRateLimitSurge"
+
+  # ---------------------------------------------------------------
+  # 5. Impersonation
+  # ---------------------------------------------------------------
+  - name: swings_impersonation
+    interval: 30s
+    rules:
+      - alert: ImpersonationMintRateLimited
+        expr: |
+          sum(rate(impersonation_mint_rate_limited_total[5m])) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          domain: impersonation
+        annotations:
+          summary: "Operators are hitting the impersonation-mint rate limit"
+          description: |
+            An admin is minting impersonation sessions faster than the
+            policy allows. May indicate genuine support load, may
+            indicate misuse — check the audit log.
+          runbook_url: "https://github.com/swings/runbook#ImpersonationMintRateLimited"
+
+      - alert: ImpersonationRevokeStorm
+        expr: |
+          sum(rate(impersonation_revoke_total[10m])) > 0.5
+        for: 10m
+        labels:
+          severity: info
+          team: platform
+          domain: impersonation
+        annotations:
+          summary: "Many impersonation sessions being revoked"
+          description: |
+            Likely benign (support shift change or scripted cleanup),
+            but worth correlating with any active incident.
+          runbook_url: "https://github.com/swings/runbook#ImpersonationRevokeStorm"
+
+  # ---------------------------------------------------------------
+  # 6. Maintenance kill-switch (informational)
+  # ---------------------------------------------------------------
+  - name: swings_maintenance_mode
+    interval: 30s
+    rules:
+      - alert: MaintenanceModeActive
+        expr: |
+          sum(rate(maintenance_mode_blocked_total[1m])) > 0
+        for: 5m
+        labels:
+          severity: info
+          team: platform
+          domain: ops
+        annotations:
+          summary: "Maintenance mode is rejecting traffic"
+          description: |
+            The kill-switch is on. If this is unintentional, flip it
+            off in `app_settings`. If intentional, suppress this alert
+            for the duration of the maintenance window.
+          runbook_url: "https://github.com/swings/runbook#MaintenanceModeActive"

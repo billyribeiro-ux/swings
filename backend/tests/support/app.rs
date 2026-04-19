@@ -233,6 +233,53 @@ impl TestApp {
         }
     }
 
+    /// Build a `MediaBackend::R2` pointing at an externally-managed
+    /// S3-compatible emulator (MinIO / LocalStack) when the suite is
+    /// run with the `R2_TEST_*` env vars set. Returns `None`
+    /// otherwise so the caller can `let Some(backend) = … else { return; };`
+    /// and skip cleanly on machines without Docker.
+    ///
+    /// Required vars (a fresh, unique bucket per test is created):
+    ///
+    ///   - `R2_TEST_ENDPOINT`     — `http://localhost:9000` (MinIO default)
+    ///   - `R2_TEST_ACCESS_KEY`   — `minioadmin` (default)
+    ///   - `R2_TEST_SECRET_KEY`   — `minioadmin` (default)
+    ///   - `R2_TEST_REGION`       — optional, defaults to `us-east-1`
+    ///   - `R2_TEST_PUBLIC_BASE`  — optional, defaults to the endpoint
+    ///
+    /// The bucket name is generated per call (`swings-test-{uuid8}`)
+    /// and ensured to exist via `R2Storage::ensure_bucket()`.
+    pub async fn try_media_backend_r2(&self) -> Option<MediaBackend> {
+        let endpoint = std::env::var("R2_TEST_ENDPOINT").ok().filter(|s| !s.is_empty())?;
+        let access = std::env::var("R2_TEST_ACCESS_KEY").unwrap_or_else(|_| "minioadmin".into());
+        let secret = std::env::var("R2_TEST_SECRET_KEY").unwrap_or_else(|_| "minioadmin".into());
+        let region = std::env::var("R2_TEST_REGION").unwrap_or_else(|_| "us-east-1".into());
+        let public_base = std::env::var("R2_TEST_PUBLIC_BASE").unwrap_or_else(|_| endpoint.clone());
+
+        // Per-test bucket so concurrent tests cannot stomp each
+        // other's keys. Lower-cased per S3 bucket-name rules.
+        let bucket = format!(
+            "swings-test-{}",
+            uuid::Uuid::new_v4().to_string().split('-').next().unwrap()
+        );
+        let r2 = swings_api::services::storage::R2Storage::for_endpoint(
+            endpoint,
+            region,
+            bucket,
+            public_base,
+            access,
+            secret,
+        );
+        r2.ensure_bucket()
+            .await
+            .map_err(|e| {
+                eprintln!("R2 emulator unreachable, skipping R2 test: {e}");
+                e
+            })
+            .ok()?;
+        Some(MediaBackend::R2(r2))
+    }
+
     /// The ephemeral schema's name — handy for `SET LOCAL search_path` in
     /// ad-hoc queries that bypass the pool helper.
     #[must_use]
