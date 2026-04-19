@@ -6,7 +6,7 @@
 //!   * `POST /{id}/extend`        — push `current_period_end` by N days.
 //!   * `POST /{id}/billing-cycle` — override `billing_cycle_anchor`.
 //!   * `GET  /by-user/{user_id}`  — read a user's subscription + active
-//!                                  memberships in one round-trip.
+//!     memberships in one round-trip.
 //!
 //! Each mutation writes a single row to `subscription_changes` so the
 //! per-subscription history is the canonical audit trail (the broader

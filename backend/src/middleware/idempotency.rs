@@ -67,7 +67,7 @@ const MAX_KEY_LEN: usize = 255;
 /// Largest request body the middleware will buffer. Anything larger
 /// short-circuits to a `413` so a misconfigured client cannot blow our
 /// memory budget. Admin payloads are JSON envelopes well under 1 MiB.
-const MAX_BODY_BYTES: usize = 1 * 1024 * 1024;
+const MAX_BODY_BYTES: usize = 1024 * 1024;
 
 /// Header set surfaced on the replayed response. Restricting the
 /// allowlist keeps untrusted upstream-provided headers from leaking.
@@ -96,7 +96,7 @@ pub async fn enforce(
     let key = match extract_key(request.headers()) {
         Ok(Some(k)) => k,
         Ok(None) => return next.run(request).await,
-        Err(resp) => return resp,
+        Err(resp) => return *resp,
     };
 
     // The actor id is required to scope the cache. Without a valid
@@ -151,29 +151,34 @@ pub async fn enforce(
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
-fn extract_key(headers: &HeaderMap) -> Result<Option<String>, Response> {
+// `axum::Response` is large (>120 bytes on Body's enum size), so the
+// `Err` variant of this helper exceeds clippy's `result_large_err`
+// threshold. Box it — the error is the rare path and the heap
+// allocation is negligible compared to the cost of returning an
+// error response anyway.
+fn extract_key(headers: &HeaderMap) -> Result<Option<String>, Box<Response>> {
     let Some(raw) = headers.get("idempotency-key") else {
         return Ok(None);
     };
     let value = raw
         .to_str()
         .map_err(|_| {
-            problem(
+            Box::new(problem(
                 StatusCode::BAD_REQUEST,
                 "idempotency-key-invalid",
                 "Invalid Idempotency-Key header (non-ASCII)",
-            )
+            ))
         })?
         .trim();
     if value.is_empty() {
         return Ok(None);
     }
     if value.len() > MAX_KEY_LEN {
-        return Err(problem(
+        return Err(Box::new(problem(
             StatusCode::BAD_REQUEST,
             "idempotency-key-too-long",
             &format!("Idempotency-Key must be ≤ {MAX_KEY_LEN} characters"),
-        ));
+        )));
     }
     Ok(Some(value.to_string()))
 }

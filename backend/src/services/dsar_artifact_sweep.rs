@@ -190,9 +190,19 @@ async fn clear_artifact_columns(pool: &PgPool, id: Uuid) -> Result<(), sqlx::Err
 mod tests {
     use super::*;
 
+    // Compile-time guards on `MAX_BATCH` so a future tuning typo
+    // can't ship a value that holds row locks for too long or
+    // wastes the round-trip on a tiny batch. `const { assert!(..) }`
+    // makes clippy happy (the assertion is a constant value) and
+    // catches the regression at build-time rather than test-time.
+    const _: () = assert!(MAX_BATCH <= 100, "lock window must stay short");
+    const _: () = assert!(MAX_BATCH >= 10, "batch must be useful");
+
     #[test]
     fn batch_size_keeps_lock_window_short() {
-        assert!(MAX_BATCH <= 100, "lock window must stay short");
-        assert!(MAX_BATCH >= 10, "batch must be useful");
+        // Re-asserts the const-time invariants so the regression
+        // also surfaces in test output, not just in compile errors.
+        const { assert!(MAX_BATCH <= 100, "lock window must stay short") };
+        const { assert!(MAX_BATCH >= 10, "batch must be useful") };
     }
 }

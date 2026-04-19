@@ -597,11 +597,26 @@ fn admin_mutation_limiter() -> &'static Arc<ActorRateLimiter> {
     LIMITER.get_or_init(|| {
         let max = NonZeroU32::new(ADMIN_MUTATION.max_requests)
             .expect("ADMIN_MUTATION.max_requests is non-zero");
-        let quota = Quota::with_period(Duration::from_secs(
-            (ADMIN_MUTATION.window_secs / ADMIN_MUTATION.max_requests).max(1) as u64,
-        ))
-        .expect("ADMIN_MUTATION period is non-zero")
-        .allow_burst(max);
+        // Refill cadence: one token every `PERIOD_SECS` seconds.
+        // Computed as `window / max` (truncated) and clamped to 1
+        // so we never produce a zero-second period. With the
+        // current constants (240 tokens / 60s) the integer
+        // division rounds to 0 and the clamp picks 1 — yielding a
+        // 1-token/sec steady-state refill on top of the 240-token
+        // burst capacity. Done in a `const` block so clippy can
+        // prove the value at compile time without complaining
+        // about `.max(1)` on a constant-foldable expression.
+        const PERIOD_SECS: u64 = {
+            let raw = (ADMIN_MUTATION.window_secs / ADMIN_MUTATION.max_requests) as u64;
+            if raw == 0 {
+                1
+            } else {
+                raw
+            }
+        };
+        let quota = Quota::with_period(Duration::from_secs(PERIOD_SECS))
+            .expect("ADMIN_MUTATION period is non-zero")
+            .allow_burst(max);
         Arc::new(RateLimiter::keyed(quota))
     })
 }

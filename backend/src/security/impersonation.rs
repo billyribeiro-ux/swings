@@ -159,6 +159,13 @@ pub fn resolve_ttl(input_ttl: Option<i64>) -> Duration {
 ///
 /// Emits a `impersonation.mint` counter labelled by `actor_role` for
 /// the Prometheus exporter (Phase-4 observability).
+///
+/// We deliberately take 8 positional arguments rather than wrapping
+/// them in a `CreateImpersonation` struct: every argument is
+/// load-bearing for an audit trail and there is exactly one caller
+/// (`handlers::admin_impersonation::mint`). Introducing a wrapper
+/// struct would just smear the signature across two files.
+#[allow(clippy::too_many_arguments)]
 pub async fn create(
     pool: &PgPool,
     actor_user_id: Uuid,

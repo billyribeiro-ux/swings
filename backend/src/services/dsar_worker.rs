@@ -278,8 +278,12 @@ mod tests {
         assert_eq!(ARTIFACT_TTL_SECS, 86_400);
     }
 
+    // Compile-time guard on `MAX_BATCH` — see the same idiom in
+    // `dsar_artifact_sweep.rs` for the rationale.
+    const _: () = assert!(MAX_BATCH <= 10, "lock window must stay short");
+
     #[test]
     fn max_batch_is_modest() {
-        assert!(MAX_BATCH <= 10, "lock window must stay short");
+        const { assert!(MAX_BATCH <= 10, "lock window must stay short") };
     }
 }
