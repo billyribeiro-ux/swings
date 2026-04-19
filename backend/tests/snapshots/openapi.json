@@ -3960,6 +3960,165 @@
         ]
       }
     },
+    "/api/admin/security/ip-allowlist": {
+      "get": {
+        "tags": [
+          "admin-security"
+        ],
+        "operationId": "list_entries",
+        "responses": {
+          "200": {
+            "description": "Allowlist entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AllowlistResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "admin-security"
+        ],
+        "operationId": "create_entry",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAllowlistInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "New allowlist entry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AllowlistEntry"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid CIDR or label"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "CIDR already on the list"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/security/ip-allowlist/{id}": {
+      "delete": {
+        "tags": [
+          "admin-security"
+        ],
+        "operationId": "delete_entry",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Allowlist entry id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Entry removed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Entry not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/security/ip-allowlist/{id}/toggle": {
+      "post": {
+        "tags": [
+          "admin-security"
+        ],
+        "operationId": "toggle_entry",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Allowlist entry id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToggleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Updated entry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AllowlistEntry"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Entry not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/admin/watchlists": {
       "post": {
         "tags": [
@@ -5386,6 +5545,67 @@
             "items": {
               "$ref": "#/components/schemas/UserResponse"
             }
+          }
+        }
+      },
+      "AllowlistEntry": {
+        "type": "object",
+        "description": "Materialised allowlist entry as returned by the admin CRUD endpoints.",
+        "required": [
+          "id",
+          "cidr",
+          "label",
+          "is_active",
+          "created_by",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "cidr": {
+            "type": "string",
+            "description": "CIDR range in canonical text form (e.g. `203.0.113.0/24`,\n`2001:db8::/32`). Always returned via `cidr::text` cast on read."
+          },
+          "label": {
+            "type": "string",
+            "description": "Human label so operators can recall what each entry covers\n(e.g. \"office VPN\", \"Cloudflare egress\")."
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AllowlistResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "total"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AllowlistEntry"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
@@ -7286,6 +7506,27 @@
               "string",
               "null"
             ]
+          }
+        }
+      },
+      "CreateAllowlistInput": {
+        "type": "object",
+        "description": "Inputs accepted by `POST /api/admin/security/ip-allowlist`.",
+        "required": [
+          "cidr",
+          "label"
+        ],
+        "properties": {
+          "cidr": {
+            "type": "string",
+            "description": "CIDR range. Anything Postgres' `cidr` type accepts is valid here\n(`192.0.2.42`, `198.51.100.0/24`, `::1/128`, …)."
+          },
+          "label": {
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Optional initial active flag — defaults to `true`."
           }
         }
       },
@@ -10785,6 +11026,17 @@
               "string",
               "null"
             ]
+          }
+        }
+      },
+      "ToggleRequest": {
+        "type": "object",
+        "required": [
+          "is_active"
+        ],
+        "properties": {
+          "is_active": {
+            "type": "boolean"
           }
         }
       },

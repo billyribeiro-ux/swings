@@ -22,8 +22,9 @@ use utoipa_swagger_ui::SwaggerUi;
 use crate::{
     extractors::AdminUser,
     handlers::{
-        admin, admin_ip_allowlist, admin_security, analytics, auth, blog, consent, coupons,
-        courses, csp_report, forms, member, notifications, outbox, popups, products, webhooks,
+        admin, admin_impersonation, admin_ip_allowlist, admin_security, analytics, auth, blog,
+        consent, coupons, courses, csp_report, forms, member, notifications, outbox, popups,
+        products, webhooks,
     },
     AppState,
 };
@@ -72,6 +73,7 @@ impl Modify for SecurityAddon {
         (name = "products", description = "EC-01 digital-goods product catalogue (admin + public)"),
         (name = "security", description = "Security telemetry (CSP violation reports, etc.)"),
         (name = "admin-security", description = "Admin-only privileged member-lifecycle and security console (suspend, ban, sessions, audit log)"),
+        (name = "admin-impersonation", description = "Admin-only impersonation token mint / list / revoke"),
         (name = "webhooks", description = "Inbound provider webhooks")
     ),
     paths(
@@ -112,6 +114,12 @@ impl Modify for SecurityAddon {
         admin_ip_allowlist::create_entry,
         admin_ip_allowlist::delete_entry,
         admin_ip_allowlist::toggle_entry,
+        // Admin impersonation (ADM-07)
+        admin_impersonation::mint,
+        admin_impersonation::list,
+        admin_impersonation::get_one,
+        admin_impersonation::revoke,
+        admin_impersonation::exit,
         // Blog
         blog::admin_create_post,
         blog::admin_update_post,
@@ -269,6 +277,11 @@ impl Modify for SecurityAddon {
             crate::security::ip_allowlist::CreateAllowlistInput,
             admin_ip_allowlist::AllowlistResponse,
             admin_ip_allowlist::ToggleRequest,
+            crate::security::impersonation::ImpersonationSession,
+            crate::security::impersonation::CreateImpersonationInput,
+            admin_impersonation::MintResponse,
+            admin_impersonation::ListResponse,
+            admin_impersonation::RevokeRequest,
             // Blog
             crate::models::BlogPost,
             crate::models::BlogPostResponse,

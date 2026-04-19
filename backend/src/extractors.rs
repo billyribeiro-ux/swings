@@ -17,11 +17,55 @@ pub struct Claims {
     pub role: String,
     pub exp: usize,
     pub iat: usize,
+    /// ADM-07: real admin user id when this token was minted under
+    /// impersonation. Absent for ordinary access tokens; the legacy
+    /// claim shape stays valid because all three impersonation fields
+    /// default to `None` on deserialise.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub imp_actor: Option<Uuid>,
+    /// ADM-07: real admin's role string at mint time. Recorded in JWT
+    /// for audit ergonomics; the authoritative copy lives in
+    /// `impersonation_sessions.actor_role`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub imp_actor_role: Option<String>,
+    /// ADM-07: row id in `impersonation_sessions`. Validated on every
+    /// request (see [`AuthUser::from_request_parts`]) so flipping
+    /// `revoked_at` immediately invalidates the live token.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub imp_session: Option<Uuid>,
+}
+
+/// ADM-07: per-request impersonation context. When present, the JWT
+/// was minted by an admin acting on behalf of `target_user_id` (==
+/// [`AuthUser::user_id`]). Inserted into request extensions by the
+/// AuthUser extractor so the banner middleware (and any audit-aware
+/// handler) can recover the real actor without re-decoding the token.
+#[derive(Debug, Clone)]
+pub struct ImpersonationContext {
+    pub session_id: Uuid,
+    pub actor_user_id: Uuid,
+    pub actor_role: UserRole,
+    pub target_user_id: Uuid,
 }
 
 pub struct AuthUser {
     pub user_id: Uuid,
     pub role: String,
+    /// ADM-07: real admin id when this request is being made under an
+    /// impersonation token. None for ordinary access tokens.
+    pub impersonator_id: Option<Uuid>,
+    pub impersonator_role: Option<String>,
+    pub impersonation_session_id: Option<Uuid>,
+}
+
+impl AuthUser {
+    /// Convenience: is this request running under an impersonation
+    /// token? Cheaper to read than threading the three optional fields
+    /// individually.
+    #[must_use]
+    pub fn is_impersonating(&self) -> bool {
+        self.impersonation_session_id.is_some()
+    }
 }
 
 impl FromRequestParts<AppState> for AuthUser {
@@ -48,9 +92,55 @@ impl FromRequestParts<AppState> for AuthUser {
         )
         .map_err(|_| AppError::Unauthorized)?;
 
+        let claims = token_data.claims;
+
+        // ADM-07: server-side impersonation check. The JWT alone is not
+        // enough to honour the request — we must consult the row so
+        // revocations take immediate effect. A missing / revoked /
+        // expired row collapses to 401, treating the bearer token as
+        // never having existed.
+        if let Some(session_id) = claims.imp_session {
+            let session = crate::security::impersonation::lookup_active(&state.db, session_id)
+                .await
+                .map_err(|err| {
+                    tracing::error!(error = %err, "impersonation session lookup failed");
+                    AppError::Unauthorized
+                })?
+                .ok_or(AppError::Unauthorized)?;
+
+            // Token / DB consistency: the `sub` claim must equal the
+            // session's target. If they disagree, somebody crafted a
+            // mismatched token; refuse it.
+            if session.target_user_id != claims.sub {
+                tracing::warn!(
+                    session_id = %session_id,
+                    "impersonation token sub mismatch with session target"
+                );
+                return Err(AppError::Unauthorized);
+            }
+
+            parts.extensions.insert(ImpersonationContext {
+                session_id,
+                actor_user_id: session.actor_user_id,
+                actor_role: session.actor_role,
+                target_user_id: session.target_user_id,
+            });
+
+            return Ok(AuthUser {
+                user_id: claims.sub,
+                role: claims.role,
+                impersonator_id: Some(session.actor_user_id),
+                impersonator_role: Some(session.actor_role.as_str().to_string()),
+                impersonation_session_id: Some(session_id),
+            });
+        }
+
         Ok(AuthUser {
-            user_id: token_data.claims.sub,
-            role: token_data.claims.role,
+            user_id: claims.sub,
+            role: claims.role,
+            impersonator_id: None,
+            impersonator_role: None,
+            impersonation_session_id: None,
         })
     }
 }
@@ -105,6 +195,17 @@ impl FromRequestParts<AppState> for AdminUser {
     ) -> Result<Self, Self::Rejection> {
         let auth_user = AuthUser::from_request_parts(parts, state).await?;
 
+        // ADM-07: an admin who is currently impersonating a non-admin
+        // user MUST exit impersonation before touching admin endpoints.
+        // Allowing this would silently re-elevate the impersonated
+        // session and confuse audit attribution. We keep the rejection
+        // narrow (Forbidden, not Unauthorized) so the SPA can route the
+        // user to the "Exit impersonation" affordance instead of
+        // logging out entirely.
+        if auth_user.is_impersonating() {
+            return Err(AppError::Forbidden);
+        }
+
         // Strict: only the `admin` JWT role passes this gate. Support /
         // helpdesk users reach permission-gated handlers via the
         // `PrivilegedUser` extractor below, which checks the FDN-07
@@ -156,6 +257,11 @@ impl FromRequestParts<AppState> for PrivilegedUser {
         state: &AppState,
     ) -> Result<Self, Self::Rejection> {
         let auth_user = AuthUser::from_request_parts(parts, state).await?;
+        // ADM-07: see AdminUser. Impersonated sessions cannot reach the
+        // admin surface — the admin must exit first.
+        if auth_user.is_impersonating() {
+            return Err(AppError::Forbidden);
+        }
         let role = UserRole::from_str_lower(&auth_user.role).ok_or(AppError::Unauthorized)?;
         if !state.policy.has(role, "admin.dashboard.read") {
             return Err(AppError::Forbidden);

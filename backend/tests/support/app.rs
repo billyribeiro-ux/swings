@@ -39,10 +39,15 @@ use swings_api::{
     config::Config,
     events::WorkerShutdown,
     handlers::{
-        admin, admin_consent, admin_ip_allowlist, admin_security, analytics, auth, blog, coupons,
-        courses, csp_report, member, notifications, outbox, popups, pricing, webhooks,
+        admin, admin_consent, admin_impersonation, admin_ip_allowlist, admin_security, analytics,
+        auth, blog, coupons, courses, csp_report, member, notifications, outbox, popups, pricing,
+        webhooks,
     },
-    middleware::{admin_ip_allowlist as admin_ip_allowlist_mw, rate_limit::Backend as RateLimitBackend},
+    middleware::{
+        admin_ip_allowlist as admin_ip_allowlist_mw,
+        impersonation_banner as impersonation_banner_mw,
+        rate_limit::Backend as RateLimitBackend,
+    },
     notifications::Service as NotificationsService,
     services::MediaBackend,
     AppState,
@@ -329,6 +334,10 @@ fn build_router(state: &AppState) -> Router<()> {
                 .nest(
                     "/security/ip-allowlist",
                     admin_ip_allowlist::router(),
+                )
+                .nest(
+                    "/security/impersonation",
+                    admin_impersonation::router(),
                 ),
         )
         .nest("/api/admin/blog", blog::admin_router())
@@ -347,6 +356,10 @@ fn build_router(state: &AppState) -> Router<()> {
     let router: Router<AppState> = Router::new()
         // Auth & analytics
         .nest("/api/auth", auth::router())
+        .nest(
+            "/api/auth/impersonation",
+            admin_impersonation::auth_router(),
+        )
         .nest("/api/analytics", analytics::router())
         .merge(admin_routes)
         // Public routes

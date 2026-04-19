@@ -235,6 +235,9 @@ pub(crate) async fn refresh(
         role: format!("{:?}", user.role).to_lowercase(),
         iat: now.timestamp() as usize,
         exp: (now + Duration::hours(state.config.jwt_expiration_hours)).timestamp() as usize,
+        imp_actor: None,
+        imp_actor_role: None,
+        imp_session: None,
     };
 
     let access_token = encode(
@@ -417,6 +420,9 @@ async fn generate_tokens(state: &AppState, user: &User) -> AppResult<(String, St
         role: format!("{:?}", user.role).to_lowercase(),
         iat: now.timestamp() as usize,
         exp: (now + Duration::hours(state.config.jwt_expiration_hours)).timestamp() as usize,
+        imp_actor: None,
+        imp_actor_role: None,
+        imp_session: None,
     };
 
     let access_token = encode(

@@ -323,6 +323,12 @@ async fn main() -> Result<()> {
                 .nest(
                     "/security/ip-allowlist",
                     handlers::admin_ip_allowlist::router(),
+                )
+                // ADM-07: impersonation CRUD lives under
+                // /api/admin/security/impersonation.
+                .nest(
+                    "/security/impersonation",
+                    handlers::admin_impersonation::router(),
                 ),
         )
         .nest("/api/admin/blog", handlers::blog::admin_router())
@@ -350,6 +356,13 @@ async fn main() -> Result<()> {
     let mut app = Router::new()
         // Auth & analytics
         .nest("/api/auth", handlers::auth::router())
+        // ADM-07: self-exit endpoint for the impersonated session. Lives
+        // under /api/auth/* so the impersonated user can call it without
+        // touching the IP-allowlist-gated /api/admin/* tree.
+        .nest(
+            "/api/auth/impersonation",
+            handlers::admin_impersonation::auth_router(),
+        )
         .nest("/api/analytics", handlers::analytics::router())
         .merge(admin_routes)
         // Public routes
@@ -402,6 +415,12 @@ async fn main() -> Result<()> {
         ))
         .layer(axum::middleware::from_fn(
             observability::correlation::middleware,
+        ))
+        // ADM-07: stamp X-Impersonation-* response headers when the
+        // request was made under an impersonation token. The middleware
+        // is a no-op for unauthenticated and ordinary access tokens.
+        .layer(axum::middleware::from_fn(
+            swings_api::middleware::impersonation_banner::stamp,
         ))
         .layer(cors)
         .layer(TraceLayer::new_for_http())

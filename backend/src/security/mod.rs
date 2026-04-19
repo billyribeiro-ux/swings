@@ -1,3 +1,4 @@
-//! ADM-06: shared security primitives (admin IP allowlist, etc).
+//! ADM-06 / ADM-07: shared security primitives.
 
+pub mod impersonation;
 pub mod ip_allowlist;

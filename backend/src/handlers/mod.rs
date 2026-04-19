@@ -1,5 +1,6 @@
 pub mod admin;
 pub mod admin_consent;
+pub mod admin_impersonation;
 pub mod admin_ip_allowlist;
 pub mod admin_security;
 pub mod analytics;

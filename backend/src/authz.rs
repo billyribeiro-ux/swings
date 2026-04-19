@@ -174,6 +174,9 @@ mod tests {
         AuthUser {
             user_id: Uuid::new_v4(),
             role: role.to_string(),
+            impersonator_id: None,
+            impersonator_role: None,
+            impersonation_session_id: None,
         }
     }
 
