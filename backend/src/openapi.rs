@@ -22,7 +22,7 @@ use utoipa_swagger_ui::SwaggerUi;
 use crate::{
     extractors::AdminUser,
     handlers::{
-        admin, admin_dsar, admin_impersonation, admin_ip_allowlist, admin_members,
+        admin, admin_audit, admin_dsar, admin_impersonation, admin_ip_allowlist, admin_members,
         admin_orders, admin_roles, admin_security, admin_settings, admin_subscriptions,
         analytics, auth, blog, consent, coupons, courses, csp_report, forms, member,
         notifications, outbox, popups, products, webhooks,
@@ -81,6 +81,7 @@ impl Modify for SecurityAddon {
         (name = "admin-subscriptions", description = "Admin-only manual subscription operations (comp, extend, billing-cycle override)"),
         (name = "admin-orders", description = "Admin-only orders surface (list, manual create, void, partial refund, CSV export)"),
         (name = "admin-dsar", description = "Admin-initiated DSAR jobs (export + dual-control right-to-erasure tombstone)"),
+        (name = "admin-audit", description = "Audit log viewer with full-text + JSON-path search over admin_actions"),
         (name = "webhooks", description = "Inbound provider webhooks")
     ),
     paths(
@@ -161,6 +162,10 @@ impl Modify for SecurityAddon {
         admin_dsar::request_erase,
         admin_dsar::approve_erase,
         admin_dsar::cancel_job,
+        // Admin audit (ADM-14)
+        admin_audit::list,
+        admin_audit::read_one,
+        admin_audit::export_csv,
         // Blog
         blog::admin_create_post,
         blog::admin_update_post,
@@ -366,6 +371,9 @@ impl Modify for SecurityAddon {
             admin_dsar::EraseApproveResponse,
             admin_dsar::CancelBody,
             crate::services::dsar_admin::TombstoneSummary,
+            // Admin audit (ADM-14)
+            admin_audit::AuditRow,
+            admin_audit::AuditListEnvelope,
             // Blog
             crate::models::BlogPost,
             crate::models::BlogPostResponse,

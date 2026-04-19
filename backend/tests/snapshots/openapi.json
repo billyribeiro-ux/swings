@@ -96,6 +96,281 @@
         ]
       }
     },
+    "/api/admin/audit": {
+      "get": {
+        "tags": [
+          "admin-audit"
+        ],
+        "operationId": "list",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Full-text query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "actor_id",
+            "in": "query",
+            "description": "Filter by actor",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "description": "Exact action key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "target_kind",
+            "in": "query",
+            "description": "Exact target kind",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "target_id",
+            "in": "query",
+            "description": "Substring on target_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "metadata_contains",
+            "in": "query",
+            "description": "JSON object — metadata @> $",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Inclusive lower bound",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Inclusive upper bound",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size (1..=200)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Cursor offset",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated audit rows",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditListEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid filter"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/audit/export.csv": {
+      "get": {
+        "tags": [
+          "admin-audit"
+        ],
+        "operationId": "export_csv",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Full-text query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "actor_id",
+            "in": "query",
+            "description": "Filter by actor",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "description": "Exact action",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "target_kind",
+            "in": "query",
+            "description": "Exact target_kind",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "target_id",
+            "in": "query",
+            "description": "Substring target_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "metadata_contains",
+            "in": "query",
+            "description": "JSON containment",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Inclusive lower bound",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Inclusive upper bound",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CSV stream",
+            "content": {
+              "text/csv": {}
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/audit/{id}": {
+      "get": {
+        "tags": [
+          "admin-audit"
+        ],
+        "operationId": "read_one",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Audit row id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditRow"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Row not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/admin/blog/categories": {
       "post": {
         "tags": [
@@ -7243,6 +7518,40 @@
           }
         }
       },
+      "AuditListEnvelope": {
+        "type": "object",
+        "required": [
+          "data",
+          "total",
+          "page",
+          "per_page",
+          "total_pages"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditRow"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "per_page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total_pages": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "AuditLogFilter": {
         "type": "object",
         "properties": {
@@ -7343,6 +7652,60 @@
           },
           "actor_role": {
             "$ref": "#/components/schemas/UserRole"
+          },
+          "action": {
+            "type": "string"
+          },
+          "target_kind": {
+            "type": "string"
+          },
+          "target_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ip_address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "user_agent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "metadata": {},
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AuditRow": {
+        "type": "object",
+        "required": [
+          "id",
+          "actor_id",
+          "actor_role",
+          "action",
+          "target_kind",
+          "metadata",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "actor_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "actor_role": {
+            "type": "string"
           },
           "action": {
             "type": "string"
@@ -15845,6 +16208,10 @@
     {
       "name": "admin-dsar",
       "description": "Admin-initiated DSAR jobs (export + dual-control right-to-erasure tombstone)"
+    },
+    {
+      "name": "admin-audit",
+      "description": "Audit log viewer with full-text + JSON-path search over admin_actions"
     },
     {
       "name": "webhooks",

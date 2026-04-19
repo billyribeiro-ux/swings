@@ -39,7 +39,7 @@ use swings_api::{
     config::Config,
     events::WorkerShutdown,
     handlers::{
-        admin, admin_consent, admin_dsar, admin_impersonation, admin_ip_allowlist,
+        admin, admin_audit, admin_consent, admin_dsar, admin_impersonation, admin_ip_allowlist,
         admin_members, admin_orders, admin_roles, admin_security, admin_settings,
         admin_subscriptions, analytics, auth, blog, coupons, courses, csp_report, member,
         notifications, outbox, popups, pricing, webhooks,
@@ -361,6 +361,7 @@ fn build_router(state: &AppState) -> Router<()> {
                 .nest("/subscriptions", admin_subscriptions::router())
                 .nest("/orders", admin_orders::router())
                 .nest("/dsar", admin_dsar::router())
+                .nest("/audit", admin_audit::router())
                 .merge(
                     axum::Router::new()
                         .nest("/members", admin_members::router()),

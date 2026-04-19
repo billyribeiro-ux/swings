@@ -372,7 +372,9 @@ async fn main() -> Result<()> {
                 .nest("/orders", handlers::admin_orders::router())
                 // ADM-13: admin-initiated DSAR jobs
                 // (export + dual-control right-to-erasure tombstone).
-                .nest("/dsar", handlers::admin_dsar::router()),
+                .nest("/dsar", handlers::admin_dsar::router())
+                // ADM-14: audit log viewer (FTS over admin_actions).
+                .nest("/audit", handlers::admin_audit::router()),
         )
         .nest("/api/admin/blog", handlers::blog::admin_router())
         .nest("/api/admin/courses", handlers::courses::admin_router())
