@@ -517,22 +517,22 @@ impl Modify for SecurityAddon {
 )]
 pub struct ApiDoc;
 
-/// Mount `/api/openapi.json` (gated in production) and SwaggerUI at `/api/docs`.
+/// Mount the OpenAPI surface.
+///
+/// - **Production**: only `/api/openapi.json` is mounted, behind admin auth
+///   (`protected_openapi_json`). SwaggerUI is *not* mounted — utoipa-swagger-ui
+///   would otherwise re-register `/api/openapi.json` (causing axum's
+///   "Overlapping method route" panic) and serve the spec un-authed via its
+///   own route, defeating the whole point of gating.
+/// - **Non-production**: `SwaggerUi` registers `/api/openapi.json` itself
+///   (un-authed) and mounts the UI at `/api/docs`. We do *not* add a second
+///   route for the same path.
 pub fn mount(app: Router<AppState>, state: &AppState) -> Router<AppState> {
-    let is_prod = state.config.is_production();
-    // SwaggerUI is always mounted; the JSON handler enforces prod admin gating.
-    let swagger = SwaggerUi::new("/api/docs").url("/api/openapi.json", ApiDoc::openapi());
-    if is_prod {
+    if state.config.is_production() {
         app.route("/api/openapi.json", get(protected_openapi_json))
-            .merge(swagger)
     } else {
-        app.route("/api/openapi.json", get(public_openapi_json))
-            .merge(swagger)
+        app.merge(SwaggerUi::new("/api/docs").url("/api/openapi.json", ApiDoc::openapi()))
     }
-}
-
-async fn public_openapi_json(State(_state): State<AppState>) -> Response {
-    Json(ApiDoc::openapi()).into_response()
 }
 
 /// Admin-gated variant used in production. `AdminUser` returns 401/403 via `AppError`.
