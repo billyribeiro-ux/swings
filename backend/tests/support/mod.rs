@@ -46,7 +46,7 @@ pub mod error;
 pub mod response;
 pub mod user;
 
-pub use app::TestApp;
+pub use app::{test_jwt_secret_current, TestApp};
 pub use db::TestDb;
 pub use error::{TestAppError, TestResult};
 pub use response::{AssertProblem, ProblemBody, TestResponse};

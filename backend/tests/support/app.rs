@@ -376,7 +376,11 @@ fn build_router(state: &AppState) -> Router<()> {
         .nest("/api/webhooks", webhooks::router())
         // Security reports (FDN-08)
         .nest("/api", csp_report::router())
-        .nest("/u", notifications::public_router());
+        .nest("/u", notifications::public_router())
+        // ADM-07: stamp X-Impersonation-* response headers — applied
+        // here (after all routes are mounted) so every test request
+        // also exercises the production banner contract.
+        .layer(axum::middleware::from_fn(impersonation_banner_mw::stamp));
 
     router.with_state(state.clone())
 }
@@ -427,7 +431,13 @@ fn test_config(upload_dir: String) -> TestResult<Config> {
 /// from one `TestApp` instance can be presented to another (rare, but
 /// useful for cross-test `AuthUser` sanity checks). The value is
 /// deliberately long enough to mimic production secrets.
-fn test_jwt_secret_current() -> String {
+///
+/// Made `pub` so integration tests that mint or inspect JWTs directly
+/// (e.g. ADM-07 impersonation tests that decode the server-issued
+/// token) can sign / verify with the same key. Each test binary is its
+/// own crate, so `pub(crate)` would not be re-exportable from
+/// `support`.
+pub fn test_jwt_secret_current() -> String {
     std::env::var("JWT_SECRET").unwrap_or_else(|_| {
         // 64 bytes, deterministic per binary so tokens within one `cargo test`
         // run are mutually verifiable.

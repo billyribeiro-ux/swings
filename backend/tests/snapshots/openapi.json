@@ -3960,6 +3960,172 @@
         ]
       }
     },
+    "/api/admin/security/impersonation": {
+      "get": {
+        "tags": [
+          "admin-impersonation"
+        ],
+        "operationId": "list",
+        "responses": {
+          "200": {
+            "description": "Active impersonation sessions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "admin-impersonation"
+        ],
+        "operationId": "mint",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateImpersonationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Impersonation token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MintResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or unsafe target"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Target user not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/security/impersonation/{id}": {
+      "get": {
+        "tags": [
+          "admin-impersonation"
+        ],
+        "operationId": "get_one",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Impersonation session id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImpersonationSession"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Session not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/security/impersonation/{id}/revoke": {
+      "post": {
+        "tags": [
+          "admin-impersonation"
+        ],
+        "operationId": "revoke",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Impersonation session id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevokeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Session revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImpersonationSession"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Session not found or already revoked"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/admin/security/ip-allowlist": {
       "get": {
         "tags": [
@@ -4348,6 +4514,30 @@
             "description": "Validation error"
           }
         }
+      }
+    },
+    "/api/auth/impersonation/exit": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "exit",
+        "responses": {
+          "204": {
+            "description": "Impersonation session ended"
+          },
+          "400": {
+            "description": "Caller is not currently impersonating"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
       }
     },
     "/api/auth/login": {
@@ -7835,6 +8025,33 @@
           }
         }
       },
+      "CreateImpersonationInput": {
+        "type": "object",
+        "description": "Inputs accepted by `POST /api/admin/security/impersonation`.",
+        "required": [
+          "target_user_id",
+          "reason"
+        ],
+        "properties": {
+          "target_user_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "User to impersonate. Must exist; must not be the caller; must\nnot itself be an admin (defence-in-depth — `impersonator` audit\ntrail across admins would be a privilege-escalation footgun)."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Required free-text justification (1..=500 chars). Surfaced in\nthe audit log so post-incident review can answer \"why\"."
+          },
+          "ttl_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Requested TTL in minutes. Capped at [`MAX_TTL_MINUTES`].\nDefaults to [`DEFAULT_TTL_MINUTES`] when omitted."
+          }
+        }
+      },
       "CreateLessonRequest": {
         "type": "object",
         "required": [
@@ -9070,6 +9287,80 @@
           }
         }
       },
+      "ImpersonationSession": {
+        "type": "object",
+        "description": "Materialised impersonation-session row as returned by the admin CRUD\nendpoints and consumed by [`crate::extractors::AuthUser`].",
+        "required": [
+          "id",
+          "actor_user_id",
+          "actor_role",
+          "target_user_id",
+          "reason",
+          "issued_at",
+          "expires_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "actor_user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "actor_role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "target_user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "revoked_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "revoked_by": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "revoke_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ip_address": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Mint-time IP in canonical text form. Stored as Postgres `inet`,\nprojected via `host(...)` so callers don't need the `ipnetwork`\nsqlx feature."
+          },
+          "user_agent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
       "LessonProgress": {
         "type": "object",
         "required": [
@@ -9122,6 +9413,25 @@
               "null"
             ],
             "description": "Optional free-text reason captured in the audit log + the `users`\nrow (truncated to 512 chars by the DB CHECK constraint)."
+          }
+        }
+      },
+      "ListResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "total"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImpersonationSession"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
@@ -9240,6 +9550,28 @@
             "items": {
               "$ref": "#/components/schemas/NotificationPreference"
             }
+          }
+        }
+      },
+      "MintResponse": {
+        "type": "object",
+        "description": "Response body for `POST /` (mint). Contains the freshly-issued\nimpersonation JWT plus the row metadata so the SPA does not need a\nfollow-up GET to render the banner.",
+        "required": [
+          "access_token",
+          "expires_at",
+          "session"
+        ],
+        "properties": {
+          "access_token": {
+            "type": "string"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Echoed `expires_at` — same value carried in the JWT's `exp`."
+          },
+          "session": {
+            "$ref": "#/components/schemas/ImpersonationSession"
           }
         }
       },
@@ -10543,6 +10875,18 @@
           "created_at": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "RevokeRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional free-text justification for the revocation. Stored on\nthe row and surfaced in the audit-log metadata."
           }
         }
       },
@@ -12675,6 +13019,10 @@
     {
       "name": "admin-security",
       "description": "Admin-only privileged member-lifecycle and security console (suspend, ban, sessions, audit log)"
+    },
+    {
+      "name": "admin-impersonation",
+      "description": "Admin-only impersonation token mint / list / revoke"
     },
     {
       "name": "webhooks",
