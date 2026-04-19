@@ -9,8 +9,9 @@ use validator::Validate;
 
 use crate::{
     error::{AppError, AppResult},
-    extractors::{AdminUser, AuthUser},
+    extractors::{AdminUser, AuthUser, ClientInfo},
     models::*,
+    services::audit::audit_admin,
     AppState,
 };
 
@@ -130,6 +131,7 @@ async fn admin_list_courses(
 pub(crate) async fn create_course(
     State(state): State<AppState>,
     admin: AdminUser,
+    client: ClientInfo,
     Json(req): Json<CreateCourseRequest>,
 ) -> AppResult<Json<Course>> {
     req.validate()
@@ -184,6 +186,20 @@ pub(crate) async fn create_course(
     .bind(estimated_duration_minutes)
     .fetch_one(&state.db)
     .await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "course.create",
+        "course",
+        course.id,
+        serde_json::json!({
+            "slug": course.slug,
+            "published": course.published,
+        }),
+    )
+    .await;
 
     Ok(Json(course))
 }
@@ -282,7 +298,8 @@ async fn admin_get_course(
 )]
 pub(crate) async fn update_course(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateCourseRequest>,
 ) -> AppResult<Json<Course>> {
@@ -337,6 +354,20 @@ pub(crate) async fn update_course(
     .fetch_one(&state.db)
     .await?;
 
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "course.update",
+        "course",
+        course.id,
+        serde_json::json!({
+            "slug": course.slug,
+            "published": course.published,
+        }),
+    )
+    .await;
+
     Ok(Json(course))
 }
 
@@ -354,9 +385,18 @@ pub(crate) async fn update_course(
 )]
 pub(crate) async fn delete_course(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    let snapshot: Option<(String,)> = sqlx::query_as("SELECT slug FROM courses WHERE id = $1")
+        .bind(id)
+        .fetch_optional(&state.db)
+        .await?;
+    let slug = snapshot
+        .ok_or(AppError::NotFound("Course not found".to_string()))?
+        .0;
+
     let rows = sqlx::query("DELETE FROM courses WHERE id = $1")
         .bind(id)
         .execute(&state.db)
@@ -366,6 +406,17 @@ pub(crate) async fn delete_course(
     if rows == 0 {
         return Err(AppError::NotFound("Course not found".to_string()));
     }
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "course.delete",
+        "course",
+        id,
+        serde_json::json!({ "slug": slug }),
+    )
+    .await;
 
     Ok(Json(serde_json::json!({ "deleted": true })))
 }
@@ -384,7 +435,8 @@ pub(crate) async fn delete_course(
 )]
 pub(crate) async fn toggle_publish(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Course>> {
     let course = sqlx::query_as::<_, Course>(
@@ -408,6 +460,20 @@ pub(crate) async fn toggle_publish(
     .await?
     .ok_or(AppError::NotFound("Course not found".to_string()))?;
 
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "course.publish.toggle",
+        "course",
+        course.id,
+        serde_json::json!({
+            "slug": course.slug,
+            "published": course.published,
+        }),
+    )
+    .await;
+
     Ok(Json(course))
 }
 
@@ -429,7 +495,8 @@ pub(crate) async fn toggle_publish(
 )]
 pub(crate) async fn create_module(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(course_id): Path<Uuid>,
     Json(req): Json<CreateModuleRequest>,
 ) -> AppResult<Json<CourseModule>> {
@@ -459,6 +526,20 @@ pub(crate) async fn create_module(
     .fetch_one(&state.db)
     .await?;
 
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "course.module.create",
+        "course_module",
+        module.id,
+        serde_json::json!({
+            "course_id": course_id,
+            "title": module.title,
+        }),
+    )
+    .await;
+
     Ok(Json(module))
 }
 
@@ -480,7 +561,8 @@ pub(crate) async fn create_module(
 )]
 pub(crate) async fn update_module(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path((course_id, module_id)): Path<(Uuid, Uuid)>,
     Json(req): Json<UpdateModuleRequest>,
 ) -> AppResult<Json<CourseModule>> {
@@ -504,6 +586,20 @@ pub(crate) async fn update_module(
     .await?
     .ok_or(AppError::NotFound("Module not found".to_string()))?;
 
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "course.module.update",
+        "course_module",
+        module.id,
+        serde_json::json!({
+            "course_id": course_id,
+            "title": module.title,
+        }),
+    )
+    .await;
+
     Ok(Json(module))
 }
 
@@ -524,7 +620,8 @@ pub(crate) async fn update_module(
 )]
 pub(crate) async fn delete_module(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path((course_id, module_id)): Path<(Uuid, Uuid)>,
 ) -> AppResult<Json<serde_json::Value>> {
     let rows = sqlx::query("DELETE FROM course_modules WHERE id = $1 AND course_id = $2")
@@ -537,6 +634,17 @@ pub(crate) async fn delete_module(
     if rows == 0 {
         return Err(AppError::NotFound("Module not found".to_string()));
     }
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "course.module.delete",
+        "course_module",
+        module_id,
+        serde_json::json!({ "course_id": course_id }),
+    )
+    .await;
 
     Ok(Json(serde_json::json!({ "deleted": true })))
 }
@@ -562,7 +670,8 @@ pub(crate) async fn delete_module(
 )]
 pub(crate) async fn create_lesson(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path((course_id, module_id)): Path<(Uuid, Uuid)>,
     Json(req): Json<CreateLessonRequest>,
 ) -> AppResult<Json<CourseLesson>> {
@@ -610,6 +719,21 @@ pub(crate) async fn create_lesson(
     .fetch_one(&state.db)
     .await?;
 
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "course.lesson.create",
+        "course_lesson",
+        lesson.id,
+        serde_json::json!({
+            "course_id": course_id,
+            "module_id": module_id,
+            "slug": lesson.slug,
+        }),
+    )
+    .await;
+
     Ok(Json(lesson))
 }
 
@@ -628,7 +752,8 @@ pub(crate) async fn create_lesson(
 )]
 pub(crate) async fn update_lesson(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(lesson_id): Path<Uuid>,
     Json(req): Json<UpdateLessonRequest>,
 ) -> AppResult<Json<CourseLesson>> {
@@ -667,6 +792,20 @@ pub(crate) async fn update_lesson(
     .await?
     .ok_or(AppError::NotFound("Lesson not found".to_string()))?;
 
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "course.lesson.update",
+        "course_lesson",
+        lesson.id,
+        serde_json::json!({
+            "module_id": lesson.module_id,
+            "slug": lesson.slug,
+        }),
+    )
+    .await;
+
     Ok(Json(lesson))
 }
 
@@ -684,7 +823,8 @@ pub(crate) async fn update_lesson(
 )]
 pub(crate) async fn delete_lesson(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(lesson_id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
     let rows = sqlx::query("DELETE FROM course_lessons WHERE id = $1")
@@ -696,6 +836,17 @@ pub(crate) async fn delete_lesson(
     if rows == 0 {
         return Err(AppError::NotFound("Lesson not found".to_string()));
     }
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "course.lesson.delete",
+        "course_lesson",
+        lesson_id,
+        serde_json::json!({}),
+    )
+    .await;
 
     Ok(Json(serde_json::json!({ "deleted": true })))
 }

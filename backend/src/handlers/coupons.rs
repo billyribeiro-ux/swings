@@ -17,8 +17,9 @@ use crate::{
     },
     common::money::Money,
     error::{AppError, AppResult},
-    extractors::{AdminUser, AuthUser},
+    extractors::{AdminUser, AuthUser, ClientInfo},
     models::*,
+    services::audit::{audit_admin, audit_admin_no_target},
     AppState,
 };
 
@@ -531,6 +532,7 @@ async fn admin_list_coupons(
 pub(crate) async fn admin_create_coupon(
     State(state): State<AppState>,
     admin: AdminUser,
+    client: ClientInfo,
     Json(req): Json<CreateCouponRequest>,
 ) -> AppResult<Json<Coupon>> {
     req.validate()
@@ -596,6 +598,21 @@ pub(crate) async fn admin_create_coupon(
     .fetch_one(&state.db)
     .await?;
 
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "coupon.create",
+        "coupon",
+        coupon.id,
+        serde_json::json!({
+            "code": coupon.code,
+            "discount_type": coupon.discount_type,
+            "is_active": coupon.is_active,
+        }),
+    )
+    .await;
+
     Ok(Json(coupon))
 }
 
@@ -643,7 +660,8 @@ async fn admin_get_coupon(
 )]
 pub(crate) async fn admin_update_coupon(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateCouponRequest>,
 ) -> AppResult<Json<Coupon>> {
@@ -720,6 +738,20 @@ pub(crate) async fn admin_update_coupon(
     .fetch_one(&state.db)
     .await?;
 
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "coupon.update",
+        "coupon",
+        coupon.id,
+        serde_json::json!({
+            "code": coupon.code,
+            "is_active": coupon.is_active,
+        }),
+    )
+    .await;
+
     Ok(Json(coupon))
 }
 
@@ -737,9 +769,17 @@ pub(crate) async fn admin_update_coupon(
 )]
 pub(crate) async fn admin_delete_coupon(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    let snapshot: Option<(String, String)> =
+        sqlx::query_as("SELECT code, discount_type::text FROM coupons WHERE id = $1")
+            .bind(id)
+            .fetch_optional(&state.db)
+            .await?;
+    let (code, discount_type) = snapshot.ok_or(AppError::NotFound("Coupon not found".to_string()))?;
+
     let result = sqlx::query("DELETE FROM coupons WHERE id = $1")
         .bind(id)
         .execute(&state.db)
@@ -748,6 +788,20 @@ pub(crate) async fn admin_delete_coupon(
     if result.rows_affected() == 0 {
         return Err(AppError::NotFound("Coupon not found".to_string()));
     }
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "coupon.delete",
+        "coupon",
+        id,
+        serde_json::json!({
+            "code": code,
+            "discount_type": discount_type,
+        }),
+    )
+    .await;
 
     Ok(Json(serde_json::json!({ "deleted": true })))
 }
@@ -766,7 +820,8 @@ pub(crate) async fn admin_delete_coupon(
 )]
 pub(crate) async fn admin_toggle_coupon(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Coupon>> {
     let coupon: Coupon = sqlx::query_as(
@@ -781,6 +836,20 @@ pub(crate) async fn admin_toggle_coupon(
     .fetch_optional(&state.db)
     .await?
     .ok_or(AppError::NotFound("Coupon not found".to_string()))?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "coupon.toggle",
+        "coupon",
+        coupon.id,
+        serde_json::json!({
+            "code": coupon.code,
+            "is_active": coupon.is_active,
+        }),
+    )
+    .await;
 
     Ok(Json(coupon))
 }
@@ -799,6 +868,7 @@ pub(crate) async fn admin_toggle_coupon(
 pub(crate) async fn admin_bulk_create_coupons(
     State(state): State<AppState>,
     admin: AdminUser,
+    client: ClientInfo,
     Json(req): Json<BulkCouponRequest>,
 ) -> AppResult<Json<Vec<Coupon>>> {
     if req.count < 1 || req.count > 1000 {
@@ -847,6 +917,23 @@ pub(crate) async fn admin_bulk_create_coupons(
 
         created.push(coupon);
     }
+
+    let ids: Vec<Uuid> = created.iter().map(|c| c.id).collect();
+    let codes: Vec<String> = created.iter().map(|c| c.code.clone()).collect();
+    audit_admin_no_target(
+        &state.db,
+        &admin,
+        &client,
+        "coupon.bulk_create",
+        "coupon",
+        serde_json::json!({
+            "count": created.len(),
+            "ids": ids,
+            "codes": codes,
+            "discount_type": req.discount_type,
+        }),
+    )
+    .await;
 
     Ok(Json(created))
 }
@@ -1126,7 +1213,8 @@ pub struct CouponEngineView {
 )]
 pub(crate) async fn admin_update_coupon_engine(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateCouponEngineRequest>,
 ) -> AppResult<Json<CouponEngineView>> {
@@ -1165,6 +1253,21 @@ pub(crate) async fn admin_update_coupon_engine(
     .fetch_optional(&state.db)
     .await?
     .ok_or(AppError::NotFound("Coupon not found".to_string()))?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "coupon.engine.update",
+        "coupon",
+        row.id,
+        serde_json::json!({
+            "code": row.code,
+            "scope": row.scope,
+            "recurring_mode": row.recurring_mode,
+        }),
+    )
+    .await;
 
     Ok(Json(row))
 }

@@ -14,9 +14,9 @@ use validator::Validate;
 use crate::{
     db,
     error::{AppError, AppResult},
-    extractors::AdminUser,
+    extractors::{AdminUser, ClientInfo},
     models::*,
-    services::{MediaBackend, R2Storage},
+    services::{audit::audit_admin, MediaBackend, R2Storage},
     AppState,
 };
 
@@ -223,6 +223,7 @@ fn hash_post_password(plain: &str) -> AppResult<String> {
 pub(crate) async fn admin_create_post(
     State(state): State<AppState>,
     admin: AdminUser,
+    client: ClientInfo,
     Json(req): Json<CreatePostRequest>,
 ) -> AppResult<Json<BlogPostResponse>> {
     req.validate()
@@ -255,6 +256,21 @@ pub(crate) async fn admin_create_post(
     }
 
     let response = build_post_response(&state.db, post).await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "blog.post.create",
+        "blog_post",
+        response.id,
+        serde_json::json!({
+            "slug": response.slug,
+            "status": response.status,
+        }),
+    )
+    .await;
+
     Ok(Json(response))
 }
 
@@ -288,6 +304,7 @@ async fn admin_get_post(
 pub(crate) async fn admin_update_post(
     State(state): State<AppState>,
     admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<UpdatePostRequest>,
 ) -> AppResult<Json<BlogPostResponse>> {
@@ -354,6 +371,21 @@ pub(crate) async fn admin_update_post(
     }
 
     let response = build_post_response(&state.db, post).await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "blog.post.update",
+        "blog_post",
+        response.id,
+        serde_json::json!({
+            "slug": response.slug,
+            "status": response.status,
+        }),
+    )
+    .await;
+
     Ok(Json(response))
 }
 
@@ -372,7 +404,8 @@ pub(crate) async fn admin_update_post(
 )]
 pub(crate) async fn admin_delete_post(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
     let existing = db::get_blog_post(&state.db, id)
@@ -385,6 +418,21 @@ pub(crate) async fn admin_delete_post(
         ));
     }
     db::delete_blog_post(&state.db, id).await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "blog.post.delete",
+        "blog_post",
+        id,
+        serde_json::json!({
+            "slug": existing.slug,
+            "title": existing.title,
+        }),
+    )
+    .await;
+
     Ok(Json(
         serde_json::json!({ "message": "Post permanently deleted" }),
     ))
@@ -403,11 +451,27 @@ pub(crate) async fn admin_delete_post(
 )]
 pub(crate) async fn admin_restore_post_from_trash(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<BlogPostResponse>> {
     let post = db::restore_post_from_trash(&state.db, id).await?;
     let response = build_post_response(&state.db, post).await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "blog.post.restore",
+        "blog_post",
+        response.id,
+        serde_json::json!({
+            "slug": response.slug,
+            "status": response.status,
+        }),
+    )
+    .await;
+
     Ok(Json(response))
 }
 
@@ -427,7 +491,8 @@ pub(crate) async fn admin_restore_post_from_trash(
 )]
 pub(crate) async fn admin_update_post_status(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<UpdatePostStatusRequest>,
 ) -> AppResult<Json<BlogPostResponse>> {
@@ -446,6 +511,22 @@ pub(crate) async fn admin_update_post_status(
         db::update_post_status(&state.db, id, &req.status).await?
     };
     let response = build_post_response(&state.db, post).await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "blog.post.status.update",
+        "blog_post",
+        response.id,
+        serde_json::json!({
+            "slug": response.slug,
+            "from": existing.status,
+            "to": req.status,
+        }),
+    )
+    .await;
+
     Ok(Json(response))
 }
 

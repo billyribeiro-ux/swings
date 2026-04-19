@@ -8,8 +8,9 @@ use validator::Validate;
 
 use crate::{
     error::{AppError, AppResult},
-    extractors::AdminUser,
+    extractors::{AdminUser, ClientInfo},
     models::*,
+    services::audit::audit_admin,
     AppState,
 };
 
@@ -88,7 +89,8 @@ async fn admin_list_plans(
 )]
 pub(crate) async fn admin_create_plan(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Json(req): Json<CreatePricingPlanRequest>,
 ) -> AppResult<Json<PricingPlan>> {
     req.validate()
@@ -138,6 +140,22 @@ pub(crate) async fn admin_create_plan(
     .bind(sort_order)
     .fetch_one(&state.db)
     .await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "pricing_plan.create",
+        "pricing_plan",
+        plan.id,
+        serde_json::json!({
+            "slug": plan.slug,
+            "amount_cents": plan.amount_cents,
+            "currency": plan.currency,
+            "interval": plan.interval,
+        }),
+    )
+    .await;
 
     Ok(Json(plan))
 }
@@ -196,6 +214,7 @@ async fn admin_get_plan(
 pub(crate) async fn admin_update_plan(
     State(state): State<AppState>,
     admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<UpdatePricingPlanRequest>,
 ) -> AppResult<Json<PricingPlan>> {
@@ -408,6 +427,22 @@ pub(crate) async fn admin_update_plan(
         .await?;
     }
 
+    let changed_fields: Vec<&str> = changes.iter().map(|(f, _, _)| *f).collect();
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "pricing_plan.update",
+        "pricing_plan",
+        updated.id,
+        serde_json::json!({
+            "slug": updated.slug,
+            "fields_changed": changed_fields,
+            "is_active": updated.is_active,
+        }),
+    )
+    .await;
+
     Ok(Json(updated))
 }
 
@@ -425,9 +460,19 @@ pub(crate) async fn admin_update_plan(
 )]
 pub(crate) async fn admin_delete_plan(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    let snapshot: Option<(String,)> =
+        sqlx::query_as("SELECT slug FROM pricing_plans WHERE id = $1")
+            .bind(id)
+            .fetch_optional(&state.db)
+            .await?;
+    let slug = snapshot
+        .ok_or(AppError::NotFound("Pricing plan not found".to_string()))?
+        .0;
+
     let result = sqlx::query(
         r#"
         UPDATE pricing_plans
@@ -442,6 +487,17 @@ pub(crate) async fn admin_delete_plan(
     if result.rows_affected() == 0 {
         return Err(AppError::NotFound("Pricing plan not found".to_string()));
     }
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "pricing_plan.deactivate",
+        "pricing_plan",
+        id,
+        serde_json::json!({ "slug": slug }),
+    )
+    .await;
 
     Ok(Json(
         serde_json::json!({ "message": "Pricing plan deactivated" }),
@@ -462,7 +518,8 @@ pub(crate) async fn admin_delete_plan(
 )]
 pub(crate) async fn admin_toggle_plan(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<PricingPlan>> {
     let plan = sqlx::query_as::<_, PricingPlan>(
@@ -480,6 +537,20 @@ pub(crate) async fn admin_toggle_plan(
     .fetch_optional(&state.db)
     .await?
     .ok_or(AppError::NotFound("Pricing plan not found".to_string()))?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "pricing_plan.toggle",
+        "pricing_plan",
+        plan.id,
+        serde_json::json!({
+            "slug": plan.slug,
+            "is_active": plan.is_active,
+        }),
+    )
+    .await;
 
     Ok(Json(plan))
 }

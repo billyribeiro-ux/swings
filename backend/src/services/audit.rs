@@ -30,7 +30,7 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::error::{AppError, AppResult};
-use crate::extractors::ClientInfo;
+use crate::extractors::{AdminUser, ClientInfo};
 use crate::models::UserRole;
 
 /// Structured payload for a single audit row.
@@ -152,6 +152,73 @@ pub async fn record_admin_action(pool: &PgPool, entry: AdminAction) -> AppResult
     );
 
     Ok(id.0)
+}
+
+/// One-shot helper for the common pattern: write a best-effort admin
+/// audit row from an [`AdminUser`] + [`ClientInfo`] context with a single
+/// call site.
+///
+/// Equivalent to:
+///
+/// ```ignore
+/// let role = UserRole::from_str_lower(&admin.role).unwrap_or(UserRole::Admin);
+/// record_admin_action_best_effort(
+///     pool,
+///     AdminAction::new(admin.user_id, role, action, target_kind)
+///         .with_target_id(target_id)
+///         .with_client(client)
+///         .with_metadata(metadata),
+/// ).await;
+/// ```
+///
+/// Use this from any destructive admin handler that has already gone
+/// through the [`AdminUser`] extractor — i.e. nearly every `/api/admin/*`
+/// mutator. Returns the inserted audit row id when persistence succeeds,
+/// or `None` after logging the underlying error (the `_best_effort`
+/// contract).
+///
+/// `target_id` is generic over [`ToString`] so callers can pass `Uuid`,
+/// `&str`, `String`, or any other identifier the target resource exposes
+/// without an extra allocation in the common UUID case.
+pub async fn audit_admin<T: ToString>(
+    pool: &PgPool,
+    admin: &AdminUser,
+    client: &ClientInfo,
+    action: &'static str,
+    target_kind: &'static str,
+    target_id: T,
+    metadata: JsonValue,
+) -> Option<Uuid> {
+    let role = UserRole::from_str_lower(&admin.role).unwrap_or(UserRole::Admin);
+    record_admin_action_best_effort(
+        pool,
+        AdminAction::new(admin.user_id, role, action, target_kind)
+            .with_target_id(target_id)
+            .with_client(client)
+            .with_metadata(metadata),
+    )
+    .await
+}
+
+/// Variant of [`audit_admin`] for actions that have no specific target id
+/// (e.g. bulk operations that produce many ids — pass them in the
+/// `metadata` instead).
+pub async fn audit_admin_no_target(
+    pool: &PgPool,
+    admin: &AdminUser,
+    client: &ClientInfo,
+    action: &'static str,
+    target_kind: &'static str,
+    metadata: JsonValue,
+) -> Option<Uuid> {
+    let role = UserRole::from_str_lower(&admin.role).unwrap_or(UserRole::Admin);
+    record_admin_action_best_effort(
+        pool,
+        AdminAction::new(admin.user_id, role, action, target_kind)
+            .with_client(client)
+            .with_metadata(metadata),
+    )
+    .await
 }
 
 /// Best-effort variant: log the failure and continue.

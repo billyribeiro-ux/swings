@@ -33,8 +33,9 @@ use crate::{
     },
     error::{AppError, AppResult},
     events,
-    extractors::AdminUser,
+    extractors::{AdminUser, ClientInfo},
     models::PaginatedResponse,
+    services::audit::audit_admin,
     AppState,
 };
 
@@ -197,6 +198,7 @@ async fn admin_get_product(
 pub(crate) async fn admin_create_product(
     State(state): State<AppState>,
     admin: AdminUser,
+    client: ClientInfo,
     Json(req): Json<CreateProductRequest>,
 ) -> AppResult<Json<Product>> {
     // Slug uniqueness is also enforced at the DB via the UNIQUE constraint;
@@ -247,6 +249,21 @@ pub(crate) async fn admin_create_product(
     publish_event(&mut tx, "commerce.product.created", &product).await?;
     tx.commit().await?;
 
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "product.create",
+        "product",
+        product.id,
+        serde_json::json!({
+            "slug": product.slug,
+            "product_type": product.product_type,
+            "status": product.status,
+        }),
+    )
+    .await;
+
     Ok(Json(product))
 }
 
@@ -265,7 +282,8 @@ pub(crate) async fn admin_create_product(
 )]
 pub(crate) async fn admin_update_product(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateProductRequest>,
 ) -> AppResult<Json<Product>> {
@@ -297,6 +315,20 @@ pub(crate) async fn admin_update_product(
     publish_event(&mut tx, "commerce.product.updated", &product).await?;
     tx.commit().await?;
 
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "product.update",
+        "product",
+        product.id,
+        serde_json::json!({
+            "slug": product.slug,
+            "status": product.status,
+        }),
+    )
+    .await;
+
     Ok(Json(product))
 }
 
@@ -315,7 +347,8 @@ pub(crate) async fn admin_update_product(
 )]
 pub(crate) async fn admin_set_status(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<SetStatusRequest>,
 ) -> AppResult<Json<Product>> {
@@ -323,6 +356,21 @@ pub(crate) async fn admin_set_status(
     let product = repo::set_status(&mut tx, id, req.status.as_str()).await?;
     publish_event(&mut tx, "commerce.product.status_changed", &product).await?;
     tx.commit().await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "product.status.update",
+        "product",
+        product.id,
+        serde_json::json!({
+            "slug": product.slug,
+            "status": product.status,
+        }),
+    )
+    .await;
+
     Ok(Json(product))
 }
 
@@ -340,9 +388,19 @@ pub(crate) async fn admin_set_status(
 )]
 pub(crate) async fn admin_delete_product(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    // Snapshot for audit metadata before the hard delete.
+    let snapshot: Option<(String, String)> =
+        sqlx::query_as("SELECT slug, product_type FROM products WHERE id = $1")
+            .bind(id)
+            .fetch_optional(&state.db)
+            .await?;
+    let (slug, product_type) =
+        snapshot.ok_or(AppError::NotFound("Product not found".to_string()))?;
+
     // Hard delete — CASCADEs cover variants / assets / bundle_items the row
     // composes. Orders / line-items referencing the product live under EC-04
     // and will add a PROTECT-style guard at that time.
@@ -353,6 +411,21 @@ pub(crate) async fn admin_delete_product(
     if res.rows_affected() == 0 {
         return Err(AppError::NotFound("Product not found".to_string()));
     }
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "product.delete",
+        "product",
+        id,
+        serde_json::json!({
+            "slug": slug,
+            "product_type": product_type,
+        }),
+    )
+    .await;
+
     Ok(Json(serde_json::json!({ "deleted": true })))
 }
 
@@ -378,7 +451,8 @@ async fn admin_list_variants(
 )]
 pub(crate) async fn admin_add_variant(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<CreateVariantRequest>,
 ) -> AppResult<Json<ProductVariant>> {
@@ -403,6 +477,21 @@ pub(crate) async fn admin_add_variant(
     .await?;
     publish_event(&mut tx, "commerce.product.updated", &product).await?;
     tx.commit().await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "product.variant.create",
+        "product_variant",
+        variant.id,
+        serde_json::json!({
+            "product_id": id,
+            "sku": variant.sku,
+        }),
+    )
+    .await;
+
     Ok(Json(variant))
 }
 
@@ -424,7 +513,8 @@ pub(crate) async fn admin_add_variant(
 )]
 pub(crate) async fn admin_update_variant(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path((id, variant_id)): Path<(Uuid, Uuid)>,
     Json(req): Json<UpdateVariantRequest>,
 ) -> AppResult<Json<ProductVariant>> {
@@ -445,6 +535,21 @@ pub(crate) async fn admin_update_variant(
     .await?;
     publish_event(&mut tx, "commerce.product.updated", &product).await?;
     tx.commit().await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "product.variant.update",
+        "product_variant",
+        variant.id,
+        serde_json::json!({
+            "product_id": id,
+            "sku": variant.sku,
+        }),
+    )
+    .await;
+
     Ok(Json(variant))
 }
 
@@ -465,7 +570,8 @@ pub(crate) async fn admin_update_variant(
 )]
 pub(crate) async fn admin_delete_variant(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path((id, variant_id)): Path<(Uuid, Uuid)>,
 ) -> AppResult<Json<serde_json::Value>> {
     let mut tx = state.db.begin().await?;
@@ -473,6 +579,18 @@ pub(crate) async fn admin_delete_variant(
     repo::delete_variant(&mut tx, variant_id).await?;
     publish_event(&mut tx, "commerce.product.updated", &product).await?;
     tx.commit().await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "product.variant.delete",
+        "product_variant",
+        variant_id,
+        serde_json::json!({ "product_id": id }),
+    )
+    .await;
+
     Ok(Json(serde_json::json!({ "deleted": true })))
 }
 
@@ -498,7 +616,8 @@ async fn admin_list_assets(
 )]
 pub(crate) async fn admin_add_asset(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<CreateAssetRequest>,
 ) -> AppResult<Json<DownloadableAsset>> {
@@ -522,6 +641,22 @@ pub(crate) async fn admin_add_asset(
     .await?;
     publish_event(&mut tx, "commerce.product.updated", &product).await?;
     tx.commit().await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "product.asset.create",
+        "downloadable_asset",
+        asset.id,
+        serde_json::json!({
+            "product_id": id,
+            "filename": asset.filename,
+            "mime_type": asset.mime_type,
+        }),
+    )
+    .await;
+
     Ok(Json(asset))
 }
 
@@ -542,7 +677,8 @@ pub(crate) async fn admin_add_asset(
 )]
 pub(crate) async fn admin_delete_asset(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path((id, asset_id)): Path<(Uuid, Uuid)>,
 ) -> AppResult<Json<serde_json::Value>> {
     let mut tx = state.db.begin().await?;
@@ -550,6 +686,17 @@ pub(crate) async fn admin_delete_asset(
     repo::delete_asset(&mut tx, asset_id).await?;
     publish_event(&mut tx, "commerce.product.updated", &product).await?;
     tx.commit().await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "product.asset.delete",
+        "downloadable_asset",
+        asset_id,
+        serde_json::json!({ "product_id": id }),
+    )
+    .await;
     // TODO: EC-07 — physically remove the R2 object (or enqueue a worker job)
     // once the asset no longer participates in any order's download
     // entitlement. Row delete alone is safe for now because signed-URL
@@ -580,7 +727,8 @@ async fn admin_list_bundle_items(
 )]
 pub(crate) async fn admin_set_bundle_items(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<SetBundleItemsRequest>,
 ) -> AppResult<Json<Vec<BundleItem>>> {
@@ -595,6 +743,23 @@ pub(crate) async fn admin_set_bundle_items(
     let rows = repo::set_bundle_items(&mut tx, id, &items).await?;
     publish_event(&mut tx, "commerce.product.updated", &product).await?;
     tx.commit().await?;
+
+    let child_ids: Vec<Uuid> = rows.iter().map(|r| r.child_product_id).collect();
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "product.bundle_items.set",
+        "product",
+        id,
+        serde_json::json!({
+            "slug": product.slug,
+            "child_product_ids": child_ids,
+            "count": rows.len(),
+        }),
+    )
+    .await;
+
     Ok(Json(rows))
 }
 
