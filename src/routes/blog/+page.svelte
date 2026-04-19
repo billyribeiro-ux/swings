@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { gsap } from 'gsap';
-	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
+	import { createCinematicCascade, EASE, DURATION, hoverTilt } from '$lib/utils/animations';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import Seo from '$lib/seo/Seo.svelte';
 	import { webPageSchema, articleSchema, buildJsonLd } from '$lib/seo/jsonld';
@@ -143,7 +143,7 @@
 			<ScrollReveal>
 				<div class="blog-grid">
 					{#each posts as post, i (post.id)}
-						<article class="reveal-item blog-card" style="transition-delay: {i * 0.08}s">
+						<article class="reveal-item blog-card" style="transition-delay: {i * 0.08}s" {@attach hoverTilt({ maxTilt: 3, scale: 1.01 })}>
 							{#if post.featured_image_url}
 								<a href="/blog/{post.slug}" class="blog-card__image-link">
 									<img

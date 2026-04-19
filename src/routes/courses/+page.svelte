@@ -1,17 +1,51 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
-	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
+	import {
+		createCinematicCascade,
+		DURATION,
+		EASE,
+		hoverTilt
+	} from '$lib/utils/animations';
 	import { courses } from '$lib/data/courses';
-	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
+	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
 	import Seo from '$lib/seo/Seo.svelte';
-	import { webPageSchema, courseSchema, buildJsonLd } from '$lib/seo/jsonld';
-	import BookOpen from 'phosphor-svelte/lib/BookOpen';
-	import Pulse from 'phosphor-svelte/lib/Pulse';
-	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
-	import Clock from 'phosphor-svelte/lib/Clock';
+	import { webPageSchema, buildJsonLd, courseSchema } from '$lib/seo/jsonld';
+
 	import GraduationCap from 'phosphor-svelte/lib/GraduationCap';
+	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
+
+	let heroRef: HTMLElement | undefined = $state();
+
+	$effect(() => {
+		if (!heroRef) return;
+		const ctx = gsap.context(() => {
+			createCinematicCascade(
+				heroRef!,
+				[
+					{ selector: '.page-badge', duration: DURATION.fast, y: 20, ease: EASE.snappy },
+					{
+						selector: '.page-hero__title',
+						duration: DURATION.cinematic,
+						y: 30,
+						ease: EASE.cinematic,
+						blur: 8,
+						lcpVisible: true
+					},
+					{
+						selector: '.page-hero__subtitle',
+						duration: DURATION.slow,
+						y: 20,
+						ease: EASE.soft,
+						overlap: 0.5,
+						lcpVisible: true
+					}
+				],
+				{ delay: 0.1 }
+			);
+		}, heroRef);
+		return () => ctx.revert();
+	});
 
 	const jsonLd = buildJsonLd([
 		webPageSchema({
@@ -33,47 +67,11 @@
 		)
 	]);
 
-	const iconMap: Record<string, typeof BookOpen> = { BookOpen, Pulse };
+	import Clock from 'phosphor-svelte/lib/Clock';
+	import BookOpen from 'phosphor-svelte/lib/BookOpen';
+	import Pulse from 'phosphor-svelte/lib/Pulse';
 
-	let heroRef: HTMLElement | undefined = $state();
-
-	onMount(() => {
-		if (!heroRef) return;
-
-		const ctx = gsap.context(() => {
-			createCinematicCascade(heroRef!, [
-				{
-					selector: '.courses-badge',
-					duration: DURATION.fast,
-					ease: EASE.snappy,
-					y: 20,
-					blur: 6,
-					scale: 0.9,
-					overlap: 0
-				},
-				{
-					selector: '.courses-title',
-					duration: DURATION.cinematic,
-					ease: EASE.cinematic,
-					y: 36,
-					blur: 10,
-					scale: 0.95,
-					overlap: 0.6
-				},
-				{
-					selector: '.courses-subtitle',
-					duration: DURATION.slow,
-					ease: EASE.soft,
-					y: 28,
-					blur: 8,
-					scale: 0.98,
-					overlap: 0.6
-				}
-			]);
-		}, heroRef as HTMLElement);
-
-		return () => ctx.revert();
-	});
+	const iconMap: Record<string, typeof BookOpen> = { BookOpen, Pulse, GraduationCap };
 </script>
 
 <Seo
@@ -180,7 +178,7 @@
 			/>
 
 			<div class="why-grid">
-				<div class="reveal-item why-item">
+				<div class="reveal-item why-item" {@attach hoverTilt({ maxTilt: 8, scale: 1.03 })}>
 					<div class="why-item__icon">
 						<BookOpen size={28} weight="duotone" color="#0FA4AF" />
 					</div>
@@ -190,7 +188,7 @@
 					</p>
 				</div>
 
-				<div class="reveal-item why-item">
+				<div class="reveal-item why-item" {@attach hoverTilt({ maxTilt: 8, scale: 1.03 })}>
 					<div class="why-item__icon">
 						<Pulse size={28} weight="duotone" color="#0FA4AF" />
 					</div>
@@ -200,7 +198,7 @@
 					</p>
 				</div>
 
-				<div class="reveal-item why-item">
+				<div class="reveal-item why-item" {@attach hoverTilt({ maxTilt: 8, scale: 1.03 })}>
 					<div class="why-item__icon">
 						<GraduationCap size={28} weight="duotone" color="#0FA4AF" />
 					</div>

@@ -1,16 +1,19 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
-	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
+	import { DURATION, EASE, createCinematicCascade, hoverTilt } from '$lib/utils/animations';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
 	import Seo from '$lib/seo/Seo.svelte';
 	import { webPageSchema, buildJsonLd } from '$lib/seo/jsonld';
 	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
-	import TrendUp from 'phosphor-svelte/lib/TrendUp';
 	import Users from 'phosphor-svelte/lib/Users';
 	import ChartLineUp from 'phosphor-svelte/lib/ChartLineUp';
-	import Target from 'phosphor-svelte/lib/Target';
+	
+	import ShieldCheck from 'phosphor-svelte/lib/ShieldCheck';
+	import Eye from 'phosphor-svelte/lib/Eye';
+	import ListChecks from 'phosphor-svelte/lib/ListChecks';
+	import Trophy from 'phosphor-svelte/lib/Trophy';
 
 	const jsonLd = buildJsonLd([
 		webPageSchema({
@@ -146,41 +149,42 @@
 			/>
 
 			<div class="about-features-grid">
-				<div class="reveal-item about-feature-card">
+				<div class="reveal-item about-feature-card" {@attach hoverTilt({ maxTilt: 6, scale: 1.02 })}>
 					<div class="about-feature-card__icon">
-						<Target size={28} weight="duotone" color="#0FA4AF" />
+						<Eye size={24} weight="duotone" color="#0FA4AF" />
 					</div>
-					<h3 class="about-feature-card__title">Fewer, Better Setups</h3>
+					<h3 class="about-feature-card__title">Total Transparency</h3>
 					<p class="about-feature-card__desc">
-						5–7 per week, not 50 per day. Every setup meets institutional-grade criteria before it
-						reaches you.
+						Every setup comes with full logic. We want you to understand exactly why we take a
+						trade, so eventually, you don't need us anymore.
 					</p>
 				</div>
 
-				<div class="reveal-item about-feature-card">
+				<div class="reveal-item about-feature-card" {@attach hoverTilt({ maxTilt: 6, scale: 1.02 })}>
 					<div class="about-feature-card__icon">
-						<ChartLineUp size={28} weight="duotone" color="#0FA4AF" />
+						<ListChecks size={24} weight="duotone" color="#0FA4AF" />
 					</div>
-					<h3 class="about-feature-card__title">Full Trade Structure</h3>
+					<h3 class="about-feature-card__title">Pre-Market Preparation</h3>
 					<p class="about-feature-card__desc">
-						Entry zones, profit targets, and defined stop losses on every setup. No guesswork.
+						Watchlists arrive on Sunday. You have hours to review the charts, set your alerts, and
+						prepare your execution plan before the bell rings Monday morning.
 					</p>
 				</div>
 
-				<div class="reveal-item about-feature-card">
+				<div class="reveal-item about-feature-card" {@attach hoverTilt({ maxTilt: 6, scale: 1.02 })}>
 					<div class="about-feature-card__icon">
-						<TrendUp size={28} weight="duotone" color="#0FA4AF" />
+						<ShieldCheck size={24} weight="duotone" color="#0FA4AF" />
 					</div>
-					<h3 class="about-feature-card__title">Institutional Pedigree</h3>
+					<h3 class="about-feature-card__title">Strict Risk Control</h3>
 					<p class="about-feature-card__desc">
-						Built by traders who've operated at the highest levels of the market -- Goldman Sachs,
-						ZMC Capital.
+						No diamond hands. No hoping. Every trade has a defined invalidation level. If the thesis
+						breaks, we take the small loss and preserve capital for the next edge.
 					</p>
 				</div>
 
-				<div class="reveal-item about-feature-card">
+				<div class="reveal-item about-feature-card" {@attach hoverTilt({ maxTilt: 6, scale: 1.02 })}>
 					<div class="about-feature-card__icon">
-						<Users size={28} weight="duotone" color="#0FA4AF" />
+						<Trophy size={28} weight="duotone" color="#0FA4AF" />
 					</div>
 					<h3 class="about-feature-card__title">Education Embedded</h3>
 					<p class="about-feature-card__desc">
@@ -253,7 +257,7 @@
 				</div>
 
 				<!-- Freddie Ferber -->
-				<div class="reveal-item founder-card">
+				<div class="reveal-item founder-card" {@attach hoverTilt({ maxTilt: 4, scale: 1.01 })}>
 					<div class="founder-card__header">
 						<img
 							src="/images/freddie-ferber.jpg"
