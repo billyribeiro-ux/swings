@@ -392,14 +392,18 @@ fn extract_ip(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::authz::Policy;
+    use crate::authz::{Policy, PolicyHandle};
+
+    fn handle(p: Policy) -> PolicyHandle {
+        PolicyHandle::new(p)
+    }
 
     #[test]
     fn admin_has_permission_uses_policy_cache() {
-        let policy = Policy::from_pairs([
+        let policy = handle(Policy::from_pairs([
             (UserRole::Admin, "admin.role.manage"),
             (UserRole::Support, "order.any.read"),
-        ]);
+        ]));
 
         let admin = AdminUser {
             user_id: Uuid::new_v4(),
@@ -419,7 +423,7 @@ mod tests {
 
     #[test]
     fn admin_require_ok_when_role_carries_permission() {
-        let policy = Policy::from_pairs([(UserRole::Admin, "admin.role.manage")]);
+        let policy = handle(Policy::from_pairs([(UserRole::Admin, "admin.role.manage")]));
         let admin = AdminUser {
             user_id: Uuid::new_v4(),
             role: "admin".into(),
@@ -432,7 +436,7 @@ mod tests {
 
     #[test]
     fn admin_require_forbidden_when_role_lacks_permission() {
-        let policy = Policy::from_pairs([(UserRole::Admin, "admin.role.manage")]);
+        let policy = handle(Policy::from_pairs([(UserRole::Admin, "admin.role.manage")]));
         let support = AdminUser {
             user_id: Uuid::new_v4(),
             role: "support".into(),
@@ -445,7 +449,7 @@ mod tests {
 
     #[test]
     fn admin_require_unauthorized_when_role_unknown() {
-        let policy = Policy::from_pairs([(UserRole::Admin, "x")]);
+        let policy = handle(Policy::from_pairs([(UserRole::Admin, "x")]));
         let ghost = AdminUser {
             user_id: Uuid::new_v4(),
             role: "root".into(),

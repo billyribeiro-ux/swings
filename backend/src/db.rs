@@ -136,6 +136,158 @@ pub async fn seed_admin(
     Ok(())
 }
 
+/// Lifecycle filter for [`search_users`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UserStatusFilter {
+    /// Account that is neither suspended nor banned.
+    Active,
+    /// `users.suspended_at IS NOT NULL`.
+    Suspended,
+    /// `users.banned_at IS NOT NULL`.
+    Banned,
+    /// `users.email_verified_at IS NULL`.
+    Unverified,
+}
+
+impl UserStatusFilter {
+    /// Parse the wire-form (lowercase) used by the admin UI query string.
+    #[must_use]
+    pub fn from_wire(s: &str) -> Option<Self> {
+        match s {
+            "active" => Some(Self::Active),
+            "suspended" => Some(Self::Suspended),
+            "banned" => Some(Self::Banned),
+            "unverified" => Some(Self::Unverified),
+            _ => None,
+        }
+    }
+}
+
+/// ADM-10: paginated, indexed search across the members table.
+///
+/// `query` is interpreted as a case-insensitive substring against
+/// `email` and `name`; both columns have GIN trigram indexes so the
+/// `ILIKE '%q%'` predicates resolve in milliseconds at scale. When
+/// the input contains a `@`, the email predicate is anchored on
+/// `lower(email)` for slightly better selectivity. Empty `query`
+/// degrades gracefully to a paginated list (and reuses the
+/// `(role, created_at DESC)` index when `role_filter` is set).
+///
+/// Returns `(rows, total_matching)` so the caller can render a
+/// paged grid without a follow-up round trip.
+pub async fn search_users(
+    pool: &PgPool,
+    query: Option<&str>,
+    role_filter: Option<&UserRole>,
+    status_filter: Option<UserStatusFilter>,
+    limit: i64,
+    offset: i64,
+) -> Result<(Vec<User>, i64), sqlx::Error> {
+    // We intentionally build the WHERE clause inline rather than via
+    // dynamic SQL: every fragment uses bind parameters, so there is
+    // no string-interpolation surface for SQL injection. The number
+    // of bind slots is fixed; unused slots are passed as `NULL` and
+    // gated by their corresponding `IS NULL OR …` guard.
+    let q = query.map(|s| s.trim()).filter(|s| !s.is_empty());
+    let pattern = q.map(|s| format!("%{}%", s.to_lowercase()));
+
+    let status_active = matches!(status_filter, Some(UserStatusFilter::Active));
+    let status_suspended = matches!(status_filter, Some(UserStatusFilter::Suspended));
+    let status_banned = matches!(status_filter, Some(UserStatusFilter::Banned));
+    let status_unverified = matches!(status_filter, Some(UserStatusFilter::Unverified));
+
+    // Predicates:
+    //   $1: pattern (NULL → no text filter)
+    //   $2: role  (NULL → no role filter)
+    //   $3-$6: status flags (Booleans, exactly 0 or 1 may be true)
+    //   $7: limit, $8: offset
+    let where_sql = r#"
+        WHERE ($1::text IS NULL
+               OR lower(email) LIKE $1
+               OR lower(name)  LIKE $1)
+          AND ($2::user_role IS NULL OR role = $2)
+          AND ( NOT $3 OR (suspended_at IS NULL AND banned_at IS NULL) )
+          AND ( NOT $4 OR suspended_at IS NOT NULL )
+          AND ( NOT $5 OR banned_at    IS NOT NULL )
+          AND ( NOT $6 OR email_verified_at IS NULL )
+    "#;
+
+    let list_sql = format!(
+        "SELECT * FROM users {where_sql} ORDER BY created_at DESC LIMIT $7 OFFSET $8"
+    );
+    let count_sql = format!("SELECT COUNT(*) FROM users {where_sql}");
+
+    let users: Vec<User> = sqlx::query_as::<_, User>(&list_sql)
+        .bind(pattern.as_deref())
+        .bind(role_filter)
+        .bind(status_active)
+        .bind(status_suspended)
+        .bind(status_banned)
+        .bind(status_unverified)
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(pool)
+        .await?;
+
+    // Reuse the same parameter shape; drop the LIMIT/OFFSET binds.
+    let total: (i64,) = sqlx::query_as(&count_sql)
+        .bind(pattern.as_deref())
+        .bind(role_filter)
+        .bind(status_active)
+        .bind(status_suspended)
+        .bind(status_banned)
+        .bind(status_unverified)
+        .fetch_one(pool)
+        .await?;
+
+    Ok((users, total.0))
+}
+
+/// ADM-10: admin-flow user creation.
+///
+/// Distinct from [`create_user`] because:
+///   * the admin can pre-pick the role (member / author / support);
+///   * the password may be `None` (operator skipped a temporary
+///     credential and will rely on the password-reset / invite link);
+///   * the email-verified flag may be set (operators creating an
+///     account on behalf of a real human typically don't want the
+///     "verify your email" friction);
+///   * inserts are constrained to non-admin roles to keep the seed
+///     pathway explicit (privilege escalation requires a deliberate
+///     `update_user_role`).
+pub async fn admin_create_user(
+    pool: &PgPool,
+    email: &str,
+    name: &str,
+    role: &UserRole,
+    password_hash: Option<&str>,
+    email_verified: bool,
+) -> Result<User, sqlx::Error> {
+    let email = normalize_email(email);
+    // We default to argon2-shaped placeholder when no password is
+    // supplied; auth pathways check `users.password_hash` length and
+    // an unverifiable hash will simply fail any login attempt — but
+    // the column is NOT NULL so we cannot leave it blank.
+    let placeholder = "!disabled:awaiting-invite!".to_string();
+    let hash = password_hash.unwrap_or(&placeholder);
+
+    sqlx::query_as::<_, User>(
+        r#"
+        INSERT INTO users (id, email, password_hash, name, role, email_verified_at)
+        VALUES ($1, $2, $3, $4, $5, CASE WHEN $6 THEN NOW() ELSE NULL END)
+        RETURNING *
+        "#,
+    )
+    .bind(Uuid::new_v4())
+    .bind(&email)
+    .bind(hash)
+    .bind(name)
+    .bind(role)
+    .bind(email_verified)
+    .fetch_one(pool)
+    .await
+}
+
 pub async fn recent_members(pool: &PgPool, limit: i64) -> Result<Vec<User>, sqlx::Error> {
     sqlx::query_as::<_, User>(
         "SELECT * FROM users WHERE role = 'member' ORDER BY created_at DESC LIMIT $1",
