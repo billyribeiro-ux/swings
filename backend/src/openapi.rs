@@ -159,6 +159,7 @@ impl Modify for SecurityAddon {
         admin_dsar::list_jobs,
         admin_dsar::read_job,
         admin_dsar::create_export,
+        admin_dsar::stream_artifact,
         admin_dsar::request_erase,
         admin_dsar::approve_erase,
         admin_dsar::cancel_job,

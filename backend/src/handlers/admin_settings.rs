@@ -88,6 +88,7 @@ pub struct SettingUpsertRequest {
     get,
     path = "/api/admin/settings",
     tag = "admin-settings",
+    operation_id = "admin_settings_list",
     security(("bearer_auth" = [])),
     responses(
         (status = 200, description = "All settings (secrets redacted)", body = SettingListResponse),
@@ -113,6 +114,7 @@ pub(crate) async fn list(
     get,
     path = "/api/admin/settings/{key}",
     tag = "admin-settings",
+    operation_id = "admin_settings_get_one",
     params(
         ("key" = String, Path, description = "Setting key (e.g. system.maintenance_mode)"),
         GetQuery,
@@ -180,6 +182,7 @@ pub(crate) async fn get_one(
     put,
     path = "/api/admin/settings/{key}",
     tag = "admin-settings",
+    operation_id = "admin_settings_upsert",
     params(("key" = String, Path, description = "Setting key")),
     request_body = SettingUpsertRequest,
     security(("bearer_auth" = [])),
@@ -291,6 +294,7 @@ pub(crate) async fn upsert(
     post,
     path = "/api/admin/settings/_reload",
     tag = "admin-settings",
+    operation_id = "admin_settings_reload",
     security(("bearer_auth" = [])),
     responses(
         (status = 200, description = "Cache reloaded; returns row count"),

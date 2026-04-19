@@ -176,6 +176,7 @@ pub struct RefundResponse {
     get,
     path = "/api/admin/orders",
     tag = "admin-orders",
+    operation_id = "admin_orders_list",
     security(("bearer_auth" = [])),
     params(
         ("q"      = Option<String>, Query, description = "Substring across email + number"),
@@ -264,6 +265,7 @@ pub async fn list(
     get,
     path = "/api/admin/orders/{id}",
     tag = "admin-orders",
+    operation_id = "admin_orders_read_one",
     security(("bearer_auth" = [])),
     params(("id" = Uuid, Path, description = "Order id")),
     responses(
@@ -320,6 +322,7 @@ pub async fn read_one(
     post,
     path = "/api/admin/orders",
     tag = "admin-orders",
+    operation_id = "admin_orders_create_manual",
     security(("bearer_auth" = [])),
     request_body = ManualOrderRequest,
     responses(
@@ -469,6 +472,7 @@ pub async fn create_manual(
     post,
     path = "/api/admin/orders/{id}/void",
     tag = "admin-orders",
+    operation_id = "admin_orders_void",
     security(("bearer_auth" = [])),
     params(("id" = Uuid, Path, description = "Order id")),
     request_body = VoidRequest,
@@ -525,6 +529,7 @@ pub async fn void_order(
     post,
     path = "/api/admin/orders/{id}/refund",
     tag = "admin-orders",
+    operation_id = "admin_orders_refund",
     security(("bearer_auth" = [])),
     params(("id" = Uuid, Path, description = "Order id")),
     request_body = RefundRequest,
@@ -649,6 +654,7 @@ pub async fn refund_order(
     get,
     path = "/api/admin/orders/export.csv",
     tag = "admin-orders",
+    operation_id = "admin_orders_export_csv",
     security(("bearer_auth" = [])),
     params(
         ("status" = Option<String>, Query, description = "Order status filter"),

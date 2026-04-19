@@ -182,6 +182,24 @@ pub const DSAR_SUBMIT: Policy = Policy {
     key: KeyStrategy::Ip,
 };
 
+/// ADM-18: per-actor token-bucket rate-limit on admin write endpoints
+/// (`POST` / `PUT` / `PATCH` / `DELETE`). Sized so a sustained `4 rps`
+/// burst from one operator (~240/min) is allowed — comfortably above
+/// any plausible UI-driven workflow but well below the rate at which
+/// a stolen credential could exfiltrate or destroy data.
+///
+/// Keyed on the JWT `sub` so it survives the operator changing IPs
+/// (mobile, VPN); the same actor cannot circumvent it by hopping IPs.
+/// Falls back to the calling IP when no Bearer token is present (the
+/// admin auth extractor already rejects unauthenticated mutations, so
+/// this branch is a defence-in-depth hedge for misrouted requests).
+pub const ADMIN_MUTATION: Policy = Policy {
+    name: "admin-mutation",
+    max_requests: 240,
+    window_secs: 60,
+    key: KeyStrategy::UserThenIp,
+};
+
 // ── Backend abstraction ──────────────────────────────────────────────────
 
 /// Distributed-quota backend trait. Current implementers:
@@ -552,6 +570,109 @@ pub async fn postgres_rate_limit(
 pub async fn attach_policy(mut req: Request, next: Next, policy: Policy) -> Response {
     req.extensions_mut().insert(policy);
     next.run(req).await
+}
+
+// ── ADM-18: per-actor admin-mutation rate-limit ─────────────────────────
+//
+// Unlike the per-IP `tower_governor` layers above, admin mutations need
+// to be metered per *operator* (Bearer JWT `sub`). We can't lean on
+// `SmartIpKeyExtractor` for that, so the implementation forks per
+// backend:
+//
+// * Postgres backend  → reuses [`bucket_key`] + [`PostgresBackend::check`]
+//   so the quota is shared across replicas.
+// * In-process backend → uses a process-local keyed `governor`
+//   limiter. Single-instance deployments get correct enforcement; multi-
+//   instance deployments should flip `RATE_LIMIT_BACKEND=postgres` for
+//   coherent quotas (the in-process limit becomes per-replica).
+use std::num::NonZeroU32;
+use std::sync::OnceLock;
+
+use governor::{
+    clock::DefaultClock,
+    state::keyed::DefaultKeyedStateStore,
+    Quota, RateLimiter,
+};
+
+type ActorRateLimiter = RateLimiter<String, DefaultKeyedStateStore<String>, DefaultClock>;
+
+fn admin_mutation_limiter() -> &'static Arc<ActorRateLimiter> {
+    static LIMITER: OnceLock<Arc<ActorRateLimiter>> = OnceLock::new();
+    LIMITER.get_or_init(|| {
+        let max = NonZeroU32::new(ADMIN_MUTATION.max_requests)
+            .expect("ADMIN_MUTATION.max_requests is non-zero");
+        let quota = Quota::with_period(Duration::from_secs(
+            (ADMIN_MUTATION.window_secs / ADMIN_MUTATION.max_requests).max(1) as u64,
+        ))
+        .expect("ADMIN_MUTATION period is non-zero")
+        .allow_burst(max);
+        Arc::new(RateLimiter::keyed(quota))
+    })
+}
+
+/// Axum middleware: per-actor token-bucket rate-limit on admin
+/// mutation endpoints. Wire it as
+/// `axum::middleware::from_fn_with_state(state.clone(), admin_mutation_rate_limit)`
+/// on each admin write router. Read-only `GET` / `HEAD` requests pass
+/// through untouched so dashboards remain responsive even when the
+/// operator's mutation quota is exhausted.
+pub async fn admin_mutation_rate_limit(
+    State(state): State<AppState>,
+    req: Request,
+    next: Next,
+) -> Response {
+    use axum::http::Method;
+    if matches!(
+        req.method(),
+        &Method::GET | &Method::HEAD | &Method::OPTIONS
+    ) {
+        return next.run(req).await;
+    }
+
+    let peer = req.extensions().get::<ConnectInfo<std::net::SocketAddr>>();
+    let peer_ref = peer.as_ref().map(|c| &c.0);
+    let key = bucket_key(ADMIN_MUTATION, req.headers(), peer_ref);
+
+    match &state.rate_limit {
+        Backend::Postgres(pg) => {
+            let backend = pg.clone();
+            match RateLimitBackend::check(&*backend, ADMIN_MUTATION, &key).await {
+                Ok(()) => next.run(req).await,
+                Err(err) => {
+                    metrics::counter!(
+                        "admin_mutation_rate_limited_total",
+                        "backend" => "postgres"
+                    )
+                    .increment(1);
+                    tracing::warn!(actor_key = %key, "admin mutation blocked: rate limit");
+                    IntoResponse::into_response(err)
+                }
+            }
+        }
+        Backend::InProcess(_) => {
+            let limiter = admin_mutation_limiter();
+            match limiter.check_key(&key) {
+                Ok(_) => next.run(req).await,
+                Err(_) => {
+                    metrics::counter!(
+                        "admin_mutation_rate_limited_total",
+                        "backend" => "inprocess"
+                    )
+                    .increment(1);
+                    tracing::warn!(actor_key = %key, "admin mutation blocked: rate limit");
+                    IntoResponse::into_response(AppError::TooManyRequests)
+                }
+            }
+        }
+    }
+}
+
+/// Test-only handle to the in-memory keyed limiter so integration
+/// tests can reset state between cases (the `OnceLock` is per-process
+/// and bleeds across `#[tokio::test]` invocations otherwise).
+#[doc(hidden)]
+pub fn _admin_mutation_limiter_for_tests() -> &'static Arc<ActorRateLimiter> {
+    admin_mutation_limiter()
 }
 
 // ── Unit tests ──────────────────────────────────────────────────────────

@@ -114,6 +114,7 @@ pub struct CreateMemberResponse {
     get,
     path = "/api/admin/members/search",
     tag = "admin-members",
+    operation_id = "admin_members_search",
     security(("bearer_auth" = [])),
     params(
         ("q"      = Option<String>, Query, description = "Free-text substring across email + name"),
@@ -185,6 +186,7 @@ pub async fn search(
     post,
     path = "/api/admin/members",
     tag = "admin-members",
+    operation_id = "admin_members_create",
     security(("bearer_auth" = [])),
     request_body = CreateMemberRequest,
     responses(

@@ -101,7 +101,7 @@
         "tags": [
           "admin-audit"
         ],
-        "operationId": "list",
+        "operationId": "admin_audit_list",
         "parameters": [
           {
             "name": "q",
@@ -232,7 +232,7 @@
         "tags": [
           "admin-audit"
         ],
-        "operationId": "export_csv",
+        "operationId": "admin_audit_export_csv",
         "parameters": [
           {
             "name": "q",
@@ -336,7 +336,7 @@
         "tags": [
           "admin-audit"
         ],
-        "operationId": "read_one",
+        "operationId": "admin_audit_read_one",
         "parameters": [
           {
             "name": "id",
@@ -1895,7 +1895,7 @@
         "tags": [
           "admin-dsar"
         ],
-        "operationId": "list_jobs",
+        "operationId": "admin_dsar_list_jobs",
         "parameters": [
           {
             "name": "status",
@@ -1976,7 +1976,7 @@
         "tags": [
           "admin-dsar"
         ],
-        "operationId": "request_erase",
+        "operationId": "admin_dsar_request_erase",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2026,7 +2026,7 @@
         "tags": [
           "admin-dsar"
         ],
-        "operationId": "create_export",
+        "operationId": "admin_dsar_create_export",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2073,7 +2073,7 @@
         "tags": [
           "admin-dsar"
         ],
-        "operationId": "read_job",
+        "operationId": "admin_dsar_read_job",
         "parameters": [
           {
             "name": "id",
@@ -2108,12 +2108,56 @@
         ]
       }
     },
+    "/api/admin/dsar/jobs/{id}/artifact": {
+      "get": {
+        "tags": [
+          "admin-dsar"
+        ],
+        "summary": "Stream the artefact behind a `local`-mode async export.",
+        "description": "Async DSAR exports stored on R2 expose a presigned URL the operator\nhits directly; for local-storage deployments (dev, single-node, or\nair-gapped) we serve the JSON via this RBAC-gated route instead so\nno anonymous filesystem access is required. Returns `404` for\ninline jobs (the artefact is already in `artifact_url`) and for\njobs that have not yet been composed.",
+        "operationId": "admin_dsar_stream_artifact",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "DSAR job id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Streamed JSON artefact",
+            "content": {
+              "application/json": {}
+            }
+          },
+          "400": {
+            "description": "Artefact is not local-streamable"
+          },
+          "404": {
+            "description": "Artefact missing or expired"
+          },
+          "409": {
+            "description": "Job not yet completed"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/admin/dsar/jobs/{id}/cancel": {
       "post": {
         "tags": [
           "admin-dsar"
         ],
-        "operationId": "cancel_job",
+        "operationId": "admin_dsar_cancel_job",
         "parameters": [
           {
             "name": "id",
@@ -2172,7 +2216,7 @@
         "tags": [
           "admin-dsar"
         ],
-        "operationId": "approve_erase",
+        "operationId": "admin_dsar_approve_erase",
         "parameters": [
           {
             "name": "id",
@@ -2374,7 +2418,7 @@
         "tags": [
           "admin-members"
         ],
-        "operationId": "create",
+        "operationId": "admin_members_create",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2421,7 +2465,7 @@
         "tags": [
           "admin-members"
         ],
-        "operationId": "search",
+        "operationId": "admin_members_search",
         "parameters": [
           {
             "name": "q",
@@ -3620,7 +3664,7 @@
         "tags": [
           "admin-orders"
         ],
-        "operationId": "list",
+        "operationId": "admin_orders_list",
         "parameters": [
           {
             "name": "q",
@@ -3692,7 +3736,7 @@
         "tags": [
           "admin-orders"
         ],
-        "operationId": "create_manual",
+        "operationId": "admin_orders_create_manual",
         "requestBody": {
           "content": {
             "application/json": {
@@ -3736,7 +3780,7 @@
         "tags": [
           "admin-orders"
         ],
-        "operationId": "export_csv",
+        "operationId": "admin_orders_export_csv",
         "parameters": [
           {
             "name": "status",
@@ -3783,7 +3827,7 @@
         "tags": [
           "admin-orders"
         ],
-        "operationId": "read_one",
+        "operationId": "admin_orders_read_one",
         "parameters": [
           {
             "name": "id",
@@ -3829,7 +3873,7 @@
         "tags": [
           "admin-orders"
         ],
-        "operationId": "refund_order",
+        "operationId": "admin_orders_refund",
         "parameters": [
           {
             "name": "id",
@@ -3888,7 +3932,7 @@
         "tags": [
           "admin-orders"
         ],
-        "operationId": "void_order",
+        "operationId": "admin_orders_void",
         "parameters": [
           {
             "name": "id",
@@ -5036,7 +5080,7 @@
         "tags": [
           "admin-impersonation"
         ],
-        "operationId": "list",
+        "operationId": "admin_impersonation_list",
         "parameters": [
           {
             "name": "after",
@@ -5084,7 +5128,7 @@
         "tags": [
           "admin-impersonation"
         ],
-        "operationId": "mint",
+        "operationId": "admin_impersonation_mint",
         "requestBody": {
           "content": {
             "application/json": {
@@ -5128,7 +5172,7 @@
         "tags": [
           "admin-impersonation"
         ],
-        "operationId": "get_one",
+        "operationId": "admin_impersonation_get_one",
         "parameters": [
           {
             "name": "id",
@@ -5171,7 +5215,7 @@
         "tags": [
           "admin-impersonation"
         ],
-        "operationId": "revoke",
+        "operationId": "admin_impersonation_revoke",
         "parameters": [
           {
             "name": "id",
@@ -5383,7 +5427,7 @@
         "tags": [
           "admin-roles"
         ],
-        "operationId": "list_matrix",
+        "operationId": "admin_roles_list_matrix",
         "responses": {
           "200": {
             "description": "Role/permission matrix + catalogue",
@@ -5411,7 +5455,7 @@
         "tags": [
           "admin-roles"
         ],
-        "operationId": "reload",
+        "operationId": "admin_roles_reload",
         "responses": {
           "200": {
             "description": "Policy cache reloaded; returns pair count"
@@ -5432,7 +5476,7 @@
         "tags": [
           "admin-roles"
         ],
-        "operationId": "list_permissions",
+        "operationId": "admin_roles_list_permissions",
         "responses": {
           "200": {
             "description": "Permission catalogue",
@@ -5460,7 +5504,7 @@
         "tags": [
           "admin-roles"
         ],
-        "operationId": "replace_role_permissions",
+        "operationId": "admin_roles_replace",
         "parameters": [
           {
             "name": "role",
@@ -5508,7 +5552,7 @@
         "tags": [
           "admin-roles"
         ],
-        "operationId": "grant",
+        "operationId": "admin_roles_grant",
         "parameters": [
           {
             "name": "role",
@@ -5557,7 +5601,7 @@
         "tags": [
           "admin-roles"
         ],
-        "operationId": "revoke",
+        "operationId": "admin_roles_revoke",
         "parameters": [
           {
             "name": "role",
@@ -5604,7 +5648,7 @@
         "tags": [
           "admin-settings"
         ],
-        "operationId": "list",
+        "operationId": "admin_settings_list",
         "responses": {
           "200": {
             "description": "All settings (secrets redacted)",
@@ -5632,7 +5676,7 @@
         "tags": [
           "admin-settings"
         ],
-        "operationId": "reload",
+        "operationId": "admin_settings_reload",
         "responses": {
           "200": {
             "description": "Cache reloaded; returns row count"
@@ -5653,7 +5697,7 @@
         "tags": [
           "admin-settings"
         ],
-        "operationId": "get_one",
+        "operationId": "admin_settings_get_one",
         "parameters": [
           {
             "name": "key",
@@ -5702,7 +5746,7 @@
         "tags": [
           "admin-settings"
         ],
-        "operationId": "upsert",
+        "operationId": "admin_settings_upsert",
         "parameters": [
           {
             "name": "key",
@@ -5757,7 +5801,7 @@
         "tags": [
           "admin-subscriptions"
         ],
-        "operationId": "by_user",
+        "operationId": "admin_subscriptions_by_user",
         "parameters": [
           {
             "name": "user_id",
@@ -5803,7 +5847,7 @@
         "tags": [
           "admin-subscriptions"
         ],
-        "operationId": "comp_grant",
+        "operationId": "admin_subscriptions_comp_grant",
         "requestBody": {
           "content": {
             "application/json": {
@@ -5850,7 +5894,7 @@
         "tags": [
           "admin-subscriptions"
         ],
-        "operationId": "override_billing_cycle",
+        "operationId": "admin_subscriptions_override_billing_cycle",
         "parameters": [
           {
             "name": "id",
@@ -5909,7 +5953,7 @@
         "tags": [
           "admin-subscriptions"
         ],
-        "operationId": "extend_period",
+        "operationId": "admin_subscriptions_extend_period",
         "parameters": [
           {
             "name": "id",
@@ -6199,7 +6243,7 @@
         "tags": [
           "auth"
         ],
-        "operationId": "exit",
+        "operationId": "auth_impersonation_exit",
         "responses": {
           "204": {
             "description": "Impersonation session ended"
@@ -11082,21 +11126,24 @@
           },
           "reason": {
             "type": "string"
+          },
+          "async": {
+            "type": "boolean",
+            "description": "ADM-17: opt into the async pipeline. When `true` the handler\nqueues a `pending` job for the background worker and returns\n`202 Accepted` with the row but no inline export. When `false`\n(default) the legacy synchronous compose runs inline and the\nresponse includes the full document — preserved for parity with\npre-ADM-17 callers and for ergonomic small-export UX."
           }
         }
       },
       "ExportResponse": {
         "type": "object",
         "required": [
-          "job",
-          "export"
+          "job"
         ],
         "properties": {
           "job": {
             "$ref": "#/components/schemas/DsarJob"
           },
           "export": {
-            "description": "Inline JSON snapshot of the export. Operators usually consume\n`job.artifact_url` (a `data:` URI) for the round-trippable\ndocument; `export` is the same payload deserialised so admin\nUIs can render it without a second hop."
+            "description": "Inline JSON snapshot of the export. Operators usually consume\n`job.artifact_url` (a `data:` URI for inline mode, presigned R2\nURL or `/artifact` streamer route for async mode) for the\nround-trippable document; `export` is the same payload\ndeserialised so admin UIs can render it without a second hop.\n`null` when the request opted into the async pipeline because\nthe worker has not composed the artefact yet."
           }
         }
       },

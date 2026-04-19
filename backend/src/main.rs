@@ -290,6 +290,51 @@ async fn main() -> Result<()> {
         "outbox worker pool started"
     );
 
+    // ADM-16: audit-log retention sweeper. Reads the sweep cadence from
+    // `AUDIT_RETENTION_INTERVAL_SECS` (default 1h) and the row-level
+    // retention from `app_settings` so it can be tuned without redeploy.
+    // Subscribes to the same shutdown broadcast as the outbox so a
+    // single shutdown signal drains every background task.
+    let audit_retention_interval_secs = std::env::var("AUDIT_RETENTION_INTERVAL_SECS")
+        .ok()
+        .and_then(|s| s.parse::<u64>().ok())
+        .filter(|n| *n > 0)
+        .unwrap_or(3_600);
+    let audit_retention_handle = tokio::spawn(
+        swings_api::services::audit_retention::run_loop(
+            state.db.clone(),
+            state.settings.clone(),
+            outbox_shutdown.subscribe(),
+            std::time::Duration::from_secs(audit_retention_interval_secs),
+        ),
+    );
+    tracing::info!(
+        interval_secs = audit_retention_interval_secs,
+        "audit-retention worker spawned"
+    );
+
+    // ADM-17: async DSAR export worker. Polls `dsar_jobs` for pending
+    // exports, composes the JSON envelope, uploads to the configured
+    // media backend (R2 or local upload dir), and stamps the row with
+    // the storage key + TTL. Cadence is short (default 30s) because
+    // export latency materially affects operator experience; tunable
+    // via `DSAR_WORKER_INTERVAL_SECS`.
+    let dsar_worker_interval_secs = std::env::var("DSAR_WORKER_INTERVAL_SECS")
+        .ok()
+        .and_then(|s| s.parse::<u64>().ok())
+        .filter(|n| *n > 0)
+        .unwrap_or(30);
+    let dsar_worker_handle = tokio::spawn(swings_api::services::dsar_worker::run_loop(
+        state.db.clone(),
+        state.media_backend.clone(),
+        outbox_shutdown.subscribe(),
+        std::time::Duration::from_secs(dsar_worker_interval_secs),
+    ));
+    tracing::info!(
+        interval_secs = dsar_worker_interval_secs,
+        "dsar-export worker spawned"
+    );
+
     let allowed_origins = state
         .config
         .cors_allowed_origins
@@ -362,17 +407,45 @@ async fn main() -> Result<()> {
                     handlers::admin_roles::router(),
                 )
                 // ADM-11: manual subscription operations
-                // (comp / extend / billing-cycle override).
+                // (comp / extend / billing-cycle override). Wrapped in
+                // the ADM-15 Idempotency-Key middleware so retried
+                // POSTs do not double-grant comps or duplicate
+                // billing-cycle overrides.
                 .nest(
                     "/subscriptions",
-                    handlers::admin_subscriptions::router(),
+                    handlers::admin_subscriptions::router().layer(
+                        axum::middleware::from_fn_with_state(
+                            state.clone(),
+                            swings_api::middleware::idempotency::enforce,
+                        ),
+                    ),
                 )
                 // ADM-12: orders admin (list / read / manual create
-                // / void / partial refund / CSV export).
-                .nest("/orders", handlers::admin_orders::router())
+                // / void / partial refund / CSV export). Manual
+                // create + refund are the high-impact mutations the
+                // idempotency layer protects.
+                .nest(
+                    "/orders",
+                    handlers::admin_orders::router().layer(
+                        axum::middleware::from_fn_with_state(
+                            state.clone(),
+                            swings_api::middleware::idempotency::enforce,
+                        ),
+                    ),
+                )
                 // ADM-13: admin-initiated DSAR jobs
                 // (export + dual-control right-to-erasure tombstone).
-                .nest("/dsar", handlers::admin_dsar::router())
+                // Tombstone approval is irreversible — idempotency is
+                // a hard requirement, not a nicety.
+                .nest(
+                    "/dsar",
+                    handlers::admin_dsar::router().layer(
+                        axum::middleware::from_fn_with_state(
+                            state.clone(),
+                            swings_api::middleware::idempotency::enforce,
+                        ),
+                    ),
+                )
                 // ADM-14: audit log viewer (FTS over admin_actions).
                 .nest("/audit", handlers::admin_audit::router()),
         )
@@ -393,6 +466,16 @@ async fn main() -> Result<()> {
         // CONSENT-03: admin DSAR fulfilment (separate sub-router from
         // CONSENT-07 so both can mount under /api/admin/consent).
         .nest("/api/admin/consent", handlers::consent::admin_router())
+        // ADM-18: per-actor token-bucket rate-limit on every admin
+        // mutation (`POST` / `PUT` / `PATCH` / `DELETE`). GETs pass
+        // through. Sits above the IP allowlist so a credential whose
+        // IP is allowlisted still cannot burst-write past the quota,
+        // and below the policy/auth checks so an unauthenticated
+        // probe doesn't pollute the bucket map.
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            swings_api::middleware::rate_limit::admin_mutation_rate_limit,
+        ))
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             swings_api::middleware::admin_ip_allowlist::enforce,
@@ -515,6 +598,27 @@ async fn main() -> Result<()> {
         );
     } else {
         tracing::info!("outbox workers drained cleanly");
+    }
+
+    // ADM-16: audit-retention sweeper share the outbox shutdown broadcast
+    // (single fan-out signal). Awaiting it here keeps the runtime alive
+    // until the worker observes the broadcast and exits its select loop.
+    if tokio::time::timeout(Duration::from_secs(5), audit_retention_handle)
+        .await
+        .is_err()
+    {
+        tracing::warn!("audit-retention worker did not stop within grace window");
+    } else {
+        tracing::info!("audit-retention worker stopped");
+    }
+
+    if tokio::time::timeout(Duration::from_secs(5), dsar_worker_handle)
+        .await
+        .is_err()
+    {
+        tracing::warn!("dsar-export worker did not stop within grace window");
+    } else {
+        tracing::info!("dsar-export worker stopped");
     }
 
     Ok(())

@@ -73,6 +73,9 @@
 			<h1 class="members-page__title">Members</h1>
 			<p class="members-page__count">{total} total members</p>
 		</div>
+		<a class="members-page__cta" href="/admin/members/manage">
+			Search &amp; manual create →
+		</a>
 	</div>
 
 	{#if loading}
@@ -224,6 +227,13 @@
 		font-size: var(--fs-xs);
 		color: var(--color-grey-400);
 		margin-top: 0.15rem;
+	}
+
+	.members-page__cta {
+		font-size: var(--fs-sm);
+		color: var(--color-teal-light);
+		text-decoration: underline;
+		text-underline-offset: 2px;
 	}
 
 	.members-page__loading {

@@ -72,6 +72,16 @@ export default defineConfig({
 			name: 'popups',
 			testDir: 'e2e/popups',
 			use: { ...devices['Desktop Chrome'] }
+		},
+
+		// Admin panel flows — back-office UI guarded by a privileged session.
+		// Each spec opts into the `authedAdminTest` fixture which skips when
+		// the backend is unreachable, so this project is safe to enable in
+		// pure-frontend CI as well.
+		{
+			name: 'admin',
+			testDir: 'e2e/admin',
+			use: { ...devices['Desktop Chrome'] }
 		}
 	]
 });

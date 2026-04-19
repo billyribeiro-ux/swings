@@ -135,6 +135,11 @@
 			<h1 class="settings-page__title">Settings</h1>
 		</div>
 		<p class="settings-page__subtitle">Manage your site configuration, email, payments, and SEO defaults.</p>
+		<p class="settings-page__hint">
+			Looking for runtime kill-switches like <code>system.maintenance_mode</code> or
+			encrypted secrets? Use the
+			<a href="/admin/settings/system" class="settings-page__link">typed system catalogue →</a>
+		</p>
 	</div>
 
 	{#if saveMessage}
@@ -503,6 +508,18 @@
 		font-size: var(--fs-sm);
 		color: var(--color-grey-400);
 		margin-top: var(--space-2);
+	}
+
+	.settings-page__hint {
+		font-size: var(--fs-xs);
+		color: var(--color-grey-500);
+		margin-top: var(--space-2);
+	}
+
+	.settings-page__link {
+		color: var(--color-teal-light);
+		text-decoration: underline;
+		text-underline-offset: 2px;
 	}
 
 	/* Toast */

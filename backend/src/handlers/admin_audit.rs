@@ -140,6 +140,7 @@ const SELECT_COLS: &str = r#"
     get,
     path = "/api/admin/audit",
     tag = "admin-audit",
+    operation_id = "admin_audit_list",
     security(("bearer_auth" = [])),
     params(
         ("q"                 = Option<String>,        Query, description = "Full-text query"),
@@ -205,6 +206,7 @@ pub async fn list(
     get,
     path = "/api/admin/audit/{id}",
     tag = "admin-audit",
+    operation_id = "admin_audit_read_one",
     security(("bearer_auth" = [])),
     params(("id" = Uuid, Path, description = "Audit row id")),
     responses(
@@ -232,6 +234,7 @@ pub async fn read_one(
     get,
     path = "/api/admin/audit/export.csv",
     tag = "admin-audit",
+    operation_id = "admin_audit_export_csv",
     security(("bearer_auth" = [])),
     params(
         ("q"                 = Option<String>,        Query, description = "Full-text query"),

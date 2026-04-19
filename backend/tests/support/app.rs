@@ -194,6 +194,28 @@ impl TestApp {
         self.db.pool()
     }
 
+    /// Path to the per-test upload directory. Tests that exercise the
+    /// local-storage path of an artefact persistence flow (DSAR async
+    /// worker, etc.) can read/write here directly.
+    #[must_use]
+    pub fn upload_dir(&self) -> &std::path::Path {
+        self._upload_dir.path()
+    }
+
+    /// Build a `MediaBackend::Local` pointing at this app's upload
+    /// directory. Mirrors what `main.rs` would resolve in dev mode and
+    /// is intended for tests that drive worker fixtures end-to-end.
+    #[must_use]
+    pub fn media_backend(&self) -> MediaBackend {
+        MediaBackend::Local {
+            upload_dir: self
+                ._upload_dir
+                .path()
+                .to_string_lossy()
+                .into_owned(),
+        }
+    }
+
     /// The ephemeral schema's name — handy for `SET LOCAL search_path` in
     /// ad-hoc queries that bypass the pool helper.
     #[must_use]
@@ -244,6 +266,32 @@ impl TestApp {
         auth: Option<&str>,
     ) -> TestResponse {
         self.request(Method::POST, path, Some(body), auth).await
+    }
+
+    /// Dispatch a `POST` with a JSON body and an extra `Idempotency-Key`
+    /// header. Used by the ADM-15 idempotency integration tests; kept on
+    /// the harness so callers don't have to drop down to raw `Request`
+    /// builders.
+    pub async fn post_json_with_idempotency_key<B: Serialize + ?Sized>(
+        &self,
+        path: &str,
+        body: &B,
+        auth: Option<&str>,
+        key: &str,
+    ) -> TestResponse {
+        let result = self
+            .request_inner_with_extra_header(
+                Method::POST,
+                path,
+                Some(body),
+                auth,
+                Some(("idempotency-key", key)),
+            )
+            .await;
+        match result {
+            Ok(resp) => resp,
+            Err(e) => panic!("TestApp dispatch failed: {e}"),
+        }
     }
 
     /// Dispatch a `PUT` with a JSON body.
@@ -298,6 +346,18 @@ impl TestApp {
         body: Option<&B>,
         auth: Option<&str>,
     ) -> TestResult<TestResponse> {
+        self.request_inner_with_extra_header(method, path, body, auth, None)
+            .await
+    }
+
+    async fn request_inner_with_extra_header<B: Serialize + ?Sized>(
+        &self,
+        method: Method,
+        path: &str,
+        body: Option<&B>,
+        auth: Option<&str>,
+        extra: Option<(&str, &str)>,
+    ) -> TestResult<TestResponse> {
         let mut builder = Request::builder()
             .method(method)
             .uri(path)
@@ -308,6 +368,14 @@ impl TestApp {
                 header::AUTHORIZATION,
                 HeaderValue::from_str(&format!("Bearer {token}"))
                     .map_err(|e| TestAppError::Http(format!("build auth header: {e}")))?,
+            );
+        }
+
+        if let Some((name, value)) = extra {
+            builder = builder.header(
+                name,
+                HeaderValue::from_str(value)
+                    .map_err(|e| TestAppError::Http(format!("build extra header: {e}")))?,
             );
         }
 
@@ -358,9 +426,27 @@ fn build_router(state: &AppState) -> Router<()> {
                 )
                 .nest("/settings", admin_settings::router())
                 .nest("/security/roles", admin_roles::router())
-                .nest("/subscriptions", admin_subscriptions::router())
-                .nest("/orders", admin_orders::router())
-                .nest("/dsar", admin_dsar::router())
+                .nest(
+                    "/subscriptions",
+                    admin_subscriptions::router().layer(axum::middleware::from_fn_with_state(
+                        state.clone(),
+                        swings_api::middleware::idempotency::enforce,
+                    )),
+                )
+                .nest(
+                    "/orders",
+                    admin_orders::router().layer(axum::middleware::from_fn_with_state(
+                        state.clone(),
+                        swings_api::middleware::idempotency::enforce,
+                    )),
+                )
+                .nest(
+                    "/dsar",
+                    admin_dsar::router().layer(axum::middleware::from_fn_with_state(
+                        state.clone(),
+                        swings_api::middleware::idempotency::enforce,
+                    )),
+                )
                 .nest("/audit", admin_audit::router())
                 .merge(
                     axum::Router::new()
@@ -375,6 +461,10 @@ fn build_router(state: &AppState) -> Router<()> {
         .nest("/api/admin/outbox", outbox::router())
         .nest("/api/admin/notifications", notifications::admin_router())
         .nest("/api/admin/consent", admin_consent::router())
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            swings_api::middleware::rate_limit::admin_mutation_rate_limit,
+        ))
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             admin_ip_allowlist_mw::enforce,

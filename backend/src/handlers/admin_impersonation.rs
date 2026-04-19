@@ -127,6 +127,7 @@ pub struct RevokeRequest {
     post,
     path = "/api/admin/security/impersonation",
     tag = "admin-impersonation",
+    operation_id = "admin_impersonation_mint",
     security(("bearer_auth" = [])),
     request_body = CreateImpersonationInput,
     responses(
@@ -283,6 +284,7 @@ async fn notify_target_session_started(
     get,
     path = "/api/admin/security/impersonation",
     tag = "admin-impersonation",
+    operation_id = "admin_impersonation_list",
     params(ListQuery),
     security(("bearer_auth" = [])),
     responses(
@@ -318,6 +320,7 @@ pub(crate) async fn list(
     get,
     path = "/api/admin/security/impersonation/{id}",
     tag = "admin-impersonation",
+    operation_id = "admin_impersonation_get_one",
     security(("bearer_auth" = [])),
     params(("id" = Uuid, Path, description = "Impersonation session id")),
     responses(
@@ -342,6 +345,7 @@ pub(crate) async fn get_one(
     post,
     path = "/api/admin/security/impersonation/{id}/revoke",
     tag = "admin-impersonation",
+    operation_id = "admin_impersonation_revoke",
     security(("bearer_auth" = [])),
     params(("id" = Uuid, Path, description = "Impersonation session id")),
     request_body = RevokeRequest,
@@ -391,6 +395,7 @@ pub(crate) async fn revoke(
     post,
     path = "/api/auth/impersonation/exit",
     tag = "auth",
+    operation_id = "auth_impersonation_exit",
     security(("bearer_auth" = [])),
     responses(
         (status = 204, description = "Impersonation session ended"),

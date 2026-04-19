@@ -33,8 +33,10 @@
 //!   ```
 
 use axum::{
+    body::Body,
     extract::{Path, Query, State},
-    http::StatusCode,
+    http::{header, HeaderMap, HeaderValue, StatusCode},
+    response::{IntoResponse, Response},
     routing::{get, post},
     Json, Router,
 };
@@ -70,6 +72,7 @@ pub fn router() -> Router<AppState> {
         .route("/jobs/export", post(create_export))
         .route("/jobs/erase/request", post(request_erase))
         .route("/jobs/{id}", get(read_job))
+        .route("/jobs/{id}/artifact", get(stream_artifact))
         .route("/jobs/{id}/erase/approve", post(approve_erase))
         .route("/jobs/{id}/cancel", post(cancel_job))
 }
@@ -123,16 +126,27 @@ pub struct ExportRequest {
     pub target_user_id: Uuid,
     #[validate(length(min = 1, max = 1000, message = "reason required"))]
     pub reason: String,
+    /// ADM-17: opt into the async pipeline. When `true` the handler
+    /// queues a `pending` job for the background worker and returns
+    /// `202 Accepted` with the row but no inline export. When `false`
+    /// (default) the legacy synchronous compose runs inline and the
+    /// response includes the full document — preserved for parity with
+    /// pre-ADM-17 callers and for ergonomic small-export UX.
+    #[serde(default)]
+    pub r#async: bool,
 }
 
 #[derive(Debug, Serialize, ToSchema)]
 pub struct ExportResponse {
     pub job: DsarJob,
     /// Inline JSON snapshot of the export. Operators usually consume
-    /// `job.artifact_url` (a `data:` URI) for the round-trippable
-    /// document; `export` is the same payload deserialised so admin
-    /// UIs can render it without a second hop.
-    pub export: Value,
+    /// `job.artifact_url` (a `data:` URI for inline mode, presigned R2
+    /// URL or `/artifact` streamer route for async mode) for the
+    /// round-trippable document; `export` is the same payload
+    /// deserialised so admin UIs can render it without a second hop.
+    /// `null` when the request opted into the async pipeline because
+    /// the worker has not composed the artefact yet.
+    pub export: Option<Value>,
 }
 
 #[derive(Debug, Deserialize, Validate, ToSchema)]
@@ -166,6 +180,7 @@ pub struct CancelBody {
     get,
     path = "/api/admin/dsar/jobs",
     tag = "admin-dsar",
+    operation_id = "admin_dsar_list_jobs",
     security(("bearer_auth" = [])),
     params(
         ("status"          = Option<String>, Query, description = "Status filter"),
@@ -250,6 +265,7 @@ pub async fn list_jobs(
     get,
     path = "/api/admin/dsar/jobs/{id}",
     tag = "admin-dsar",
+    operation_id = "admin_dsar_read_job",
     security(("bearer_auth" = [])),
     params(("id" = Uuid, Path, description = "DSAR job id")),
     responses(
@@ -274,6 +290,7 @@ pub async fn read_job(
     post,
     path = "/api/admin/dsar/jobs/export",
     tag = "admin-dsar",
+    operation_id = "admin_dsar_create_export",
     security(("bearer_auth" = [])),
     request_body = ExportRequest,
     responses(
@@ -294,6 +311,44 @@ pub async fn create_export(
     req.validate()
         .map_err(|e| AppError::BadRequest(e.to_string()))?;
 
+    if req.r#async {
+        // ADM-17 async path: queue a pending row and let the worker
+        // compose + upload off-request. Returns `202 Accepted` so the
+        // UI knows the artefact is not yet available.
+        let job: DsarJob = sqlx::query_as(
+            r#"
+            INSERT INTO dsar_jobs
+                (target_user_id, kind, status, requested_by, request_reason,
+                 approved_by, approved_at)
+            VALUES ($1, 'export', 'pending', $2, $3, $2, NOW())
+            RETURNING id, target_user_id, kind, status, requested_by, request_reason,
+                      approved_by, approval_reason, approved_at, artifact_url,
+                      erasure_summary, completed_at, failure_reason, created_at, updated_at
+            "#,
+        )
+        .bind(req.target_user_id)
+        .bind(privileged.user_id)
+        .bind(&req.reason)
+        .fetch_one(&state.db)
+        .await?;
+
+        audit_admin_priv(
+            &state.db,
+            &privileged,
+            &client,
+            "admin.dsar.export.queued",
+            "user",
+            req.target_user_id.to_string(),
+            serde_json::json!({ "job_id": job.id, "reason": req.reason }),
+        )
+        .await;
+
+        return Ok((
+            StatusCode::ACCEPTED,
+            Json(ExportResponse { job, export: None }),
+        ));
+    }
+
     let export = dsar_admin::build_admin_export(&state.db, req.target_user_id)
         .await
         .map_err(map_dsar_err)?
@@ -306,8 +361,8 @@ pub async fn create_export(
         r#"
         INSERT INTO dsar_jobs
             (target_user_id, kind, status, requested_by, request_reason,
-             artifact_url, completed_at, approved_by, approved_at)
-        VALUES ($1, 'export', 'completed', $2, $3, $4, NOW(), $2, NOW())
+             artifact_url, artifact_kind, completed_at, approved_by, approved_at)
+        VALUES ($1, 'export', 'completed', $2, $3, $4, 'inline', NOW(), $2, NOW())
         RETURNING id, target_user_id, kind, status, requested_by, request_reason,
                   approved_by, approval_reason, approved_at, artifact_url,
                   erasure_summary, completed_at, failure_reason, created_at, updated_at
@@ -339,7 +394,7 @@ pub async fn create_export(
         StatusCode::CREATED,
         Json(ExportResponse {
             job,
-            export: export_value,
+            export: Some(export_value),
         }),
     ))
 }
@@ -348,6 +403,7 @@ pub async fn create_export(
     post,
     path = "/api/admin/dsar/jobs/erase/request",
     tag = "admin-dsar",
+    operation_id = "admin_dsar_request_erase",
     security(("bearer_auth" = [])),
     request_body = EraseRequestBody,
     responses(
@@ -439,6 +495,7 @@ pub async fn request_erase(
     post,
     path = "/api/admin/dsar/jobs/{id}/erase/approve",
     tag = "admin-dsar",
+    operation_id = "admin_dsar_approve_erase",
     security(("bearer_auth" = [])),
     params(("id" = Uuid, Path, description = "DSAR job id")),
     request_body = EraseApproveBody,
@@ -583,6 +640,7 @@ pub async fn approve_erase(
     post,
     path = "/api/admin/dsar/jobs/{id}/cancel",
     tag = "admin-dsar",
+    operation_id = "admin_dsar_cancel_job",
     security(("bearer_auth" = [])),
     params(("id" = Uuid, Path, description = "DSAR job id")),
     request_body = CancelBody,
@@ -662,11 +720,112 @@ pub async fn cancel_job(
 const VALID_STATUSES: &[&str] = &[
     "pending",
     "approved",
+    "composing",
     "completed",
     "rejected",
     "cancelled",
     "failed",
 ];
+
+/// Stream the artefact behind a `local`-mode async export.
+///
+/// Async DSAR exports stored on R2 expose a presigned URL the operator
+/// hits directly; for local-storage deployments (dev, single-node, or
+/// air-gapped) we serve the JSON via this RBAC-gated route instead so
+/// no anonymous filesystem access is required. Returns `404` for
+/// inline jobs (the artefact is already in `artifact_url`) and for
+/// jobs that have not yet been composed.
+#[utoipa::path(
+    get,
+    path = "/api/admin/dsar/jobs/{id}/artifact",
+    tag = "admin-dsar",
+    operation_id = "admin_dsar_stream_artifact",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "DSAR job id")),
+    responses(
+        (status = 200, description = "Streamed JSON artefact",
+            content_type = "application/json"),
+        (status = 400, description = "Artefact is not local-streamable"),
+        (status = 404, description = "Artefact missing or expired"),
+        (status = 409, description = "Job not yet completed")
+    )
+)]
+pub async fn stream_artifact(
+    State(state): State<AppState>,
+    privileged: PrivilegedUser,
+    client: ClientInfo,
+    Path(id): Path<Uuid>,
+) -> AppResult<Response> {
+    privileged.require(&state.policy, PERM_READ)?;
+
+    let row = sqlx::query(
+        r#"
+        SELECT target_user_id, status, artifact_kind, artifact_storage_key,
+               artifact_expires_at
+          FROM dsar_jobs
+         WHERE id = $1
+        "#,
+    )
+    .bind(id)
+    .fetch_optional(&state.db)
+    .await?
+    .ok_or_else(|| AppError::NotFound(format!("dsar job {id} not found")))?;
+
+    let target_user_id: Uuid = row.try_get("target_user_id")?;
+    let status: String = row.try_get("status")?;
+    let kind: Option<String> = row.try_get("artifact_kind")?;
+    let key: Option<String> = row.try_get("artifact_storage_key")?;
+    let expires_at: Option<DateTime<Utc>> = row.try_get("artifact_expires_at")?;
+
+    if status != "completed" {
+        return Err(AppError::Conflict(format!(
+            "job is in status `{status}`, not ready"
+        )));
+    }
+    let kind = kind.ok_or_else(|| AppError::NotFound(format!("job {id} has no artefact")))?;
+    if kind != "local" {
+        return Err(AppError::BadRequest(format!(
+            "artefact kind `{kind}` is not streamable; use the URL on the job"
+        )));
+    }
+    let key = key.ok_or_else(|| AppError::NotFound(format!("job {id} missing storage key")))?;
+    if let Some(exp) = expires_at {
+        if exp < Utc::now() {
+            return Err(AppError::NotFound(format!("artefact for job {id} expired")));
+        }
+    }
+
+    let upload_dir = state.media_backend.upload_dir().ok_or_else(|| {
+        AppError::Internal(anyhow::anyhow!(
+            "stream_artifact called with non-local backend"
+        ))
+    })?;
+    let path = std::path::Path::new(upload_dir).join(&key);
+    let bytes = tokio::fs::read(&path)
+        .await
+        .map_err(|e| AppError::Internal(anyhow::anyhow!("read artefact: {e}")))?;
+    let len = bytes.len();
+
+    audit_admin_priv(
+        &state.db,
+        &privileged,
+        &client,
+        "admin.dsar.export.downloaded",
+        "user",
+        target_user_id.to_string(),
+        serde_json::json!({ "job_id": id, "bytes": len }),
+    )
+    .await;
+
+    let mut headers = HeaderMap::new();
+    headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    headers.insert(
+        header::CONTENT_DISPOSITION,
+        HeaderValue::from_str(&format!("attachment; filename=\"dsar-{id}.json\""))
+            .map_err(|e| AppError::Internal(anyhow::anyhow!("disposition header: {e}")))?,
+    );
+    Ok((StatusCode::OK, headers, Body::from(bytes)).into_response())
+}
 
 async fn fetch_job(pool: &sqlx::PgPool, id: Uuid) -> AppResult<Option<DsarJob>> {
     let row = sqlx::query_as::<_, DsarJob>(

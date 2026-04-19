@@ -118,6 +118,7 @@ async fn permission_exists(pool: &sqlx::PgPool, key: &str) -> AppResult<bool> {
     get,
     path = "/api/admin/security/roles/permissions",
     tag = "admin-roles",
+    operation_id = "admin_roles_list_permissions",
     security(("bearer_auth" = [])),
     responses(
         (status = 200, description = "Permission catalogue", body = PermissionsResponse),
@@ -147,6 +148,7 @@ pub(crate) async fn list_permissions(
     get,
     path = "/api/admin/security/roles",
     tag = "admin-roles",
+    operation_id = "admin_roles_list_matrix",
     security(("bearer_auth" = [])),
     responses(
         (status = 200, description = "Role/permission matrix + catalogue", body = MatrixResponse),
@@ -196,6 +198,7 @@ pub(crate) async fn list_matrix(
     post,
     path = "/api/admin/security/roles/{role}/{permission}",
     tag = "admin-roles",
+    operation_id = "admin_roles_grant",
     params(
         ("role" = String, Path, description = "Role label (member|author|support|admin)"),
         ("permission" = String, Path, description = "Permission key"),
@@ -253,6 +256,7 @@ pub(crate) async fn grant(
     delete,
     path = "/api/admin/security/roles/{role}/{permission}",
     tag = "admin-roles",
+    operation_id = "admin_roles_revoke",
     params(
         ("role" = String, Path, description = "Role label (member|author|support|admin)"),
         ("permission" = String, Path, description = "Permission key"),
@@ -324,6 +328,7 @@ pub(crate) async fn revoke(
     put,
     path = "/api/admin/security/roles/{role}",
     tag = "admin-roles",
+    operation_id = "admin_roles_replace",
     params(("role" = String, Path, description = "Role label")),
     request_body = ReplaceRoleRequest,
     security(("bearer_auth" = [])),
@@ -425,6 +430,7 @@ pub(crate) async fn replace_role_permissions(
     post,
     path = "/api/admin/security/roles/_reload",
     tag = "admin-roles",
+    operation_id = "admin_roles_reload",
     security(("bearer_auth" = [])),
     responses(
         (status = 200, description = "Policy cache reloaded; returns pair count"),

@@ -22,6 +22,10 @@
 	import Tag from 'phosphor-svelte/lib/Tag';
 	import ChatCircleDots from 'phosphor-svelte/lib/ChatCircleDots';
 	import Gear from 'phosphor-svelte/lib/Gear';
+	import ShieldCheck from 'phosphor-svelte/lib/ShieldCheck';
+	import Eye from 'phosphor-svelte/lib/Eye';
+	import Trash from 'phosphor-svelte/lib/Trash';
+	import Receipt from 'phosphor-svelte/lib/Receipt';
 	import CommandPalette from '$lib/components/admin/CommandPalette.svelte';
 	import { SITE } from '$lib/seo/config';
 	import {
@@ -454,6 +458,50 @@
 						</div>
 					{/if}
 				</div>
+
+				<a
+					href="/admin/security"
+					class="admin__nav-link"
+					class:admin__nav-link--active={page.url.pathname.startsWith('/admin/security')}
+					onclick={() => (mobileMenuOpen = false)}
+					data-testid="nav-security"
+				>
+					<ShieldCheck size={20} weight="duotone" />
+					<span>Security</span>
+				</a>
+
+				<a
+					href="/admin/audit"
+					class="admin__nav-link"
+					class:admin__nav-link--active={page.url.pathname.startsWith('/admin/audit')}
+					onclick={() => (mobileMenuOpen = false)}
+					data-testid="nav-audit"
+				>
+					<Eye size={20} weight="duotone" />
+					<span>Audit log</span>
+				</a>
+
+				<a
+					href="/admin/dsar"
+					class="admin__nav-link"
+					class:admin__nav-link--active={page.url.pathname.startsWith('/admin/dsar')}
+					onclick={() => (mobileMenuOpen = false)}
+					data-testid="nav-dsar"
+				>
+					<Trash size={20} weight="duotone" />
+					<span>DSAR</span>
+				</a>
+
+				<a
+					href="/admin/orders"
+					class="admin__nav-link"
+					class:admin__nav-link--active={page.url.pathname.startsWith('/admin/orders')}
+					onclick={() => (mobileMenuOpen = false)}
+					data-testid="nav-orders"
+				>
+					<Receipt size={20} weight="duotone" />
+					<span>Orders</span>
+				</a>
 
 				<a
 					href="/admin/settings"

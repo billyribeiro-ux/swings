@@ -20,7 +20,8 @@ export const courseAdminItems: AdminNavItem[] = [
 
 export const subscriptionAdminItems: AdminNavItem[] = [
 	{ href: '/admin/subscriptions', label: 'Overview' },
-	{ href: '/admin/subscriptions/plans', label: 'Pricing Plans' }
+	{ href: '/admin/subscriptions/plans', label: 'Pricing Plans' },
+	{ href: '/admin/subscriptions/manual', label: 'Manual ops (comp / extend)' }
 ];
 
 export const couponAdminItems: AdminNavItem[] = [

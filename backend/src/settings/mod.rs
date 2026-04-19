@@ -202,6 +202,31 @@ impl Cache {
         guard.get(key).cloned()
     }
 
+    /// Test-only injector. Bypasses the database and inserts a typed
+    /// value into the in-memory snapshot. Used by unit tests of code
+    /// that consumes the cache (audit retention, maintenance gate, …)
+    /// without standing up a full DB.
+    #[doc(hidden)]
+    pub fn insert_for_tests(&self, key: &str, value: JsonValue) {
+        let mut guard = match self.inner.write() {
+            Ok(g) => g,
+            Err(p) => p.into_inner(),
+        };
+        guard.insert(
+            key.to_string(),
+            SettingRecord {
+                key: key.to_string(),
+                value,
+                value_type: SettingType::Json,
+                is_secret: false,
+                description: None,
+                category: "test".to_string(),
+                updated_at: chrono::Utc::now(),
+                updated_by: None,
+            },
+        );
+    }
+
     /// Boolean convenience used by the maintenance middleware. Treats
     /// missing / non-boolean values as `default`.
     pub fn get_bool(&self, key: &str, default: bool) -> bool {

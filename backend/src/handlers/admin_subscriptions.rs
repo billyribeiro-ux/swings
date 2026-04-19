@@ -140,6 +140,7 @@ pub struct UserSubscriptionView {
     get,
     path = "/api/admin/subscriptions/by-user/{user_id}",
     tag = "admin-subscriptions",
+    operation_id = "admin_subscriptions_by_user",
     security(("bearer_auth" = [])),
     params(("user_id" = Uuid, Path, description = "Member id")),
     responses(
@@ -181,6 +182,7 @@ pub async fn by_user(
     post,
     path = "/api/admin/subscriptions/comp",
     tag = "admin-subscriptions",
+    operation_id = "admin_subscriptions_comp_grant",
     security(("bearer_auth" = [])),
     request_body = CompGrantRequest,
     responses(
@@ -272,6 +274,7 @@ pub async fn comp_grant(
     post,
     path = "/api/admin/subscriptions/{id}/extend",
     tag = "admin-subscriptions",
+    operation_id = "admin_subscriptions_extend_period",
     security(("bearer_auth" = [])),
     params(("id" = Uuid, Path, description = "Subscription id")),
     request_body = ExtendRequest,
@@ -362,6 +365,7 @@ pub async fn extend_period(
     post,
     path = "/api/admin/subscriptions/{id}/billing-cycle",
     tag = "admin-subscriptions",
+    operation_id = "admin_subscriptions_override_billing_cycle",
     security(("bearer_auth" = [])),
     params(("id" = Uuid, Path, description = "Subscription id")),
     request_body = CycleOverrideRequest,
