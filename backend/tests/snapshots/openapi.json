@@ -4307,6 +4307,159 @@
         ]
       }
     },
+    "/api/admin/settings": {
+      "get": {
+        "tags": [
+          "admin-settings"
+        ],
+        "operationId": "list",
+        "responses": {
+          "200": {
+            "description": "All settings (secrets redacted)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingListResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/settings/_reload": {
+      "post": {
+        "tags": [
+          "admin-settings"
+        ],
+        "operationId": "reload",
+        "responses": {
+          "200": {
+            "description": "Cache reloaded; returns row count"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/settings/{key}": {
+      "get": {
+        "tags": [
+          "admin-settings"
+        ],
+        "operationId": "get_one",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "description": "Setting key (e.g. system.maintenance_mode)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reveal",
+            "in": "query",
+            "description": "When `true` and the caller carries `admin.settings.read_secret`,\nthe response includes the decrypted plaintext under\n`revealed_value`. Otherwise the value is redacted to `\"***\"`.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Single setting",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingGetResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Unknown key"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "admin-settings"
+        ],
+        "operationId": "upsert",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "description": "Setting key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettingUpsertRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Persisted setting (redacted)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Value shape mismatched value_type"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "503": {
+            "description": "Encryption key missing"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/admin/watchlists": {
       "post": {
         "tags": [
@@ -11018,6 +11171,193 @@
           }
         }
       },
+      "SettingGetResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SettingView"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "revealed_value": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/Value",
+                    "description": "Set only when `?reveal=true` succeeded. JSON value (string for\n`secret`, native shape otherwise)."
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "SettingListResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "total"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SettingView"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "SettingRecord": {
+        "type": "object",
+        "description": "Materialised in-memory representation of an `app_settings` row.\n`value` always carries the canonical Postgres JSONB; for `Secret`\nrows the JSON is the encrypted envelope (see `crypto`).",
+        "required": [
+          "key",
+          "value",
+          "value_type",
+          "is_secret",
+          "category",
+          "updated_at"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "$ref": "#/components/schemas/Value"
+          },
+          "value_type": {
+            "$ref": "#/components/schemas/SettingType"
+          },
+          "is_secret": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "category": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_by": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
+      "SettingType": {
+        "type": "string",
+        "description": "Storage discriminator. Mirrors the `value_type` CHECK constraint in\nmigration 062. Kept as a strict enum so the admin handler cannot\nsilently coerce between types.",
+        "enum": [
+          "string",
+          "int",
+          "bool",
+          "json",
+          "secret"
+        ]
+      },
+      "SettingUpsertRequest": {
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "properties": {
+          "value_type": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SettingType",
+                "description": "Required when creating a new key. Ignored on update of an\nexisting key (the stored type is canonical)."
+              }
+            ]
+          },
+          "is_secret": {
+            "type": "boolean",
+            "description": "Defaults to `false` on create. Ignored on update."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional admin-facing description; only persisted on create."
+          },
+          "category": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Defaults to `\"general\"` on create. Ignored on update."
+          },
+          "value": {
+            "$ref": "#/components/schemas/Value",
+            "description": "The raw value. For `secret` types, pass the cleartext as a JSON\nstring — the server encrypts before persisting."
+          }
+        }
+      },
+      "SettingView": {
+        "type": "object",
+        "description": "Public-API view: redacts secret values and surfaces the canonical\nenvelope structure. Use [`reveal_secret`] when the caller carries\n`admin.settings.read_secret`.",
+        "required": [
+          "key",
+          "value",
+          "value_type",
+          "is_secret",
+          "category",
+          "updated_at"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "$ref": "#/components/schemas/Value",
+            "description": "Either the actual value (non-secret) or the JSON literal\n`\"***\"` (secret + caller lacks reveal permission)."
+          },
+          "value_type": {
+            "$ref": "#/components/schemas/SettingType"
+          },
+          "is_secret": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "category": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_by": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
       "State": {
         "type": "object",
         "required": [
@@ -12834,6 +13174,7 @@
           }
         }
       },
+      "Value": {},
       "VerifyPostPasswordRequest": {
         "type": "object",
         "required": [
@@ -13053,6 +13394,10 @@
     {
       "name": "admin-impersonation",
       "description": "Admin-only impersonation token mint / list / revoke"
+    },
+    {
+      "name": "admin-settings",
+      "description": "Admin-only typed settings catalogue (incl. maintenance-mode kill-switch)"
     },
     {
       "name": "webhooks",

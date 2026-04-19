@@ -29,6 +29,7 @@ pub mod pdf;
 pub mod popups;
 pub mod security;
 pub mod services;
+pub mod settings;
 pub mod stripe_api;
 
 /// Shared application state passed to all Axum handlers.
@@ -54,4 +55,8 @@ pub struct AppState {
     /// `state.notifications.channels()` to send outside the outbox path
     /// (e.g. admin `test-send`).
     pub notifications: Arc<notifications::Service>,
+    /// ADM-08: hot-cached typed settings catalogue. Reloaded on every
+    /// admin mutation; consumed by the maintenance-mode middleware
+    /// without a DB round-trip.
+    pub settings: settings::Cache,
 }

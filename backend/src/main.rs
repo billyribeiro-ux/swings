@@ -200,6 +200,16 @@ async fn main() -> Result<()> {
         default_from,
     ));
 
+    // ADM-08: warm the typed-settings cache before the first request so
+    // the maintenance middleware never serves traffic from an empty
+    // snapshot (which would default to "open" and miss a maintenance
+    // flip set just before the deploy).
+    let settings_cache = swings_api::settings::Cache::new();
+    settings_cache
+        .reload(&pool)
+        .await
+        .context("failed to warm settings cache")?;
+
     let state = AppState {
         db: pool,
         config: Arc::new(config),
@@ -209,6 +219,7 @@ async fn main() -> Result<()> {
         outbox_shutdown: outbox_shutdown.clone(),
         rate_limit: rate_limit_backend,
         notifications: notifications_service.clone(),
+        settings: settings_cache,
     };
 
     // FDN-04: build the outbox dispatcher (pattern → handler registry) and
@@ -329,7 +340,12 @@ async fn main() -> Result<()> {
                 .nest(
                     "/security/impersonation",
                     handlers::admin_impersonation::router(),
-                ),
+                )
+                // ADM-08: typed settings catalogue (incl. maintenance
+                // mode kill-switch). The maintenance middleware uses
+                // `state.settings` directly, so this nest only owns
+                // the CRUD surface.
+                .nest("/settings", handlers::admin_settings::router()),
         )
         .nest("/api/admin/blog", handlers::blog::admin_router())
         .nest("/api/admin/courses", handlers::courses::admin_router())
@@ -421,6 +437,14 @@ async fn main() -> Result<()> {
         // is a no-op for unauthenticated and ordinary access tokens.
         .layer(axum::middleware::from_fn(
             swings_api::middleware::impersonation_banner::stamp,
+        ))
+        // ADM-08: maintenance-mode kill-switch. Reads three keys from
+        // the in-memory settings cache; defaults to a no-op when the
+        // cache is empty. Must run AFTER `with_state` is unreachable —
+        // we apply it before so the State extractor still resolves.
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            swings_api::middleware::maintenance_mode::enforce,
         ))
         .layer(cors)
         .layer(TraceLayer::new_for_http())

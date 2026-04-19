@@ -22,9 +22,9 @@ use utoipa_swagger_ui::SwaggerUi;
 use crate::{
     extractors::AdminUser,
     handlers::{
-        admin, admin_impersonation, admin_ip_allowlist, admin_security, analytics, auth, blog,
-        consent, coupons, courses, csp_report, forms, member, notifications, outbox, popups,
-        products, webhooks,
+        admin, admin_impersonation, admin_ip_allowlist, admin_security, admin_settings, analytics,
+        auth, blog, consent, coupons, courses, csp_report, forms, member, notifications, outbox,
+        popups, products, webhooks,
     },
     AppState,
 };
@@ -74,6 +74,7 @@ impl Modify for SecurityAddon {
         (name = "security", description = "Security telemetry (CSP violation reports, etc.)"),
         (name = "admin-security", description = "Admin-only privileged member-lifecycle and security console (suspend, ban, sessions, audit log)"),
         (name = "admin-impersonation", description = "Admin-only impersonation token mint / list / revoke"),
+        (name = "admin-settings", description = "Admin-only typed settings catalogue (incl. maintenance-mode kill-switch)"),
         (name = "webhooks", description = "Inbound provider webhooks")
     ),
     paths(
@@ -120,6 +121,11 @@ impl Modify for SecurityAddon {
         admin_impersonation::get_one,
         admin_impersonation::revoke,
         admin_impersonation::exit,
+        // Admin settings (ADM-08)
+        admin_settings::list,
+        admin_settings::get_one,
+        admin_settings::upsert,
+        admin_settings::reload,
         // Blog
         blog::admin_create_post,
         blog::admin_update_post,
@@ -282,6 +288,13 @@ impl Modify for SecurityAddon {
             admin_impersonation::MintResponse,
             admin_impersonation::ListResponse,
             admin_impersonation::RevokeRequest,
+            // Admin settings (ADM-08)
+            crate::settings::SettingType,
+            crate::settings::SettingRecord,
+            crate::settings::SettingView,
+            admin_settings::SettingListResponse,
+            admin_settings::SettingGetResponse,
+            admin_settings::SettingUpsertRequest,
             // Blog
             crate::models::BlogPost,
             crate::models::BlogPostResponse,

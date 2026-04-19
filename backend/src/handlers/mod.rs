@@ -3,6 +3,7 @@ pub mod admin_consent;
 pub mod admin_impersonation;
 pub mod admin_ip_allowlist;
 pub mod admin_security;
+pub mod admin_settings;
 pub mod analytics;
 pub mod auth;
 pub mod blog;

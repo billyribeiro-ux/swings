@@ -39,13 +39,14 @@ use swings_api::{
     config::Config,
     events::WorkerShutdown,
     handlers::{
-        admin, admin_consent, admin_impersonation, admin_ip_allowlist, admin_security, analytics,
-        auth, blog, coupons, courses, csp_report, member, notifications, outbox, popups, pricing,
-        webhooks,
+        admin, admin_consent, admin_impersonation, admin_ip_allowlist, admin_security,
+        admin_settings, analytics, auth, blog, coupons, courses, csp_report, member, notifications,
+        outbox, popups, pricing, webhooks,
     },
     middleware::{
         admin_ip_allowlist as admin_ip_allowlist_mw,
         impersonation_banner as impersonation_banner_mw,
+        maintenance_mode as maintenance_mode_mw,
         rate_limit::Backend as RateLimitBackend,
     },
     notifications::Service as NotificationsService,
@@ -156,6 +157,21 @@ impl TestApp {
                 )),
                 "Swings <noreply@example.test>".into(),
             )),
+            // ADM-08: settings cache is built per-test and warmed from
+            // the freshly-migrated schema (which seeds the three
+            // `system.maintenance_*` keys via 062_app_settings.sql).
+            // Tests that flip a setting must reload via
+            // `state.settings.reload(...)` themselves; the harness does
+            // not expose a re-warm helper because the production
+            // upsert handler always reloads.
+            settings: {
+                let cache = swings_api::settings::Cache::new();
+                cache
+                    .reload(db.pool())
+                    .await
+                    .map_err(|e| TestAppError::Config(format!("settings cache warm: {e}")))?;
+                cache
+            },
         };
 
         let router = build_router(&state);
@@ -338,7 +354,8 @@ fn build_router(state: &AppState) -> Router<()> {
                 .nest(
                     "/security/impersonation",
                     admin_impersonation::router(),
-                ),
+                )
+                .nest("/settings", admin_settings::router()),
         )
         .nest("/api/admin/blog", blog::admin_router())
         .nest("/api/admin/courses", courses::admin_router())
@@ -380,7 +397,15 @@ fn build_router(state: &AppState) -> Router<()> {
         // ADM-07: stamp X-Impersonation-* response headers — applied
         // here (after all routes are mounted) so every test request
         // also exercises the production banner contract.
-        .layer(axum::middleware::from_fn(impersonation_banner_mw::stamp));
+        .layer(axum::middleware::from_fn(impersonation_banner_mw::stamp))
+        // ADM-08: maintenance-mode kill-switch. The cache is warmed
+        // at TestApp startup with the seeded defaults
+        // (`maintenance_mode=false`), so this layer is a no-op for
+        // every test that does not explicitly flip the flag.
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            maintenance_mode_mw::enforce,
+        ));
 
     router.with_state(state.clone())
 }

@@ -161,6 +161,20 @@ impl Config {
             }
         }
 
+        // ADM-08: settings-secret AEAD key. Without it the admin
+        // settings UI cannot mint or reveal `value_type='secret'`
+        // rows, and the maintenance kill-switch keeps working but
+        // any encrypted-at-rest setting becomes inert. Failing fast
+        // here is preferable to discovering it the first time an
+        // operator tries to rotate a credential during an incident.
+        if env::var("SETTINGS_ENCRYPTION_KEY")
+            .unwrap_or_default()
+            .trim()
+            .is_empty()
+        {
+            missing.push("SETTINGS_ENCRYPTION_KEY".into());
+        }
+
         if !missing.is_empty() {
             bail!(
                 "APP_ENV=production but required configuration is missing or invalid:\n  - {}",
