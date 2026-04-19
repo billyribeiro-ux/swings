@@ -78,6 +78,12 @@ pub struct TestApp {
     /// Stable per-instance IP (via `X-Forwarded-For`) to isolate the
     /// governor rate-limit bucket between tests.
     client_ip: String,
+    /// Live handle on the per-test `AppState.settings` cache. Tests
+    /// that exercise settings-driven workers (idempotency-gc,
+    /// audit-retention, …) flip values here via
+    /// `Cache::insert_for_tests` to hit specific code paths
+    /// deterministically.
+    settings: swings_api::settings::Cache,
     /// Bearer token default; overridden per request via the `auth` arg.
     _marker: (),
 }
@@ -177,14 +183,25 @@ impl TestApp {
 
         let router = build_router(&state);
         let client_ip = allocate_client_ip();
+        let settings = state.settings.clone();
 
         Ok(Self {
             router,
             _upload_dir: upload_dir,
             db,
             client_ip,
+            settings,
             _marker: (),
         })
+    }
+
+    /// Borrow the live settings cache attached to this app's
+    /// `AppState`. Mutating it via `insert_for_tests(...)` takes
+    /// effect immediately for any handler / worker that reads the
+    /// same handle.
+    #[must_use]
+    pub fn settings(&self) -> &swings_api::settings::Cache {
+        &self.settings
     }
 
     /// Borrow the schema-scoped pool for tests that need to insert fixtures

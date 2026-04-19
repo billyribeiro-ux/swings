@@ -91,6 +91,19 @@ pub struct DsarJob {
     pub approval_reason: Option<String>,
     pub approved_at: Option<DateTime<Utc>>,
     pub artifact_url: Option<String>,
+    /// ADM-17: storage transport for the artefact. `inline`
+    /// (legacy synchronous path → `data:` URI on `artifact_url`),
+    /// `r2` (presigned URL on `artifact_url`), or `local`
+    /// (download via `/jobs/{id}/artifact` streamer with bearer
+    /// auth).
+    pub artifact_kind: Option<String>,
+    /// ADM-17: opaque storage key (R2 object key, or `dsar/{id}.json`
+    /// for local mode). Operator surface only — downloads use
+    /// `artifact_url` or the streamer.
+    pub artifact_storage_key: Option<String>,
+    /// ADM-17 + ADM-19: TTL after which the TTL sweep deletes the
+    /// underlying object and NULLs all three artefact columns.
+    pub artifact_expires_at: Option<DateTime<Utc>>,
     pub erasure_summary: Option<Value>,
     pub completed_at: Option<DateTime<Utc>>,
     pub failure_reason: Option<String>,
@@ -225,6 +238,7 @@ pub async fn list_jobs(
         r#"
         SELECT id, target_user_id, kind, status, requested_by, request_reason,
                approved_by, approval_reason, approved_at, artifact_url,
+               artifact_kind, artifact_storage_key, artifact_expires_at,
                erasure_summary, completed_at, failure_reason, created_at, updated_at
           FROM dsar_jobs {where_sql}
          ORDER BY created_at DESC
@@ -323,6 +337,7 @@ pub async fn create_export(
             VALUES ($1, 'export', 'pending', $2, $3, $2, NOW())
             RETURNING id, target_user_id, kind, status, requested_by, request_reason,
                       approved_by, approval_reason, approved_at, artifact_url,
+                      artifact_kind, artifact_storage_key, artifact_expires_at,
                       erasure_summary, completed_at, failure_reason, created_at, updated_at
             "#,
         )
@@ -365,6 +380,7 @@ pub async fn create_export(
         VALUES ($1, 'export', 'completed', $2, $3, $4, 'inline', NOW(), $2, NOW())
         RETURNING id, target_user_id, kind, status, requested_by, request_reason,
                   approved_by, approval_reason, approved_at, artifact_url,
+                  artifact_kind, artifact_storage_key, artifact_expires_at,
                   erasure_summary, completed_at, failure_reason, created_at, updated_at
         "#,
     )
@@ -453,6 +469,7 @@ pub async fn request_erase(
         VALUES ($1, 'erase', 'pending', $2, $3)
         RETURNING id, target_user_id, kind, status, requested_by, request_reason,
                   approved_by, approval_reason, approved_at, artifact_url,
+                  artifact_kind, artifact_storage_key, artifact_expires_at,
                   erasure_summary, completed_at, failure_reason, created_at, updated_at
         "#,
     )
@@ -555,6 +572,7 @@ pub async fn approve_erase(
          WHERE id = $3
          RETURNING id, target_user_id, kind, status, requested_by, request_reason,
                    approved_by, approval_reason, approved_at, artifact_url,
+                   artifact_kind, artifact_storage_key, artifact_expires_at,
                    erasure_summary, completed_at, failure_reason, created_at, updated_at
         "#,
     )
@@ -611,6 +629,7 @@ pub async fn approve_erase(
          WHERE id = $2
          RETURNING id, target_user_id, kind, status, requested_by, request_reason,
                    approved_by, approval_reason, approved_at, artifact_url,
+                   artifact_kind, artifact_storage_key, artifact_expires_at,
                    erasure_summary, completed_at, failure_reason, created_at, updated_at
         "#,
     )
@@ -689,6 +708,7 @@ pub async fn cancel_job(
          WHERE id = $2
          RETURNING id, target_user_id, kind, status, requested_by, request_reason,
                    approved_by, approval_reason, approved_at, artifact_url,
+                   artifact_kind, artifact_storage_key, artifact_expires_at,
                    erasure_summary, completed_at, failure_reason, created_at, updated_at
         "#,
     )
@@ -832,6 +852,7 @@ async fn fetch_job(pool: &sqlx::PgPool, id: Uuid) -> AppResult<Option<DsarJob>> 
         r#"
         SELECT id, target_user_id, kind, status, requested_by, request_reason,
                approved_by, approval_reason, approved_at, artifact_url,
+               artifact_kind, artifact_storage_key, artifact_expires_at,
                erasure_summary, completed_at, failure_reason, created_at, updated_at
           FROM dsar_jobs
          WHERE id = $1

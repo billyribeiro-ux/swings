@@ -205,17 +205,41 @@ export const auditLog = {
 
 // ── DSAR (ADM-13) ───────────────────────────────────────────────────────
 
+/**
+ * A DSAR job row, as returned by the admin DSAR endpoints.
+ *
+ * Asynchronous exports (ADM-17 + ADM-19) introduce three optional
+ * fields that the synchronous path never populates:
+ *
+ *   - `artifact_kind` — `inline`, `r2`, or `local`. Drives the
+ *     download UX: `inline` is a `data:` URI on `artifact_url`,
+ *     `r2` is a presigned URL on `artifact_url`, and `local`
+ *     requires hitting the `/jobs/{id}/artifact` streamer with
+ *     bearer auth.
+ *   - `artifact_storage_key` — opaque storage key (R2 object
+ *     key or relative local path). Operator surfaces show this for
+ *     diagnostic reasons; downloads should use `artifact_url` or
+ *     the streamer endpoint, never this key directly.
+ *   - `artifact_expires_at` — TTL for the artefact. After this
+ *     timestamp the TTL sweep (ADM-19) deletes the underlying
+ *     object and NULLs all three columns. The UI uses it to render
+ *     a relative "expires in 23h" hint and to grey-out download
+ *     buttons on stale rows.
+ */
 export interface DsarJob {
 	id: string;
 	target_user_id: string;
 	kind: 'export' | 'erase' | string;
-	status: 'pending' | 'completed' | 'cancelled' | 'failed' | string;
+	status: 'pending' | 'composing' | 'completed' | 'cancelled' | 'failed' | string;
 	requested_by: string;
 	request_reason: string;
 	approved_by?: string | null;
 	approval_reason?: string | null;
 	approved_at?: string | null;
 	artifact_url?: string | null;
+	artifact_kind?: 'inline' | 'r2' | 'local' | null;
+	artifact_storage_key?: string | null;
+	artifact_expires_at?: string | null;
 	erasure_summary?: unknown | null;
 	completed_at?: string | null;
 	failure_reason?: string | null;
@@ -242,11 +266,27 @@ export interface DsarListQuery {
 export interface DsarExportRequest {
 	target_user_id: string;
 	reason: string;
+	/**
+	 * When `true`, the backend queues a `pending` job and returns
+	 * `202 Accepted` with `export: null`. The dsar-worker then
+	 * composes the export, persists it to R2 / local disk, and
+	 * stamps `artifact_*` on the row.
+	 *
+	 * When omitted / `false`, the legacy synchronous path is used:
+	 * the export is composed inline and returned as a `data:` URI
+	 * on `job.artifact_url` plus a parsed JSON snapshot in `export`.
+	 */
+	async?: boolean;
 }
 
 export interface DsarExportResponse {
 	job: DsarJob;
-	export: unknown;
+	/**
+	 * Inline export snapshot. `null` when the request was async —
+	 * the worker writes the artefact to storage and the operator
+	 * downloads it later via the table row's "Download" action.
+	 */
+	export: unknown | null;
 }
 
 export interface DsarEraseRequestBody {
@@ -339,5 +379,18 @@ export const dsarAdmin = {
 	cancelJob: (id: string, reason?: string) =>
 		api.post<DsarJob>(`/api/admin/dsar/jobs/${encodeURIComponent(id)}/cancel`, {
 			reason
-		})
+		}),
+	/**
+	 * Stream an async-export artefact whose storage backend is
+	 * `local`. The `r2` path advertises a presigned URL on
+	 * `artifact_url` directly; the `inline` path carries a `data:`
+	 * URI on `artifact_url`. This streamer is only required when
+	 * the deployment's `MediaBackend` is the local filesystem.
+	 *
+	 * Returns the response body as a `Blob` plus the suggested
+	 * filename parsed from `Content-Disposition` (the backend sets
+	 * `attachment; filename="dsar-{id}.json"`).
+	 */
+	streamArtifact: (id: string) =>
+		api.getBlob(`/api/admin/dsar/jobs/${encodeURIComponent(id)}/artifact`)
 };

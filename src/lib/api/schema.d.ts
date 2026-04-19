@@ -570,6 +570,31 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/dsar/jobs/{id}/artifact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Stream the artefact behind a `local`-mode async export.
+         * @description Async DSAR exports stored on R2 expose a presigned URL the operator
+         *     hits directly; for local-storage deployments (dev, single-node, or
+         *     air-gapped) we serve the JSON via this RBAC-gated route instead so
+         *     no anonymous filesystem access is required. Returns `404` for
+         *     inline jobs (the artefact is already in `artifact_url`) and for
+         *     jobs that have not yet been composed.
+         */
+        get: operations["admin_dsar_stream_artifact"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/dsar/jobs/{id}/cancel": {
         parameters: {
             query?: never;
@@ -3355,6 +3380,26 @@ export type components = {
             /** Format: date-time */
             approved_at?: string | null;
             artifact_url?: string | null;
+            /**
+             * @description ADM-17: storage transport for the artefact. `inline`
+             *     (legacy synchronous path → `data:` URI on `artifact_url`),
+             *     `r2` (presigned URL on `artifact_url`), or `local`
+             *     (download via `/jobs/{id}/artifact` streamer with bearer
+             *     auth).
+             */
+            artifact_kind?: string | null;
+            /**
+             * @description ADM-17: opaque storage key (R2 object key, or `dsar/{id}.json`
+             *     for local mode). Operator surface only — downloads use
+             *     `artifact_url` or the streamer.
+             */
+            artifact_storage_key?: string | null;
+            /**
+             * Format: date-time
+             * @description ADM-17 + ADM-19: TTL after which the TTL sweep deletes the
+             *     underlying object and NULLs all three artefact columns.
+             */
+            artifact_expires_at?: string | null;
             erasure_summary?: unknown;
             /** Format: date-time */
             completed_at?: string | null;
@@ -3421,16 +3466,28 @@ export type components = {
             /** Format: uuid */
             target_user_id: string;
             reason: string;
+            /**
+             * @description ADM-17: opt into the async pipeline. When `true` the handler
+             *     queues a `pending` job for the background worker and returns
+             *     `202 Accepted` with the row but no inline export. When `false`
+             *     (default) the legacy synchronous compose runs inline and the
+             *     response includes the full document — preserved for parity with
+             *     pre-ADM-17 callers and for ergonomic small-export UX.
+             */
+            async?: boolean;
         };
         ExportResponse: {
             job: components["schemas"]["DsarJob"];
             /**
              * @description Inline JSON snapshot of the export. Operators usually consume
-             *     `job.artifact_url` (a `data:` URI) for the round-trippable
-             *     document; `export` is the same payload deserialised so admin
-             *     UIs can render it without a second hop.
+             *     `job.artifact_url` (a `data:` URI for inline mode, presigned R2
+             *     URL or `/artifact` streamer route for async mode) for the
+             *     round-trippable document; `export` is the same payload
+             *     deserialised so admin UIs can render it without a second hop.
+             *     `null` when the request opted into the async pipeline because
+             *     the worker has not composed the artefact yet.
              */
-            export: unknown;
+            export?: unknown;
         };
         ExtendRequest: {
             /**
@@ -6624,6 +6681,50 @@ export interface operations {
             };
             /** @description Job not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    admin_dsar_stream_artifact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description DSAR job id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Streamed JSON artefact */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Artefact is not local-streamable */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Artefact missing or expired */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Job not yet completed */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

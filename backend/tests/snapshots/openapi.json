@@ -10915,6 +10915,28 @@
               "null"
             ]
           },
+          "artifact_kind": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ADM-17: storage transport for the artefact. `inline`\n(legacy synchronous path → `data:` URI on `artifact_url`),\n`r2` (presigned URL on `artifact_url`), or `local`\n(download via `/jobs/{id}/artifact` streamer with bearer\nauth)."
+          },
+          "artifact_storage_key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ADM-17: opaque storage key (R2 object key, or `dsar/{id}.json`\nfor local mode). Operator surface only — downloads use\n`artifact_url` or the streamer."
+          },
+          "artifact_expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "ADM-17 + ADM-19: TTL after which the TTL sweep deletes the\nunderlying object and NULLs all three artefact columns."
+          },
           "erasure_summary": {},
           "completed_at": {
             "type": [

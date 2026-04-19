@@ -32,6 +32,17 @@
 	let exportReason = $state('');
 	let exportBusy = $state(false);
 	let exportPayload = $state<unknown>(null);
+	// ADM-17: when true, the backend queues a pending job for the
+	// dsar-worker instead of composing inline. Operators flip this
+	// for tenants whose snapshot is too large to inline (>5 MiB-ish
+	// in practice) — the worker will write it to R2 / local disk
+	// and the row's Download button picks the right transport.
+	let exportAsync = $state(false);
+	// Set of in-flight (pending / composing) job ids so we can show
+	// a quiet auto-refresh hint without spamming an interval timer
+	// when there's nothing to wait for.
+	let pollingTimer: ReturnType<typeof setInterval> | null = null;
+	let downloadingId = $state<string | null>(null);
 
 	let eraseTarget = $state('');
 	let eraseReason = $state('');
@@ -84,12 +95,19 @@
 		try {
 			const res = await dsarAdmin.createExport({
 				target_user_id: exportTarget.trim(),
-				reason: exportReason.trim()
+				reason: exportReason.trim(),
+				async: exportAsync
 			});
+			// `export` is null for async — the worker writes the
+			// artefact and the table row picks it up on next refresh.
 			exportPayload = res.export;
 			exportTarget = '';
 			exportReason = '';
-			flash('Export composed and persisted');
+			flash(
+				exportAsync
+					? `Export queued — job ${res.job.id.slice(0, 8)}…; the worker will compose it shortly`
+					: 'Export composed and persisted'
+			);
 			await refresh();
 		} catch (e) {
 			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Export failed';
@@ -156,14 +174,76 @@
 		}
 	}
 
-	function downloadArtifact(job: DsarJob) {
-		if (!job.artifact_url) return;
-		const a = document.createElement('a');
-		a.href = job.artifact_url;
-		a.download = `dsar-${job.target_user_id}-${job.id.slice(0, 8)}.json`;
-		document.body.appendChild(a);
-		a.click();
-		a.remove();
+	/**
+	 * Trigger a browser download for the artefact attached to a
+	 * completed export job. The transport depends on
+	 * `job.artifact_kind`:
+	 *
+	 *   - `inline` (legacy synchronous path) — `artifact_url` is a
+	 *     `data:` URI; we anchor-click it directly.
+	 *   - `r2` — `artifact_url` is a presigned URL signed for the
+	 *     job's TTL; same anchor-click pattern, no auth header
+	 *     required (the URL itself is the credential).
+	 *   - `local` — the dev / single-instance backend writes the
+	 *     artefact to disk; the bytes only flow through an
+	 *     RBAC-protected streamer, so we fetch with bearer auth
+	 *     into a Blob, materialise an object URL, click, revoke.
+	 */
+	async function downloadArtifact(job: DsarJob) {
+		const kind = job.artifact_kind ?? 'inline';
+		const fallbackName = `dsar-${job.target_user_id}-${job.id.slice(0, 8)}.json`;
+		try {
+			if (kind === 'local') {
+				downloadingId = job.id;
+				const { blob, filename } = await dsarAdmin.streamArtifact(job.id);
+				const url = URL.createObjectURL(blob);
+				try {
+					const a = document.createElement('a');
+					a.href = url;
+					a.download = filename ?? fallbackName;
+					document.body.appendChild(a);
+					a.click();
+					a.remove();
+				} finally {
+					URL.revokeObjectURL(url);
+				}
+				return;
+			}
+			if (!job.artifact_url) return;
+			const a = document.createElement('a');
+			a.href = job.artifact_url;
+			a.download = fallbackName;
+			document.body.appendChild(a);
+			a.click();
+			a.remove();
+		} catch (e) {
+			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Download failed';
+		} finally {
+			downloadingId = null;
+		}
+	}
+
+	/**
+	 * Format `artifact_expires_at` as a coarse "expires in 5h"
+	 * hint. Returns `null` for jobs without a TTL (inline + erase)
+	 * or when the artefact has already expired (the operator should
+	 * see "expired" rather than a confusing future-date string).
+	 */
+	function expiryHint(job: DsarJob): string | null {
+		if (!job.artifact_expires_at) return null;
+		const ms = new Date(job.artifact_expires_at).getTime() - Date.now();
+		if (Number.isNaN(ms)) return null;
+		if (ms <= 0) return 'expired';
+		const hours = Math.floor(ms / 3_600_000);
+		if (hours >= 24) return `expires in ${Math.floor(hours / 24)}d`;
+		if (hours >= 1) return `expires in ${hours}h`;
+		const mins = Math.max(1, Math.floor(ms / 60_000));
+		return `expires in ${mins}m`;
+	}
+
+	function isArtifactExpired(job: DsarJob): boolean {
+		if (!job.artifact_expires_at) return false;
+		return new Date(job.artifact_expires_at).getTime() <= Date.now();
 	}
 
 	function statusClass(status: string): string {
@@ -171,6 +251,7 @@
 			case 'completed':
 				return 'badge--ok';
 			case 'pending':
+			case 'composing':
 				return 'badge--warn';
 			case 'cancelled':
 				return 'badge--off';
@@ -180,6 +261,32 @@
 				return 'badge--off';
 		}
 	}
+
+	/**
+	 * The async export pipeline moves a row through
+	 * `pending → composing → completed | failed`. While at least
+	 * one row is in flight we poll every 5s so the operator sees
+	 * the artefact appear without manually hitting Refresh. The
+	 * timer self-disposes when nothing is in flight.
+	 */
+	$effect(() => {
+		const inFlight =
+			envelope?.data.some((j) => j.status === 'pending' || j.status === 'composing') ?? false;
+		if (inFlight && pollingTimer === null) {
+			pollingTimer = setInterval(() => {
+				void refresh();
+			}, 5000);
+		} else if (!inFlight && pollingTimer !== null) {
+			clearInterval(pollingTimer);
+			pollingTimer = null;
+		}
+		return () => {
+			if (pollingTimer !== null) {
+				clearInterval(pollingTimer);
+				pollingTimer = null;
+			}
+		};
+	});
 
 	function summaryRange(): string {
 		if (!envelope) return '';
@@ -252,13 +359,31 @@
 						required
 					/>
 				</div>
+				<label class="async-toggle">
+					<input
+						type="checkbox"
+						bind:checked={exportAsync}
+						data-testid="dsar-export-async"
+					/>
+					<span>
+						Compose async (queue a worker job — recommended for
+						large tenants; artefact appears in the table when
+						ready)
+					</span>
+				</label>
 				<button
 					class="btn btn--primary"
 					type="submit"
 					disabled={exportBusy}
 					data-testid="dsar-export-submit"
 				>
-					{exportBusy ? 'Composing…' : 'Compose export'}
+					{exportBusy
+						? exportAsync
+							? 'Queueing…'
+							: 'Composing…'
+						: exportAsync
+							? 'Queue export'
+							: 'Compose export'}
 				</button>
 			</form>
 			{#if exportPayload}
@@ -327,6 +452,7 @@
 				>
 					<option value="">Any</option>
 					<option value="pending">Pending</option>
+					<option value="composing">Composing</option>
 					<option value="completed">Completed</option>
 					<option value="cancelled">Cancelled</option>
 					<option value="failed">Failed</option>
@@ -401,14 +527,30 @@
 								>
 									Inspect
 								</button>
-								{#if job.kind === 'export' && job.artifact_url}
+								{#if job.kind === 'export' && (job.artifact_url || job.artifact_kind === 'local')}
+									{@const expired = isArtifactExpired(job)}
+									{@const hint = expiryHint(job)}
 									<button
 										class="btn btn--ghost btn--small"
 										onclick={() => downloadArtifact(job)}
-										title="Download composed export"
+										disabled={expired || downloadingId === job.id}
+										title={expired
+											? 'Artefact expired and was swept by ADM-19'
+											: `Download composed export${hint ? ` (${hint})` : ''}`}
+										data-testid="dsar-download"
 									>
 										<DownloadSimple size={14} weight="bold" />
+										{#if downloadingId === job.id}
+											…
+										{:else if hint}
+											<span class="ttl-hint">{hint}</span>
+										{/if}
 									</button>
+								{/if}
+								{#if job.kind === 'export' && (job.status === 'pending' || job.status === 'composing')}
+									<span class="badge badge--warn" title="Worker in flight">
+										queued
+									</span>
 								{/if}
 								{#if job.kind === 'erase' && job.status === 'pending'}
 									<button
@@ -532,6 +674,28 @@
 				{/if}
 				{#if selected.failure_reason}
 					<dt>Failure</dt><dd>{selected.failure_reason}</dd>
+				{/if}
+				{#if selected.artifact_kind}
+					<dt>Artefact</dt>
+					<dd>
+						<code>{selected.artifact_kind}</code>
+						{#if selected.artifact_storage_key}
+							·&nbsp;<code title={selected.artifact_storage_key}>
+								{selected.artifact_storage_key.length > 32
+									? selected.artifact_storage_key.slice(0, 32) + '…'
+									: selected.artifact_storage_key}
+							</code>
+						{/if}
+					</dd>
+				{/if}
+				{#if selected.artifact_expires_at}
+					<dt>Expires</dt>
+					<dd>
+						{new Date(selected.artifact_expires_at).toLocaleString()}
+						{#if expiryHint(selected)}
+							·&nbsp;<span class="muted-inline">{expiryHint(selected)}</span>
+						{/if}
+					</dd>
 				{/if}
 			</dl>
 			{#if selected.erasure_summary}
@@ -711,6 +875,28 @@
 	}
 	.export-preview {
 		margin-top: var(--space-3);
+	}
+	.async-toggle {
+		display: flex;
+		gap: var(--space-2);
+		align-items: flex-start;
+		font-size: var(--fs-xs);
+		color: var(--color-grey-300);
+		cursor: pointer;
+		line-height: 1.35;
+	}
+	.async-toggle input {
+		margin-top: 2px;
+		accent-color: var(--color-teal);
+	}
+	.ttl-hint {
+		font-size: 0.62rem;
+		color: var(--color-grey-400);
+		margin-left: 4px;
+	}
+	.muted-inline {
+		color: var(--color-grey-400);
+		font-size: var(--fs-xs);
 	}
 	.json {
 		background: rgba(0, 0, 0, 0.3);
