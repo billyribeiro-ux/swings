@@ -12,7 +12,7 @@ use validator::Validate;
 use crate::{
     db,
     error::{AppError, AppResult},
-    extractors::{AuthUser, Claims},
+    extractors::{AuthUser, Claims, ClientInfo},
     models::*,
     notifications::send::{send_notification, Recipient, SendOptions},
     AppState,
@@ -119,20 +119,50 @@ pub(crate) async fn register(
 )]
 pub(crate) async fn login(
     State(state): State<AppState>,
+    client: ClientInfo,
     Json(req): Json<LoginRequest>,
 ) -> AppResult<Json<AuthResponse>> {
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
 
-    let user = db::find_user_by_email(&state.db, &req.email)
-        .await?
-        .ok_or(AppError::Unauthorized)?;
+    let user = match db::find_user_by_email(&state.db, &req.email).await? {
+        Some(u) => u,
+        None => {
+            // ADM-02: log unknown-email failures so brute force / enumeration
+            // shows up in the security console. Best-effort — never blocks
+            // the 401 response if the audit table is unreachable.
+            log_failed_login(&state, &req.email, &client, "unknown_email").await;
+            return Err(AppError::Unauthorized);
+        }
+    };
 
-    let parsed_hash = PasswordHash::new(&user.password_hash).map_err(|_| AppError::Unauthorized)?;
+    // ADM-02: hard ban / suspension gate. Both states return 401 (not 403)
+    // to avoid leaking account existence — the response is identical to a
+    // bad-password failure.
+    if user.banned_at.is_some() {
+        log_failed_login(&state, &req.email, &client, "banned").await;
+        return Err(AppError::Unauthorized);
+    }
+    if user.suspended_at.is_some() {
+        log_failed_login(&state, &req.email, &client, "suspended").await;
+        return Err(AppError::Unauthorized);
+    }
 
-    Argon2::default()
+    let parsed_hash = match PasswordHash::new(&user.password_hash) {
+        Ok(h) => h,
+        Err(_) => {
+            log_failed_login(&state, &req.email, &client, "bad_password").await;
+            return Err(AppError::Unauthorized);
+        }
+    };
+
+    if Argon2::default()
         .verify_password(req.password.as_bytes(), &parsed_hash)
-        .map_err(|_| AppError::Unauthorized)?;
+        .is_err()
+    {
+        log_failed_login(&state, &req.email, &client, "bad_password").await;
+        return Err(AppError::Unauthorized);
+    }
 
     let (access_token, refresh_token) = generate_tokens(&state, &user).await?;
 
@@ -141,6 +171,24 @@ pub(crate) async fn login(
         access_token,
         refresh_token,
     }))
+}
+
+/// ADM-02: best-effort write to `failed_login_attempts`.
+///
+/// Failures here log a warning and continue — the user-facing 401 response
+/// must never depend on observability succeeding.
+async fn log_failed_login(state: &AppState, email: &str, client: &ClientInfo, reason: &str) {
+    if let Err(e) = db::record_failed_login(
+        &state.db,
+        email,
+        client.ip,
+        client.user_agent.as_deref(),
+        reason,
+    )
+    .await
+    {
+        tracing::warn!(error = %e, reason, "failed to record failed_login_attempt");
+    }
 }
 
 #[utoipa::path(

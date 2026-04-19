@@ -25,6 +25,19 @@ pub struct User {
     pub instagram_url: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    // ADM-02 lifecycle columns. All optional; semantically `None` means
+    // "not in that state". `email_verified_at` is set by self-serve
+    // verification or admin override.
+    #[serde(default)]
+    pub suspended_at: Option<DateTime<Utc>>,
+    #[serde(default)]
+    pub suspension_reason: Option<String>,
+    #[serde(default)]
+    pub banned_at: Option<DateTime<Utc>>,
+    #[serde(default)]
+    pub ban_reason: Option<String>,
+    #[serde(default)]
+    pub email_verified_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type, PartialEq, Eq, Hash, ToSchema)]
@@ -80,6 +93,18 @@ pub struct UserResponse {
     pub youtube_url: Option<String>,
     pub instagram_url: Option<String>,
     pub created_at: DateTime<Utc>,
+    /// ADM-02: lifecycle state surfaced to the admin members UI. `None`
+    /// for each timestamp means the account is not in that state.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub suspended_at: Option<DateTime<Utc>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub suspension_reason: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub banned_at: Option<DateTime<Utc>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ban_reason: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub email_verified_at: Option<DateTime<Utc>>,
 }
 
 impl From<User> for UserResponse {
@@ -98,6 +123,11 @@ impl From<User> for UserResponse {
             youtube_url: u.youtube_url,
             instagram_url: u.instagram_url,
             created_at: u.created_at,
+            suspended_at: u.suspended_at,
+            suspension_reason: u.suspension_reason,
+            banned_at: u.banned_at,
+            ban_reason: u.ban_reason,
+            email_verified_at: u.email_verified_at,
         }
     }
 }

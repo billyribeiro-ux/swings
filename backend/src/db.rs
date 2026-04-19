@@ -267,6 +267,36 @@ pub async fn delete_user_refresh_tokens(pool: &PgPool, user_id: Uuid) -> Result<
     Ok(())
 }
 
+// ── Failed login attempts (ADM-02) ──────────────────────────────────────
+
+/// ADM-02: append a failed login row.
+///
+/// `reason` is one of the values listed in `056_user_lifecycle.sql`'s
+/// CHECK constraint: `unknown_email`, `bad_password`, `suspended`,
+/// `banned`, `rate_limited`. Best-effort — callers ignore the result and
+/// log on error so a flaky audit insert never masks the user-facing 401.
+pub async fn record_failed_login(
+    pool: &PgPool,
+    email: &str,
+    ip: Option<std::net::IpAddr>,
+    user_agent: Option<&str>,
+    reason: &str,
+) -> Result<(), sqlx::Error> {
+    let email_normalized = normalize_email(email);
+    let ip_text = ip.map(|i| i.to_string());
+    sqlx::query(
+        r#"INSERT INTO failed_login_attempts (email, ip_address, user_agent, reason)
+           VALUES ($1, $2::inet, $3, $4)"#,
+    )
+    .bind(email_normalized)
+    .bind(ip_text)
+    .bind(user_agent)
+    .bind(reason)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
 /// Attempt to record a webhook event as processed. Returns `true` when the
 /// row was newly inserted (caller should process the event), `false` when it
 /// was already claimed (caller short-circuits).

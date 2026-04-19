@@ -311,7 +311,14 @@ async fn main() -> Result<()> {
         .nest("/api/auth", handlers::auth::router())
         .nest("/api/analytics", handlers::analytics::router())
         // Admin routes
-        .nest("/api/admin", handlers::admin::router())
+        // ADM-05: the admin security console is merged INTO the same
+        // `/api/admin` nest as the legacy member/dashboard routes so the two
+        // routers share one path prefix (Axum panics on duplicate `.nest`
+        // calls with the same prefix).
+        .nest(
+            "/api/admin",
+            handlers::admin::router().merge(handlers::admin_security::router()),
+        )
         .nest("/api/admin/blog", handlers::blog::admin_router())
         .nest("/api/admin/courses", handlers::courses::admin_router())
         .nest("/api/admin/pricing", handlers::pricing::admin_router())

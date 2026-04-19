@@ -11,8 +11,9 @@ use validator::Validate;
 use crate::{
     db,
     error::{AppError, AppResult},
-    extractors::AdminUser,
+    extractors::{AdminUser, ClientInfo},
     models::*,
+    services::audit::{record_admin_action_best_effort, AdminAction},
     stripe_api, AppState,
 };
 
@@ -333,7 +334,8 @@ pub(crate) async fn admin_member_billing_portal(
 )]
 pub(crate) async fn admin_member_subscription_cancel(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(user_id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
     db::find_user_by_id(&state.db, user_id)
@@ -346,6 +348,24 @@ pub(crate) async fn admin_member_subscription_cancel(
 
     stripe_api::set_subscription_cancel_at_period_end(&state, &sub.stripe_subscription_id, true)
         .await?;
+
+    let actor_role = UserRole::from_str_lower(&admin.role).unwrap_or(UserRole::Admin);
+    record_admin_action_best_effort(
+        &state.db,
+        AdminAction::new(
+            admin.user_id,
+            actor_role,
+            "subscription.cancel_at_period_end",
+            "subscription",
+        )
+        .with_target_id(sub.stripe_subscription_id.clone())
+        .with_client(&client)
+        .with_metadata(serde_json::json!({
+            "user_id": user_id,
+            "cancel_at_period_end": true,
+        })),
+    )
+    .await;
 
     Ok(Json(
         serde_json::json!({ "ok": true, "cancel_at_period_end": true }),
@@ -367,7 +387,8 @@ pub(crate) async fn admin_member_subscription_cancel(
 )]
 pub(crate) async fn admin_member_subscription_resume(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(user_id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
     db::find_user_by_id(&state.db, user_id)
@@ -380,6 +401,24 @@ pub(crate) async fn admin_member_subscription_resume(
 
     stripe_api::set_subscription_cancel_at_period_end(&state, &sub.stripe_subscription_id, false)
         .await?;
+
+    let actor_role = UserRole::from_str_lower(&admin.role).unwrap_or(UserRole::Admin);
+    record_admin_action_best_effort(
+        &state.db,
+        AdminAction::new(
+            admin.user_id,
+            actor_role,
+            "subscription.resume",
+            "subscription",
+        )
+        .with_target_id(sub.stripe_subscription_id.clone())
+        .with_client(&client)
+        .with_metadata(serde_json::json!({
+            "user_id": user_id,
+            "cancel_at_period_end": false,
+        })),
+    )
+    .await;
 
     Ok(Json(
         serde_json::json!({ "ok": true, "cancel_at_period_end": false }),
@@ -405,11 +444,33 @@ pub struct RoleUpdate {
 )]
 pub(crate) async fn update_member_role(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<RoleUpdate>,
 ) -> AppResult<Json<UserResponse>> {
+    // Capture the prior role for the audit trail so a privilege escalation
+    // can be reconstructed from the log alone (without the actor having to
+    // carry the previous state separately).
+    let prior_role = db::find_user_by_id(&state.db, id)
+        .await?
+        .map(|u| u.role.clone());
+
     let user = db::update_user_role(&state.db, id, &req.role).await?;
+
+    let actor_role = UserRole::from_str_lower(&admin.role).unwrap_or(UserRole::Admin);
+    record_admin_action_best_effort(
+        &state.db,
+        AdminAction::new(admin.user_id, actor_role, "user.role.update", "user")
+            .with_target_id(id.to_string())
+            .with_client(&client)
+            .with_metadata(serde_json::json!({
+                "from_role": prior_role,
+                "to_role": req.role,
+            })),
+    )
+    .await;
+
     Ok(Json(user.into()))
 }
 
@@ -426,10 +487,30 @@ pub(crate) async fn update_member_role(
 )]
 pub(crate) async fn delete_member(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    // Snapshot identity before the row disappears so the audit log keeps a
+    // human-readable record (admin_actions has no FK to users; deletes
+    // wouldn't cascade through the audit table — that's intentional).
+    let snapshot = db::find_user_by_id(&state.db, id).await?;
+
     db::delete_user(&state.db, id).await?;
+
+    let actor_role = UserRole::from_str_lower(&admin.role).unwrap_or(UserRole::Admin);
+    record_admin_action_best_effort(
+        &state.db,
+        AdminAction::new(admin.user_id, actor_role, "user.delete", "user")
+            .with_target_id(id.to_string())
+            .with_client(&client)
+            .with_metadata(serde_json::json!({
+                "email": snapshot.as_ref().map(|u| u.email.clone()),
+                "role": snapshot.as_ref().map(|u| u.role.clone()),
+            })),
+    )
+    .await;
+
     Ok(Json(serde_json::json!({ "message": "Member deleted" })))
 }
 

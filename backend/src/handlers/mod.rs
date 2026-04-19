@@ -1,5 +1,6 @@
 pub mod admin;
 pub mod admin_consent;
+pub mod admin_security;
 pub mod analytics;
 pub mod auth;
 pub mod blog;
