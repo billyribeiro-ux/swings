@@ -11,8 +11,16 @@
 # ─── Stage 1: builder ────────────────────────────────────────────────────
 FROM rust:1.93-slim-bookworm AS builder
 
+# `curl` + `ca-certificates` are required by `utoipa-swagger-ui`'s
+# build script, which downloads the Swagger UI assets from GitHub
+# at compile time. Without them the build script panics with
+# `failed to download Swagger UI: ... \`curl\` command not found`.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends pkg-config libssl-dev \
+    && apt-get install -y --no-install-recommends \
+        pkg-config \
+        libssl-dev \
+        curl \
+        ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
