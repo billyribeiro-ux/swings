@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { sampleAlert } from '$lib/data/alerts';
 	import { gsap } from 'gsap';
-	import { EASE, DURATION, isReducedMotion } from '$lib/utils/animations';
+	import { EASE, DURATION, isReducedMotion, hoverTilt } from '$lib/utils/animations';
 	import MiniChart from '$lib/components/charts/MiniChart.svelte';
 	import TrendUp from 'phosphor-svelte/lib/TrendUp';
 	import Lightbulb from 'phosphor-svelte/lib/Lightbulb';
@@ -46,7 +46,12 @@
 	});
 </script>
 
-<article bind:this={cardRef} class="alert-card" aria-label="Sample stock alert preview">
+<article 
+	bind:this={cardRef} 
+	class="alert-card" 
+	aria-label="Sample stock alert preview"
+	{@attach hoverTilt({ maxTilt: 6, scale: 1.02 })}
+>
 	<div class="alert-card__accent" aria-hidden="true"></div>
 
 	<header class="alert-card__header">

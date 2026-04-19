@@ -2,7 +2,7 @@
 	import { courses } from '$lib/data/courses';
 	import { onMount } from 'svelte';
 	import { fly, slide } from 'svelte/transition';
-	import { quintOut } from 'svelte/easing';
+	import { quintOut, expoOut } from 'svelte/easing';
 	import { prefersReducedMotion } from 'svelte/motion';
 	import Button from './Button.svelte';
 	import CaretDown from 'phosphor-svelte/lib/CaretDown';
@@ -193,12 +193,12 @@
 
 	<!-- Mobile Menu -->
 	{#if isMobileOpen}
-		<div class="mobile-menu" transition:slide={{ duration: tDur(360), easing: quintOut }}>
+		<div class="mobile-menu" transition:slide={{ duration: tDur(400), easing: expoOut }}>
 			<div class="mobile-menu__inner">
 				<!-- Courses Section -->
 				<div
 					class="mobile-menu__section"
-					in:fly={{ y: 14, duration: tDur(380), delay: tDelay(40), easing: quintOut }}
+					in:fly={{ y: 16, duration: tDur(400), delay: tDelay(40), easing: expoOut }}
 				>
 					<p class="mobile-menu__label">Courses</p>
 					<div class="mobile-menu__courses">
@@ -229,7 +229,7 @@
 				<!-- Links -->
 				<div
 					class="mobile-menu__links"
-					in:fly={{ y: 14, duration: tDur(380), delay: tDelay(90), easing: quintOut }}
+					in:fly={{ y: 16, duration: tDur(400), delay: tDelay(90), easing: expoOut }}
 				>
 					<a href="/about" class="mobile-menu__link" onclick={closeAll}>About</a>
 					<a href="/courses" class="mobile-menu__link" onclick={closeAll}>All Courses</a>
@@ -240,7 +240,7 @@
 				<!-- Mobile CTA -->
 				<div
 					class="mobile-menu__cta"
-					in:fly={{ y: 14, duration: tDur(380), delay: tDelay(130), easing: quintOut }}
+					in:fly={{ y: 16, duration: tDur(400), delay: tDelay(130), easing: expoOut }}
 				>
 					<a href="/pricing/monthly" class="mobile-menu__cta-btn" onclick={closeAll}>
 						Get Instant Access

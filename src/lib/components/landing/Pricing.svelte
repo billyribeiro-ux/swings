@@ -3,6 +3,7 @@
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import { pricingPlans } from '$lib/data/pricing';
 	import { createCheckoutSession } from '$lib/utils/checkout';
+	import { hoverTilt } from '$lib/utils/animations';
 	import { env } from '$env/dynamic/public';
 	import { ctaImpression, trackCtaEvent } from '$lib/analytics/cta';
 
@@ -61,6 +62,7 @@
 						onmouseenter={() => (hoveredCard = plan.id)}
 						onmouseleave={() => (hoveredCard = null)}
 						{@attach ctaImpression({ ctaId: ctaIdForPlan(plan.id) })}
+						{@attach hoverTilt({ maxTilt: isFeatured ? 8 : 4, scale: isFeatured ? 1.03 : 1.01 })}
 					>
 						<!-- Ambient light effect for featured -->
 						{#if isFeatured}

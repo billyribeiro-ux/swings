@@ -2,6 +2,7 @@
 	import type { Trader } from '$lib/data/traders';
 	import { modal } from '$lib/stores/modal.svelte';
 	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
+	import { hoverTilt } from '$lib/utils/animations';
 
 	interface Props {
 		trader: Trader;
@@ -10,7 +11,11 @@
 	let { trader }: Props = $props();
 </script>
 
-<button onclick={() => modal.showProfile(trader.id)} class="trader-card">
+<button 
+	onclick={() => modal.showProfile(trader.id)} 
+	class="trader-card"
+	{@attach hoverTilt({ maxTilt: 10, scale: 1.04 })}
+>
 	<!-- Avatar -->
 	<div
 		class="trader-card__avatar"

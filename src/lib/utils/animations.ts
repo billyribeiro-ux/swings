@@ -21,18 +21,18 @@ export function isReducedMotion(): boolean {
 // GSAP cinematic presets
 // ---------------------------------------------------------------------------
 export const EASE = {
-	/** Snappy deceleration -- buttons, badges */
+	/** Snappy deceleration -- buttons, badges (Apple spring-like) */
 	snappy: 'power4.out',
 	/** Smooth cinematic -- headings, hero text */
-	cinematic: 'expo.out',
+	cinematic: 'power3.out', // Changed from expo.out for a slightly less abrupt tail
 	/** Soft float -- subtitles, descriptions */
 	soft: 'power2.out',
 	/** Elastic bounce -- icons, accents */
-	elastic: 'elastic.out(1, 0.5)',
+	elastic: 'elastic.out(1, 0.4)', // Tuned for less wobbling, more tight spring
 	/** Breathing loop -- glow orbs */
 	breathe: 'sine.inOut',
 	/** Back overshoot -- cards popping in */
-	back: 'back.out(1.4)'
+	back: 'back.out(1.2)' // Reduced overshoot to be subtler
 } as const;
 
 export const DURATION = {
@@ -366,5 +366,70 @@ export function popIn(
 				filter: blur(${currentBlur}px);
 			`;
 		}
+	};
+}
+
+// ---------------------------------------------------------------------------
+// Cinematic hover micro-interactions
+// ---------------------------------------------------------------------------
+
+export interface HoverTiltOpts {
+	maxTilt?: number;     // Maximum rotation in degrees (e.g., 10)
+	scale?: number;       // Max scale on hover (e.g., 1.02)
+	duration?: number;    // Tween duration to follow cursor
+	perspective?: number; // CSS perspective distance
+}
+
+/** 
+ * Attachment factory: Applies an Apple TV / Netflix style 3D hover tilt.
+ * Uses GSAP quickTo for zero-latency, buttery smooth cursor tracking.
+ */
+export function hoverTilt(opts: HoverTiltOpts = {}): Attachment<HTMLElement> {
+	return (node) => {
+		if (isReducedMotion()) return;
+
+		const maxTilt = opts.maxTilt ?? 12;
+		const scale = opts.scale ?? 1.02;
+		const perspective = opts.perspective ?? 1000;
+		const duration = opts.duration ?? 0.6;
+
+		// Initialize 3D perspective context
+		gsap.set(node, {
+			transformPerspective: perspective,
+			transformStyle: 'preserve-3d',
+			willChange: 'transform'
+		});
+
+		// quickTo is highly optimized for mouse tracking (re-evaluates mid-tween instantly)
+		const xTo = gsap.quickTo(node, 'rotateY', { duration, ease: 'power3.out' });
+		const yTo = gsap.quickTo(node, 'rotateX', { duration, ease: 'power3.out' });
+		const scaleTo = gsap.quickTo(node, 'scale', { duration, ease: 'power3.out' });
+
+		const onMouseMove = (e: MouseEvent) => {
+			const rect = node.getBoundingClientRect();
+			// Normalize coordinates to -1 ... 1
+			const x = (e.clientX - rect.left) / rect.width * 2 - 1;
+			const y = (e.clientY - rect.top) / rect.height * 2 - 1;
+
+			// Invert Y rotation for natural physically-based tilt
+			xTo(x * maxTilt);
+			yTo(-(y * maxTilt));
+			scaleTo(scale);
+		};
+
+		const onMouseLeave = () => {
+			xTo(0);
+			yTo(0);
+			scaleTo(1);
+		};
+
+		node.addEventListener('mousemove', onMouseMove, { passive: true });
+		node.addEventListener('mouseleave', onMouseLeave, { passive: true });
+
+		return () => {
+			node.removeEventListener('mousemove', onMouseMove);
+			node.removeEventListener('mouseleave', onMouseLeave);
+			gsap.set(node, { clearProps: 'transform,willChange' });
+		};
 	};
 }
