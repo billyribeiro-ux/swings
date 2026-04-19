@@ -360,7 +360,16 @@ async fn main() -> Result<()> {
                 .nest(
                     "/security/roles",
                     handlers::admin_roles::router(),
-                ),
+                )
+                // ADM-11: manual subscription operations
+                // (comp / extend / billing-cycle override).
+                .nest(
+                    "/subscriptions",
+                    handlers::admin_subscriptions::router(),
+                )
+                // ADM-12: orders admin (list / read / manual create
+                // / void / partial refund / CSV export).
+                .nest("/orders", handlers::admin_orders::router()),
         )
         .nest("/api/admin/blog", handlers::blog::admin_router())
         .nest("/api/admin/courses", handlers::courses::admin_router())

@@ -3001,6 +3001,333 @@
         ]
       }
     },
+    "/api/admin/orders": {
+      "get": {
+        "tags": [
+          "admin-orders"
+        ],
+        "operationId": "list",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Substring across email + number",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Order status filter",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size (1-200, default 25)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Cursor offset",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated orders",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderListEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid filter"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "admin-orders"
+        ],
+        "operationId": "create_manual",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualOrderRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Manual order created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/orders/export.csv": {
+      "get": {
+        "tags": [
+          "admin-orders"
+        ],
+        "operationId": "export_csv",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Order status filter",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Substring across email + number",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CSV stream",
+            "content": {
+              "text/csv": {}
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/orders/{id}": {
+      "get": {
+        "tags": [
+          "admin-orders"
+        ],
+        "operationId": "read_one",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Order id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Order not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/orders/{id}/refund": {
+      "post": {
+        "tags": [
+          "admin-orders"
+        ],
+        "operationId": "refund_order",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Order id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefundRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Refund recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefundResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Refund exceeds remaining balance"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Order not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/orders/{id}/void": {
+      "post": {
+        "tags": [
+          "admin-orders"
+        ],
+        "operationId": "void_order",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Order id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoidRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Order cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Order is in a terminal state"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Order not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/admin/outbox": {
       "get": {
         "tags": [
@@ -4802,6 +5129,217 @@
           },
           "503": {
             "description": "Encryption key missing"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/subscriptions/by-user/{user_id}": {
+      "get": {
+        "tags": [
+          "admin-subscriptions"
+        ],
+        "operationId": "by_user",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "description": "Member id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subscription + memberships",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserSubscriptionView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Member not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/subscriptions/comp": {
+      "post": {
+        "tags": [
+          "admin-subscriptions"
+        ],
+        "operationId": "comp_grant",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompGrantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Comp membership minted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompGrantResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Member or plan not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/subscriptions/{id}/billing-cycle": {
+      "post": {
+        "tags": [
+          "admin-subscriptions"
+        ],
+        "operationId": "override_billing_cycle",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Subscription id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CycleOverrideRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Billing cycle anchor overridden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CycleOverrideResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed (anchor must be in the future)"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Subscription not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/subscriptions/{id}/extend": {
+      "post": {
+        "tags": [
+          "admin-subscriptions"
+        ],
+        "operationId": "extend_period",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Subscription id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExtendRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Period extended",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtendResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Subscription not found"
           }
         },
         "security": [
@@ -7407,6 +7945,64 @@
           }
         }
       },
+      "CompGrantRequest": {
+        "type": "object",
+        "required": [
+          "user_id",
+          "plan_id"
+        ],
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Recipient — must already exist in `users`."
+          },
+          "plan_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Membership plan id from `membership_plans`."
+          },
+          "duration_days": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Length of the comp grant in days; `None` ⇒ open-ended (the\naccess engine treats `ends_at IS NULL` as \"until cancelled\")."
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Free-text reason captured on the audit row."
+          }
+        }
+      },
+      "CompGrantResponse": {
+        "type": "object",
+        "required": [
+          "membership_id",
+          "starts_at"
+        ],
+        "properties": {
+          "membership_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ends_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
       "ConsentCategoryDef": {
         "type": "object",
         "description": "Single-category entry in the banner response.\n\nWire fields are camelCased to match the frontend stub at\n`src/lib/api/consent.ts`; when schema codegen replaces the stub the\nSvelte components consume this shape unchanged.",
@@ -9249,6 +9845,49 @@
           }
         }
       },
+      "CycleOverrideRequest": {
+        "type": "object",
+        "required": [
+          "anchor"
+        ],
+        "properties": {
+          "anchor": {
+            "type": "string",
+            "format": "date-time",
+            "description": "New `billing_cycle_anchor`. Must be in the future (you cannot\nretroactively shift a billing cycle in this admin path; if you\nneed to backdate, do it via Stripe and let the webhook\nreconcile)."
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "CycleOverrideResponse": {
+        "type": "object",
+        "required": [
+          "subscription_id",
+          "new_anchor"
+        ],
+        "properties": {
+          "subscription_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "previous_anchor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "new_anchor": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "DeliveryListQuery": {
         "type": "object",
         "properties": {
@@ -9588,6 +10227,47 @@
           "id": {
             "type": "string",
             "format": "uuid"
+          }
+        }
+      },
+      "ExtendRequest": {
+        "type": "object",
+        "required": [
+          "days"
+        ],
+        "properties": {
+          "days": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Number of days to add to `current_period_end`. Must be 1..=366."
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "ExtendResponse": {
+        "type": "object",
+        "required": [
+          "subscription_id",
+          "previous_current_period_end",
+          "new_current_period_end"
+        ],
+        "properties": {
+          "subscription_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "previous_current_period_end": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "new_current_period_end": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -10031,6 +10711,91 @@
           }
         }
       },
+      "ManualOrderItem": {
+        "type": "object",
+        "required": [
+          "product_id",
+          "quantity",
+          "unit_price_cents",
+          "name"
+        ],
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unit_price_cents": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Cents per unit. Operator-supplied so wholesale / comp pricing\ncan deviate from the public catalogue."
+          },
+          "name": {
+            "type": "string"
+          },
+          "sku": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "ManualOrderRequest": {
+        "type": "object",
+        "required": [
+          "email",
+          "items"
+        ],
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManualOrderItem"
+            }
+          },
+          "discount_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "tax_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "mark_completed": {
+            "type": "boolean",
+            "description": "`true` ⇒ skip the pending state and mark the order completed\nimmediately (the operator already collected payment off-band).\n`false` (default) leaves the order in `pending` so the standard\nreconciliation pipeline can advance it."
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
       "MatrixResponse": {
         "type": "object",
         "required": [
@@ -10165,6 +10930,48 @@
           }
         }
       },
+      "MembershipRow": {
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "plan_id",
+          "granted_by",
+          "status",
+          "starts_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "plan_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "granted_by": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ends_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
       "MintResponse": {
         "type": "object",
         "description": "Response body for `POST /` (mint). Contains the freshly-issued\nimpersonation JWT plus the row metadata so the SPA does not need a\nfollow-up GET to render the banner.",
@@ -10275,6 +11082,333 @@
             "type": "string"
           },
           "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "required": [
+          "id",
+          "number",
+          "status",
+          "currency",
+          "subtotal_cents",
+          "discount_cents",
+          "tax_cents",
+          "total_cents",
+          "email",
+          "metadata",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "cart_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "subtotal_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "discount_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "tax_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "email": {
+            "type": "string"
+          },
+          "stripe_payment_intent_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stripe_customer_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "idempotency_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "metadata": {},
+          "placed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OrderDetail": {
+        "type": "object",
+        "required": [
+          "order",
+          "items",
+          "refunds",
+          "notes",
+          "refunded_cents",
+          "remaining_refundable_cents"
+        ],
+        "properties": {
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItem"
+            }
+          },
+          "refunds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderRefund"
+            }
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderNote"
+            }
+          },
+          "refunded_cents": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Cents already refunded (sum of `order_refunds.amount_cents`)."
+          },
+          "remaining_refundable_cents": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "OrderItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "order_id",
+          "product_id",
+          "name",
+          "quantity",
+          "unit_price_cents",
+          "line_total_cents",
+          "metadata",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "order_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "product_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "variant_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "sku": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unit_price_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "line_total_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "metadata": {},
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OrderListEnvelope": {
+        "type": "object",
+        "required": [
+          "data",
+          "total",
+          "page",
+          "per_page",
+          "total_pages"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Order"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "per_page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total_pages": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "OrderNote": {
+        "type": "object",
+        "required": [
+          "id",
+          "order_id",
+          "kind",
+          "body",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "order_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "author_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OrderRefund": {
+        "type": "object",
+        "required": [
+          "id",
+          "order_id",
+          "amount_cents",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "order_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stripe_refund_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_by": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "created_at": {
             "type": "string",
             "format": "date-time"
           }
@@ -11560,6 +12694,52 @@
         "properties": {
           "refresh_token": {
             "type": "string"
+          }
+        }
+      },
+      "RefundRequest": {
+        "type": "object",
+        "required": [
+          "amount_cents"
+        ],
+        "properties": {
+          "amount_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "stripe_refund_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Operator-supplied Stripe refund id when the refund was issued\nout-of-band via the dashboard. Persisted on `order_refunds`\nso reconciliation can match."
+          }
+        }
+      },
+      "RefundResponse": {
+        "type": "object",
+        "required": [
+          "refund",
+          "order_marked_refunded",
+          "remaining_refundable_cents"
+        ],
+        "properties": {
+          "refund": {
+            "$ref": "#/components/schemas/OrderRefund"
+          },
+          "order_marked_refunded": {
+            "type": "boolean",
+            "description": "`true` when the cumulative refund total reached the order\ntotal and the engine flipped the order to `refunded`."
+          },
+          "remaining_refundable_cents": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
@@ -13765,6 +14945,25 @@
           "Admin"
         ]
       },
+      "UserSubscriptionView": {
+        "type": "object",
+        "required": [
+          "subscription",
+          "memberships"
+        ],
+        "properties": {
+          "subscription": {
+            "$ref": "#/components/schemas/SubscriptionStatusResponse"
+          },
+          "memberships": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MembershipRow"
+            },
+            "description": "All non-expired memberships attached to the user, newest first."
+          }
+        }
+      },
       "ValidateCouponRequest": {
         "type": "object",
         "required": [
@@ -13819,6 +15018,17 @@
         "properties": {
           "password": {
             "type": "string"
+          }
+        }
+      },
+      "VoidRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       },
@@ -14042,6 +15252,14 @@
     {
       "name": "admin-members",
       "description": "Admin-only members search + manual create"
+    },
+    {
+      "name": "admin-subscriptions",
+      "description": "Admin-only manual subscription operations (comp, extend, billing-cycle override)"
+    },
+    {
+      "name": "admin-orders",
+      "description": "Admin-only orders surface (list, manual create, void, partial refund, CSV export)"
     },
     {
       "name": "webhooks",

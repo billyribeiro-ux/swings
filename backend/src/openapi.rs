@@ -22,9 +22,10 @@ use utoipa_swagger_ui::SwaggerUi;
 use crate::{
     extractors::AdminUser,
     handlers::{
-        admin, admin_impersonation, admin_ip_allowlist, admin_members, admin_roles,
-        admin_security, admin_settings, analytics, auth, blog, consent, coupons, courses,
-        csp_report, forms, member, notifications, outbox, popups, products, webhooks,
+        admin, admin_impersonation, admin_ip_allowlist, admin_members, admin_orders,
+        admin_roles, admin_security, admin_settings, admin_subscriptions, analytics, auth, blog,
+        consent, coupons, courses, csp_report, forms, member, notifications, outbox, popups,
+        products, webhooks,
     },
     AppState,
 };
@@ -77,6 +78,8 @@ impl Modify for SecurityAddon {
         (name = "admin-settings", description = "Admin-only typed settings catalogue (incl. maintenance-mode kill-switch)"),
         (name = "admin-roles", description = "Admin-only role / permission matrix CRUD with hot policy reload"),
         (name = "admin-members", description = "Admin-only members search + manual create"),
+        (name = "admin-subscriptions", description = "Admin-only manual subscription operations (comp, extend, billing-cycle override)"),
+        (name = "admin-orders", description = "Admin-only orders surface (list, manual create, void, partial refund, CSV export)"),
         (name = "webhooks", description = "Inbound provider webhooks")
     ),
     paths(
@@ -138,6 +141,18 @@ impl Modify for SecurityAddon {
         // Admin members (ADM-10)
         admin_members::search,
         admin_members::create,
+        // Admin subscriptions (ADM-11)
+        admin_subscriptions::by_user,
+        admin_subscriptions::comp_grant,
+        admin_subscriptions::extend_period,
+        admin_subscriptions::override_billing_cycle,
+        // Admin orders (ADM-12)
+        admin_orders::list,
+        admin_orders::read_one,
+        admin_orders::create_manual,
+        admin_orders::void_order,
+        admin_orders::refund_order,
+        admin_orders::export_csv,
         // Blog
         blog::admin_create_post,
         blog::admin_update_post,
@@ -316,6 +331,23 @@ impl Modify for SecurityAddon {
             // Admin members (ADM-10)
             admin_members::CreateMemberRequest,
             admin_members::CreateMemberResponse,
+            // Admin subscriptions (ADM-11)
+            admin_subscriptions::CompGrantRequest,
+            admin_subscriptions::CompGrantResponse,
+            admin_subscriptions::ExtendRequest,
+            admin_subscriptions::ExtendResponse,
+            admin_subscriptions::CycleOverrideRequest,
+            admin_subscriptions::CycleOverrideResponse,
+            admin_subscriptions::MembershipRow,
+            admin_subscriptions::UserSubscriptionView,
+            // Admin orders (ADM-12)
+            admin_orders::OrderListEnvelope,
+            admin_orders::OrderDetail,
+            admin_orders::ManualOrderItem,
+            admin_orders::ManualOrderRequest,
+            admin_orders::VoidRequest,
+            admin_orders::RefundRequest,
+            admin_orders::RefundResponse,
             // Blog
             crate::models::BlogPost,
             crate::models::BlogPostResponse,
