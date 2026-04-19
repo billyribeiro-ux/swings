@@ -687,7 +687,8 @@ pub async fn admin_list_submissions(
 )]
 pub async fn admin_bulk_update_submissions(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(form_id): Path<Uuid>,
     Json(req): Json<BulkActionRequest>,
 ) -> AppResult<Json<BulkActionResponse>> {
@@ -702,6 +703,23 @@ pub async fn admin_bulk_update_submissions(
         }
     };
     let updated = repo::bulk_update_submission_status(&state.db, form_id, &req.ids, status).await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "form.submissions.bulk_update",
+        "form",
+        form_id,
+        serde_json::json!({
+            "action": req.action,
+            "status": status,
+            "submission_ids": req.ids,
+            "updated": updated,
+        }),
+    )
+    .await;
+
     Ok(Json(BulkActionResponse { updated }))
 }
 

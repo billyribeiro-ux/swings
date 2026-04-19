@@ -38,7 +38,8 @@ use crate::{
     consent::{integrity, repo},
     error::{AppError, AppResult},
     events::{self, outbox::Event},
-    extractors::AdminUser,
+    extractors::{AdminUser, ClientInfo},
+    services::audit::audit_admin,
     AppState,
 };
 
@@ -151,6 +152,7 @@ async fn get_banner(
 async fn create_banner(
     State(state): State<AppState>,
     admin: AdminUser,
+    client: ClientInfo,
     Json(req): Json<BannerUpsertRequest>,
 ) -> AppResult<Json<repo::BannerConfigRow>> {
     let row = sqlx::query_as::<_, repo::BannerConfigRow>(
@@ -182,12 +184,29 @@ async fn create_banner(
     )
     .await?;
 
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "consent.banner.create",
+        "consent_banner",
+        row.id,
+        serde_json::json!({
+            "region": row.region,
+            "locale": row.locale,
+            "layout": row.layout,
+            "is_active": row.is_active,
+        }),
+    )
+    .await;
+
     Ok(Json(row))
 }
 
 async fn update_banner(
     State(state): State<AppState>,
     admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<BannerUpsertRequest>,
 ) -> AppResult<Json<repo::BannerConfigRow>> {
@@ -230,6 +249,22 @@ async fn update_banner(
     )
     .await?;
 
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "consent.banner.update",
+        "consent_banner",
+        row.id,
+        serde_json::json!({
+            "region": row.region,
+            "locale": row.locale,
+            "version": row.version,
+            "is_active": row.is_active,
+        }),
+    )
+    .await;
+
     Ok(Json(row))
 }
 
@@ -257,6 +292,7 @@ async fn list_categories(
 async fn create_category(
     State(state): State<AppState>,
     admin: AdminUser,
+    client: ClientInfo,
     Json(req): Json<CategoryUpsertRequest>,
 ) -> AppResult<Json<repo::CategoryRow>> {
     if req.key == "necessary" {
@@ -290,12 +326,28 @@ async fn create_category(
     )
     .await?;
 
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "consent.category.create",
+        "consent_category",
+        row.key.clone(),
+        serde_json::json!({
+            "key": row.key,
+            "label": row.label,
+            "is_required": row.is_required,
+        }),
+    )
+    .await;
+
     Ok(Json(row))
 }
 
 async fn update_category(
     State(state): State<AppState>,
     admin: AdminUser,
+    client: ClientInfo,
     Path(key): Path<String>,
     Json(req): Json<CategoryUpsertRequest>,
 ) -> AppResult<Json<repo::CategoryRow>> {
@@ -335,6 +387,22 @@ async fn update_category(
         serde_json::json!({ "label": row.label, "sort_order": row.sort_order }),
     )
     .await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "consent.category.update",
+        "consent_category",
+        row.key.clone(),
+        serde_json::json!({
+            "key": row.key,
+            "label": row.label,
+            "sort_order": row.sort_order,
+            "is_required": row.is_required,
+        }),
+    )
+    .await;
 
     Ok(Json(row))
 }
@@ -381,6 +449,7 @@ async fn list_services(
 async fn create_service(
     State(state): State<AppState>,
     admin: AdminUser,
+    client: ClientInfo,
     Json(req): Json<ServiceUpsertRequest>,
 ) -> AppResult<Json<repo::ServiceRow>> {
     let row = sqlx::query_as::<_, repo::ServiceRow>(
@@ -414,12 +483,30 @@ async fn create_service(
     )
     .await?;
 
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "consent.service.create",
+        "consent_service",
+        row.id,
+        serde_json::json!({
+            "slug": row.slug,
+            "name": row.name,
+            "category": row.category,
+            "vendor": row.vendor,
+            "is_active": row.is_active,
+        }),
+    )
+    .await;
+
     Ok(Json(row))
 }
 
 async fn update_service(
     State(state): State<AppState>,
     admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<ServiceUpsertRequest>,
 ) -> AppResult<Json<repo::ServiceRow>> {
@@ -464,6 +551,22 @@ async fn update_service(
         serde_json::json!({ "slug": row.slug }),
     )
     .await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "consent.service.update",
+        "consent_service",
+        row.id,
+        serde_json::json!({
+            "slug": row.slug,
+            "name": row.name,
+            "category": row.category,
+            "is_active": row.is_active,
+        }),
+    )
+    .await;
 
     Ok(Json(row))
 }
@@ -510,6 +613,7 @@ async fn list_policies(
 async fn create_policy(
     State(state): State<AppState>,
     admin: AdminUser,
+    client: ClientInfo,
     Json(req): Json<PolicyCreateRequest>,
 ) -> AppResult<Json<PolicyDetail>> {
     // Next version = max(existing) + 1 for this locale. Default `en` catches
@@ -548,6 +652,20 @@ async fn create_policy(
         serde_json::json!({ "version": row.version, "locale": row.locale }),
     )
     .await?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "consent.policy.create",
+        "consent_policy",
+        row.id,
+        serde_json::json!({
+            "version": row.version,
+            "locale": row.locale,
+        }),
+    )
+    .await;
 
     Ok(Json(row))
 }

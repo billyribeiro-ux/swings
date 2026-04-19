@@ -24,8 +24,9 @@ use uuid::Uuid;
 use crate::{
     error::{AppError, AppResult},
     events::outbox::{OutboxRecord, OutboxStatus},
-    extractors::AdminUser,
+    extractors::{AdminUser, ClientInfo},
     models::PaginatedResponse,
+    services::audit::audit_admin,
     AppState,
 };
 
@@ -256,7 +257,8 @@ pub async fn get_outbox(
 )]
 pub async fn retry_outbox(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<OutboxRetryResponse>> {
     // Delivered rows are final — surfacing a conflict here avoids silently
@@ -296,6 +298,23 @@ pub async fn retry_outbox(
             };
         }
     };
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "outbox.retry",
+        "outbox_event",
+        row.id,
+        serde_json::json!({
+            "event_type": row.event_type,
+            "aggregate_type": row.aggregate_type,
+            "aggregate_id": row.aggregate_id,
+            "attempts": row.attempts,
+            "previous_error": row.last_error,
+        }),
+    )
+    .await;
 
     Ok(Json(OutboxRetryResponse {
         id: row.id,

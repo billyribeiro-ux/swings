@@ -42,11 +42,12 @@ use crate::{
         repo,
     },
     error::{AppError, AppResult},
-    extractors::{AdminUser, AuthUser, OptionalAuthUser},
+    extractors::{AdminUser, AuthUser, ClientInfo, OptionalAuthUser},
     notifications::{
         send::{send_notification, Recipient, SendOptions},
         NotifyError,
     },
+    services::audit::audit_admin,
     AppState,
 };
 
@@ -700,6 +701,7 @@ pub(crate) async fn admin_list_dsar(
 pub(crate) async fn admin_fulfill_dsar(
     State(state): State<AppState>,
     admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<DsarFulfillRequest>,
 ) -> AppResult<Json<DsarFulfillResponse>> {
@@ -733,6 +735,24 @@ pub(crate) async fn admin_fulfill_dsar(
     )
     .await?
     .ok_or_else(|| AppError::NotFound(format!("DSAR {id} disappeared during update")))?;
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        "consent.dsar.fulfill",
+        "dsar_request",
+        updated.id,
+        serde_json::json!({
+            "kind": updated.kind,
+            "status": updated.status,
+            "user_id": updated.user_id,
+            "email": updated.email,
+            "has_export": export_json.is_some(),
+            "has_fulfillment_url": effective_url.is_some(),
+        }),
+    )
+    .await;
 
     Ok(Json(DsarFulfillResponse {
         request: updated,
