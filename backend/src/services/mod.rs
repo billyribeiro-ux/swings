@@ -1,4 +1,5 @@
 pub mod audit;
+pub mod dsar_admin;
 pub mod storage;
 
 pub use audit::{

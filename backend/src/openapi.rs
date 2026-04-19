@@ -22,10 +22,10 @@ use utoipa_swagger_ui::SwaggerUi;
 use crate::{
     extractors::AdminUser,
     handlers::{
-        admin, admin_impersonation, admin_ip_allowlist, admin_members, admin_orders,
-        admin_roles, admin_security, admin_settings, admin_subscriptions, analytics, auth, blog,
-        consent, coupons, courses, csp_report, forms, member, notifications, outbox, popups,
-        products, webhooks,
+        admin, admin_dsar, admin_impersonation, admin_ip_allowlist, admin_members,
+        admin_orders, admin_roles, admin_security, admin_settings, admin_subscriptions,
+        analytics, auth, blog, consent, coupons, courses, csp_report, forms, member,
+        notifications, outbox, popups, products, webhooks,
     },
     AppState,
 };
@@ -80,6 +80,7 @@ impl Modify for SecurityAddon {
         (name = "admin-members", description = "Admin-only members search + manual create"),
         (name = "admin-subscriptions", description = "Admin-only manual subscription operations (comp, extend, billing-cycle override)"),
         (name = "admin-orders", description = "Admin-only orders surface (list, manual create, void, partial refund, CSV export)"),
+        (name = "admin-dsar", description = "Admin-initiated DSAR jobs (export + dual-control right-to-erasure tombstone)"),
         (name = "webhooks", description = "Inbound provider webhooks")
     ),
     paths(
@@ -153,6 +154,13 @@ impl Modify for SecurityAddon {
         admin_orders::void_order,
         admin_orders::refund_order,
         admin_orders::export_csv,
+        // Admin DSAR (ADM-13)
+        admin_dsar::list_jobs,
+        admin_dsar::read_job,
+        admin_dsar::create_export,
+        admin_dsar::request_erase,
+        admin_dsar::approve_erase,
+        admin_dsar::cancel_job,
         // Blog
         blog::admin_create_post,
         blog::admin_update_post,
@@ -348,6 +356,16 @@ impl Modify for SecurityAddon {
             admin_orders::VoidRequest,
             admin_orders::RefundRequest,
             admin_orders::RefundResponse,
+            // Admin DSAR (ADM-13)
+            admin_dsar::DsarJob,
+            admin_dsar::JobListEnvelope,
+            admin_dsar::ExportRequest,
+            admin_dsar::ExportResponse,
+            admin_dsar::EraseRequestBody,
+            admin_dsar::EraseApproveBody,
+            admin_dsar::EraseApproveResponse,
+            admin_dsar::CancelBody,
+            crate::services::dsar_admin::TombstoneSummary,
             // Blog
             crate::models::BlogPost,
             crate::models::BlogPostResponse,

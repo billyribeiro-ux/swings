@@ -369,7 +369,10 @@ async fn main() -> Result<()> {
                 )
                 // ADM-12: orders admin (list / read / manual create
                 // / void / partial refund / CSV export).
-                .nest("/orders", handlers::admin_orders::router()),
+                .nest("/orders", handlers::admin_orders::router())
+                // ADM-13: admin-initiated DSAR jobs
+                // (export + dual-control right-to-erasure tombstone).
+                .nest("/dsar", handlers::admin_dsar::router()),
         )
         .nest("/api/admin/blog", handlers::blog::admin_router())
         .nest("/api/admin/courses", handlers::courses::admin_router())
