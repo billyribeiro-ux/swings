@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { Popup, PopupElement } from '$lib/api/types';
-	import X from 'phosphor-svelte/lib/X';
+	import XIcon from 'phosphor-svelte/lib/XIcon';
 
 	interface Props {
 		popup: Popup;
@@ -107,7 +107,7 @@
 			aria-label="Close popup"
 			style="color: {style.textColor || '#ffffff'}"
 		>
-			<X size={20} weight="bold" />
+			<XIcon size={20} weight="bold" />
 		</button>
 
 		{#if submitted && popup.success_message}

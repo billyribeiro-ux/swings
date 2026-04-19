@@ -31,11 +31,11 @@
 
 <script lang="ts">
 	import type { Attachment } from 'svelte/attachments';
-	import XIcon from 'phosphor-svelte/lib/X';
-	import Info from 'phosphor-svelte/lib/Info';
-	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
-	import Warning from 'phosphor-svelte/lib/Warning';
-	import WarningOctagon from 'phosphor-svelte/lib/WarningOctagon';
+	import XIcon from 'phosphor-svelte/lib/XIcon';
+	import InfoIcon from 'phosphor-svelte/lib/InfoIcon';
+	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
+	import WarningIcon from 'phosphor-svelte/lib/WarningIcon';
+	import WarningOctagonIcon from 'phosphor-svelte/lib/WarningOctagonIcon';
 
 	const {
 		id,
@@ -83,13 +83,13 @@
 		{#if icon}
 			{@render icon()}
 		{:else if kind === 'success'}
-			<CheckCircle size="1.25rem" weight="fill" />
+			<CheckCircleIcon size="1.25rem" weight="fill" />
 		{:else if kind === 'warning'}
-			<Warning size="1.25rem" weight="fill" />
+			<WarningIcon size="1.25rem" weight="fill" />
 		{:else if kind === 'danger'}
-			<WarningOctagon size="1.25rem" weight="fill" />
+			<WarningOctagonIcon size="1.25rem" weight="fill" />
 		{:else}
-			<Info size="1.25rem" weight="fill" />
+			<InfoIcon size="1.25rem" weight="fill" />
 		{/if}
 	</span>
 	<div class="body">

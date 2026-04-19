@@ -8,9 +8,9 @@
 -->
 <script lang="ts">
 	import type { FieldProps, FieldSchema } from '../types.ts';
-	import CaretUp from 'phosphor-svelte/lib/CaretUp';
-	import CaretDown from 'phosphor-svelte/lib/CaretDown';
-	import DotsSixVertical from 'phosphor-svelte/lib/DotsSixVertical';
+	import CaretUpIcon from 'phosphor-svelte/lib/CaretUpIcon';
+	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
+	import DotsSixVerticalIcon from 'phosphor-svelte/lib/DotsSixVerticalIcon';
 
 	const { field, value, error, disabled = false, onChange }: FieldProps = $props();
 	const r = $derived(field as Extract<FieldSchema, { type: 'ranking' }>);
@@ -82,7 +82,7 @@
 				ondragover={handleDragOver}
 				ondrop={() => handleDrop(i)}
 			>
-				<DotsSixVertical size={18} />
+				<DotsSixVerticalIcon size={18} />
 				<span class="fm-ranking__label">{labelFor(v)}</span>
 				<button
 					type="button"
@@ -91,7 +91,7 @@
 					disabled={disabled || i === 0}
 					aria-label={`Move ${labelFor(v)} up`}
 				>
-					<CaretUp size={16} />
+					<CaretUpIcon size={16} />
 				</button>
 				<button
 					type="button"
@@ -100,7 +100,7 @@
 					disabled={disabled || i === order.length - 1}
 					aria-label={`Move ${labelFor(v)} down`}
 				>
-					<CaretDown size={16} />
+					<CaretDownIcon size={16} />
 				</button>
 			</li>
 		{/each}

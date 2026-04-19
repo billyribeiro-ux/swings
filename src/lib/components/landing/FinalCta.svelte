@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
-	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
+	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
 	import { ctaImpression, trackCtaEvent } from '$lib/analytics/cta';
 
 	const FINAL_CTA_ID = 'final_get_instant_access';
@@ -62,7 +62,7 @@
 				onclick={() => trackCtaEvent('click', FINAL_CTA_ID)}
 			>
 				Get Instant Access to Alerts
-				<ArrowRight size={20} weight="bold" />
+				<ArrowRightIcon size={20} weight="bold" />
 			</Button>
 		</div>
 	</div>

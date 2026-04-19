@@ -5,10 +5,10 @@
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import Seo from '$lib/seo/Seo.svelte';
 	import { webPageSchema, articleSchema, buildJsonLd } from '$lib/seo/jsonld';
-	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
-	import Article from 'phosphor-svelte/lib/Article';
-	import CalendarBlank from 'phosphor-svelte/lib/CalendarBlank';
-	import Clock from 'phosphor-svelte/lib/Clock';
+	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
+	import ArticleIcon from 'phosphor-svelte/lib/ArticleIcon';
+	import CalendarBlankIcon from 'phosphor-svelte/lib/CalendarBlankIcon';
+	import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -100,7 +100,7 @@
 
 	<div class="page-hero__inner">
 		<div class="blog-badge page-badge">
-			<Article size={18} weight="duotone" color="#15C5D1" />
+			<ArticleIcon size={18} weight="duotone" color="#15C5D1" />
 			<span class="page-badge__text">Blog</span>
 		</div>
 
@@ -132,7 +132,7 @@
 	<div class="page-container">
 		{#if posts.length === 0}
 			<div class="blog-empty">
-				<Article size={48} weight="duotone" color="#0FA4AF" class="blog-coming-soon__icon" />
+				<ArticleIcon size={48} weight="duotone" color="#0FA4AF" class="blog-coming-soon__icon" />
 				<h3 class="blog-coming-soon__title">No Posts Yet</h3>
 				<p class="blog-coming-soon__desc">
 					We're working on new content. Check back soon for trading insights, strategies, and
@@ -157,7 +157,7 @@
 							<div class="blog-card__body">
 								<div class="blog-card__meta">
 									<span class="blog-card__meta-item">
-										<CalendarBlank size={14} weight="bold" class="blog-card__meta-icon" />
+										<CalendarBlankIcon size={14} weight="bold" class="blog-card__meta-icon" />
 										{new Date(post.published_at || post.created_at).toLocaleDateString('en-US', {
 											month: 'short',
 											day: 'numeric',
@@ -166,7 +166,7 @@
 									</span>
 									<span>•</span>
 									<span class="blog-card__meta-item">
-										<Clock size={14} weight="bold" class="blog-card__meta-icon" />
+										<ClockIcon size={14} weight="bold" class="blog-card__meta-icon" />
 										{post.reading_time_minutes} min read
 									</span>
 								</div>
@@ -183,7 +183,7 @@
 
 								<a href="/blog/{post.slug}" class="blog-card__link">
 									Read More
-									<ArrowRight size={14} weight="bold" />
+									<ArrowRightIcon size={14} weight="bold" />
 								</a>
 							</div>
 						</article>

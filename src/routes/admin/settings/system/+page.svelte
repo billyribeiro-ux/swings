@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import Gear from 'phosphor-svelte/lib/Gear';
-	import FloppyDisk from 'phosphor-svelte/lib/FloppyDisk';
-	import ArrowClockwise from 'phosphor-svelte/lib/ArrowClockwise';
-	import Eye from 'phosphor-svelte/lib/Eye';
-	import EyeSlash from 'phosphor-svelte/lib/EyeSlash';
-	import Plus from 'phosphor-svelte/lib/Plus';
+	import GearIcon from 'phosphor-svelte/lib/GearIcon';
+	import FloppyDiskIcon from 'phosphor-svelte/lib/FloppyDiskIcon';
+	import ArrowClockwiseIcon from 'phosphor-svelte/lib/ArrowClockwiseIcon';
+	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
+	import EyeSlashIcon from 'phosphor-svelte/lib/EyeSlashIcon';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import { ApiError } from '$lib/api/client';
 	import {
 		appSettings,
@@ -208,7 +208,7 @@
 <div class="page" data-testid="admin-settings-system-page">
 	<header class="page__header">
 		<div class="page__title-row">
-			<Gear size={28} weight="duotone" />
+			<GearIcon size={28} weight="duotone" />
 			<h1 class="page__title">System settings</h1>
 		</div>
 		<p class="page__subtitle">
@@ -227,7 +227,7 @@
 
 	<div class="actions">
 		<button class="btn btn--ghost" onclick={refresh}>
-			<ArrowClockwise size={16} weight="bold" />
+			<ArrowClockwiseIcon size={16} weight="bold" />
 			Refresh
 		</button>
 		<button class="btn btn--ghost" onclick={reload} title="Reload in-memory snapshot">
@@ -305,9 +305,9 @@
 											title={revealCache[s.key] ? 'Hide' : 'Reveal current value'}
 										>
 											{#if revealCache[s.key]}
-												<EyeSlash size={14} />
+												<EyeSlashIcon size={14} />
 											{:else}
-												<Eye size={14} />
+												<EyeIcon size={14} />
 											{/if}
 										</button>
 									</div>
@@ -333,7 +333,7 @@
 										disabled={!isDirty(s) || saving[s.key]}
 										data-testid={`save-${s.key}`}
 									>
-										<FloppyDisk size={14} weight="bold" />
+										<FloppyDiskIcon size={14} weight="bold" />
 										{saving[s.key] ? 'Saving…' : 'Save'}
 									</button>
 								</div>
@@ -347,7 +347,7 @@
 
 	<section class="section card card--create">
 		<h2 class="section__title">
-			<Plus size={18} weight="bold" />
+			<PlusIcon size={18} weight="bold" />
 			Create setting
 		</h2>
 		<form class="create-form" onsubmit={create}>

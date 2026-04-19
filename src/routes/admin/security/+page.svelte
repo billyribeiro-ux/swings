@@ -1,43 +1,43 @@
 <script lang="ts">
-	import ShieldCheck from 'phosphor-svelte/lib/ShieldCheck';
-	import IpInfo from 'phosphor-svelte/lib/Globe';
-	import UserGear from 'phosphor-svelte/lib/UserGear';
-	import IdentificationBadge from 'phosphor-svelte/lib/IdentificationBadge';
-	import Eye from 'phosphor-svelte/lib/Eye';
-	import Trash from 'phosphor-svelte/lib/Trash';
+	import ShieldCheckIcon from 'phosphor-svelte/lib/ShieldCheckIcon';
+	import IpInfoIcon from 'phosphor-svelte/lib/GlobeIcon';
+	import UserGearIcon from 'phosphor-svelte/lib/UserGearIcon';
+	import IdentificationBadgeIcon from 'phosphor-svelte/lib/IdentificationBadgeIcon';
+	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
+	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
 
 	const cards = [
 		{
 			href: '/admin/security/ip-allowlist',
-			icon: IpInfo,
+			icon: IpInfoIcon,
 			title: 'IP allowlist',
 			summary:
 				'CIDR rules that gate the admin panel. Add, toggle, or remove entries — the middleware rejects /api/admin/* traffic from any address that does not match an active rule.'
 		},
 		{
 			href: '/admin/security/impersonation',
-			icon: IdentificationBadge,
+			icon: IdentificationBadgeIcon,
 			title: 'Impersonation',
 			summary:
 				'Mint short-lived tokens to act as a member for support cases. Every mint, revoke, and downstream action is audited; the impersonated user is notified by email.'
 		},
 		{
 			href: '/admin/security/roles',
-			icon: UserGear,
+			icon: UserGearIcon,
 			title: 'Role / permission matrix',
 			summary:
 				'Grant or revoke individual permissions per role. Mutations hot-reload the in-memory policy snapshot without a server restart.'
 		},
 		{
 			href: '/admin/dsar',
-			icon: Trash,
+			icon: TrashIcon,
 			title: 'DSAR & right-to-erasure',
 			summary:
 				'Admin-initiated data subject access requests and dual-control tombstones. (Existing module — link to the legacy CONSENT-07 surface here.)'
 		},
 		{
 			href: '/admin/audit',
-			icon: Eye,
+			icon: EyeIcon,
 			title: 'Audit log viewer',
 			summary:
 				'Full-text search across every privileged action recorded in admin_actions, with JSON-path probing on the metadata payload and CSV export.'
@@ -52,7 +52,7 @@
 <div class="security-hub">
 	<header class="security-hub__header">
 		<div class="security-hub__title-row">
-			<ShieldCheck size={28} weight="duotone" />
+			<ShieldCheckIcon size={28} weight="duotone" />
 			<h1 class="security-hub__title">Security</h1>
 		</div>
 		<p class="security-hub__subtitle">

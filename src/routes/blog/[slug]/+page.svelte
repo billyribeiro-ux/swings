@@ -1,14 +1,14 @@
 <script lang="ts">
 	import Seo from '$lib/seo/Seo.svelte';
 	import { articleSchema, buildJsonLd } from '$lib/seo/jsonld';
-	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
-	import CalendarBlank from 'phosphor-svelte/lib/CalendarBlank';
-	import Clock from 'phosphor-svelte/lib/Clock';
-	import User from 'phosphor-svelte/lib/User';
-	import TwitterLogo from 'phosphor-svelte/lib/TwitterLogo';
-	import LinkedinLogo from 'phosphor-svelte/lib/LinkedinLogo';
-	import YoutubeLogo from 'phosphor-svelte/lib/YoutubeLogo';
-	import Globe from 'phosphor-svelte/lib/Globe';
+	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
+	import CalendarBlankIcon from 'phosphor-svelte/lib/CalendarBlankIcon';
+	import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
+	import UserIcon from 'phosphor-svelte/lib/UserIcon';
+	import TwitterLogoIcon from 'phosphor-svelte/lib/TwitterLogoIcon';
+	import LinkedinLogoIcon from 'phosphor-svelte/lib/LinkedinLogoIcon';
+	import YoutubeLogoIcon from 'phosphor-svelte/lib/YoutubeLogoIcon';
+	import GlobeIcon from 'phosphor-svelte/lib/GlobeIcon';
 	import { getPublicApiBase } from '$lib/api/publicApiBase';
 	import type { BlogPostResponse } from '$lib/api/types';
 	import type { PageData } from './$types';
@@ -114,7 +114,7 @@
 		<header class="post-header">
 			<div class="post-header__inner">
 				<a href="/blog" class="post-header__back">
-					<ArrowLeft size={16} weight="bold" />
+					<ArrowLeftIcon size={16} weight="bold" />
 					Back to Blog
 				</a>
 
@@ -132,11 +132,11 @@
 
 				<div class="post-header__info">
 					<span class="post-header__info-item">
-						<User size={16} weight="bold" />
+						<UserIcon size={16} weight="bold" />
 						{post.author_name}
 					</span>
 					<span class="post-header__info-item">
-						<CalendarBlank size={16} weight="bold" />
+						<CalendarBlankIcon size={16} weight="bold" />
 						{new Date(post.published_at || post.created_at).toLocaleDateString('en-US', {
 							month: 'long',
 							day: 'numeric',
@@ -144,7 +144,7 @@
 						})}
 					</span>
 					<span class="post-header__info-item">
-						<Clock size={16} weight="bold" />
+						<ClockIcon size={16} weight="bold" />
 						{post.reading_time_minutes} min read
 					</span>
 				</div>
@@ -177,7 +177,7 @@
 					{#if post.author_avatar}
 						<img src={post.author_avatar} alt={post.author_name} class="author-box__img" />
 					{:else}
-						<div class="author-box__placeholder"><User size={36} weight="thin" /></div>
+						<div class="author-box__placeholder"><UserIcon size={36} weight="thin" /></div>
 					{/if}
 				</div>
 				<div class="author-box__info">
@@ -199,7 +199,7 @@
 									class="author-box__social-link"
 									aria-label="Twitter / X"
 								>
-									<TwitterLogo size={18} weight="bold" />
+									<TwitterLogoIcon size={18} weight="bold" />
 								</a>
 							{/if}
 							{#if post.author_linkedin}
@@ -210,7 +210,7 @@
 									class="author-box__social-link"
 									aria-label="LinkedIn"
 								>
-									<LinkedinLogo size={18} weight="bold" />
+									<LinkedinLogoIcon size={18} weight="bold" />
 								</a>
 							{/if}
 							{#if post.author_youtube}
@@ -221,7 +221,7 @@
 									class="author-box__social-link"
 									aria-label="YouTube"
 								>
-									<YoutubeLogo size={18} weight="bold" />
+									<YoutubeLogoIcon size={18} weight="bold" />
 								</a>
 							{/if}
 							{#if post.author_website}
@@ -232,7 +232,7 @@
 									class="author-box__social-link"
 									aria-label="Website"
 								>
-									<Globe size={18} weight="bold" />
+									<GlobeIcon size={18} weight="bold" />
 								</a>
 							{/if}
 						</div>
@@ -242,7 +242,7 @@
 
 			<div class="post-footer">
 				<a href="/blog" class="post-footer__link">
-					<ArrowLeft size={16} weight="bold" />
+					<ArrowLeftIcon size={16} weight="bold" />
 					Back to all posts
 				</a>
 			</div>

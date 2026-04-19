@@ -3,9 +3,9 @@
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import type { WatchlistWithAlerts } from '$lib/api/types';
-	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
-	import TrendUp from 'phosphor-svelte/lib/TrendUp';
-	import TrendDown from 'phosphor-svelte/lib/TrendDown';
+	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
+	import TrendUpIcon from 'phosphor-svelte/lib/TrendUpIcon';
+	import TrendDownIcon from 'phosphor-svelte/lib/TrendDownIcon';
 
 	let watchlist = $state<WatchlistWithAlerts | null>(null);
 	let loading = $state(true);
@@ -29,7 +29,7 @@
 
 <div class="wl-detail">
 	<a href="/dashboard/watchlists" class="wl-detail__back">
-		<ArrowLeft size={18} />
+		<ArrowLeftIcon size={18} />
 		Back to Watchlists
 	</a>
 
@@ -68,9 +68,9 @@
 							<div class="alert-card__header">
 								<div class="alert-card__ticker-wrap">
 									{#if alert.direction === 'bullish'}
-										<TrendUp size={18} weight="bold" class="alert-card__icon--bull" />
+										<TrendUpIcon size={18} weight="bold" class="alert-card__icon--bull" />
 									{:else}
-										<TrendDown size={18} weight="bold" class="alert-card__icon--bear" />
+										<TrendDownIcon size={18} weight="bold" class="alert-card__icon--bear" />
 									{/if}
 									<h3 class="alert-card__ticker">{alert.ticker}</h3>
 								</div>

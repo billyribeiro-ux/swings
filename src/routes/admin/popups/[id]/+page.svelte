@@ -7,14 +7,14 @@
 		Popup, PopupType, PopupTrigger, PopupFrequency,
 		PopupElement, PopupStyle, PopupTargetingRules, UpdatePopupPayload, PopupAnalytics
 	} from '$lib/api/types';
-	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
-	import FloppyDisk from 'phosphor-svelte/lib/FloppyDisk';
-	import Trash from 'phosphor-svelte/lib/Trash';
-	import PencilSimple from 'phosphor-svelte/lib/PencilSimple';
-	import CaretUp from 'phosphor-svelte/lib/CaretUp';
-	import CaretDown from 'phosphor-svelte/lib/CaretDown';
-	import Plus from 'phosphor-svelte/lib/Plus';
-	import Eye from 'phosphor-svelte/lib/Eye';
+	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
+	import FloppyDiskIcon from 'phosphor-svelte/lib/FloppyDiskIcon';
+	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
+	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
+	import CaretUpIcon from 'phosphor-svelte/lib/CaretUpIcon';
+	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
 
 	const popupId = $derived(page.params.id);
 
@@ -139,7 +139,7 @@
 		<p class="popup-edit__loading">Loading popup...</p>
 	{:else}
 		<div class="popup-edit__header">
-			<a href="/admin/popups" class="popup-edit__back"><ArrowLeft size={18} /> Back</a>
+			<a href="/admin/popups" class="popup-edit__back"><ArrowLeftIcon size={18} /> Back</a>
 			<input type="text" bind:value={name} placeholder="Popup name" class="popup-edit__name" />
 			<select bind:value={popupType} class="popup-edit__select">
 				<option value="modal">Modal</option>
@@ -149,10 +149,10 @@
 				<option value="floating_bar">Floating Bar</option>
 			</select>
 			<button class="popup-edit__save" onclick={handleSave} disabled={saving}>
-				<FloppyDisk size={16} /> {saving ? 'Saving...' : 'Update'}
+				<FloppyDiskIcon size={16} /> {saving ? 'Saving...' : 'Update'}
 			</button>
 			<button class="popup-edit__delete" onclick={handleDelete} disabled={deleting}>
-				<Trash size={16} /> {deleting ? 'Deleting...' : 'Delete'}
+				<TrashIcon size={16} /> {deleting ? 'Deleting...' : 'Delete'}
 			</button>
 		</div>
 
@@ -192,7 +192,7 @@
 			{:else if activeTab === 'targeting'}
 				<div class="field"><span>Pages</span>
 					{#each pages_ as p}<span class="chip">{p} <button onclick={() => removePage(p)}>&times;</button></span>{/each}
-					<div class="field__row"><input type="text" bind:value={newPage} placeholder="/blog/*" class="field__input" /><button class="field__btn" onclick={addPage}><Plus size={14} /></button></div>
+					<div class="field__row"><input type="text" bind:value={newPage} placeholder="/blog/*" class="field__input" /><button class="field__btn" onclick={addPage}><PlusIcon size={14} /></button></div>
 				</div>
 				<div class="field"><span>Devices</span>
 					{#each (['desktop','mobile','tablet'] as const) as d}<label class="checkbox"><input type="checkbox" checked={devices.includes(d)} onchange={() => toggleDevice(d)} /> {d}</label>{/each}
@@ -227,7 +227,7 @@
 			<h3>Content Elements</h3>
 			<div class="popup-edit__add-bar">
 				{#each [['heading','H'],['text','T'],['email','@'],['input','Aa'],['button','Btn'],['divider','—']] as [type, label]}
-					<button class="add-btn" onclick={() => addElement(type as PopupElement['type'])}><Plus size={12} /> {label}</button>
+					<button class="add-btn" onclick={() => addElement(type as PopupElement['type'])}><PlusIcon size={12} /> {label}</button>
 				{/each}
 			</div>
 			{#each elements as el, i (el.id)}
@@ -235,10 +235,10 @@
 					<div class="element__row">
 						<span class="element__type">{el.type}</span>
 						<span class="element__preview">{String(el.props.text ?? el.props.label ?? '')}</span>
-						<button onclick={() => (editingId = editingId === el.id ? null : el.id)}><PencilSimple size={14} /></button>
-						<button onclick={() => moveUp(i)}><CaretUp size={14} /></button>
-						<button onclick={() => moveDown(i)}><CaretDown size={14} /></button>
-						<button onclick={() => removeElement(el.id)}><Trash size={14} /></button>
+						<button onclick={() => (editingId = editingId === el.id ? null : el.id)}><PencilSimpleIcon size={14} /></button>
+						<button onclick={() => moveUp(i)}><CaretUpIcon size={14} /></button>
+						<button onclick={() => moveDown(i)}><CaretDownIcon size={14} /></button>
+						<button onclick={() => removeElement(el.id)}><TrashIcon size={14} /></button>
 					</div>
 					{#if editingId === el.id}
 						<div class="element__edit">
@@ -257,7 +257,7 @@
 
 		<!-- Preview -->
 		<div class="popup-edit__preview">
-			<h3><Eye size={16} /> Preview</h3>
+			<h3><EyeIcon size={16} /> Preview</h3>
 			<div class="preview-box" style="background:{bg}; color:{textColor}; border-radius:{borderRadius}; max-width:{maxWidth}; padding:1.5rem;">
 				{#each elements as el}
 					{#if el.type === 'heading'}<h2 style="margin:0 0 0.5rem">{el.props.text ?? 'Heading'}</h2>

@@ -2,14 +2,14 @@
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import { goto } from '$app/navigation';
-	import CaretLeft from 'phosphor-svelte/lib/CaretLeft';
-	import CaretRight from 'phosphor-svelte/lib/CaretRight';
-	import MagnifyingGlass from 'phosphor-svelte/lib/MagnifyingGlass';
-	import CurrencyDollar from 'phosphor-svelte/lib/CurrencyDollar';
-	import Users from 'phosphor-svelte/lib/Users';
-	import CalendarCheck from 'phosphor-svelte/lib/CalendarCheck';
-	import Repeat from 'phosphor-svelte/lib/Repeat';
-	import Funnel from 'phosphor-svelte/lib/Funnel';
+	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
+	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
+	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
+	import CurrencyDollarIcon from 'phosphor-svelte/lib/CurrencyDollarIcon';
+	import UsersIcon from 'phosphor-svelte/lib/UsersIcon';
+	import CalendarCheckIcon from 'phosphor-svelte/lib/CalendarCheckIcon';
+	import RepeatIcon from 'phosphor-svelte/lib/RepeatIcon';
+	import FunnelIcon from 'phosphor-svelte/lib/FunnelIcon';
 
 	interface Subscription {
 		id: string;
@@ -158,7 +158,7 @@
 		<div class="subs-page__kpis">
 			<div class="kpi">
 				<div class="kpi__icon kpi__icon--green">
-					<Users size={22} weight="fill" />
+					<UsersIcon size={22} weight="fill" />
 				</div>
 				<div>
 					<p class="kpi__label">Total Active</p>
@@ -167,7 +167,7 @@
 			</div>
 			<div class="kpi">
 				<div class="kpi__icon kpi__icon--blue">
-					<CalendarCheck size={22} weight="fill" />
+					<CalendarCheckIcon size={22} weight="fill" />
 				</div>
 				<div>
 					<p class="kpi__label">Monthly</p>
@@ -176,7 +176,7 @@
 			</div>
 			<div class="kpi">
 				<div class="kpi__icon kpi__icon--purple">
-					<Repeat size={22} weight="fill" />
+					<RepeatIcon size={22} weight="fill" />
 				</div>
 				<div>
 					<p class="kpi__label">Annual</p>
@@ -185,7 +185,7 @@
 			</div>
 			<div class="kpi">
 				<div class="kpi__icon kpi__icon--teal">
-					<CurrencyDollar size={22} weight="fill" />
+					<CurrencyDollarIcon size={22} weight="fill" />
 				</div>
 				<div>
 					<p class="kpi__label">MRR</p>
@@ -197,7 +197,7 @@
 
 	<div class="subs-page__filters">
 		<div class="subs-page__search">
-			<MagnifyingGlass size={18} weight="bold" />
+			<MagnifyingGlassIcon size={18} weight="bold" />
 			<input
 				type="text"
 				placeholder="Search by name or email..."
@@ -207,7 +207,7 @@
 			/>
 		</div>
 		<div class="subs-page__filter-group">
-			<Funnel size={16} weight="bold" />
+			<FunnelIcon size={16} weight="bold" />
 			<select
 				value={statusFilter}
 				onchange={(e) => handleFilterChange(e.currentTarget.value)}
@@ -316,7 +316,7 @@
 				disabled={page <= 1}
 				class="subs-page__page-btn"
 			>
-				<CaretLeft size={16} weight="bold" /> Prev
+				<CaretLeftIcon size={16} weight="bold" /> Prev
 			</button>
 			<span class="subs-page__page-info">Page {page} of {totalPages}</span>
 			<button
@@ -324,7 +324,7 @@
 				disabled={page >= totalPages}
 				class="subs-page__page-btn"
 			>
-				Next <CaretRight size={16} weight="bold" />
+				Next <CaretRightIcon size={16} weight="bold" />
 			</button>
 		</div>
 	{/if}

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Plus from 'phosphor-svelte/lib/Plus';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 
 	type Props = { onAdd: (type: string) => void };
 	const { onAdd }: Props = $props();
@@ -71,7 +71,7 @@
 							draggable="true"
 							ondragstart={(e) => e.dataTransfer?.setData('text/x-form-field', type)}
 						>
-							<Plus size={14} />
+							<PlusIcon size={14} />
 							{label}
 						</button>
 					</li>

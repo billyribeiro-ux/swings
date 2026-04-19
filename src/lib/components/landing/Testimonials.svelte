@@ -2,8 +2,8 @@
 	import { gsap } from 'gsap';
 	import { EASE, DURATION, isReducedMotion } from '$lib/utils/animations';
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
-	import Star from 'phosphor-svelte/lib/Star';
-	import Quotes from 'phosphor-svelte/lib/Quotes';
+	import StarIcon from 'phosphor-svelte/lib/StarIcon';
+	import QuotesIcon from 'phosphor-svelte/lib/QuotesIcon';
 
 	let containerRef: HTMLElement | undefined = $state();
 
@@ -114,13 +114,13 @@
 						class="testimonial-card__quote-icon"
 						style="background: linear-gradient(to bottom right, {testimonial.gradientFrom}, {testimonial.gradientTo});"
 					>
-						<Quotes size={24} weight="fill" color="white" />
+						<QuotesIcon size={24} weight="fill" color="white" />
 					</div>
 
 					<!-- Rating -->
 					<div class="testimonial-card__rating">
 						{#each Array.from({ length: testimonial.rating }) as _, j (j)}
-							<Star size={16} weight="fill" color="#D4A843" />
+							<StarIcon size={16} weight="fill" color="#D4A843" />
 						{/each}
 					</div>
 

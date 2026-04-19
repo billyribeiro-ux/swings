@@ -1,5 +1,5 @@
 <!--
-  FORM-10: Image-only upload. Same backing transport as FileUpload but
+  FORM-10: ImageIcon-only upload. Same backing transport as FileUpload but
   restricts the `accept` attribute to `image/*` + any explicit allowlist.
   Renders thumbnails for the current value using `URL.createObjectURL`
   where possible; for previously-uploaded descriptors it falls back to the
@@ -9,8 +9,8 @@
 	import FieldFrame from './FieldFrame.svelte';
 	import type { FieldProps, FieldSchema } from '../types.ts';
 	import { api } from '$lib/api/client';
-	import Image from 'phosphor-svelte/lib/Image';
-	import X from 'phosphor-svelte/lib/X';
+	import ImageIcon from 'phosphor-svelte/lib/ImageIcon';
+	import XIcon from 'phosphor-svelte/lib/XIcon';
 
 	interface FileDescriptor {
 		readonly field_key: string;
@@ -95,7 +95,7 @@
 	{#snippet children({ describedBy, invalid, required })}
 		<div class="fm-upload">
 			<label class="fm-btn fm-btn--ghost fm-upload__trigger" for={controlId}>
-				<Image size={18} />
+				<ImageIcon size={18} />
 				<span>{uploading ? 'Uploading…' : 'Choose image(s)'}</span>
 			</label>
 			<input
@@ -123,7 +123,7 @@
 								aria-label={`Remove ${f.filename}`}
 								disabled={disabled || uploading}
 							>
-								<X size={16} />
+								<XIcon size={16} />
 							</button>
 						</li>
 					{/each}

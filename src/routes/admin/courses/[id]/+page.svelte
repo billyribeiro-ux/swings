@@ -4,16 +4,16 @@
 	import { onMount } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { api, ApiError } from '$lib/api/client';
-	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
-	import FloppyDisk from 'phosphor-svelte/lib/FloppyDisk';
-	import Trash from 'phosphor-svelte/lib/Trash';
-	import Plus from 'phosphor-svelte/lib/Plus';
-	import CaretDown from 'phosphor-svelte/lib/CaretDown';
-	import CaretUp from 'phosphor-svelte/lib/CaretUp';
-	import VideoCamera from 'phosphor-svelte/lib/VideoCamera';
-	import Eye from 'phosphor-svelte/lib/Eye';
-	import EyeSlash from 'phosphor-svelte/lib/EyeSlash';
-	import BookOpen from 'phosphor-svelte/lib/BookOpen';
+	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
+	import FloppyDiskIcon from 'phosphor-svelte/lib/FloppyDiskIcon';
+	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
+	import CaretUpIcon from 'phosphor-svelte/lib/CaretUpIcon';
+	import VideoCameraIcon from 'phosphor-svelte/lib/VideoCameraIcon';
+	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
+	import EyeSlashIcon from 'phosphor-svelte/lib/EyeSlashIcon';
+	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
 
 	interface Lesson { id: string; title: string; video_url: string; is_preview: boolean; sort_order: number; }
 	interface Module { id: string; title: string; sort_order: number; lessons: Lesson[]; }
@@ -119,14 +119,14 @@
 </svelte:head>
 
 <div class="ce">
-	<a href="/admin/courses" class="ce__back"><ArrowLeft size={18} /> Back to Courses</a>
+	<a href="/admin/courses" class="ce__back"><ArrowLeftIcon size={18} /> Back to Courses</a>
 
 	{#if loading}
 		<p class="ce__status">Loading course...</p>
 	{:else if error && !course}
 		<p class="ce__status ce__status--err">{error}</p>
 	{:else if course}
-		<div class="ce__hdr"><BookOpen size={24} weight="bold" /><h1 class="ce__title">Edit Course</h1></div>
+		<div class="ce__hdr"><BookOpenIcon size={24} weight="bold" /><h1 class="ce__title">Edit Course</h1></div>
 
 		{#if error}<div class="ce__alert ce__alert--err">{error}</div>{/if}
 		{#if successMsg}<div class="ce__alert ce__alert--ok">{successMsg}</div>{/if}
@@ -170,7 +170,7 @@
 			<div class="ce__card">
 				<div class="ce__mhdr">
 					<h2 class="ce__stitle">Modules & Lessons</h2>
-					<button type="button" onclick={addModule} class="ce__add"><Plus size={16} weight="bold" /> Add Module</button>
+					<button type="button" onclick={addModule} class="ce__add"><PlusIcon size={16} weight="bold" /> Add Module</button>
 				</div>
 				{#if modules.length === 0}<div class="ce__empty">No modules yet. Add one to get started.</div>{/if}
 				<div class="ce__mlist">
@@ -181,7 +181,7 @@
 								<input type="text" value={mod.title} oninput={(e) => updateModuleTitle(mi, (e.target as HTMLInputElement).value)} onclick={(e) => e.stopPropagation()} class="ce__minp" placeholder="Module title..." />
 								<div class="ce__mmeta">
 									<span class="ce__lcnt">{mod.lessons.length} lessons</span>
-									{#if expandedModules.has(mod.id)}<CaretUp size={16} />{:else}<CaretDown size={16} />{/if}
+									{#if expandedModules.has(mod.id)}<CaretUpIcon size={16} />{:else}<CaretDownIcon size={16} />{/if}
 								</div>
 							</button>
 							{#if expandedModules.has(mod.id)}
@@ -192,19 +192,19 @@
 											<span class="ce__lnum">{mi + 1}.{li + 1}</span>
 											<div class="ce__lf">
 												<input type="text" value={lesson.title} oninput={(e) => updateLesson(mi, li, 'title', (e.target as HTMLInputElement).value)} class="ce__inp ce__inp--sm" placeholder="Lesson title" />
-												<div class="ce__lurl"><VideoCamera size={14} /><input type="url" value={lesson.video_url} oninput={(e) => updateLesson(mi, li, 'video_url', (e.target as HTMLInputElement).value)} class="ce__inp ce__inp--sm" placeholder="Video URL" /></div>
+												<div class="ce__lurl"><VideoCameraIcon size={14} /><input type="url" value={lesson.video_url} oninput={(e) => updateLesson(mi, li, 'video_url', (e.target as HTMLInputElement).value)} class="ce__inp ce__inp--sm" placeholder="Video URL" /></div>
 											</div>
 											<div class="ce__la">
 												<button type="button" class="ce__ib" title={lesson.is_preview ? 'Disable preview' : 'Enable preview'} onclick={() => updateLesson(mi, li, 'is_preview', !lesson.is_preview)}>
-													{#if lesson.is_preview}<Eye size={16} weight="fill" />{:else}<EyeSlash size={16} />{/if}
+													{#if lesson.is_preview}<EyeIcon size={16} weight="fill" />{:else}<EyeSlashIcon size={16} />{/if}
 												</button>
-												<button type="button" class="ce__ib ce__ib--d" title="Remove lesson" onclick={() => removeLesson(mi, li)}><Trash size={14} /></button>
+												<button type="button" class="ce__ib ce__ib--d" title="Remove lesson" onclick={() => removeLesson(mi, li)}><TrashIcon size={14} /></button>
 											</div>
 										</div>
 									{/each}
 									<div class="ce__mft">
-										<button type="button" onclick={() => addLesson(mi)} class="ce__alb"><Plus size={14} weight="bold" /> Add Lesson</button>
-										<button type="button" onclick={() => removeModule(mi)} class="ce__rmb"><Trash size={14} /> Remove Module</button>
+										<button type="button" onclick={() => addLesson(mi)} class="ce__alb"><PlusIcon size={14} weight="bold" /> Add Lesson</button>
+										<button type="button" onclick={() => removeModule(mi)} class="ce__rmb"><TrashIcon size={14} /> Remove Module</button>
 									</div>
 								</div>
 							{/if}
@@ -214,10 +214,10 @@
 			</div>
 
 			<div class="ce__acts">
-				<button type="button" onclick={handleDelete} disabled={deleting} class="ce__del"><Trash size={16} weight="bold" /> {deleting ? 'Deleting...' : 'Delete Course'}</button>
+				<button type="button" onclick={handleDelete} disabled={deleting} class="ce__del"><TrashIcon size={16} weight="bold" /> {deleting ? 'Deleting...' : 'Delete Course'}</button>
 				<div class="ce__ar">
 					<a href="/admin/courses" class="ce__cancel">Cancel</a>
-					<button type="submit" disabled={saving} class="ce__save"><FloppyDisk size={16} weight="bold" /> {saving ? 'Saving...' : 'Save Course'}</button>
+					<button type="submit" disabled={saving} class="ce__save"><FloppyDiskIcon size={16} weight="bold" /> {saving ? 'Saving...' : 'Save Course'}</button>
 				</div>
 			</div>
 		</form>

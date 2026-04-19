@@ -20,8 +20,8 @@
 		CreateAssetRequest
 	} from '$lib/api/products';
 	import { ApiError } from '$lib/api/client';
-	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
-	import Trash from 'phosphor-svelte/lib/Trash';
+	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
+	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
 
 	const productId = $derived(page.params.id);
 
@@ -239,7 +239,7 @@
 
 <div class="pr-detail">
 	<div class="pr-detail__breadcrumb">
-		{#snippet backIcon()}<ArrowLeft size={14} weight="bold" />{/snippet}
+		{#snippet backIcon()}<ArrowLeftIcon size={14} weight="bold" />{/snippet}
 		<Button variant="ghost" size="sm" href="/admin/products" iconLeading={backIcon}>
 			Back to products
 		</Button>
@@ -432,7 +432,7 @@
 								</td>
 								<td>{v.is_active ? 'Yes' : 'No'}</td>
 								<td>
-									{#snippet trashIcon()}<Trash size={14} weight="bold" />{/snippet}
+									{#snippet trashIcon()}<TrashIcon size={14} weight="bold" />{/snippet}
 									<Button
 										variant="ghost"
 										size="sm"
@@ -489,7 +489,7 @@
 								</td>
 								<td>{a.access_policy}</td>
 								<td>
-									{#snippet trashIcon2()}<Trash size={14} weight="bold" />{/snippet}
+									{#snippet trashIcon2()}<TrashIcon size={14} weight="bold" />{/snippet}
 									<Button
 										variant="ghost"
 										size="sm"

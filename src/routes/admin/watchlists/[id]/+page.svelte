@@ -3,10 +3,10 @@
 	import { onMount } from 'svelte';
 	import { api, ApiError } from '$lib/api/client';
 	import type { WatchlistWithAlerts, WatchlistAlert } from '$lib/api/types';
-	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
-	import Plus from 'phosphor-svelte/lib/Plus';
-	import Trash from 'phosphor-svelte/lib/Trash';
-	import FloppyDisk from 'phosphor-svelte/lib/FloppyDisk';
+	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
+	import FloppyDiskIcon from 'phosphor-svelte/lib/FloppyDiskIcon';
 
 	let watchlist = $state<WatchlistWithAlerts | null>(null);
 	let loading = $state(true);
@@ -131,7 +131,7 @@
 
 <div class="edit-wl">
 	<a href="/admin/watchlists" class="edit-wl__back">
-		<ArrowLeft size={18} />
+		<ArrowLeftIcon size={18} />
 		Back to Watchlists
 	</a>
 
@@ -191,7 +191,7 @@
 				</label>
 
 				<button type="submit" disabled={saving} class="edit-wl__save">
-					<FloppyDisk size={16} weight="bold" />
+					<FloppyDiskIcon size={16} weight="bold" />
 					{saving ? 'Saving...' : 'Save Changes'}
 				</button>
 			</div>
@@ -202,7 +202,7 @@
 			<div class="edit-wl__alerts-header">
 				<h2 class="edit-wl__alerts-title">Alerts ({watchlist.alerts.length})</h2>
 				<button onclick={() => (showAlertForm = !showAlertForm)} class="edit-wl__add-alert">
-					<Plus size={16} weight="bold" />
+					<PlusIcon size={16} weight="bold" />
 					{showAlertForm ? 'Cancel' : 'Add Alert'}
 				</button>
 			</div>
@@ -315,7 +315,7 @@
 								class="alert-row__delete"
 								title="Delete alert"
 							>
-								<Trash size={16} weight="bold" />
+								<TrashIcon size={16} weight="bold" />
 							</button>
 						</div>
 					{/each}

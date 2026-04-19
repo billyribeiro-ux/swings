@@ -5,15 +5,15 @@
 	import { quintOut, expoOut } from 'svelte/easing';
 	import { prefersReducedMotion } from 'svelte/motion';
 	import Button from './Button.svelte';
-	import CaretDown from 'phosphor-svelte/lib/CaretDown';
-	import List from 'phosphor-svelte/lib/List';
-	import X from 'phosphor-svelte/lib/X';
-	import BookOpen from 'phosphor-svelte/lib/BookOpen';
-	import Pulse from 'phosphor-svelte/lib/Pulse';
-	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
+	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
+	import ListIcon from 'phosphor-svelte/lib/ListIcon';
+	import XIcon from 'phosphor-svelte/lib/XIcon';
+	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
+	import PulseIcon from 'phosphor-svelte/lib/PulseIcon';
+	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
 	import { SITE } from '$lib/seo/config';
 
-	const iconMap: Record<string, typeof BookOpen> = { BookOpen, Pulse };
+	const iconMap: Record<string, typeof BookOpenIcon> = { BookOpenIcon, PulseIcon };
 
 	let isCoursesOpen = $state(false);
 	let isMobileOpen = $state(false);
@@ -105,7 +105,7 @@
 						class={['nav__link', 'nav__link--dropdown', isCoursesOpen && 'nav__link--active']}
 					>
 						Courses
-						<CaretDown
+						<CaretDownIcon
 							size={14}
 							weight="bold"
 							class={['nav__caret', isCoursesOpen && 'nav__caret--open']}
@@ -146,14 +146,14 @@
 												<span class="dropdown-item__level">{course.level}</span>
 											</div>
 										</div>
-										<ArrowRight size={14} weight="bold" class="dropdown-item__arrow" />
+										<ArrowRightIcon size={14} weight="bold" class="dropdown-item__arrow" />
 									</a>
 								{/each}
 
 								<div class="dropdown-panel__footer">
 									<a href="/courses" class="dropdown-panel__view-all" onclick={closeAll}>
 										View All Courses
-										<ArrowRight size={14} weight="bold" />
+										<ArrowRightIcon size={14} weight="bold" />
 									</a>
 								</div>
 							</div>
@@ -182,9 +182,9 @@
 			>
 				<span class="nav__hamburger-icons" aria-hidden="true">
 					{#if isMobileOpen}
-						<X size={24} weight="bold" class="nav__hamburger-svg" />
+						<XIcon size={24} weight="bold" class="nav__hamburger-svg" />
 					{:else}
-						<List size={24} weight="bold" class="nav__hamburger-svg" />
+						<ListIcon size={24} weight="bold" class="nav__hamburger-svg" />
 					{/if}
 				</span>
 			</button>
@@ -220,7 +220,7 @@
 									<h4 class="mobile-course-item__title">{course.title}</h4>
 									<p class="mobile-course-item__meta">{course.level} · ${course.price}</p>
 								</div>
-								<ArrowRight size={16} weight="bold" class="mobile-course-item__arrow" />
+								<ArrowRightIcon size={16} weight="bold" class="mobile-course-item__arrow" />
 							</a>
 						{/each}
 					</div>
@@ -244,7 +244,7 @@
 				>
 					<a href="/pricing/monthly" class="mobile-menu__cta-btn" onclick={closeAll}>
 						Get Instant Access
-						<ArrowRight size={16} weight="bold" />
+						<ArrowRightIcon size={16} weight="bold" />
 					</a>
 				</div>
 			</div>

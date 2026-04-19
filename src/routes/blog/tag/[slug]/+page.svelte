@@ -4,10 +4,10 @@
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import Seo from '$lib/seo/Seo.svelte';
 	import { webPageSchema, buildJsonLd } from '$lib/seo/jsonld';
-	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
-	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
-	import CalendarBlank from 'phosphor-svelte/lib/CalendarBlank';
-	import Clock from 'phosphor-svelte/lib/Clock';
+	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
+	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
+	import CalendarBlankIcon from 'phosphor-svelte/lib/CalendarBlankIcon';
+	import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
 	import { getPublicApiBase } from '$lib/api/publicApiBase';
 	import type { BlogPostListItem, PaginatedResponse } from '$lib/api/types';
 
@@ -68,7 +68,7 @@
 <section class="tag-hero">
 	<div class="tag-hero__inner">
 		<a href="/blog" class="tag-hero__back">
-			<ArrowLeft size={16} weight="bold" />
+			<ArrowLeftIcon size={16} weight="bold" />
 			Back to Blog
 		</a>
 		<h1 class="tag-hero__title">Tag: {tagName}</h1>
@@ -94,14 +94,14 @@
 							{/if}
 							<div class="tag-card__body">
 								<div class="tag-card__meta">
-									<CalendarBlank size={14} weight="bold" />
+									<CalendarBlankIcon size={14} weight="bold" />
 									{new Date(post.published_at || post.created_at).toLocaleDateString('en-US', {
 										month: 'short',
 										day: 'numeric',
 										year: 'numeric'
 									})}
 									<span>·</span>
-									<Clock size={14} weight="bold" />
+									<ClockIcon size={14} weight="bold" />
 									{post.reading_time_minutes} min
 								</div>
 								<h2 class="tag-card__title">
@@ -111,7 +111,7 @@
 									<p class="tag-card__excerpt">{post.excerpt}</p>
 								{/if}
 								<a href="/blog/{post.slug}" class="tag-card__link">
-									Read More <ArrowRight size={14} weight="bold" />
+									Read More <ArrowRightIcon size={14} weight="bold" />
 								</a>
 							</div>
 						</article>

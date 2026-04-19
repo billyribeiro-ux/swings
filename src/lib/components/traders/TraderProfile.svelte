@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { Trader } from '$lib/data/traders';
 	import { modal } from '$lib/stores/modal.svelte';
-	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
-	import Star from 'phosphor-svelte/lib/Star';
-	import Pulse from 'phosphor-svelte/lib/Pulse';
-	import BookOpen from 'phosphor-svelte/lib/BookOpen';
+	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
+	import StarIcon from 'phosphor-svelte/lib/StarIcon';
+	import PulseIcon from 'phosphor-svelte/lib/PulseIcon';
+	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
 
 	interface Props {
 		trader: Trader;
@@ -13,16 +13,16 @@
 	let { trader }: Props = $props();
 
 	const iconMap = {
-		Star,
-		Pulse,
-		BookOpen
+		StarIcon,
+		PulseIcon,
+		BookOpenIcon
 	};
 </script>
 
 <div class="profile">
 	<!-- Back Button -->
 	<button onclick={modal.backToGrid} class="profile__back">
-		<ArrowLeft size={20} />
+		<ArrowLeftIcon size={20} />
 		<span>All Traders</span>
 	</button>
 
@@ -70,7 +70,7 @@
 						: 'profile__action-btn--outline'
 				]}
 			>
-				<IconComponent size={18} weight={action.icon === 'Star' ? 'fill' : 'regular'} />
+				<IconComponent size={18} weight={action.icon === 'StarIcon' ? 'fill' : 'regular'} />
 				{action.label}
 			</button>
 		{/each}

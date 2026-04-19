@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { api } from '$lib/api/client';
-	import MagnifyingGlass from 'phosphor-svelte/lib/MagnifyingGlass';
-	import Plus from 'phosphor-svelte/lib/Plus';
-	import BookOpen from 'phosphor-svelte/lib/BookOpen';
-	import Clock from 'phosphor-svelte/lib/Clock';
-	import GraduationCap from 'phosphor-svelte/lib/GraduationCap';
+	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
+	import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
+	import GraduationCapIcon from 'phosphor-svelte/lib/GraduationCapIcon';
 
 	interface Course {
 		id: string;
@@ -119,7 +119,7 @@
 			<p class="courses-admin__subtitle">Manage your course catalog</p>
 		</div>
 		<a href="/admin/courses/new" class="btn-primary">
-			<Plus size={18} weight="bold" />
+			<PlusIcon size={18} weight="bold" />
 			New Course
 		</a>
 	</div>
@@ -129,7 +129,7 @@
 		<div class="stats-bar">
 			<div class="stat-card">
 				<div class="stat-card__icon">
-					<BookOpen size={20} weight="duotone" />
+					<BookOpenIcon size={20} weight="duotone" />
 				</div>
 				<div class="stat-card__content">
 					<span class="stat-card__value">{total}</span>
@@ -138,7 +138,7 @@
 			</div>
 			<div class="stat-card">
 				<div class="stat-card__icon stat-card__icon--green">
-					<GraduationCap size={20} weight="duotone" />
+					<GraduationCapIcon size={20} weight="duotone" />
 				</div>
 				<div class="stat-card__content">
 					<span class="stat-card__value">{publishedCount}</span>
@@ -147,7 +147,7 @@
 			</div>
 			<div class="stat-card">
 				<div class="stat-card__icon stat-card__icon--amber">
-					<Clock size={20} weight="duotone" />
+					<ClockIcon size={20} weight="duotone" />
 				</div>
 				<div class="stat-card__content">
 					<span class="stat-card__value">{draftCount}</span>
@@ -175,7 +175,7 @@
 		</div>
 
 		<div class="courses-admin__search-wrap">
-			<MagnifyingGlass size={16} weight="bold" class="search-icon" />
+			<MagnifyingGlassIcon size={16} weight="bold" class="search-icon" />
 			<input
 				id="course-search"
 				name="search"
@@ -205,7 +205,7 @@
 		<!-- Empty state -->
 		<div class="empty-state">
 			<div class="empty-state__icon">
-				<BookOpen size={48} weight="duotone" />
+				<BookOpenIcon size={48} weight="duotone" />
 			</div>
 			<h2 class="empty-state__title">No courses found</h2>
 			<p class="empty-state__desc">
@@ -217,7 +217,7 @@
 			</p>
 			{#if !search && statusFilter === 'all'}
 				<a href="/admin/courses/new" class="btn-primary">
-					<Plus size={18} weight="bold" />
+					<PlusIcon size={18} weight="bold" />
 					Create Course
 				</a>
 			{/if}
@@ -232,7 +232,7 @@
 							<img src={course.thumbnail_url} alt={course.title} class="course-card__img" />
 						{:else}
 							<div class="course-card__placeholder">
-								<BookOpen size={28} weight="duotone" />
+								<BookOpenIcon size={28} weight="duotone" />
 							</div>
 						{/if}
 					</div>
@@ -299,7 +299,7 @@
 										/>
 									{:else}
 										<div class="table-thumb-placeholder">
-											<BookOpen size={18} weight="duotone" />
+											<BookOpenIcon size={18} weight="duotone" />
 										</div>
 									{/if}
 								</a>

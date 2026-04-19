@@ -4,7 +4,7 @@
   Row actions:
   - Edit           → /admin/forms/{id}         (builder)
   - Submissions    → /admin/forms/{id}/submissions
-  - Archive        → PATCH /admin/forms/{id} { is_active: false } (soft)
+  - ArchiveIcon        → PATCH /admin/forms/{id} { is_active: false } (soft)
   - Unarchive      → PATCH /admin/forms/{id} { is_active: true }
   - Preview        → /admin/forms/{id}/preview
   - Versions       → /admin/forms/{id}/versions
@@ -16,13 +16,13 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { api } from '$lib/api/client';
-	import Plus from 'phosphor-svelte/lib/Plus';
-	import PencilSimple from 'phosphor-svelte/lib/PencilSimple';
-	import ListBullets from 'phosphor-svelte/lib/ListBullets';
-	import Archive from 'phosphor-svelte/lib/Archive';
-	import ArrowCounterClockwise from 'phosphor-svelte/lib/ArrowCounterClockwise';
-	import Eye from 'phosphor-svelte/lib/Eye';
-	import ClockCounterClockwise from 'phosphor-svelte/lib/ClockCounterClockwise';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
+	import ListBulletsIcon from 'phosphor-svelte/lib/ListBulletsIcon';
+	import ArchiveIcon from 'phosphor-svelte/lib/ArchiveIcon';
+	import ArrowCounterClockwiseIcon from 'phosphor-svelte/lib/ArrowCounterClockwiseIcon';
+	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
+	import ClockCounterClockwiseIcon from 'phosphor-svelte/lib/ClockCounterClockwiseIcon';
 
 	interface FormRow {
 		readonly id: string;
@@ -73,7 +73,7 @@
 		<p class="af-subtitle">Build, preview, and manage collection forms.</p>
 	</div>
 	<button class="af-btn af-btn--primary" type="button" onclick={() => goto('/admin/forms/new')}>
-		<Plus size={16} weight="bold" />
+		<PlusIcon size={16} weight="bold" />
 		<span>New form</span>
 	</button>
 </header>
@@ -86,7 +86,7 @@
 	<div class="af-empty">
 		<p>No forms yet — create one to start collecting submissions.</p>
 		<button class="af-btn af-btn--primary" type="button" onclick={() => goto('/admin/forms/new')}>
-			<Plus size={16} weight="bold" />
+			<PlusIcon size={16} weight="bold" />
 			<span>Create your first form</span>
 		</button>
 	</div>
@@ -119,19 +119,19 @@
 						<td>
 							<div class="af-actions">
 								<a class="af-action" href={`/admin/forms/${f.id}`} aria-label={`Edit ${f.name}`}>
-									<PencilSimple size={14} />
+									<PencilSimpleIcon size={14} />
 									<span>Edit</span>
 								</a>
 								<a class="af-action" href={`/admin/forms/${f.id}/preview`} aria-label={`Preview ${f.name}`}>
-									<Eye size={14} />
+									<EyeIcon size={14} />
 									<span>Preview</span>
 								</a>
 								<a class="af-action" href={`/admin/forms/${f.id}/submissions`} aria-label={`Submissions for ${f.name}`}>
-									<ListBullets size={14} />
+									<ListBulletsIcon size={14} />
 									<span>Submissions</span>
 								</a>
 								<a class="af-action" href={`/admin/forms/${f.id}/versions`} aria-label={`Versions of ${f.name}`}>
-									<ClockCounterClockwise size={14} />
+									<ClockCounterClockwiseIcon size={14} />
 									<span>Versions</span>
 								</a>
 								<button
@@ -139,13 +139,13 @@
 									class="af-action af-action--destructive"
 									onclick={() => toggleArchive(f)}
 									disabled={acting === f.id}
-									aria-label={f.is_active ? `Archive ${f.name}` : `Restore ${f.name}`}
+									aria-label={f.is_active ? `ArchiveIcon ${f.name}` : `Restore ${f.name}`}
 								>
 									{#if f.is_active}
-										<Archive size={14} />
-										<span>Archive</span>
+										<ArchiveIcon size={14} />
+										<span>ArchiveIcon</span>
 									{:else}
-										<ArrowCounterClockwise size={14} />
+										<ArrowCounterClockwiseIcon size={14} />
 										<span>Restore</span>
 									{/if}
 								</button>

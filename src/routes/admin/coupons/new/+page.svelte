@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { api, ApiError } from '$lib/api/client';
-	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
-	import Ticket from 'phosphor-svelte/lib/Ticket';
-	import ArrowsClockwise from 'phosphor-svelte/lib/ArrowsClockwise';
+	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
+	import TicketIcon from 'phosphor-svelte/lib/TicketIcon';
+	import ArrowsClockwiseIcon from 'phosphor-svelte/lib/ArrowsClockwiseIcon';
 
 	let code = $state('');
 	let description = $state('');
@@ -54,8 +54,8 @@
 <svelte:head><title>New Coupon - Admin - Precision Options Signals</title></svelte:head>
 
 <div class="pg">
-	<a href="/admin/coupons" class="back"><ArrowLeft size={18} /> Back to Coupons</a>
-	<div class="hdr"><Ticket size={24} weight="bold" /><h1>Create New Coupon</h1></div>
+	<a href="/admin/coupons" class="back"><ArrowLeftIcon size={18} /> Back to Coupons</a>
+	<div class="hdr"><TicketIcon size={24} weight="bold" /><h1>Create New Coupon</h1></div>
 
 	{#if error}<div class="err">{error}</div>{/if}
 
@@ -67,7 +67,7 @@
 					<div class="code-row">
 						<input id="code" type="text" bind:value={code} required placeholder="e.g. SUMMER2026" />
 						<button type="button" onclick={generateCode} class="gen" title="Generate random code">
-							<ArrowsClockwise size={16} weight="bold" /> Generate
+							<ArrowsClockwiseIcon size={16} weight="bold" /> Generate
 						</button>
 					</div>
 				</div>

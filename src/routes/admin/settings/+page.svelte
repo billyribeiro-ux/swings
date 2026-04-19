@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import Gear from 'phosphor-svelte/lib/Gear';
-	import Globe from 'phosphor-svelte/lib/Globe';
-	import Envelope from 'phosphor-svelte/lib/Envelope';
-	import CreditCard from 'phosphor-svelte/lib/CreditCard';
-	import MagnifyingGlass from 'phosphor-svelte/lib/MagnifyingGlass';
-	import Bell from 'phosphor-svelte/lib/Bell';
-	import PaperPlaneTilt from 'phosphor-svelte/lib/PaperPlaneTilt';
-	import FloppyDisk from 'phosphor-svelte/lib/FloppyDisk';
-	import Info from 'phosphor-svelte/lib/Info';
-	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
+	import GearIcon from 'phosphor-svelte/lib/GearIcon';
+	import GlobeIcon from 'phosphor-svelte/lib/GlobeIcon';
+	import EnvelopeIcon from 'phosphor-svelte/lib/EnvelopeIcon';
+	import CreditCardIcon from 'phosphor-svelte/lib/CreditCardIcon';
+	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
+	import BellIcon from 'phosphor-svelte/lib/BellIcon';
+	import PaperPlaneTiltIcon from 'phosphor-svelte/lib/PaperPlaneTiltIcon';
+	import FloppyDiskIcon from 'phosphor-svelte/lib/FloppyDiskIcon';
+	import InfoIcon from 'phosphor-svelte/lib/InfoIcon';
+	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
 
 	const SETTINGS_KEY = 'swings_admin_settings';
 
@@ -131,7 +131,7 @@
 <div class="settings-page">
 	<div class="settings-page__header">
 		<div class="settings-page__title-row">
-			<Gear size={28} weight="duotone" />
+			<GearIcon size={28} weight="duotone" />
 			<h1 class="settings-page__title">Settings</h1>
 		</div>
 		<p class="settings-page__subtitle">Manage your site configuration, email, payments, and SEO defaults.</p>
@@ -144,7 +144,7 @@
 
 	{#if saveMessage}
 		<div class="settings-page__toast">
-			<CheckCircle size={18} weight="fill" />
+			<CheckCircleIcon size={18} weight="fill" />
 			<span>{saveMessage}</span>
 		</div>
 	{/if}
@@ -154,7 +154,7 @@
 		<section class="settings-card">
 			<div class="settings-card__header">
 				<div class="settings-card__icon settings-card__icon--teal">
-					<Globe size={22} weight="duotone" />
+					<GlobeIcon size={22} weight="duotone" />
 				</div>
 				<div>
 					<h2 class="settings-card__title">Site Settings</h2>
@@ -213,7 +213,7 @@
 		<section class="settings-card">
 			<div class="settings-card__header">
 				<div class="settings-card__icon settings-card__icon--blue">
-					<Envelope size={22} weight="duotone" />
+					<EnvelopeIcon size={22} weight="duotone" />
 				</div>
 				<div>
 					<h2 class="settings-card__title">Email Configuration</h2>
@@ -287,7 +287,7 @@
 						onclick={sendTestEmail}
 						disabled={testEmailSending}
 					>
-						<PaperPlaneTilt size={16} weight="bold" />
+						<PaperPlaneTiltIcon size={16} weight="bold" />
 						{testEmailSending ? 'Sending...' : 'Send Test Email'}
 					</button>
 					{#if testEmailMessage}
@@ -301,7 +301,7 @@
 		<section class="settings-card">
 			<div class="settings-card__header">
 				<div class="settings-card__icon settings-card__icon--green">
-					<CreditCard size={22} weight="duotone" />
+					<CreditCardIcon size={22} weight="duotone" />
 				</div>
 				<div>
 					<h2 class="settings-card__title">Payment Settings</h2>
@@ -346,7 +346,7 @@
 				</div>
 
 				<div class="settings-card__notice">
-					<Info size={16} weight="fill" />
+					<InfoIcon size={16} weight="fill" />
 					<p>Stripe API keys are configured via environment variables (<code>STRIPE_SECRET_KEY</code>, <code>STRIPE_PUBLIC_KEY</code>, <code>STRIPE_WEBHOOK_SECRET</code>) in your <code>.env</code> file. Changes require a server restart.</p>
 				</div>
 			</div>
@@ -356,7 +356,7 @@
 		<section class="settings-card">
 			<div class="settings-card__header">
 				<div class="settings-card__icon settings-card__icon--purple">
-					<MagnifyingGlass size={22} weight="duotone" />
+					<MagnifyingGlassIcon size={22} weight="duotone" />
 				</div>
 				<div>
 					<h2 class="settings-card__title">SEO Defaults</h2>
@@ -404,7 +404,7 @@
 		<section class="settings-card">
 			<div class="settings-card__header">
 				<div class="settings-card__icon settings-card__icon--amber">
-					<Bell size={22} weight="duotone" />
+					<BellIcon size={22} weight="duotone" />
 				</div>
 				<div>
 					<h2 class="settings-card__title">Notifications</h2>
@@ -470,11 +470,11 @@
 	<!-- Save Button Bar -->
 	<div class="settings-page__save-bar">
 		<div class="settings-page__save-note">
-			<Info size={14} weight="fill" />
+			<InfoIcon size={14} weight="fill" />
 			<span>Settings are stored in localStorage. Connect to a backend settings API for production use.</span>
 		</div>
 		<button class="settings-btn settings-btn--primary" onclick={saveSettings}>
-			<FloppyDisk size={18} weight="bold" />
+			<FloppyDiskIcon size={18} weight="bold" />
 			Save All Settings
 		</button>
 	</div>

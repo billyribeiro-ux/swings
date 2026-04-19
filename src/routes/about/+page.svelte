@@ -6,14 +6,14 @@
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
 	import Seo from '$lib/seo/Seo.svelte';
 	import { webPageSchema, buildJsonLd } from '$lib/seo/jsonld';
-	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
-	import Users from 'phosphor-svelte/lib/Users';
-	import ChartLineUp from 'phosphor-svelte/lib/ChartLineUp';
+	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
+	import UsersIcon from 'phosphor-svelte/lib/UsersIcon';
+	import ChartLineUpIcon from 'phosphor-svelte/lib/ChartLineUpIcon';
 	
-	import ShieldCheck from 'phosphor-svelte/lib/ShieldCheck';
-	import Eye from 'phosphor-svelte/lib/Eye';
-	import ListChecks from 'phosphor-svelte/lib/ListChecks';
-	import Trophy from 'phosphor-svelte/lib/Trophy';
+	import ShieldCheckIcon from 'phosphor-svelte/lib/ShieldCheckIcon';
+	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
+	import ListChecksIcon from 'phosphor-svelte/lib/ListChecksIcon';
+	import TrophyIcon from 'phosphor-svelte/lib/TrophyIcon';
 
 	const jsonLd = buildJsonLd([
 		webPageSchema({
@@ -79,7 +79,7 @@
 
 	<div class="page-hero__inner page-hero__inner--center">
 		<div class="about-badge page-badge">
-			<Users size={18} weight="duotone" color="#15C5D1" />
+			<UsersIcon size={18} weight="duotone" color="#15C5D1" />
 			<span class="page-badge__text">About Us</span>
 		</div>
 
@@ -151,7 +151,7 @@
 			<div class="about-features-grid">
 				<div class="reveal-item about-feature-card" {@attach hoverTilt({ maxTilt: 6, scale: 1.02 })}>
 					<div class="about-feature-card__icon">
-						<Eye size={24} weight="duotone" color="#0FA4AF" />
+						<EyeIcon size={24} weight="duotone" color="#0FA4AF" />
 					</div>
 					<h3 class="about-feature-card__title">Total Transparency</h3>
 					<p class="about-feature-card__desc">
@@ -162,7 +162,7 @@
 
 				<div class="reveal-item about-feature-card" {@attach hoverTilt({ maxTilt: 6, scale: 1.02 })}>
 					<div class="about-feature-card__icon">
-						<ListChecks size={24} weight="duotone" color="#0FA4AF" />
+						<ListChecksIcon size={24} weight="duotone" color="#0FA4AF" />
 					</div>
 					<h3 class="about-feature-card__title">Pre-Market Preparation</h3>
 					<p class="about-feature-card__desc">
@@ -173,7 +173,7 @@
 
 				<div class="reveal-item about-feature-card" {@attach hoverTilt({ maxTilt: 6, scale: 1.02 })}>
 					<div class="about-feature-card__icon">
-						<ShieldCheck size={24} weight="duotone" color="#0FA4AF" />
+						<ShieldCheckIcon size={24} weight="duotone" color="#0FA4AF" />
 					</div>
 					<h3 class="about-feature-card__title">Strict Risk Control</h3>
 					<p class="about-feature-card__desc">
@@ -184,7 +184,7 @@
 
 				<div class="reveal-item about-feature-card" {@attach hoverTilt({ maxTilt: 6, scale: 1.02 })}>
 					<div class="about-feature-card__icon">
-						<Trophy size={28} weight="duotone" color="#0FA4AF" />
+						<TrophyIcon size={28} weight="duotone" color="#0FA4AF" />
 					</div>
 					<h3 class="about-feature-card__title">Education Embedded</h3>
 					<p class="about-feature-card__desc">
@@ -194,7 +194,7 @@
 
 				<div class="reveal-item about-feature-card about-feature-card--full">
 					<div class="about-feature-card__icon">
-						<CheckCircle size={28} weight="duotone" color="#0FA4AF" />
+						<CheckCircleIcon size={28} weight="duotone" color="#0FA4AF" />
 					</div>
 					<h3 class="about-feature-card__title">Designed for Real Schedules</h3>
 					<p class="about-feature-card__desc">
@@ -242,15 +242,15 @@
 
 					<div class="founder-card__tags">
 						<span class="founder-tag founder-tag--teal">
-							<CheckCircle size={14} weight="fill" />
+							<CheckCircleIcon size={14} weight="fill" />
 							10+ Years Trading
 						</span>
 						<span class="founder-tag founder-tag--teal">
-							<CheckCircle size={14} weight="fill" />
+							<CheckCircleIcon size={14} weight="fill" />
 							ZMC Capital
 						</span>
 						<span class="founder-tag founder-tag--teal">
-							<CheckCircle size={14} weight="fill" />
+							<CheckCircleIcon size={14} weight="fill" />
 							Goldman Sachs Mentored
 						</span>
 					</div>
@@ -287,15 +287,15 @@
 
 					<div class="founder-card__tags">
 						<span class="founder-tag founder-tag--gold">
-							<CheckCircle size={14} weight="fill" />
+							<CheckCircleIcon size={14} weight="fill" />
 							World-Class Trader
 						</span>
 						<span class="founder-tag founder-tag--gold">
-							<CheckCircle size={14} weight="fill" />
+							<CheckCircleIcon size={14} weight="fill" />
 							Practitioner's Edge
 						</span>
 						<span class="founder-tag founder-tag--gold">
-							<CheckCircle size={14} weight="fill" />
+							<CheckCircleIcon size={14} weight="fill" />
 							Educator
 						</span>
 					</div>
@@ -319,7 +319,7 @@
 			<div class="reveal-item">
 				<a href="/pricing/monthly" class="page-cta-btn">
 					Get Instant Access
-					<ChartLineUp size={18} weight="bold" />
+					<ChartLineUpIcon size={18} weight="bold" />
 				</a>
 			</div>
 		</ScrollReveal>

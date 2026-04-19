@@ -1,7 +1,7 @@
 <script lang="ts">
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
-	import CaretRight from 'phosphor-svelte/lib/CaretRight';
+	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 
 	const audience = [
 		'Traders who want <strong>simple, followable alerts</strong>',
@@ -22,7 +22,7 @@
 			<div class="who-its-for__grid">
 				{#each audience as item, i (item)}
 					<div class="reveal-item who-its-for__item" style="--i: {i};">
-						<CaretRight size={20} weight="bold" color="#0FA4AF" class="who-its-for__icon" />
+						<CaretRightIcon size={20} weight="bold" color="#0FA4AF" class="who-its-for__icon" />
 						<p class="who-its-for__text">{@html item}</p>
 					</div>
 				{/each}

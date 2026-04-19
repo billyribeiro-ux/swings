@@ -12,8 +12,8 @@
 	import FieldFrame from './FieldFrame.svelte';
 	import type { FieldProps, FieldSchema } from '../types.ts';
 	import { api } from '$lib/api/client';
-	import Paperclip from 'phosphor-svelte/lib/Paperclip';
-	import X from 'phosphor-svelte/lib/X';
+	import PaperclipIcon from 'phosphor-svelte/lib/PaperclipIcon';
+	import XIcon from 'phosphor-svelte/lib/XIcon';
 
 	interface FileDescriptor {
 		readonly field_key: string;
@@ -91,7 +91,7 @@
 	{#snippet children({ describedBy, invalid, required })}
 		<div class="fm-upload">
 			<label class="fm-btn fm-btn--ghost fm-upload__trigger" for={controlId}>
-				<Paperclip size={18} />
+				<PaperclipIcon size={18} />
 				<span>{uploading ? 'Uploading…' : 'Choose file(s)'}</span>
 			</label>
 			<input
@@ -119,7 +119,7 @@
 								aria-label={`Remove ${f.filename}`}
 								disabled={disabled || uploading}
 							>
-								<X size={16} />
+								<XIcon size={16} />
 							</button>
 						</li>
 					{/each}

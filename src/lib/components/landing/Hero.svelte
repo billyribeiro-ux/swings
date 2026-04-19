@@ -9,7 +9,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import SampleAlertCard from './SampleAlertCard.svelte';
 	import HeroChart from '$lib/components/charts/HeroChart.svelte';
-	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
+	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
 	import { ctaImpression, trackCtaEvent } from '$lib/analytics/cta';
 
 	const HERO_PRIMARY_CTA = 'hero_get_instant_access';
@@ -135,7 +135,7 @@
 							onclick={() => trackCtaEvent('click', HERO_PRIMARY_CTA)}
 						>
 							Get Instant Access
-							<ArrowRight size={20} weight="bold" />
+							<ArrowRightIcon size={20} weight="bold" />
 						</Button>
 					</div>
 					<Button variant="ghost" onclick={scrollToHowItWorks} magnetic>See How It Works</Button>

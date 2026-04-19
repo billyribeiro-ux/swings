@@ -4,11 +4,11 @@
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api, ApiError } from '$lib/api/client';
 	import type { SubscriptionStatusResponse, BillingPortalResponse, CouponValidationResponse } from '$lib/api/types';
-	import UserCircle from 'phosphor-svelte/lib/UserCircle';
-	import Lock from 'phosphor-svelte/lib/Lock';
-	import Lightning from 'phosphor-svelte/lib/Lightning';
-	import Tag from 'phosphor-svelte/lib/Tag';
-	import Warning from 'phosphor-svelte/lib/Warning';
+	import UserCircleIcon from 'phosphor-svelte/lib/UserCircleIcon';
+	import LockIcon from 'phosphor-svelte/lib/LockIcon';
+	import LightningIcon from 'phosphor-svelte/lib/LightningIcon';
+	import TagIcon from 'phosphor-svelte/lib/TagIcon';
+	import WarningIcon from 'phosphor-svelte/lib/WarningIcon';
 
 	let name = $state(auth.user?.name ?? '');
 	let saving = $state(false);
@@ -112,7 +112,7 @@
 
 	<!-- Profile -->
 	<section class="card">
-		<div class="card-head"><UserCircle size={22} weight="duotone" color="var(--color-teal)" /><h3>Profile</h3></div>
+		<div class="card-head"><UserCircleIcon size={22} weight="duotone" color="var(--color-teal)" /><h3>Profile</h3></div>
 		<form onsubmit={handleProfileSave} class="form">
 			<div class="field"><label for="name" class="label">Name</label><input id="name" type="text" bind:value={name} class="input" /></div>
 			<div class="field"><span class="label">Email</span><p class="static">{auth.user?.email}</p></div>
@@ -123,7 +123,7 @@
 
 	<!-- Change Password -->
 	<section class="card">
-		<div class="card-head"><Lock size={22} weight="duotone" color="var(--color-teal)" /><h3>Change Password</h3></div>
+		<div class="card-head"><LockIcon size={22} weight="duotone" color="var(--color-teal)" /><h3>Change Password</h3></div>
 		<form onsubmit={handlePasswordChange} class="form">
 			<div class="field"><label for="cur-pw" class="label">Current Password</label><input id="cur-pw" type="password" bind:value={curPassword} class="input" autocomplete="current-password" /></div>
 			<div class="field"><label for="new-pw" class="label">New Password</label><input id="new-pw" type="password" bind:value={newPassword} class="input" autocomplete="new-password" /></div>
@@ -136,7 +136,7 @@
 
 	<!-- Subscription -->
 	<section class="card">
-		<div class="card-head"><Lightning size={22} weight="duotone" color="var(--color-teal)" /><h3>Subscription</h3></div>
+		<div class="card-head"><LightningIcon size={22} weight="duotone" color="var(--color-teal)" /><h3>Subscription</h3></div>
 		{#if subscription?.subscription}
 			{@const sub = subscription.subscription}
 			<div class="sub-rows">
@@ -156,7 +156,7 @@
 
 	<!-- Coupon -->
 	<section class="card">
-		<div class="card-head"><Tag size={22} weight="duotone" color="var(--color-teal)" /><h3>Coupon</h3></div>
+		<div class="card-head"><TagIcon size={22} weight="duotone" color="var(--color-teal)" /><h3>Coupon</h3></div>
 		<div class="coupon-row">
 			<input type="text" placeholder="Enter coupon code" bind:value={couponCode} class="input" />
 			<button type="button" class="btn-primary" disabled={couponBusy} onclick={applyCoupon}>{couponBusy ? 'Applying...' : 'Apply'}</button>
@@ -167,7 +167,7 @@
 
 	<!-- Danger Zone -->
 	<section class="card card--danger">
-		<div class="card-head"><Warning size={22} weight="duotone" color="var(--color-red)" /><h3 class="danger-title">Delete Account</h3></div>
+		<div class="card-head"><WarningIcon size={22} weight="duotone" color="var(--color-red)" /><h3 class="danger-title">Delete Account</h3></div>
 		<p class="muted">This action is permanent. All your data, progress, and subscription will be deleted.</p>
 		<div class="delete-row">
 			<input type="text" placeholder='Type "DELETE" to confirm' bind:value={deleteConfirm} class="input" />

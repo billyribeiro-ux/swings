@@ -10,11 +10,11 @@
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import Package from 'phosphor-svelte/lib/Package';
-	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
-	import Download from 'phosphor-svelte/lib/Download';
-	import Trash from 'phosphor-svelte/lib/Trash';
-	import CaretRight from 'phosphor-svelte/lib/CaretRight';
+	import PackageIcon from 'phosphor-svelte/lib/PackageIcon';
+	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
+	import DownloadIcon from 'phosphor-svelte/lib/DownloadIcon';
+	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
+	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import {
 		Button,
 		Dialog,
@@ -124,15 +124,15 @@
 				<h3>With icons</h3>
 				<div class="cluster">
 					{#snippet downloadIcon()}
-						<Download size="1rem" weight="bold" />
+						<DownloadIcon size="1rem" weight="bold" />
 					{/snippet}
 					{#snippet arrowIcon()}
-						<ArrowRight size="1rem" weight="bold" />
+						<ArrowRightIcon size="1rem" weight="bold" />
 					{/snippet}
 					{#snippet trashIcon()}
-						<Trash size="1rem" weight="bold" />
+						<TrashIcon size="1rem" weight="bold" />
 					{/snippet}
-					<Button iconLeading={downloadIcon}>Download</Button>
+					<Button iconLeading={downloadIcon}>DownloadIcon</Button>
 					<Button iconTrailing={arrowIcon}>Continue</Button>
 					<Button variant="danger" iconLeading={trashIcon}>Delete</Button>
 				</div>
@@ -258,12 +258,12 @@
 		<h2>EmptyState</h2>
 		<EmptyState title="No posts yet" description="When you publish a post it will appear here.">
 			{#snippet icon()}
-				<Package size="3rem" weight="duotone" />
+				<PackageIcon size="3rem" weight="duotone" />
 			{/snippet}
 			{#snippet action()}
 				<Button>
 					Write your first post
-					{#snippet iconTrailing()}<CaretRight size="1rem" weight="bold" />{/snippet}
+					{#snippet iconTrailing()}<CaretRightIcon size="1rem" weight="bold" />{/snippet}
 				</Button>
 			{/snippet}
 		</EmptyState>

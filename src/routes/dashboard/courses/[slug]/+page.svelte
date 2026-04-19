@@ -4,14 +4,14 @@
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import { api } from '$lib/api/client';
 	import type { CourseWithModules, CourseLesson, LessonProgress } from '$lib/api/types';
-	import Play from 'phosphor-svelte/lib/Play';
-	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
-	import CaretDown from 'phosphor-svelte/lib/CaretDown';
-	import CaretRight from 'phosphor-svelte/lib/CaretRight';
-	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
-	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
-	import List from 'phosphor-svelte/lib/List';
-	import X from 'phosphor-svelte/lib/X';
+	import PlayIcon from 'phosphor-svelte/lib/PlayIcon';
+	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
+	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
+	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
+	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
+	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
+	import ListIcon from 'phosphor-svelte/lib/ListIcon';
+	import XIcon from 'phosphor-svelte/lib/XIcon';
 
 	let course = $state<CourseWithModules | null>(null);
 	let progressMap = new SvelteMap<string, LessonProgress>();
@@ -120,7 +120,7 @@
 	<div class="player-loading"><p>Course not found.</p></div>
 {:else}
 	<button class="mobile-toggle" onclick={() => (sidebarOpen = !sidebarOpen)}>
-		{#if sidebarOpen}<X size={20} />{:else}<List size={20} />{/if}
+		{#if sidebarOpen}<XIcon size={20} />{:else}<ListIcon size={20} />{/if}
 		<span>{sidebarOpen ? 'Close' : 'Lessons'}</span>
 	</button>
 
@@ -138,7 +138,7 @@
 						></iframe>
 					{:else}
 						<div class="video-ph">
-							<Play size={48} weight="fill" />
+							<PlayIcon size={48} weight="fill" />
 							<p>No video available</p>
 						</div>
 					{/if}
@@ -152,7 +152,7 @@
 							disabled={markingComplete || isCurrentComplete}
 							onclick={markComplete}
 						>
-							<CheckCircle
+							<CheckCircleIcon
 								size={18}
 								weight={isCurrentComplete ? 'fill' : 'regular'}
 							/>
@@ -172,11 +172,11 @@
 				</div>
 				<div class="nav-row">
 					{#if prevLesson}<button class="nav-btn" onclick={() => goTo(prevLesson!)}
-							><ArrowLeft size={16} /> Previous</button
+							><ArrowLeftIcon size={16} /> Previous</button
 						>{:else}<div></div>{/if}
 					{#if nextLesson}<button
 							class="nav-btn nav-btn--next"
-							onclick={() => goTo(nextLesson!)}>Next <ArrowRight size={16} /></button
+							onclick={() => goTo(nextLesson!)}>Next <ArrowRightIcon size={16} /></button
 						>{:else}<div></div>{/if}
 				</div>
 			{:else}
@@ -192,9 +192,9 @@
 				{#each course.modules as mod (mod.id)}
 					<div class="mod-block">
 						<button class="mod-head" onclick={() => toggleModule(mod.id)}>
-							{#if expandedModules.has(mod.id)}<CaretDown
+							{#if expandedModules.has(mod.id)}<CaretDownIcon
 									size={16}
-								/>{:else}<CaretRight size={16} />{/if}
+								/>{:else}<CaretRightIcon size={16} />{/if}
 							<span class="mod-name">{mod.title}</span>
 							<span class="mod-count"
 								>{mod.lessons.filter((l) => isDone(l.id)).length}/{mod.lessons
@@ -214,7 +214,7 @@
 											onclick={() => selectLesson(lesson, mod.id)}
 										>
 											<span class="lesson-icon"
-												>{#if done}<CheckCircle
+												>{#if done}<CheckCircleIcon
 														size={16}
 														weight="fill"
 													/>{:else}<span class="dot"></span>{/if}</span

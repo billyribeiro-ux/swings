@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { modal } from '$lib/stores/modal.svelte';
-	import UsersThree from 'phosphor-svelte/lib/UsersThree';
+	import UsersThreeIcon from 'phosphor-svelte/lib/UsersThreeIcon';
 </script>
 
 <button onclick={modal.open} aria-label="Meet the traders" class="floating-btn">
 	<span class="floating-btn__ping"></span>
-	<UsersThree size={24} weight="duotone" color="#15C5D1" />
+	<UsersThreeIcon size={24} weight="duotone" color="#15C5D1" />
 	<span class="floating-btn__label">Meet The Traders</span>
 </button>
 

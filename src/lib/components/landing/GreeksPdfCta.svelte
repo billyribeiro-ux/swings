@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { gsap } from 'gsap';
 	import { createCinematicReveal, EASE, DURATION } from '$lib/utils/animations';
-	import DownloadSimple from 'phosphor-svelte/lib/DownloadSimple';
-	import EnvelopeSimple from 'phosphor-svelte/lib/EnvelopeSimple';
-	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
-	import FilePdf from 'phosphor-svelte/lib/FilePdf';
+	import DownloadSimpleIcon from 'phosphor-svelte/lib/DownloadSimpleIcon';
+	import EnvelopeSimpleIcon from 'phosphor-svelte/lib/EnvelopeSimpleIcon';
+	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
+	import FilePdfIcon from 'phosphor-svelte/lib/FilePdfIcon';
 
 	let email = $state('');
 	let isSubmitting = $state(false);
@@ -77,7 +77,7 @@
 				<!-- Icon -->
 				<div class="greeks-icon greeks-section__icon-col">
 					<div class="greeks-section__icon-box">
-						<FilePdf size={40} weight="duotone" color="#15C5D1" />
+						<FilePdfIcon size={40} weight="duotone" color="#15C5D1" />
 					</div>
 				</div>
 
@@ -95,7 +95,7 @@
 					{#if isSuccess}
 						<div class="greeks-section__success">
 							<div class="greeks-section__success-inner">
-								<CheckCircle
+								<CheckCircleIcon
 									size={24}
 									weight="fill"
 									color="#22B573"
@@ -114,7 +114,7 @@
 						<form onsubmit={handleSubmit} class="greeks-form">
 							<div class="greeks-section__form-row">
 								<div class="greeks-section__input-wrap">
-									<EnvelopeSimple size={18} weight="bold" class="greeks-section__input-icon" />
+									<EnvelopeSimpleIcon size={18} weight="bold" class="greeks-section__input-icon" />
 									<input
 										id="greeks-email"
 										name="email"
@@ -131,7 +131,7 @@
 									{#if isSubmitting}
 										Sending...
 									{:else}
-										<DownloadSimple size={18} weight="bold" />
+										<DownloadSimpleIcon size={18} weight="bold" />
 										Get Free PDF
 									{/if}
 								</button>

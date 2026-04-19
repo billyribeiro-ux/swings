@@ -16,8 +16,8 @@
 		CreateProductRequest
 	} from '$lib/api/products';
 	import { ApiError } from '$lib/api/client';
-	import Plus from 'phosphor-svelte/lib/Plus';
-	import Package from 'phosphor-svelte/lib/Package';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+	import PackageIcon from 'phosphor-svelte/lib/PackageIcon';
 
 	let rows = $state<Product[]>([]);
 	let total = $state(0);
@@ -126,7 +126,7 @@
 				{total} total · {publishedCount} published · {draftCount} draft
 			</p>
 		</div>
-		{#snippet plusIcon()}<Plus size={16} weight="bold" />{/snippet}
+		{#snippet plusIcon()}<PlusIcon size={16} weight="bold" />{/snippet}
 		<Button onclick={openCreate} iconLeading={plusIcon}>New Product</Button>
 	</header>
 
@@ -172,7 +172,7 @@
 		<div class="pr-admin__loading">Loading…</div>
 	{:else if rows.length === 0}
 		<div class="pr-admin__empty">
-			<Package size={32} weight="light" />
+			<PackageIcon size={32} weight="light" />
 			<p>No products yet.</p>
 			<Button variant="secondary" onclick={openCreate}>Create your first product</Button>
 		</div>

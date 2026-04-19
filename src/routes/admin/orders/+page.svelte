@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import Receipt from 'phosphor-svelte/lib/Receipt';
-	import MagnifyingGlass from 'phosphor-svelte/lib/MagnifyingGlass';
-	import DownloadSimple from 'phosphor-svelte/lib/DownloadSimple';
-	import ArrowClockwise from 'phosphor-svelte/lib/ArrowClockwise';
-	import Plus from 'phosphor-svelte/lib/Plus';
-	import XCircle from 'phosphor-svelte/lib/XCircle';
-	import Money from 'phosphor-svelte/lib/Money';
+	import ReceiptIcon from 'phosphor-svelte/lib/ReceiptIcon';
+	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
+	import DownloadSimpleIcon from 'phosphor-svelte/lib/DownloadSimpleIcon';
+	import ArrowClockwiseIcon from 'phosphor-svelte/lib/ArrowClockwiseIcon';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+	import XCircleIcon from 'phosphor-svelte/lib/XCircleIcon';
+	import MoneyIcon from 'phosphor-svelte/lib/MoneyIcon';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { ApiError } from '$lib/api/client';
 	import {
@@ -222,7 +222,7 @@
 <div class="page" data-testid="admin-orders-page">
 	<header class="page__header">
 		<div class="page__title-row">
-			<Receipt size={28} weight="duotone" />
+			<ReceiptIcon size={28} weight="duotone" />
 			<h1 class="page__title">Orders</h1>
 		</div>
 		<p class="page__subtitle">
@@ -239,7 +239,7 @@
 			<div class="field field--wide">
 				<label class="field__label" for="ord-q">Search</label>
 				<div class="search-input">
-					<MagnifyingGlass size={16} />
+					<MagnifyingGlassIcon size={16} />
 					<input
 						id="ord-q"
 						class="field__input"
@@ -261,10 +261,10 @@
 			<div class="field field--actions">
 				<button class="btn btn--primary" type="submit">Apply</button>
 				<button class="btn btn--ghost" type="button" onclick={refresh}>
-					<ArrowClockwise size={16} weight="bold" />
+					<ArrowClockwiseIcon size={16} weight="bold" />
 				</button>
 				<button class="btn btn--ghost" type="button" onclick={downloadCsv}>
-					<DownloadSimple size={16} weight="bold" />
+					<DownloadSimpleIcon size={16} weight="bold" />
 					CSV
 				</button>
 				<button
@@ -272,7 +272,7 @@
 					type="button"
 					onclick={() => (showCreate = !showCreate)}
 				>
-					<Plus size={16} weight="bold" />
+					<PlusIcon size={16} weight="bold" />
 					Manual order
 				</button>
 			</div>
@@ -350,12 +350,12 @@
 								onclick={() => removeManualItem(i)}
 								aria-label="Remove item"
 							>
-								<XCircle size={14} />
+								<XCircleIcon size={14} />
 							</button>
 						</div>
 					{/each}
 					<button type="button" class="btn btn--ghost btn--small" onclick={addManualItem}>
-						<Plus size={14} />
+						<PlusIcon size={14} />
 						Add line
 					</button>
 				</div>
@@ -522,7 +522,7 @@
 			{#if selected.remaining_refundable_cents > 0 && selected.order.status !== 'cancelled'}
 				<section class="action-card">
 					<h3 class="drawer__section">
-						<Money size={18} weight="duotone" />
+						<MoneyIcon size={18} weight="duotone" />
 						Refund
 					</h3>
 					<div class="row-fields">
@@ -553,7 +553,7 @@
 			{#if selected.order.status !== 'cancelled' && selected.order.status !== 'refunded'}
 				<section class="action-card action-card--danger">
 					<h3 class="drawer__section">
-						<XCircle size={18} weight="duotone" />
+						<XCircleIcon size={18} weight="duotone" />
 						Void
 					</h3>
 					<div class="row-fields">

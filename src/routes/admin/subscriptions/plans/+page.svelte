@@ -7,14 +7,14 @@
 		PricingPlanPriceLogEntry,
 		UpdatePricingPlanPayload
 	} from '$lib/api/types';
-	import Plus from 'phosphor-svelte/lib/Plus';
-	import PencilSimple from 'phosphor-svelte/lib/PencilSimple';
-	import FloppyDisk from 'phosphor-svelte/lib/FloppyDisk';
-	import Star from 'phosphor-svelte/lib/Star';
-	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
-	import CaretDown from 'phosphor-svelte/lib/CaretDown';
-	import CaretUp from 'phosphor-svelte/lib/CaretUp';
-	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
+	import FloppyDiskIcon from 'phosphor-svelte/lib/FloppyDiskIcon';
+	import StarIcon from 'phosphor-svelte/lib/StarIcon';
+	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
+	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
+	import CaretUpIcon from 'phosphor-svelte/lib/CaretUpIcon';
+	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
 
 	type BillingInterval = 'month' | 'year';
 
@@ -165,7 +165,7 @@
 	<div class="plans-page__header">
 		<div class="plans-page__header-left">
 			<a href="/admin/subscriptions" class="plans-page__back">
-				<ArrowLeft size={18} weight="bold" />
+				<ArrowLeftIcon size={18} weight="bold" />
 			</a>
 			<div>
 				<h1 class="plans-page__title">Pricing Plans</h1>
@@ -173,7 +173,7 @@
 			</div>
 		</div>
 		<button class="plans-page__add-btn" onclick={() => { showNewForm = true; editingId = null; }}>
-			<Plus size={16} weight="bold" /> Add Plan
+			<PlusIcon size={16} weight="bold" /> Add Plan
 		</button>
 	</div>
 
@@ -216,7 +216,7 @@
 			<div class="plan-card__actions">
 				<button class="btn btn--ghost" onclick={() => { showNewForm = false; }}>Cancel</button>
 				<button class="btn btn--primary" disabled={saving === 'new' || !newPlan.name || !newPlan.amount_dollars} onclick={createPlan}>
-					{#if saving === 'new'}Saving...{:else}<FloppyDisk size={15} weight="bold" /> Create{/if}
+					{#if saving === 'new'}Saving...{:else}<FloppyDiskIcon size={15} weight="bold" /> Create{/if}
 				</button>
 			</div>
 		</div>
@@ -277,7 +277,7 @@
 						<div class="plan-card__actions">
 							<button class="btn btn--ghost" onclick={cancelEdit}>Cancel</button>
 							<button class="btn btn--primary" disabled={saving === plan.id} onclick={() => saveEdit(plan.id)}>
-								{#if saving === plan.id}Saving...{:else}<FloppyDisk size={15} weight="bold" /> Save{/if}
+								{#if saving === plan.id}Saving...{:else}<FloppyDiskIcon size={15} weight="bold" /> Save{/if}
 							</button>
 						</div>
 					{:else}
@@ -289,11 +289,11 @@
 									<span class="badge badge--inactive">Inactive</span>
 								{/if}
 								{#if plan.is_popular}
-									<span class="badge badge--popular"><Star size={12} weight="fill" /> Popular</span>
+									<span class="badge badge--popular"><StarIcon size={12} weight="fill" /> Popular</span>
 								{/if}
 							</div>
 							<button class="plan-card__edit-btn" onclick={() => startEdit(plan)}>
-								<PencilSimple size={15} weight="bold" /> Edit
+								<PencilSimpleIcon size={15} weight="bold" /> Edit
 							</button>
 						</div>
 						<h3 class="plan-card__name">{plan.name}</h3>
@@ -307,7 +307,7 @@
 						<ul class="plan-card__features">
 							{#each plan.features as feature, fi (fi)}
 								<li class="plan-card__feature">
-									<CheckCircle size={15} weight="fill" />
+									<CheckCircleIcon size={15} weight="fill" />
 									<span>{feature}</span>
 								</li>
 							{/each}
@@ -321,7 +321,7 @@
 	<div class="log-section">
 		<button class="log-section__toggle" onclick={() => { logOpen = !logOpen; }}>
 			<span class="log-section__toggle-text">Price Change Log</span>
-			{#if logOpen}<CaretUp size={16} weight="bold" />{:else}<CaretDown size={16} weight="bold" />{/if}
+			{#if logOpen}<CaretUpIcon size={16} weight="bold" />{:else}<CaretDownIcon size={16} weight="bold" />{/if}
 		</button>
 		{#if logOpen}
 			<div class="log-section__content">

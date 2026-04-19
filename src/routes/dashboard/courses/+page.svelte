@@ -6,12 +6,12 @@
 		CourseListItem,
 		PaginatedResponse
 	} from '$lib/api/types';
-	import BookOpen from 'phosphor-svelte/lib/BookOpen';
-	import MagnifyingGlass from 'phosphor-svelte/lib/MagnifyingGlass';
-	import Funnel from 'phosphor-svelte/lib/Funnel';
-	import GraduationCap from 'phosphor-svelte/lib/GraduationCap';
-	import Clock from 'phosphor-svelte/lib/Clock';
-	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
+	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
+	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
+	import FunnelIcon from 'phosphor-svelte/lib/FunnelIcon';
+	import GraduationCapIcon from 'phosphor-svelte/lib/GraduationCapIcon';
+	import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
+	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
 
 	type Tab = 'my-courses' | 'browse';
 
@@ -134,7 +134,7 @@
 	<!-- Search + Filter -->
 	<div class="courses-page__filters">
 		<div class="courses-page__search">
-			<MagnifyingGlass size={16} />
+			<MagnifyingGlassIcon size={16} />
 			<input
 				type="text"
 				placeholder="Search courses..."
@@ -143,7 +143,7 @@
 			/>
 		</div>
 		<div class="courses-page__filter">
-			<Funnel size={16} />
+			<FunnelIcon size={16} />
 			<select bind:value={difficultyFilter} class="courses-page__select">
 				<option value="all">All Levels</option>
 				<option value="beginner">Beginner</option>
@@ -159,7 +159,7 @@
 		<!-- My Courses Tab -->
 		{#if filteredMyCourses.length === 0}
 			<div class="courses-page__empty">
-				<BookOpen size={40} weight="duotone" color="rgba(255,255,255,0.2)" />
+				<BookOpenIcon size={40} weight="duotone" color="rgba(255,255,255,0.2)" />
 				{#if enrollments.length === 0}
 					<p>You haven't enrolled in any courses yet.</p>
 					<button class="courses-page__browse-btn" onclick={() => (activeTab = 'browse')}>
@@ -179,7 +179,7 @@
 								<img src={course.thumbnail_url} alt={course.title} class="course-card__banner-img" />
 							{:else}
 								<div class="course-card__banner-placeholder">
-									<BookOpen size={28} weight="duotone" />
+									<BookOpenIcon size={28} weight="duotone" />
 								</div>
 							{/if}
 							<span
@@ -193,15 +193,15 @@
 							<h3 class="course-card__title">{course.title}</h3>
 							<div class="course-card__meta">
 								<span class="course-card__meta-item">
-									<GraduationCap size={14} />
+									<GraduationCapIcon size={14} />
 									{course.instructor_name}
 								</span>
 								<span class="course-card__meta-item">
-									<Clock size={14} />
+									<ClockIcon size={14} />
 									{formatDuration(course.estimated_duration_minutes)}
 								</span>
 								<span class="course-card__meta-item">
-									<BookOpen size={14} />
+									<BookOpenIcon size={14} />
 									{course.total_lessons} lessons
 								</span>
 							</div>
@@ -220,7 +220,7 @@
 
 							<a href="/dashboard/courses/{course.slug}" class="course-card__action">
 								{enrollment && enrollment.progress > 0 ? 'Continue Learning' : 'Start Course'}
-								<ArrowRight size={14} />
+								<ArrowRightIcon size={14} />
 							</a>
 						</div>
 					</div>
@@ -231,7 +231,7 @@
 		<!-- Browse All Tab -->
 		{#if filteredBrowseCourses.length === 0}
 			<div class="courses-page__empty">
-				<BookOpen size={40} weight="duotone" color="rgba(255,255,255,0.2)" />
+				<BookOpenIcon size={40} weight="duotone" color="rgba(255,255,255,0.2)" />
 				<p>No courses found matching your criteria.</p>
 			</div>
 		{:else}
@@ -245,7 +245,7 @@
 								<img src={course.thumbnail_url} alt={course.title} class="course-card__banner-img" />
 							{:else}
 								<div class="course-card__banner-placeholder">
-									<BookOpen size={28} weight="duotone" />
+									<BookOpenIcon size={28} weight="duotone" />
 								</div>
 							{/if}
 							<span
@@ -259,15 +259,15 @@
 							<h3 class="course-card__title">{course.title}</h3>
 							<div class="course-card__meta">
 								<span class="course-card__meta-item">
-									<GraduationCap size={14} />
+									<GraduationCapIcon size={14} />
 									{course.instructor_name}
 								</span>
 								<span class="course-card__meta-item">
-									<Clock size={14} />
+									<ClockIcon size={14} />
 									{formatDuration(course.estimated_duration_minutes)}
 								</span>
 								<span class="course-card__meta-item">
-									<BookOpen size={14} />
+									<BookOpenIcon size={14} />
 									{course.total_lessons} lessons
 								</span>
 							</div>
@@ -284,7 +284,7 @@
 								</div>
 								<a href="/dashboard/courses/{course.slug}" class="course-card__action">
 									Continue Learning
-									<ArrowRight size={14} />
+									<ArrowRightIcon size={14} />
 								</a>
 							{:else}
 								<button

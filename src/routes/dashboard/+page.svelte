@@ -9,11 +9,11 @@
 		PaginatedResponse,
 		CourseListItem
 	} from '$lib/api/types';
-	import ListChecks from 'phosphor-svelte/lib/ListChecks';
-	import BookOpen from 'phosphor-svelte/lib/BookOpen';
-	import Gear from 'phosphor-svelte/lib/Gear';
-	import Play from 'phosphor-svelte/lib/Play';
-	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
+	import ListChecksIcon from 'phosphor-svelte/lib/ListChecksIcon';
+	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
+	import GearIcon from 'phosphor-svelte/lib/GearIcon';
+	import PlayIcon from 'phosphor-svelte/lib/PlayIcon';
+	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
 
 	let subscription = $state<SubscriptionStatusResponse | null>(null);
 	let recentWatchlists = $state<Watchlist[]>([]);
@@ -99,7 +99,7 @@
 							/>
 						{:else}
 							<div class="continue-card__placeholder">
-								<BookOpen size={32} weight="duotone" />
+								<BookOpenIcon size={32} weight="duotone" />
 							</div>
 						{/if}
 					</div>
@@ -121,7 +121,7 @@
 							href="/dashboard/courses/{lastAccessedCourse.slug}"
 							class="continue-card__resume"
 						>
-							<Play size={16} weight="fill" />
+							<PlayIcon size={16} weight="fill" />
 							Resume
 						</a>
 					</div>
@@ -154,7 +154,7 @@
 									/>
 								{:else}
 									<div class="course-card__placeholder">
-										<BookOpen size={24} weight="duotone" />
+										<BookOpenIcon size={24} weight="duotone" />
 									</div>
 								{/if}
 							</div>
@@ -179,7 +179,7 @@
 									class="course-card__continue"
 								>
 									Continue
-									<ArrowRight size={14} />
+									<ArrowRightIcon size={14} />
 								</a>
 							</div>
 						</div>
@@ -221,15 +221,15 @@
 		<!-- Quick Links -->
 		<section class="overview__quick-links">
 			<a href="/dashboard/account" class="quick-link">
-				<Gear size={20} weight="duotone" />
+				<GearIcon size={20} weight="duotone" />
 				<span>Account Settings</span>
 			</a>
 			<a href="/dashboard/courses" class="quick-link">
-				<BookOpen size={20} weight="duotone" />
+				<BookOpenIcon size={20} weight="duotone" />
 				<span>Browse Courses</span>
 			</a>
 			<a href="/dashboard/watchlists" class="quick-link">
-				<ListChecks size={20} weight="duotone" />
+				<ListChecksIcon size={20} weight="duotone" />
 				<span>Watchlists</span>
 			</a>
 		</section>

@@ -2,17 +2,17 @@
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import type { Popup, PopupAnalytics, PaginatedResponse } from '$lib/api/types';
-	import Plus from 'phosphor-svelte/lib/Plus';
-	import Trash from 'phosphor-svelte/lib/Trash';
-	import PencilSimple from 'phosphor-svelte/lib/PencilSimple';
-	import Copy from 'phosphor-svelte/lib/Copy';
-	import CaretLeft from 'phosphor-svelte/lib/CaretLeft';
-	import CaretRight from 'phosphor-svelte/lib/CaretRight';
-	import Eye from 'phosphor-svelte/lib/Eye';
-	import ChartBar from 'phosphor-svelte/lib/ChartBar';
-	import Lightning from 'phosphor-svelte/lib/Lightning';
-	import Users from 'phosphor-svelte/lib/Users';
-	import Percent from 'phosphor-svelte/lib/Percent';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
+	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
+	import CopyIcon from 'phosphor-svelte/lib/CopyIcon';
+	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
+	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
+	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
+	import ChartBarIcon from 'phosphor-svelte/lib/ChartBarIcon';
+	import LightningIcon from 'phosphor-svelte/lib/LightningIcon';
+	import UsersIcon from 'phosphor-svelte/lib/UsersIcon';
+	import PercentIcon from 'phosphor-svelte/lib/PercentIcon';
 
 	let popups = $state<Popup[]>([]);
 	let analytics = $state<PopupAnalytics[]>([]);
@@ -70,7 +70,7 @@
 	async function duplicatePopup(popup: Popup) {
 		try {
 			await api.post('/api/admin/popups', {
-				name: `${popup.name} (Copy)`,
+				name: `${popup.name} (CopyIcon)`,
 				popup_type: popup.popup_type,
 				trigger_type: popup.trigger_type,
 				trigger_config: popup.trigger_config,
@@ -128,7 +128,7 @@
 			<p class="pop-admin__count">{total} total popups</p>
 		</div>
 		<a href="/admin/popups/new" class="pop-admin__create">
-			<Plus size={18} weight="bold" />
+			<PlusIcon size={18} weight="bold" />
 			Create Popup
 		</a>
 	</div>
@@ -143,7 +143,7 @@
 		<div class="pop-stats">
 			<div class="pop-stats__card">
 				<div class="pop-stats__icon pop-stats__icon--active">
-					<Lightning size={20} weight="bold" />
+					<LightningIcon size={20} weight="bold" />
 				</div>
 				<div class="pop-stats__data">
 					<span class="pop-stats__value">{activeCount}</span>
@@ -152,7 +152,7 @@
 			</div>
 			<div class="pop-stats__card">
 				<div class="pop-stats__icon pop-stats__icon--impressions">
-					<Eye size={20} weight="bold" />
+					<EyeIcon size={20} weight="bold" />
 				</div>
 				<div class="pop-stats__data">
 					<span class="pop-stats__value">{totalImpressions.toLocaleString()}</span>
@@ -161,7 +161,7 @@
 			</div>
 			<div class="pop-stats__card">
 				<div class="pop-stats__icon pop-stats__icon--submissions">
-					<Users size={20} weight="bold" />
+					<UsersIcon size={20} weight="bold" />
 				</div>
 				<div class="pop-stats__data">
 					<span class="pop-stats__value">{totalSubmissions.toLocaleString()}</span>
@@ -170,7 +170,7 @@
 			</div>
 			<div class="pop-stats__card">
 				<div class="pop-stats__icon pop-stats__icon--conversion">
-					<Percent size={20} weight="bold" />
+					<PercentIcon size={20} weight="bold" />
 				</div>
 				<div class="pop-stats__data">
 					<span class="pop-stats__value">{avgConversion.toFixed(1)}%</span>
@@ -181,7 +181,7 @@
 
 		{#if popups.length === 0}
 			<div class="pop-admin__empty">
-				<ChartBar size={40} weight="light" />
+				<ChartBarIcon size={40} weight="light" />
 				<p>No popups created yet.</p>
 				<a href="/admin/popups/new" class="pop-admin__create-link">Create your first popup</a>
 			</div>
@@ -218,15 +218,15 @@
 						</div>
 						<div class="pop-card__actions">
 							<a href="/admin/popups/{popup.id}" class="pop-card__btn pop-card__btn--edit">
-								<PencilSimple size={16} weight="bold" />
+								<PencilSimpleIcon size={16} weight="bold" />
 								<span>Edit</span>
 							</a>
 							<button onclick={() => duplicatePopup(popup)} class="pop-card__btn pop-card__btn--dup">
-								<Copy size={16} weight="bold" />
+								<CopyIcon size={16} weight="bold" />
 								<span>Duplicate</span>
 							</button>
 							<button onclick={() => deletePopup(popup)} class="pop-card__btn pop-card__btn--delete">
-								<Trash size={16} weight="bold" />
+								<TrashIcon size={16} weight="bold" />
 								<span>Delete</span>
 							</button>
 						</div>
@@ -280,21 +280,21 @@
 											class="pop-table__btn pop-table__btn--edit"
 											title="Edit"
 										>
-											<PencilSimple size={16} weight="bold" />
+											<PencilSimpleIcon size={16} weight="bold" />
 										</a>
 										<button
 											onclick={() => duplicatePopup(popup)}
 											class="pop-table__btn pop-table__btn--dup"
 											title="Duplicate"
 										>
-											<Copy size={16} weight="bold" />
+											<CopyIcon size={16} weight="bold" />
 										</button>
 										<button
 											onclick={() => deletePopup(popup)}
 											class="pop-table__btn pop-table__btn--delete"
 											title="Delete"
 										>
-											<Trash size={16} weight="bold" />
+											<TrashIcon size={16} weight="bold" />
 										</button>
 									</div>
 								</td>
@@ -311,7 +311,7 @@
 						disabled={page <= 1}
 						class="pop-admin__page-btn"
 					>
-						<CaretLeft size={16} weight="bold" /> Prev
+						<CaretLeftIcon size={16} weight="bold" /> Prev
 					</button>
 					<span class="pop-admin__page-info">Page {page} of {totalPages}</span>
 					<button
@@ -319,7 +319,7 @@
 						disabled={page >= totalPages}
 						class="pop-admin__page-btn"
 					>
-						Next <CaretRight size={16} weight="bold" />
+						Next <CaretRightIcon size={16} weight="bold" />
 					</button>
 				</div>
 			{/if}

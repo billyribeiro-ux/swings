@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Trash from 'phosphor-svelte/lib/Trash';
-	import ArrowUp from 'phosphor-svelte/lib/ArrowUp';
-	import ArrowDown from 'phosphor-svelte/lib/ArrowDown';
+	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
+	import ArrowUpIcon from 'phosphor-svelte/lib/ArrowUpIcon';
+	import ArrowDownIcon from 'phosphor-svelte/lib/ArrowDownIcon';
 
 	type FieldRow = { type: string; key: string; label?: string };
 
@@ -63,7 +63,7 @@
 						disabled={i === 0}
 						onclick={() => onMove(i, i - 1)}
 					>
-						<ArrowUp size={14} />
+						<ArrowUpIcon size={14} />
 					</button>
 					<button
 						type="button"
@@ -72,7 +72,7 @@
 						disabled={i === schema.length - 1}
 						onclick={() => onMove(i, i + 1)}
 					>
-						<ArrowDown size={14} />
+						<ArrowDownIcon size={14} />
 					</button>
 					<button
 						type="button"
@@ -80,7 +80,7 @@
 						aria-label="Delete field"
 						onclick={() => onDelete(i)}
 					>
-						<Trash size={14} />
+						<TrashIcon size={14} />
 					</button>
 				</div>
 			</li>

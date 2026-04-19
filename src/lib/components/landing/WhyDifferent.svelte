@@ -3,25 +3,25 @@
 	import { ScrollTrigger } from 'gsap/ScrollTrigger';
 	import { isReducedMotion } from '$lib/utils/animations';
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
-	import Clock from 'phosphor-svelte/lib/Clock';
-	import ShieldCheck from 'phosphor-svelte/lib/ShieldCheck';
-	import CurrencyDollar from 'phosphor-svelte/lib/CurrencyDollar';
+	import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
+	import ShieldCheckIcon from 'phosphor-svelte/lib/ShieldCheckIcon';
+	import CurrencyDollarIcon from 'phosphor-svelte/lib/CurrencyDollarIcon';
 
 	const features = [
 		{
-			icon: Clock,
+			icon: ClockIcon,
 			title: 'Early Entry Alerts',
 			description:
 				"Most services notify you after the move has already happened. We send alerts before the breakout, with the exact price level we're watching - giving you time to plan, not chase."
 		},
 		{
-			icon: ShieldCheck,
+			icon: ShieldCheckIcon,
 			title: 'Clear Invalidation Levels',
 			description:
 				"Every alert includes a simple 'no longer valid' level. If price breaks below it, the setup is done -- no confusion, no guessing, no hoping. You always know where you stand."
 		},
 		{
-			icon: CurrencyDollar,
+			icon: CurrencyDollarIcon,
 			title: 'Simple Profit-Taking Guidance',
 			description:
 				"We highlight logical profit zones so you can scale out with confidence, even if you're not an experienced trader. No complicated calculations -- just clear, actionable targets."

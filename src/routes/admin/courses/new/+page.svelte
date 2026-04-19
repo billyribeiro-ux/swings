@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { api } from '$lib/api/client';
-	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
-	import FloppyDisk from 'phosphor-svelte/lib/FloppyDisk';
-	import Image from 'phosphor-svelte/lib/Image';
-	import VideoCamera from 'phosphor-svelte/lib/VideoCamera';
-	import CurrencyDollar from 'phosphor-svelte/lib/CurrencyDollar';
-	import Clock from 'phosphor-svelte/lib/Clock';
-	import GraduationCap from 'phosphor-svelte/lib/GraduationCap';
+	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
+	import FloppyDiskIcon from 'phosphor-svelte/lib/FloppyDiskIcon';
+	import ImageIcon from 'phosphor-svelte/lib/ImageIcon';
+	import VideoCameraIcon from 'phosphor-svelte/lib/VideoCameraIcon';
+	import CurrencyDollarIcon from 'phosphor-svelte/lib/CurrencyDollarIcon';
+	import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
+	import GraduationCapIcon from 'phosphor-svelte/lib/GraduationCapIcon';
 
 	interface CourseResponse {
 		id: string;
@@ -94,7 +94,7 @@
 	<!-- Header -->
 	<div class="new-course__header">
 		<a href="/admin/courses" class="back-link">
-			<ArrowLeft size={18} weight="bold" />
+			<ArrowLeftIcon size={18} weight="bold" />
 			Back to Courses
 		</a>
 		<h1 class="new-course__title">Create New Course</h1>
@@ -195,7 +195,7 @@
 				</div>
 
 				<button type="submit" class="btn-create" disabled={saving || !title.trim()}>
-					<FloppyDisk size={18} weight="bold" />
+					<FloppyDiskIcon size={18} weight="bold" />
 					{saving ? 'Creating...' : 'Create Course'}
 				</button>
 			</div>
@@ -203,7 +203,7 @@
 			<!-- Difficulty -->
 			<div class="form-card">
 				<h2 class="form-card__heading">
-					<GraduationCap size={18} weight="duotone" />
+					<GraduationCapIcon size={18} weight="duotone" />
 					Difficulty
 				</h2>
 
@@ -226,7 +226,7 @@
 			<!-- Pricing -->
 			<div class="form-card">
 				<h2 class="form-card__heading">
-					<CurrencyDollar size={18} weight="duotone" />
+					<CurrencyDollarIcon size={18} weight="duotone" />
 					Pricing
 				</h2>
 
@@ -268,7 +268,7 @@
 			<!-- Media -->
 			<div class="form-card">
 				<h2 class="form-card__heading">
-					<Image size={18} weight="duotone" />
+					<ImageIcon size={18} weight="duotone" />
 					Media
 				</h2>
 
@@ -292,7 +292,7 @@
 
 				<div class="field">
 					<label for="course-trailer" class="field__label">
-						<VideoCamera size={14} weight="bold" />
+						<VideoCameraIcon size={14} weight="bold" />
 						Trailer Video URL
 					</label>
 					<input
@@ -309,7 +309,7 @@
 			<!-- Duration -->
 			<div class="form-card">
 				<h2 class="form-card__heading">
-					<Clock size={18} weight="duotone" />
+					<ClockIcon size={18} weight="duotone" />
 					Duration
 				</h2>
 

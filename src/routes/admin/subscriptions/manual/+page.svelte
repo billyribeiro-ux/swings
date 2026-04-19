@@ -1,9 +1,9 @@
 <script lang="ts">
-	import CreditCard from 'phosphor-svelte/lib/CreditCard';
-	import MagnifyingGlass from 'phosphor-svelte/lib/MagnifyingGlass';
-	import Gift from 'phosphor-svelte/lib/Gift';
-	import Clock from 'phosphor-svelte/lib/Clock';
-	import CalendarBlank from 'phosphor-svelte/lib/CalendarBlank';
+	import CreditCardIcon from 'phosphor-svelte/lib/CreditCardIcon';
+	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
+	import GiftIcon from 'phosphor-svelte/lib/GiftIcon';
+	import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
+	import CalendarBlankIcon from 'phosphor-svelte/lib/CalendarBlankIcon';
 	import { ApiError } from '$lib/api/client';
 	import {
 		adminSubs,
@@ -129,7 +129,7 @@
 <div class="page" data-testid="admin-subs-manual-page">
 	<header class="page__header">
 		<div class="page__title-row">
-			<CreditCard size={28} weight="duotone" />
+			<CreditCardIcon size={28} weight="duotone" />
 			<h1 class="page__title">Manual subscriptions</h1>
 		</div>
 		<p class="page__subtitle">
@@ -147,7 +147,7 @@
 		<div class="field field--wide">
 			<label class="field__label" for="sub-lookup">Member id (UUID)</label>
 			<div class="search-input">
-				<MagnifyingGlass size={16} />
+				<MagnifyingGlassIcon size={16} />
 				<input
 					id="sub-lookup"
 					class="field__input"
@@ -205,7 +205,7 @@
 				<div class="ops">
 					<div class="op">
 						<h3 class="op__title">
-							<Clock size={18} weight="duotone" />
+							<ClockIcon size={18} weight="duotone" />
 							Extend period
 						</h3>
 						<form class="op__form" onsubmit={extend}>
@@ -235,7 +235,7 @@
 
 					<div class="op">
 						<h3 class="op__title">
-							<CalendarBlank size={18} weight="duotone" />
+							<CalendarBlankIcon size={18} weight="duotone" />
 							Override cycle anchor
 						</h3>
 						<form class="op__form" onsubmit={overrideCycle}>
@@ -300,7 +300,7 @@
 
 		<section class="card">
 			<h2 class="card__title">
-				<Gift size={20} weight="duotone" />
+				<GiftIcon size={20} weight="duotone" />
 				Comp / gift membership
 			</h2>
 			<form class="comp-form" onsubmit={compGrant}>

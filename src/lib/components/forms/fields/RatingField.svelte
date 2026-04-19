@@ -1,11 +1,11 @@
 <!--
-  FORM-10: Star rating. Implemented as a radio group styled as stars so
+  FORM-10: StarIcon rating. Implemented as a radio group styled as stars so
   keyboard + SR users get a first-class experience; visual fill is driven
   entirely by sibling selectors in forms.css.
 -->
 <script lang="ts">
 	import type { FieldProps, FieldSchema } from '../types.ts';
-	import Star from 'phosphor-svelte/lib/Star';
+	import StarIcon from 'phosphor-svelte/lib/StarIcon';
 
 	const { field, value, error, disabled = false, onChange }: FieldProps = $props();
 	const r = $derived(field as Extract<FieldSchema, { type: 'rating' }>);
@@ -55,9 +55,9 @@
 					aria-label={`${n} of ${maxStars}`}
 				/>
 				{#if n <= current}
-					<Star size={28} weight="fill" />
+					<StarIcon size={28} weight="fill" />
 				{:else}
-					<Star size={28} weight="regular" />
+					<StarIcon size={28} weight="regular" />
 				{/if}
 			</label>
 		{/each}

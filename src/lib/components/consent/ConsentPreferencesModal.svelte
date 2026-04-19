@@ -28,7 +28,7 @@
 
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import Check from 'phosphor-svelte/lib/Check';
+	import CheckIcon from 'phosphor-svelte/lib/CheckIcon';
 	import { consent } from '$lib/stores/consent.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
 	import Dialog from '$lib/components/shared/Dialog.svelte';
@@ -117,7 +117,7 @@
 				>
 					<span class="switch-thumb" aria-hidden="true">
 						{#if checked}
-							<Check size="0.75rem" weight="bold" />
+							<CheckIcon size="0.75rem" weight="bold" />
 						{/if}
 					</span>
 				</button>

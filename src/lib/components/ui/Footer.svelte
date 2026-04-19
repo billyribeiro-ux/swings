@@ -3,9 +3,9 @@
 	import { quintOut, cubicOut } from 'svelte/easing';
 	import { prefersReducedMotion } from 'svelte/motion';
 	import { courses } from '$lib/data/courses';
-	import EnvelopeSimple from 'phosphor-svelte/lib/EnvelopeSimple';
-	import TrendUp from 'phosphor-svelte/lib/TrendUp';
-	import ArrowUpRight from 'phosphor-svelte/lib/ArrowUpRight';
+	import EnvelopeSimpleIcon from 'phosphor-svelte/lib/EnvelopeSimpleIcon';
+	import TrendUpIcon from 'phosphor-svelte/lib/TrendUpIcon';
+	import ArrowUpRightIcon from 'phosphor-svelte/lib/ArrowUpRightIcon';
 	import { SITE } from '$lib/seo/config';
 
 	const currentYear = new Date().getFullYear();
@@ -95,7 +95,7 @@
 						>
 							<a href="/courses/{course.slug}" class="footer__link">
 								<span class="footer__link-text">{course.title}</span>
-								<ArrowUpRight
+								<ArrowUpRightIcon
 									class="footer__link-icon"
 									size={14}
 									weight="bold"
@@ -110,7 +110,7 @@
 					>
 						<a href="/courses" class="footer__link footer__link--emphasis">
 							<span class="footer__link-text">View all courses</span>
-							<ArrowUpRight class="footer__link-icon" size={14} weight="bold" aria-hidden="true" />
+							<ArrowUpRightIcon class="footer__link-icon" size={14} weight="bold" aria-hidden="true" />
 						</a>
 					</li>
 				</ul>
@@ -148,7 +148,7 @@
 				<h4 class="footer__heading">Contact</h4>
 				<a href={`mailto:${SITE.supportEmail}`} class="footer__contact-card">
 					<span class="footer__contact-icon-wrap" aria-hidden="true">
-						<EnvelopeSimple size={20} weight="bold" />
+						<EnvelopeSimpleIcon size={20} weight="bold" />
 					</span>
 					<span class="footer__contact-body">
 						<span class="footer__contact-label">Email us</span>
@@ -162,7 +162,7 @@
 			<div class="footer__bottom-inner">
 				<p class="footer__copyright">© {currentYear} {SITE.name}. All rights reserved.</p>
 				<div class="footer__disclaimer">
-					<TrendUp size={14} weight="bold" class="footer__disclaimer-icon" aria-hidden="true" />
+					<TrendUpIcon size={14} weight="bold" class="footer__disclaimer-icon" aria-hidden="true" />
 					<span>Trading involves risk. Past performance ≠ future results.</span>
 				</div>
 			</div>

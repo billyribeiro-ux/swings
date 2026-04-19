@@ -41,10 +41,10 @@
 
 <script lang="ts">
 	import FormField from './FormField.svelte';
-	import Plus from 'phosphor-svelte/lib/Plus';
-	import Trash from 'phosphor-svelte/lib/Trash';
-	import CaretUp from 'phosphor-svelte/lib/CaretUp';
-	import CaretDown from 'phosphor-svelte/lib/CaretDown';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
+	import CaretUpIcon from 'phosphor-svelte/lib/CaretUpIcon';
+	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
 
 	const {
 		fieldKey,
@@ -139,7 +139,7 @@
 							disabled={disabled || i === 0}
 							aria-label={`Move row ${i + 1} up`}
 						>
-							<CaretUp size={16} />
+							<CaretUpIcon size={16} />
 						</button>
 						<button
 							type="button"
@@ -148,7 +148,7 @@
 							disabled={disabled || i === rows.length - 1}
 							aria-label={`Move row ${i + 1} down`}
 						>
-							<CaretDown size={16} />
+							<CaretDownIcon size={16} />
 						</button>
 						<button
 							type="button"
@@ -157,7 +157,7 @@
 							disabled={disabled || !canRemove}
 							aria-label={`Remove row ${i + 1}`}
 						>
-							<Trash size={16} />
+							<TrashIcon size={16} />
 						</button>
 					</div>
 				</div>
@@ -184,7 +184,7 @@
 			onclick={addRow}
 			{disabled}
 		>
-			<Plus size={18} />
+			<PlusIcon size={18} />
 			<span>Add row</span>
 		</button>
 	{/if}

@@ -8,7 +8,7 @@
 -->
 <script lang="ts">
 	import type { FieldProps } from '../types.ts';
-	import Eraser from 'phosphor-svelte/lib/Eraser';
+	import EraserIcon from 'phosphor-svelte/lib/EraserIcon';
 
 	const { field, value, error, disabled = false, onChange }: FieldProps = $props();
 	const current = $derived(typeof value === 'string' ? value : '');
@@ -114,7 +114,7 @@
 			onclick={clear}
 			{disabled}
 		>
-			<Eraser size={18} />
+			<EraserIcon size={18} />
 			<span>Clear</span>
 		</button>
 		{#if current.length > 0}

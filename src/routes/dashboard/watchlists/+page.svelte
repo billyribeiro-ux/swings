@@ -2,8 +2,8 @@
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import type { Watchlist, PaginatedResponse } from '$lib/api/types';
-	import CaretLeft from 'phosphor-svelte/lib/CaretLeft';
-	import CaretRight from 'phosphor-svelte/lib/CaretRight';
+	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
+	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 
 	let watchlists = $state<Watchlist[]>([]);
 	let _total = $state(0);
@@ -82,11 +82,11 @@
 		{#if totalPages > 1}
 			<div class="wl-page__pagination">
 				<button onclick={prevPage} disabled={page <= 1} class="wl-page__page-btn">
-					<CaretLeft size={16} weight="bold" /> Prev
+					<CaretLeftIcon size={16} weight="bold" /> Prev
 				</button>
 				<span class="wl-page__page-info">Page {page} of {totalPages}</span>
 				<button onclick={nextPage} disabled={page >= totalPages} class="wl-page__page-btn">
-					Next <CaretRight size={16} weight="bold" />
+					Next <CaretRightIcon size={16} weight="bold" />
 				</button>
 			</div>
 		{/if}

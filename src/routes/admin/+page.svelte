@@ -2,12 +2,12 @@
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import type { AdminStats } from '$lib/api/types';
-	import Users from 'phosphor-svelte/lib/Users';
-	import Lightning from 'phosphor-svelte/lib/Lightning';
-	import ListChecks from 'phosphor-svelte/lib/ListChecks';
-	import BookOpen from 'phosphor-svelte/lib/BookOpen';
-	import TrendUp from 'phosphor-svelte/lib/TrendUp';
-	import CalendarCheck from 'phosphor-svelte/lib/CalendarCheck';
+	import UsersIcon from 'phosphor-svelte/lib/UsersIcon';
+	import LightningIcon from 'phosphor-svelte/lib/LightningIcon';
+	import ListChecksIcon from 'phosphor-svelte/lib/ListChecksIcon';
+	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
+	import TrendUpIcon from 'phosphor-svelte/lib/TrendUpIcon';
+	import CalendarCheckIcon from 'phosphor-svelte/lib/CalendarCheckIcon';
 
 	let stats = $state<AdminStats | null>(null);
 	let loading = $state(true);
@@ -44,7 +44,7 @@
 		<div class="admin-dash__kpis">
 			<div class="kpi">
 				<div class="kpi__icon kpi__icon--blue">
-					<Users size={22} weight="fill" />
+					<UsersIcon size={22} weight="fill" />
 				</div>
 				<div>
 					<p class="kpi__label">Total Members</p>
@@ -54,7 +54,7 @@
 
 			<div class="kpi">
 				<div class="kpi__icon kpi__icon--green">
-					<Lightning size={22} weight="fill" />
+					<LightningIcon size={22} weight="fill" />
 				</div>
 				<div>
 					<p class="kpi__label">Active Subscriptions</p>
@@ -64,7 +64,7 @@
 
 			<div class="kpi">
 				<div class="kpi__icon kpi__icon--teal">
-					<CalendarCheck size={22} weight="fill" />
+					<CalendarCheckIcon size={22} weight="fill" />
 				</div>
 				<div>
 					<p class="kpi__label">Monthly / Annual</p>
@@ -74,7 +74,7 @@
 
 			<div class="kpi">
 				<div class="kpi__icon kpi__icon--purple">
-					<ListChecks size={22} weight="fill" />
+					<ListChecksIcon size={22} weight="fill" />
 				</div>
 				<div>
 					<p class="kpi__label">Watchlists Published</p>
@@ -84,7 +84,7 @@
 
 			<div class="kpi">
 				<div class="kpi__icon kpi__icon--amber">
-					<BookOpen size={22} weight="fill" />
+					<BookOpenIcon size={22} weight="fill" />
 				</div>
 				<div>
 					<p class="kpi__label">Course Enrollments</p>
@@ -94,7 +94,7 @@
 
 			<div class="kpi">
 				<div class="kpi__icon kpi__icon--rose">
-					<TrendUp size={22} weight="fill" />
+					<TrendUpIcon size={22} weight="fill" />
 				</div>
 				<div>
 					<p class="kpi__label">Conversion Rate</p>
@@ -191,11 +191,11 @@
 			<h2 class="admin-dash__section-title">Quick Actions</h2>
 			<div class="admin-dash__actions">
 				<a href="/admin/watchlists/new" class="admin-dash__action">
-					<ListChecks size={22} weight="duotone" />
+					<ListChecksIcon size={22} weight="duotone" />
 					Create New Watchlist
 				</a>
 				<a href="/admin/members" class="admin-dash__action">
-					<Users size={22} weight="duotone" />
+					<UsersIcon size={22} weight="duotone" />
 					Manage Members
 				</a>
 			</div>

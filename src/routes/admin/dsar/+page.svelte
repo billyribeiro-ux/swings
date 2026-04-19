@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import Trash from 'phosphor-svelte/lib/Trash';
-	import DownloadSimple from 'phosphor-svelte/lib/DownloadSimple';
-	import ArrowClockwise from 'phosphor-svelte/lib/ArrowClockwise';
-	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
-	import XCircle from 'phosphor-svelte/lib/XCircle';
-	import Warning from 'phosphor-svelte/lib/Warning';
+	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
+	import DownloadSimpleIcon from 'phosphor-svelte/lib/DownloadSimpleIcon';
+	import ArrowClockwiseIcon from 'phosphor-svelte/lib/ArrowClockwiseIcon';
+	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
+	import XCircleIcon from 'phosphor-svelte/lib/XCircleIcon';
+	import WarningIcon from 'phosphor-svelte/lib/WarningIcon';
 	import { ApiError } from '$lib/api/client';
 	import {
 		dsarAdmin,
@@ -313,7 +313,7 @@
 <div class="page" data-testid="admin-dsar-page">
 	<header class="page__header">
 		<div class="page__title-row">
-			<Trash size={28} weight="duotone" />
+			<TrashIcon size={28} weight="duotone" />
 			<h1 class="page__title">DSAR &amp; right-to-erasure</h1>
 		</div>
 		<p class="page__subtitle">
@@ -333,7 +333,7 @@
 	<div class="composers">
 		<section class="card">
 			<header class="card__heading">
-				<DownloadSimple size={20} weight="duotone" />
+				<DownloadSimpleIcon size={20} weight="duotone" />
 				<h2 class="card__title">Compose export</h2>
 			</header>
 			<form class="form" onsubmit={createExport}>
@@ -396,7 +396,7 @@
 
 		<section class="card card--danger">
 			<header class="card__heading">
-				<Warning size={20} weight="duotone" />
+				<WarningIcon size={20} weight="duotone" />
 				<h2 class="card__title">Request erasure</h2>
 			</header>
 			<p class="card__hint">
@@ -478,7 +478,7 @@
 			<div class="field field--actions">
 				<button class="btn btn--ghost" type="submit">Apply filters</button>
 				<button class="btn btn--ghost" type="button" onclick={refresh}>
-					<ArrowClockwise size={16} weight="bold" />
+					<ArrowClockwiseIcon size={16} weight="bold" />
 					Refresh
 				</button>
 			</div>
@@ -539,7 +539,7 @@
 											: `Download composed export${hint ? ` (${hint})` : ''}`}
 										data-testid="dsar-download"
 									>
-										<DownloadSimple size={14} weight="bold" />
+										<DownloadSimpleIcon size={14} weight="bold" />
 										{#if downloadingId === job.id}
 											…
 										{:else if hint}
@@ -561,14 +561,14 @@
 										}}
 										data-testid="dsar-approve"
 									>
-										<CheckCircle size={14} weight="bold" />
+										<CheckCircleIcon size={14} weight="bold" />
 										Approve
 									</button>
 									<button
 										class="btn btn--ghost btn--small"
 										onclick={() => cancelJob(job)}
 									>
-										<XCircle size={14} weight="bold" />
+										<XCircleIcon size={14} weight="bold" />
 										Cancel
 									</button>
 								{/if}

@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import Eye from 'phosphor-svelte/lib/Eye';
-	import MagnifyingGlass from 'phosphor-svelte/lib/MagnifyingGlass';
-	import DownloadSimple from 'phosphor-svelte/lib/DownloadSimple';
-	import ArrowClockwise from 'phosphor-svelte/lib/ArrowClockwise';
-	import CaretLeft from 'phosphor-svelte/lib/CaretLeft';
-	import CaretRight from 'phosphor-svelte/lib/CaretRight';
+	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
+	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
+	import DownloadSimpleIcon from 'phosphor-svelte/lib/DownloadSimpleIcon';
+	import ArrowClockwiseIcon from 'phosphor-svelte/lib/ArrowClockwiseIcon';
+	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
+	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { ApiError } from '$lib/api/client';
 	import {
@@ -148,7 +148,7 @@
 <div class="page" data-testid="admin-audit-page">
 	<header class="page__header">
 		<div class="page__title-row">
-			<Eye size={28} weight="duotone" />
+			<EyeIcon size={28} weight="duotone" />
 			<h1 class="page__title">Audit log</h1>
 		</div>
 		<p class="page__subtitle">
@@ -167,7 +167,7 @@
 			<div class="field field--wide">
 				<label class="field__label" for="audit-q">Free-text search</label>
 				<div class="search-input">
-					<MagnifyingGlass size={16} />
+					<MagnifyingGlassIcon size={16} />
 					<input
 						id="audit-q"
 						class="field__input"
@@ -246,17 +246,17 @@
 		</div>
 		<div class="filters__actions">
 			<button class="btn btn--primary" type="submit" data-testid="audit-apply">
-				<MagnifyingGlass size={16} weight="bold" />
+				<MagnifyingGlassIcon size={16} weight="bold" />
 				Apply
 			</button>
 			<button class="btn btn--ghost" type="button" onclick={clearFilters}>Clear</button>
 			<button class="btn btn--ghost" type="button" onclick={refresh} aria-label="Refresh">
-				<ArrowClockwise size={16} weight="bold" />
+				<ArrowClockwiseIcon size={16} weight="bold" />
 				Refresh
 			</button>
 			<div class="filters__spacer"></div>
 			<button class="btn btn--ghost" type="button" onclick={downloadCsv}>
-				<DownloadSimple size={16} weight="bold" />
+				<DownloadSimpleIcon size={16} weight="bold" />
 				Export CSV
 			</button>
 		</div>
@@ -323,7 +323,7 @@
 				onclick={prevPage}
 				aria-label="Previous page"
 			>
-				<CaretLeft size={16} />
+				<CaretLeftIcon size={16} />
 				Prev
 			</button>
 			<span class="pager__info">
@@ -336,7 +336,7 @@
 				aria-label="Next page"
 			>
 				Next
-				<CaretRight size={16} />
+				<CaretRightIcon size={16} />
 			</button>
 		</div>
 	{/if}

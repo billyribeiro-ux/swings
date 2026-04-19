@@ -7,9 +7,9 @@
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import Seo from '$lib/seo/Seo.svelte';
 	import { productSchema, buildJsonLd } from '$lib/seo/jsonld';
-	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
-	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
-	import Sparkle from 'phosphor-svelte/lib/Sparkle';
+	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
+	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
+	import SparkleIcon from 'phosphor-svelte/lib/SparkleIcon';
 	import {
 		PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED,
 		PRICING_ANNUAL_SAVINGS_USD,
@@ -125,7 +125,7 @@
 
 	<div class="page-hero__inner">
 		<div class="price-badge page-badge page-badge--gold">
-			<Sparkle size={18} weight="duotone" color="#D4A843" />
+			<SparkleIcon size={18} weight="duotone" color="#D4A843" />
 			<span class="page-badge__text page-badge__text--gold">Best Value</span>
 		</div>
 
@@ -139,7 +139,7 @@
 				<span class="price-hero__suffix">/year</span>
 			</div>
 			<div class="price-hero__savings-badge">
-				<CheckCircle size={16} weight="fill" color="#22B573" />
+				<CheckCircleIcon size={16} weight="fill" color="#22B573" />
 				<span class="price-hero__savings-text">
 					Save {'$' + PRICING_ANNUAL_SAVINGS_USD} vs paying monthly for a year
 				</span>
@@ -158,7 +158,7 @@
 				<div class="feature-list">
 					{#each features as feature, i}
 						<div class="reveal-item feature-list__item" style="transition-delay: {i * 0.06}s">
-							<CheckCircle size={24} weight="fill" color="#0FA4AF" class="feature-list__icon" />
+							<CheckCircleIcon size={24} weight="fill" color="#0FA4AF" class="feature-list__icon" />
 							<p class="feature-list__text">{feature}</p>
 						</div>
 					{/each}
@@ -221,13 +221,13 @@
 							Processing...
 						{:else}
 							Start Annual Plan -- {'$' + PRICING_ANNUAL_USD}/year
-							<ArrowRight size={18} weight="bold" />
+							<ArrowRightIcon size={18} weight="bold" />
 						{/if}
 					</button>
 
 					<a href="/pricing/monthly" class="page-cta__link">
 						View Monthly Plan
-						<ArrowRight size={14} weight="bold" />
+						<ArrowRightIcon size={14} weight="bold" />
 					</a>
 				</div>
 

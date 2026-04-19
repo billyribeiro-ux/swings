@@ -4,28 +4,28 @@
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api, ApiError } from '$lib/api/client';
 	import type { AuthResponse, UserResponse } from '$lib/api/types';
-	import ChartBar from 'phosphor-svelte/lib/ChartBar';
-	import PresentationChart from 'phosphor-svelte/lib/PresentationChart';
-	import Users from 'phosphor-svelte/lib/Users';
-	import ListChecks from 'phosphor-svelte/lib/ListChecks';
-	import Article from 'phosphor-svelte/lib/Article';
-	import UserCircle from 'phosphor-svelte/lib/UserCircle';
-	import SignOut from 'phosphor-svelte/lib/SignOut';
-	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
-	import CaretDoubleLeft from 'phosphor-svelte/lib/CaretDoubleLeft';
-	import CaretDoubleRight from 'phosphor-svelte/lib/CaretDoubleRight';
-	import List from 'phosphor-svelte/lib/List';
-	import X from 'phosphor-svelte/lib/X';
-	import CaretDown from 'phosphor-svelte/lib/CaretDown';
-	import GraduationCap from 'phosphor-svelte/lib/GraduationCap';
-	import CreditCard from 'phosphor-svelte/lib/CreditCard';
-	import Tag from 'phosphor-svelte/lib/Tag';
-	import ChatCircleDots from 'phosphor-svelte/lib/ChatCircleDots';
-	import Gear from 'phosphor-svelte/lib/Gear';
-	import ShieldCheck from 'phosphor-svelte/lib/ShieldCheck';
-	import Eye from 'phosphor-svelte/lib/Eye';
-	import Trash from 'phosphor-svelte/lib/Trash';
-	import Receipt from 'phosphor-svelte/lib/Receipt';
+	import ChartBarIcon from 'phosphor-svelte/lib/ChartBarIcon';
+	import PresentationChartIcon from 'phosphor-svelte/lib/PresentationChartIcon';
+	import UsersIcon from 'phosphor-svelte/lib/UsersIcon';
+	import ListChecksIcon from 'phosphor-svelte/lib/ListChecksIcon';
+	import ArticleIcon from 'phosphor-svelte/lib/ArticleIcon';
+	import UserCircleIcon from 'phosphor-svelte/lib/UserCircleIcon';
+	import SignOutIcon from 'phosphor-svelte/lib/SignOutIcon';
+	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
+	import CaretDoubleLeftIcon from 'phosphor-svelte/lib/CaretDoubleLeftIcon';
+	import CaretDoubleRightIcon from 'phosphor-svelte/lib/CaretDoubleRightIcon';
+	import ListIcon from 'phosphor-svelte/lib/ListIcon';
+	import XIcon from 'phosphor-svelte/lib/XIcon';
+	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
+	import GraduationCapIcon from 'phosphor-svelte/lib/GraduationCapIcon';
+	import CreditCardIcon from 'phosphor-svelte/lib/CreditCardIcon';
+	import TagIcon from 'phosphor-svelte/lib/TagIcon';
+	import ChatCircleDotsIcon from 'phosphor-svelte/lib/ChatCircleDotsIcon';
+	import GearIcon from 'phosphor-svelte/lib/GearIcon';
+	import ShieldCheckIcon from 'phosphor-svelte/lib/ShieldCheckIcon';
+	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
+	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
+	import ReceiptIcon from 'phosphor-svelte/lib/ReceiptIcon';
 	import CommandPalette from '$lib/components/admin/CommandPalette.svelte';
 	import { SITE } from '$lib/seo/config';
 	import {
@@ -165,11 +165,11 @@
 	}
 
 	const navItems = [
-		{ href: '/admin', label: 'Dashboard', icon: ChartBar },
-		{ href: '/admin/analytics', label: 'Analytics', icon: PresentationChart },
-		{ href: '/admin/members', label: 'Members', icon: Users },
-		{ href: '/admin/watchlists', label: 'Watchlists', icon: ListChecks },
-		{ href: '/admin/author', label: 'Author Profile', icon: UserCircle }
+		{ href: '/admin', label: 'Dashboard', icon: ChartBarIcon },
+		{ href: '/admin/analytics', label: 'Analytics', icon: PresentationChartIcon },
+		{ href: '/admin/members', label: 'Members', icon: UsersIcon },
+		{ href: '/admin/watchlists', label: 'Watchlists', icon: ListChecksIcon },
+		{ href: '/admin/author', label: 'Author Profile', icon: UserCircleIcon }
 	];
 
 </script>
@@ -255,9 +255,9 @@
 		<header class="admin__mobile-header">
 			<button class="admin__menu-toggle" onclick={() => (mobileMenuOpen = !mobileMenuOpen)}>
 				{#if mobileMenuOpen}
-					<X size={24} weight="bold" />
+					<XIcon size={24} weight="bold" />
 				{:else}
-					<List size={24} weight="bold" />
+					<ListIcon size={24} weight="bold" />
 				{/if}
 			</button>
 			<a href="/" class="admin__mobile-logo">
@@ -288,9 +288,9 @@
 						title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
 					>
 						{#if sidebarCollapsed}
-							<CaretDoubleRight size={18} weight="bold" />
+							<CaretDoubleRightIcon size={18} weight="bold" />
 						{:else}
-							<CaretDoubleLeft size={18} weight="bold" />
+							<CaretDoubleLeftIcon size={18} weight="bold" />
 						{/if}
 					</button>
 				</div>
@@ -314,9 +314,9 @@
 						class="admin__nav-link admin__nav-link--header"
 						onclick={() => (blogSubmenuOpen = !blogSubmenuOpen)}
 					>
-						<Article size={20} weight="duotone" />
+						<ArticleIcon size={20} weight="duotone" />
 						<span>Blog</span>
-						<CaretDown
+						<CaretDownIcon
 							size={16}
 							class="admin__nav-caret{blogSubmenuOpen ? ' admin__nav-caret--open' : ''}"
 						/>
@@ -344,9 +344,9 @@
 						class="admin__nav-link admin__nav-link--header"
 						onclick={() => (courseSubmenuOpen = !courseSubmenuOpen)}
 					>
-						<GraduationCap size={20} weight="duotone" />
+						<GraduationCapIcon size={20} weight="duotone" />
 						<span>Courses</span>
-						<CaretDown
+						<CaretDownIcon
 							size={16}
 							class="admin__nav-caret{courseSubmenuOpen ? ' admin__nav-caret--open' : ''}"
 						/>
@@ -374,9 +374,9 @@
 						class="admin__nav-link admin__nav-link--header"
 						onclick={() => (subscriptionSubmenuOpen = !subscriptionSubmenuOpen)}
 					>
-						<CreditCard size={20} weight="duotone" />
+						<CreditCardIcon size={20} weight="duotone" />
 						<span>Subscriptions</span>
-						<CaretDown
+						<CaretDownIcon
 							size={16}
 							class="admin__nav-caret{subscriptionSubmenuOpen ? ' admin__nav-caret--open' : ''}"
 						/>
@@ -404,9 +404,9 @@
 						class="admin__nav-link admin__nav-link--header"
 						onclick={() => (couponSubmenuOpen = !couponSubmenuOpen)}
 					>
-						<Tag size={20} weight="duotone" />
+						<TagIcon size={20} weight="duotone" />
 						<span>Coupons</span>
-						<CaretDown
+						<CaretDownIcon
 							size={16}
 							class="admin__nav-caret{couponSubmenuOpen ? ' admin__nav-caret--open' : ''}"
 						/>
@@ -434,9 +434,9 @@
 						class="admin__nav-link admin__nav-link--header"
 						onclick={() => (popupSubmenuOpen = !popupSubmenuOpen)}
 					>
-						<ChatCircleDots size={20} weight="duotone" />
+						<ChatCircleDotsIcon size={20} weight="duotone" />
 						<span>Popups</span>
-						<CaretDown
+						<CaretDownIcon
 							size={16}
 							class="admin__nav-caret{popupSubmenuOpen ? ' admin__nav-caret--open' : ''}"
 						/>
@@ -466,7 +466,7 @@
 					onclick={() => (mobileMenuOpen = false)}
 					data-testid="nav-security"
 				>
-					<ShieldCheck size={20} weight="duotone" />
+					<ShieldCheckIcon size={20} weight="duotone" />
 					<span>Security</span>
 				</a>
 
@@ -477,7 +477,7 @@
 					onclick={() => (mobileMenuOpen = false)}
 					data-testid="nav-audit"
 				>
-					<Eye size={20} weight="duotone" />
+					<EyeIcon size={20} weight="duotone" />
 					<span>Audit log</span>
 				</a>
 
@@ -488,7 +488,7 @@
 					onclick={() => (mobileMenuOpen = false)}
 					data-testid="nav-dsar"
 				>
-					<Trash size={20} weight="duotone" />
+					<TrashIcon size={20} weight="duotone" />
 					<span>DSAR</span>
 				</a>
 
@@ -499,7 +499,7 @@
 					onclick={() => (mobileMenuOpen = false)}
 					data-testid="nav-orders"
 				>
-					<Receipt size={20} weight="duotone" />
+					<ReceiptIcon size={20} weight="duotone" />
 					<span>Orders</span>
 				</a>
 
@@ -509,7 +509,7 @@
 					class:admin__nav-link--active={page.url.pathname === '/admin/settings'}
 					onclick={() => (mobileMenuOpen = false)}
 				>
-					<Gear size={20} weight="duotone" />
+					<GearIcon size={20} weight="duotone" />
 					<span>Settings</span>
 				</a>
 			</nav>
@@ -520,11 +520,11 @@
 					class="admin__nav-link admin__nav-link--back"
 					onclick={() => (mobileMenuOpen = false)}
 				>
-					<ArrowLeft size={18} />
+					<ArrowLeftIcon size={18} />
 					<span>Member Dashboard</span>
 				</a>
 				<button onclick={handleLogout} class="admin__logout">
-					<SignOut size={20} weight="duotone" />
+					<SignOutIcon size={20} weight="duotone" />
 					<span>Sign Out</span>
 				</button>
 			</div>

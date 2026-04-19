@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import IdentificationBadge from 'phosphor-svelte/lib/IdentificationBadge';
-	import ArrowClockwise from 'phosphor-svelte/lib/ArrowClockwise';
-	import StopCircle from 'phosphor-svelte/lib/StopCircle';
+	import IdentificationBadgeIcon from 'phosphor-svelte/lib/IdentificationBadgeIcon';
+	import ArrowClockwiseIcon from 'phosphor-svelte/lib/ArrowClockwiseIcon';
+	import StopCircleIcon from 'phosphor-svelte/lib/StopCircleIcon';
 	import { ApiError } from '$lib/api/client';
 	import {
 		impersonation,
@@ -106,7 +106,7 @@
 	<header class="page__header">
 		<a href="/admin/security" class="page__back">← Security</a>
 		<div class="page__title-row">
-			<IdentificationBadge size={26} weight="duotone" />
+			<IdentificationBadgeIcon size={26} weight="duotone" />
 			<h1 class="page__title">Impersonation sessions</h1>
 		</div>
 		<p class="page__subtitle">
@@ -185,7 +185,7 @@
 		<header class="card__heading">
 			<h2 class="card__title">Recent sessions</h2>
 			<button class="btn btn--ghost" onclick={refresh}>
-				<ArrowClockwise size={16} weight="bold" />
+				<ArrowClockwiseIcon size={16} weight="bold" />
 				Refresh
 			</button>
 		</header>
@@ -238,7 +238,7 @@
 										}}
 										aria-label="Revoke session"
 									>
-										<StopCircle size={16} weight="bold" />
+										<StopCircleIcon size={16} weight="bold" />
 										Revoke
 									</button>
 								{/if}

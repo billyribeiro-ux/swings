@@ -4,9 +4,9 @@
 	import type { PricingPlan } from '$lib/api/types';
 	import Seo from '$lib/seo/Seo.svelte';
 	import { webPageSchema, buildJsonLd } from '$lib/seo/jsonld';
-	import Check from 'phosphor-svelte/lib/Check';
-	import Tag from 'phosphor-svelte/lib/Tag';
-	import CaretDown from 'phosphor-svelte/lib/CaretDown';
+	import CheckIcon from 'phosphor-svelte/lib/CheckIcon';
+	import TagIcon from 'phosphor-svelte/lib/TagIcon';
+	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
 	import { PRICING_ANNUAL_SAVINGS_USD, PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED } from '$lib/data/pricing';
 
 	interface DisplayPlan {
@@ -178,7 +178,7 @@
 					{/if}
 					<ul class="plan-card__features">
 						{#each plan.features as feature (feature)}
-							<li><Check size={16} weight="bold" /> {feature}</li>
+							<li><CheckIcon size={16} weight="bold" /> {feature}</li>
 						{/each}
 					</ul>
 					<a href={getCheckoutUrl(plan)} class="plan-card__cta" class:plan-card__cta--primary={plan.is_popular}>
@@ -191,8 +191,8 @@
 		<!-- Coupon Section -->
 		<div class="coupon-section">
 			<button class="coupon-toggle" onclick={() => (couponOpen = !couponOpen)}>
-				<Tag size={18} /> Have a coupon code?
-				<CaretDown size={14} class={couponOpen ? 'rotate' : ''} />
+				<TagIcon size={18} /> Have a coupon code?
+				<CaretDownIcon size={14} class={couponOpen ? 'rotate' : ''} />
 			</button>
 			{#if couponOpen}
 				<div class="coupon-form">
@@ -213,7 +213,7 @@
 				<button class="faq-item" onclick={() => (openFaq = openFaq === i ? -1 : i)}>
 					<div class="faq-q">
 						{faq.q}
-						<CaretDown size={16} class={openFaq === i ? 'rotate' : ''} />
+						<CaretDownIcon size={16} class={openFaq === i ? 'rotate' : ''} />
 					</div>
 					{#if openFaq === i}
 						<p class="faq-a">{faq.a}</p>

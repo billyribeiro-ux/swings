@@ -2,16 +2,16 @@
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import type { Coupon, BulkCouponPayload, PaginatedResponse } from '$lib/api/types';
-	import CaretLeft from 'phosphor-svelte/lib/CaretLeft';
-	import CaretRight from 'phosphor-svelte/lib/CaretRight';
-	import MagnifyingGlass from 'phosphor-svelte/lib/MagnifyingGlass';
-	import Ticket from 'phosphor-svelte/lib/Ticket';
-	import ChartBar from 'phosphor-svelte/lib/ChartBar';
-	import CurrencyDollar from 'phosphor-svelte/lib/CurrencyDollar';
-	import Plus from 'phosphor-svelte/lib/Plus';
-	import ToggleLeft from 'phosphor-svelte/lib/ToggleLeft';
-	import ToggleRight from 'phosphor-svelte/lib/ToggleRight';
-	import Lightning from 'phosphor-svelte/lib/Lightning';
+	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
+	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
+	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
+	import TicketIcon from 'phosphor-svelte/lib/TicketIcon';
+	import ChartBarIcon from 'phosphor-svelte/lib/ChartBarIcon';
+	import CurrencyDollarIcon from 'phosphor-svelte/lib/CurrencyDollarIcon';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+	import ToggleLeftIcon from 'phosphor-svelte/lib/ToggleLeftIcon';
+	import ToggleRightIcon from 'phosphor-svelte/lib/ToggleRightIcon';
+	import LightningIcon from 'phosphor-svelte/lib/LightningIcon';
 
 	interface CouponStats { active_count: number; total_usages: number; total_discount_cents: number; }
 	type FilterTab = 'all' | 'active' | 'expired' | 'inactive';
@@ -126,9 +126,9 @@
 		</div>
 		<div class="cp__actions">
 			<button class="cp__bulk-btn" onclick={() => (showBulkForm = !showBulkForm)}>
-				<Lightning size={16} weight="bold" /> Bulk Generate
+				<LightningIcon size={16} weight="bold" /> Bulk Generate
 			</button>
-			<a href="/admin/coupons/new" class="cp__cta"><Plus size={16} weight="bold" /> Create Coupon</a>
+			<a href="/admin/coupons/new" class="cp__cta"><PlusIcon size={16} weight="bold" /> Create Coupon</a>
 		</div>
 	</div>
 
@@ -162,15 +162,15 @@
 		<div class="cp__kpis">{#each Array(3) as _, i (i)}<div class="kpi kpi--skel"><div class="kpi__iskel"></div><div class="kpi__tskel"><div class="skel skel--s"></div><div class="skel skel--l"></div></div></div>{/each}</div>
 	{:else if stats}
 		<div class="cp__kpis">
-			<div class="kpi"><div class="kpi__ic kpi__ic--green"><Ticket size={22} weight="fill" /></div><div><p class="kpi__lbl">Active Coupons</p><p class="kpi__val">{stats.active_count.toLocaleString()}</p></div></div>
-			<div class="kpi"><div class="kpi__ic kpi__ic--blue"><ChartBar size={22} weight="fill" /></div><div><p class="kpi__lbl">Total Usages</p><p class="kpi__val">{stats.total_usages.toLocaleString()}</p></div></div>
-			<div class="kpi"><div class="kpi__ic kpi__ic--teal"><CurrencyDollar size={22} weight="fill" /></div><div><p class="kpi__lbl">Total Discount</p><p class="kpi__val">{formatMoney(stats.total_discount_cents)}</p></div></div>
+			<div class="kpi"><div class="kpi__ic kpi__ic--green"><TicketIcon size={22} weight="fill" /></div><div><p class="kpi__lbl">Active Coupons</p><p class="kpi__val">{stats.active_count.toLocaleString()}</p></div></div>
+			<div class="kpi"><div class="kpi__ic kpi__ic--blue"><ChartBarIcon size={22} weight="fill" /></div><div><p class="kpi__lbl">Total Usages</p><p class="kpi__val">{stats.total_usages.toLocaleString()}</p></div></div>
+			<div class="kpi"><div class="kpi__ic kpi__ic--teal"><CurrencyDollarIcon size={22} weight="fill" /></div><div><p class="kpi__lbl">Total Discount</p><p class="kpi__val">{formatMoney(stats.total_discount_cents)}</p></div></div>
 		</div>
 	{/if}
 
 	<div class="cp__toolbar">
 		<div class="cp__tabs">{#each filters as tab (tab.value)}<button class="cp__tab" class:cp__tab--on={filter === tab.value} onclick={() => setFilter(tab.value)}>{tab.label}</button>{/each}</div>
-		<div class="cp__search"><MagnifyingGlass size={18} weight="bold" /><input type="text" placeholder="Search by code..." value={search} oninput={(e) => handleSearchInput(e.currentTarget.value)} class="cp__sinput" /></div>
+		<div class="cp__search"><MagnifyingGlassIcon size={18} weight="bold" /><input type="text" placeholder="Search by code..." value={search} oninput={(e) => handleSearchInput(e.currentTarget.value)} class="cp__sinput" /></div>
 	</div>
 
 	{#if loading}
@@ -184,7 +184,7 @@
 				<div class="cc__row"><span class="cc__lbl">Discount</span><span class="cc__val">{formatDiscount(coupon)}</span></div>
 				<div class="cc__row"><span class="cc__lbl">Usage</span><span class="cc__val">{formatUsage(coupon)}</span></div>
 				<div class="cc__foot">
-					<button class="tgl" onclick={() => toggleActive(coupon)} disabled={togglingId === coupon.id} title={coupon.is_active ? 'Deactivate' : 'Activate'}>{#if coupon.is_active}<ToggleRight size={24} weight="fill" />{:else}<ToggleLeft size={24} weight="bold" />{/if}</button>
+					<button class="tgl" onclick={() => toggleActive(coupon)} disabled={togglingId === coupon.id} title={coupon.is_active ? 'Deactivate' : 'Activate'}>{#if coupon.is_active}<ToggleRightIcon size={24} weight="fill" />{:else}<ToggleLeftIcon size={24} weight="bold" />{/if}</button>
 					<a href="/admin/coupons/{coupon.id}" class="cc__edit">Edit</a>
 				</div>
 			</div>{/each}</div>
@@ -195,16 +195,16 @@
 						<td><a href="/admin/coupons/{coupon.id}" class="ct__code">{coupon.code}</a></td>
 						<td>{formatDiscount(coupon)}</td><td>{formatUsage(coupon)}</td>
 						<td><span class="badge badge--{st}">{statusLabel(st)}</span></td>
-						<td><button class="tgl" onclick={() => toggleActive(coupon)} disabled={togglingId === coupon.id} title={coupon.is_active ? 'Deactivate' : 'Activate'}>{#if coupon.is_active}<ToggleRight size={22} weight="fill" />{:else}<ToggleLeft size={22} weight="bold" />{/if}</button></td>
+						<td><button class="tgl" onclick={() => toggleActive(coupon)} disabled={togglingId === coupon.id} title={coupon.is_active ? 'Deactivate' : 'Activate'}>{#if coupon.is_active}<ToggleRightIcon size={22} weight="fill" />{:else}<ToggleLeftIcon size={22} weight="bold" />{/if}</button></td>
 						<td><a href="/admin/coupons/{coupon.id}" class="ct__link">Edit</a></td>
 					</tr>{/each}</tbody></table></div>
 	{/if}
 
 	{#if totalPages > 1}
 		<div class="cp__pag">
-			<button onclick={() => { page--; loadCoupons(); }} disabled={page <= 1} class="cp__pbtn"><CaretLeft size={16} weight="bold" /> Prev</button>
+			<button onclick={() => { page--; loadCoupons(); }} disabled={page <= 1} class="cp__pbtn"><CaretLeftIcon size={16} weight="bold" /> Prev</button>
 			<span class="cp__pinfo">Page {page} of {totalPages}</span>
-			<button onclick={() => { page++; loadCoupons(); }} disabled={page >= totalPages} class="cp__pbtn">Next <CaretRight size={16} weight="bold" /></button>
+			<button onclick={() => { page++; loadCoupons(); }} disabled={page >= totalPages} class="cp__pbtn">Next <CaretRightIcon size={16} weight="bold" /></button>
 		</div>
 	{/if}
 </div>

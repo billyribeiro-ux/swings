@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import Globe from 'phosphor-svelte/lib/Globe';
-	import Plus from 'phosphor-svelte/lib/Plus';
-	import Trash from 'phosphor-svelte/lib/Trash';
-	import ToggleLeft from 'phosphor-svelte/lib/ToggleLeft';
-	import ToggleRight from 'phosphor-svelte/lib/ToggleRight';
-	import ArrowClockwise from 'phosphor-svelte/lib/ArrowClockwise';
+	import GlobeIcon from 'phosphor-svelte/lib/GlobeIcon';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
+	import ToggleLeftIcon from 'phosphor-svelte/lib/ToggleLeftIcon';
+	import ToggleRightIcon from 'phosphor-svelte/lib/ToggleRightIcon';
+	import ArrowClockwiseIcon from 'phosphor-svelte/lib/ArrowClockwiseIcon';
 	import { ApiError } from '$lib/api/client';
 	import { ipAllowlist, type AllowlistEntry } from '$lib/api/admin-security';
 
@@ -86,7 +86,7 @@
 	<header class="page__header">
 		<a href="/admin/security" class="page__back">← Security</a>
 		<div class="page__title-row">
-			<Globe size={26} weight="duotone" />
+			<GlobeIcon size={26} weight="duotone" />
 			<h1 class="page__title">IP allowlist</h1>
 		</div>
 		<p class="page__subtitle">
@@ -133,7 +133,7 @@
 				data-testid="ip-allowlist-create"
 				disabled={creating}
 			>
-				<Plus size={16} weight="bold" />
+				<PlusIcon size={16} weight="bold" />
 				{creating ? 'Adding…' : 'Add'}
 			</button>
 		</form>
@@ -143,7 +143,7 @@
 		<header class="card__heading">
 			<h2 class="card__title">Active rules</h2>
 			<button class="btn btn--ghost" onclick={refresh} aria-label="Refresh">
-				<ArrowClockwise size={16} weight="bold" />
+				<ArrowClockwiseIcon size={16} weight="bold" />
 				Refresh
 			</button>
 		</header>
@@ -187,9 +187,9 @@
 									aria-label={entry.is_active ? 'Disable entry' : 'Enable entry'}
 								>
 									{#if entry.is_active}
-										<ToggleRight size={18} weight="duotone" />
+										<ToggleRightIcon size={18} weight="duotone" />
 									{:else}
-										<ToggleLeft size={18} weight="duotone" />
+										<ToggleLeftIcon size={18} weight="duotone" />
 									{/if}
 								</button>
 								<button
@@ -197,7 +197,7 @@
 									onclick={() => remove(entry)}
 									aria-label="Remove entry"
 								>
-									<Trash size={16} weight="bold" />
+									<TrashIcon size={16} weight="bold" />
 								</button>
 							</td>
 						</tr>

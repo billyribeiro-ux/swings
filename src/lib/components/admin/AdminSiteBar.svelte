@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { auth } from '$lib/stores/auth.svelte';
 	import { page } from '$app/state';
-	import Gauge from 'phosphor-svelte/lib/Gauge';
+	import GaugeIcon from 'phosphor-svelte/lib/GaugeIcon';
 
 	const visible = $derived(
 		auth.isAuthenticated &&
@@ -16,7 +16,7 @@
 {#if visible}
 	<div class="admin-site-bar">
 		<a href="/admin" class="admin-site-bar__link">
-			<Gauge size={18} weight="duotone" />
+			<GaugeIcon size={18} weight="duotone" />
 			<span>Dashboard</span>
 		</a>
 		<span class="admin-site-bar__hint">You are signed in as admin</span>

@@ -1,14 +1,14 @@
 <script lang="ts">
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
-	import BookOpen from 'phosphor-svelte/lib/BookOpen';
-	import Pulse from 'phosphor-svelte/lib/Pulse';
-	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
-	import Clock from 'phosphor-svelte/lib/Clock';
-	import GraduationCap from 'phosphor-svelte/lib/GraduationCap';
+	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
+	import PulseIcon from 'phosphor-svelte/lib/PulseIcon';
+	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
+	import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
+	import GraduationCapIcon from 'phosphor-svelte/lib/GraduationCapIcon';
 	import { courses } from '$lib/data/courses';
 
-	const iconMap: Record<string, typeof BookOpen> = { BookOpen, Pulse };
+	const iconMap: Record<string, typeof BookOpenIcon> = { BookOpenIcon, PulseIcon };
 </script>
 
 <section class="courses-section">
@@ -40,7 +40,7 @@
 								{#if Icon}
 									<Icon size={32} weight="duotone" color="white" />
 								{:else}
-									<BookOpen size={32} weight="duotone" color="white" />
+									<BookOpenIcon size={32} weight="duotone" color="white" />
 								{/if}
 							</div>
 						</div>
@@ -53,17 +53,17 @@
 							<div class="course-card__footer">
 								<div class="course-card__meta">
 									<span class="course-card__meta-item">
-										<Clock size={13} weight="bold" class="course-card__meta-icon" />
+										<ClockIcon size={13} weight="bold" class="course-card__meta-icon" />
 										{course.duration}
 									</span>
 									<span class="course-card__meta-item">
-										<GraduationCap size={13} weight="bold" class="course-card__meta-icon" />
+										<GraduationCapIcon size={13} weight="bold" class="course-card__meta-icon" />
 										{course.level}
 									</span>
 								</div>
 								<span class="course-card__link">
 									Learn More
-									<ArrowRight size={14} weight="bold" />
+									<ArrowRightIcon size={14} weight="bold" />
 								</span>
 							</div>
 						</div>

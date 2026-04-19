@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { api, ApiError } from '$lib/api/client';
 	import type { Watchlist } from '$lib/api/types';
-	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
+	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
 
 	let title = $state('');
 	let weekOf = $state('');
@@ -40,7 +40,7 @@
 
 <div class="new-wl">
 	<a href="/admin/watchlists" class="new-wl__back">
-		<ArrowLeft size={18} />
+		<ArrowLeftIcon size={18} />
 		Back to Watchlists
 	</a>
 

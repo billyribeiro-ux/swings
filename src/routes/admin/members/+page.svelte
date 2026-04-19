@@ -2,10 +2,10 @@
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import type { UserResponse, PaginatedResponse } from '$lib/api/types';
-	import CaretLeft from 'phosphor-svelte/lib/CaretLeft';
-	import CaretRight from 'phosphor-svelte/lib/CaretRight';
-	import Trash from 'phosphor-svelte/lib/Trash';
-	import ShieldCheck from 'phosphor-svelte/lib/ShieldCheck';
+	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
+	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
+	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
+	import ShieldCheckIcon from 'phosphor-svelte/lib/ShieldCheckIcon';
 
 	let members = $state<UserResponse[]>([]);
 	let total = $state(0);
@@ -112,14 +112,14 @@
 							onclick={() => toggleRole(member)}
 							class="member-card__btn member-card__btn--role"
 						>
-							<ShieldCheck size={18} weight="bold" />
+							<ShieldCheckIcon size={18} weight="bold" />
 							<span>{member.role === 'admin' ? 'Make Member' : 'Make Admin'}</span>
 						</button>
 						<button
 							onclick={() => deleteMember(member)}
 							class="member-card__btn member-card__btn--delete"
 						>
-							<Trash size={18} weight="bold" />
+							<TrashIcon size={18} weight="bold" />
 							<span>Delete</span>
 						</button>
 					</div>
@@ -165,14 +165,14 @@
 										class="m-table__btn m-table__btn--role"
 										title="Toggle role"
 									>
-										<ShieldCheck size={16} weight="bold" />
+										<ShieldCheckIcon size={16} weight="bold" />
 									</button>
 									<button
 										onclick={() => deleteMember(member)}
 										class="m-table__btn m-table__btn--delete"
 										title="Delete member"
 									>
-										<Trash size={16} weight="bold" />
+										<TrashIcon size={16} weight="bold" />
 									</button>
 								</div>
 							</td>
@@ -192,7 +192,7 @@
 					disabled={page <= 1}
 					class="members-page__page-btn"
 				>
-					<CaretLeft size={16} weight="bold" /> Prev
+					<CaretLeftIcon size={16} weight="bold" /> Prev
 				</button>
 				<span class="members-page__page-info">Page {page} of {totalPages}</span>
 				<button
@@ -203,7 +203,7 @@
 					disabled={page >= totalPages}
 					class="members-page__page-btn"
 				>
-					Next <CaretRight size={16} weight="bold" />
+					Next <CaretRightIcon size={16} weight="bold" />
 				</button>
 			</div>
 		{/if}

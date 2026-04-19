@@ -4,11 +4,11 @@
 	import { gsap } from 'gsap';
 	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
 	import Seo from '$lib/seo/Seo.svelte';
-	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
-	import Envelope from 'phosphor-svelte/lib/Envelope';
-	import BrowsersIcon from 'phosphor-svelte/lib/Browsers';
-	import CalendarCheck from 'phosphor-svelte/lib/CalendarCheck';
-	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
+	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
+	import EnvelopeIcon from 'phosphor-svelte/lib/EnvelopeIcon';
+	import BrowsersIcon from 'phosphor-svelte/lib/BrowsersIcon';
+	import CalendarCheckIcon from 'phosphor-svelte/lib/CalendarCheckIcon';
+	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
 	import Button from '$lib/components/ui/Button.svelte';
 
 	let sessionId = $state('');
@@ -78,7 +78,7 @@
 
 	const steps = [
 		{
-			icon: Envelope,
+			icon: EnvelopeIcon,
 			title: 'Check Your Email',
 			desc: "You'll receive login credentials and onboarding instructions within the next few minutes."
 		},
@@ -88,7 +88,7 @@
 			desc: 'Log in to view your member area, past watchlists, and educational resources.'
 		},
 		{
-			icon: CalendarCheck,
+			icon: CalendarCheckIcon,
 			title: 'Get Your First Watchlist',
 			desc: 'Every Sunday night at 8 PM ET, your weekly watchlist will be delivered via email and SMS.'
 		}
@@ -106,7 +106,7 @@
 		<!-- Success Icon -->
 		<div class="success-icon success-page__icon-wrap">
 			<div class="success-page__icon-circle">
-				<CheckCircle size={48} weight="fill" color="#22B573" />
+				<CheckCircleIcon size={48} weight="fill" color="#22B573" />
 			</div>
 		</div>
 
@@ -144,7 +144,7 @@
 		<div class="success-cta success-page__cta">
 			<Button variant="primary" href="/">
 				Back to Home
-				<ArrowRight size={18} weight="bold" />
+				<ArrowRightIcon size={18} weight="bold" />
 			</Button>
 		</div>
 

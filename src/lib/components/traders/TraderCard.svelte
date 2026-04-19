@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Trader } from '$lib/data/traders';
 	import { modal } from '$lib/stores/modal.svelte';
-	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
+	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
 	import { hoverTilt } from '$lib/utils/animations';
 
 	interface Props {
@@ -35,7 +35,7 @@
 	<!-- View Profile Link -->
 	<span class="trader-card__link">
 		View Profile
-		<ArrowRight size={16} />
+		<ArrowRightIcon size={16} />
 	</span>
 </button>
 

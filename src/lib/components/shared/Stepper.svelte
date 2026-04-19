@@ -34,7 +34,7 @@
 </script>
 
 <script lang="ts">
-	import CheckIcon from 'phosphor-svelte/lib/Check';
+	import CheckIcon from 'phosphor-svelte/lib/CheckIcon';
 
 	// svelte/no-unused-props mis-reports aliased destructuring; `ariaLabel` IS used below.
 	// eslint-disable-next-line svelte/no-unused-props

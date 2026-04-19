@@ -12,8 +12,8 @@
 	import Seo from '$lib/seo/Seo.svelte';
 	import { webPageSchema, buildJsonLd, courseSchema } from '$lib/seo/jsonld';
 
-	import GraduationCap from 'phosphor-svelte/lib/GraduationCap';
-	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
+	import GraduationCapIcon from 'phosphor-svelte/lib/GraduationCapIcon';
+	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
 
 	let heroRef: HTMLElement | undefined = $state();
 
@@ -67,11 +67,11 @@
 		)
 	]);
 
-	import Clock from 'phosphor-svelte/lib/Clock';
-	import BookOpen from 'phosphor-svelte/lib/BookOpen';
-	import Pulse from 'phosphor-svelte/lib/Pulse';
+	import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
+	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
+	import PulseIcon from 'phosphor-svelte/lib/PulseIcon';
 
-	const iconMap: Record<string, typeof BookOpen> = { BookOpen, Pulse, GraduationCap };
+	const iconMap: Record<string, typeof BookOpenIcon> = { BookOpenIcon, PulseIcon, GraduationCapIcon };
 </script>
 
 <Seo
@@ -87,7 +87,7 @@
 
 	<div class="page-hero__inner">
 		<div class="courses-badge page-badge">
-			<GraduationCap size={18} weight="duotone" color="#15C5D1" />
+			<GraduationCapIcon size={18} weight="duotone" color="#15C5D1" />
 			<span class="page-badge__text">Education</span>
 		</div>
 
@@ -128,7 +128,7 @@
 								{#if Icon}
 									<Icon size={40} weight="duotone" color="white" />
 								{:else}
-									<BookOpen size={40} weight="duotone" color="white" />
+									<BookOpenIcon size={40} weight="duotone" color="white" />
 								{/if}
 							</div>
 						</div>
@@ -140,11 +140,11 @@
 
 							<div class="course-card__meta">
 								<div class="course-card__meta-item">
-									<Clock size={15} weight="bold" class="course-card__meta-icon" />
+									<ClockIcon size={15} weight="bold" class="course-card__meta-icon" />
 									<span>{course.duration}</span>
 								</div>
 								<div class="course-card__meta-item">
-									<GraduationCap size={15} weight="bold" class="course-card__meta-icon" />
+									<GraduationCapIcon size={15} weight="bold" class="course-card__meta-icon" />
 									<span>{course.modules} modules</span>
 								</div>
 							</div>
@@ -156,7 +156,7 @@
 								</div>
 								<span class="course-card__cta-pill">
 									Learn More
-									<ArrowRight size={16} weight="bold" class="course-card__cta-arrow" />
+									<ArrowRightIcon size={16} weight="bold" class="course-card__cta-arrow" />
 								</span>
 							</div>
 						</div>
@@ -180,7 +180,7 @@
 			<div class="why-grid">
 				<div class="reveal-item why-item" {@attach hoverTilt({ maxTilt: 8, scale: 1.03 })}>
 					<div class="why-item__icon">
-						<BookOpen size={28} weight="duotone" color="#0FA4AF" />
+						<BookOpenIcon size={28} weight="duotone" color="#0FA4AF" />
 					</div>
 					<h3 class="why-item__title">Learn at Your Pace</h3>
 					<p class="why-item__desc">
@@ -190,7 +190,7 @@
 
 				<div class="reveal-item why-item" {@attach hoverTilt({ maxTilt: 8, scale: 1.03 })}>
 					<div class="why-item__icon">
-						<Pulse size={28} weight="duotone" color="#0FA4AF" />
+						<PulseIcon size={28} weight="duotone" color="#0FA4AF" />
 					</div>
 					<h3 class="why-item__title">Real-World Examples</h3>
 					<p class="why-item__desc">
@@ -200,7 +200,7 @@
 
 				<div class="reveal-item why-item" {@attach hoverTilt({ maxTilt: 8, scale: 1.03 })}>
 					<div class="why-item__icon">
-						<GraduationCap size={28} weight="duotone" color="#0FA4AF" />
+						<GraduationCapIcon size={28} weight="duotone" color="#0FA4AF" />
 					</div>
 					<h3 class="why-item__title">Community Support</h3>
 					<p class="why-item__desc">

@@ -3,11 +3,11 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { api, ApiError } from '$lib/api/client';
-	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
-	import FloppyDisk from 'phosphor-svelte/lib/FloppyDisk';
-	import Trash from 'phosphor-svelte/lib/Trash';
-	import Ticket from 'phosphor-svelte/lib/Ticket';
-	import Users from 'phosphor-svelte/lib/Users';
+	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
+	import FloppyDiskIcon from 'phosphor-svelte/lib/FloppyDiskIcon';
+	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
+	import TicketIcon from 'phosphor-svelte/lib/TicketIcon';
+	import UsersIcon from 'phosphor-svelte/lib/UsersIcon';
 
 	interface Coupon {
 		id: string; code: string; description: string | null;
@@ -96,7 +96,7 @@
 </svelte:head>
 
 <div class="ce">
-	<a href="/admin/coupons" class="ce__back"><ArrowLeft size={18} /> Back to Coupons</a>
+	<a href="/admin/coupons" class="ce__back"><ArrowLeftIcon size={18} /> Back to Coupons</a>
 
 	{#if loading}
 		<p class="ce__status">Loading...</p>
@@ -104,7 +104,7 @@
 		<p class="ce__status">{error}</p>
 	{:else if coupon}
 		<div class="ce__hdr">
-			<Ticket size={24} weight="bold" />
+			<TicketIcon size={24} weight="bold" />
 			<h1 class="ce__title">Edit Coupon</h1>
 			<span class="ce__code">{coupon.code}</span>
 		</div>
@@ -113,7 +113,7 @@
 		{#if successMsg}<div class="ce__alert ce__alert--ok">{successMsg}</div>{/if}
 
 		<div class="ce__stats">
-			<div class="ce__sh"><Users size={18} /><h2 class="ce__st">Usage Statistics</h2></div>
+			<div class="ce__sh"><UsersIcon size={18} /><h2 class="ce__st">Usage Statistics</h2></div>
 			<div class="ce__sbar">
 				<div class="ce__snums">
 					<span>{coupon.usage_count} used</span>
@@ -194,10 +194,10 @@
 				</div>
 			</div>
 			<div class="ce__acts">
-				<button type="button" onclick={handleDelete} disabled={deleting} class="ce__del"><Trash size={16} weight="bold" /> {deleting ? 'Deleting...' : 'Delete'}</button>
+				<button type="button" onclick={handleDelete} disabled={deleting} class="ce__del"><TrashIcon size={16} weight="bold" /> {deleting ? 'Deleting...' : 'Delete'}</button>
 				<div class="ce__ar">
 					<a href="/admin/coupons" class="ce__cancel">Cancel</a>
-					<button type="submit" disabled={saving} class="ce__submit"><FloppyDisk size={16} weight="bold" /> {saving ? 'Saving...' : 'Update Coupon'}</button>
+					<button type="submit" disabled={saving} class="ce__submit"><FloppyDiskIcon size={16} weight="bold" /> {saving ? 'Saving...' : 'Update Coupon'}</button>
 				</div>
 			</div>
 		</form>

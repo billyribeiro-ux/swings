@@ -5,7 +5,7 @@
 	import TraderProfile from './TraderProfile.svelte';
 	import { blur, fly } from 'svelte/transition';
 	import { quintOut, expoOut } from 'svelte/easing';
-	import X from 'phosphor-svelte/lib/X';
+	import XIcon from 'phosphor-svelte/lib/XIcon';
 
 	$effect(() => {
 		if (!modal.isOpen) return;
@@ -56,7 +56,7 @@
 		>
 			<!-- Close Button -->
 			<button onclick={modal.close} class="modal-close" aria-label="Close modal">
-				<X size={24} />
+				<XIcon size={24} />
 			</button>
 
 			<!-- Content -->

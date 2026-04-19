@@ -15,10 +15,10 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { api } from '$lib/api/client';
-	import DeviceMobile from 'phosphor-svelte/lib/DeviceMobile';
-	import DeviceTablet from 'phosphor-svelte/lib/DeviceTablet';
-	import Desktop from 'phosphor-svelte/lib/Desktop';
-	import Monitor from 'phosphor-svelte/lib/Monitor';
+	import DeviceMobileIcon from 'phosphor-svelte/lib/DeviceMobileIcon';
+	import DeviceTabletIcon from 'phosphor-svelte/lib/DeviceTabletIcon';
+	import DesktopIcon from 'phosphor-svelte/lib/DesktopIcon';
+	import MonitorIcon from 'phosphor-svelte/lib/MonitorIcon';
 
 	interface FormDef {
 		id: string;
@@ -30,19 +30,19 @@
 		readonly key: string;
 		readonly label: string;
 		readonly width: number;
-		readonly icon: typeof DeviceMobile;
+		readonly icon: typeof DeviceMobileIcon;
 	}
 
 	const breakpoints: readonly Breakpoint[] = [
-		{ key: 'xs', label: 'XS · 320', width: 320, icon: DeviceMobile },
-		{ key: 'sm', label: 'SM · 480', width: 480, icon: DeviceMobile },
-		{ key: 'md', label: 'MD · 640', width: 640, icon: DeviceMobile },
-		{ key: 'lg', label: 'LG · 768', width: 768, icon: DeviceTablet },
-		{ key: 'xl', label: 'XL · 1024', width: 1024, icon: DeviceTablet },
-		{ key: '2xl', label: '2XL · 1280', width: 1280, icon: Desktop },
-		{ key: '3xl', label: '3XL · 1536', width: 1536, icon: Desktop },
-		{ key: '4xl', label: '4XL · 1920', width: 1920, icon: Monitor },
-		{ key: '5xl', label: '5XL · 3840', width: 3840, icon: Monitor }
+		{ key: 'xs', label: 'XS · 320', width: 320, icon: DeviceMobileIcon },
+		{ key: 'sm', label: 'SM · 480', width: 480, icon: DeviceMobileIcon },
+		{ key: 'md', label: 'MD · 640', width: 640, icon: DeviceMobileIcon },
+		{ key: 'lg', label: 'LG · 768', width: 768, icon: DeviceTabletIcon },
+		{ key: 'xl', label: 'XL · 1024', width: 1024, icon: DeviceTabletIcon },
+		{ key: '2xl', label: '2XL · 1280', width: 1280, icon: DesktopIcon },
+		{ key: '3xl', label: '3XL · 1536', width: 1536, icon: DesktopIcon },
+		{ key: '4xl', label: '4XL · 1920', width: 1920, icon: MonitorIcon },
+		{ key: '5xl', label: '5XL · 3840', width: 3840, icon: MonitorIcon }
 	];
 
 	const id = $derived(page.params.id ?? '');

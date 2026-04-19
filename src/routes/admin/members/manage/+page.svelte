@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import Users from 'phosphor-svelte/lib/Users';
-	import MagnifyingGlass from 'phosphor-svelte/lib/MagnifyingGlass';
-	import UserPlus from 'phosphor-svelte/lib/UserPlus';
-	import ArrowClockwise from 'phosphor-svelte/lib/ArrowClockwise';
+	import UsersIcon from 'phosphor-svelte/lib/UsersIcon';
+	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
+	import UserPlusIcon from 'phosphor-svelte/lib/UserPlusIcon';
+	import ArrowClockwiseIcon from 'phosphor-svelte/lib/ArrowClockwiseIcon';
 	import { ApiError } from '$lib/api/client';
 	import {
 		adminMembersTyped,
@@ -113,7 +113,7 @@
 <div class="page" data-testid="admin-members-manage-page">
 	<header class="page__header">
 		<div class="page__title-row">
-			<Users size={28} weight="duotone" />
+			<UsersIcon size={28} weight="duotone" />
 			<h1 class="page__title">Members — search &amp; manual create</h1>
 		</div>
 		<p class="page__subtitle">
@@ -131,7 +131,7 @@
 			<div class="field field--wide">
 				<label class="field__label" for="m-q">Search</label>
 				<div class="search-input">
-					<MagnifyingGlass size={16} />
+					<MagnifyingGlassIcon size={16} />
 					<input
 						id="m-q"
 						class="field__input"
@@ -164,14 +164,14 @@
 			<div class="field field--actions">
 				<button class="btn btn--primary" type="submit">Apply</button>
 				<button class="btn btn--ghost" type="button" onclick={refresh}>
-					<ArrowClockwise size={16} weight="bold" />
+					<ArrowClockwiseIcon size={16} weight="bold" />
 				</button>
 				<button
 					class="btn btn--primary"
 					type="button"
 					onclick={() => (showCreate = !showCreate)}
 				>
-					<UserPlus size={16} weight="bold" />
+					<UserPlusIcon size={16} weight="bold" />
 					New member
 				</button>
 			</div>

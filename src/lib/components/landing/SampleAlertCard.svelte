@@ -3,8 +3,8 @@
 	import { gsap } from 'gsap';
 	import { EASE, DURATION, isReducedMotion, hoverTilt } from '$lib/utils/animations';
 	import MiniChart from '$lib/components/charts/MiniChart.svelte';
-	import TrendUp from 'phosphor-svelte/lib/TrendUp';
-	import Lightbulb from 'phosphor-svelte/lib/Lightbulb';
+	import TrendUpIcon from 'phosphor-svelte/lib/TrendUpIcon';
+	import LightbulbIcon from 'phosphor-svelte/lib/LightbulbIcon';
 
 	interface Props {
 		delay?: number;
@@ -68,7 +68,7 @@
 			<div class="alert-card__symbol-row">
 				<span class="alert-card__ticker">{sampleAlert.ticker}</span>
 				<span class="alert-card__chip">
-					<TrendUp size={14} weight="bold" class="alert-card__chip-icon" aria-hidden="true" />
+					<TrendUpIcon size={14} weight="bold" class="alert-card__chip-icon" aria-hidden="true" />
 					Bullish
 				</span>
 			</div>
@@ -132,7 +132,7 @@
 	</div>
 
 	<div class="alert-card__notes">
-		<Lightbulb size={18} weight="duotone" class="alert-card__notes-icon" aria-hidden="true" />
+		<LightbulbIcon size={18} weight="duotone" class="alert-card__notes-icon" aria-hidden="true" />
 		<p class="alert-card__notes-text">{sampleAlert.notes}</p>
 	</div>
 </article>

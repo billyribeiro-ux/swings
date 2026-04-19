@@ -3,14 +3,14 @@
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api, ApiError } from '$lib/api/client';
 	import type { UserResponse } from '$lib/api/types';
-	import UserCircle from 'phosphor-svelte/lib/UserCircle';
-	import Image from 'phosphor-svelte/lib/Image';
-	import TwitterLogo from 'phosphor-svelte/lib/TwitterLogo';
-	import LinkedinLogo from 'phosphor-svelte/lib/LinkedinLogo';
-	import YoutubeLogo from 'phosphor-svelte/lib/YoutubeLogo';
-	import InstagramLogo from 'phosphor-svelte/lib/InstagramLogo';
-	import Globe from 'phosphor-svelte/lib/Globe';
-	import FloppyDisk from 'phosphor-svelte/lib/FloppyDisk';
+	import UserCircleIcon from 'phosphor-svelte/lib/UserCircleIcon';
+	import ImageIcon from 'phosphor-svelte/lib/ImageIcon';
+	import TwitterLogoIcon from 'phosphor-svelte/lib/TwitterLogoIcon';
+	import LinkedinLogoIcon from 'phosphor-svelte/lib/LinkedinLogoIcon';
+	import YoutubeLogoIcon from 'phosphor-svelte/lib/YoutubeLogoIcon';
+	import InstagramLogoIcon from 'phosphor-svelte/lib/InstagramLogoIcon';
+	import GlobeIcon from 'phosphor-svelte/lib/GlobeIcon';
+	import FloppyDiskIcon from 'phosphor-svelte/lib/FloppyDiskIcon';
 
 	let profile: UserResponse | null = $state(null);
 	let loading = $state(true);
@@ -120,13 +120,13 @@
 								<img src={avatarUrl} alt="Author profile" class="avatar-editor__img" />
 							{:else}
 								<div class="avatar-editor__placeholder">
-									<UserCircle size={64} weight="thin" />
+									<UserCircleIcon size={64} weight="thin" />
 								</div>
 							{/if}
 						</div>
 						<div class="avatar-editor__controls">
 							<label class="btn-upload-avatar" class:btn-upload-avatar--loading={uploadingAvatar}>
-								<Image size={16} weight="bold" />
+								<ImageIcon size={16} weight="bold" />
 								{uploadingAvatar ? 'Uploading...' : 'Upload photo'}
 								<input
 									id="avatar-upload"
@@ -206,7 +206,7 @@
 				<div class="author-section__content author-section__content--grid">
 					<div class="author-field">
 						<label for="author-website" class="author-field__label">
-							<Globe size={14} weight="bold" />
+							<GlobeIcon size={14} weight="bold" />
 							Website
 						</label>
 						<input
@@ -220,7 +220,7 @@
 					</div>
 					<div class="author-field">
 						<label for="author-twitter" class="author-field__label">
-							<TwitterLogo size={14} weight="bold" />
+							<TwitterLogoIcon size={14} weight="bold" />
 							Twitter / X
 						</label>
 						<input
@@ -234,7 +234,7 @@
 					</div>
 					<div class="author-field">
 						<label for="author-linkedin" class="author-field__label">
-							<LinkedinLogo size={14} weight="bold" />
+							<LinkedinLogoIcon size={14} weight="bold" />
 							LinkedIn
 						</label>
 						<input
@@ -248,7 +248,7 @@
 					</div>
 					<div class="author-field">
 						<label for="author-youtube" class="author-field__label">
-							<YoutubeLogo size={14} weight="bold" />
+							<YoutubeLogoIcon size={14} weight="bold" />
 							YouTube
 						</label>
 						<input
@@ -262,7 +262,7 @@
 					</div>
 					<div class="author-field">
 						<label for="author-instagram" class="author-field__label">
-							<InstagramLogo size={14} weight="bold" />
+							<InstagramLogoIcon size={14} weight="bold" />
 							Instagram
 						</label>
 						<input
@@ -286,7 +286,7 @@
 					<span class="author-save-bar__success">Profile saved!</span>
 				{/if}
 				<button type="submit" disabled={saving} class="author-save-bar__btn">
-					<FloppyDisk size={16} weight="bold" />
+					<FloppyDiskIcon size={16} weight="bold" />
 					{saving ? 'Saving...' : 'Save Profile'}
 				</button>
 			</div>

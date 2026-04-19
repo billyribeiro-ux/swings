@@ -6,20 +6,20 @@
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import Seo from '$lib/seo/Seo.svelte';
 	import { courseSchema, buildJsonLd } from '$lib/seo/jsonld';
-	import CheckCircle from 'phosphor-svelte/lib/CheckCircle';
-	import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
-	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
-	import Clock from 'phosphor-svelte/lib/Clock';
-	import GraduationCap from 'phosphor-svelte/lib/GraduationCap';
-	import PlayCircle from 'phosphor-svelte/lib/PlayCircle';
-	import BookOpen from 'phosphor-svelte/lib/BookOpen';
-	import Pulse from 'phosphor-svelte/lib/Pulse';
+	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
+	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
+	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
+	import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
+	import GraduationCapIcon from 'phosphor-svelte/lib/GraduationCapIcon';
+	import PlayCircleIcon from 'phosphor-svelte/lib/PlayCircleIcon';
+	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
+	import PulseIcon from 'phosphor-svelte/lib/PulseIcon';
 
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 
-	const iconMap: Record<string, typeof BookOpen> = { BookOpen, Pulse };
+	const iconMap: Record<string, typeof BookOpenIcon> = { BookOpenIcon, PulseIcon };
 
 	const course = $derived(data.course);
 	const Icon = $derived(iconMap[course.icon]);
@@ -141,7 +141,7 @@
 	<div class="cd-hero__inner">
 		<!-- Back Link -->
 		<a href="/courses" class="cd-back cd-hero__back">
-			<ArrowLeft size={16} weight="bold" />
+			<ArrowLeftIcon size={16} weight="bold" />
 			All Courses
 		</a>
 
@@ -149,7 +149,7 @@
 			<!-- Left Column -->
 			<div>
 				<div class="cd-badge cd-hero__badge">
-					<GraduationCap size={16} weight="bold" color="white" />
+					<GraduationCapIcon size={16} weight="bold" color="white" />
 					<span class="cd-hero__badge-text">{course.level}</span>
 				</div>
 
@@ -159,11 +159,11 @@
 
 				<div class="cd-meta cd-hero__meta">
 					<div class="cd-hero__meta-item">
-						<Clock size={18} weight="bold" />
+						<ClockIcon size={18} weight="bold" />
 						<span>{course.duration}</span>
 					</div>
 					<div class="cd-hero__meta-item">
-						<PlayCircle size={18} weight="bold" />
+						<PlayCircleIcon size={18} weight="bold" />
 						<span>{course.modules} modules</span>
 					</div>
 					<div class="cd-hero__meta-item">
@@ -182,7 +182,7 @@
 				<div class="cd-cta">
 					<Button variant="primary" href="#enroll">
 						Enroll Now
-						<ArrowRight size={18} weight="bold" />
+						<ArrowRightIcon size={18} weight="bold" />
 					</Button>
 				</div>
 			</div>
@@ -193,7 +193,7 @@
 					{#if Icon}
 						<Icon size={100} weight="duotone" color="white" />
 					{:else}
-						<BookOpen size={100} weight="duotone" color="white" />
+						<BookOpenIcon size={100} weight="duotone" color="white" />
 					{/if}
 				</div>
 			</div>
@@ -210,7 +210,7 @@
 			<div class="learn-grid">
 				{#each course.whatYouLearn as item, i}
 					<div class="reveal-item learn-grid__item" style="transition-delay: {i * 0.06}s">
-						<CheckCircle size={22} weight="fill" color="#0FA4AF" class="learn-grid__icon" />
+						<CheckCircleIcon size={22} weight="fill" color="#0FA4AF" class="learn-grid__icon" />
 						<p class="learn-grid__text">{item}</p>
 					</div>
 				{/each}
@@ -234,7 +234,7 @@
 						<ul class="curriculum__lesson-list">
 							{#each module.lessons as lesson}
 								<li class="curriculum__lesson">
-									<PlayCircle
+									<PlayCircleIcon
 										size={18}
 										weight="fill"
 										color="#0FA4AF"
@@ -260,7 +260,7 @@
 			<div class="features-grid">
 				{#each course.features as feature, i}
 					<div class="reveal-item features-grid__item" style="transition-delay: {i * 0.06}s">
-						<CheckCircle size={22} weight="fill" color="#0FA4AF" class="features-grid__icon" />
+						<CheckCircleIcon size={22} weight="fill" color="#0FA4AF" class="features-grid__icon" />
 						<p class="features-grid__text">{feature}</p>
 					</div>
 				{/each}
@@ -282,7 +282,7 @@
 			<div class="reveal-item page-cta__actions">
 				<Button variant="primary" href="#">
 					Enroll Now -- ${course.price}
-					<ArrowRight size={18} weight="bold" />
+					<ArrowRightIcon size={18} weight="bold" />
 				</Button>
 				<Button variant="ghost" href="/courses">View All Courses</Button>
 			</div>

@@ -2,12 +2,12 @@
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import type { Watchlist, PaginatedResponse } from '$lib/api/types';
-	import Plus from 'phosphor-svelte/lib/Plus';
-	import Trash from 'phosphor-svelte/lib/Trash';
-	import PencilSimple from 'phosphor-svelte/lib/PencilSimple';
-	import Eye from 'phosphor-svelte/lib/Eye';
-	import CaretLeft from 'phosphor-svelte/lib/CaretLeft';
-	import CaretRight from 'phosphor-svelte/lib/CaretRight';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
+	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
+	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
+	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
+	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 
 	let watchlists = $state<Watchlist[]>([]);
 	let total = $state(0);
@@ -64,7 +64,7 @@
 			<p class="wl-admin__count">{total} total watchlists</p>
 		</div>
 		<a href="/admin/watchlists/new" class="wl-admin__create">
-			<Plus size={18} weight="bold" />
+			<PlusIcon size={18} weight="bold" />
 			New Watchlist
 		</a>
 	</div>
@@ -105,15 +105,15 @@
 					</div>
 					<div class="wl-card__actions">
 						<a href="/admin/watchlists/{wl.id}" class="wl-card__btn wl-card__btn--edit">
-							<PencilSimple size={16} weight="bold" />
+							<PencilSimpleIcon size={16} weight="bold" />
 							<span>Edit</span>
 						</a>
 						<button onclick={() => togglePublish(wl)} class="wl-card__btn wl-card__btn--publish">
-							<Eye size={16} weight="bold" />
+							<EyeIcon size={16} weight="bold" />
 							<span>{wl.published ? 'Unpublish' : 'Publish'}</span>
 						</button>
 						<button onclick={() => deleteWatchlist(wl)} class="wl-card__btn wl-card__btn--delete">
-							<Trash size={16} weight="bold" />
+							<TrashIcon size={16} weight="bold" />
 							<span>Delete</span>
 						</button>
 					</div>
@@ -157,21 +157,21 @@
 										class="wl-table__btn wl-table__btn--edit"
 										title="Edit"
 									>
-										<PencilSimple size={16} weight="bold" />
+										<PencilSimpleIcon size={16} weight="bold" />
 									</a>
 									<button
 										onclick={() => togglePublish(wl)}
 										class="wl-table__btn wl-table__btn--publish"
 										title={wl.published ? 'Unpublish' : 'Publish'}
 									>
-										<Eye size={16} weight="bold" />
+										<EyeIcon size={16} weight="bold" />
 									</button>
 									<button
 										onclick={() => deleteWatchlist(wl)}
 										class="wl-table__btn wl-table__btn--delete"
 										title="Delete"
 									>
-										<Trash size={16} weight="bold" />
+										<TrashIcon size={16} weight="bold" />
 									</button>
 								</div>
 							</td>
@@ -191,7 +191,7 @@
 					disabled={page <= 1}
 					class="wl-admin__page-btn"
 				>
-					<CaretLeft size={16} weight="bold" /> Prev
+					<CaretLeftIcon size={16} weight="bold" /> Prev
 				</button>
 				<span class="wl-admin__page-info">Page {page} of {totalPages}</span>
 				<button
@@ -202,7 +202,7 @@
 					disabled={page >= totalPages}
 					class="wl-admin__page-btn"
 				>
-					Next <CaretRight size={16} weight="bold" />
+					Next <CaretRightIcon size={16} weight="bold" />
 				</button>
 			</div>
 		{/if}

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { gsap } from 'gsap';
-	import Calendar from 'phosphor-svelte/lib/Calendar';
-	import Clock from 'phosphor-svelte/lib/Clock';
+	import CalendarIcon from 'phosphor-svelte/lib/CalendarIcon';
+	import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
 	import { createCinematicReveal, DURATION, EASE, hoverTilt } from '$lib/utils/animations';
 	import {
@@ -97,7 +97,7 @@
 		<div class="schedule-countdowns__grid">
 			<article class="schedule-countdowns__card">
 				<div class="schedule-countdowns__icon-wrap" aria-hidden="true">
-					<Calendar size={26} weight="duotone" color="#0FA4AF" />
+					<CalendarIcon size={26} weight="duotone" color="#0FA4AF" />
 				</div>
 				<p class="schedule-countdowns__eyebrow hero-eyebrow">Weekly delivery</p>
 				<h3 class="schedule-countdowns__title">Next watchlist</h3>
@@ -149,7 +149,7 @@
 
 			<article class="schedule-countdowns__card" {@attach hoverTilt({ maxTilt: 4, scale: 1.01 })}>
 				<div class="schedule-countdowns__icon-wrap" aria-hidden="true">
-					<Clock size={26} weight="duotone" color="#0FA4AF" />
+					<ClockIcon size={26} weight="duotone" color="#0FA4AF" />
 				</div>
 				<p class="schedule-countdowns__eyebrow hero-eyebrow">US session</p>
 				<h3 class="schedule-countdowns__title">Market opens</h3>

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import FloppyDisk from 'phosphor-svelte/lib/FloppyDisk';
-	import Eye from 'phosphor-svelte/lib/Eye';
+	import FloppyDiskIcon from 'phosphor-svelte/lib/FloppyDiskIcon';
+	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
 	import { api } from '$lib/api/client';
 	import FieldPalette from '$lib/components/admin/forms/FieldPalette.svelte';
 	import FieldCanvas from '$lib/components/admin/forms/FieldCanvas.svelte';
@@ -122,9 +122,9 @@
 		</h1>
 	</div>
 	<div class="builder__actions">
-		<a class="btn" href="/admin/forms/{id}/preview"><Eye size={16} />Preview</a>
+		<a class="btn" href="/admin/forms/{id}/preview"><EyeIcon size={16} />Preview</a>
 		<button class="btn btn--primary" type="button" onclick={save} disabled={saving || !dirty}>
-			<FloppyDisk size={16} />{saving ? 'Saving…' : 'Save version'}
+			<FloppyDiskIcon size={16} />{saving ? 'Saving…' : 'Save version'}
 		</button>
 	</div>
 </header>

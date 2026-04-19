@@ -7,8 +7,8 @@
 		SubscriptionStatusResponse,
 		UserResponse
 	} from '$lib/api/types';
-	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
-	import Lightning from 'phosphor-svelte/lib/Lightning';
+	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
+	import LightningIcon from 'phosphor-svelte/lib/LightningIcon';
 
 	const memberId = $derived(page.params.id);
 
@@ -106,7 +106,7 @@
 
 <div class="member-detail">
 	<a href="/admin/members" class="member-detail__back">
-		<ArrowLeft size={18} weight="bold" />
+		<ArrowLeftIcon size={18} weight="bold" />
 		<span>Members</span>
 	</a>
 
@@ -124,7 +124,7 @@
 
 		<section class="member-detail__section">
 			<div class="member-detail__section-head">
-				<Lightning size={22} weight="duotone" color="var(--color-teal)" />
+				<LightningIcon size={22} weight="duotone" color="var(--color-teal)" />
 				<h2 class="member-detail__h2">Subscription</h2>
 			</div>
 

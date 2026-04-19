@@ -5,20 +5,20 @@
 		PopupType, PopupTrigger, PopupFrequency,
 		PopupElement, PopupStyle, PopupTargetingRules, CreatePopupPayload
 	} from '$lib/api/types';
-	import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
-	import FloppyDisk from 'phosphor-svelte/lib/FloppyDisk';
-	import TextH from 'phosphor-svelte/lib/TextH';
-	import TextAa from 'phosphor-svelte/lib/TextAa';
-	import EnvelopeSimple from 'phosphor-svelte/lib/EnvelopeSimple';
-	import Textbox from 'phosphor-svelte/lib/Textbox';
-	import CursorClick from 'phosphor-svelte/lib/CursorClick';
-	import LineSegment from 'phosphor-svelte/lib/LineSegment';
-	import PencilSimple from 'phosphor-svelte/lib/PencilSimple';
-	import Trash from 'phosphor-svelte/lib/Trash';
-	import CaretUp from 'phosphor-svelte/lib/CaretUp';
-	import CaretDown from 'phosphor-svelte/lib/CaretDown';
-	import Eye from 'phosphor-svelte/lib/Eye';
-	import Plus from 'phosphor-svelte/lib/Plus';
+	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
+	import FloppyDiskIcon from 'phosphor-svelte/lib/FloppyDiskIcon';
+	import TextHIcon from 'phosphor-svelte/lib/TextHIcon';
+	import TextAaIcon from 'phosphor-svelte/lib/TextAaIcon';
+	import EnvelopeSimpleIcon from 'phosphor-svelte/lib/EnvelopeSimpleIcon';
+	import TextboxIcon from 'phosphor-svelte/lib/TextboxIcon';
+	import CursorClickIcon from 'phosphor-svelte/lib/CursorClickIcon';
+	import LineSegmentIcon from 'phosphor-svelte/lib/LineSegmentIcon';
+	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
+	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
+	import CaretUpIcon from 'phosphor-svelte/lib/CaretUpIcon';
+	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
+	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 
 	let name = $state('');
 	let popupType = $state<PopupType>('modal');
@@ -174,7 +174,7 @@
 <svelte:head><title>New Popup - Admin</title></svelte:head>
 
 <div class="pb">
-	<a href="/admin/popups" class="pb__back"><ArrowLeft size={18} /> Back to Popups</a>
+	<a href="/admin/popups" class="pb__back"><ArrowLeftIcon size={18} /> Back to Popups</a>
 
 	<div class="pb__top">
 		<div class="pb__top-left">
@@ -186,7 +186,7 @@
 			</select>
 		</div>
 		<button class="pb__save" disabled={saving} onclick={save}>
-			<FloppyDisk size={18} weight="bold" />
+			<FloppyDiskIcon size={18} weight="bold" />
 			{saving ? 'Saving...' : 'Save Popup'}
 		</button>
 	</div>
@@ -238,7 +238,7 @@
 						</div>
 						<div class="pb__row">
 							<input type="text" bind:value={newPage} class="pb__input" placeholder="/pricing, /blog/*" onkeydown={(e) => e.key === 'Enter' && (e.preventDefault(), addPage())} />
-							<button class="pb__btn-sm" onclick={addPage}><Plus size={14} /></button>
+							<button class="pb__btn-sm" onclick={addPage}><PlusIcon size={14} /></button>
 						</div>
 					</div>
 					<div class="pb__field">
@@ -311,12 +311,12 @@
 				<h2 class="pb__section-title">Content Elements</h2>
 			</div>
 			<div class="pb__add-btns">
-				<button class="pb__add" onclick={() => addElement('heading')}><TextH size={16} /> Heading</button>
-				<button class="pb__add" onclick={() => addElement('text')}><TextAa size={16} /> Text</button>
-				<button class="pb__add" onclick={() => addElement('email')}><EnvelopeSimple size={16} /> Email</button>
-				<button class="pb__add" onclick={() => addElement('input')}><Textbox size={16} /> Input</button>
-				<button class="pb__add" onclick={() => addElement('button')}><CursorClick size={16} /> Button</button>
-				<button class="pb__add" onclick={() => addElement('divider')}><LineSegment size={16} /> Divider</button>
+				<button class="pb__add" onclick={() => addElement('heading')}><TextHIcon size={16} /> Heading</button>
+				<button class="pb__add" onclick={() => addElement('text')}><TextAaIcon size={16} /> Text</button>
+				<button class="pb__add" onclick={() => addElement('email')}><EnvelopeSimpleIcon size={16} /> Email</button>
+				<button class="pb__add" onclick={() => addElement('input')}><TextboxIcon size={16} /> Input</button>
+				<button class="pb__add" onclick={() => addElement('button')}><CursorClickIcon size={16} /> Button</button>
+				<button class="pb__add" onclick={() => addElement('divider')}><LineSegmentIcon size={16} /> Divider</button>
 			</div>
 
 			{#if elements.length === 0}
@@ -329,10 +329,10 @@
 								<span class="pb__el-type">{formatType(el.type)}</span>
 								<span class="pb__el-preview">{previewText(el)}</span>
 								<div class="pb__el-actions">
-									<button class="pb__el-btn" onclick={() => moveElement(el.id, -1)} disabled={i === 0}><CaretUp size={14} /></button>
-									<button class="pb__el-btn" onclick={() => moveElement(el.id, 1)} disabled={i === elements.length - 1}><CaretDown size={14} /></button>
-									<button class="pb__el-btn" onclick={() => editingId = editingId === el.id ? null : el.id}><PencilSimple size={14} /></button>
-									<button class="pb__el-btn pb__el-btn--del" onclick={() => removeElement(el.id)}><Trash size={14} /></button>
+									<button class="pb__el-btn" onclick={() => moveElement(el.id, -1)} disabled={i === 0}><CaretUpIcon size={14} /></button>
+									<button class="pb__el-btn" onclick={() => moveElement(el.id, 1)} disabled={i === elements.length - 1}><CaretDownIcon size={14} /></button>
+									<button class="pb__el-btn" onclick={() => editingId = editingId === el.id ? null : el.id}><PencilSimpleIcon size={14} /></button>
+									<button class="pb__el-btn pb__el-btn--del" onclick={() => removeElement(el.id)}><TrashIcon size={14} /></button>
 								</div>
 							</div>
 							{#if editingId === el.id}
@@ -365,7 +365,7 @@
 
 		<!-- Preview -->
 		<div class="pb__preview-wrap">
-			<div class="pb__preview-head"><Eye size={16} /> Preview</div>
+			<div class="pb__preview-head"><EyeIcon size={16} /> Preview</div>
 			<div class="pb__preview-box" style:background={bg} style:color={textColor} style:border-radius={borderRadius} style:max-width={maxWidth}>
 				{#each elements as el (el.id)}
 					{#if el.type === 'heading'}

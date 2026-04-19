@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
-	import UserGear from 'phosphor-svelte/lib/UserGear';
-	import ArrowClockwise from 'phosphor-svelte/lib/ArrowClockwise';
-	import FloppyDisk from 'phosphor-svelte/lib/FloppyDisk';
+	import UserGearIcon from 'phosphor-svelte/lib/UserGearIcon';
+	import ArrowClockwiseIcon from 'phosphor-svelte/lib/ArrowClockwiseIcon';
+	import FloppyDiskIcon from 'phosphor-svelte/lib/FloppyDiskIcon';
 	import { ApiError } from '$lib/api/client';
 	import { roleMatrix, type MatrixResponse } from '$lib/api/admin-security';
 
@@ -104,7 +104,7 @@
 	<header class="page__header">
 		<a href="/admin/security" class="page__back">← Security</a>
 		<div class="page__title-row">
-			<UserGear size={26} weight="duotone" />
+			<UserGearIcon size={26} weight="duotone" />
 			<h1 class="page__title">Role / permission matrix</h1>
 		</div>
 		<p class="page__subtitle">
@@ -123,7 +123,7 @@
 
 	<div class="actions">
 		<button class="btn btn--ghost" onclick={refresh}>
-			<ArrowClockwise size={16} weight="bold" />
+			<ArrowClockwiseIcon size={16} weight="bold" />
 			Refresh
 		</button>
 		<button class="btn btn--ghost" onclick={reload} title="Reload policy snapshot">
@@ -137,7 +137,7 @@
 			disabled={!dirty || saving}
 			data-testid="roles-save"
 		>
-			<FloppyDisk size={16} weight="bold" />
+			<FloppyDiskIcon size={16} weight="bold" />
 			{saving ? 'Saving…' : 'Save changes'}
 		</button>
 	</div>

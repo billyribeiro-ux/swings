@@ -2,11 +2,11 @@
 	import { goto } from '$app/navigation';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { onMount } from 'svelte';
-	import House from 'phosphor-svelte/lib/House';
-	import ListChecks from 'phosphor-svelte/lib/ListChecks';
-	import BookOpen from 'phosphor-svelte/lib/BookOpen';
-	import UserCircle from 'phosphor-svelte/lib/UserCircle';
-	import SignOut from 'phosphor-svelte/lib/SignOut';
+	import HouseIcon from 'phosphor-svelte/lib/HouseIcon';
+	import ListChecksIcon from 'phosphor-svelte/lib/ListChecksIcon';
+	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
+	import UserCircleIcon from 'phosphor-svelte/lib/UserCircleIcon';
+	import SignOutIcon from 'phosphor-svelte/lib/SignOutIcon';
 	import { SITE } from '$lib/seo/config';
 
 	let { children } = $props();
@@ -23,10 +23,10 @@
 	}
 
 	const navItems = [
-		{ href: '/dashboard', label: 'Overview', icon: House },
-		{ href: '/dashboard/watchlists', label: 'Watchlists', icon: ListChecks },
-		{ href: '/dashboard/courses', label: 'Courses', icon: BookOpen },
-		{ href: '/dashboard/account', label: 'Account', icon: UserCircle }
+		{ href: '/dashboard', label: 'Overview', icon: HouseIcon },
+		{ href: '/dashboard/watchlists', label: 'Watchlists', icon: ListChecksIcon },
+		{ href: '/dashboard/courses', label: 'Courses', icon: BookOpenIcon },
+		{ href: '/dashboard/account', label: 'Account', icon: UserCircleIcon }
 	];
 </script>
 
@@ -52,7 +52,7 @@
 					<a href="/admin" class="dash__nav-link dash__nav-link--admin"> Admin Panel </a>
 				{/if}
 				<button onclick={handleLogout} class="dash__logout">
-					<SignOut size={20} weight="duotone" />
+					<SignOutIcon size={20} weight="duotone" />
 					<span>Sign Out</span>
 				</button>
 			</div>
