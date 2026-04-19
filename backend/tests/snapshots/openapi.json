@@ -4307,6 +4307,227 @@
         ]
       }
     },
+    "/api/admin/security/roles": {
+      "get": {
+        "tags": [
+          "admin-roles"
+        ],
+        "operationId": "list_matrix",
+        "responses": {
+          "200": {
+            "description": "Role/permission matrix + catalogue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatrixResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/security/roles/_reload": {
+      "post": {
+        "tags": [
+          "admin-roles"
+        ],
+        "operationId": "reload",
+        "responses": {
+          "200": {
+            "description": "Policy cache reloaded; returns pair count"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/security/roles/permissions": {
+      "get": {
+        "tags": [
+          "admin-roles"
+        ],
+        "operationId": "list_permissions",
+        "responses": {
+          "200": {
+            "description": "Permission catalogue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionsResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/security/roles/{role}": {
+      "put": {
+        "tags": [
+          "admin-roles"
+        ],
+        "operationId": "replace_role_permissions",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "path",
+            "description": "Role label",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplaceRoleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Role permission set replaced atomically"
+          },
+          "400": {
+            "description": "Unknown role or permission"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Refusing to drop a self-lock guard"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/security/roles/{role}/{permission}": {
+      "post": {
+        "tags": [
+          "admin-roles"
+        ],
+        "operationId": "grant",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "path",
+            "description": "Role label (member|author|support|admin)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "permission",
+            "in": "path",
+            "description": "Permission key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Permission granted (idempotent)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RolePermPair"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown role or permission"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "admin-roles"
+        ],
+        "operationId": "revoke",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "path",
+            "description": "Role label (member|author|support|admin)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "permission",
+            "in": "path",
+            "description": "Permission key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Permission revoked"
+          },
+          "400": {
+            "description": "Unknown role"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Refusing to revoke an admin self-lock guard"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/admin/settings": {
       "get": {
         "tags": [
@@ -9633,6 +9854,37 @@
           }
         }
       },
+      "MatrixResponse": {
+        "type": "object",
+        "required": [
+          "matrix",
+          "roles",
+          "permissions"
+        ],
+        "properties": {
+          "matrix": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RolePermPair"
+            },
+            "description": "Every active (role, permission) row, alphabetised by (role,\npermission). Stable order — the SPA renders directly."
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Every role label the backend recognises. Driven by the Rust\nenum so the SPA does not need to mirror it."
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PermissionRow"
+            },
+            "description": "Every permission key in the catalogue."
+          }
+        }
+      },
       "Media": {
         "type": "object",
         "required": [
@@ -10296,6 +10548,40 @@
               "null"
             ],
             "description": "Optional resume token if the field is on a draft (so we can\nlater cross-link `form_payment_intents.partial_id`)."
+          }
+        }
+      },
+      "PermissionRow": {
+        "type": "object",
+        "required": [
+          "key",
+          "description"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "PermissionsResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "total"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PermissionRow"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
@@ -11006,6 +11292,21 @@
           }
         }
       },
+      "ReplaceRoleRequest": {
+        "type": "object",
+        "required": [
+          "permissions"
+        ],
+        "properties": {
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "New permission set for the role. Unknown keys (not in the\npermissions catalogue) are rejected with `400`."
+          }
+        }
+      },
       "ResetPasswordRequest": {
         "type": "object",
         "required": [
@@ -11070,6 +11371,22 @@
               "null"
             ],
             "description": "Optional free-text justification for the revocation. Stored on\nthe row and surfaced in the audit-log metadata."
+          }
+        }
+      },
+      "RolePermPair": {
+        "type": "object",
+        "description": "Canonical role/permission pair.",
+        "required": [
+          "role",
+          "permission"
+        ],
+        "properties": {
+          "role": {
+            "type": "string"
+          },
+          "permission": {
+            "type": "string"
           }
         }
       },
@@ -13398,6 +13715,10 @@
     {
       "name": "admin-settings",
       "description": "Admin-only typed settings catalogue (incl. maintenance-mode kill-switch)"
+    },
+    {
+      "name": "admin-roles",
+      "description": "Admin-only role / permission matrix CRUD with hot policy reload"
     },
     {
       "name": "webhooks",

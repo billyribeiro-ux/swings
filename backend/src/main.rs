@@ -345,7 +345,13 @@ async fn main() -> Result<()> {
                 // mode kill-switch). The maintenance middleware uses
                 // `state.settings` directly, so this nest only owns
                 // the CRUD surface.
-                .nest("/settings", handlers::admin_settings::router()),
+                .nest("/settings", handlers::admin_settings::router())
+                // ADM-09: role / permission matrix. Mutations
+                // hot-reload `state.policy`.
+                .nest(
+                    "/security/roles",
+                    handlers::admin_roles::router(),
+                ),
         )
         .nest("/api/admin/blog", handlers::blog::admin_router())
         .nest("/api/admin/courses", handlers::courses::admin_router())

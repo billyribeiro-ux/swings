@@ -22,9 +22,9 @@ use utoipa_swagger_ui::SwaggerUi;
 use crate::{
     extractors::AdminUser,
     handlers::{
-        admin, admin_impersonation, admin_ip_allowlist, admin_security, admin_settings, analytics,
-        auth, blog, consent, coupons, courses, csp_report, forms, member, notifications, outbox,
-        popups, products, webhooks,
+        admin, admin_impersonation, admin_ip_allowlist, admin_roles, admin_security,
+        admin_settings, analytics, auth, blog, consent, coupons, courses, csp_report, forms,
+        member, notifications, outbox, popups, products, webhooks,
     },
     AppState,
 };
@@ -75,6 +75,7 @@ impl Modify for SecurityAddon {
         (name = "admin-security", description = "Admin-only privileged member-lifecycle and security console (suspend, ban, sessions, audit log)"),
         (name = "admin-impersonation", description = "Admin-only impersonation token mint / list / revoke"),
         (name = "admin-settings", description = "Admin-only typed settings catalogue (incl. maintenance-mode kill-switch)"),
+        (name = "admin-roles", description = "Admin-only role / permission matrix CRUD with hot policy reload"),
         (name = "webhooks", description = "Inbound provider webhooks")
     ),
     paths(
@@ -126,6 +127,13 @@ impl Modify for SecurityAddon {
         admin_settings::get_one,
         admin_settings::upsert,
         admin_settings::reload,
+        // Admin role matrix (ADM-09)
+        admin_roles::list_matrix,
+        admin_roles::list_permissions,
+        admin_roles::grant,
+        admin_roles::revoke,
+        admin_roles::replace_role_permissions,
+        admin_roles::reload,
         // Blog
         blog::admin_create_post,
         blog::admin_update_post,
@@ -295,6 +303,12 @@ impl Modify for SecurityAddon {
             admin_settings::SettingListResponse,
             admin_settings::SettingGetResponse,
             admin_settings::SettingUpsertRequest,
+            // Admin role matrix (ADM-09)
+            admin_roles::PermissionRow,
+            admin_roles::PermissionsResponse,
+            admin_roles::RolePermPair,
+            admin_roles::MatrixResponse,
+            admin_roles::ReplaceRoleRequest,
             // Blog
             crate::models::BlogPost,
             crate::models::BlogPostResponse,
