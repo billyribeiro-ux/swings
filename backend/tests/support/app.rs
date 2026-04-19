@@ -39,9 +39,9 @@ use swings_api::{
     config::Config,
     events::WorkerShutdown,
     handlers::{
-        admin, admin_consent, admin_impersonation, admin_ip_allowlist, admin_roles,
-        admin_security, admin_settings, analytics, auth, blog, coupons, courses, csp_report,
-        member, notifications, outbox, popups, pricing, webhooks,
+        admin, admin_consent, admin_impersonation, admin_ip_allowlist, admin_members,
+        admin_roles, admin_security, admin_settings, analytics, auth, blog, coupons, courses,
+        csp_report, member, notifications, outbox, popups, pricing, webhooks,
     },
     middleware::{
         admin_ip_allowlist as admin_ip_allowlist_mw,
@@ -356,7 +356,11 @@ fn build_router(state: &AppState) -> Router<()> {
                     admin_impersonation::router(),
                 )
                 .nest("/settings", admin_settings::router())
-                .nest("/security/roles", admin_roles::router()),
+                .nest("/security/roles", admin_roles::router())
+                .merge(
+                    axum::Router::new()
+                        .nest("/members", admin_members::router()),
+                ),
         )
         .nest("/api/admin/blog", blog::admin_router())
         .nest("/api/admin/courses", courses::admin_router())

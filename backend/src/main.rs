@@ -330,6 +330,15 @@ async fn main() -> Result<()> {
             "/api/admin",
             handlers::admin::router()
                 .merge(handlers::admin_security::router())
+                // ADM-10: indexed members search + manual create.
+                // Merged (not nested) so it shares the
+                // `/api/admin/members` prefix with the legacy
+                // member routes in `admin::router()` without an
+                // Axum prefix collision.
+                .merge(
+                    Router::new()
+                        .nest("/members", handlers::admin_members::router()),
+                )
                 // ADM-06: IP-allowlist CRUD lives under /api/admin/security/ip-allowlist.
                 .nest(
                     "/security/ip-allowlist",

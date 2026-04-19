@@ -22,9 +22,9 @@ use utoipa_swagger_ui::SwaggerUi;
 use crate::{
     extractors::AdminUser,
     handlers::{
-        admin, admin_impersonation, admin_ip_allowlist, admin_roles, admin_security,
-        admin_settings, analytics, auth, blog, consent, coupons, courses, csp_report, forms,
-        member, notifications, outbox, popups, products, webhooks,
+        admin, admin_impersonation, admin_ip_allowlist, admin_members, admin_roles,
+        admin_security, admin_settings, analytics, auth, blog, consent, coupons, courses,
+        csp_report, forms, member, notifications, outbox, popups, products, webhooks,
     },
     AppState,
 };
@@ -76,6 +76,7 @@ impl Modify for SecurityAddon {
         (name = "admin-impersonation", description = "Admin-only impersonation token mint / list / revoke"),
         (name = "admin-settings", description = "Admin-only typed settings catalogue (incl. maintenance-mode kill-switch)"),
         (name = "admin-roles", description = "Admin-only role / permission matrix CRUD with hot policy reload"),
+        (name = "admin-members", description = "Admin-only members search + manual create"),
         (name = "webhooks", description = "Inbound provider webhooks")
     ),
     paths(
@@ -134,6 +135,9 @@ impl Modify for SecurityAddon {
         admin_roles::revoke,
         admin_roles::replace_role_permissions,
         admin_roles::reload,
+        // Admin members (ADM-10)
+        admin_members::search,
+        admin_members::create,
         // Blog
         blog::admin_create_post,
         blog::admin_update_post,
@@ -309,6 +313,9 @@ impl Modify for SecurityAddon {
             admin_roles::RolePermPair,
             admin_roles::MatrixResponse,
             admin_roles::ReplaceRoleRequest,
+            // Admin members (ADM-10)
+            admin_members::CreateMemberRequest,
+            admin_members::CreateMemberResponse,
             // Blog
             crate::models::BlogPost,
             crate::models::BlogPostResponse,

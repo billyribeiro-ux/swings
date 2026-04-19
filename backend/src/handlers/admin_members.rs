@@ -223,10 +223,19 @@ pub async fn create(
         ));
     }
 
-    // Hash the optional temp password. We use the project's existing
-    // argon2 helper so the format matches the login pathway exactly.
+    // Hash the optional temp password. The argon2 invocation mirrors
+    // /api/auth/register so the credential format is identical to the
+    // self-serve registration path; this keeps the auth.rs login
+    // verification a single code path.
     let password_hash = match req.temp_password.as_deref() {
-        Some(pw) => Some(crate::auth::hash_password(pw)?),
+        Some(pw) => {
+            let salt = SaltString::generate(&mut OsRng);
+            let hash = Argon2::default()
+                .hash_password(pw.as_bytes(), &salt)
+                .map_err(|e| AppError::BadRequest(format!("Password hash error: {e}")))?
+                .to_string();
+            Some(hash)
+        }
         None => None,
     };
     let requires_password_setup = password_hash.is_none();
@@ -264,10 +273,4 @@ pub async fn create(
             requires_password_setup,
         }),
     ))
-}
-
-// Force the `Uuid` import to be used by clippy on minimal builds.
-#[allow(dead_code)]
-fn _ensure_uuid_import_used() -> Uuid {
-    Uuid::nil()
 }
