@@ -30,7 +30,7 @@ use crate::{
     db,
     error::{AppError, AppResult},
     extractors::{ClientInfo, PrivilegedUser},
-    models::{PaginationParams, UserResponse, UserRole},
+    models::{UserResponse, UserRole},
     notifications::send::{send_notification, Recipient, SendOptions},
     services::audit::{record_admin_action, AdminAction},
     AppState,
@@ -174,7 +174,7 @@ pub struct FailedLoginResponse {
         (status = 409, description = "Cannot suspend an admin")
     )
 )]
-async fn suspend_member(
+pub(crate) async fn suspend_member(
     State(state): State<AppState>,
     admin: PrivilegedUser,
     client: ClientInfo,
@@ -241,7 +241,7 @@ async fn suspend_member(
         (status = 404, description = "Member not found")
     )
 )]
-async fn reactivate_member(
+pub(crate) async fn reactivate_member(
     State(state): State<AppState>,
     admin: PrivilegedUser,
     client: ClientInfo,
@@ -296,7 +296,7 @@ async fn reactivate_member(
         (status = 409, description = "Cannot ban an admin")
     )
 )]
-async fn ban_member(
+pub(crate) async fn ban_member(
     State(state): State<AppState>,
     admin: PrivilegedUser,
     client: ClientInfo,
@@ -363,7 +363,7 @@ async fn ban_member(
         (status = 404, description = "Member not found")
     )
 )]
-async fn force_password_reset(
+pub(crate) async fn force_password_reset(
     State(state): State<AppState>,
     admin: PrivilegedUser,
     client: ClientInfo,
@@ -440,7 +440,7 @@ async fn force_password_reset(
         (status = 404, description = "Member not found")
     )
 )]
-async fn mark_email_verified(
+pub(crate) async fn mark_email_verified(
     State(state): State<AppState>,
     admin: PrivilegedUser,
     client: ClientInfo,
@@ -488,7 +488,7 @@ async fn mark_email_verified(
         (status = 403, description = "Forbidden")
     )
 )]
-async fn list_sessions(
+pub(crate) async fn list_sessions(
     State(state): State<AppState>,
     admin: PrivilegedUser,
     Path(user_id): Path<Uuid>,
@@ -523,7 +523,7 @@ async fn list_sessions(
         (status = 403, description = "Forbidden")
     )
 )]
-async fn force_logout(
+pub(crate) async fn force_logout(
     State(state): State<AppState>,
     admin: PrivilegedUser,
     client: ClientInfo,
@@ -562,7 +562,7 @@ async fn force_logout(
         (status = 404, description = "Session not found")
     )
 )]
-async fn revoke_session(
+pub(crate) async fn revoke_session(
     State(state): State<AppState>,
     admin: PrivilegedUser,
     client: ClientInfo,
@@ -625,7 +625,7 @@ async fn revoke_session(
         (status = 403, description = "Forbidden")
     )
 )]
-async fn list_audit_log(
+pub(crate) async fn list_audit_log(
     State(state): State<AppState>,
     admin: PrivilegedUser,
     Query(filter): Query<AuditLogFilter>,
@@ -708,7 +708,7 @@ async fn list_audit_log(
         (status = 403, description = "Forbidden")
     )
 )]
-async fn list_failed_logins(
+pub(crate) async fn list_failed_logins(
     State(state): State<AppState>,
     admin: PrivilegedUser,
     Query(filter): Query<FailedLoginFilter>,
@@ -772,11 +772,6 @@ async fn list_failed_logins(
         total_pages,
     }))
 }
-
-// Touch this re-export so unused-import lints stay quiet when the only
-// caller of `PaginationParams` lives in a sibling module.
-#[allow(dead_code)]
-fn _silence_unused_pagination_import(_: PaginationParams) {}
 
 // ── Helpers ────────────────────────────────────────────────────────────
 

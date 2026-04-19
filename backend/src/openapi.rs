@@ -22,8 +22,8 @@ use utoipa_swagger_ui::SwaggerUi;
 use crate::{
     extractors::AdminUser,
     handlers::{
-        admin, analytics, auth, blog, consent, coupons, courses, csp_report, forms, member,
-        notifications, outbox, popups, products, webhooks,
+        admin, admin_security, analytics, auth, blog, consent, coupons, courses, csp_report, forms,
+        member, notifications, outbox, popups, products, webhooks,
     },
     AppState,
 };
@@ -71,6 +71,7 @@ impl Modify for SecurityAddon {
         (name = "pricing", description = "Subscription pricing plans"),
         (name = "products", description = "EC-01 digital-goods product catalogue (admin + public)"),
         (name = "security", description = "Security telemetry (CSP violation reports, etc.)"),
+        (name = "admin-security", description = "Admin-only privileged member-lifecycle and security console (suspend, ban, sessions, audit log)"),
         (name = "webhooks", description = "Inbound provider webhooks")
     ),
     paths(
@@ -95,6 +96,17 @@ impl Modify for SecurityAddon {
         admin::create_alert,
         admin::update_alert,
         admin::delete_alert,
+        // Admin security console (ADM-05)
+        admin_security::suspend_member,
+        admin_security::reactivate_member,
+        admin_security::ban_member,
+        admin_security::force_password_reset,
+        admin_security::mark_email_verified,
+        admin_security::list_sessions,
+        admin_security::force_logout,
+        admin_security::revoke_session,
+        admin_security::list_audit_log,
+        admin_security::list_failed_logins,
         // Blog
         blog::admin_create_post,
         blog::admin_update_post,
@@ -236,6 +248,17 @@ impl Modify for SecurityAddon {
             crate::models::UpdateAlertRequest,
             // Admin
             crate::models::AdminStats,
+            // Admin security console (ADM-05)
+            admin_security::LifecycleRequest,
+            admin_security::ForcePasswordResetResponse,
+            admin_security::SessionRow,
+            admin_security::SessionsResponse,
+            admin_security::AuditLogRow,
+            admin_security::AuditLogFilter,
+            admin_security::AuditLogResponse,
+            admin_security::FailedLoginRow,
+            admin_security::FailedLoginFilter,
+            admin_security::FailedLoginResponse,
             // Blog
             crate::models::BlogPost,
             crate::models::BlogPostResponse,
