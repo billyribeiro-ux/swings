@@ -1,9 +1,10 @@
 # Operator runbook — swings admin platform
 
+> **Last revised**: 2026-04-19
 > **Audience**: on-call SRE / platform engineer holding the pager.
 > **Companion files**: alerts in [`ops/prometheus/admin-alerts.rules.yml`](../ops/prometheus/admin-alerts.rules.yml),
 > dashboards in [`ops/grafana/admin-overview.dashboard.json`](../ops/grafana/admin-overview.dashboard.json),
-> outstanding work in [`docs/ADMIN_TODO.md`](./ADMIN_TODO.md).
+> closed admin scope ledger in [`docs/archive/ADMIN_TODO.md`](./archive/ADMIN_TODO.md).
 
 Every alert in `admin-alerts.rules.yml` carries a `runbook_url`
 annotation that anchors into this file. Section headers MUST stay in
@@ -369,9 +370,69 @@ The backend will refuse to start on schema mismatch. Check:
 kubectl logs -l app=swings-api --tail=200 | rg -i 'migrat|sqlx'
 ```
 
-If a migration partially applied, manually inspect the migrations
-table and the affected schema. **Never `DROP` migration history
-without coordination with the platform team.**
+If a migration partially applied, manually inspect the `_sqlx_migrations`
+table and the affected schema. **Never `DROP` migration history without
+coordination with the platform team.**
+
+Three failure modes have actually bitten production; each has a
+distinct fix path.
+
+#### A. Checksum mismatch (`migration N was previously applied but has been modified`)
+
+Someone edited a migration file that is already in `_sqlx_migrations`
+(usually a comment-only change that still flips the SHA-384). The
+on-disk file is the new truth; we update the recorded checksum:
+
+```sh
+HASH=$(python3 -c "import hashlib,sys;print(hashlib.sha384(open(sys.argv[1],'rb').read()).hexdigest())" \
+  backend/migrations/0NN_xxx.sql)
+
+railway ssh --service Postgres -- psql -U swings -d swings <<SQL
+BEGIN;
+UPDATE _sqlx_migrations SET checksum = decode('${HASH}', 'hex')
+ WHERE version = NN;
+COMMIT;
+SQL
+```
+
+#### B. PostgreSQL `unsafe use of new value "<x>" of enum type`
+
+`ALTER TYPE … ADD VALUE` cannot be combined with statements that
+*reference* the new value in the same transaction. sqlx's
+`-- no-transaction` marker only suppresses sqlx's wrapping
+transaction; the simple-query protocol still wraps a multi-statement
+Query in an implicit transaction.
+
+Fix in the migration itself: add an explicit `COMMIT;` after the
+`ALTER TYPE` block, *before* the statements that reference the new
+values. See `backend/migrations/021_rbac.sql` for the canonical
+shape.
+
+#### C. `relation "<x>" does not exist` (ordering bug)
+
+A migration references a table that is created in a *later*
+migration. sqlx applies in numeric order, so this means the file
+numbers are wrong. Fixes:
+
+1. Confirm the broken migration has *never* successfully applied
+   anywhere (`SELECT version FROM _sqlx_migrations` on every
+   environment). If it never applied, `git mv` the dependency to a
+   lower free version number — no checksum drift, no destructive
+   change.
+2. If the broken migration *did* apply somewhere via manual
+   surgery, the dependency table needs a small forward migration in
+   the next free slot rather than renumbering.
+3. Verify locally with a fresh DB before pushing:
+   ```sh
+   psql -d postgres -c 'DROP DATABASE IF EXISTS swings_migration_test;
+                        CREATE DATABASE swings_migration_test;'
+   for f in backend/migrations/*.sql; do
+     psql -d swings_migration_test -v ON_ERROR_STOP=1 -X -q -f "$f" || break
+   done
+   ```
+
+The same single-shot replay is the gate before any migration PR
+merges; CI does not yet do this end-to-end (tracked).
 
 ### Settings cache appears stale
 

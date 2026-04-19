@@ -2,8 +2,10 @@ services:
   - type: web
     name: swings-api
     runtime: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    # Single source of truth — see `./Dockerfile` and `.dockerignore`.
+    # Build context is the repo root so paths match Railway / docker compose.
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     plan: free
     envVars:
       - key: DATABASE_URL

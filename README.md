@@ -56,8 +56,8 @@ pnpm workspace plus a Cargo crate at `backend/`.
 * **Backend** — Axum-on-Tokio with SQLx and an in-process worker pool for
   background tasks (DSAR export, audit-log retention, idempotency-cache GC,
   artefact TTL sweep). Built and shipped from `backend/`.
-* **Database** — PostgreSQL 16 with 74 forward-only sqlx migrations
-  (`backend/migrations/`).
+* **Database** — PostgreSQL 16 with 66 forward-only `sqlx` migrations
+  in `backend/migrations/` (versions 001–074, gap-tolerant).
 * **Object storage** — Cloudflare R2 (S3-compatible) for media and DSAR
   exports, with a `Local` filesystem fallback for development.
 * **Observability** — Prometheus metrics on `/metrics`; provisioning-ready
@@ -85,15 +85,16 @@ For the full RBAC/audit/security model, see
 │   │   ├── security/     # Impersonation + IP allowlist primitives
 │   │   ├── observability/# Tracing + metrics scaffolding
 │   │   └── …             # commerce, consent, popups, forms, notifications, pdf
-│   ├── migrations/       # sqlx forward-only migrations (001 → 074)
+│   ├── migrations/       # sqlx forward-only migrations (66 files, versions 001–074)
 │   └── tests/            # Integration tests against a real Postgres
 ├── ops/                  # Prometheus rules + Grafana dashboard + provisioning README
 ├── docs/                 # All long-form documentation (see index below)
 ├── scripts/              # Repo automation (audit dump, OpenAPI → TS, SEO check)
 ├── .github/workflows/    # CI: ci.yml, sql-lint.yml, openapi-drift.yml, security.yml
 ├── docker-compose.yml    # Full local stack (api + db on :5432)
-├── Dockerfile            # PaaS image (build context = repo root)
-├── render.yaml           # Render blueprint (canonical)
+├── Dockerfile            # Single source of truth — used by Railway, Render, compose
+├── .dockerignore         # Trims build context for the consolidated Dockerfile
+├── render.yaml           # Render blueprint — references ./Dockerfile
 ├── vercel.json           # Vercel routing/env hints
 └── package.json          # pnpm workspace root
 ```
@@ -195,19 +196,24 @@ no S3-compatible emulator (MinIO/LocalStack) is running.
 
 ## Deployment
 
-| Surface  | Platform | Source of truth                 | Runtime                       |
-| -------- | -------- | ------------------------------- | ----------------------------- |
-| Frontend | Vercel   | `vercel.json` + `svelte.config.js` (`adapter-vercel`) | Edge / Node (auto)         |
-| Backend  | Railway  | root `Dockerfile`, `render.yaml` mirror | `swings-api` service        |
-| Database | Railway  | provisioned Postgres add-on     | Postgres 16, persistent volume |
+| Surface  | Platform | Source of truth                                       | Runtime                        |
+| -------- | -------- | ----------------------------------------------------- | ------------------------------ |
+| Frontend | Vercel   | `vercel.json` + `svelte.config.js` (`adapter-vercel`) | Edge / Node (auto)             |
+| Backend  | Railway  | root `Dockerfile` (build context = repo root)         | `swings-api` service           |
+| Backend  | Render   | `render.yaml` → root `Dockerfile`                     | mirror deploy target           |
+| Database | Railway  | provisioned Postgres 16 add-on                        | persistent volume              |
 
-A successful Railway boot:
+A healthy Railway boot prints:
 
 ```
-✓ database connected
-✓ migrations applied (74)
-✓ workers started (audit-retention, dsar-worker, dsar-artifact-sweep, idempotency-gc)
-✓ listening on 0.0.0.0:3001
+authz policy loaded from role_permissions, pairs: 182
+Admin user seeded (...)
+outbox worker pool started, workers: 4
+audit-retention worker spawned, interval_secs: 3600
+dsar-export worker spawned, interval_secs: 30
+dsar-artifact-sweep worker spawned, interval_secs: 3600
+idempotency-gc worker spawned, interval_secs: 300
+Swings API listening on port 3001
 ```
 
 Full guide: [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md). For

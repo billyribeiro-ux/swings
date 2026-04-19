@@ -3,7 +3,8 @@
  *
  * Architecture (repo evidence):
  * - Frontend: `@sveltejs/adapter-vercel` (svelte.config.js)
- * - API: separate host (e.g. Render `backend/render.yaml`, `FRONTEND_URL` → Vercel)
+ * - API: separate host (e.g. Railway / Render — see `render.yaml`,
+ *   `backend/railway.toml`; `FRONTEND_URL` → Vercel)
  *
  * Production browser bundles must not fall back to `localhost` — that breaks Vercel users.
  * Set `VITE_API_URL` to the public API origin in the Vercel project (Production + Preview as needed).

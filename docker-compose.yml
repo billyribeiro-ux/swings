@@ -18,7 +18,10 @@ services:
 
   api:
     build:
-      context: ./backend
+      # Single Dockerfile for the backend lives at the repo root so the
+      # build context and path layout match Railway and Render. See
+      # `./Dockerfile` and `.dockerignore` for the build hardening.
+      context: .
       dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:

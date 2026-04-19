@@ -230,12 +230,12 @@ def main() -> None:
 
     w.write("## Section 4: Configuration\n\n")
 
-    w.write("### 4.1 `backend/render.yaml`\n\n")
-    p = REPO / "backend" / "render.yaml"
+    w.write("### 4.1 `render.yaml`\n\n")
+    p = REPO / "render.yaml"
     if p.exists():
-        w.write(fence("yaml", "backend/render.yaml", read_text(p)))
+        w.write(fence("yaml", "render.yaml", read_text(p)))
     else:
-        w.write("**File does not exist:** `backend/render.yaml`\n\n")
+        w.write("**File does not exist:** `render.yaml`\n\n")
 
     w.write("### 4.2 Environment template files (project root)\n\n")
     for name in (".env.example", ".env.local.example"):

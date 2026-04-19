@@ -1,9 +1,10 @@
 # swings-api
 
 > **Last revised:** 2026-04-19
-> **Crate:** `swings-api` (Rust 2024 edition)
+> **Crate:** `swings-api` (Rust 2021 edition; toolchain-pinned to stable 1.93+ in CI)
 > **Runtime:** Axum 0.8 + Tokio + SQLx 0.8 + PostgreSQL 16
 > **Status:** active — production deploys to Railway from this directory
+> **Live:** `https://swings-production.up.railway.app`
 
 The Rust backend that powers the swings membership platform: public
 APIs (catalog, blog, courses, popups, forms, consent), member APIs
@@ -82,7 +83,7 @@ src/
 
 ```bash
 # 1. Toolchain
-rustup default stable             # 1.83+
+rustup default stable             # 1.93+ (CI uses 1.95)
 cargo install sqlx-cli --no-default-features --features postgres
 
 # 2. Database (one of):
@@ -160,7 +161,10 @@ integration tests against a local MinIO/LocalStack emulator.
   immutable. Editing a checksummed migration after deploy will fail
   boot with `migration N was previously applied but has been modified`.
 
-Current migration count: **74** (see `migrations/0NN_*.sql`).
+Current count: **66 migration files** spanning version prefixes
+`001–028, 030–039, 041–043, 050–074`. Gaps are intentional (renumbering
+fallout from forensic ordering fixes — see commit `620ad09`); every
+prefix is unique and validated by CI.
 
 Notable schema regions:
 
@@ -169,8 +173,10 @@ Notable schema regions:
 | Auth & users         | `001`, `010`, `018`                         |
 | Blog & media         | `002`, `004`, `006`–`008`, `016`            |
 | Analytics            | `009`, `014`                                |
-| Commerce             | `031`–`041`                                 |
+| Products & catalog   | `030` (products + variants + bundles)       |
+| Commerce (cart→ord)  | `031`, `035`, `036`, `037`, `038`, `039`    |
 | Subscriptions        | `041`, `042`, `057`, `067`                  |
+| Coupons              | `013`, `043`                                |
 | Forms                | `027`, `032`–`034`                          |
 | Popups               | `015`, `050`–`054`                          |
 | Consent / DSAR       | `024`–`028`, `069`, `073`                   |
@@ -204,8 +210,10 @@ remediation of every alert these emit.
 
 ## HTTP surface (high-level)
 
-The full machine-readable contract is at `GET /api-docs/openapi.json`,
-served by `utoipa-swagger-ui` at `GET /swagger-ui/`.
+The full machine-readable contract is at `GET /api/openapi.json`. In
+production the route requires an admin JWT (`AdminUser` extractor); in
+dev it is served by `utoipa-swagger-ui` and SwaggerUI is mounted at
+`GET /api/docs`. See `src/openapi.rs` for the gating rationale.
 
 Top-level route prefixes:
 
@@ -221,8 +229,8 @@ Top-level route prefixes:
 | `/api/forms/*`     | Public form submissions                               | public       |
 | `/api/consent/*`   | Consent record + DSAR submit                          | mixed        |
 | `/api/webhooks/*`  | Stripe (HMAC-verified)                                | webhook      |
-| `/metrics`         | Prometheus scrape endpoint                            | infra-only   |
-| `/healthz`         | Liveness                                              | public       |
+| `/metrics`         | Prometheus scrape endpoint                            | admin-gated in prod, public in dev |
+| `/api/openapi.json`| OpenAPI 3.1 spec                                      | admin-gated in prod, public in dev |
 
 `PUT`/`POST`/`DELETE` calls under `/api/admin/*` require an
 `Idempotency-Key` header and are subject to per-actor mutation rate
@@ -269,13 +277,12 @@ cargo build --release
 | --------------------------------------- | --------------------------------------------------------------- |
 | Full local stack (api + db + uploads)   | `docker compose -f ../docker-compose.yml up`                    |
 | Test-only Postgres on `:5433`           | `docker compose -f docker-compose.yml up -d db`                 |
-| Build the prod image (root context)     | `docker build -f ../Dockerfile -t swings-api ..`                |
-| Build the prod image (backend context)  | `docker build -f Dockerfile -t swings-api .`                    |
+| Build the production image              | `docker build -f ../Dockerfile -t swings-api ..`                |
 
-The two Dockerfiles are functionally equivalent — same multi-stage
-build, same hardened runtime user (`app`, uid 10001), same `HEALTHCHECK`.
-The root variant exists so PaaS providers (Railway, Fly, Render) can
-build from the repo root without futzing with build contexts.
+There is only one Dockerfile, at the repo root (`../Dockerfile`). It
+is consumed by Railway, Render, and the local `docker-compose.yml` —
+all from the repo root as build context. A root `.dockerignore` keeps
+the context small.
 
 ---
 

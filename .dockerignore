@@ -1,0 +1,62 @@
+# Root .dockerignore for the consolidated `Dockerfile` build.
+#
+# Build context is the entire repo, but the runtime image only needs
+# the Rust crate under `backend/`. Excluding everything else keeps
+# `docker build` fast and avoids accidental secrets in image layers.
+
+# ─── always-exclude (security / size) ────────────────────────────────
+.git
+.gitignore
+.gitattributes
+.github
+.env
+.env.*
+*.pem
+*.key
+*.p12
+**/secrets/
+**/*.secret
+
+# ─── frontend build artefacts (not needed in the API image) ──────────
+node_modules
+.svelte-kit
+.vercel
+.vinxi
+build
+dist
+playwright-report
+test-results
+coverage
+.nyc_output
+
+# ─── editor / IDE / OS noise ─────────────────────────────────────────
+.vscode
+.idea
+.cursor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# ─── Rust build cache ────────────────────────────────────────────────
+backend/target
+target
+
+# ─── docs / archive (not needed at runtime) ──────────────────────────
+docs
+README.md
+AGENTS.md
+CLAUDE.md
+SECURITY.md
+*.md
+
+# ─── deploy-config siblings (don't need them inside the image) ───────
+docker-compose.yml
+backend/docker-compose.yml
+render.yaml
+vercel.json
+backend/railway.toml
+
+# ─── tests / e2e (not part of release artefact) ──────────────────────
+e2e
+playwright.config.ts

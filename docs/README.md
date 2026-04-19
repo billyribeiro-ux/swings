@@ -19,7 +19,6 @@ The root [`README.md`](../README.md) is the entry point and links here.
 | [`DEPLOYMENT.md`](./DEPLOYMENT.md) | End-to-end Go-Live guide: Vercel (frontend) + Railway (Rust API + Postgres) + Postmark (SMTP). Covers DNS, secrets, smoke tests, rollback. | Anyone shipping a new environment |
 | [`INFRASTRUCTURE.md`](./INFRASTRUCTURE.md) | Full-stack topology: services, networks, secrets, identity boundaries, and data flows. The architectural source of truth. | Architects, security reviewers |
 | [`SEO_RUNBOOK.md`](./SEO_RUNBOOK.md) | SEO operating standard: meta-tag policy, sitemap discipline, structured data, and the `pnpm ci:seo` checks. | Frontend, content, marketing |
-| [`ADMIN_TODO.md`](./ADMIN_TODO.md) | **Historical changelog** of the admin/back-office hardening track. Every line item is shipped (commit `b7f52ce` + follow-ups). Kept for traceability — see the file header. | Reviewers, future maintainers |
 | [`ci.md`](./ci.md) | What CI runs, why each check exists, and how to debug a red build. | Anyone fighting a CI failure |
 | [`google-tracking-setup-guide.md`](./google-tracking-setup-guide.md) | GA4 + GTM + Search Console setup for the SvelteKit app. | Marketing / data |
 
@@ -49,8 +48,9 @@ comments and PR descriptions.
 | Document | Snapshot date | Why we keep it |
 | -------- | ------------- | -------------- |
 | [`archive/AUDIT_PHASE1_RECON.md`](./archive/AUDIT_PHASE1_RECON.md) | 2026-04-17 | Repo reconnaissance — the inventory the rest of the audit was built on. |
-| [`archive/AUDIT_PHASE2_GAPS.md`](./archive/AUDIT_PHASE2_GAPS.md) | 2026-04-17 | Domain gap analysis. Every gap here has either shipped or is tracked in [`ADMIN_TODO.md`](./ADMIN_TODO.md). |
+| [`archive/AUDIT_PHASE2_GAPS.md`](./archive/AUDIT_PHASE2_GAPS.md) | 2026-04-17 | Domain gap analysis. Every gap here has either shipped or is tracked in [`archive/ADMIN_TODO.md`](./archive/ADMIN_TODO.md). |
 | [`archive/AUDIT_PHASE3_PLAN.md`](./archive/AUDIT_PHASE3_PLAN.md) | 2026-04-17 | Implementation plan — §12 authz matrix is still the active reference for migration `021_rbac.sql`. |
+| [`archive/ADMIN_TODO.md`](./archive/ADMIN_TODO.md) | 2026-04-19 | Closed admin scope ledger. Every task either shipped or moved to a tracked issue. |
 | [`archive/BACKEND-AUDIT-REPORT.md`](./archive/BACKEND-AUDIT-REPORT.md) | 2026-04-19 | Phase 1–4 engineering report on the admin surface. |
 | [`archive/deployment-readiness-report.md`](./archive/deployment-readiness-report.md) | 2026-04-15 | Pre-deploy gate review. Superseded by live monitoring. |
 | [`archive/wiring-verification-report.md`](./archive/wiring-verification-report.md) | 2026-04-15 | Verification that the FDN-* wiring docs were fully applied. |

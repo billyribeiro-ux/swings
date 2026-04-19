@@ -1,4 +1,27 @@
-# Admin Backoffice — Outstanding Work
+# Admin Backoffice — Outstanding Work  [ARCHIVED]
+
+> **Last revised:** 2026-04-19
+> **Status:** ARCHIVED — every line item below has shipped. This file is
+> kept solely for traceability of the admin-hardening track. Do not
+> add new items here — open a GitHub issue, and update
+> [`../RUNBOOK.md`](../RUNBOOK.md) if it introduces a new alert path.
+>
+> **Completion summary (verified 2026-04-19):**
+> * P0/#1 DSAR artefact TTL sweep — `backend/src/services/dsar_artifact_sweep.rs`
+> * P0/#2 Idempotency-Key cache GC — `backend/src/services/idempotency_gc.rs`
+> * P1/#3 DSAR async UI + artefact streamer — `src/routes/admin/dsar/+page.svelte`
+> * P1/#4 Frontend SDK regen — `src/lib/api/schema.d.ts` (auto-generated; CI guards drift)
+> * P2/#5 DSAR worker R2 path coverage — `backend/tests/dsar_r2_artifact.rs`
+> * P2/#6 Idempotency race-condition test — `concurrent_same_key_creates_exactly_one_resource`
+> * P2/#7 Playwright admin specs — `e2e/admin/admin-uis.spec.ts`
+> * P2/#8 Grafana + Prometheus — `ops/grafana/admin-overview.dashboard.json` + `ops/prometheus/admin-alerts.rules.yml`
+> * P2/#9 Operator runbook — [`../RUNBOOK.md`](../RUNBOOK.md)
+> * P3/#10 Admin nav for observability — partial; tracked in GH issues if extended
+> * P3/#11 CHANGELOG — superseded by Conventional Commits + `git log`
+>
+> Original tracker text follows for historical reference.
+
+---
 
 **Status as of 2026-04-19** — the enterprise-hardening backend track is shipped (commit `717a7ae`). The items below are residual frontend, ops glue, and coverage gaps. Each entry is sized so it can be picked up independently.
 

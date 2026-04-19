@@ -1,5 +1,7 @@
 # `ops/` — Observability & alerting wiring for the swings admin platform
 
+> **Last revised**: 2026-04-19
+
 This directory ships **everything needed to stand the admin
 platform's monitoring story up in a fresh environment**, without
 hand-rolling alert expressions or guessing dashboard IDs:
