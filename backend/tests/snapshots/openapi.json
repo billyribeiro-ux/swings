@@ -3966,6 +3966,28 @@
           "admin-impersonation"
         ],
         "operationId": "list",
+        "parameters": [
+          {
+            "name": "after",
+            "in": "query",
+            "description": "Cursor — `issued_at` of the last row from the previous page.\nReturns the newest page when omitted.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size, clamped to 1..=100. Defaults to 25 when omitted.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Active impersonation sessions",
@@ -4584,7 +4606,7 @@
         "operationId": "logout",
         "responses": {
           "200": {
-            "description": "Logged out; refresh tokens revoked"
+            "description": "Logged out; refresh tokens revoked. When called under an impersonation token, ends the impersonation session instead and returns `{ \"message\": \"Impersonation ended\" }`."
           },
           "401": {
             "description": "Unauthorized"
@@ -9432,6 +9454,14 @@
           "total": {
             "type": "integer",
             "format": "int64"
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Cursor (`issued_at` of the last row) to pass back via `?after=`\nto fetch the next page; `None` when the page is not full."
           }
         }
       },

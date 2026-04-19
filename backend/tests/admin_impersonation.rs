@@ -555,3 +555,208 @@ async fn self_exit_without_impersonation_returns_400() {
         .await;
     resp.assert_status(StatusCode::BAD_REQUEST);
 }
+
+// ── Gap fixes (ADM-07-α) ───────────────────────────────────────────────
+
+/// gap-ratelimit: a single admin must not be able to mint more than
+/// `MAX_MINTS_PER_MINUTE` impersonation tokens in a 60s window. Burst
+/// the limit and assert the (limit+1)th call returns 429.
+#[tokio::test]
+async fn mint_rate_limited_per_actor() {
+    let Some(app) = TestApp::try_new().await else {
+        return;
+    };
+    let admin = app.seed_admin().await.expect("seed admin");
+    let max = swings_api::security::impersonation::MAX_MINTS_PER_MINUTE;
+
+    // Burn through the quota with fresh targets each time so the safety
+    // checks pass on every call.
+    for _ in 0..max {
+        let t = app.seed_user().await.expect("target");
+        let resp = app
+            .post_json(
+                "/api/admin/security/impersonation",
+                &json!({"target_user_id": t.id, "reason": "burst"}),
+                Some(&admin.access_token),
+            )
+            .await;
+        resp.assert_status(StatusCode::OK);
+    }
+
+    let last = app.seed_user().await.expect("over-quota target");
+    let blocked = app
+        .post_json(
+            "/api/admin/security/impersonation",
+            &json!({"target_user_id": last.id, "reason": "over-quota"}),
+            Some(&admin.access_token),
+        )
+        .await;
+    blocked.assert_status(StatusCode::TOO_MANY_REQUESTS);
+}
+
+/// gap-logout: hitting `/api/auth/logout` while authenticated by an
+/// impersonation token must end the impersonation session, NOT delete
+/// the target user's refresh tokens.
+#[tokio::test]
+async fn logout_under_impersonation_ends_session_not_user_refresh_tokens() {
+    let Some(app) = TestApp::try_new().await else {
+        return;
+    };
+    let admin = app.seed_admin().await.expect("seed admin");
+    let target = app.seed_user().await.expect("seed target");
+
+    // Sanity: the target has a refresh token from `seed_user`.
+    let rt_before: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM refresh_tokens WHERE user_id = $1")
+            .bind(target.id)
+            .fetch_one(app.db())
+            .await
+            .expect("count rt");
+    assert!(
+        rt_before > 0,
+        "test prerequisite: seeded user should have at least one refresh token"
+    );
+
+    let mint = app
+        .post_json(
+            "/api/admin/security/impersonation",
+            &json!({"target_user_id": target.id, "reason": "logout-test"}),
+            Some(&admin.access_token),
+        )
+        .await;
+    let mint_body: Value = mint.json().expect("mint body");
+    let imp_token = mint_body["access_token"]
+        .as_str()
+        .expect("token")
+        .to_string();
+    let session_id = mint_body["session"]["id"]
+        .as_str()
+        .expect("sid")
+        .to_string();
+
+    // Logout under impersonation.
+    let resp = app
+        .post_json("/api/auth/logout", &json!({}), Some(&imp_token))
+        .await;
+    resp.assert_status(StatusCode::OK);
+    let body: Value = resp.json().expect("logout body");
+    assert_eq!(body["impersonation_ended"].as_bool(), Some(true));
+
+    // Target's refresh tokens are untouched.
+    let rt_after: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM refresh_tokens WHERE user_id = $1")
+            .bind(target.id)
+            .fetch_one(app.db())
+            .await
+            .expect("count rt after");
+    assert_eq!(
+        rt_after, rt_before,
+        "logout-under-impersonation must not delete target refresh tokens"
+    );
+
+    // Session row is revoked.
+    let revoked_at: Option<chrono::DateTime<chrono::Utc>> = sqlx::query_scalar(
+        "SELECT revoked_at FROM impersonation_sessions WHERE id = $1::uuid",
+    )
+    .bind(&session_id)
+    .fetch_one(app.db())
+    .await
+    .expect("session row");
+    assert!(revoked_at.is_some(), "session should be revoked by logout");
+
+    // The impersonation token is now invalid.
+    let post = app.get("/api/auth/me", Some(&imp_token)).await;
+    post.assert_status(StatusCode::UNAUTHORIZED);
+}
+
+/// gap-refresh: a refresh attempt that carries an impersonation
+/// bearer token must be refused with 403, even when the body's
+/// refresh_token is otherwise valid.
+#[tokio::test]
+async fn refresh_with_impersonation_bearer_is_forbidden() {
+    let Some(app) = TestApp::try_new().await else {
+        return;
+    };
+    let admin = app.seed_admin().await.expect("seed admin");
+    let target = app.seed_user().await.expect("seed target");
+
+    let mint = app
+        .post_json(
+            "/api/admin/security/impersonation",
+            &json!({"target_user_id": target.id, "reason": "refresh-test"}),
+            Some(&admin.access_token),
+        )
+        .await;
+    let mint_body: Value = mint.json().expect("mint body");
+    let imp_token = mint_body["access_token"]
+        .as_str()
+        .expect("token")
+        .to_string();
+
+    // Use the target's *real* refresh token, but present the
+    // impersonation token in Authorization. The endpoint must fail
+    // closed before consulting the refresh-token row.
+    let resp = app
+        .post_json(
+            "/api/auth/refresh",
+            &json!({"refresh_token": target.refresh_token}),
+            Some(&imp_token),
+        )
+        .await;
+    resp.assert_status(StatusCode::FORBIDDEN);
+}
+
+/// gap-pagination: list endpoint accepts `?limit=N` and returns a
+/// `next_cursor` when the page is full.
+#[tokio::test]
+async fn list_supports_cursor_pagination() {
+    let Some(app) = TestApp::try_new().await else {
+        return;
+    };
+    let admin = app.seed_admin().await.expect("seed admin");
+
+    // Seed 3 active sessions then list with limit=2.
+    for _ in 0..3 {
+        let t = app.seed_user().await.expect("target");
+        let resp = app
+            .post_json(
+                "/api/admin/security/impersonation",
+                &json!({"target_user_id": t.id, "reason": "pg"}),
+                Some(&admin.access_token),
+            )
+            .await;
+        resp.assert_status(StatusCode::OK);
+    }
+
+    let page1 = app
+        .get(
+            "/api/admin/security/impersonation?limit=2",
+            Some(&admin.access_token),
+        )
+        .await;
+    page1.assert_status(StatusCode::OK);
+    let body1: Value = page1.json().expect("page1");
+    assert_eq!(body1["data"].as_array().map(|a| a.len()), Some(2));
+    let cursor = body1["next_cursor"]
+        .as_str()
+        .expect("next_cursor present when page is full")
+        .to_string();
+
+    let qs = url::form_urlencoded::Serializer::new(String::new())
+        .append_pair("limit", "2")
+        .append_pair("after", &cursor)
+        .finish();
+    let page2 = app
+        .get(
+            &format!("/api/admin/security/impersonation?{qs}"),
+            Some(&admin.access_token),
+        )
+        .await;
+    page2.assert_status(StatusCode::OK);
+    let body2: Value = page2.json().expect("page2");
+    let len2 = body2["data"].as_array().map(|a| a.len()).unwrap_or(0);
+    assert!(
+        len2 >= 1,
+        "second page must contain at least the remaining session"
+    );
+}
