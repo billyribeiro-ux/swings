@@ -770,48 +770,10 @@ mod tests {
         assert_eq!(bucket_key(MEMBER, &h, None), "member:user-u.1");
     }
 
-    /// Requires a running Postgres TEST DB (`DATABASE_URL` pointing at it).
-    /// Ignored by default because CI runs unit tests without Postgres; flip the
-    /// ignore and run `cargo test --test rate_limit_pg -- --ignored` once the
-    /// CI Postgres is wired up.
-    #[tokio::test]
-    #[ignore = "requires Postgres TEST DB; see module doc"]
-    async fn postgres_backend_increments_atomically_on_parallel_invocation() {
-        let url = std::env::var("DATABASE_URL").expect("DATABASE_URL set for the test DB");
-        let pool = sqlx::PgPool::connect(&url)
-            .await
-            .expect("connect to test pg");
-        sqlx::migrate!("./migrations")
-            .run(&pool)
-            .await
-            .expect("migrate test pg");
-
-        let backend = Arc::new(PostgresBackend::new(pool));
-        // 5-rps policy; fire 10 parallel invocations on the same key.
-        let policy = Policy {
-            name: "unit-test",
-            max_requests: 5,
-            window_secs: 1,
-            key: KeyStrategy::Ip,
-        };
-        let key = format!("unit-test:pg:{}", uuid::Uuid::new_v4().simple());
-
-        let mut handles: Vec<tokio::task::JoinHandle<bool>> = Vec::new();
-        for _ in 0..10 {
-            let b = backend.clone();
-            let k = key.clone();
-            handles.push(tokio::spawn(async move {
-                RateLimitBackend::check(&*b, policy, &k).await.is_ok()
-            }));
-        }
-        let mut ok = 0_u32;
-        for h in handles {
-            if h.await.expect("task joined") {
-                ok += 1;
-            }
-        }
-        // 5 should succeed; the rest hit TooManyRequests (fail-open path only
-        // on DB errors, which isn't triggered here).
-        assert_eq!(ok, 5, "exactly 5/10 parallel attempts should be allowed");
-    }
+    // Parallel-atomicity coverage for the Postgres backend lives in the
+    // integration-test suite (`backend/tests/rate_limit_postgres.rs`),
+    // where the support harness provisions a throwaway schema and real
+    // migrations. It used to sit here behind `#[ignore]` and never ran;
+    // moving it out removed the last ignored unit test from the suite
+    // and turned a dormant assertion into a runtime one.
 }
