@@ -9,7 +9,7 @@ use jsonwebtoken::{decode, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{authz::Policy, error::AppError, models::UserRole, AppState};
+use crate::{authz::PolicyHandle, error::AppError, models::UserRole, AppState};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
@@ -164,19 +164,19 @@ impl AdminUser {
     /// time so admin-initiated reloads are observed without restarting the
     /// request pipeline.
     #[must_use]
-    pub fn has_permission(&self, policy: &Policy, perm: &str) -> bool {
+    pub fn has_permission(&self, policy: &PolicyHandle, perm: &str) -> bool {
         UserRole::from_str_lower(&self.role).is_some_and(|role| policy.has(role, perm))
     }
 
     /// Strict permission gate. Returns [`AppError::Forbidden`] if the
-    /// admin's role lacks `perm` under the supplied [`Policy`] snapshot,
-    /// or [`AppError::Unauthorized`] if the role string is not a known
-    /// [`UserRole`].
+    /// admin's role lacks `perm` under the current [`PolicyHandle`]
+    /// snapshot, or [`AppError::Unauthorized`] if the role string is
+    /// not a known [`UserRole`].
     ///
     /// Use this at the top of every privileged handler to enforce the
     /// FDN-07 matrix beyond the coarse "role == admin" check that the
     /// extractor itself runs.
-    pub fn require(&self, policy: &Policy, perm: &str) -> Result<UserRole, AppError> {
+    pub fn require(&self, policy: &PolicyHandle, perm: &str) -> Result<UserRole, AppError> {
         let role = UserRole::from_str_lower(&self.role).ok_or(AppError::Unauthorized)?;
         if policy.has(role, perm) {
             Ok(role)
@@ -240,7 +240,7 @@ impl PrivilegedUser {
     /// Strict permission gate. Mirrors [`Policy::require`] but takes the
     /// already-typed [`UserRole`] from the extractor so handlers do not
     /// re-parse the JWT claim string.
-    pub fn require(&self, policy: &Policy, perm: &str) -> Result<(), AppError> {
+    pub fn require(&self, policy: &PolicyHandle, perm: &str) -> Result<(), AppError> {
         if policy.has(self.role, perm) {
             Ok(())
         } else {

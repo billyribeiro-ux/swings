@@ -35,7 +35,7 @@ use tower::ServiceExt;
 use uuid::Uuid;
 
 use swings_api::{
-    authz::Policy,
+    authz::{Policy, PolicyHandle},
     config::Config,
     events::WorkerShutdown,
     handlers::{
@@ -136,7 +136,7 @@ impl TestApp {
             media_backend: MediaBackend::Local {
                 upload_dir: upload_path,
             },
-            policy: Arc::new(policy),
+            policy: Arc::new(PolicyHandle::new(policy)),
             // Tests never start outbox workers, so the broadcast handle is an
             // inert stand-in. Handlers that subscribe (none as of FDN-04) see
             // a sender that never signals — which is the right behavior in a

@@ -215,7 +215,7 @@ async fn main() -> Result<()> {
         config: Arc::new(config),
         email_service,
         media_backend,
-        policy: Arc::new(policy),
+        policy: Arc::new(authz::PolicyHandle::new(policy)),
         outbox_shutdown: outbox_shutdown.clone(),
         rate_limit: rate_limit_backend,
         notifications: notifications_service.clone(),

@@ -31,13 +31,84 @@
 //! caller's responsibility.
 
 use std::collections::{HashMap, HashSet};
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 use sqlx::PgPool;
 
 use crate::error::AppError;
 use crate::extractors::AuthUser;
 use crate::models::UserRole;
+
+// ── Hot-swap handle ────────────────────────────────────────────────────
+
+/// Atomic-swap container around a [`Policy`] snapshot. Lives inside
+/// [`crate::AppState::policy`] so the role-matrix admin handler can
+/// reload the in-memory matrix immediately after a write.
+///
+/// Read path: takes the read-lock for the duration of one `Arc::clone`
+/// (microseconds), then drops the guard before any user code runs.
+/// The cloned `Arc<Policy>` keeps the snapshot alive even while a
+/// concurrent writer swaps in a fresh one — readers in flight finish
+/// against the snapshot they captured.
+///
+/// Lock-poisoning recovery: if a writer panicked while holding the
+/// write-lock, subsequent readers recover by `into_inner`-ing the
+/// poison. The runtime invariant we care about (the inner `Arc<Policy>`
+/// is always valid) is upheld by construction — there is no
+/// intermediate state in `replace` that could leave the cell in a
+/// broken shape.
+#[derive(Debug)]
+pub struct PolicyHandle {
+    inner: RwLock<Arc<Policy>>,
+}
+
+impl PolicyHandle {
+    /// Build a fresh handle around an in-memory policy.
+    #[must_use]
+    pub fn new(policy: Policy) -> Self {
+        Self {
+            inner: RwLock::new(Arc::new(policy)),
+        }
+    }
+
+    /// Load the current policy snapshot. Cheap (one `Arc::clone`).
+    pub fn snapshot(&self) -> Arc<Policy> {
+        match self.inner.read() {
+            Ok(g) => g.clone(),
+            Err(p) => p.into_inner().clone(),
+        }
+    }
+
+    /// Atomically replace the active policy. Existing readers complete
+    /// against the previous snapshot; new readers see the new one.
+    pub fn replace(&self, policy: Policy) {
+        let new_arc = Arc::new(policy);
+        match self.inner.write() {
+            Ok(mut g) => *g = new_arc,
+            Err(p) => *p.into_inner() = new_arc,
+        }
+    }
+
+    /// Reload from the database and swap in the result. Returns the
+    /// number of (role, permission) pairs in the new snapshot so the
+    /// caller can assert the catalogue actually populated.
+    pub async fn reload_from_db(&self, pool: &PgPool) -> Result<usize, AppError> {
+        let next = Policy::load(pool).await?;
+        let count = next.len();
+        self.replace(next);
+        Ok(count)
+    }
+
+    /// Convenience predicate forwarded to the current snapshot.
+    pub fn has(&self, role: UserRole, perm: &str) -> bool {
+        self.snapshot().has(role, perm)
+    }
+
+    /// Convenience requirement forwarded to the current snapshot.
+    pub fn require(&self, auth: &AuthUser, perm: &str) -> Result<(), AppError> {
+        self.snapshot().require(auth, perm)
+    }
+}
 
 /// Immutable snapshot of the `role → permission` matrix.
 ///

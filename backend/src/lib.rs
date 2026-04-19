@@ -40,9 +40,10 @@ pub struct AppState {
     pub email_service: Option<Arc<email::EmailService>>,
     pub media_backend: services::MediaBackend,
     /// FDN-07 authz policy cache. Loaded once at startup from the
-    /// `role_permissions` catalogue; swap the Arc via
-    /// [`authz::Policy::reload`] after admin mutations.
-    pub policy: Arc<authz::Policy>,
+    /// `role_permissions` catalogue and atomically replaced via
+    /// [`authz::PolicyHandle::reload_from_db`] after admin mutations
+    /// to the role/permission matrix.
+    pub policy: Arc<authz::PolicyHandle>,
     /// FDN-04 broadcast handle used to tell outbox workers (spawned in
     /// `main.rs`) to drain and exit at shutdown time.
     pub outbox_shutdown: events::WorkerShutdown,
