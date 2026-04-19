@@ -1615,6 +1615,345 @@
         ]
       }
     },
+    "/api/admin/dsar/jobs": {
+      "get": {
+        "tags": [
+          "admin-dsar"
+        ],
+        "operationId": "list_jobs",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Status filter",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "description": "Kind filter (export|erase)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "target_user_id",
+            "in": "query",
+            "description": "Filter by target user",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size (1..=200)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Cursor offset",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated DSAR jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobListEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/dsar/jobs/erase/request": {
+      "post": {
+        "tags": [
+          "admin-dsar"
+        ],
+        "operationId": "request_erase",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EraseRequestBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Erasure pending approval",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DsarJob"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Target user not found"
+          },
+          "409": {
+            "description": "Pending erasure already exists, or user already erased"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/dsar/jobs/export": {
+      "post": {
+        "tags": [
+          "admin-dsar"
+        ],
+        "operationId": "create_export",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Export composed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Target user not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/dsar/jobs/{id}": {
+      "get": {
+        "tags": [
+          "admin-dsar"
+        ],
+        "operationId": "read_job",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "DSAR job id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "DSAR job",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DsarJob"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/dsar/jobs/{id}/cancel": {
+      "post": {
+        "tags": [
+          "admin-dsar"
+        ],
+        "operationId": "cancel_job",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "DSAR job id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Job cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DsarJob"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Job not found"
+          },
+          "409": {
+            "description": "Job is not in a cancellable state"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/dsar/jobs/{id}/erase/approve": {
+      "post": {
+        "tags": [
+          "admin-dsar"
+        ],
+        "operationId": "approve_erase",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "DSAR job id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EraseApproveBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Erasure executed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EraseApproveResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden — self-approval is not permitted"
+          },
+          "404": {
+            "description": "Job not found"
+          },
+          "409": {
+            "description": "Job is not pending"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/admin/forms/{id}/submissions/bulk": {
       "post": {
         "tags": [
@@ -7945,6 +8284,17 @@
           }
         }
       },
+      "CancelBody": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
       "CompGrantRequest": {
         "type": "object",
         "required": [
@@ -10098,6 +10448,90 @@
           "export": {}
         }
       },
+      "DsarJob": {
+        "type": "object",
+        "required": [
+          "id",
+          "target_user_id",
+          "kind",
+          "status",
+          "requested_by",
+          "request_reason",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "target_user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "requested_by": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "request_reason": {
+            "type": "string"
+          },
+          "approved_by": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "approval_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "approved_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "artifact_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "erasure_summary": {},
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "failure_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "DsarListResponse": {
         "type": "object",
         "required": [
@@ -10227,6 +10661,79 @@
           "id": {
             "type": "string",
             "format": "uuid"
+          }
+        }
+      },
+      "EraseApproveBody": {
+        "type": "object",
+        "required": [
+          "approval_reason"
+        ],
+        "properties": {
+          "approval_reason": {
+            "type": "string"
+          }
+        }
+      },
+      "EraseApproveResponse": {
+        "type": "object",
+        "required": [
+          "job",
+          "summary"
+        ],
+        "properties": {
+          "job": {
+            "$ref": "#/components/schemas/DsarJob"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/TombstoneSummary"
+          }
+        }
+      },
+      "EraseRequestBody": {
+        "type": "object",
+        "required": [
+          "target_user_id",
+          "reason"
+        ],
+        "properties": {
+          "target_user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "ExportRequest": {
+        "type": "object",
+        "required": [
+          "target_user_id",
+          "reason"
+        ],
+        "properties": {
+          "target_user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "ExportResponse": {
+        "type": "object",
+        "required": [
+          "job",
+          "export"
+        ],
+        "properties": {
+          "job": {
+            "$ref": "#/components/schemas/DsarJob"
+          },
+          "export": {
+            "description": "Inline JSON snapshot of the export. Operators usually consume\n`job.artifact_url` (a `data:` URI) for the round-trippable\ndocument; `export` is the same payload deserialised so admin\nUIs can render it without a second hop."
           }
         }
       },
@@ -10611,6 +11118,40 @@
               "string",
               "null"
             ]
+          }
+        }
+      },
+      "JobListEnvelope": {
+        "type": "object",
+        "required": [
+          "data",
+          "total",
+          "page",
+          "per_page",
+          "total_pages"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DsarJob"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "per_page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total_pages": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
@@ -13585,6 +14126,46 @@
           }
         }
       },
+      "TombstoneSummary": {
+        "type": "object",
+        "description": "Summary of a tombstone operation.\n\nPersisted on `dsar_jobs.erasure_summary` so audits can verify the\nservice did exactly what it claimed.",
+        "required": [
+          "placeholder_email",
+          "erased_at",
+          "refresh_tokens_deleted",
+          "password_resets_deleted",
+          "notification_preferences_deleted",
+          "failed_logins_deleted"
+        ],
+        "properties": {
+          "placeholder_email": {
+            "type": "string",
+            "description": "The placeholder email written to `users.email`."
+          },
+          "erased_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "`users` row updated_at after the operation."
+          },
+          "refresh_tokens_deleted": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Row counts of auxiliary tables we cleared."
+          },
+          "password_resets_deleted": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "notification_preferences_deleted": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "failed_logins_deleted": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "TrackEventRequest": {
         "type": "object",
         "required": [
@@ -15260,6 +15841,10 @@
     {
       "name": "admin-orders",
       "description": "Admin-only orders surface (list, manual create, void, partial refund, CSV export)"
+    },
+    {
+      "name": "admin-dsar",
+      "description": "Admin-initiated DSAR jobs (export + dual-control right-to-erasure tombstone)"
     },
     {
       "name": "webhooks",
