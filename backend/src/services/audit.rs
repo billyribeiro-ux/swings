@@ -186,7 +186,7 @@ fn truncate_user_agent(ua: &str) -> String {
     } else {
         let mut s = ua.as_bytes()[..MAX].to_vec();
         // Defensive: ensure we never split a multi-byte character.
-        while !std::str::from_utf8(&s).is_ok() && !s.is_empty() {
+        while std::str::from_utf8(&s).is_err() && !s.is_empty() {
             s.pop();
         }
         String::from_utf8(s).unwrap_or_default()

@@ -39,8 +39,8 @@ use swings_api::{
     config::Config,
     events::WorkerShutdown,
     handlers::{
-        admin, analytics, auth, blog, coupons, courses, csp_report, member, notifications, outbox,
-        popups, pricing, webhooks,
+        admin, admin_consent, admin_security, analytics, auth, blog, coupons, courses, csp_report,
+        member, notifications, outbox, popups, pricing, webhooks,
     },
     middleware::rate_limit::Backend as RateLimitBackend,
     notifications::Service as NotificationsService,
@@ -189,6 +189,11 @@ impl TestApp {
         self.seed_user_with_role(TestRole::Admin).await
     }
 
+    /// Seed a support agent. Shorthand for `seed_user(TestRole::Support)`.
+    pub async fn seed_support(&self) -> TestResult<TestUser> {
+        self.seed_user_with_role(TestRole::Support).await
+    }
+
     /// Seed a user with the specified role.
     pub async fn seed_user_with_role(&self, role: TestRole) -> TestResult<TestUser> {
         // The `Config` is `Arc<Config>`; reach through the pool to borrow the
@@ -318,8 +323,12 @@ fn build_router(state: &AppState) -> Router<()> {
         // Auth & analytics
         .nest("/api/auth", auth::router())
         .nest("/api/analytics", analytics::router())
-        // Admin routes
-        .nest("/api/admin", admin::router())
+        // Admin routes — `admin_security` is merged INTO `admin` so the two
+        // share the same `/api/admin` nest (Axum panics on duplicate prefix).
+        .nest(
+            "/api/admin",
+            admin::router().merge(admin_security::router()),
+        )
         .nest("/api/admin/blog", blog::admin_router())
         .nest("/api/admin/courses", courses::admin_router())
         .nest("/api/admin/pricing", pricing::admin_router())
@@ -327,6 +336,7 @@ fn build_router(state: &AppState) -> Router<()> {
         .nest("/api/admin/popups", popups::admin_router())
         .nest("/api/admin/outbox", outbox::router())
         .nest("/api/admin/notifications", notifications::admin_router())
+        .nest("/api/admin/consent", admin_consent::router())
         // Public routes
         .nest("/api/blog", blog::public_router())
         .nest("/api/courses", courses::public_router())

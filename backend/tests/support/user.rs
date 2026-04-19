@@ -30,6 +30,7 @@ use super::error::{TestAppError, TestResult};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TestRole {
     Member,
+    Support,
     Admin,
 }
 
@@ -37,6 +38,7 @@ impl TestRole {
     pub(crate) fn as_sql(self) -> &'static str {
         match self {
             TestRole::Member => "member",
+            TestRole::Support => "support",
             TestRole::Admin => "admin",
         }
     }
@@ -44,6 +46,7 @@ impl TestRole {
     pub(crate) fn as_claim(self) -> &'static str {
         match self {
             TestRole::Member => "member",
+            TestRole::Support => "support",
             TestRole::Admin => "admin",
         }
     }
@@ -97,6 +100,7 @@ pub(crate) async fn seed(
     let password = format!("pw-{suffix}");
     let name = match role {
         TestRole::Admin => format!("Test Admin {}", &suffix[..8]),
+        TestRole::Support => format!("Test Support {}", &suffix[..8]),
         TestRole::Member => format!("Test Member {}", &suffix[..8]),
     };
 

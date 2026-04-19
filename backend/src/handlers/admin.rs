@@ -454,7 +454,7 @@ pub(crate) async fn update_member_role(
     // carry the previous state separately).
     let prior_role = db::find_user_by_id(&state.db, id)
         .await?
-        .map(|u| u.role.clone());
+        .map(|u| u.role);
 
     let user = db::update_user_role(&state.db, id, &req.role).await?;
 
@@ -506,7 +506,7 @@ pub(crate) async fn delete_member(
             .with_client(&client)
             .with_metadata(serde_json::json!({
                 "email": snapshot.as_ref().map(|u| u.email.clone()),
-                "role": snapshot.as_ref().map(|u| u.role.clone()),
+                "role": snapshot.as_ref().map(|u| u.role),
             })),
     )
     .await;
