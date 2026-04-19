@@ -175,4 +175,31 @@ impl MediaBackend {
             MediaBackend::R2(_) => None,
         }
     }
+
+    /// Delete a previously uploaded object. R2 path delegates to
+    /// [`R2Storage::delete_object`]; local path removes the file at
+    /// `{upload_dir}/{key}`. Both branches treat a missing object as
+    /// success — TTL sweepers commonly race with manual cleanup, and
+    /// surfacing `NotFound` as an error would just spam the logs.
+    pub async fn delete(&self, key: &str) -> Result<(), StorageError> {
+        match self {
+            MediaBackend::R2(r2) => match r2.delete_object(key).await {
+                Ok(()) => Ok(()),
+                // S3 surfaces `NoSuchKey` as a 404; treat it as a no-op.
+                Err(StorageError::Delete(msg)) if msg.contains("NoSuchKey") => Ok(()),
+                Err(e) => Err(e),
+            },
+            MediaBackend::Local { upload_dir } => {
+                let path = std::path::Path::new(upload_dir).join(key);
+                match tokio::fs::remove_file(&path).await {
+                    Ok(()) => Ok(()),
+                    Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
+                    Err(e) => Err(StorageError::Delete(format!(
+                        "remove {}: {e}",
+                        path.display()
+                    ))),
+                }
+            }
+        }
+    }
 }

@@ -335,6 +335,29 @@ async fn main() -> Result<()> {
         "dsar-export worker spawned"
     );
 
+    // ADM-19: TTL sweep for completed DSAR artefacts. Deletes the
+    // underlying R2 object / local file once `artifact_expires_at`
+    // has passed, then NULLs the artefact pointer columns. Runs less
+    // frequently than the compose worker because cleanup tolerates
+    // hour-scale lag; tunable via `DSAR_SWEEP_INTERVAL_SECS`.
+    let dsar_sweep_interval_secs = std::env::var("DSAR_SWEEP_INTERVAL_SECS")
+        .ok()
+        .and_then(|s| s.parse::<u64>().ok())
+        .filter(|n| *n > 0)
+        .unwrap_or(3600);
+    let dsar_sweep_handle = tokio::spawn(
+        swings_api::services::dsar_artifact_sweep::run_loop(
+            state.db.clone(),
+            state.media_backend.clone(),
+            outbox_shutdown.subscribe(),
+            std::time::Duration::from_secs(dsar_sweep_interval_secs),
+        ),
+    );
+    tracing::info!(
+        interval_secs = dsar_sweep_interval_secs,
+        "dsar-artifact-sweep worker spawned"
+    );
+
     let allowed_origins = state
         .config
         .cors_allowed_origins
@@ -619,6 +642,15 @@ async fn main() -> Result<()> {
         tracing::warn!("dsar-export worker did not stop within grace window");
     } else {
         tracing::info!("dsar-export worker stopped");
+    }
+
+    if tokio::time::timeout(Duration::from_secs(5), dsar_sweep_handle)
+        .await
+        .is_err()
+    {
+        tracing::warn!("dsar-artifact-sweep worker did not stop within grace window");
+    } else {
+        tracing::info!("dsar-artifact-sweep worker stopped");
     }
 
     Ok(())
