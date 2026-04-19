@@ -1755,6 +1755,136 @@
         ]
       }
     },
+    "/api/admin/members": {
+      "post": {
+        "tags": [
+          "admin-members"
+        ],
+        "operationId": "create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMemberRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Member created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateMemberResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Email already exists"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/members/search": {
+      "get": {
+        "tags": [
+          "admin-members"
+        ],
+        "operationId": "search",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Free-text substring across email + name",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "description": "Role filter (member|author|support|admin)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Status filter (active|suspended|banned|unverified)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size (1-200, default 25)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Cursor offset",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated member rows",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_UserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid filter"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/admin/members/{id}": {
       "delete": {
         "tags": [
@@ -8504,6 +8634,53 @@
           }
         }
       },
+      "CreateMemberRequest": {
+        "type": "object",
+        "required": [
+          "email",
+          "name",
+          "role"
+        ],
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole",
+            "description": "Role to seed the account with. Admin is rejected — the\noperator must escalate via the dedicated role-update endpoint\nso the audit trail flags the event explicitly."
+          },
+          "temp_password": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional one-shot temporary password. When `None` the account\nis created in a disabled state (no login until the user\ncompletes the password-reset / invite flow)."
+          },
+          "email_verified": {
+            "type": "boolean",
+            "description": "Mark the email as already verified (operator vouches that\nthey typed the address themselves, e.g. seeding a colleague)."
+          }
+        }
+      },
+      "CreateMemberResponse": {
+        "type": "object",
+        "required": [
+          "user",
+          "requires_password_setup"
+        ],
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/UserResponse"
+          },
+          "requires_password_setup": {
+            "type": "boolean",
+            "description": "`true` when no temp_password was supplied and the operator\nmust follow up with a password-reset / invite link out of band."
+          }
+        }
+      },
       "CreateModuleRequest": {
         "type": "object",
         "required": [
@@ -10249,6 +10426,148 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OutboxRowDto"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "per_page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total_pages": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "PaginatedResponse_UserResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "total",
+          "page",
+          "per_page",
+          "total_pages"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "email",
+                "name",
+                "role",
+                "created_at"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "role": {
+                  "$ref": "#/components/schemas/UserRole"
+                },
+                "avatar_url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "bio": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "position": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "website_url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "twitter_url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "linkedin_url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "youtube_url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "instagram_url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "suspended_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time",
+                  "description": "ADM-02: lifecycle state surfaced to the admin members UI. `None`\nfor each timestamp means the account is not in that state."
+                },
+                "suspension_reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "banned_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                },
+                "ban_reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "email_verified_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                }
+              }
             }
           },
           "total": {
@@ -13719,6 +14038,10 @@
     {
       "name": "admin-roles",
       "description": "Admin-only role / permission matrix CRUD with hot policy reload"
+    },
+    {
+      "name": "admin-members",
+      "description": "Admin-only members search + manual create"
     },
     {
       "name": "webhooks",
