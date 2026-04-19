@@ -101,7 +101,9 @@ async fn member_cannot_touch_admin_orders_surface() {
     };
     let member = app.seed_user().await.expect("seed member");
 
-    let list = app.get("/api/admin/orders", Some(&member.access_token)).await;
+    let list = app
+        .get("/api/admin/orders", Some(&member.access_token))
+        .await;
     list.assert_status(StatusCode::FORBIDDEN);
 
     let create = app
@@ -221,23 +223,20 @@ async fn create_manual_with_mark_completed_walks_fsm() {
     let admin = app.seed_admin().await.expect("seed admin");
     let order_id = create_completed_order(&app, &admin.access_token, 4200).await;
 
-    let status: String = sqlx::query_scalar(
-        "SELECT status::text FROM orders WHERE id = $1",
-    )
-    .bind(order_id)
-    .fetch_one(app.db())
-    .await
-    .expect("status");
+    let status: String = sqlx::query_scalar("SELECT status::text FROM orders WHERE id = $1")
+        .bind(order_id)
+        .fetch_one(app.db())
+        .await
+        .expect("status");
     assert_eq!(status, "completed");
 
     // Two state-log rows: pending→processing, processing→completed.
-    let trans_count: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM order_state_transitions WHERE order_id = $1",
-    )
-    .bind(order_id)
-    .fetch_one(app.db())
-    .await
-    .expect("transitions");
+    let trans_count: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM order_state_transitions WHERE order_id = $1")
+            .bind(order_id)
+            .fetch_one(app.db())
+            .await
+            .expect("transitions");
     assert_eq!(trans_count, 2);
 }
 
@@ -304,12 +303,11 @@ async fn void_pending_order_transitions_to_cancelled() {
     let body: Value = resp.json().expect("body");
     assert_eq!(body["order"]["status"], json!("cancelled"));
 
-    let audit_count: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM admin_actions WHERE action = 'admin.order.void'",
-    )
-    .fetch_one(app.db())
-    .await
-    .expect("audit count");
+    let audit_count: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM admin_actions WHERE action = 'admin.order.void'")
+            .fetch_one(app.db())
+            .await
+            .expect("audit count");
     assert_eq!(audit_count, 1);
 }
 
@@ -378,13 +376,11 @@ async fn partial_refund_leaves_order_in_completed() {
     assert_eq!(body["order_marked_refunded"], json!(false));
     assert_eq!(body["remaining_refundable_cents"], json!(3500));
 
-    let status: String = sqlx::query_scalar(
-        "SELECT status::text FROM orders WHERE id = $1",
-    )
-    .bind(order_id)
-    .fetch_one(app.db())
-    .await
-    .expect("status");
+    let status: String = sqlx::query_scalar("SELECT status::text FROM orders WHERE id = $1")
+        .bind(order_id)
+        .fetch_one(app.db())
+        .await
+        .expect("status");
     assert_eq!(status, "completed");
 }
 
@@ -412,22 +408,19 @@ async fn full_refund_flips_order_to_refunded() {
     assert_eq!(body["order_marked_refunded"], json!(true));
     assert_eq!(body["remaining_refundable_cents"], json!(0));
 
-    let status: String = sqlx::query_scalar(
-        "SELECT status::text FROM orders WHERE id = $1",
-    )
-    .bind(order_id)
-    .fetch_one(app.db())
-    .await
-    .expect("status");
+    let status: String = sqlx::query_scalar("SELECT status::text FROM orders WHERE id = $1")
+        .bind(order_id)
+        .fetch_one(app.db())
+        .await
+        .expect("status");
     assert_eq!(status, "refunded");
 
-    let stripe_id: Option<String> = sqlx::query_scalar(
-        "SELECT stripe_refund_id FROM order_refunds WHERE order_id = $1",
-    )
-    .bind(order_id)
-    .fetch_one(app.db())
-    .await
-    .expect("stripe_refund_id");
+    let stripe_id: Option<String> =
+        sqlx::query_scalar("SELECT stripe_refund_id FROM order_refunds WHERE order_id = $1")
+            .bind(order_id)
+            .fetch_one(app.db())
+            .await
+            .expect("stripe_refund_id");
     assert_eq!(stripe_id.as_deref(), Some("re_test_123"));
 }
 
@@ -500,10 +493,7 @@ async fn list_filters_by_status_and_paginates() {
 
     // Unknown status → 400.
     let bad = app
-        .get(
-            "/api/admin/orders?status=bogus",
-            Some(&admin.access_token),
-        )
+        .get("/api/admin/orders?status=bogus", Some(&admin.access_token))
         .await;
     bad.assert_status(StatusCode::BAD_REQUEST);
 }
@@ -531,10 +521,7 @@ async fn list_substring_search_matches_email() {
     create_pending_order(&app, &admin.access_token, 100).await;
 
     let search = app
-        .get(
-            "/api/admin/orders?q=needle",
-            Some(&admin.access_token),
-        )
+        .get("/api/admin/orders?q=needle", Some(&admin.access_token))
         .await;
     search.assert_status(StatusCode::OK);
     let body: Value = search.json().expect("body");
@@ -554,10 +541,7 @@ async fn export_csv_returns_csv_with_header_row() {
     create_pending_order(&app, &admin.access_token, 1000).await;
 
     let resp = app
-        .get(
-            "/api/admin/orders/export.csv",
-            Some(&admin.access_token),
-        )
+        .get("/api/admin/orders/export.csv", Some(&admin.access_token))
         .await;
     resp.assert_status(StatusCode::OK);
     let ct = resp.header("content-type").unwrap_or_default();
@@ -571,7 +555,10 @@ async fn export_csv_returns_csv_with_header_row() {
     let text = resp.text();
     let mut lines = text.lines();
     let header = lines.next().expect("header line");
-    assert!(header.starts_with("id,number,user_id,status"), "header: {header}");
+    assert!(
+        header.starts_with("id,number,user_id,status"),
+        "header: {header}"
+    );
     assert_eq!(lines.count(), 1, "expected exactly one data row");
 
     let audit_count: i64 = sqlx::query_scalar(
@@ -590,10 +577,7 @@ async fn export_csv_requires_export_permission() {
     };
     let support = app.seed_support().await.expect("seed support");
     let resp = app
-        .get(
-            "/api/admin/orders/export.csv",
-            Some(&support.access_token),
-        )
+        .get("/api/admin/orders/export.csv", Some(&support.access_token))
         .await;
     resp.assert_status(StatusCode::FORBIDDEN);
 }
@@ -630,12 +614,13 @@ async fn read_one_returns_items_refunds_and_remaining() {
     assert_eq!(body["refunds"].as_array().expect("refunds").len(), 1);
 
     // Sanity: order_state_transitions row count is touchable.
-    let trans: i64 = sqlx::query("SELECT COUNT(*) AS c FROM order_state_transitions WHERE order_id = $1")
-        .bind(order_id)
-        .fetch_one(app.db())
-        .await
-        .expect("trans")
-        .try_get("c")
-        .expect("c");
+    let trans: i64 =
+        sqlx::query("SELECT COUNT(*) AS c FROM order_state_transitions WHERE order_id = $1")
+            .bind(order_id)
+            .fetch_one(app.db())
+            .await
+            .expect("trans")
+            .try_get("c")
+            .expect("c");
     assert!(trans >= 2);
 }

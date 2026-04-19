@@ -133,9 +133,7 @@ pub fn validate_input(input: &CreateImpersonationInput) -> AppResult<()> {
     }
     if let Some(ttl) = input.ttl_minutes {
         if ttl < 1 {
-            return Err(AppError::BadRequest(
-                "ttl_minutes must be >= 1.".into(),
-            ));
+            return Err(AppError::BadRequest("ttl_minutes must be >= 1.".into()));
         }
         if ttl > MAX_TTL_MINUTES {
             return Err(AppError::BadRequest(format!(
@@ -378,16 +376,13 @@ pub async fn assert_target_safe(
     target_user_id: Uuid,
 ) -> AppResult<UserRole> {
     if actor_user_id == target_user_id {
-        return Err(AppError::BadRequest(
-            "Cannot impersonate yourself.".into(),
-        ));
+        return Err(AppError::BadRequest("Cannot impersonate yourself.".into()));
     }
 
-    let row: Option<(UserRole,)> =
-        sqlx::query_as("SELECT role FROM users WHERE id = $1")
-            .bind(target_user_id)
-            .fetch_optional(pool)
-            .await?;
+    let row: Option<(UserRole,)> = sqlx::query_as("SELECT role FROM users WHERE id = $1")
+        .bind(target_user_id)
+        .fetch_optional(pool)
+        .await?;
 
     let target_role = row
         .ok_or_else(|| AppError::NotFound("Target user not found.".into()))?
@@ -469,10 +464,7 @@ mod tests {
 
     #[test]
     fn resolve_ttl_uses_default_when_unset() {
-        assert_eq!(
-            resolve_ttl(None),
-            Duration::minutes(DEFAULT_TTL_MINUTES)
-        );
+        assert_eq!(resolve_ttl(None), Duration::minutes(DEFAULT_TTL_MINUTES));
     }
 
     #[test]

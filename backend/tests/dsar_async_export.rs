@@ -83,11 +83,8 @@ async fn worker_completes_pending_export_and_writes_local_artifact() {
         .parse()
         .expect("uuid");
 
-    swings_api::services::dsar_worker::run_iteration_for_tests(
-        app.db(),
-        &app.media_backend(),
-    )
-    .await;
+    swings_api::services::dsar_worker::run_iteration_for_tests(app.db(), &app.media_backend())
+        .await;
 
     let row = sqlx::query(
         r#"
@@ -106,8 +103,7 @@ async fn worker_completes_pending_export_and_writes_local_artifact() {
     let url: Option<String> = row.try_get("artifact_url").unwrap();
     let expires_at: Option<chrono::DateTime<chrono::Utc>> =
         row.try_get("artifact_expires_at").unwrap();
-    let completed_at: Option<chrono::DateTime<chrono::Utc>> =
-        row.try_get("completed_at").unwrap();
+    let completed_at: Option<chrono::DateTime<chrono::Utc>> = row.try_get("completed_at").unwrap();
     assert_eq!(status, "completed");
     assert_eq!(kind.as_deref(), Some("local"));
     assert_eq!(key.as_deref(), Some(format!("dsar/{job_id}.json").as_str()));
@@ -147,19 +143,14 @@ async fn artifact_endpoint_streams_completed_export() {
             Some(&admin.access_token),
         )
         .await;
-    let job_id: Uuid = resp
-        .json::<Value>()
-        .expect("body")["job"]["id"]
+    let job_id: Uuid = resp.json::<Value>().expect("body")["job"]["id"]
         .as_str()
         .expect("id")
         .parse()
         .expect("uuid");
 
-    swings_api::services::dsar_worker::run_iteration_for_tests(
-        app.db(),
-        &app.media_backend(),
-    )
-    .await;
+    swings_api::services::dsar_worker::run_iteration_for_tests(app.db(), &app.media_backend())
+        .await;
 
     let stream = app
         .get(
@@ -213,9 +204,7 @@ async fn artifact_endpoint_rejects_pending_job() {
             Some(&admin.access_token),
         )
         .await;
-    let job_id: Uuid = resp
-        .json::<Value>()
-        .expect("body")["job"]["id"]
+    let job_id: Uuid = resp.json::<Value>().expect("body")["job"]["id"]
         .as_str()
         .expect("id")
         .parse()
@@ -248,9 +237,7 @@ async fn artifact_endpoint_refuses_inline_artefact() {
             Some(&admin.access_token),
         )
         .await;
-    let job_id: Uuid = resp
-        .json::<Value>()
-        .expect("body")["job"]["id"]
+    let job_id: Uuid = resp.json::<Value>().expect("body")["job"]["id"]
         .as_str()
         .expect("id")
         .parse()
@@ -284,19 +271,14 @@ async fn member_cannot_stream_artifact() {
             Some(&admin.access_token),
         )
         .await;
-    let job_id: Uuid = resp
-        .json::<Value>()
-        .expect("body")["job"]["id"]
+    let job_id: Uuid = resp.json::<Value>().expect("body")["job"]["id"]
         .as_str()
         .expect("id")
         .parse()
         .expect("uuid");
 
-    swings_api::services::dsar_worker::run_iteration_for_tests(
-        app.db(),
-        &app.media_backend(),
-    )
-    .await;
+    swings_api::services::dsar_worker::run_iteration_for_tests(app.db(), &app.media_backend())
+        .await;
 
     let stream = app
         .get(

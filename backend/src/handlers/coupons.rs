@@ -778,7 +778,8 @@ pub(crate) async fn admin_delete_coupon(
             .bind(id)
             .fetch_optional(&state.db)
             .await?;
-    let (code, discount_type) = snapshot.ok_or(AppError::NotFound("Coupon not found".to_string()))?;
+    let (code, discount_type) =
+        snapshot.ok_or(AppError::NotFound("Coupon not found".to_string()))?;
 
     let result = sqlx::query("DELETE FROM coupons WHERE id = $1")
         .bind(id)

@@ -22,7 +22,10 @@ async fn list_matrix_requires_admin_role_read() {
     // Support gets `admin.dashboard.read` so PrivilegedUser passes,
     // but the seed in 064 does not grant `admin.role.read`.
     let resp = app
-        .get("/api/admin/security/roles", Some(&support_user.access_token))
+        .get(
+            "/api/admin/security/roles",
+            Some(&support_user.access_token),
+        )
         .await;
     resp.assert_status(StatusCode::FORBIDDEN);
 }

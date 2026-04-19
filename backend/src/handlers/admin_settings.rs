@@ -147,9 +147,7 @@ pub(crate) async fn get_one(
         admin.require(&state.policy, "admin.settings.read_secret")?;
 
         let key_b64 = crypto::key_from_env().map_err(|err| {
-            AppError::ServiceUnavailable(format!(
-                "settings encryption key unavailable: {err}"
-            ))
+            AppError::ServiceUnavailable(format!("settings encryption key unavailable: {err}"))
         })?;
         let plaintext = settings::reveal_secret(&rec, &key_b64)?;
 
@@ -233,9 +231,7 @@ pub(crate) async fn upsert(
             AppError::BadRequest("secret value must be a JSON string (the cleartext)".into())
         })?;
         let key_b64 = crypto::key_from_env().map_err(|err| {
-            AppError::ServiceUnavailable(format!(
-                "settings encryption key unavailable: {err}"
-            ))
+            AppError::ServiceUnavailable(format!("settings encryption key unavailable: {err}"))
         })?;
         let envelope = crypto::encrypt(plaintext, &key_b64)
             .map_err(|err| AppError::Internal(anyhow::anyhow!("encrypt failed: {err}")))?;

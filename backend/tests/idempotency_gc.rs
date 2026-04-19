@@ -24,12 +24,7 @@ use support::TestApp;
 use tokio::sync::broadcast;
 use uuid::Uuid;
 
-async fn seed_row(
-    pool: &PgPool,
-    user_id: Uuid,
-    key: &str,
-    expires_at: chrono::DateTime<Utc>,
-) {
+async fn seed_row(pool: &PgPool, user_id: Uuid, key: &str, expires_at: chrono::DateTime<Utc>) {
     sqlx::query(
         r#"
         INSERT INTO idempotency_keys
@@ -67,22 +62,38 @@ async fn prune_once_removes_only_expired_rows() {
         .expect("clean");
 
     let admin = app.seed_admin().await.expect("admin");
-    seed_row(app.db(), admin.id, "fresh", Utc::now() + chrono::Duration::hours(2)).await;
-    seed_row(app.db(), admin.id, "stale-1", Utc::now() - chrono::Duration::hours(1)).await;
-    seed_row(app.db(), admin.id, "stale-2", Utc::now() - chrono::Duration::days(2)).await;
+    seed_row(
+        app.db(),
+        admin.id,
+        "fresh",
+        Utc::now() + chrono::Duration::hours(2),
+    )
+    .await;
+    seed_row(
+        app.db(),
+        admin.id,
+        "stale-1",
+        Utc::now() - chrono::Duration::hours(1),
+    )
+    .await;
+    seed_row(
+        app.db(),
+        admin.id,
+        "stale-2",
+        Utc::now() - chrono::Duration::days(2),
+    )
+    .await;
 
     assert_eq!(count_keys(app.db()).await, 3);
 
-    let removed =
-        swings_api::services::idempotency_gc::prune_once(app.db(), app.settings()).await;
+    let removed = swings_api::services::idempotency_gc::prune_once(app.db(), app.settings()).await;
     assert_eq!(removed, 2, "two stale rows should have been pruned");
     assert_eq!(count_keys(app.db()).await, 1);
 
-    let surviving: String =
-        sqlx::query_scalar("SELECT key FROM idempotency_keys LIMIT 1")
-            .fetch_one(app.db())
-            .await
-            .expect("row");
+    let surviving: String = sqlx::query_scalar("SELECT key FROM idempotency_keys LIMIT 1")
+        .fetch_one(app.db())
+        .await
+        .expect("row");
     assert_eq!(surviving, "fresh");
 }
 
@@ -96,8 +107,7 @@ async fn prune_once_handles_empty_table() {
         .await
         .expect("clean");
 
-    let removed =
-        swings_api::services::idempotency_gc::prune_once(app.db(), app.settings()).await;
+    let removed = swings_api::services::idempotency_gc::prune_once(app.db(), app.settings()).await;
     assert_eq!(removed, 0);
 }
 
@@ -128,8 +138,7 @@ async fn prune_once_drains_backlog_in_multiple_passes() {
     }
     assert_eq!(count_keys(app.db()).await, 5);
 
-    let removed =
-        swings_api::services::idempotency_gc::prune_once(app.db(), app.settings()).await;
+    let removed = swings_api::services::idempotency_gc::prune_once(app.db(), app.settings()).await;
     assert_eq!(removed, 5);
     assert_eq!(count_keys(app.db()).await, 0);
 }

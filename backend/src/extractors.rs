@@ -358,7 +358,10 @@ impl FromRequestParts<AppState> for ClientInfo {
         parts: &mut Parts,
         _state: &AppState,
     ) -> Result<Self, Self::Rejection> {
-        let ip = extract_ip(&parts.headers, parts.extensions.get::<ConnectInfo<std::net::SocketAddr>>());
+        let ip = extract_ip(
+            &parts.headers,
+            parts.extensions.get::<ConnectInfo<std::net::SocketAddr>>(),
+        );
         let user_agent = parts
             .headers
             .get(axum::http::header::USER_AGENT)

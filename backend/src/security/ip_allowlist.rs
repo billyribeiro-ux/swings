@@ -85,18 +85,17 @@ pub fn validate_input(input: &CreateAllowlistInput) -> AppResult<(String, String
 pub async fn is_ip_allowed(pool: &PgPool, ip: IpAddr) -> bool {
     // First branch: empty list → pass-through. Cheap COUNT-style query so
     // the typical (no rows) case finishes in microseconds.
-    let active_count: i64 = match sqlx::query_scalar(
-        "SELECT COUNT(*)::bigint FROM admin_ip_allowlist WHERE is_active",
-    )
-    .fetch_one(pool)
-    .await
-    {
-        Ok(c) => c,
-        Err(err) => {
-            tracing::warn!(error = %err, "ip_allowlist: count query failed; failing open");
-            return true;
-        }
-    };
+    let active_count: i64 =
+        match sqlx::query_scalar("SELECT COUNT(*)::bigint FROM admin_ip_allowlist WHERE is_active")
+            .fetch_one(pool)
+            .await
+        {
+            Ok(c) => c,
+            Err(err) => {
+                tracing::warn!(error = %err, "ip_allowlist: count query failed; failing open");
+                return true;
+            }
+        };
 
     if active_count == 0 {
         return true;

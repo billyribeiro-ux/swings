@@ -11,7 +11,10 @@ use chrono::{DateTime, Duration, Utc};
 use serde_json::{json, Value};
 use sqlx::Row;
 use support::{AssertProblem, TestApp};
-use swings_api::{db, models::{SubscriptionPlan, SubscriptionStatus}};
+use swings_api::{
+    db,
+    models::{SubscriptionPlan, SubscriptionStatus},
+};
 use uuid::Uuid;
 
 // ── Fixtures ───────────────────────────────────────────────────────────
@@ -171,7 +174,10 @@ async fn comp_grant_open_ended_when_no_duration() {
         .await;
     resp.assert_status(StatusCode::CREATED);
     let body: Value = resp.json().expect("body");
-    assert!(body["ends_at"].is_null(), "ends_at should be null for open-ended");
+    assert!(
+        body["ends_at"].is_null(),
+        "ends_at should be null for open-ended"
+    );
 }
 
 #[tokio::test]
@@ -229,13 +235,12 @@ async fn extend_pushes_period_end_and_logs_change() {
     let user = app.seed_user().await.expect("seed user");
     let sub_id = seed_subscription_for(&app, user.id).await;
 
-    let before: DateTime<Utc> = sqlx::query_scalar(
-        "SELECT current_period_end FROM subscriptions WHERE id = $1",
-    )
-    .bind(sub_id)
-    .fetch_one(app.db())
-    .await
-    .expect("before");
+    let before: DateTime<Utc> =
+        sqlx::query_scalar("SELECT current_period_end FROM subscriptions WHERE id = $1")
+            .bind(sub_id)
+            .fetch_one(app.db())
+            .await
+            .expect("before");
 
     let resp = app
         .post_json::<Value>(
@@ -248,13 +253,12 @@ async fn extend_pushes_period_end_and_logs_change() {
     let body: Value = resp.json().expect("body");
     assert_eq!(body["subscription_id"], json!(sub_id));
 
-    let after: DateTime<Utc> = sqlx::query_scalar(
-        "SELECT current_period_end FROM subscriptions WHERE id = $1",
-    )
-    .bind(sub_id)
-    .fetch_one(app.db())
-    .await
-    .expect("after");
+    let after: DateTime<Utc> =
+        sqlx::query_scalar("SELECT current_period_end FROM subscriptions WHERE id = $1")
+            .bind(sub_id)
+            .fetch_one(app.db())
+            .await
+            .expect("after");
     let delta = after - before;
     assert_eq!(delta.num_days(), 14);
 
@@ -335,15 +339,17 @@ async fn cycle_override_sets_anchor_and_audits() {
         .await;
     resp.assert_status(StatusCode::OK);
     let body: Value = resp.json().expect("body");
-    assert!(body["previous_anchor"].is_null(), "fresh subscription has no anchor");
+    assert!(
+        body["previous_anchor"].is_null(),
+        "fresh subscription has no anchor"
+    );
 
-    let anchor_db: Option<DateTime<Utc>> = sqlx::query_scalar(
-        "SELECT billing_cycle_anchor FROM subscriptions WHERE id = $1",
-    )
-    .bind(sub_id)
-    .fetch_one(app.db())
-    .await
-    .expect("anchor");
+    let anchor_db: Option<DateTime<Utc>> =
+        sqlx::query_scalar("SELECT billing_cycle_anchor FROM subscriptions WHERE id = $1")
+            .bind(sub_id)
+            .fetch_one(app.db())
+            .await
+            .expect("anchor");
     assert!(anchor_db.is_some());
 
     let change_count: i64 = sqlx::query_scalar(

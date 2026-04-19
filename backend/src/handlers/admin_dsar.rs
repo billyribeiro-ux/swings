@@ -171,7 +171,11 @@ pub struct EraseRequestBody {
 
 #[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct EraseApproveBody {
-    #[validate(length(min = 10, max = 1000, message = "approval reason must be 10..=1000 chars"))]
+    #[validate(length(
+        min = 10,
+        max = 1000,
+        message = "approval reason must be 10..=1000 chars"
+    ))]
     pub approval_reason: String,
 }
 
@@ -441,12 +445,11 @@ pub async fn request_erase(
     req.validate()
         .map_err(|e| AppError::BadRequest(e.to_string()))?;
 
-    let user_state: Option<(Option<DateTime<Utc>>,)> = sqlx::query_as(
-        "SELECT erased_at FROM users WHERE id = $1",
-    )
-    .bind(req.target_user_id)
-    .fetch_optional(&state.db)
-    .await?;
+    let user_state: Option<(Option<DateTime<Utc>>,)> =
+        sqlx::query_as("SELECT erased_at FROM users WHERE id = $1")
+            .bind(req.target_user_id)
+            .fetch_optional(&state.db)
+            .await?;
     match user_state {
         None => {
             return Err(AppError::NotFound(format!(
@@ -838,7 +841,10 @@ pub async fn stream_artifact(
     .await;
 
     let mut headers = HeaderMap::new();
-    headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    headers.insert(
+        header::CONTENT_TYPE,
+        HeaderValue::from_static("application/json"),
+    );
     headers.insert(
         header::CONTENT_DISPOSITION,
         HeaderValue::from_str(&format!("attachment; filename=\"dsar-{id}.json\""))

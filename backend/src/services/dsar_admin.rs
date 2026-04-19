@@ -76,12 +76,11 @@ pub async fn build_admin_export(
     // Fetch the email so the export builder can run its
     // email-keyed lookups (notification deliveries by anonymous email,
     // etc.) without us replicating that logic here.
-    let row = sqlx::query_as::<_, (Uuid, String)>(
-        "SELECT id, email FROM users WHERE id = $1 LIMIT 1",
-    )
-    .bind(target_user_id)
-    .fetch_optional(pool)
-    .await?;
+    let row =
+        sqlx::query_as::<_, (Uuid, String)>("SELECT id, email FROM users WHERE id = $1 LIMIT 1")
+            .bind(target_user_id)
+            .fetch_optional(pool)
+            .await?;
     let Some((id, email)) = row else {
         return Ok(None);
     };
@@ -127,12 +126,11 @@ pub async fn tombstone_user(
 ) -> Result<TombstoneSummary, DsarAdminError> {
     let mut tx = pool.begin().await?;
 
-    let existing_erased: Option<Option<chrono::DateTime<chrono::Utc>>> = sqlx::query_scalar(
-        "SELECT erased_at FROM users WHERE id = $1 FOR UPDATE",
-    )
-    .bind(target_user_id)
-    .fetch_optional(&mut *tx)
-    .await?;
+    let existing_erased: Option<Option<chrono::DateTime<chrono::Utc>>> =
+        sqlx::query_scalar("SELECT erased_at FROM users WHERE id = $1 FOR UPDATE")
+            .bind(target_user_id)
+            .fetch_optional(&mut *tx)
+            .await?;
     match existing_erased {
         None => return Err(DsarAdminError::UserNotFound(target_user_id)),
         Some(Some(_)) => return Err(DsarAdminError::AlreadyErased(target_user_id)),

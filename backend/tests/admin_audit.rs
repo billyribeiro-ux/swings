@@ -83,10 +83,7 @@ async fn support_can_read_but_cannot_export() {
     list.assert_status(StatusCode::OK);
 
     let csv = app
-        .get(
-            "/api/admin/audit/export.csv",
-            Some(&support.access_token),
-        )
+        .get("/api/admin/audit/export.csv", Some(&support.access_token))
         .await;
     csv.assert_status(StatusCode::FORBIDDEN);
 }
@@ -123,10 +120,7 @@ async fn free_text_search_matches_action_and_metadata() {
 
     // q hits the action token.
     let by_action = app
-        .get(
-            "/api/admin/audit?q=suspend",
-            Some(&admin.access_token),
-        )
+        .get("/api/admin/audit?q=suspend", Some(&admin.access_token))
         .await;
     by_action.assert_status(StatusCode::OK);
     let body: Value = by_action.json().expect("body");
@@ -136,10 +130,7 @@ async fn free_text_search_matches_action_and_metadata() {
 
     // q hits a metadata token.
     let by_meta = app
-        .get(
-            "/api/admin/audit?q=fraud_review",
-            Some(&admin.access_token),
-        )
+        .get("/api/admin/audit?q=fraud_review", Some(&admin.access_token))
         .await;
     by_meta.assert_status(StatusCode::OK);
     let body: Value = by_meta.json().expect("body");
@@ -186,9 +177,7 @@ async fn exact_filters_compose() {
     assert!(rows
         .iter()
         .all(|r| r["actor_id"].as_str() == Some(&admin.id.to_string())));
-    assert!(rows
-        .iter()
-        .all(|r| r["action"] == "user.suspend"));
+    assert!(rows.iter().all(|r| r["action"] == "user.suspend"));
 }
 
 #[tokio::test]
@@ -229,10 +218,7 @@ async fn target_id_substring_uses_trigram_index() {
     let body: Value = resp.json().expect("body");
     let rows = body["data"].as_array().expect("rows");
     assert_eq!(rows.len(), 1);
-    assert_eq!(
-        rows[0]["target_id"].as_str(),
-        Some("ord_2026_apr_xyz_001")
-    );
+    assert_eq!(rows[0]["target_id"].as_str(), Some("ord_2026_apr_xyz_001"));
 }
 
 #[tokio::test]
@@ -380,10 +366,7 @@ async fn read_one_returns_row_or_404() {
     .await;
 
     let ok = app
-        .get(
-            &format!("/api/admin/audit/{id}"),
-            Some(&admin.access_token),
-        )
+        .get(&format!("/api/admin/audit/{id}"), Some(&admin.access_token))
         .await;
     ok.assert_status(StatusCode::OK);
     let body: Value = ok.json().expect("body");

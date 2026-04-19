@@ -215,9 +215,7 @@ pub(crate) async fn refresh(
     // its TTL. Failing closed here is cheap and removes the entire
     // class of "silent re-elevation via refresh" attacks.
     if bearer_is_impersonation(&headers) {
-        tracing::warn!(
-            "refresh blocked: bearer token is an impersonation token"
-        );
+        tracing::warn!("refresh blocked: bearer token is an impersonation token");
         return Err(AppError::Forbidden);
     }
 

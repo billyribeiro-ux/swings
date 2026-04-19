@@ -588,11 +588,7 @@ pub async fn attach_policy(mut req: Request, next: Next, policy: Policy) -> Resp
 use std::num::NonZeroU32;
 use std::sync::OnceLock;
 
-use governor::{
-    clock::DefaultClock,
-    state::keyed::DefaultKeyedStateStore,
-    Quota, RateLimiter,
-};
+use governor::{clock::DefaultClock, state::keyed::DefaultKeyedStateStore, Quota, RateLimiter};
 
 type ActorRateLimiter = RateLimiter<String, DefaultKeyedStateStore<String>, DefaultClock>;
 

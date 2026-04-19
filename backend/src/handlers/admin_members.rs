@@ -137,10 +137,7 @@ pub async fn search(
 ) -> AppResult<Json<PaginatedResponse<UserResponse>>> {
     privileged.require(&state.policy, PERM_READ)?;
 
-    let limit = q
-        .limit
-        .unwrap_or(DEFAULT_LIMIT)
-        .clamp(1, MAX_LIMIT);
+    let limit = q.limit.unwrap_or(DEFAULT_LIMIT).clamp(1, MAX_LIMIT);
     let offset = q.offset.unwrap_or(0).max(0);
 
     let role_filter = match q.role.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
@@ -219,7 +216,10 @@ pub async fn create(
     }
 
     let normalized = db::normalize_email(&req.email);
-    if db::find_user_by_email(&state.db, &normalized).await?.is_some() {
+    if db::find_user_by_email(&state.db, &normalized)
+        .await?
+        .is_some()
+    {
         return Err(AppError::Conflict(
             "A user with that email already exists".to_string(),
         ));

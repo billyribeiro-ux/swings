@@ -452,9 +452,7 @@ pub(crate) async fn update_member_role(
     // Capture the prior role for the audit trail so a privilege escalation
     // can be reconstructed from the log alone (without the actor having to
     // carry the previous state separately).
-    let prior_role = db::find_user_by_id(&state.db, id)
-        .await?
-        .map(|u| u.role);
+    let prior_role = db::find_user_by_id(&state.db, id).await?.map(|u| u.role);
 
     let user = db::update_user_role(&state.db, id, &req.role).await?;
 

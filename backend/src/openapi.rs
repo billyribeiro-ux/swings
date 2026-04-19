@@ -23,9 +23,9 @@ use crate::{
     extractors::AdminUser,
     handlers::{
         admin, admin_audit, admin_dsar, admin_impersonation, admin_ip_allowlist, admin_members,
-        admin_orders, admin_roles, admin_security, admin_settings, admin_subscriptions,
-        analytics, auth, blog, consent, coupons, courses, csp_report, forms, member,
-        notifications, outbox, popups, products, webhooks,
+        admin_orders, admin_roles, admin_security, admin_settings, admin_subscriptions, analytics,
+        auth, blog, consent, coupons, courses, csp_report, forms, member, notifications, outbox,
+        popups, products, webhooks,
     },
     AppState,
 };

@@ -212,9 +212,8 @@ pub async fn search_users(
           AND ( NOT $6 OR email_verified_at IS NULL )
     "#;
 
-    let list_sql = format!(
-        "SELECT * FROM users {where_sql} ORDER BY created_at DESC LIMIT $7 OFFSET $8"
-    );
+    let list_sql =
+        format!("SELECT * FROM users {where_sql} ORDER BY created_at DESC LIMIT $7 OFFSET $8");
     let count_sql = format!("SELECT COUNT(*) FROM users {where_sql}");
 
     let users: Vec<User> = sqlx::query_as::<_, User>(&list_sql)

@@ -162,12 +162,8 @@ pub(crate) async fn mint(
         return Err(AppError::TooManyRequests);
     }
 
-    let target_role = impersonation::assert_target_safe(
-        &state.db,
-        admin.user_id,
-        input.target_user_id,
-    )
-    .await?;
+    let target_role =
+        impersonation::assert_target_safe(&state.db, admin.user_id, input.target_user_id).await?;
 
     let ttl = impersonation::resolve_ttl(input.ttl_minutes);
 
@@ -364,14 +360,11 @@ pub(crate) async fn revoke(
 ) -> AppResult<Json<ImpersonationSession>> {
     admin.require(&state.policy, IMPERSONATE_PERMISSION)?;
 
-    let session = impersonation::revoke(
-        &state.db,
-        id,
-        admin.user_id,
-        req.reason.as_deref(),
-    )
-    .await?
-    .ok_or_else(|| AppError::NotFound("Impersonation session not found or already revoked".into()))?;
+    let session = impersonation::revoke(&state.db, id, admin.user_id, req.reason.as_deref())
+        .await?
+        .ok_or_else(|| {
+            AppError::NotFound("Impersonation session not found or already revoked".into())
+        })?;
 
     audit_admin_priv(
         &state.db,

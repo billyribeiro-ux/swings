@@ -47,32 +47,28 @@ async fn prune_once_deletes_expired_artifact_and_nulls_columns() {
             Some(&admin.access_token),
         )
         .await;
-    let job_id: Uuid = resp
-        .json::<serde_json::Value>()
-        .expect("body")["job"]["id"]
+    let job_id: Uuid = resp.json::<serde_json::Value>().expect("body")["job"]["id"]
         .as_str()
         .expect("id")
         .parse()
         .expect("uuid");
 
-    swings_api::services::dsar_worker::run_iteration_for_tests(
-        app.db(),
-        &app.media_backend(),
-    )
-    .await;
+    swings_api::services::dsar_worker::run_iteration_for_tests(app.db(), &app.media_backend())
+        .await;
 
     let path = app.upload_dir().join(format!("dsar/{job_id}.json"));
     assert!(path.exists(), "fixture artefact missing");
 
-    sqlx::query("UPDATE dsar_jobs SET artifact_expires_at = NOW() - INTERVAL '1 hour' WHERE id = $1")
-        .bind(job_id)
-        .execute(app.db())
-        .await
-        .expect("backdate");
+    sqlx::query(
+        "UPDATE dsar_jobs SET artifact_expires_at = NOW() - INTERVAL '1 hour' WHERE id = $1",
+    )
+    .bind(job_id)
+    .execute(app.db())
+    .await
+    .expect("backdate");
 
     let scrubbed =
-        swings_api::services::dsar_artifact_sweep::prune_once(app.db(), &app.media_backend())
-            .await;
+        swings_api::services::dsar_artifact_sweep::prune_once(app.db(), &app.media_backend()).await;
     assert_eq!(scrubbed, 1, "exactly one row should have been swept");
 
     assert!(
@@ -119,32 +115,25 @@ async fn prune_once_leaves_unexpired_rows_untouched() {
             Some(&admin.access_token),
         )
         .await;
-    let job_id: Uuid = resp
-        .json::<serde_json::Value>()
-        .expect("body")["job"]["id"]
+    let job_id: Uuid = resp.json::<serde_json::Value>().expect("body")["job"]["id"]
         .as_str()
         .expect("id")
         .parse()
         .expect("uuid");
 
-    swings_api::services::dsar_worker::run_iteration_for_tests(
-        app.db(),
-        &app.media_backend(),
-    )
-    .await;
+    swings_api::services::dsar_worker::run_iteration_for_tests(app.db(), &app.media_backend())
+        .await;
 
     let scrubbed =
-        swings_api::services::dsar_artifact_sweep::prune_once(app.db(), &app.media_backend())
-            .await;
+        swings_api::services::dsar_artifact_sweep::prune_once(app.db(), &app.media_backend()).await;
     assert_eq!(scrubbed, 0, "fresh artefact must not be swept");
 
-    let key: Option<String> = sqlx::query_scalar(
-        "SELECT artifact_storage_key FROM dsar_jobs WHERE id = $1",
-    )
-    .bind(job_id)
-    .fetch_one(app.db())
-    .await
-    .expect("row");
+    let key: Option<String> =
+        sqlx::query_scalar("SELECT artifact_storage_key FROM dsar_jobs WHERE id = $1")
+            .bind(job_id)
+            .fetch_one(app.db())
+            .await
+            .expect("row");
     assert!(key.is_some(), "storage key must remain on un-expired row");
 }
 
@@ -169,34 +158,34 @@ async fn prune_once_skips_rows_with_no_storage_key() {
             Some(&admin.access_token),
         )
         .await;
-    let job_id: Uuid = resp
-        .json::<serde_json::Value>()
-        .expect("body")["job"]["id"]
+    let job_id: Uuid = resp.json::<serde_json::Value>().expect("body")["job"]["id"]
         .as_str()
         .expect("id")
         .parse()
         .expect("uuid");
 
-    sqlx::query("UPDATE dsar_jobs SET artifact_expires_at = NOW() - INTERVAL '1 day' WHERE id = $1")
-        .bind(job_id)
-        .execute(app.db())
-        .await
-        .expect("backdate");
-
-    let scrubbed =
-        swings_api::services::dsar_artifact_sweep::prune_once(app.db(), &app.media_backend())
-            .await;
-    assert_eq!(scrubbed, 0, "rows without a storage key must be skipped");
-
-    let url: Option<String> = sqlx::query_scalar(
-        "SELECT artifact_url FROM dsar_jobs WHERE id = $1",
+    sqlx::query(
+        "UPDATE dsar_jobs SET artifact_expires_at = NOW() - INTERVAL '1 day' WHERE id = $1",
     )
     .bind(job_id)
-    .fetch_one(app.db())
+    .execute(app.db())
     .await
-    .expect("row");
+    .expect("backdate");
+
+    let scrubbed =
+        swings_api::services::dsar_artifact_sweep::prune_once(app.db(), &app.media_backend()).await;
+    assert_eq!(scrubbed, 0, "rows without a storage key must be skipped");
+
+    let url: Option<String> =
+        sqlx::query_scalar("SELECT artifact_url FROM dsar_jobs WHERE id = $1")
+            .bind(job_id)
+            .fetch_one(app.db())
+            .await
+            .expect("row");
     assert!(
-        url.as_deref().map(|u| u.starts_with("data:")).unwrap_or(false),
+        url.as_deref()
+            .map(|u| u.starts_with("data:"))
+            .unwrap_or(false),
         "inline data: URI must remain"
     );
 }
@@ -220,43 +209,38 @@ async fn prune_once_is_idempotent_when_file_already_gone() {
             Some(&admin.access_token),
         )
         .await;
-    let job_id: Uuid = resp
-        .json::<serde_json::Value>()
-        .expect("body")["job"]["id"]
+    let job_id: Uuid = resp.json::<serde_json::Value>().expect("body")["job"]["id"]
         .as_str()
         .expect("id")
         .parse()
         .expect("uuid");
 
-    swings_api::services::dsar_worker::run_iteration_for_tests(
-        app.db(),
-        &app.media_backend(),
-    )
-    .await;
+    swings_api::services::dsar_worker::run_iteration_for_tests(app.db(), &app.media_backend())
+        .await;
 
     // Manually rip the file out from under the sweep, leaving the
     // pointer columns intact + TTL backdated. The sweep must still
     // succeed — `MediaBackend::delete` swallows `NotFound`.
     let path = app.upload_dir().join(format!("dsar/{job_id}.json"));
     tokio::fs::remove_file(&path).await.expect("rm");
-    sqlx::query("UPDATE dsar_jobs SET artifact_expires_at = NOW() - INTERVAL '1 hour' WHERE id = $1")
-        .bind(job_id)
-        .execute(app.db())
-        .await
-        .expect("backdate");
-
-    let scrubbed =
-        swings_api::services::dsar_artifact_sweep::prune_once(app.db(), &app.media_backend())
-            .await;
-    assert_eq!(scrubbed, 1, "missing file should not block the sweep");
-
-    let key: Option<String> = sqlx::query_scalar(
-        "SELECT artifact_storage_key FROM dsar_jobs WHERE id = $1",
+    sqlx::query(
+        "UPDATE dsar_jobs SET artifact_expires_at = NOW() - INTERVAL '1 hour' WHERE id = $1",
     )
     .bind(job_id)
-    .fetch_one(app.db())
+    .execute(app.db())
     .await
-    .expect("row");
+    .expect("backdate");
+
+    let scrubbed =
+        swings_api::services::dsar_artifact_sweep::prune_once(app.db(), &app.media_backend()).await;
+    assert_eq!(scrubbed, 1, "missing file should not block the sweep");
+
+    let key: Option<String> =
+        sqlx::query_scalar("SELECT artifact_storage_key FROM dsar_jobs WHERE id = $1")
+            .bind(job_id)
+            .fetch_one(app.db())
+            .await
+            .expect("row");
     assert!(key.is_none());
 }
 

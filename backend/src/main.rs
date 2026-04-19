@@ -300,14 +300,12 @@ async fn main() -> Result<()> {
         .and_then(|s| s.parse::<u64>().ok())
         .filter(|n| *n > 0)
         .unwrap_or(3_600);
-    let audit_retention_handle = tokio::spawn(
-        swings_api::services::audit_retention::run_loop(
-            state.db.clone(),
-            state.settings.clone(),
-            outbox_shutdown.subscribe(),
-            std::time::Duration::from_secs(audit_retention_interval_secs),
-        ),
-    );
+    let audit_retention_handle = tokio::spawn(swings_api::services::audit_retention::run_loop(
+        state.db.clone(),
+        state.settings.clone(),
+        outbox_shutdown.subscribe(),
+        std::time::Duration::from_secs(audit_retention_interval_secs),
+    ));
     tracing::info!(
         interval_secs = audit_retention_interval_secs,
         "audit-retention worker spawned"
@@ -345,14 +343,12 @@ async fn main() -> Result<()> {
         .and_then(|s| s.parse::<u64>().ok())
         .filter(|n| *n > 0)
         .unwrap_or(3600);
-    let dsar_sweep_handle = tokio::spawn(
-        swings_api::services::dsar_artifact_sweep::run_loop(
-            state.db.clone(),
-            state.media_backend.clone(),
-            outbox_shutdown.subscribe(),
-            std::time::Duration::from_secs(dsar_sweep_interval_secs),
-        ),
-    );
+    let dsar_sweep_handle = tokio::spawn(swings_api::services::dsar_artifact_sweep::run_loop(
+        state.db.clone(),
+        state.media_backend.clone(),
+        outbox_shutdown.subscribe(),
+        std::time::Duration::from_secs(dsar_sweep_interval_secs),
+    ));
     tracing::info!(
         interval_secs = dsar_sweep_interval_secs,
         "dsar-artifact-sweep worker spawned"
@@ -368,14 +364,12 @@ async fn main() -> Result<()> {
         .and_then(|s| s.parse::<u64>().ok())
         .filter(|n| *n > 0)
         .unwrap_or(300);
-    let idempotency_gc_handle = tokio::spawn(
-        swings_api::services::idempotency_gc::run_loop(
-            state.db.clone(),
-            state.settings.clone(),
-            outbox_shutdown.subscribe(),
-            std::time::Duration::from_secs(idempotency_gc_interval_secs),
-        ),
-    );
+    let idempotency_gc_handle = tokio::spawn(swings_api::services::idempotency_gc::run_loop(
+        state.db.clone(),
+        state.settings.clone(),
+        outbox_shutdown.subscribe(),
+        std::time::Duration::from_secs(idempotency_gc_interval_secs),
+    ));
     tracing::info!(
         interval_secs = idempotency_gc_interval_secs,
         "idempotency-gc worker spawned"
@@ -426,10 +420,7 @@ async fn main() -> Result<()> {
                 // `/api/admin/members` prefix with the legacy
                 // member routes in `admin::router()` without an
                 // Axum prefix collision.
-                .merge(
-                    Router::new()
-                        .nest("/members", handlers::admin_members::router()),
-                )
+                .merge(Router::new().nest("/members", handlers::admin_members::router()))
                 // ADM-06: IP-allowlist CRUD lives under /api/admin/security/ip-allowlist.
                 .nest(
                     "/security/ip-allowlist",
@@ -448,10 +439,7 @@ async fn main() -> Result<()> {
                 .nest("/settings", handlers::admin_settings::router())
                 // ADM-09: role / permission matrix. Mutations
                 // hot-reload `state.policy`.
-                .nest(
-                    "/security/roles",
-                    handlers::admin_roles::router(),
-                )
+                .nest("/security/roles", handlers::admin_roles::router())
                 // ADM-11: manual subscription operations
                 // (comp / extend / billing-cycle override). Wrapped in
                 // the ADM-15 Idempotency-Key middleware so retried
@@ -472,12 +460,10 @@ async fn main() -> Result<()> {
                 // idempotency layer protects.
                 .nest(
                     "/orders",
-                    handlers::admin_orders::router().layer(
-                        axum::middleware::from_fn_with_state(
-                            state.clone(),
-                            swings_api::middleware::idempotency::enforce,
-                        ),
-                    ),
+                    handlers::admin_orders::router().layer(axum::middleware::from_fn_with_state(
+                        state.clone(),
+                        swings_api::middleware::idempotency::enforce,
+                    )),
                 )
                 // ADM-13: admin-initiated DSAR jobs
                 // (export + dual-control right-to-erasure tombstone).
@@ -485,12 +471,10 @@ async fn main() -> Result<()> {
                 // a hard requirement, not a nicety.
                 .nest(
                     "/dsar",
-                    handlers::admin_dsar::router().layer(
-                        axum::middleware::from_fn_with_state(
-                            state.clone(),
-                            swings_api::middleware::idempotency::enforce,
-                        ),
-                    ),
+                    handlers::admin_dsar::router().layer(axum::middleware::from_fn_with_state(
+                        state.clone(),
+                        swings_api::middleware::idempotency::enforce,
+                    )),
                 )
                 // ADM-14: audit log viewer (FTS over admin_actions).
                 .nest("/audit", handlers::admin_audit::router()),

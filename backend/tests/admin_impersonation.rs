@@ -228,8 +228,14 @@ async fn mint_returns_impersonation_token_with_correct_claims() {
         .as_str()
         .expect("session id")
         .to_string();
-    assert_eq!(body["session"]["target_user_id"].as_str(), Some(target.id.to_string().as_str()));
-    assert_eq!(body["session"]["actor_user_id"].as_str(), Some(admin.id.to_string().as_str()));
+    assert_eq!(
+        body["session"]["target_user_id"].as_str(),
+        Some(target.id.to_string().as_str())
+    );
+    assert_eq!(
+        body["session"]["actor_user_id"].as_str(),
+        Some(admin.id.to_string().as_str())
+    );
     assert_eq!(body["session"]["reason"].as_str(), Some("ticket #42"));
 
     // Decode the server-issued JWT through the production Claims
@@ -246,10 +252,7 @@ async fn mint_returns_impersonation_token_with_correct_claims() {
     assert_eq!(claims.role, "member");
     assert_eq!(claims.imp_actor, Some(admin.id));
     assert_eq!(claims.imp_actor_role.as_deref(), Some("admin"));
-    assert_eq!(
-        claims.imp_session.map(|u| u.to_string()),
-        Some(session_id)
-    );
+    assert_eq!(claims.imp_session.map(|u| u.to_string()), Some(session_id));
 }
 
 #[tokio::test]
@@ -272,7 +275,10 @@ async fn mint_writes_audit_row() {
         .await;
     resp.assert_status(StatusCode::OK);
     let body: Value = resp.json().expect("mint body");
-    let session_id = body["session"]["id"].as_str().expect("session id").to_string();
+    let session_id = body["session"]["id"]
+        .as_str()
+        .expect("session id")
+        .to_string();
 
     let row = sqlx::query(
         "SELECT action, target_kind, target_id, metadata
@@ -293,7 +299,10 @@ async fn mint_writes_audit_row() {
     assert_eq!(action, "admin.impersonation.start");
     assert_eq!(target_kind, "impersonation_session");
     assert_eq!(target_id, session_id);
-    assert_eq!(metadata["target_user_id"].as_str(), Some(target.id.to_string().as_str()));
+    assert_eq!(
+        metadata["target_user_id"].as_str(),
+        Some(target.id.to_string().as_str())
+    );
     assert_eq!(metadata["reason"].as_str(), Some("audit-check"));
 }
 
@@ -324,10 +333,7 @@ async fn impersonation_token_cannot_reach_admin_endpoints() {
     // Listing impersonation sessions requires PrivilegedUser, which now
     // refuses any token carrying an active imp_session claim.
     let resp = app
-        .get(
-            "/api/admin/security/impersonation",
-            Some(&imp_token),
-        )
+        .get("/api/admin/security/impersonation", Some(&imp_token))
         .await;
     resp.assert_status(StatusCode::FORBIDDEN);
 }
@@ -349,8 +355,14 @@ async fn responses_under_impersonation_carry_banner_headers() {
         .await;
     mint.assert_status(StatusCode::OK);
     let mint_body: Value = mint.json().expect("mint body");
-    let imp_token = mint_body["access_token"].as_str().expect("token").to_string();
-    let session_id = mint_body["session"]["id"].as_str().expect("sid").to_string();
+    let imp_token = mint_body["access_token"]
+        .as_str()
+        .expect("token")
+        .to_string();
+    let session_id = mint_body["session"]["id"]
+        .as_str()
+        .expect("sid")
+        .to_string();
 
     // Hit /api/auth/me with the impersonation token — that route is
     // AuthUser-gated so the impersonated session reaches it. The
@@ -398,8 +410,14 @@ async fn revoking_session_immediately_invalidates_token() {
         .await;
     mint.assert_status(StatusCode::OK);
     let mint_body: Value = mint.json().expect("mint body");
-    let imp_token = mint_body["access_token"].as_str().expect("token").to_string();
-    let session_id = mint_body["session"]["id"].as_str().expect("sid").to_string();
+    let imp_token = mint_body["access_token"]
+        .as_str()
+        .expect("token")
+        .to_string();
+    let session_id = mint_body["session"]["id"]
+        .as_str()
+        .expect("sid")
+        .to_string();
 
     // Sanity: token is live.
     let pre = app.get("/api/auth/me", Some(&imp_token)).await;
@@ -436,9 +454,7 @@ async fn revoking_writes_audit_row() {
             Some(&admin.access_token),
         )
         .await;
-    let session_id = mint
-        .json::<Value>()
-        .expect("body")["session"]["id"]
+    let session_id = mint.json::<Value>().expect("body")["session"]["id"]
         .as_str()
         .expect("sid")
         .to_string();
@@ -466,7 +482,10 @@ async fn revoking_writes_audit_row() {
     let action: String = row.get("action");
     let metadata: Value = row.get("metadata");
     assert_eq!(action, "admin.impersonation.revoke");
-    assert_eq!(metadata["target_user_id"].as_str(), Some(target.id.to_string().as_str()));
+    assert_eq!(
+        metadata["target_user_id"].as_str(),
+        Some(target.id.to_string().as_str())
+    );
     assert_eq!(metadata["reason"].as_str(), Some("post-incident"));
 }
 
@@ -507,8 +526,14 @@ async fn self_exit_revokes_session_and_audits() {
         )
         .await;
     let mint_body: Value = mint.json().expect("body");
-    let imp_token = mint_body["access_token"].as_str().expect("token").to_string();
-    let session_id = mint_body["session"]["id"].as_str().expect("sid").to_string();
+    let imp_token = mint_body["access_token"]
+        .as_str()
+        .expect("token")
+        .to_string();
+    let session_id = mint_body["session"]["id"]
+        .as_str()
+        .expect("sid")
+        .to_string();
 
     // Caller uses the impersonation token to end the session.
     let exit = app
@@ -536,7 +561,10 @@ async fn self_exit_revokes_session_and_audits() {
     let actor_id: uuid::Uuid = row.get("actor_id");
     let metadata: Value = row.get("metadata");
     assert_eq!(actor_id, admin.id);
-    assert_eq!(metadata["target_user_id"].as_str(), Some(target.id.to_string().as_str()));
+    assert_eq!(
+        metadata["target_user_id"].as_str(),
+        Some(target.id.to_string().as_str())
+    );
     assert_eq!(metadata["session_was_live"].as_bool(), Some(true));
 }
 
@@ -655,13 +683,12 @@ async fn logout_under_impersonation_ends_session_not_user_refresh_tokens() {
     );
 
     // Session row is revoked.
-    let revoked_at: Option<chrono::DateTime<chrono::Utc>> = sqlx::query_scalar(
-        "SELECT revoked_at FROM impersonation_sessions WHERE id = $1::uuid",
-    )
-    .bind(&session_id)
-    .fetch_one(app.db())
-    .await
-    .expect("session row");
+    let revoked_at: Option<chrono::DateTime<chrono::Utc>> =
+        sqlx::query_scalar("SELECT revoked_at FROM impersonation_sessions WHERE id = $1::uuid")
+            .bind(&session_id)
+            .fetch_one(app.db())
+            .await
+            .expect("session row");
     assert!(revoked_at.is_some(), "session should be revoked by logout");
 
     // The impersonation token is now invalid.

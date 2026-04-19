@@ -391,7 +391,7 @@ mod tests {
     #[test]
     fn validate_shape_json_requires_object_or_array() {
         assert!(validate_shape(SettingType::Json, &serde_json::json!({"a":1})).is_ok());
-        assert!(validate_shape(SettingType::Json, &serde_json::json!([1,2])).is_ok());
+        assert!(validate_shape(SettingType::Json, &serde_json::json!([1, 2])).is_ok());
         assert!(validate_shape(SettingType::Json, &serde_json::json!("a")).is_err());
     }
 

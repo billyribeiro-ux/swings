@@ -48,10 +48,7 @@ pub fn router() -> Router<AppState> {
         .route("/", get(list_matrix))
         .route("/permissions", get(list_permissions))
         .route("/{role}", axum::routing::put(replace_role_permissions))
-        .route(
-            "/{role}/{permission}",
-            post(grant).delete(revoke),
-        )
+        .route("/{role}/{permission}", post(grant).delete(revoke))
         .route("/_reload", post(reload))
 }
 
@@ -103,12 +100,11 @@ fn parse_role(raw: &str) -> AppResult<UserRole> {
 }
 
 async fn permission_exists(pool: &sqlx::PgPool, key: &str) -> AppResult<bool> {
-    let exists: (bool,) = sqlx::query_as(
-        "SELECT EXISTS(SELECT 1 FROM permissions WHERE key = $1)::bool",
-    )
-    .bind(key)
-    .fetch_one(pool)
-    .await?;
+    let exists: (bool,) =
+        sqlx::query_as("SELECT EXISTS(SELECT 1 FROM permissions WHERE key = $1)::bool")
+            .bind(key)
+            .fetch_one(pool)
+            .await?;
     Ok(exists.0)
 }
 
@@ -291,14 +287,13 @@ pub(crate) async fn revoke(
         )));
     }
 
-    let removed = sqlx::query(
-        "DELETE FROM role_permissions WHERE role = $1::user_role AND permission = $2",
-    )
-    .bind(role.as_str())
-    .bind(&permission)
-    .execute(&state.db)
-    .await?
-    .rows_affected();
+    let removed =
+        sqlx::query("DELETE FROM role_permissions WHERE role = $1::user_role AND permission = $2")
+            .bind(role.as_str())
+            .bind(&permission)
+            .execute(&state.db)
+            .await?
+            .rows_affected();
 
     state.policy.reload_from_db(&state.db).await?;
 
@@ -367,9 +362,7 @@ pub(crate) async fn replace_role_permissions(
     // so a partial replace cannot half-apply.
     for key in &next {
         if !permission_exists(&state.db, key).await? {
-            return Err(AppError::BadRequest(format!(
-                "unknown permission `{key}`"
-            )));
+            return Err(AppError::BadRequest(format!("unknown permission `{key}`")));
         }
     }
 
@@ -378,12 +371,10 @@ pub(crate) async fn replace_role_permissions(
     // Lock the existing rows for this role to serialize concurrent
     // matrix mutations. Without the lock two admins could race and
     // the loser's grants would silently disappear.
-    sqlx::query(
-        "SELECT permission FROM role_permissions WHERE role = $1::user_role FOR UPDATE",
-    )
-    .bind(role.as_str())
-    .fetch_all(&mut *tx)
-    .await?;
+    sqlx::query("SELECT permission FROM role_permissions WHERE role = $1::user_role FOR UPDATE")
+        .bind(role.as_str())
+        .fetch_all(&mut *tx)
+        .await?;
 
     sqlx::query("DELETE FROM role_permissions WHERE role = $1::user_role")
         .bind(role.as_str())
@@ -391,13 +382,11 @@ pub(crate) async fn replace_role_permissions(
         .await?;
 
     for perm in &next {
-        sqlx::query(
-            "INSERT INTO role_permissions (role, permission) VALUES ($1::user_role, $2)",
-        )
-        .bind(role.as_str())
-        .bind(perm)
-        .execute(&mut *tx)
-        .await?;
+        sqlx::query("INSERT INTO role_permissions (role, permission) VALUES ($1::user_role, $2)")
+            .bind(role.as_str())
+            .bind(perm)
+            .execute(&mut *tx)
+            .await?;
     }
 
     tx.commit().await?;

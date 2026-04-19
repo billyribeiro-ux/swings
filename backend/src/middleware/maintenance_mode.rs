@@ -37,11 +37,7 @@ use crate::{
 const ESCAPE_HATCH: &str = "/api/admin/settings";
 const ADMIN_PREFIX: &str = "/api/admin";
 
-pub async fn enforce(
-    State(state): State<AppState>,
-    request: Request,
-    next: Next,
-) -> Response {
+pub async fn enforce(State(state): State<AppState>, request: Request, next: Next) -> Response {
     if !state.settings.get_bool(KEY_MAINTENANCE_MODE, false) {
         return next.run(request).await;
     }

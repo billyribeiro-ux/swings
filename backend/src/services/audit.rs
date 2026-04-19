@@ -398,7 +398,10 @@ mod tests {
         assert_eq!(action.actor_role, UserRole::Admin);
         assert_eq!(action.action, "user.suspend");
         assert_eq!(action.target_kind, "user");
-        assert_eq!(action.target_id.as_deref(), Some(target.to_string().as_str()));
+        assert_eq!(
+            action.target_id.as_deref(),
+            Some(target.to_string().as_str())
+        );
         assert_eq!(action.metadata["reason"], "spam");
         assert!(action.ip_address.is_none());
         assert!(action.user_agent.is_none());

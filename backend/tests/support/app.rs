@@ -46,8 +46,7 @@ use swings_api::{
     },
     middleware::{
         admin_ip_allowlist as admin_ip_allowlist_mw,
-        impersonation_banner as impersonation_banner_mw,
-        maintenance_mode as maintenance_mode_mw,
+        impersonation_banner as impersonation_banner_mw, maintenance_mode as maintenance_mode_mw,
         rate_limit::Backend as RateLimitBackend,
     },
     notifications::Service as NotificationsService,
@@ -225,11 +224,7 @@ impl TestApp {
     #[must_use]
     pub fn media_backend(&self) -> MediaBackend {
         MediaBackend::Local {
-            upload_dir: self
-                ._upload_dir
-                .path()
-                .to_string_lossy()
-                .into_owned(),
+            upload_dir: self._upload_dir.path().to_string_lossy().into_owned(),
         }
     }
 
@@ -250,7 +245,9 @@ impl TestApp {
     /// The bucket name is generated per call (`swings-test-{uuid8}`)
     /// and ensured to exist via `R2Storage::ensure_bucket()`.
     pub async fn try_media_backend_r2(&self) -> Option<MediaBackend> {
-        let endpoint = std::env::var("R2_TEST_ENDPOINT").ok().filter(|s| !s.is_empty())?;
+        let endpoint = std::env::var("R2_TEST_ENDPOINT")
+            .ok()
+            .filter(|s| !s.is_empty())?;
         let access = std::env::var("R2_TEST_ACCESS_KEY").unwrap_or_else(|_| "minioadmin".into());
         let secret = std::env::var("R2_TEST_SECRET_KEY").unwrap_or_else(|_| "minioadmin".into());
         let region = std::env::var("R2_TEST_REGION").unwrap_or_else(|_| "us-east-1".into());
@@ -480,14 +477,8 @@ fn build_router(state: &AppState) -> Router<()> {
             "/api/admin",
             admin::router()
                 .merge(admin_security::router())
-                .nest(
-                    "/security/ip-allowlist",
-                    admin_ip_allowlist::router(),
-                )
-                .nest(
-                    "/security/impersonation",
-                    admin_impersonation::router(),
-                )
+                .nest("/security/ip-allowlist", admin_ip_allowlist::router())
+                .nest("/security/impersonation", admin_impersonation::router())
                 .nest("/settings", admin_settings::router())
                 .nest("/security/roles", admin_roles::router())
                 .nest(
@@ -512,10 +503,7 @@ fn build_router(state: &AppState) -> Router<()> {
                     )),
                 )
                 .nest("/audit", admin_audit::router())
-                .merge(
-                    axum::Router::new()
-                        .nest("/members", admin_members::router()),
-                ),
+                .merge(axum::Router::new().nest("/members", admin_members::router())),
         )
         .nest("/api/admin/blog", blog::admin_router())
         .nest("/api/admin/courses", courses::admin_router())

@@ -1,9 +1,9 @@
 pub mod admin;
+pub mod admin_audit;
 pub mod admin_consent;
+pub mod admin_dsar;
 pub mod admin_impersonation;
 pub mod admin_ip_allowlist;
-pub mod admin_audit;
-pub mod admin_dsar;
 pub mod admin_members;
 pub mod admin_orders;
 pub mod admin_roles;

@@ -157,7 +157,13 @@ fn extract_key(headers: &HeaderMap) -> Result<Option<String>, Response> {
     };
     let value = raw
         .to_str()
-        .map_err(|_| problem(StatusCode::BAD_REQUEST, "idempotency-key-invalid", "Invalid Idempotency-Key header (non-ASCII)"))?
+        .map_err(|_| {
+            problem(
+                StatusCode::BAD_REQUEST,
+                "idempotency-key-invalid",
+                "Invalid Idempotency-Key header (non-ASCII)",
+            )
+        })?
         .trim();
     if value.is_empty() {
         return Ok(None);
@@ -241,7 +247,16 @@ async fn try_claim(
     }
 
     // Existing row. Inspect it.
-    let row = match sqlx::query_as::<_, (Vec<u8>, Option<i32>, Option<Vec<u8>>, Option<JsonValue>, bool)>(
+    let row = match sqlx::query_as::<
+        _,
+        (
+            Vec<u8>,
+            Option<i32>,
+            Option<Vec<u8>>,
+            Option<JsonValue>,
+            bool,
+        ),
+    >(
         r#"
         SELECT request_hash, status_code, response_body, response_headers, in_flight
         FROM idempotency_keys
@@ -379,10 +394,9 @@ fn render_replay(status_code: i32, body: Vec<u8>, headers: Option<JsonValue>) ->
         }
     }
 
-    response.headers_mut().insert(
-        REPLAYED_FLAG_HEADER,
-        HeaderValue::from_static("true"),
-    );
+    response
+        .headers_mut()
+        .insert(REPLAYED_FLAG_HEADER, HeaderValue::from_static("true"));
     response
 }
 

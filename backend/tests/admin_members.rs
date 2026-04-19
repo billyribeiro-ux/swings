@@ -166,11 +166,13 @@ async fn search_status_filter_targets_lifecycle_state() {
             .await
             .assert_status(StatusCode::CREATED);
     }
-    sqlx::query("UPDATE users SET suspended_at = NOW(), suspension_reason = 'test' WHERE email = $1")
-        .bind("suspended.dude@example.com")
-        .execute(app.db())
-        .await
-        .expect("suspend");
+    sqlx::query(
+        "UPDATE users SET suspended_at = NOW(), suspension_reason = 'test' WHERE email = $1",
+    )
+    .bind("suspended.dude@example.com")
+    .execute(app.db())
+    .await
+    .expect("suspend");
 
     let suspended = app
         .get(

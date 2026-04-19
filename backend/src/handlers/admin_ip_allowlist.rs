@@ -136,9 +136,7 @@ pub(crate) async fn delete_entry(
     let snapshot = ip_allowlist::get(&state.db, id).await?;
     let removed = ip_allowlist::delete(&state.db, id).await?;
     if !removed {
-        return Err(AppError::NotFound(
-            "Allowlist entry not found".to_string(),
-        ));
+        return Err(AppError::NotFound("Allowlist entry not found".to_string()));
     }
 
     let metadata = match &snapshot {
@@ -210,4 +208,3 @@ pub(crate) async fn toggle_entry(
 
     Ok(Json(entry))
 }
-

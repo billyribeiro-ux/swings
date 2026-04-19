@@ -119,7 +119,10 @@ mod tests {
     fn wrong_key_fails() {
         let env = encrypt("x", &test_key()).unwrap();
         let bad = B64.encode([9u8; 32]);
-        assert!(matches!(decrypt(&env, &bad), Err(CryptoError::DecryptFailed)));
+        assert!(matches!(
+            decrypt(&env, &bad),
+            Err(CryptoError::DecryptFailed)
+        ));
     }
 
     #[test]
@@ -129,7 +132,10 @@ mod tests {
         let mut bytes = B64.decode(&env.ct).unwrap();
         bytes[0] ^= 0x01;
         env.ct = B64.encode(&bytes);
-        assert!(matches!(decrypt(&env, &key), Err(CryptoError::DecryptFailed)));
+        assert!(matches!(
+            decrypt(&env, &key),
+            Err(CryptoError::DecryptFailed)
+        ));
     }
 
     #[test]
@@ -145,6 +151,9 @@ mod tests {
     #[test]
     fn invalid_key_b64_rejected() {
         let env = encrypt("x", &test_key()).unwrap();
-        assert!(matches!(decrypt(&env, "!!!not-base64!!!"), Err(CryptoError::KeyInvalid)));
+        assert!(matches!(
+            decrypt(&env, "!!!not-base64!!!"),
+            Err(CryptoError::KeyInvalid)
+        ));
     }
 }

@@ -366,9 +366,7 @@ impl Filters {
         };
         if let (Some(from), Some(to)) = (q.from, q.to) {
             if from > to {
-                return Err(AppError::BadRequest(
-                    "`from` must be <= `to`".to_string(),
-                ));
+                return Err(AppError::BadRequest("`from` must be <= `to`".to_string()));
             }
         }
         let trim = |s: &Option<String>| {

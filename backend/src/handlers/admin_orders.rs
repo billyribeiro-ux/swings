@@ -200,12 +200,11 @@ pub async fn list(
 
     let limit = q.limit.unwrap_or(DEFAULT_LIMIT).clamp(1, MAX_LIMIT);
     let offset = q.offset.unwrap_or(0).max(0);
-    let pattern = q
-        .q
-        .as_deref()
-        .map(|s| s.trim())
-        .filter(|s| !s.is_empty())
-        .map(|s| format!("%{}%", s.to_lowercase()));
+    let pattern =
+        q.q.as_deref()
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+            .map(|s| format!("%{}%", s.to_lowercase()));
 
     let status = match q.status.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
         None => None,
@@ -339,7 +338,8 @@ pub async fn create_manual(
     Json(req): Json<ManualOrderRequest>,
 ) -> AppResult<(StatusCode, Json<OrderDetail>)> {
     privileged.require(&state.policy, PERM_CREATE)?;
-    req.validate().map_err(|e| AppError::BadRequest(e.to_string()))?;
+    req.validate()
+        .map_err(|e| AppError::BadRequest(e.to_string()))?;
     for item in &req.items {
         item.validate()
             .map_err(|e| AppError::BadRequest(e.to_string()))?;
@@ -492,7 +492,8 @@ pub async fn void_order(
     Json(req): Json<VoidRequest>,
 ) -> AppResult<Json<OrderDetail>> {
     privileged.require(&state.policy, PERM_VOID)?;
-    req.validate().map_err(|e| AppError::BadRequest(e.to_string()))?;
+    req.validate()
+        .map_err(|e| AppError::BadRequest(e.to_string()))?;
 
     orders_repo::transition(
         &state.db,
@@ -549,7 +550,8 @@ pub async fn refund_order(
     Json(req): Json<RefundRequest>,
 ) -> AppResult<Json<RefundResponse>> {
     privileged.require(&state.policy, PERM_REFUND)?;
-    req.validate().map_err(|e| AppError::BadRequest(e.to_string()))?;
+    req.validate()
+        .map_err(|e| AppError::BadRequest(e.to_string()))?;
 
     let mut tx = state.db.begin().await?;
 
@@ -560,8 +562,12 @@ pub async fn refund_order(
     .fetch_optional(&mut *tx)
     .await?
     .ok_or_else(|| AppError::NotFound("Order not found".into()))?;
-    let total_cents: i64 = order_row.try_get("total_cents").map_err(|e| AppError::Internal(e.into()))?;
-    let status_str: String = order_row.try_get("status").map_err(|e| AppError::Internal(e.into()))?;
+    let total_cents: i64 = order_row
+        .try_get("total_cents")
+        .map_err(|e| AppError::Internal(e.into()))?;
+    let status_str: String = order_row
+        .try_get("status")
+        .map_err(|e| AppError::Internal(e.into()))?;
     let status = OrderStatus::parse(&status_str).ok_or_else(|| {
         AppError::Internal(anyhow::anyhow!("unknown status string: {status_str}"))
     })?;
@@ -674,12 +680,11 @@ pub async fn export_csv(
 ) -> AppResult<Response> {
     privileged.require(&state.policy, PERM_EXPORT)?;
 
-    let pattern = q
-        .q
-        .as_deref()
-        .map(|s| s.trim())
-        .filter(|s| !s.is_empty())
-        .map(|s| format!("%{}%", s.to_lowercase()));
+    let pattern =
+        q.q.as_deref()
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+            .map(|s| format!("%{}%", s.to_lowercase()));
     let status = match q.status.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
         None => None,
         Some(s) => Some(

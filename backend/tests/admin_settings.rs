@@ -34,7 +34,9 @@ async fn list_requires_admin_settings_read() {
         return;
     };
     let member = app.seed_user().await.expect("seed member");
-    let resp = app.get("/api/admin/settings", Some(&member.access_token)).await;
+    let resp = app
+        .get("/api/admin/settings", Some(&member.access_token))
+        .await;
     // Without `admin.dashboard.read`, PrivilegedUser short-circuits at 403.
     resp.assert_status(StatusCode::FORBIDDEN);
 }
@@ -65,7 +67,9 @@ async fn list_returns_seeded_maintenance_keys_redacted() {
     };
     let admin = app.seed_admin().await.expect("seed admin");
 
-    let resp = app.get("/api/admin/settings", Some(&admin.access_token)).await;
+    let resp = app
+        .get("/api/admin/settings", Some(&admin.access_token))
+        .await;
     resp.assert_status(StatusCode::OK);
     let body: Value = resp.json().expect("list body");
     let total = body["total"].as_i64().expect("total is i64");
@@ -178,7 +182,9 @@ async fn maintenance_mode_blocks_member_routes_but_admins_can_disable() {
     on.assert_status(StatusCode::OK);
 
     // Member-facing route must now serve 503 with problem+json.
-    let blocked = app.get("/api/member/profile", Some(&member.access_token)).await;
+    let blocked = app
+        .get("/api/member/profile", Some(&member.access_token))
+        .await;
     blocked.assert_status(StatusCode::SERVICE_UNAVAILABLE);
     let problem: Value = blocked.json().expect("problem body");
     assert_eq!(problem["type"], "/problems/service-unavailable");
@@ -197,7 +203,9 @@ async fn maintenance_mode_blocks_member_routes_but_admins_can_disable() {
     off.assert_status(StatusCode::OK);
 
     // Member traffic flows again.
-    let recovered = app.get("/api/member/profile", Some(&member.access_token)).await;
+    let recovered = app
+        .get("/api/member/profile", Some(&member.access_token))
+        .await;
     assert_ne!(
         recovered.status(),
         StatusCode::SERVICE_UNAVAILABLE,
@@ -230,7 +238,10 @@ async fn secrets_are_encrypted_at_rest_and_redacted_by_default() {
     create.assert_status(StatusCode::OK);
     let body: Value = create.json().expect("create body");
     assert_eq!(body["value_type"], "secret");
-    assert_eq!(body["value"], "***", "secret value must be redacted on write response");
+    assert_eq!(
+        body["value"], "***",
+        "secret value must be redacted on write response"
+    );
     assert_eq!(body["is_secret"], true);
 
     // GET without ?reveal returns the redacted view.

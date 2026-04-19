@@ -82,8 +82,7 @@ pub async fn prune_once(pool: &PgPool, media_backend: &MediaBackend) -> u64 {
     let claimed = match claim_batch(pool).await {
         Ok(c) => c,
         Err(err) => {
-            metrics::counter!("dsar_artifacts_sweep_failed_total", "stage" => "claim")
-                .increment(1);
+            metrics::counter!("dsar_artifacts_sweep_failed_total", "stage" => "claim").increment(1);
             tracing::error!(error = %err, "dsar-artifact-sweep claim failed");
             return 0;
         }

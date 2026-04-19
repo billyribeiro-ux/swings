@@ -61,24 +61,14 @@ async fn replay_returns_cached_response_and_does_not_re_create() {
     let key = "test-key-replay-1";
 
     let first = app
-        .post_json_with_idempotency_key(
-            "/api/admin/orders",
-            &body,
-            Some(&admin.access_token),
-            key,
-        )
+        .post_json_with_idempotency_key("/api/admin/orders", &body, Some(&admin.access_token), key)
         .await;
     first.assert_status(StatusCode::CREATED);
     let first_body: Value = first.json().expect("first body");
     let first_order_id = first_body["order"]["id"].as_str().unwrap().to_string();
 
     let second = app
-        .post_json_with_idempotency_key(
-            "/api/admin/orders",
-            &body,
-            Some(&admin.access_token),
-            key,
-        )
+        .post_json_with_idempotency_key("/api/admin/orders", &body, Some(&admin.access_token), key)
         .await;
     second.assert_status(StatusCode::CREATED);
     let second_body: Value = second.json().expect("second body");
@@ -100,7 +90,10 @@ async fn replay_returns_cached_response_and_does_not_re_create() {
             .fetch_one(app.db())
             .await
             .expect("count orders");
-    assert_eq!(count.0, 1, "second call must not have created a second order");
+    assert_eq!(
+        count.0, 1,
+        "second call must not have created a second order"
+    );
 }
 
 #[tokio::test]
@@ -186,8 +179,14 @@ async fn no_header_means_no_caching() {
 
     assert_eq!(r2.header("idempotency-replayed"), None);
 
-    let id1 = r1.json::<Value>().unwrap()["order"]["id"].as_str().unwrap().to_string();
-    let id2 = r2.json::<Value>().unwrap()["order"]["id"].as_str().unwrap().to_string();
+    let id1 = r1.json::<Value>().unwrap()["order"]["id"]
+        .as_str()
+        .unwrap()
+        .to_string();
+    let id2 = r2.json::<Value>().unwrap()["order"]["id"]
+        .as_str()
+        .unwrap()
+        .to_string();
     assert_ne!(
         id1, id2,
         "without the header each call must create a new order"
@@ -235,8 +234,14 @@ async fn cache_is_scoped_per_actor() {
         .await;
     r_b.assert_status(StatusCode::CREATED);
 
-    let id_a = r_a.json::<Value>().unwrap()["order"]["id"].as_str().unwrap().to_string();
-    let id_b = r_b.json::<Value>().unwrap()["order"]["id"].as_str().unwrap().to_string();
+    let id_a = r_a.json::<Value>().unwrap()["order"]["id"]
+        .as_str()
+        .unwrap()
+        .to_string();
+    let id_b = r_b.json::<Value>().unwrap()["order"]["id"]
+        .as_str()
+        .unwrap()
+        .to_string();
     assert_ne!(id_a, id_b, "two actors with the same key must not collide");
 
     let count: (i64,) =
@@ -373,12 +378,7 @@ async fn concurrent_same_key_creates_exactly_one_resource() {
         handles.push(tokio::spawn(async move {
             barrier_for_task.wait().await;
             app_for_task
-                .post_json_with_idempotency_key(
-                    "/api/admin/orders",
-                    &body_clone,
-                    Some(&token),
-                    key,
-                )
+                .post_json_with_idempotency_key("/api/admin/orders", &body_clone, Some(&token), key)
                 .await
         }));
     }
@@ -419,12 +419,11 @@ async fn concurrent_same_key_creates_exactly_one_resource() {
 
     // The one that matters: the side effect ran exactly once, no
     // matter how the responses got distributed.
-    let count: (i64,) =
-        sqlx::query_as("SELECT COUNT(*) FROM orders WHERE email = $1")
-            .bind(email)
-            .fetch_one(app.db())
-            .await
-            .expect("count orders");
+    let count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM orders WHERE email = $1")
+        .bind(email)
+        .fetch_one(app.db())
+        .await
+        .expect("count orders");
     assert_eq!(
         count.0, 1,
         "{PARALLELISM} parallel requests must produce exactly one order row, got {}",
@@ -434,13 +433,11 @@ async fn concurrent_same_key_creates_exactly_one_resource() {
     // And the cache row must reflect the completed state: in_flight
     // cleared, status_code=201, response_body populated. If any
     // 409-losers wrote a stale row this assertion will catch it.
-    let row = sqlx::query(
-        "SELECT in_flight, status_code FROM idempotency_keys WHERE key = $1",
-    )
-    .bind(key)
-    .fetch_one(app.db())
-    .await
-    .expect("fetch cache row");
+    let row = sqlx::query("SELECT in_flight, status_code FROM idempotency_keys WHERE key = $1")
+        .bind(key)
+        .fetch_one(app.db())
+        .await
+        .expect("fetch cache row");
     let in_flight_final: bool = row.get("in_flight");
     let status_code_final: i32 = row.get("status_code");
     assert!(
@@ -469,14 +466,9 @@ async fn cache_row_is_persisted_with_response_metadata() {
             "name": "Row Test",
         }],
     });
-    app.post_json_with_idempotency_key(
-        "/api/admin/orders",
-        &body,
-        Some(&admin.access_token),
-        key,
-    )
-    .await
-    .assert_status(StatusCode::CREATED);
+    app.post_json_with_idempotency_key("/api/admin/orders", &body, Some(&admin.access_token), key)
+        .await
+        .assert_status(StatusCode::CREATED);
 
     let row = sqlx::query(
         "SELECT status_code, in_flight, completed_at, response_body, method, path

@@ -231,7 +231,9 @@ async fn list_and_revoke_member_sessions() {
     assert_eq!(body["user_id"], json!(target.id));
     assert_eq!(body["total"], json!(1));
     assert!(
-        body["active_sessions"].as_array().is_some_and(|a| a.len() == 1),
+        body["active_sessions"]
+            .as_array()
+            .is_some_and(|a| a.len() == 1),
         "exactly one active session present"
     );
 
@@ -288,10 +290,7 @@ async fn revoke_specific_session_is_owner_scoped() {
     // Trying to revoke alice's session via bob's URL → 404.
     let resp = app
         .delete(
-            &format!(
-                "/api/admin/members/{}/sessions/{}",
-                bob.id, alice_session
-            ),
+            &format!("/api/admin/members/{}/sessions/{}", bob.id, alice_session),
             Some(&admin.access_token),
         )
         .await;
@@ -300,10 +299,7 @@ async fn revoke_specific_session_is_owner_scoped() {
     // Through alice's URL → 200.
     let resp = app
         .delete(
-            &format!(
-                "/api/admin/members/{}/sessions/{}",
-                alice.id, alice_session
-            ),
+            &format!("/api/admin/members/{}/sessions/{}", alice.id, alice_session),
             Some(&admin.access_token),
         )
         .await;

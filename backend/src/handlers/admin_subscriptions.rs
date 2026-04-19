@@ -35,7 +35,7 @@ use crate::{
     db,
     error::{AppError, AppResult},
     extractors::{ClientInfo, PrivilegedUser},
-    models::{Subscription, SubscriptionStatusResponse, SubscriptionStatus},
+    models::{Subscription, SubscriptionStatus, SubscriptionStatusResponse},
     services::audit::audit_admin_priv,
     AppState,
 };
@@ -200,7 +200,8 @@ pub async fn comp_grant(
     Json(req): Json<CompGrantRequest>,
 ) -> AppResult<(StatusCode, Json<CompGrantResponse>)> {
     privileged.require(&state.policy, PERM_COMP)?;
-    req.validate().map_err(|e| AppError::BadRequest(e.to_string()))?;
+    req.validate()
+        .map_err(|e| AppError::BadRequest(e.to_string()))?;
 
     db::find_user_by_id(&state.db, req.user_id)
         .await?
@@ -242,7 +243,9 @@ pub async fn comp_grant(
     .bind(&metadata)
     .fetch_one(&state.db)
     .await?;
-    let membership_id: Uuid = row.try_get("id").map_err(|e| AppError::Internal(e.into()))?;
+    let membership_id: Uuid = row
+        .try_get("id")
+        .map_err(|e| AppError::Internal(e.into()))?;
 
     audit_admin_priv(
         &state.db,
@@ -294,7 +297,8 @@ pub async fn extend_period(
     Json(req): Json<ExtendRequest>,
 ) -> AppResult<Json<ExtendResponse>> {
     privileged.require(&state.policy, PERM_EXTEND)?;
-    req.validate().map_err(|e| AppError::BadRequest(e.to_string()))?;
+    req.validate()
+        .map_err(|e| AppError::BadRequest(e.to_string()))?;
     if req.days > MAX_EXTEND_DAYS {
         return Err(AppError::BadRequest(format!(
             "days must be <= {MAX_EXTEND_DAYS}"
@@ -385,7 +389,8 @@ pub async fn override_billing_cycle(
     Json(req): Json<CycleOverrideRequest>,
 ) -> AppResult<Json<CycleOverrideResponse>> {
     privileged.require(&state.policy, PERM_CYCLE)?;
-    req.validate().map_err(|e| AppError::BadRequest(e.to_string()))?;
+    req.validate()
+        .map_err(|e| AppError::BadRequest(e.to_string()))?;
 
     if req.anchor <= Utc::now() {
         return Err(AppError::BadRequest(
@@ -395,10 +400,11 @@ pub async fn override_billing_cycle(
 
     let mut tx = state.db.begin().await?;
 
-    let row = sqlx::query("SELECT id, billing_cycle_anchor FROM subscriptions WHERE id = $1 FOR UPDATE")
-        .bind(subscription_id)
-        .fetch_optional(&mut *tx)
-        .await?;
+    let row =
+        sqlx::query("SELECT id, billing_cycle_anchor FROM subscriptions WHERE id = $1 FOR UPDATE")
+            .bind(subscription_id)
+            .fetch_optional(&mut *tx)
+            .await?;
     let row = row.ok_or_else(|| AppError::NotFound("Subscription not found".to_string()))?;
 
     let previous: Option<DateTime<Utc>> = row

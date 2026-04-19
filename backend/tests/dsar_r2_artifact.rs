@@ -42,9 +42,12 @@ use uuid::Uuid;
 /// and a `MediaBackend::R2` pointed at the configured emulator with
 /// a fresh bucket. Returns `None` when the emulator is not running
 /// — callers convert that into an early return.
-async fn r2_setup(
-) -> Option<(TestApp, TestUser, TestUser, swings_api::services::MediaBackend)>
-{
+async fn r2_setup() -> Option<(
+    TestApp,
+    TestUser,
+    TestUser,
+    swings_api::services::MediaBackend,
+)> {
     let app = TestApp::try_new().await?;
     let backend = match app.try_media_backend_r2().await {
         Some(b) => b,
@@ -75,9 +78,7 @@ async fn worker_uploads_artifact_to_r2_and_records_metadata() {
             Some(&admin.access_token),
         )
         .await;
-    let job_id: Uuid = resp
-        .json::<serde_json::Value>()
-        .expect("body")["job"]["id"]
+    let job_id: Uuid = resp.json::<serde_json::Value>().expect("body")["job"]["id"]
         .as_str()
         .expect("id")
         .parse()
@@ -126,7 +127,9 @@ async fn worker_uploads_artifact_to_r2_and_records_metadata() {
         _ => unreachable!("setup guaranteed R2 backend"),
     };
     assert!(
-        r2.object_exists(key.as_deref().unwrap()).await.expect("head"),
+        r2.object_exists(key.as_deref().unwrap())
+            .await
+            .expect("head"),
         "object missing in bucket after a successful compose"
     );
 }
@@ -148,9 +151,7 @@ async fn ttl_sweep_deletes_r2_object_and_clears_columns() {
             Some(&admin.access_token),
         )
         .await;
-    let job_id: Uuid = resp
-        .json::<serde_json::Value>()
-        .expect("body")["job"]["id"]
+    let job_id: Uuid = resp.json::<serde_json::Value>().expect("body")["job"]["id"]
         .as_str()
         .expect("id")
         .parse()
@@ -168,7 +169,10 @@ async fn ttl_sweep_deletes_r2_object_and_clears_columns() {
         swings_api::services::MediaBackend::R2(ref r2) => r2.clone(),
         _ => unreachable!(),
     };
-    assert!(r2.object_exists(&key).await.expect("head"), "object should exist before sweep");
+    assert!(
+        r2.object_exists(&key).await.expect("head"),
+        "object should exist before sweep"
+    );
 
     sqlx::query(
         "UPDATE dsar_jobs SET artifact_expires_at = NOW() - INTERVAL '1 hour' WHERE id = $1",
@@ -178,8 +182,7 @@ async fn ttl_sweep_deletes_r2_object_and_clears_columns() {
     .await
     .expect("backdate");
 
-    let scrubbed =
-        swings_api::services::dsar_artifact_sweep::prune_once(app.db(), &backend).await;
+    let scrubbed = swings_api::services::dsar_artifact_sweep::prune_once(app.db(), &backend).await;
     assert_eq!(scrubbed, 1, "exactly one R2 row should have been swept");
 
     assert!(

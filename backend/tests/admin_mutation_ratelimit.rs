@@ -136,11 +136,7 @@ async fn unauthenticated_mutations_are_rejected_before_rate_limit() {
     // poison the bucket of legitimate admins behind the same egress.
     for _ in 0..30 {
         let resp = app
-            .post_json::<serde_json::Value>(
-                FAKE_JOB,
-                &json!({ "reason": "anon" }),
-                None,
-            )
+            .post_json::<serde_json::Value>(FAKE_JOB, &json!({ "reason": "anon" }), None)
             .await;
         assert!(
             matches!(

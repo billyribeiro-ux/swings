@@ -55,7 +55,10 @@ pub fn router() -> Router<AppState> {
         .route("/members/{id}/verify-email", post(mark_email_verified))
         // Sessions / refresh tokens.
         .route("/members/{id}/sessions", get(list_sessions))
-        .route("/members/{id}/sessions", axum::routing::delete(force_logout))
+        .route(
+            "/members/{id}/sessions",
+            axum::routing::delete(force_logout),
+        )
         .route(
             "/members/{id}/sessions/{session_id}",
             axum::routing::delete(revoke_session),
@@ -193,7 +196,11 @@ pub(crate) async fn suspend_member(
         ));
     }
 
-    let reason = req.reason.as_deref().map(str::trim).filter(|s| !s.is_empty());
+    let reason = req
+        .reason
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty());
     let updated = sqlx::query_as::<_, crate::models::User>(
         r#"
         UPDATE users
@@ -317,7 +324,11 @@ pub(crate) async fn ban_member(
         ));
     }
 
-    let reason = req.reason.as_deref().map(str::trim).filter(|s| !s.is_empty());
+    let reason = req
+        .reason
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty());
     let updated = sqlx::query_as::<_, crate::models::User>(
         r#"
         UPDATE users
@@ -573,11 +584,10 @@ pub(crate) async fn revoke_session(
     // Lookup first so the response distinguishes "no such session" from
     // "session belongs to another user" — both 404 to the client to avoid
     // probing, but logged distinctly server-side.
-    let row: Option<(Uuid,)> =
-        sqlx::query_as("SELECT user_id FROM refresh_tokens WHERE id = $1")
-            .bind(session_id)
-            .fetch_optional(&state.db)
-            .await?;
+    let row: Option<(Uuid,)> = sqlx::query_as("SELECT user_id FROM refresh_tokens WHERE id = $1")
+        .bind(session_id)
+        .fetch_optional(&state.db)
+        .await?;
     match row {
         Some((owner,)) if owner == user_id => {}
         Some((other_owner,)) => {
@@ -599,10 +609,15 @@ pub(crate) async fn revoke_session(
 
     record_admin_action(
         &state.db,
-        AdminAction::new(admin.user_id, admin.role, "user.session.revoke_one", "session")
-            .with_target_id(session_id)
-            .with_client(&client)
-            .with_metadata(serde_json::json!({ "user_id": user_id })),
+        AdminAction::new(
+            admin.user_id,
+            admin.role,
+            "user.session.revoke_one",
+            "session",
+        )
+        .with_target_id(session_id)
+        .with_client(&client)
+        .with_metadata(serde_json::json!({ "user_id": user_id })),
     )
     .await?;
 

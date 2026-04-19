@@ -31,7 +31,9 @@ async fn member_cannot_touch_admin_dsar_surface() {
     };
     let member = app.seed_user().await.expect("seed");
 
-    let list = app.get("/api/admin/dsar/jobs", Some(&member.access_token)).await;
+    let list = app
+        .get("/api/admin/dsar/jobs", Some(&member.access_token))
+        .await;
     list.assert_status(StatusCode::FORBIDDEN);
 
     let export = app
@@ -356,7 +358,10 @@ async fn erase_already_tombstoned_user_is_409() {
         )
         .await;
     req.assert_status(StatusCode::CREATED);
-    let job_id = req.json::<Value>().expect("body")["id"].as_str().expect("id").to_string();
+    let job_id = req.json::<Value>().expect("body")["id"]
+        .as_str()
+        .expect("id")
+        .to_string();
 
     app.post_json::<Value>(
         &format!("/api/admin/dsar/jobs/{job_id}/erase/approve"),
@@ -401,7 +406,10 @@ async fn cancel_pending_erase_transitions_to_cancelled() {
         )
         .await;
     req.assert_status(StatusCode::CREATED);
-    let job_id = req.json::<Value>().expect("body")["id"].as_str().expect("id").to_string();
+    let job_id = req.json::<Value>().expect("body")["id"]
+        .as_str()
+        .expect("id")
+        .to_string();
 
     let cancel = app
         .post_json::<Value>(
@@ -423,7 +431,10 @@ async fn cancel_pending_erase_transitions_to_cancelled() {
         )
         .await;
     read.assert_status(StatusCode::OK);
-    assert_eq!(read.json::<Value>().expect("body")["status"], json!("cancelled"));
+    assert_eq!(
+        read.json::<Value>().expect("body")["status"],
+        json!("cancelled")
+    );
 }
 
 #[tokio::test]
@@ -442,7 +453,10 @@ async fn cancel_completed_job_is_409() {
         )
         .await;
     resp.assert_status(StatusCode::CREATED);
-    let job_id = resp.json::<Value>().expect("body")["job"]["id"].as_str().expect("id").to_string();
+    let job_id = resp.json::<Value>().expect("body")["job"]["id"]
+        .as_str()
+        .expect("id")
+        .to_string();
 
     let cancel = app
         .post_json::<Value>(
@@ -489,10 +503,7 @@ async fn list_filters_by_kind_and_status() {
         )
         .await;
     exports.assert_status(StatusCode::OK);
-    assert_eq!(
-        exports.json::<Value>().expect("body")["total"],
-        json!(1)
-    );
+    assert_eq!(exports.json::<Value>().expect("body")["total"], json!(1));
 
     let pending = app
         .get(
@@ -501,10 +512,7 @@ async fn list_filters_by_kind_and_status() {
         )
         .await;
     pending.assert_status(StatusCode::OK);
-    assert_eq!(
-        pending.json::<Value>().expect("body")["total"],
-        json!(1)
-    );
+    assert_eq!(pending.json::<Value>().expect("body")["total"], json!(1));
 
     let bogus = app
         .get(
@@ -561,13 +569,12 @@ async fn tombstone_clears_pii_columns_and_drops_refresh_tokens() {
     .expect("populate PII");
 
     // Refresh-token row already exists from seed; verify ≥1.
-    let pre_tokens: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM refresh_tokens WHERE user_id = $1",
-    )
-    .bind(target.id)
-    .fetch_one(app.db())
-    .await
-    .expect("pre tokens");
+    let pre_tokens: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM refresh_tokens WHERE user_id = $1")
+            .bind(target.id)
+            .fetch_one(app.db())
+            .await
+            .expect("pre tokens");
     assert!(pre_tokens >= 1);
 
     // Run the dual-control flow.
@@ -582,7 +589,10 @@ async fn tombstone_clears_pii_columns_and_drops_refresh_tokens() {
         )
         .await;
     req.assert_status(StatusCode::CREATED);
-    let job_id = req.json::<Value>().expect("body")["id"].as_str().expect("id").to_string();
+    let job_id = req.json::<Value>().expect("body")["id"]
+        .as_str()
+        .expect("id")
+        .to_string();
 
     app.post_json::<Value>(
         &format!("/api/admin/dsar/jobs/{job_id}/erase/approve"),
@@ -620,19 +630,21 @@ async fn tombstone_clears_pii_columns_and_drops_refresh_tokens() {
         "ban_reason",
     ] {
         let v: Option<String> = row.try_get(col).expect("nullable text");
-        assert!(v.is_none(), "column {col} should be NULL post-tombstone, got {v:?}");
+        assert!(
+            v.is_none(),
+            "column {col} should be NULL post-tombstone, got {v:?}"
+        );
     }
     let verified: Option<chrono::DateTime<chrono::Utc>> =
         row.try_get("email_verified_at").expect("verified");
     assert!(verified.is_none());
 
     // Refresh tokens cleared.
-    let post_tokens: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM refresh_tokens WHERE user_id = $1",
-    )
-    .bind(target.id)
-    .fetch_one(app.db())
-    .await
-    .expect("post tokens");
+    let post_tokens: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM refresh_tokens WHERE user_id = $1")
+            .bind(target.id)
+            .fetch_one(app.db())
+            .await
+            .expect("post tokens");
     assert_eq!(post_tokens, 0);
 }

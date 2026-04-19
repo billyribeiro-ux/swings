@@ -52,8 +52,8 @@ use crate::services::{audit, dsar_admin, MediaBackend};
 
 const MAX_BATCH: i64 = 5;
 const ARTIFACT_TTL_SECS: u64 = 60 * 60 * 24; // 24h — long enough for an
-                                              // operator to download + retry
-                                              // a flaky network.
+                                             // operator to download + retry
+                                             // a flaky network.
 
 #[derive(Debug, sqlx::FromRow)]
 struct ClaimedJob {
@@ -231,8 +231,7 @@ async fn compose_and_persist(
         .map_err(|e| WorkerError::Compose(format!("serialize: {e}")))?;
 
     let key = format!("dsar/{}.json", job.id);
-    let expires_at =
-        chrono::Utc::now() + chrono::Duration::seconds(ARTIFACT_TTL_SECS as i64);
+    let expires_at = chrono::Utc::now() + chrono::Duration::seconds(ARTIFACT_TTL_SECS as i64);
 
     match media_backend {
         MediaBackend::R2(r2) => {
