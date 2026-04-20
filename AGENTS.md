@@ -213,6 +213,24 @@ detect a stalled loop. Add the same shape when introducing a new one.
 * **Race-condition coverage** — when shipping anything that uses
   `Idempotency-Key`, copy the `concurrent_same_key_creates_exactly_one_resource`
   pattern from `tests/admin_idempotency.rs` (Barrier + parallel join).
+* **Never mutate `std::env` in tests.** `cargo test` runs in parallel,
+  `setenv(3)` / `getenv(3)` are not thread-safe on POSIX, and Rust 2024
+  marks `std::env::set_var` as `unsafe fn` for exactly this reason.
+  Instead, refactor the module under test to take its secret or config
+  value as an argument. The canonical example is
+  `backend/src/forms/integration_config.rs`: production calls
+  `SealedCredential::seal` / `.unseal()` which resolve a
+  `OnceLock<Cipher>` from env exactly once at startup; tests construct
+  an explicit `Cipher` with deterministic bytes and call
+  `seal_with` / `unseal_with`. No test ever touches env, no `Mutex`, no
+  `serial_test` dependency. Apply the same pattern to any new module
+  that needs config-injection for tests.
+* **Ignored tests are forbidden.** `#[ignore]` hides dormant assertions
+  and lets regressions land silently — if a test needs Postgres or an
+  external service, move it to `backend/tests/` where the harness
+  provides it (see the Postgres-backed rate-limit coverage in
+  `tests/rate_limit_postgres.rs` for the pattern). `cargo test --lib`
+  should print `0 ignored` on every run.
 
 ---
 
@@ -247,6 +265,41 @@ mandatory:
    back. Loop until clean.
 4. `playground-link` only if the user asks and only when no files
    were written.
+
+### rust-analyzer MCP server
+
+Installed via `cargo install rust-analyzer-mcp` and registered in
+`~/.codeium/windsurf/mcp_config.json` as `rust-analyzer`. When
+modifying Rust files, prefer these tools over re-running `cargo check`
+on every iteration:
+
+* `rust_analyzer_set_workspace` — pin the LSP to `backend/` at the
+  start of a Rust session.
+* `rust_analyzer_workspace_diagnostics` — real rust-analyzer errors
+  across the crate; catches clippy/rustfmt drift before `cargo`.
+* `rust_analyzer_format` — rustfmt a single file in-place. Run this
+  on every edited `.rs` file before handing back; `cargo fmt --check`
+  in CI will otherwise reject a formatter-drift-only PR.
+* `rust_analyzer_hover` / `definition` / `references` / `completion` —
+  cheaper than grep for type-aware navigation.
+
+Fallbacks if the MCP server is unavailable: the CI parity commands
+in §4 (`cargo fmt -- --check`, `cargo clippy -- -D warnings`).
+
+### Phosphor icon migration codemod
+
+`phosphor-svelte@3+` deprecated every unsuffixed default export
+(`ShieldCheck`) in favour of an `Icon`-suffixed twin
+(`ShieldCheckIcon`). If the IDE shows strikethroughs on phosphor
+imports, run the codemod instead of editing files by hand:
+
+```bash
+node scripts/migrate-phosphor.mjs
+```
+
+Idempotent, word-boundary safe (will not collide on identifiers like
+`Users` inside `UsersList`), and skips already-migrated imports. The
+script lives alongside other repo automation in `scripts/`.
 
 ### Cursor rules
 
