@@ -48,7 +48,7 @@ jobs:
           shared-key: cargo-audit
 
       - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@v1.12.0
+        uses: cargo-bins/cargo-binstall@v1.18.1
 
       - name: Install cargo-audit
         run: cargo binstall --no-confirm --force cargo-audit
