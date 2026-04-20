@@ -18,8 +18,8 @@ importers:
         specifier: ^8.5.9
         version: 8.5.9(svelte@5.55.3(@typescript-eslint/types@8.58.1))(three@0.183.2)
       '@threlte/extras':
-        specifier: ^9.14.5
-        version: 9.14.5(@types/three@0.183.1)(svelte@5.55.3(@typescript-eslint/types@8.58.1))(three@0.183.2)
+        specifier: ^9.14.8
+        version: 9.14.8(@types/three@0.183.1)(svelte@5.55.3(@typescript-eslint/types@8.58.1))(three@0.183.2)
       '@tiptap/core':
         specifier: ^3.22.3
         version: 3.22.3(@tiptap/pm@3.22.3)
@@ -844,8 +844,8 @@ packages:
       svelte: '>=5'
       three: '>=0.160'
 
-  '@threlte/extras@9.14.5':
-    resolution: {integrity: sha512-87AGxxcjMKEVqVbi0T8e3Q+CwMUzP1hMfC6z5lGy6v3aaMzUewHZNbSBQ3+MeNmuUjDz1wRajVX/tw6kwrVshw==}
+  '@threlte/extras@9.14.8':
+    resolution: {integrity: sha512-0QVIYoJPo+Nc4S4Il9asHVzpt4iHX88jRgyrWi7Uk5iWK+xSAFLyHkyL0kSvdFoBXSJZLE0LG6qP78n69//scA==}
     peerDependencies:
       svelte: '>=5'
       three: '>=0.160'
@@ -3229,7 +3229,7 @@ snapshots:
       svelte: 5.55.3(@typescript-eslint/types@8.58.1)
       three: 0.183.2
 
-  '@threlte/extras@9.14.5(@types/three@0.183.1)(svelte@5.55.3(@typescript-eslint/types@8.58.1))(three@0.183.2)':
+  '@threlte/extras@9.14.8(@types/three@0.183.1)(svelte@5.55.3(@typescript-eslint/types@8.58.1))(three@0.183.2)':
     dependencies:
       '@threejs-kit/instanced-sprite-mesh': 2.5.1(@types/three@0.183.1)(three@0.183.2)
       camera-controls: 3.1.2(three@0.183.2)

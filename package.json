@@ -75,7 +75,7 @@
 	"dependencies": {
 		"@date-fns/tz": "^1.4.1",
 		"@threlte/core": "^8.5.9",
-		"@threlte/extras": "^9.14.5",
+		"@threlte/extras": "^9.14.8",
 		"@tiptap/core": "^3.22.3",
 		"@tiptap/extension-character-count": "^3.22.3",
 		"@tiptap/extension-code-block-lowlight": "^3.22.3",
