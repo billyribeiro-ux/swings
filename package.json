@@ -60,7 +60,7 @@
 		"globals": "^17.4.0",
 		"openapi-typescript": "^7.9.1",
 		"playwright": "^1.59.1",
-		"prettier": "^3.8.2",
+		"prettier": "^3.8.3",
 		"prettier-plugin-svelte": "^3.5.1",
 		"simple-git-hooks": "^2.13.1",
 		"svelte": "^5.55.3",
