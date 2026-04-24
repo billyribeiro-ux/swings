@@ -171,10 +171,12 @@
 			<div class="nav__cta-desktop">
 				<div class="nav__cta-row">
 					<Button variant="primary" href="/register">Get Instant Access</Button>
-					<p class="nav__cta-signin">
-						Already a member?
-						<a href="/login" class="nav__cta-signin-link" data-sveltekit-preload-data="hover">Sign in</a>
-					</p>
+					<div class="nav__signin">
+						<p class="nav__cta-signin-label">Already a member?</p>
+						<a href="/login" class="nav__cta-signin-button" data-sveltekit-preload-data="hover">
+							Sign in
+						</a>
+					</div>
 				</div>
 			</div>
 
@@ -269,6 +271,7 @@
 		top: 0;
 		right: 0;
 		left: 0;
+		height: 100px;
 		z-index: var(--z-50);
 		isolation: isolate;
 		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -347,9 +350,18 @@
 		}
 	}
 
+	@media (min-width: 768px) {
+		.nav__inner {
+			display: grid;
+			grid-template-columns: auto minmax(0, 1fr) auto;
+			column-gap: 1rem;
+		}
+	}
+
 	@media (min-width: 1024px) {
 		.nav__inner {
 			padding: 0 2rem;
+			column-gap: 1.75rem;
 		}
 	}
 
@@ -401,16 +413,17 @@
 	.nav__desktop {
 		display: none;
 		align-items: center;
+		justify-content: center;
+		min-width: 0;
 	}
 
 	@media (min-width: 768px) {
 		.nav__desktop {
 			display: flex;
-			position: absolute;
-			left: 50%;
-			top: 50%;
-			transform: translate(-50%, -50%);
+			position: relative;
 			z-index: calc(var(--z-10) + 1);
+			width: 100%;
+			justify-self: center;
 		}
 	}
 
@@ -706,6 +719,12 @@
 		gap: 0.75rem;
 	}
 
+	@media (min-width: 768px) {
+		.nav__right {
+			justify-self: end;
+		}
+	}
+
 	.nav__cta-desktop {
 		display: none;
 	}
@@ -719,32 +738,58 @@
 
 	.nav__cta-row {
 		display: flex;
-		align-items: center;
-		gap: 1rem;
-		flex-wrap: wrap;
+		align-items: flex-end;
+		gap: 0.85rem;
 		justify-content: flex-end;
 	}
 
-	.nav__cta-signin {
+	.nav__signin {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.32rem;
+	}
+
+	.nav__cta-signin-label {
 		margin: 0;
-		font-size: var(--fs-sm);
-		color: var(--color-grey-400);
-		line-height: var(--lh-snug);
+		font-size: 0.62rem;
+		font-weight: var(--w-semibold);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-grey-500);
+		line-height: 1;
 		white-space: nowrap;
 	}
 
-	.nav__cta-signin-link {
-		margin-left: 0.25rem;
-		color: var(--color-teal-light);
+	.nav__cta-signin-button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 2.25rem;
+		padding: 0.45rem 0.95rem;
+		border-radius: var(--radius-full);
+		border: 1px solid rgba(94, 234, 212, 0.38);
+		background: linear-gradient(145deg, rgba(15, 164, 175, 0.16), rgba(94, 234, 212, 0.24));
+		color: var(--color-white);
+		font-size: var(--fs-sm);
 		font-weight: var(--w-semibold);
 		text-decoration: none;
+		transition:
+			transform 0.2s ease,
+			border-color 0.2s ease,
+			background 0.2s ease,
+			box-shadow 0.2s ease;
+		box-shadow: 0 10px 22px -18px rgba(94, 234, 212, 0.95);
 	}
 
-	.nav__cta-signin-link:hover {
-		text-decoration: underline;
+	.nav__cta-signin-button:hover {
+		transform: translateY(-1px);
+		border-color: rgba(94, 234, 212, 0.58);
+		background: linear-gradient(145deg, rgba(15, 164, 175, 0.26), rgba(94, 234, 212, 0.34));
+		box-shadow: 0 14px 28px -18px rgba(94, 234, 212, 0.95);
 	}
 
-	.nav__cta-signin-link:focus-visible {
+	.nav__cta-signin-button:focus-visible {
 		outline: 2px solid var(--color-teal);
 		outline-offset: 3px;
 		border-radius: var(--radius-sm);

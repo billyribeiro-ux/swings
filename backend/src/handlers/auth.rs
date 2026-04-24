@@ -39,6 +39,8 @@ pub fn router() -> Router<AppState> {
         .route("/me", axum::routing::get(me))
         .route("/logout", post(logout))
         .route("/reset-password", post(reset_password))
+        .route("/verify-email", post(verify_email))
+        .route("/resend-verification", post(resend_verification))
 }
 
 #[utoipa::path(
@@ -97,6 +99,10 @@ pub(crate) async fn register(
     .await
     {
         tracing::warn!(user_id = %user.id, error = %e, "failed to enqueue welcome email");
+    }
+
+    if let Err(e) = issue_email_verification(&state, &user).await {
+        tracing::warn!(user_id = %user.id, error = %e, "failed to enqueue verification email");
     }
 
     Ok(Json(AuthResponse {
@@ -390,10 +396,7 @@ pub(crate) async fn forgot_password(
         db::create_password_reset_token(&state.db, user.id, &token_hash, expires_at).await?;
 
         // Build reset URL
-        let reset_url = format!(
-            "{}/admin/reset-password?token={}",
-            state.config.frontend_url, raw_token
-        );
+        let reset_url = format!("{}/reset-password?token={}", state.config.frontend_url, raw_token);
 
         // FDN-05: send the reset email through the notifications pipeline.
         // Failures are logged but not surfaced to the client — the response
@@ -477,7 +480,104 @@ pub(crate) async fn reset_password(
     })))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/auth/verify-email",
+    tag = "auth",
+    request_body = VerifyEmailRequest,
+    responses(
+        (status = 200, description = "Email verified"),
+        (status = 400, description = "Invalid or expired verification token"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn verify_email(
+    State(state): State<AppState>,
+    Json(req): Json<VerifyEmailRequest>,
+) -> AppResult<Json<serde_json::Value>> {
+    req.validate()
+        .map_err(|e| AppError::Validation(e.to_string()))?;
+
+    let token_hash = hash_token(&req.token);
+    let verification = db::find_email_verification_token(&state.db, &token_hash)
+        .await?
+        .ok_or_else(|| AppError::BadRequest("Invalid or expired verification token".to_string()))?;
+
+    db::mark_user_email_verified(&state.db, verification.user_id).await?;
+    db::mark_email_verification_token_used(&state.db, verification.id).await?;
+
+    Ok(Json(serde_json::json!({
+        "message": "Email verified successfully.",
+        "verified": true
+    })))
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/auth/resend-verification",
+    tag = "auth",
+    request_body = ResendVerificationRequest,
+    responses(
+        (status = 200, description = "Verification email queued if account is pending verification"),
+        (status = 422, description = "Validation error")
+    )
+)]
+pub(crate) async fn resend_verification(
+    State(state): State<AppState>,
+    Json(req): Json<ResendVerificationRequest>,
+) -> AppResult<Json<serde_json::Value>> {
+    req.validate()
+        .map_err(|e| AppError::Validation(e.to_string()))?;
+
+    if let Some(user) = db::find_user_by_email(&state.db, &req.email).await? {
+        if user.email_verified_at.is_none() {
+            if let Err(e) = issue_email_verification(&state, &user).await {
+                tracing::warn!(
+                    user_id = %user.id,
+                    error = %e,
+                    "failed to enqueue verification email on resend"
+                );
+            }
+        }
+    }
+
+    Ok(Json(serde_json::json!({
+        "message": "If your account exists and is unverified, a verification email has been sent."
+    })))
+}
+
 // ── Helpers ─────────────────────────────────────────────────────────────
+
+async fn issue_email_verification(state: &AppState, user: &User) -> AppResult<()> {
+    let raw_token = Uuid::new_v4().to_string();
+    let token_hash = hash_token(&raw_token);
+    let expires_at = Utc::now() + Duration::hours(24);
+
+    db::create_email_verification_token(&state.db, user.id, &token_hash, expires_at).await?;
+
+    let verify_url = format!("{}/verify-email?token={}", state.config.frontend_url, raw_token);
+    let ctx = serde_json::json!({
+        "name": user.name,
+        "verify_url": verify_url,
+        "app_url": state.config.app_url,
+        "year": chrono::Utc::now().format("%Y").to_string(),
+    });
+
+    send_notification(
+        &state.db,
+        "user.email_verification",
+        &Recipient::User {
+            user_id: user.id,
+            email: user.email.clone(),
+        },
+        ctx,
+        SendOptions::default(),
+    )
+    .await
+    .map_err(|e| AppError::ServiceUnavailable(e.to_string()))?;
+
+    Ok(())
+}
 
 async fn generate_tokens(state: &AppState, user: &User) -> AppResult<(String, String)> {
     let now = Utc::now();

@@ -92,6 +92,8 @@ impl Modify for SecurityAddon {
         auth::logout,
         auth::forgot_password,
         auth::reset_password,
+        auth::verify_email,
+        auth::resend_verification,
         // Analytics
         analytics::ingest_events,
         // Admin
@@ -290,6 +292,8 @@ impl Modify for SecurityAddon {
             crate::models::TokenResponse,
             crate::models::ForgotPasswordRequest,
             crate::models::ResetPasswordRequest,
+            crate::models::VerifyEmailRequest,
+            crate::models::ResendVerificationRequest,
             // Subscription
             crate::models::Subscription,
             crate::models::SubscriptionPlan,

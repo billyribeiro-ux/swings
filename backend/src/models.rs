@@ -192,6 +192,27 @@ pub struct ResetPasswordRequest {
     pub new_password: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
+pub struct EmailVerificationToken {
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub token_hash: String,
+    pub expires_at: DateTime<Utc>,
+    pub used_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize, Validate, ToSchema)]
+pub struct VerifyEmailRequest {
+    pub token: String,
+}
+
+#[derive(Debug, Deserialize, Validate, ToSchema)]
+pub struct ResendVerificationRequest {
+    #[validate(email(message = "Invalid email address"))]
+    pub email: String,
+}
+
 // ── Subscription ────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]

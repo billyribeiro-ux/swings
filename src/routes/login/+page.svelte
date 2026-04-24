@@ -87,6 +87,7 @@
 					class="auth-form__input"
 					placeholder="Enter your password"
 				/>
+				<a href="/forgot-password" class="auth-form__forgot">Forgot password?</a>
 			</div>
 
 			<button type="submit" disabled={loading} class="auth-form__submit">
@@ -97,6 +98,10 @@
 		<p class="auth-card__footer">
 			Don't have an account?
 			<a href="/register" class="auth-card__link">Create one</a>
+		</p>
+		<p class="auth-card__footer auth-card__footer--secondary">
+			Need a new verification link?
+			<a href="/resend-verification" class="auth-card__link">Resend email</a>
 		</p>
 	</div>
 </div>
@@ -229,11 +234,28 @@
 		cursor: not-allowed;
 	}
 
+	.auth-form__forgot {
+		align-self: flex-end;
+		font-size: var(--fs-xs);
+		color: var(--color-teal-light);
+		text-decoration: none;
+		margin-top: 0.25rem;
+	}
+
+	.auth-form__forgot:hover {
+		text-decoration: underline;
+	}
+
 	.auth-card__footer {
 		text-align: center;
 		margin-top: 1.5rem;
 		color: var(--color-grey-400);
 		font-size: var(--fs-sm);
+	}
+
+	.auth-card__footer--secondary {
+		margin-top: 0.75rem;
+		font-size: var(--fs-xs);
 	}
 
 	.auth-card__link {

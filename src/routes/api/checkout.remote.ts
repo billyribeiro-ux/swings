@@ -23,7 +23,7 @@ function getStripe(): Stripe {
 	if (!env.STRIPE_SECRET_KEY) {
 		error(500, 'Stripe is not configured');
 	}
-	stripeClient = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2026-03-25.dahlia' });
+	stripeClient = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2026-04-22.dahlia' });
 	return stripeClient;
 }
 

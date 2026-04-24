@@ -62,6 +62,7 @@
 			</a>
 			<h1 class="auth-card__title">Create Your Account</h1>
 			<p class="auth-card__subtitle">Join thousands of traders</p>
+			<p class="auth-card__hint">We will send a verification link to your email.</p>
 		</div>
 
 		{#if error}
@@ -190,6 +191,12 @@
 	.auth-card__subtitle {
 		color: var(--color-grey-400);
 		font-size: var(--fs-sm);
+	}
+
+	.auth-card__hint {
+		margin-top: 0.5rem;
+		color: var(--color-grey-500);
+		font-size: var(--fs-xs);
 	}
 
 	.auth-card__error {

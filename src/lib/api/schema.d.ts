@@ -1844,6 +1844,22 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/resend-verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["resend_verification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/reset-password": {
         parameters: {
             query?: never;
@@ -1854,6 +1870,22 @@ export type paths = {
         get?: never;
         put?: never;
         post: operations["reset_password"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/verify-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["verify_email"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4375,6 +4407,9 @@ export type components = {
              */
             permissions: string[];
         };
+        ResendVerificationRequest: {
+            email: string;
+        };
         ResetPasswordRequest: {
             token: string;
             new_password: string;
@@ -5010,6 +5045,9 @@ export type components = {
             message: string;
         };
         Value: unknown;
+        VerifyEmailRequest: {
+            token: string;
+        };
         VerifyPostPasswordRequest: {
             password: string;
         };
@@ -10362,6 +10400,35 @@ export interface operations {
             };
         };
     };
+    resend_verification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResendVerificationRequest"];
+            };
+        };
+        responses: {
+            /** @description Verification email queued if account is pending verification */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     reset_password: {
         parameters: {
             query?: never;
@@ -10383,6 +10450,42 @@ export interface operations {
                 content?: never;
             };
             /** @description Invalid or expired reset token */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    verify_email: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description Email verified */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid or expired verification token */
             400: {
                 headers: {
                     [name: string]: unknown;

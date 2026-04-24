@@ -355,6 +355,66 @@ pub async fn update_user_password(
     Ok(())
 }
 
+// ── Email Verification Tokens ───────────────────────────────────────────
+
+pub async fn create_email_verification_token(
+    pool: &PgPool,
+    user_id: Uuid,
+    token_hash: &str,
+    expires_at: DateTime<Utc>,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        "UPDATE email_verification_tokens SET used_at = NOW() WHERE user_id = $1 AND used_at IS NULL",
+    )
+    .bind(user_id)
+    .execute(pool)
+    .await?;
+
+    sqlx::query(
+        "INSERT INTO email_verification_tokens (id, user_id, token_hash, expires_at) VALUES ($1, $2, $3, $4)",
+    )
+    .bind(Uuid::new_v4())
+    .bind(user_id)
+    .bind(token_hash)
+    .bind(expires_at)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn find_email_verification_token(
+    pool: &PgPool,
+    token_hash: &str,
+) -> Result<Option<EmailVerificationToken>, sqlx::Error> {
+    sqlx::query_as::<_, EmailVerificationToken>(
+        "SELECT * FROM email_verification_tokens WHERE token_hash = $1 AND used_at IS NULL AND expires_at > NOW()",
+    )
+    .bind(token_hash)
+    .fetch_optional(pool)
+    .await
+}
+
+pub async fn mark_email_verification_token_used(
+    pool: &PgPool,
+    token_id: Uuid,
+) -> Result<(), sqlx::Error> {
+    sqlx::query("UPDATE email_verification_tokens SET used_at = NOW() WHERE id = $1")
+        .bind(token_id)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
+pub async fn mark_user_email_verified(pool: &PgPool, user_id: Uuid) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        "UPDATE users SET email_verified_at = COALESCE(email_verified_at, NOW()), updated_at = NOW() WHERE id = $1",
+    )
+    .bind(user_id)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
 // ── Refresh Tokens ──────────────────────────────────────────────────────
 
 pub async fn store_refresh_token(
