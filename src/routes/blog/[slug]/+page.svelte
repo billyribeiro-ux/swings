@@ -10,6 +10,7 @@
 	import YoutubeLogoIcon from 'phosphor-svelte/lib/YoutubeLogoIcon';
 	import GlobeIcon from 'phosphor-svelte/lib/GlobeIcon';
 	import { getPublicApiBase } from '$lib/api/publicApiBase';
+	import { safeHtml } from '$lib/utils/safeHtml';
 	import type { BlogPostResponse } from '$lib/api/types';
 	import type { PageData } from './$types';
 
@@ -119,7 +120,7 @@
 				</a>
 
 				<div class="post-header__meta">
-					{#each post.categories as cat}
+					{#each post.categories as cat (cat.id ?? cat.slug)}
 						<a href="/blog/category/{cat.slug}" class="post-header__category">{cat.name}</a>
 					{/each}
 				</div>
@@ -153,19 +154,32 @@
 
 		{#if post.featured_image_url}
 			<div class="post-featured">
-				<img src={post.featured_image_url} alt={post.title} />
+				<!--
+					Above-the-fold hero. `fetchpriority="high"` tells the browser to
+					race this against the critical render path; width/height let it
+					reserve layout space (CLS → 0); `decoding="async"` keeps paint
+					non-blocking.
+				-->
+				<img
+					src={post.featured_image_url}
+					alt={post.title}
+					width="1200"
+					height="630"
+					decoding="async"
+					fetchpriority="high"
+				/>
 			</div>
 		{/if}
 
 		<div class="post-body">
 			<div class="post-content">
-				{@html post.content}
+				{@html safeHtml(post.content)}
 			</div>
 
 			{#if post.tags.length > 0}
 				<div class="post-tags">
 					<span class="post-tags__label">Tags:</span>
-					{#each post.tags as tag}
+					{#each post.tags as tag (tag.id ?? tag.slug)}
 						<a href="/blog/tag/{tag.slug}" class="post-tags__pill">{tag.name}</a>
 					{/each}
 				</div>
@@ -175,7 +189,15 @@
 			<div class="author-box">
 				<div class="author-box__avatar">
 					{#if post.author_avatar}
-						<img src={post.author_avatar} alt={post.author_name} class="author-box__img" />
+						<img
+							src={post.author_avatar}
+							alt={post.author_name}
+							class="author-box__img"
+							width="72"
+							height="72"
+							loading="lazy"
+							decoding="async"
+						/>
 					{:else}
 						<div class="author-box__placeholder"><UserIcon size={36} weight="thin" /></div>
 					{/if}

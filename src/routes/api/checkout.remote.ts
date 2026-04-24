@@ -70,24 +70,94 @@ function lineItemsForPlan(
 }
 
 /**
+ * SECURITY: input schema for the checkout command.
+ *
+ * SvelteKit remote `command(schema, handler)` accepts any
+ * [Standard Schema](https://standardschema.dev) v1 validator, so we can
+ * declare this inline without pulling in zod / valibot just for two
+ * fields. The validator enforces:
+ *
+ *   - body is a plain object (rejects arrays, nulls, primitives)
+ *   - `planSlug`, when present, is a non-empty, lowercase-slug string
+ *     (`[a-z0-9-]{1,64}`). Rejects path traversal / SQL wildcards.
+ *   - `priceId`, when present, is a Stripe price id (`price_...` with
+ *     only Stripe's published alphabet).
+ *   - at least one of `planSlug` / `priceId` is present.
+ *
+ * Dropping `'unchecked'` means the handler body no longer has to reassert
+ * types; the validator is the contract.
+ */
+interface CheckoutPayload {
+	planSlug?: string;
+	priceId?: string;
+}
+
+const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/;
+const PRICE_ID_RE = /^price_[A-Za-z0-9]{1,64}$/;
+
+const checkoutSchema = {
+	'~standard': {
+		version: 1 as const,
+		vendor: 'swings',
+		validate(value: unknown):
+			| { value: CheckoutPayload }
+			| { issues: { message: string; path?: (string | number)[] }[] } {
+			const issues: { message: string; path?: (string | number)[] }[] = [];
+			if (!value || typeof value !== 'object' || Array.isArray(value)) {
+				return { issues: [{ message: 'payload must be a plain object' }] };
+			}
+			const body = value as Record<string, unknown>;
+
+			let planSlug: string | undefined;
+			if (body.planSlug !== undefined) {
+				if (typeof body.planSlug !== 'string' || !SLUG_RE.test(body.planSlug)) {
+					issues.push({ message: 'planSlug must be a lowercase slug', path: ['planSlug'] });
+				} else {
+					planSlug = body.planSlug;
+				}
+			}
+
+			let priceId: string | undefined;
+			if (body.priceId !== undefined) {
+				if (typeof body.priceId !== 'string' || !PRICE_ID_RE.test(body.priceId)) {
+					issues.push({
+						message: "priceId must look like 'price_XXXX'",
+						path: ['priceId']
+					});
+				} else {
+					priceId = body.priceId;
+				}
+			}
+
+			if (!planSlug && !priceId) {
+				issues.push({ message: 'provide planSlug or priceId' });
+			}
+
+			return issues.length ? { issues } : { value: { planSlug, priceId } };
+		}
+	}
+} as const;
+
+/**
  * Create a hosted Stripe Checkout Session for a subscription.
  *
  * Pass `{ planSlug: "monthly" }` (preferred) or `{ priceId: "price_..." }` (escape hatch / tests).
+ *
+ * The `checkoutSchema` validator runs before the handler body; the handler
+ * only ever sees a shape that has already been shape-checked. We still
+ * receive `unknown` at the type level because SvelteKit's inference over
+ * inline Standard-Schema objects is not narrow; the runtime cast inside
+ * is safe because the validator already rejected everything else.
  */
 export const createCheckoutSession = command(
-	'unchecked',
-	async (input: unknown): Promise<{ sessionId: string; url: string | null }> => {
-		if (!input || typeof input !== 'object') {
-			error(400, 'Invalid payload');
-		}
-		const body = input as Record<string, unknown>;
-		const planSlug = typeof body.planSlug === 'string' ? body.planSlug : undefined;
-		const directPrice = typeof body.priceId === 'string' ? body.priceId : undefined;
+	checkoutSchema,
+	async (payload: unknown): Promise<{ sessionId: string; url: string | null }> => {
+		const { planSlug, priceId } = payload as CheckoutPayload;
 
 		let line_items: Stripe.Checkout.SessionCreateParams['line_items'];
 
-		if (directPrice?.startsWith('price_')) {
-			line_items = [{ price: directPrice, quantity: 1 }];
+		if (priceId) {
+			line_items = [{ price: priceId, quantity: 1 }];
 		} else if (planSlug) {
 			const plans = await fetchActivePlans();
 			const plan = plans.find((p) => p.is_active && p.slug === planSlug) ?? null;

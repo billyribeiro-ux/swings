@@ -48,7 +48,12 @@ export function buildCsp(nonce: string): string {
 		'frame-ancestors': ["'none'"],
 		'base-uri': ["'self'"],
 		'form-action': ["'self'"],
-		'report-uri': ['/api/csp-report']
+		// `report-uri` is deprecated in favor of `report-to` but still the
+		// only directive Safari / older Chromium respects today. Keep both
+		// so we get maximum coverage across browsers; `report-to` requires
+		// the `Reporting-Endpoints` header we add below.
+		'report-uri': ['/api/csp-report'],
+		'report-to': ['csp-endpoint']
 	};
 	return Object.entries(directives)
 		.map(([k, v]) => `${k} ${v.join(' ')}`)
@@ -95,7 +100,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 	});
 
 	// Pre-existing security headers (preserved).
-	response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+	//
+	// SECURITY: CSP `frame-ancestors 'none'` already blocks every embedding
+	// origin. We emit `X-Frame-Options: DENY` (not `SAMEORIGIN`) so the two
+	// headers encode the same intent — most browsers honor CSP over XFO
+	// when both are present, but a matched pair removes the ambiguity for
+	// security reviewers and scanners.
+	response.headers.set('X-Frame-Options', 'DENY');
 	response.headers.set('X-Content-Type-Options', 'nosniff');
 	response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
 	response.headers.set(
@@ -105,6 +116,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	// FDN-08: CSP + transport + cross-origin isolation hardening.
 	response.headers.set('Content-Security-Policy', buildCsp(nonce));
+	// Pair `report-to` above with the matching `Reporting-Endpoints`
+	// header so modern browsers know where to POST CSP violations.
+	response.headers.set(
+		'Reporting-Endpoints',
+		'csp-endpoint="/api/csp-report"'
+	);
 	response.headers.set(
 		'Strict-Transport-Security',
 		'max-age=63072000; includeSubDomains; preload'

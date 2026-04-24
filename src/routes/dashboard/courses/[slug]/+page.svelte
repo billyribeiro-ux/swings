@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import { api } from '$lib/api/client';
+	import { safeHtml } from '$lib/utils/safeHtml';
 	import type { CourseWithModules, CourseLesson, LessonProgress } from '$lib/api/types';
 	import PlayIcon from 'phosphor-svelte/lib/PlayIcon';
 	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
@@ -167,7 +168,7 @@
 							{currentLesson.description}
 						</p>{/if}
 					{#if currentLesson.content}<div class="lesson-body">
-							{@html currentLesson.content}
+							{@html safeHtml(currentLesson.content)}
 						</div>{/if}
 				</div>
 				<div class="nav-row">

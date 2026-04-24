@@ -351,6 +351,7 @@
 	}
 
 	.auth-form__input:autofill {
+		box-shadow: 0 0 0 1000px rgba(15, 164, 175, 0.08) inset;
 		-webkit-box-shadow: 0 0 0 1000px rgba(15, 164, 175, 0.08) inset;
 		-webkit-text-fill-color: var(--color-white);
 		caret-color: var(--color-white);

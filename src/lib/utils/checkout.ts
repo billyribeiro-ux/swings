@@ -13,7 +13,11 @@ export async function createCheckoutSession(planSlugOrPriceId: string): Promise<
 		const payload = planSlugOrPriceId.startsWith('price_')
 			? { priceId: planSlugOrPriceId }
 			: { planSlug: planSlugOrPriceId };
-		const { url } = await createCheckoutSessionRemote(payload);
+		const result = (await createCheckoutSessionRemote(payload)) as {
+			sessionId: string;
+			url: string | null;
+		};
+		const { url } = result;
 		if (url) {
 			window.location.href = url;
 		}

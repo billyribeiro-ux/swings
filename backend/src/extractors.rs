@@ -5,11 +5,26 @@ use axum::{
     extract::{ConnectInfo, FromRequestParts},
     http::{request::Parts, HeaderMap},
 };
-use jsonwebtoken::{decode, DecodingKey, Validation};
+use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{authz::PolicyHandle, error::AppError, models::UserRole, AppState};
+
+/// Issuer baked into every JWT we mint. Verified on decode — a token
+/// minted by a different backend (staging, ops tooling) won't pass.
+///
+/// Intentionally static: JWTs are invalidated by rotating `JWT_SECRET`,
+/// not by changing this string. If the public domain ever moves, bump
+/// both the mint paths and the verify validation at the same time.
+pub const JWT_ISSUER: &str = "precisionoptionsignals.com";
+
+/// Audience binding for user-facing access tokens. Separates
+/// SPA-bearer tokens from internal-service tokens (e.g. the Google
+/// Sheets OAuth flow mints its own ephemeral JWT with a different
+/// `aud`); we do NOT want the SPA to be able to present a service
+/// token and vice versa.
+pub const JWT_AUDIENCE: &str = "precisionoptionsignals.com/app";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
@@ -17,6 +32,16 @@ pub struct Claims {
     pub role: String,
     pub exp: usize,
     pub iat: usize,
+    /// JWT `iss` claim — pinned to [`JWT_ISSUER`] at mint, validated on
+    /// decode. Optional on deserialize so legacy tokens minted before
+    /// this field was added still decode; the `validate_iss` flag in
+    /// [`jwt_validation`] enforces equality when the claim is present.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub iss: Option<String>,
+    /// JWT `aud` claim — pinned to [`JWT_AUDIENCE`] at mint, validated
+    /// on decode. Same migration story as `iss`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aud: Option<String>,
     /// ADM-07: real admin user id when this token was minted under
     /// impersonation. Absent for ordinary access tokens; the legacy
     /// claim shape stays valid because all three impersonation fields
@@ -68,6 +93,55 @@ impl AuthUser {
     }
 }
 
+/// SECURITY: explicit `Validation` with a pinned algorithm allow-list.
+///
+/// `Validation::default()` permits HS256 only today, but depending on the
+/// upstream `jsonwebtoken` version the default may also accept tokens with
+/// no algorithm (`alg: none`) or with a different HS variant. Pinning the
+/// algorithm to the one we mint (HS256) eliminates that class of
+/// confusion attacks regardless of crate version.
+///
+/// `leeway` is a small grace window for clock skew across
+/// containers / fleets; the default is already 60s, we set it
+/// explicitly so future crate version bumps do not silently widen it.
+#[must_use]
+pub fn jwt_validation() -> Validation {
+    let mut v = Validation::new(Algorithm::HS256);
+    v.leeway = 30;
+    v.validate_exp = true;
+    v
+}
+
+/// Rollout-safe `iss` / `aud` check.
+///
+/// Returns `Ok(())` when:
+///   * the claim is absent (legacy token minted before this rollout), OR
+///   * the claim is present and matches the expected value.
+///
+/// Returns `Err(AppError::Unauthorized)` when a token carries a *wrong*
+/// value — that's unambiguously a token from a different deployment or
+/// for a different audience.
+///
+/// After `JWT_EXPIRATION_HOURS` have elapsed since this function shipped,
+/// every live session has rotated through the new mint path and we can
+/// promote the absent-claim branch to an error (see the TODO marker in
+/// `backend/src/extractors.rs` → `verify_claim_binding`).
+pub fn verify_claim_binding(claims: &Claims) -> Result<(), AppError> {
+    if let Some(ref iss) = claims.iss {
+        if iss != JWT_ISSUER {
+            tracing::warn!(claim = %iss, "jwt issuer mismatch");
+            return Err(AppError::Unauthorized);
+        }
+    }
+    if let Some(ref aud) = claims.aud {
+        if aud != JWT_AUDIENCE {
+            tracing::warn!(claim = %aud, "jwt audience mismatch");
+            return Err(AppError::Unauthorized);
+        }
+    }
+    Ok(())
+}
+
 impl FromRequestParts<AppState> for AuthUser {
     type Rejection = AppError;
 
@@ -88,11 +162,15 @@ impl FromRequestParts<AppState> for AuthUser {
         let token_data = decode::<Claims>(
             token,
             &DecodingKey::from_secret(state.config.jwt_secret.as_bytes()),
-            &Validation::default(),
+            &jwt_validation(),
         )
         .map_err(|_| AppError::Unauthorized)?;
 
         let claims = token_data.claims;
+
+        // SECURITY: enforce issuer / audience binding. Tolerates legacy
+        // tokens (no claim) while rejecting tokens with a wrong claim.
+        verify_claim_binding(&claims)?;
 
         // ADM-07: server-side impersonation check. The JWT alone is not
         // enough to honour the request — we must consult the row so
@@ -291,13 +369,17 @@ impl FromRequestParts<AppState> for OptionalAuthUser {
             .and_then(|v| v.to_str().ok())
             .and_then(|h| h.strip_prefix("Bearer "))
             .and_then(|token| {
-                decode::<Claims>(
+                let data = decode::<Claims>(
                     token,
                     &DecodingKey::from_secret(state.config.jwt_secret.as_bytes()),
-                    &Validation::default(),
+                    &jwt_validation(),
                 )
-                .ok()
-                .map(|t| t.claims.sub)
+                .ok()?;
+                // SECURITY: same iss/aud check as AuthUser; failure
+                // downgrades the request to anonymous rather than 401
+                // because this extractor is infallible by contract.
+                verify_claim_binding(&data.claims).ok()?;
+                Some(data.claims.sub)
             });
 
         Ok(OptionalAuthUser { user_id })

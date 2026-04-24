@@ -132,10 +132,18 @@ pub(crate) async fn create_course(
     State(state): State<AppState>,
     admin: AdminUser,
     client: ClientInfo,
-    Json(req): Json<CreateCourseRequest>,
+    Json(mut req): Json<CreateCourseRequest>,
 ) -> AppResult<Json<Course>> {
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
+
+    // SECURITY (XSS): sanitize user-supplied course copy before we persist it.
+    if let Some(d) = req.description.as_deref() {
+        req.description = Some(crate::common::html::sanitize_rich_text(d));
+    }
+    if let Some(s) = req.short_description.as_deref() {
+        req.short_description = Some(crate::common::html::sanitize_plain_text(s));
+    }
 
     let slug = req
         .slug
@@ -301,8 +309,16 @@ pub(crate) async fn update_course(
     admin: AdminUser,
     client: ClientInfo,
     Path(id): Path<Uuid>,
-    Json(req): Json<UpdateCourseRequest>,
+    Json(mut req): Json<UpdateCourseRequest>,
 ) -> AppResult<Json<Course>> {
+    // SECURITY (XSS): sanitize at the write boundary — see `create_course`.
+    if let Some(d) = req.description.as_deref() {
+        req.description = Some(crate::common::html::sanitize_rich_text(d));
+    }
+    if let Some(s) = req.short_description.as_deref() {
+        req.short_description = Some(crate::common::html::sanitize_plain_text(s));
+    }
+
     let _existing = sqlx::query_scalar::<_, Uuid>("SELECT id FROM courses WHERE id = $1")
         .bind(id)
         .fetch_optional(&state.db)
@@ -673,10 +689,19 @@ pub(crate) async fn create_lesson(
     admin: AdminUser,
     client: ClientInfo,
     Path((course_id, module_id)): Path<(Uuid, Uuid)>,
-    Json(req): Json<CreateLessonRequest>,
+    Json(mut req): Json<CreateLessonRequest>,
 ) -> AppResult<Json<CourseLesson>> {
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
+
+    // SECURITY (XSS): sanitize lesson HTML at the write boundary before it
+    // is ever read back by `{@html}` in the student view.
+    if let Some(c) = req.content.as_deref() {
+        req.content = Some(crate::common::html::sanitize_rich_text(c));
+    }
+    if let Some(d) = req.description.as_deref() {
+        req.description = Some(crate::common::html::sanitize_plain_text(d));
+    }
 
     // Verify module belongs to course
     sqlx::query_scalar::<_, Uuid>("SELECT id FROM course_modules WHERE id = $1 AND course_id = $2")
@@ -755,8 +780,16 @@ pub(crate) async fn update_lesson(
     admin: AdminUser,
     client: ClientInfo,
     Path(lesson_id): Path<Uuid>,
-    Json(req): Json<UpdateLessonRequest>,
+    Json(mut req): Json<UpdateLessonRequest>,
 ) -> AppResult<Json<CourseLesson>> {
+    // SECURITY (XSS): see `create_lesson` — sanitize at the write boundary.
+    if let Some(c) = req.content.as_deref() {
+        req.content = Some(crate::common::html::sanitize_rich_text(c));
+    }
+    if let Some(d) = req.description.as_deref() {
+        req.description = Some(crate::common::html::sanitize_plain_text(d));
+    }
+
     let slug = req.slug.as_deref().map(slugify);
 
     let lesson = sqlx::query_as::<_, CourseLesson>(

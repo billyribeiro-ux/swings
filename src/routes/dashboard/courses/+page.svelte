@@ -176,7 +176,15 @@
 					<div class="course-card">
 						<div class="course-card__banner">
 							{#if course.thumbnail_url}
-								<img src={course.thumbnail_url} alt={course.title} class="course-card__banner-img" />
+								<img
+									src={course.thumbnail_url}
+									alt={course.title}
+									class="course-card__banner-img"
+									width="640"
+									height="360"
+									loading="lazy"
+									decoding="async"
+								/>
 							{:else}
 								<div class="course-card__banner-placeholder">
 									<BookOpenIcon size={28} weight="duotone" />
@@ -242,7 +250,15 @@
 					<div class="course-card">
 						<div class="course-card__banner">
 							{#if course.thumbnail_url}
-								<img src={course.thumbnail_url} alt={course.title} class="course-card__banner-img" />
+								<img
+									src={course.thumbnail_url}
+									alt={course.title}
+									class="course-card__banner-img"
+									width="640"
+									height="360"
+									loading="lazy"
+									decoding="async"
+								/>
 							{:else}
 								<div class="course-card__banner-placeholder">
 									<BookOpenIcon size={28} weight="duotone" />

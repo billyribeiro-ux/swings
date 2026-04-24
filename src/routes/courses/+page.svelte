@@ -105,7 +105,7 @@
 	<div class="page-container page-container--narrow">
 		<ScrollReveal>
 			<div class="courses-grid">
-				{#each courses as course, i}
+				{#each courses as course, i (course.slug ?? course.title)}
 					{@const Icon = iconMap[course.icon]}
 					<a
 						href="/courses/{course.slug}"

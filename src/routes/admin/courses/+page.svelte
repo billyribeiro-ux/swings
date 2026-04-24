@@ -229,7 +229,15 @@
 				<a href="/admin/courses/{course.id}" class="course-card">
 					<div class="course-card__thumb">
 						{#if course.thumbnail_url}
-							<img src={course.thumbnail_url} alt={course.title} class="course-card__img" />
+							<img
+								src={course.thumbnail_url}
+								alt={course.title}
+								class="course-card__img"
+								width="640"
+								height="360"
+								loading="lazy"
+								decoding="async"
+							/>
 						{:else}
 							<div class="course-card__placeholder">
 								<BookOpenIcon size={28} weight="duotone" />

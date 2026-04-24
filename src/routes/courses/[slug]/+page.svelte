@@ -208,7 +208,7 @@
 			<h2 class="page-section__heading page-section__heading--center">What You'll Learn</h2>
 
 			<div class="learn-grid">
-				{#each course.whatYouLearn as item, i}
+				{#each course.whatYouLearn as item, i (item)}
 					<div class="reveal-item learn-grid__item" style="transition-delay: {i * 0.06}s">
 						<CheckCircleIcon size={22} weight="fill" color="#0FA4AF" class="learn-grid__icon" />
 						<p class="learn-grid__text">{item}</p>
@@ -226,13 +226,13 @@
 			<h2 class="page-section__heading page-section__heading--center">Course Curriculum</h2>
 
 			<div class="curriculum">
-				{#each course.curriculum as module, i}
+				{#each course.curriculum as module, i (module.title)}
 					<div class="reveal-item curriculum__module" style="transition-delay: {i * 0.06}s">
 						<div class="curriculum__module-header">
 							<h3 class="curriculum__module-title">{module.title}</h3>
 						</div>
 						<ul class="curriculum__lesson-list">
-							{#each module.lessons as lesson}
+							{#each module.lessons as lesson (lesson)}
 								<li class="curriculum__lesson">
 									<PlayCircleIcon
 										size={18}
@@ -258,7 +258,7 @@
 			<h2 class="page-section__heading page-section__heading--center">What's Included</h2>
 
 			<div class="features-grid">
-				{#each course.features as feature, i}
+				{#each course.features as feature, i (feature)}
 					<div class="reveal-item features-grid__item" style="transition-delay: {i * 0.06}s">
 						<CheckCircleIcon size={22} weight="fill" color="#0FA4AF" class="features-grid__icon" />
 						<p class="features-grid__text">{feature}</p>

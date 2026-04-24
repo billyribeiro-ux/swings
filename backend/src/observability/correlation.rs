@@ -47,13 +47,19 @@
 //! from_fn` handler is easier to audit and carries zero additional deps.
 
 use axum::{
-    body::Body,
+    body::{to_bytes, Body},
     extract::Request,
-    http::{header::HeaderName, HeaderValue, Response},
+    http::{header, header::HeaderName, HeaderValue, Response},
     middleware::Next,
 };
 use tracing::Instrument;
 use uuid::Uuid;
+
+/// Max `application/problem+json` body the correlation stamper is willing to
+/// parse. RFC 7807 documents are small (< 2 KiB in practice); anything bigger
+/// is almost certainly not a Problem and is passed through untouched so we
+/// never silently rewrite a legitimately large response.
+const PROBLEM_JSON_MAX_BYTES: usize = 8 * 1024;
 
 /// Header name used for request-id passthrough, canonicalised.
 ///
@@ -129,7 +135,13 @@ pub async fn middleware(mut req: Request, next: Next) -> Response<Body> {
     // the structured log line. The span covers the entire downstream
     // handler call via `Instrument::instrument`.
     let span = tracing::info_span!("http.request", request_id = %id);
-    let mut response = next.run(req).instrument(span).await;
+    let response = next.run(req).instrument(span).await;
+
+    // RFC 7807 extension: stamp `correlation_id` into `application/problem+json`
+    // responses so a customer-reported error body carries the same id as our
+    // structured logs. We only rewrite bodies we're confident we understand
+    // (content-type + size envelope); anything else passes through untouched.
+    let mut response = stamp_problem_correlation(response, &id).await;
 
     // Echo the id back. `HeaderValue::from_str` only fails on non-ASCII
     // or control inputs; we have already validated / generated an
@@ -141,6 +153,44 @@ pub async fn middleware(mut req: Request, next: Next) -> Response<Body> {
     response.headers_mut().insert(X_REQUEST_ID, header_value);
 
     response
+}
+
+/// If the response is `application/problem+json`, parse it, inject
+/// `correlation_id`, and reserialise. Bodies larger than
+/// [`PROBLEM_JSON_MAX_BYTES`] or that fail to parse as JSON objects are
+/// returned unchanged — the invariant is "never corrupt a response".
+async fn stamp_problem_correlation(response: Response<Body>, id: &str) -> Response<Body> {
+    let is_problem = response
+        .headers()
+        .get(header::CONTENT_TYPE)
+        .and_then(|v| v.to_str().ok())
+        .map(|v| v.starts_with("application/problem+json"))
+        .unwrap_or(false);
+
+    if !is_problem {
+        return response;
+    }
+
+    let (parts, body) = response.into_parts();
+    let bytes = match to_bytes(body, PROBLEM_JSON_MAX_BYTES).await {
+        Ok(b) => b,
+        Err(_) => {
+            // Oversize or read failure — we can't safely mutate; rebuild with
+            // an empty body rather than corrupt downstream state.
+            return Response::from_parts(parts, Body::empty());
+        }
+    };
+
+    match serde_json::from_slice::<serde_json::Value>(&bytes) {
+        Ok(serde_json::Value::Object(mut map)) => {
+            map.entry("correlation_id")
+                .or_insert_with(|| serde_json::Value::String(id.to_owned()));
+            let new_body = serde_json::to_vec(&serde_json::Value::Object(map))
+                .unwrap_or_else(|_| bytes.to_vec());
+            Response::from_parts(parts, Body::from(new_body))
+        }
+        _ => Response::from_parts(parts, Body::from(bytes)),
+    }
 }
 
 /// Convenience constructor: returns the `FromFnLayer` produced by
@@ -327,5 +377,68 @@ mod tests {
             .body(Body::empty())
             .expect("request builds");
         assert!(current_request_id(&req).is_none());
+    }
+
+    async fn problem_handler() -> Response<Body> {
+        let body = serde_json::json!({
+            "type": "/problems/test",
+            "title": "Test",
+            "status": 400,
+            "detail": "Synthetic failure"
+        });
+        let mut resp = Response::new(Body::from(body.to_string()));
+        resp.headers_mut().insert(
+            header::CONTENT_TYPE,
+            HeaderValue::from_static("application/problem+json"),
+        );
+        *resp.status_mut() = StatusCode::BAD_REQUEST;
+        resp
+    }
+
+    async fn plain_handler() -> Response<Body> {
+        let mut resp = Response::new(Body::from(r#"{"ok":true}"#));
+        resp.headers_mut().insert(
+            header::CONTENT_TYPE,
+            HeaderValue::from_static("application/json"),
+        );
+        resp
+    }
+
+    #[tokio::test]
+    async fn stamps_correlation_id_into_problem_json() {
+        let app = Router::new()
+            .route("/p", get(problem_handler))
+            .layer(axum::middleware::from_fn(middleware));
+        let req = HttpRequest::builder()
+            .uri("/p")
+            .body(Body::empty())
+            .expect("request builds");
+        let resp = app.oneshot(req).await.expect("dispatch");
+        let request_id = resp
+            .headers()
+            .get(X_REQUEST_ID)
+            .expect("header set")
+            .to_str()
+            .expect("ascii")
+            .to_owned();
+        let body_bytes = to_bytes(resp.into_body(), 1024).await.expect("read body");
+        let body: serde_json::Value = serde_json::from_slice(&body_bytes).expect("json");
+        assert_eq!(body["correlation_id"].as_str(), Some(request_id.as_str()));
+    }
+
+    #[tokio::test]
+    async fn leaves_non_problem_json_alone() {
+        let app = Router::new()
+            .route("/plain", get(plain_handler))
+            .layer(axum::middleware::from_fn(middleware));
+        let req = HttpRequest::builder()
+            .uri("/plain")
+            .body(Body::empty())
+            .expect("request builds");
+        let resp = app.oneshot(req).await.expect("dispatch");
+        let body_bytes = to_bytes(resp.into_body(), 1024).await.expect("read body");
+        let body: serde_json::Value = serde_json::from_slice(&body_bytes).expect("json");
+        assert!(body.get("correlation_id").is_none());
+        assert_eq!(body["ok"], true);
     }
 }

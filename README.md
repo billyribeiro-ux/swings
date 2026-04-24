@@ -56,8 +56,8 @@ pnpm workspace plus a Cargo crate at `backend/`.
 * **Backend** — Axum-on-Tokio with SQLx and an in-process worker pool for
   background tasks (DSAR export, audit-log retention, idempotency-cache GC,
   artefact TTL sweep). Built and shipped from `backend/`.
-* **Database** — PostgreSQL 16 with 66 forward-only `sqlx` migrations
-  in `backend/migrations/` (versions 001–074, gap-tolerant).
+* **Database** — PostgreSQL 16 with 67 forward-only `sqlx` migrations
+  in `backend/migrations/` (versions 001–075, gap-tolerant).
 * **Object storage** — Cloudflare R2 (S3-compatible) for media and DSAR
   exports, with a `Local` filesystem fallback for development.
 * **Observability** — Prometheus metrics on `/metrics`; provisioning-ready
@@ -85,7 +85,7 @@ For the full RBAC/audit/security model, see
 │   │   ├── security/     # Impersonation + IP allowlist primitives
 │   │   ├── observability/# Tracing + metrics scaffolding
 │   │   └── …             # commerce, consent, popups, forms, notifications, pdf
-│   ├── migrations/       # sqlx forward-only migrations (66 files, versions 001–074)
+│   ├── migrations/       # sqlx forward-only migrations (67 files, versions 001–075)
 │   └── tests/            # Integration tests against a real Postgres
 ├── ops/                  # Prometheus rules + Grafana dashboard + provisioning README
 ├── docs/                 # All long-form documentation (see index below)
@@ -261,7 +261,7 @@ shortcuts:
 
 ## Conventions
 
-* **Languages** — Rust 2024 edition, TypeScript strict, Svelte 5 runes only.
+* **Languages** — Rust 2021 edition, TypeScript strict, Svelte 5 runes only.
 * **No `any`, no `unwrap()`** in checked-in code paths (tests excluded).
 * **Migrations are forward-only.** Edit a migration after it has been
   applied to *any* environment and the next boot will fail the sqlx

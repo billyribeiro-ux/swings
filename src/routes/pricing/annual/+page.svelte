@@ -185,7 +185,7 @@
 				<h2 class="page-section__heading page-section__heading--center">Everything Included</h2>
 
 				<div class="feature-list">
-					{#each features as feature, i}
+					{#each features as feature, i (feature)}
 						<div class="reveal-item feature-list__item" style="transition-delay: {i * 0.06}s">
 							<CheckCircleIcon size={24} weight="fill" color="#0FA4AF" class="feature-list__icon" />
 							<p class="feature-list__text">{feature}</p>

@@ -92,6 +92,13 @@
 
 <AnalyticsBeacon />
 
+<!-- A11y: first focusable element on every page jumps keyboard / screen
+     reader users past the nav and into the page's main landmark. Target
+     is `#main-content`; applied to the public shell and every app-route
+     layout's `<main>` so the link works regardless of the current
+     navigation tree. -->
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
 {#if isAppRoute}
 	{@render children()}
 {:else}
@@ -103,7 +110,7 @@
 		<AdminSiteBar />
 		<Nav />
 
-		<main>
+		<main id="main-content" tabindex="-1">
 			{@render children()}
 		</main>
 
@@ -121,5 +128,25 @@
 <style>
 	:global(.public-shell--wp-admin .nav) {
 		top: 2.5rem;
+	}
+
+	/* A11y skip link — hidden off-screen until focused. Uses tokens so
+       the focus appearance stays consistent with the rest of the UI. */
+	.skip-link {
+		position: absolute;
+		left: 0.75rem;
+		top: -3rem;
+		z-index: 10000;
+		padding: 0.5rem 0.875rem;
+		background: var(--color-teal, #0fa4af);
+		color: #fff;
+		font-weight: 600;
+		border-radius: 0.375rem;
+		transition: top 150ms ease-in-out;
+	}
+	.skip-link:focus {
+		top: 0.5rem;
+		outline: 3px solid #fff;
+		outline-offset: 2px;
 	}
 </style>

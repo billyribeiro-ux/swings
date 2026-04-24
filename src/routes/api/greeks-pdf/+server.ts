@@ -9,9 +9,13 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json({ error: 'Valid email is required' }, { status: 400 });
 		}
 
-		// TODO: Integrate with email service (e.g., SendGrid, Mailgun, Resend)
-		// For now, we'll just log and return success
-		console.log(`Greeks PDF requested by: ${email}`);
+		// TODO: integrate with email service (Resend / Mailgun / SendGrid).
+		// SECURITY: never log the raw email address — it is PII and our
+		// application log retention window is not equal to our PII store's.
+		// If a correlation signal is needed, log a SHA-256 prefix instead.
+		if (import.meta.env.DEV) {
+			console.log('[greeks-pdf] request received (dev only)');
+		}
 
 		// In production, you would:
 		// 1. Add email to your mailing list (e.g., ConvertKit, Mailchimp)

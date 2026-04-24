@@ -298,8 +298,13 @@ async fn handle_checkout_completed(
     let customer_id = session["customer"].as_str().unwrap_or_default();
     let sub_id = session["subscription"].as_str().unwrap_or_default();
 
+    // SECURITY: do not log `customer_email` — it's PII and retention
+    // windows for application logs are not the same as our PII store.
+    // Stripe's customer/subscription IDs are opaque and safe to log.
     tracing::info!(
-        "Checkout completed for {customer_email}, customer: {customer_id}, sub: {sub_id}"
+        customer_id,
+        subscription_id = sub_id,
+        "stripe checkout.session.completed received"
     );
 
     // If user exists, link their subscription

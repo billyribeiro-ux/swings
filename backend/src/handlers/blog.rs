@@ -224,10 +224,21 @@ pub(crate) async fn admin_create_post(
     State(state): State<AppState>,
     admin: AdminUser,
     client: ClientInfo,
-    Json(req): Json<CreatePostRequest>,
+    Json(mut req): Json<CreatePostRequest>,
 ) -> AppResult<Json<BlogPostResponse>> {
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
+
+    // SECURITY (XSS): sanitize author-supplied HTML at the write boundary so
+    // every downstream render (server SSR, `{@html}` in Svelte, RSS/Atom,
+    // email digests) sees a safe, ammonia-cleaned string. Defence-in-depth:
+    // the frontend still applies DOMPurify before `{@html}`.
+    if let Some(c) = req.content.as_deref() {
+        req.content = Some(crate::common::html::sanitize_rich_text(c));
+    }
+    if let Some(e) = req.excerpt.as_deref() {
+        req.excerpt = Some(crate::common::html::sanitize_plain_text(e));
+    }
 
     let password_hash = if req.visibility.as_deref() == Some("password") {
         if let Some(ref pw) = req.post_password {
@@ -306,8 +317,17 @@ pub(crate) async fn admin_update_post(
     admin: AdminUser,
     client: ClientInfo,
     Path(id): Path<Uuid>,
-    Json(req): Json<UpdatePostRequest>,
+    Json(mut req): Json<UpdatePostRequest>,
 ) -> AppResult<Json<BlogPostResponse>> {
+    // SECURITY (XSS): sanitize author-supplied HTML at the write boundary —
+    // see `admin_create_post` for the full rationale.
+    if let Some(c) = req.content.as_deref() {
+        req.content = Some(crate::common::html::sanitize_rich_text(c));
+    }
+    if let Some(e) = req.excerpt.as_deref() {
+        req.excerpt = Some(crate::common::html::sanitize_plain_text(e));
+    }
+
     let existing = db::get_blog_post(&state.db, id)
         .await?
         .ok_or(AppError::NotFound("Post not found".to_string()))?;

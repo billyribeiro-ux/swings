@@ -1,0 +1,22 @@
+# Pin the Rust toolchain so `cargo build` in dev, CI, and the Docker
+# builder all resolve to the same compiler. Without this file each surface
+# drifts independently:
+#
+#   * `Dockerfile` uses `rust:1.93-slim-bookworm`
+#   * `.github/workflows/*.yml` uses `dtolnay/rust-toolchain@stable`
+#   * Local developer shells use whatever rustup picked last
+#
+# `dtolnay/rust-toolchain@stable` honours this file via the
+# `rust-toolchain.toml` fallback, so CI will pull 1.93 automatically; no
+# workflow changes required.
+#
+# Bump in lockstep: Dockerfile + this file + any `rust-version` hints in
+# `Cargo.toml` should all move together. When the base image changes,
+# update both the `FROM rust:<version>-slim-bookworm` line and the
+# `channel = "<version>"` below in a single PR so reviewers can verify
+# the pair are in sync.
+
+[toolchain]
+channel = "1.93"
+profile = "minimal"
+components = ["rustfmt", "clippy"]

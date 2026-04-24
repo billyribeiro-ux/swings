@@ -106,7 +106,43 @@ let popupFetchPauseUntil = 0;
 		}
 
 		if (popup.redirect_url) {
-			window.location.href = popup.redirect_url;
+			// SECURITY: an attacker with popup-author access (or a hijacked
+			// `popups` row) could set `redirect_url` to an off-domain phishing
+			// target. Gate on:
+			//   1. Well-formed URL (rejects `javascript:` and malformed values).
+			//   2. Same-origin OR relative — rooted in the running page's
+			//      origin so preview / staging deploys still work.
+			// Downgrade to a log rather than throwing so a bad redirect
+			// doesn't break the form submission flow.
+			const safe = toSafeRedirect(popup.redirect_url);
+			if (safe) {
+				window.location.href = safe;
+			} else {
+				console.warn('[PopupEngine] dropped off-origin redirect_url', popup.redirect_url);
+			}
+		}
+	}
+
+	/**
+	 * Return a safe same-origin redirect target, or `null` if the URL is
+	 * off-origin / malformed / uses a forbidden scheme. Accepts:
+	 *   * absolute URLs whose origin matches `window.location.origin`
+	 *   * relative paths (`/foo`, `./bar`, `baz`) which resolve to the
+	 *     current origin by the URL constructor
+	 */
+	function toSafeRedirect(raw: string): string | null {
+		if (!browser) return null;
+		try {
+			const parsed = new URL(raw, window.location.origin);
+			if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+				return null;
+			}
+			if (parsed.origin !== window.location.origin) {
+				return null;
+			}
+			return parsed.toString();
+		} catch {
+			return null;
 		}
 	}
 

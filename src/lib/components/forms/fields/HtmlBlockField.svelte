@@ -4,10 +4,11 @@
   string is already safe by contract.
 -->
 <script lang="ts">
+	import { safeHtml } from '$lib/utils/safeHtml';
 	import type { FieldProps, FieldSchema } from '../types.ts';
 
 	const { field }: FieldProps = $props();
 	const block = $derived(field as Extract<FieldSchema, { type: 'html_block' }>);
 </script>
 
-<div class="fm-field fm-block">{@html block.html}</div>
+<div class="fm-field fm-block">{@html safeHtml(block.html)}</div>

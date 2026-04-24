@@ -16,8 +16,9 @@ jobs that upload SARIF.
 | Job                        | What it does                                                                                                         |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | `frontend`                 | `pnpm install --frozen-lockfile` → `pnpm ci:frontend` (`gen:types` + `check` + `lint` + `ci:seo` + `test:unit` + `build`). |
-| `backend`                  | `cargo fmt --check` → `cargo clippy -D warnings` → `cargo test` → `cargo build`.                                      |
+| `backend`                  | `cargo fmt --check` → `cargo clippy -D warnings` → `cargo test` → `cargo build`. Rust pinned to **1.93** via `rust-toolchain.toml`. |
 | `backend-coverage`         | Informational. Runs `cargo llvm-cov --workspace --lcov` and uploads `lcov.info` as a build artefact. No gate.         |
+| `e2e-smoke`                | Runs the `smoke-chromium` Playwright project against `pnpm build && pnpm preview` (frontend only, no backend required). |
 
 ### Reproduce locally
 
@@ -46,9 +47,12 @@ Runs on every PR, every push to `main`/`master`, and nightly at 03:00 UTC.
   advisory, including unmaintained crates.
 - **`pnpm-audit`** — runs `pnpm audit --audit-level=high` (blocking) and
   `pnpm audit --audit-level=moderate` (informational, `continue-on-error`).
-- **`trivy-fs`** — `aquasecurity/trivy-action@0.28.0` in fs-scan mode,
-  severity `HIGH,CRITICAL`, respects `.trivyignore` at repo root, uploads
-  SARIF to GitHub Code Scanning when available.
+- **`trivy-fs`** — `aquasecurity/trivy-action@0.35.0` in fs-scan mode,
+  severity `HIGH,CRITICAL`, scanners limited to `secret,misconfig` (cargo
+  / pnpm ecosystems are covered by the dedicated audit jobs above),
+  respects `.trivyignore` at repo root, uploads SARIF to GitHub Code
+  Scanning when available. Bump in lockstep with the workflow file —
+  if you change the action version, update this paragraph too.
 
 ### Reproduce locally
 
@@ -128,6 +132,18 @@ git diff --exit-code src/lib/api/schema.d.ts
 - `.trivyignore` — directories the filesystem scan skips (`node_modules`,
   `backend/target`, `.svelte-kit`, build outputs).
 - `.sqlfluff` — sqlfluff configuration scoped to Postgres DDL.
+
+## Toolchain pinning
+
+- **Rust**: `rust-toolchain.toml` at repo root pins the compiler channel.
+  CI workflows (`ci.yml`, `security.yml`, `openapi-drift.yml`) call
+  `dtolnay/rust-toolchain@1.93` to match. The `Dockerfile` uses
+  `rust:1.93-slim-bookworm`. Bump all three in a single PR.
+- **Rust edition**: `2021` (declared in `backend/Cargo.toml`). Do not
+  claim "2024" in docs — that edition is not stabilised for this
+  project.
+- **Node**: `.nvmrc` at repo root is the source of truth; all CI
+  `actions/setup-node` steps read it via `node-version-file: .nvmrc`.
 
 ## Conventions for new workflows
 

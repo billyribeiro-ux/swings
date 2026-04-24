@@ -25,13 +25,21 @@ describe('buildCsp', () => {
 		expect(csp).toContain("base-uri 'self'");
 		expect(csp).toContain("form-action 'self'");
 		expect(csp).toContain('report-uri /api/csp-report');
+		// `report-to` pairs with the `Reporting-Endpoints` response header
+		// added in `handle` — modern browsers prefer it over `report-uri`
+		// but both are emitted for backwards compatibility with older
+		// Safari / Chromium builds.
+		expect(csp).toContain('report-to csp-endpoint');
 	});
 
 	it('separates directives with "; " so browsers parse each cleanly', () => {
 		const csp = buildCsp('n');
-		// Exactly 10 directive separators between 11 directives.
+		// 11 directive separators between 12 directives: default-src,
+		// script-src, style-src, img-src, connect-src, font-src,
+		// frame-src, frame-ancestors, base-uri, form-action, report-uri,
+		// report-to.
 		const parts = csp.split('; ');
-		expect(parts.length).toBe(11);
+		expect(parts.length).toBe(12);
 		// Each directive starts with the directive name.
 		for (const part of parts) {
 			expect(part).toMatch(/^[a-z-]+ /);

@@ -50,7 +50,7 @@ use uuid::Uuid;
 use crate::{
     db,
     error::{AppError, AppResult},
-    extractors::{AuthUser, Claims, ClientInfo, PrivilegedUser},
+    extractors::{AuthUser, Claims, ClientInfo, PrivilegedUser, JWT_AUDIENCE, JWT_ISSUER},
     models::UserRole,
     notifications::send::{send_notification, Recipient, SendOptions},
     security::impersonation::{
@@ -459,6 +459,8 @@ fn sign_impersonation_jwt(
         role: target_role.as_str().to_string(),
         iat: issued_at.timestamp() as usize,
         exp: expires_at.timestamp() as usize,
+        iss: Some(JWT_ISSUER.to_string()),
+        aud: Some(JWT_AUDIENCE.to_string()),
         imp_actor: Some(actor_user_id),
         imp_actor_role: Some(actor_role.as_str().to_string()),
         imp_session: Some(session_id),

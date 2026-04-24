@@ -50,12 +50,56 @@ async fn main() -> Result<()> {
     config.assert_production_ready()?;
     let port = config.port;
 
+    // Postgres pool sizing is env-driven so operators can tune per-env
+    // without a redeploy. Defaults are the "safe for a single 2-vCPU
+    // container" numbers that match a small managed Postgres (e.g. Neon
+    // free, Railway hobby). Production should set `PGPOOL_MAX` based on
+    // `(server max_connections - other clients) / container replicas`.
+    //
+    // * `PGPOOL_MAX`             — default 10, ceiling of in-flight queries
+    // * `PGPOOL_MIN`             — default 0,  warm-pool floor
+    // * `PGPOOL_ACQUIRE_TIMEOUT` — default 10 s, slow-dependency surface
+    // * `PGPOOL_IDLE_TIMEOUT`    — default 300 s, drop long-idle conns so
+    //                              Postgres-side `idle_in_transaction`
+    //                              watchdogs don't kill us first
+    // * `PGPOOL_MAX_LIFETIME`    — default 1800 s, hedge against proxy-
+    //                              level TCP timeouts / PgBouncer recycling
+    let pgpool_max: u32 = std::env::var("PGPOOL_MAX")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(10);
+    let pgpool_min: u32 = std::env::var("PGPOOL_MIN")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(0);
+    let pgpool_acquire_timeout_secs: u64 = std::env::var("PGPOOL_ACQUIRE_TIMEOUT")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(10);
+    let pgpool_idle_timeout_secs: u64 = std::env::var("PGPOOL_IDLE_TIMEOUT")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(300);
+    let pgpool_max_lifetime_secs: u64 = std::env::var("PGPOOL_MAX_LIFETIME")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(1800);
+
+    tracing::info!(
+        max = pgpool_max,
+        min = pgpool_min,
+        acquire_timeout_s = pgpool_acquire_timeout_secs,
+        idle_timeout_s = pgpool_idle_timeout_secs,
+        max_lifetime_s = pgpool_max_lifetime_secs,
+        "postgres pool configured"
+    );
+
     let pool = PgPoolOptions::new()
-        .max_connections(10)
-        .min_connections(0)
-        .acquire_timeout(Duration::from_secs(10))
-        .idle_timeout(Duration::from_secs(300))
-        .max_lifetime(Duration::from_secs(1800))
+        .max_connections(pgpool_max)
+        .min_connections(pgpool_min)
+        .acquire_timeout(Duration::from_secs(pgpool_acquire_timeout_secs))
+        .idle_timeout(Duration::from_secs(pgpool_idle_timeout_secs))
+        .max_lifetime(Duration::from_secs(pgpool_max_lifetime_secs))
         .connect(&config.database_url)
         .await
         .context("failed to connect to database")?;
@@ -263,10 +307,22 @@ async fn main() -> Result<()> {
                     state.db.clone(),
                 )),
             )
-            // FORM-07 will land a real implementation; the stub keeps the
-            // dispatcher from reporting NoHandler for outbound webhook events.
+            // EC-07: digital-delivery subscriber. Mints `user_downloads`
+            // rows for downloadable products in the completed order and
+            // publishes `user.download.granted` for the mailer. Without
+            // this registration the grants never fire.
             .register(
-                "*",
+                "order.completed",
+                Arc::new(events::handlers::DigitalDeliveryHandler::new(
+                    state.db.clone(),
+                )),
+            )
+            // FORM-07: outbound webhook stub. Scoped to `form.*` so it
+            // never swallows real work that belongs to another handler
+            // (previously `"*"`, which hid missing subscribers by
+            // masquerading as a successful no-op).
+            .register(
+                "form.*",
                 Arc::new(events::handlers::webhook_out::WebhookOutHandler::new()),
             ),
     );
@@ -512,6 +568,10 @@ async fn main() -> Result<()> {
         ));
 
     let mut app = Router::new()
+        // Liveness + readiness probes. Unauthenticated by design so
+        // orchestrators (Railway / Render / K8s / ECS) can poll without
+        // secrets; both endpoints return no PII and no configuration.
+        .merge(handlers::health::router())
         // Auth & analytics
         .nest("/api/auth", handlers::auth::router())
         // ADM-07: self-exit endpoint for the impersonated session. Lives

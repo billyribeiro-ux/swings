@@ -178,6 +178,7 @@ pub(crate) async fn admin_create_popup(
 ) -> AppResult<Json<Popup>> {
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
+    validate_redirect_url(req.redirect_url.as_deref(), &state.config.app_url)?;
 
     let popup = sqlx::query_as::<_, Popup>(
         r#"
@@ -306,6 +307,8 @@ pub(crate) async fn admin_update_popup(
     Path(id): Path<Uuid>,
     Json(req): Json<UpdatePopupRequest>,
 ) -> AppResult<Json<Popup>> {
+    validate_redirect_url(req.redirect_url.as_deref(), &state.config.app_url)?;
+
     let existing = sqlx::query_as::<_, Popup>("SELECT * FROM popups WHERE id = $1")
         .bind(id)
         .fetch_optional(&state.db)
@@ -1202,4 +1205,119 @@ pub(crate) async fn admin_variant_significance(
             .collect::<Vec<_>>(),
         "pairwise": pairs,
     })))
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// VALIDATION HELPERS
+// ══════════════════════════════════════════════════════════════════════
+
+/// SECURITY: same-origin allowlist for popup `redirect_url`.
+///
+/// A popup author (or an attacker with admin-session access) could otherwise
+/// redirect every form-submitter through an off-domain phishing page. We
+/// restrict to:
+///
+/// * `None` / empty — allowed (no redirect happens).
+/// * relative paths (`/foo`) — resolve to the deployment's own origin.
+/// * absolute `http`/`https` — origin must equal the configured `APP_URL`.
+///
+/// Anything else (`javascript:`, `data:`, off-origin absolute, malformed URL)
+/// is rejected with `422 Validation`. The SPA mirrors this check in
+/// `PopupEngine.toSafeRedirect` so a bad row saved before this landed still
+/// fails closed at read time.
+fn validate_redirect_url(raw: Option<&str>, app_url: &str) -> AppResult<()> {
+    let Some(raw) = raw else {
+        return Ok(());
+    };
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return Ok(());
+    }
+
+    // Relative path — implicitly same-origin after the browser resolves it.
+    if trimmed.starts_with('/') {
+        // Reject protocol-relative `//evil.tld` which starts with `/` but
+        // escapes the same-origin intent.
+        if trimmed.starts_with("//") {
+            return Err(AppError::Validation(
+                "redirect_url: protocol-relative URLs are not allowed".into(),
+            ));
+        }
+        return Ok(());
+    }
+
+    // Absolute URL — parse, restrict scheme, enforce origin match.
+    let parsed = url::Url::parse(trimmed)
+        .map_err(|_| AppError::Validation("redirect_url: malformed URL".into()))?;
+    match parsed.scheme() {
+        "http" | "https" => {}
+        other => {
+            return Err(AppError::Validation(format!(
+                "redirect_url: scheme `{other}` not allowed (http / https only)"
+            )))
+        }
+    }
+
+    let configured = url::Url::parse(app_url)
+        .map_err(|_| AppError::Validation("server config: APP_URL is malformed".into()))?;
+    if parsed.origin() != configured.origin() {
+        return Err(AppError::Validation(format!(
+            "redirect_url: must match APP_URL origin ({})",
+            configured.origin().ascii_serialization()
+        )));
+    }
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod validate_redirect_tests {
+    use super::*;
+
+    const APP: &str = "https://precisionoptionsignals.com";
+
+    #[test]
+    fn none_and_empty_are_ok() {
+        assert!(validate_redirect_url(None, APP).is_ok());
+        assert!(validate_redirect_url(Some(""), APP).is_ok());
+        assert!(validate_redirect_url(Some("   "), APP).is_ok());
+    }
+
+    #[test]
+    fn relative_path_ok() {
+        assert!(validate_redirect_url(Some("/thanks"), APP).is_ok());
+        assert!(validate_redirect_url(Some("/a/b?x=1"), APP).is_ok());
+    }
+
+    #[test]
+    fn protocol_relative_rejected() {
+        assert!(validate_redirect_url(Some("//evil.tld/x"), APP).is_err());
+    }
+
+    #[test]
+    fn absolute_same_origin_ok() {
+        assert!(
+            validate_redirect_url(Some("https://precisionoptionsignals.com/thanks"), APP).is_ok()
+        );
+    }
+
+    #[test]
+    fn absolute_off_origin_rejected() {
+        assert!(validate_redirect_url(Some("https://evil.tld/x"), APP).is_err());
+        assert!(
+            validate_redirect_url(Some("http://precisionoptionsignals.com/thanks"), APP).is_err()
+        );
+    }
+
+    #[test]
+    fn dangerous_schemes_rejected() {
+        assert!(validate_redirect_url(Some("javascript:alert(1)"), APP).is_err());
+        assert!(validate_redirect_url(Some("data:text/html,x"), APP).is_err());
+        assert!(validate_redirect_url(Some("file:///etc/passwd"), APP).is_err());
+    }
+
+    #[test]
+    fn malformed_rejected() {
+        assert!(validate_redirect_url(Some("not a url at all"), APP).is_err());
+    }
 }

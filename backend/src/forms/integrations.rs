@@ -103,6 +103,110 @@ fn require_email<'a>(p: &'a SubmissionPayload<'_>) -> Result<&'a str, Integratio
     ))
 }
 
+/// SSRF guard for admin-supplied webhook URLs (Zapier, Make, and any
+/// future "custom webhook" adapter).
+///
+/// Rules:
+/// * Scheme must be `https` in production-like deploys; `http` is rejected
+///   because the payload includes an HMAC secret and request bodies that
+///   must not leak over cleartext. A tiny DEV escape hatch (`SWINGS_ALLOW_HTTP_WEBHOOKS=1`)
+///   is honoured so local Make/Ngrok tunnels still work.
+/// * Host must be present, non-empty, and not resolve to a literal IP in
+///   a private / loopback / link-local / unique-local range. This blocks
+///   the classic SSRF targets (`127.0.0.1`, `169.254.169.254` AWS/GCP
+///   metadata, `10.*`, `192.168.*`, `fc00::/7`).
+/// * The URL itself must parse.
+///
+/// We deliberately keep this at the *literal* layer (no DNS resolution at
+/// check time) — that avoids TOCTOU with DNS rebinding, which would need
+/// a custom `reqwest` connector to do correctly. The typical abuse path
+/// (admin pastes `http://169.254.169.254/…` or `http://localhost/admin`)
+/// is caught here; a DNS-rebinding attack on a domain name we'd allow is
+/// out of scope and tracked as future work in `AUDIT.md`.
+fn validate_outbound_webhook_url(raw: &str) -> Result<(), IntegrationError> {
+    let parsed = url::Url::parse(raw)
+        .map_err(|e| IntegrationError::Permanent(format!("webhook url parse: {e}")))?;
+
+    let allow_http = std::env::var("SWINGS_ALLOW_HTTP_WEBHOOKS")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false);
+    let scheme_ok = parsed.scheme() == "https" || (allow_http && parsed.scheme() == "http");
+    if !scheme_ok {
+        return Err(IntegrationError::Permanent(format!(
+            "webhook scheme `{}` not allowed (must be https)",
+            parsed.scheme()
+        )));
+    }
+
+    let host = parsed
+        .host_str()
+        .ok_or_else(|| IntegrationError::Permanent("webhook url missing host".into()))?;
+    if host.is_empty() {
+        return Err(IntegrationError::Permanent("webhook host is empty".into()));
+    }
+
+    // `url::Url::host_str()` returns IPv6 hosts wrapped in brackets
+    // (`[::1]`). `IpAddr::from_str` doesn't accept the bracketed form, so
+    // we strip them before attempting to parse. Literal IPs are easy to
+    // inspect; hostnames are left to DNS, with the caveat in the doc-comment.
+    let naked = host.trim_start_matches('[').trim_end_matches(']');
+    if let Ok(ip) = naked.parse::<std::net::IpAddr>() {
+        if is_forbidden_ip(&ip) {
+            return Err(IntegrationError::Permanent(format!(
+                "webhook host `{host}` is in a private or loopback range"
+            )));
+        }
+    } else {
+        // Block the single-label trap case (`localhost`, `metadata`, etc.)
+        // that `url::Url` accepts as a valid host but would resolve to a
+        // forbidden target on most dev machines.
+        if is_forbidden_hostname(host) {
+            return Err(IntegrationError::Permanent(format!(
+                "webhook hostname `{host}` is not allowed"
+            )));
+        }
+    }
+
+    Ok(())
+}
+
+fn is_forbidden_ip(ip: &std::net::IpAddr) -> bool {
+    match ip {
+        std::net::IpAddr::V4(v4) => {
+            v4.is_loopback()
+                || v4.is_private()
+                || v4.is_link_local()
+                || v4.is_broadcast()
+                || v4.is_unspecified()
+                || v4.is_documentation()
+                || v4.octets()[0] == 0
+        }
+        std::net::IpAddr::V6(v6) => {
+            v6.is_loopback()
+                || v6.is_unspecified()
+                || v6.is_multicast()
+                // Unique-local fc00::/7 and link-local fe80::/10.
+                || (v6.segments()[0] & 0xfe00) == 0xfc00
+                || (v6.segments()[0] & 0xffc0) == 0xfe80
+        }
+    }
+}
+
+fn is_forbidden_hostname(host: &str) -> bool {
+    let lc = host.to_ascii_lowercase();
+    matches!(
+        lc.as_str(),
+        "localhost"
+            | "metadata"
+            | "metadata.google.internal"
+            | "kubernetes"
+            | "kubernetes.default"
+            | "kubernetes.default.svc"
+            | "kubernetes.default.svc.cluster.local"
+    ) || lc.ends_with(".local")
+        || lc.ends_with(".internal")
+}
+
 fn extract_first_last(data: &serde_json::Value) -> (Option<String>, Option<String>) {
     let take = |k: &str| -> Option<String> {
         data.as_object()
@@ -350,6 +454,12 @@ async fn webhook_post(
     signing_secret: Option<&SealedCredential>,
     p: &SubmissionPayload<'_>,
 ) -> Result<(), IntegrationError> {
+    // SSRF guard — integration URLs come from the admin UI, which means
+    // a compromised admin account (or a misconfigured field validator)
+    // could point us at `http://169.254.169.254/latest/meta-data/` or
+    // `http://localhost:5432`. Reject everything that isn't an external
+    // HTTPS endpoint before a single byte leaves the box.
+    validate_outbound_webhook_url(url)?;
     let body = serde_json::json!({
         "form_id": p.form_id,
         "submission_id": p.submission_id,
@@ -479,7 +589,15 @@ async fn google_oauth_token(service_account_json: &str) -> Result<String, Integr
     let assertion = jsonwebtoken::encode(&Header::new(Algorithm::RS256), &claims, &key)
         .map_err(|e| IntegrationError::Permanent(format!("sheets JWT encode failed: {e}")))?;
 
-    let client = reqwest::Client::new();
+    // Outbound HTTP must not be unbounded — `reqwest::Client::new()` has no
+    // connect / read / total timeout, so a hung TLS handshake with Google
+    // would pin a worker forever. 5s connect / 15s total mirrors the Resend
+    // client shape used elsewhere in the codebase.
+    let client = reqwest::Client::builder()
+        .connect_timeout(std::time::Duration::from_secs(5))
+        .timeout(std::time::Duration::from_secs(15))
+        .build()
+        .map_err(|e| IntegrationError::Permanent(format!("build sheets http client: {e}")))?;
     let res = client
         .post(token_uri)
         .form(&[
@@ -659,5 +777,54 @@ mod tests {
         };
         let a = adapter_for(&cfg);
         assert_eq!(a.name(), "zapier");
+    }
+
+    #[test]
+    fn ssrf_guard_allows_regular_https() {
+        assert!(
+            validate_outbound_webhook_url("https://hooks.zapier.com/hooks/catch/1/xyz").is_ok()
+        );
+        assert!(validate_outbound_webhook_url("https://hook.integromat.com/abc123").is_ok());
+    }
+
+    #[test]
+    fn ssrf_guard_rejects_cleartext_http() {
+        // Reset env to the strict default; tests running in parallel should
+        // not see `SWINGS_ALLOW_HTTP_WEBHOOKS` set because our CI never
+        // exports it. Defensive: read + restore if present.
+        let prev = std::env::var("SWINGS_ALLOW_HTTP_WEBHOOKS").ok();
+        std::env::remove_var("SWINGS_ALLOW_HTTP_WEBHOOKS");
+        let err = validate_outbound_webhook_url("http://hooks.zapier.com/hooks/catch/1/xyz")
+            .expect_err("http should be rejected");
+        assert!(matches!(err, IntegrationError::Permanent(_)));
+        if let Some(v) = prev {
+            std::env::set_var("SWINGS_ALLOW_HTTP_WEBHOOKS", v);
+        }
+    }
+
+    #[test]
+    fn ssrf_guard_rejects_metadata_and_loopback() {
+        for raw in [
+            "https://169.254.169.254/latest/meta-data/",
+            "https://127.0.0.1/",
+            "https://10.0.0.1/x",
+            "https://192.168.1.1/x",
+            "https://[::1]/x",
+            "https://localhost/x",
+            "https://foo.internal/x",
+            "https://foo.local/x",
+        ] {
+            assert!(
+                validate_outbound_webhook_url(raw).is_err(),
+                "expected rejection for {raw}"
+            );
+        }
+    }
+
+    #[test]
+    fn ssrf_guard_rejects_bad_scheme() {
+        assert!(validate_outbound_webhook_url("file:///etc/passwd").is_err());
+        assert!(validate_outbound_webhook_url("ftp://example.com/x").is_err());
+        assert!(validate_outbound_webhook_url("gopher://example.com/x").is_err());
     }
 }

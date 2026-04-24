@@ -112,3 +112,51 @@ printpdf = "0.7"
 # Mock HTTP server for provider tests. Pinned to 0.6 (hyper 1 / rustls) to
 # match reqwest 0.12's transport stack so the TLS runtime doesn't fork.
 wiremock = "0.6"
+
+# ──────────────────────────────────────────────────────────────────────────
+# Release profile
+#
+# We ship a single static binary to production, so CPU-time-at-runtime and
+# container image size both matter more than compile time. The settings
+# below are the pragmatic-but-safe defaults used across the Rust server
+# ecosystem (Ruff, Tokio examples, axum production templates):
+#
+#   * `lto = "thin"`    — ~5-15 % runtime speedup on typical axum workloads
+#                         with a far smaller compile-time hit than "fat".
+#   * `codegen-units=1` — lets the optimiser see the whole crate graph at
+#                         once. Combined with thin LTO this is the top-end
+#                         of what's worth doing before tuning PGO.
+#   * `strip = "symbols"` — removes debug symbols from the final binary
+#                         (~30-50 % size reduction on release builds).
+#                         `panic = "abort"` would be the next step but we
+#                         intentionally keep unwind so axum error handlers
+#                         can surface a 500 and keep the process alive.
+#   * `opt-level = 3`   — default for release, called out here so the intent
+#                         is obvious on a drive-by read.
+#   * `overflow-checks = false` — default for release; numerics in hot paths
+#                         are expected to use `checked_*` / `saturating_*`
+#                         explicitly when overflow is a real concern.
+# ──────────────────────────────────────────────────────────────────────────
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+debug = false
+overflow-checks = false
+
+# Keep the `dev` profile fast; we only spend compile budget on release.
+[profile.dev]
+opt-level = 0
+debug = true
+
+# `ci` profile: used by `cargo test --profile ci` to get release-like
+# behaviour without the full LTO wait. Opt-level 1 is the sweet spot for
+# test runs that need to exercise real code paths (e.g. argon2 timing,
+# sqlx prepared-statement codegen) without blowing the CI budget.
+[profile.ci]
+inherits = "release"
+lto = false
+codegen-units = 16
+opt-level = 1
+debug = false

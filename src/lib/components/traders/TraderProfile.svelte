@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Trader } from '$lib/data/traders';
 	import { modal } from '$lib/stores/modal.svelte';
+	import { safeHtml } from '$lib/utils/safeHtml';
 	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
 	import StarIcon from 'phosphor-svelte/lib/StarIcon';
 	import PulseIcon from 'phosphor-svelte/lib/PulseIcon';
@@ -44,7 +45,7 @@
 	<!-- Bio -->
 	<div class="profile__bio">
 		{#each trader.bio as paragraph (paragraph)}
-			<p class="profile__bio-text">{@html paragraph}</p>
+			<p class="profile__bio-text">{@html safeHtml(paragraph)}</p>
 		{/each}
 	</div>
 

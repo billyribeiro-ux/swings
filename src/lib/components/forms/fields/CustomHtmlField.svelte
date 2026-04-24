@@ -3,10 +3,11 @@
   but the admin builder surfaces a richer editor for this variant.
 -->
 <script lang="ts">
+	import { safeHtml } from '$lib/utils/safeHtml';
 	import type { FieldProps, FieldSchema } from '../types.ts';
 
 	const { field }: FieldProps = $props();
 	const block = $derived(field as Extract<FieldSchema, { type: 'custom_html' }>);
 </script>
 
-<div class="fm-field fm-block">{@html block.html}</div>
+<div class="fm-field fm-block">{@html safeHtml(block.html)}</div>

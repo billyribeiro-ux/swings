@@ -12,7 +12,7 @@ use validator::Validate;
 use crate::{
     db,
     error::{AppError, AppResult},
-    extractors::{AuthUser, Claims, ClientInfo},
+    extractors::{AuthUser, Claims, ClientInfo, JWT_AUDIENCE, JWT_ISSUER},
     models::*,
     notifications::send::{send_notification, Recipient, SendOptions},
     AppState,
@@ -138,6 +138,12 @@ pub(crate) async fn login(
             // shows up in the security console. Best-effort — never blocks
             // the 401 response if the audit table is unreachable.
             log_failed_login(&state, &req.email, &client, "unknown_email").await;
+            // SECURITY: run Argon2 against a fixed dummy hash so the
+            // unknown-email branch takes roughly the same wall-clock time
+            // as a valid-email-with-bad-password branch. Prevents the
+            // timing side-channel that would otherwise let an attacker
+            // enumerate registered accounts by measuring 401 latency.
+            consume_login_timing_budget();
             return Err(AppError::Unauthorized);
         }
     };
@@ -177,6 +183,33 @@ pub(crate) async fn login(
         access_token,
         refresh_token,
     }))
+}
+
+/// SECURITY: burn an Argon2 verification budget against a fixed dummy hash
+/// so the unknown-email branch of `/api/auth/login` takes a comparable amount
+/// of wall-clock time to the valid-email + bad-password branch. This closes
+/// the timing side-channel an attacker would otherwise use to enumerate
+/// registered accounts by measuring 401 response latency.
+///
+/// We generate the hash exactly once on first call (lazy), then run
+/// `verify_password` on every subsequent invocation so the cost matches
+/// a real `verify_password` call.
+fn consume_login_timing_budget() {
+    static DUMMY_HASH: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    let encoded = DUMMY_HASH.get_or_init(|| {
+        let salt = SaltString::generate(&mut OsRng);
+        Argon2::default()
+            .hash_password(b"timing-equalisation-dummy", &salt)
+            .map(|h| h.to_string())
+            // If Argon2 ever refuses to hash the fixed input on this build,
+            // fall through with an empty string; `PasswordHash::new` below
+            // will error and we skip the verify. A best-effort defence is
+            // still strictly better than none.
+            .unwrap_or_default()
+    });
+    if let Ok(parsed) = PasswordHash::new(encoded) {
+        let _ = Argon2::default().verify_password(b"not-a-real-password", &parsed);
+    }
 }
 
 /// ADM-02: best-effort write to `failed_login_attempts`.
@@ -255,6 +288,8 @@ pub(crate) async fn refresh(
         role: format!("{:?}", user.role).to_lowercase(),
         iat: now.timestamp() as usize,
         exp: (now + Duration::hours(state.config.jwt_expiration_hours)).timestamp() as usize,
+        iss: Some(JWT_ISSUER.to_string()),
+        aud: Some(JWT_AUDIENCE.to_string()),
         imp_actor: None,
         imp_actor_role: None,
         imp_session: None,
@@ -395,17 +430,19 @@ pub(crate) async fn forgot_password(
 
         db::create_password_reset_token(&state.db, user.id, &token_hash, expires_at).await?;
 
-        // Build reset URL
-        let reset_url = format!("{}/reset-password?token={}", state.config.frontend_url, raw_token);
+        let reset_url = format!(
+            "{}/reset-password?token={}",
+            state.config.frontend_url, raw_token
+        );
 
         // FDN-05: send the reset email through the notifications pipeline.
         // Failures are logged but not surfaced to the client — the response
         // is identical on success or soft-failure to avoid email enumeration.
-        tracing::info!(
-            "Password reset requested for {}. Reset URL: {}",
-            req.email,
-            reset_url
-        );
+        //
+        // SECURITY: never log the raw token, the reset URL, or the email
+        // address. Anyone with log access would otherwise be able to take
+        // over the account. Pivot back to the user via `user_id` only.
+        tracing::info!(user_id = %user.id, "password reset token issued");
         let ctx = serde_json::json!({
             "name": user.name,
             "reset_url": reset_url,
@@ -555,7 +592,10 @@ async fn issue_email_verification(state: &AppState, user: &User) -> AppResult<()
 
     db::create_email_verification_token(&state.db, user.id, &token_hash, expires_at).await?;
 
-    let verify_url = format!("{}/verify-email?token={}", state.config.frontend_url, raw_token);
+    let verify_url = format!(
+        "{}/verify-email?token={}",
+        state.config.frontend_url, raw_token
+    );
     let ctx = serde_json::json!({
         "name": user.name,
         "verify_url": verify_url,
@@ -587,6 +627,8 @@ async fn generate_tokens(state: &AppState, user: &User) -> AppResult<(String, St
         role: format!("{:?}", user.role).to_lowercase(),
         iat: now.timestamp() as usize,
         exp: (now + Duration::hours(state.config.jwt_expiration_hours)).timestamp() as usize,
+        iss: Some(JWT_ISSUER.to_string()),
+        aud: Some(JWT_AUDIENCE.to_string()),
         imp_actor: None,
         imp_actor_role: None,
         imp_session: None,
