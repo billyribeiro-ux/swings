@@ -102,6 +102,14 @@ On boot the binary will: load config, connect Postgres, apply pending
 migrations, seed the admin user, register the OpenAPI schema, spawn
 every background worker, and begin serving on `$PORT` (default `3001`).
 
+### Where admin credentials live
+
+| Environment | Where `ADMIN_EMAIL` / `ADMIN_PASSWORD` go |
+|-------------|-------------------------------------------|
+| **Local** | `backend/.env` only — file is **gitignored** (`backend/.gitignore`). Copy from `.env.example`, put your real password there. That is the normal way to work: secrets on disk for dev, never in git. |
+| **Production** | Same variable names in Railway / Render / etc. **Variables** UI — not a committed file. |
+| **Database** | After first successful seed, only `users.password_hash` exists (Argon2). Plaintext is not recoverable. Changing `.env` later does not rotate an existing admin’s password (see `db::seed_admin` `ON CONFLICT`); delete the user row or use password reset if you forgot it. |
+
 ---
 
 ## Environment variables
@@ -241,7 +249,7 @@ limiting. See [`docs/RUNBOOK.md`](../docs/RUNBOOK.md) §Idempotency.
 ## Testing
 
 ```bash
-# bring up the test DB (port 5433, separate from the dev DB on 5432)
+# bring up the test DB (port 5433, separate from the dev DB on host 5434)
 docker compose -f docker-compose.yml up -d db
 
 # run the suite

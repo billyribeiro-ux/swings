@@ -8,6 +8,7 @@ use axum::{
 use hmac::{Hmac, Mac};
 use rand::Rng;
 use sha2::Sha256;
+use uuid::Uuid;
 
 use crate::{
     db,
@@ -219,6 +220,10 @@ async fn handle_subscription_update(
         chrono::DateTime::from_timestamp(sub["current_period_end"].as_i64().unwrap_or(0), 0)
             .unwrap_or_default();
 
+    let pricing_plan_id = sub["metadata"]["swings_pricing_plan_id"]
+        .as_str()
+        .and_then(|s| Uuid::parse_str(s).ok());
+
     // Find user by stripe customer id
     if let Some(user) = db::find_user_by_stripe_customer(&state.db, customer_id).await? {
         db::upsert_subscription(
@@ -230,6 +235,7 @@ async fn handle_subscription_update(
             &status,
             period_start,
             period_end,
+            pricing_plan_id,
         )
         .await?;
     }
@@ -255,6 +261,7 @@ async fn handle_subscription_deleted(
             &SubscriptionStatus::Canceled,
             existing.current_period_start,
             existing.current_period_end,
+            existing.pricing_plan_id,
         )
         .await?;
 
@@ -319,6 +326,7 @@ async fn handle_checkout_completed(
             &SubscriptionStatus::Active,
             now,
             now + chrono::Duration::days(30),
+            None,
         )
         .await?;
 

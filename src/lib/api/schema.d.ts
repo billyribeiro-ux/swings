@@ -1203,6 +1203,22 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/pricing/plans/price-log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["admin_plan_price_change_log"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/pricing/plans/{id}": {
         parameters: {
             query?: never;
@@ -2354,6 +2370,21 @@ export type components = {
             /** Format: int64 */
             total_enrollments: number;
             recent_members: components["schemas"]["UserResponse"][];
+        };
+        AdminStripeRolloutFailure: {
+            stripe_subscription_id: string;
+            /** Format: uuid */
+            user_id: string;
+            error: string;
+        };
+        AdminStripeRolloutSummary: {
+            targeted: number;
+            succeeded: number;
+            failed: components["schemas"]["AdminStripeRolloutFailure"][];
+        };
+        /** @description Response for admin plan update — catalog row plus optional Stripe rollout stats. */
+        AdminUpdatePricingPlanResponse: components["schemas"]["PricingPlan"] & {
+            stripe_rollout?: null | components["schemas"]["AdminStripeRolloutSummary"];
         };
         /** @description Materialised allowlist entry as returned by the admin CRUD endpoints. */
         AllowlistEntry: {
@@ -4273,6 +4304,35 @@ export type components = {
             /** Format: date-time */
             updated_at: string;
         };
+        PricingPlanAmountChangeLogEntry: {
+            /** Format: uuid */
+            id: string;
+            plan_name: string;
+            /** Format: int32 */
+            old_amount_cents: number;
+            /** Format: int32 */
+            new_amount_cents: number;
+            /** Format: date-time */
+            changed_at: string;
+            changed_by: string;
+        };
+        /** @description Optional Stripe rollout payload on `PUT /api/admin/pricing/plans/{id}`. */
+        PricingStripeRollout: {
+            /**
+             * @description When `true`, after the catalog row is persisted the API updates each
+             *     targeted Stripe subscription’s primary line item to the new amount or
+             *     `stripe_price_id`. Requires an `Idempotency-Key` request header.
+             * @default false
+             */
+            push_to_stripe_subscriptions: boolean;
+            /** @default linked_subscriptions_only */
+            audience: components["schemas"]["PricingStripeRolloutAudience"];
+        };
+        /**
+         * @description Controls whether saving a catalog plan also mutates existing Stripe subscriptions.
+         * @enum {string}
+         */
+        PricingStripeRolloutAudience: "linked_subscriptions_only" | "linked_and_unlinked_legacy_same_cadence";
         /**
          * @description `products` row. Money fields are `BIGINT` cents; translate via
          *     [`crate::common::money::Money::cents`] when arithmetic is needed.
@@ -4599,6 +4659,12 @@ export type components = {
             current_period_start: string;
             /** Format: date-time */
             current_period_end: string;
+            /**
+             * Format: uuid
+             * @description When set, this subscription was purchased from a specific `pricing_plans`
+             *     catalog row (via Checkout metadata → Stripe subscription metadata → webhooks).
+             */
+            pricing_plan_id?: string | null;
             /** Format: date-time */
             created_at: string;
             /** Format: date-time */
@@ -4897,6 +4963,7 @@ export type components = {
             is_active?: boolean | null;
             /** Format: int32 */
             sort_order?: number | null;
+            stripe_rollout?: null | components["schemas"]["PricingStripeRollout"];
         };
         /**
          * @description Admin-only payload for `PUT /api/admin/products/{id}`. Every field is
@@ -8618,6 +8685,33 @@ export interface operations {
             };
         };
     };
+    admin_plan_price_change_log: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Recent amount_cents changes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PricingPlanAmountChangeLogEntry"][];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     admin_update_plan: {
         parameters: {
             query?: never;
@@ -8640,7 +8734,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PricingPlan"];
+                    "application/json": components["schemas"]["AdminUpdatePricingPlanResponse"];
                 };
             };
             /** @description Forbidden */

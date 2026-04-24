@@ -36,6 +36,8 @@ export interface Subscription {
 	status: 'active' | 'canceled' | 'past_due' | 'trialing' | 'unpaid';
 	current_period_start: string;
 	current_period_end: string;
+	/** Present when Stripe subscription metadata includes `swings_pricing_plan_id`. */
+	pricing_plan_id?: string | null;
 	created_at: string;
 	updated_at: string;
 }
@@ -527,6 +529,15 @@ export interface CreatePricingPlanPayload {
 	sort_order?: number;
 }
 
+export type PricingStripeRolloutAudience =
+	| 'linked_subscriptions_only'
+	| 'linked_and_unlinked_legacy_same_cadence';
+
+export interface PricingStripeRollout {
+	push_to_stripe_subscriptions: boolean;
+	audience: PricingStripeRolloutAudience;
+}
+
 export interface UpdatePricingPlanPayload {
 	name?: string;
 	slug?: string;
@@ -543,7 +554,25 @@ export interface UpdatePricingPlanPayload {
 	is_popular?: boolean;
 	is_active?: boolean;
 	sort_order?: number;
+	stripe_rollout?: PricingStripeRollout;
 }
+
+export interface AdminStripeRolloutFailure {
+	stripe_subscription_id: string;
+	user_id: string;
+	error: string;
+}
+
+export interface AdminStripeRolloutSummary {
+	targeted: number;
+	succeeded: number;
+	failed: AdminStripeRolloutFailure[];
+}
+
+/** `PUT /api/admin/pricing/plans/{id}` — catalog row plus optional Stripe rollout stats */
+export type AdminUpdatePricingPlanResponse = PricingPlan & {
+	stripe_rollout?: AdminStripeRolloutSummary | null;
+};
 
 export interface PricingChangeLog {
 	id: string;

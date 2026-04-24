@@ -4399,6 +4399,37 @@
         ]
       }
     },
+    "/api/admin/pricing/plans/price-log": {
+      "get": {
+        "tags": [
+          "pricing"
+        ],
+        "operationId": "admin_plan_price_change_log",
+        "responses": {
+          "200": {
+            "description": "Recent amount_cents changes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PricingPlanAmountChangeLogEntry"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/admin/pricing/plans/{id}": {
       "put": {
         "tags": [
@@ -4433,7 +4464,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PricingPlan"
+                  "$ref": "#/components/schemas/AdminUpdatePricingPlanResponse"
                 }
               }
             }
@@ -7514,6 +7545,73 @@
             }
           }
         }
+      },
+      "AdminStripeRolloutFailure": {
+        "type": "object",
+        "required": [
+          "stripe_subscription_id",
+          "user_id",
+          "error"
+        ],
+        "properties": {
+          "stripe_subscription_id": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "error": {
+            "type": "string"
+          }
+        }
+      },
+      "AdminStripeRolloutSummary": {
+        "type": "object",
+        "required": [
+          "targeted",
+          "succeeded",
+          "failed"
+        ],
+        "properties": {
+          "targeted": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "succeeded": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "failed": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminStripeRolloutFailure"
+            }
+          }
+        }
+      },
+      "AdminUpdatePricingPlanResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PricingPlan"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "stripe_rollout": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AdminStripeRolloutSummary"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "description": "Response for admin plan update — catalog row plus optional Stripe rollout stats."
       },
       "AllowlistEntry": {
         "type": "object",
@@ -13458,6 +13556,68 @@
           }
         }
       },
+      "PricingPlanAmountChangeLogEntry": {
+        "type": "object",
+        "required": [
+          "id",
+          "plan_name",
+          "old_amount_cents",
+          "new_amount_cents",
+          "changed_at",
+          "changed_by"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "plan_name": {
+            "type": "string"
+          },
+          "old_amount_cents": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "new_amount_cents": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "changed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "changed_by": {
+            "type": "string"
+          }
+        }
+      },
+      "PricingStripeRollout": {
+        "type": "object",
+        "description": "Optional Stripe rollout payload on `PUT /api/admin/pricing/plans/{id}`.",
+        "properties": {
+          "push_to_stripe_subscriptions": {
+            "type": "boolean",
+            "description": "When `true`, after the catalog row is persisted the API updates each\ntargeted Stripe subscription’s primary line item to the new amount or\n`stripe_price_id`. Requires an `Idempotency-Key` request header.",
+            "default": false
+          },
+          "audience": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PricingStripeRolloutAudience"
+              }
+            ],
+            "default": "linked_subscriptions_only"
+          }
+        }
+      },
+      "PricingStripeRolloutAudience": {
+        "type": "string",
+        "description": "Controls whether saving a catalog plan also mutates existing Stripe subscriptions.",
+        "enum": [
+          "linked_subscriptions_only",
+          "linked_and_unlinked_legacy_same_cadence"
+        ]
+      },
       "Product": {
         "type": "object",
         "description": "`products` row. Money fields are `BIGINT` cents; translate via\n[`crate::common::money::Money::cents`] when arithmetic is needed.",
@@ -14376,6 +14536,14 @@
           "current_period_end": {
             "type": "string",
             "format": "date-time"
+          },
+          "pricing_plan_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "When set, this subscription was purchased from a specific `pricing_plans`\ncatalog row (via Checkout metadata → Stripe subscription metadata → webhooks)."
           },
           "created_at": {
             "type": "string",
@@ -15509,6 +15677,16 @@
               "null"
             ],
             "format": "int32"
+          },
+          "stripe_rollout": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PricingStripeRollout"
+              }
+            ]
           }
         }
       },

@@ -12,11 +12,15 @@ node_modules
 .DS_Store
 Thumbs.db
 
-# Env
+# Env (never commit real secrets — templates stay as *.example only)
 .env
 .env.*
 !.env.example
 !.env.test
+# Rust API local config (also listed in backend/.gitignore — keep both)
+backend/.env
+backend/.env.*
+!backend/.env.example
 
 # Vite
 vite.config.js.timestamp-*

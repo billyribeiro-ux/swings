@@ -20,14 +20,13 @@ use swings_api::{
     observability, openapi, services, AppState,
 };
 
-/// `dotenvy::dotenv()` only reads `./.env` from the process CWD. When invoked as
-/// `cargo run --manifest-path backend/Cargo.toml` from the repo root, CWD is the root and env
-/// vars in `backend/.env` are missed — try that path as a fallback.
+/// Load `backend/.env` regardless of process CWD (`cargo run` from `backend/`, from the
+/// monorepo root with `--manifest-path`, or from an IDE that sets CWD to the workspace root).
+/// Then load `./.env` from CWD so local overrides still work.
 fn load_dotenv() {
-    dotenvy::dotenv().ok();
-    if std::env::var("DATABASE_URL").is_err() {
-        let _ = dotenvy::from_filename("backend/.env");
-    }
+    let backend_env = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(".env");
+    let _ = dotenvy::from_path(&backend_env);
+    let _ = dotenvy::dotenv();
 }
 
 #[tokio::main]

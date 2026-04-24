@@ -1,6 +1,6 @@
 # Documentation index
 
-> **Last revised:** 2026-04-19
+> **Last revised:** 2026-04-24
 > **Maintainer:** swings core team
 > **Convention:** every document in this tree begins with a `Last revised`
 > header. If you ship a behavioural change, bump that header in the same
@@ -22,6 +22,7 @@ The root [`README.md`](../README.md) is the entry point and links here.
 | [`ci.md`](./ci.md) | What CI runs, why each check exists, and how to debug a red build. | Anyone fighting a CI failure |
 | [`google-tracking-setup-guide.md`](./google-tracking-setup-guide.md) | GA4 + GTM + Search Console setup for the SvelteKit app. | Marketing / data |
 | [`stripe-local-testing.md`](./stripe-local-testing.md) | Test-mode keys, `stripe listen`, DB price IDs, test cards, signup + checkout E2E on localhost. | Developers |
+| [`stripe-pricing-models.md`](./stripe-pricing-models.md) | Stripe Price IDs vs DB-driven `price_data`: pros/cons, enterprise norms, and Swings setup for each. | Engineers, RevOps |
 
 ---
 

@@ -2,9 +2,11 @@
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import type {
+		AdminUpdatePricingPlanResponse,
 		CreatePricingPlanPayload,
 		PricingPlan,
 		PricingPlanPriceLogEntry,
+		PricingStripeRolloutAudience,
 		UpdatePricingPlanPayload
 	} from '$lib/api/types';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
@@ -25,6 +27,7 @@
 	let editingId = $state<string | null>(null);
 	let showNewForm = $state(false);
 	let logOpen = $state(false);
+	let lastStripeRolloutSummary = $state<string | null>(null);
 
 	let editDraft = $state<{
 		name: string;
@@ -33,13 +36,17 @@
 		features: string;
 		trial_days: string;
 		stripe_price_id: string;
+		push_to_stripe_subscribers: boolean;
+		rollout_audience: PricingStripeRolloutAudience;
 	}>({
 		name: '',
 		amount_dollars: '',
 		interval: 'month',
 		features: '',
 		trial_days: '0',
-		stripe_price_id: ''
+		stripe_price_id: '',
+		push_to_stripe_subscribers: false,
+		rollout_audience: 'linked_subscriptions_only'
 	});
 
 	let newPlan = $state<{
@@ -61,7 +68,7 @@
 	async function loadPlans() {
 		loading = true;
 		try {
-			plans = await api.get<PricingPlan[]>('/api/admin/subscriptions/plans');
+			plans = await api.get<PricingPlan[]>('/api/admin/pricing/plans');
 		} catch {
 			plans = [];
 		} finally {
@@ -71,7 +78,7 @@
 
 	async function loadPriceLog() {
 		try {
-			priceLog = await api.get<PricingPlanPriceLogEntry[]>('/api/admin/subscriptions/plans/price-log');
+			priceLog = await api.get<PricingPlanPriceLogEntry[]>('/api/admin/pricing/plans/price-log');
 		} catch {
 			priceLog = [];
 		}
@@ -84,13 +91,16 @@
 
 	function startEdit(plan: PricingPlan) {
 		editingId = plan.id;
+		lastStripeRolloutSummary = null;
 		editDraft = {
 			name: plan.name,
 			amount_dollars: (plan.amount_cents / 100).toFixed(2),
 			interval: plan.interval === 'year' ? 'year' : 'month',
 			features: plan.features.join('\n'),
 			trial_days: String(plan.trial_days),
-			stripe_price_id: plan.stripe_price_id ?? ''
+			stripe_price_id: plan.stripe_price_id ?? '',
+			push_to_stripe_subscribers: false,
+			rollout_audience: 'linked_subscriptions_only'
 		};
 	}
 
@@ -100,6 +110,7 @@
 
 	async function saveEdit(planId: string) {
 		saving = planId;
+		lastStripeRolloutSummary = null;
 		try {
 			const payload: UpdatePricingPlanPayload = {
 				name: editDraft.name,
@@ -109,7 +120,32 @@
 				trial_days: parseInt(editDraft.trial_days) || 0,
 				stripe_price_id: editDraft.stripe_price_id
 			};
-			await api.put(`/api/admin/subscriptions/plans/${planId}`, payload);
+			if (editDraft.push_to_stripe_subscribers) {
+				payload.stripe_rollout = {
+					push_to_stripe_subscriptions: true,
+					audience: editDraft.rollout_audience
+				};
+			}
+			const fetchOpts =
+				editDraft.push_to_stripe_subscribers
+					? { headers: { 'Idempotency-Key': crypto.randomUUID() } }
+					: undefined;
+			const res = await api.put<AdminUpdatePricingPlanResponse>(
+				`/api/admin/pricing/plans/${planId}`,
+				payload,
+				fetchOpts
+			);
+			if (res.stripe_rollout) {
+				const r = res.stripe_rollout;
+				const failPreview = r.failed
+					.slice(0, 3)
+					.map((f) => `${f.stripe_subscription_id}: ${f.error}`)
+					.join(' · ');
+				const more = r.failed.length > 3 ? ` (+${r.failed.length - 3} more)` : '';
+				lastStripeRolloutSummary = `Stripe rollout: ${r.succeeded}/${r.targeted} succeeded.${
+					r.failed.length ? ` Failures: ${failPreview}${more}` : ''
+				}`;
+			}
 			await loadPlans();
 			await loadPriceLog();
 			editingId = null;
@@ -131,7 +167,7 @@
 				trial_days: parseInt(newPlan.trial_days) || 0,
 				stripe_price_id: newPlan.stripe_price_id
 			};
-			await api.post('/api/admin/subscriptions/plans', payload);
+			await api.post('/api/admin/pricing/plans', payload);
 			await loadPlans();
 			showNewForm = false;
 			newPlan = { name: '', amount_dollars: '', interval: 'month', features: '', trial_days: '0', stripe_price_id: '' };
@@ -176,6 +212,10 @@
 			<PlusIcon size={16} weight="bold" /> Add Plan
 		</button>
 	</div>
+
+	{#if lastStripeRolloutSummary}
+		<p class="rollout-banner" role="status">{lastStripeRolloutSummary}</p>
+	{/if}
 
 	{#if showNewForm}
 		<div class="plan-card plan-card--form">
@@ -273,6 +313,39 @@
 									<input type="text" class="field__input" bind:value={editDraft.stripe_price_id} />
 								</label>
 							</div>
+							<div class="rollout-panel">
+								<label class="rollout-panel__toggle">
+									<input type="checkbox" bind:checked={editDraft.push_to_stripe_subscribers} />
+									<span>Also update existing Stripe subscriptions after save</span>
+								</label>
+								<p class="rollout-panel__hint">
+									Requires Stripe configuration and an <code>Idempotency-Key</code> (sent automatically).
+									Only runs when you change billing fields (price, currency, interval, or Stripe price id).
+								</p>
+								{#if editDraft.push_to_stripe_subscribers}
+									<fieldset class="rollout-panel__audience">
+										<legend class="rollout-panel__legend">Which subscriptions to update</legend>
+										<label class="rollout-panel__radio">
+											<input
+												type="radio"
+												name="rollout-audience-{plan.id}"
+												value="linked_subscriptions_only"
+												bind:group={editDraft.rollout_audience}
+											/>
+											<span>Linked only (recommended) — members who checked out with this catalog plan</span>
+										</label>
+										<label class="rollout-panel__radio">
+											<input
+												type="radio"
+												name="rollout-audience-{plan.id}"
+												value="linked_and_unlinked_legacy_same_cadence"
+												bind:group={editDraft.rollout_audience}
+											/>
+											<span>Linked + legacy same cadence — also monthly/annual rows missing catalog link (use with care)</span>
+										</label>
+									</fieldset>
+								{/if}
+							</div>
 						</div>
 						<div class="plan-card__actions">
 							<button class="btn btn--ghost" onclick={cancelEdit}>Cancel</button>
@@ -305,7 +378,7 @@
 							<p class="plan-card__trial">{plan.trial_days}-day free trial</p>
 						{/if}
 						<ul class="plan-card__features">
-							{#each plan.features as feature, fi (fi)}
+							{#each plan.features as feature, fi (`${plan.id}-${fi}-${feature}`)}
 								<li class="plan-card__feature">
 									<CheckCircleIcon size={15} weight="fill" />
 									<span>{feature}</span>
@@ -378,6 +451,65 @@
 		transition: opacity var(--duration-200) var(--ease-out), transform var(--duration-200) var(--ease-out);
 	}
 	.plans-page__add-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+	.rollout-banner {
+		font-size: var(--fs-sm);
+		color: var(--color-grey-200);
+		background: rgba(15, 164, 175, 0.08);
+		border: 1px solid rgba(15, 164, 175, 0.25);
+		border-radius: var(--radius-lg);
+		padding: 0.75rem 1rem;
+		margin-bottom: 1rem;
+	}
+
+	.rollout-panel {
+		margin-top: 0.5rem;
+		padding: 0.75rem;
+		border-radius: var(--radius-md);
+		background: rgba(0, 0, 0, 0.15);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+	}
+	.rollout-panel__toggle {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.5rem;
+		font-size: var(--fs-sm);
+		color: var(--color-grey-200);
+		cursor: pointer;
+	}
+	.rollout-panel__toggle input { margin-top: 0.2rem; }
+	.rollout-panel__hint {
+		font-size: var(--fs-2xs);
+		color: var(--color-grey-500);
+		margin: 0.4rem 0 0 1.5rem;
+		line-height: 1.4;
+	}
+	.rollout-panel__hint code {
+		font-size: 0.85em;
+		color: var(--color-teal);
+	}
+	.rollout-panel__audience {
+		border: none;
+		margin: 0.75rem 0 0;
+		padding: 0 0 0 1.5rem;
+	}
+	.rollout-panel__legend {
+		font-size: var(--fs-xs);
+		font-weight: var(--w-semibold);
+		color: var(--color-grey-400);
+		padding: 0;
+		margin-bottom: 0.35rem;
+	}
+	.rollout-panel__radio {
+		display: flex;
+		gap: 0.45rem;
+		align-items: flex-start;
+		font-size: var(--fs-xs);
+		color: var(--color-grey-300);
+		margin-top: 0.35rem;
+		cursor: pointer;
+	}
+	.rollout-panel__radio input { margin-top: 0.15rem; }
 
 	/* Grid */
 	.plans-page__grid {

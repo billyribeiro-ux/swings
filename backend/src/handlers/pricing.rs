@@ -1,5 +1,6 @@
 use axum::{
     extract::{Path, State},
+    http::HeaderMap,
     routing::{get, post, put},
     Json, Router,
 };
@@ -10,7 +11,10 @@ use crate::{
     error::{AppError, AppResult},
     extractors::{AdminUser, ClientInfo},
     models::*,
-    services::audit::audit_admin,
+    services::{
+        audit::audit_admin,
+        pricing_rollout::rollout_after_plan_save,
+    },
     AppState,
 };
 
@@ -20,6 +24,7 @@ pub fn admin_router() -> Router<AppState> {
     Router::new()
         .route("/plans", get(admin_list_plans))
         .route("/plans", post(admin_create_plan))
+        .route("/plans/price-log", get(admin_plan_price_change_log))
         .route("/plans/{id}", get(admin_get_plan))
         .route("/plans/{id}", put(admin_update_plan))
         .route("/plans/{id}", axum::routing::delete(admin_delete_plan))
@@ -206,7 +211,7 @@ async fn admin_get_plan(
     params(("id" = Uuid, Path, description = "Plan id")),
     request_body = UpdatePricingPlanRequest,
     responses(
-        (status = 200, description = "Plan updated", body = PricingPlan),
+        (status = 200, description = "Plan updated", body = AdminUpdatePricingPlanResponse),
         (status = 403, description = "Forbidden"),
         (status = 404, description = "Plan not found")
     )
@@ -215,9 +220,10 @@ pub(crate) async fn admin_update_plan(
     State(state): State<AppState>,
     admin: AdminUser,
     client: ClientInfo,
+    headers: HeaderMap,
     Path(id): Path<Uuid>,
     Json(req): Json<UpdatePricingPlanRequest>,
-) -> AppResult<Json<PricingPlan>> {
+) -> AppResult<Json<AdminUpdatePricingPlanResponse>> {
     let existing = sqlx::query_as::<_, PricingPlan>(
         r#"
         SELECT id, name, slug, description, stripe_price_id, stripe_product_id,
@@ -428,6 +434,61 @@ pub(crate) async fn admin_update_plan(
     }
 
     let changed_fields: Vec<&str> = changes.iter().map(|(f, _, _)| *f).collect();
+
+    let rollout_cfg = req.stripe_rollout.clone().unwrap_or_default();
+    let price_touching_change = changes.iter().any(|(f, _, _)| {
+        matches!(
+            *f,
+            "amount_cents"
+                | "stripe_price_id"
+                | "currency"
+                | "interval"
+                | "interval_count"
+        )
+    });
+
+    let mut stripe_rollout_summary: Option<AdminStripeRolloutSummary> = None;
+
+    if rollout_cfg.push_to_stripe_subscriptions {
+        if !price_touching_change {
+            return Err(AppError::BadRequest(
+                "stripe_rollout.push_to_stripe_subscriptions requires a billing field change \
+                 (amount_cents, stripe_price_id, currency, interval, or interval_count)"
+                    .into(),
+            ));
+        }
+        let key = headers
+            .get("idempotency-key")
+            .and_then(|v| v.to_str().ok())
+            .map(str::trim)
+            .filter(|s| (8..=255).contains(&s.len()))
+            .ok_or_else(|| {
+                AppError::BadRequest(
+                    "Idempotency-Key header (8..=255 chars) is required when pushing prices to Stripe"
+                        .into(),
+                )
+            })?;
+
+        let summary = rollout_after_plan_save(&state, &updated, rollout_cfg.audience, key).await?;
+        stripe_rollout_summary = Some(summary.clone());
+
+        audit_admin(
+            &state.db,
+            &admin,
+            &client,
+            "pricing_plan.stripe_rollout",
+            "pricing_plan",
+            updated.id,
+            serde_json::json!({
+                "slug": updated.slug,
+                "targeted": summary.targeted,
+                "succeeded": summary.succeeded,
+                "failed": summary.failed.len(),
+            }),
+        )
+        .await;
+    }
+
     audit_admin(
         &state.db,
         &admin,
@@ -443,7 +504,48 @@ pub(crate) async fn admin_update_plan(
     )
     .await;
 
-    Ok(Json(updated))
+    Ok(Json(AdminUpdatePricingPlanResponse {
+        plan: updated,
+        stripe_rollout: stripe_rollout_summary,
+    }))
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/admin/pricing/plans/price-log",
+    tag = "pricing",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Recent amount_cents changes", body = Vec<PricingPlanAmountChangeLogEntry>),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub(crate) async fn admin_plan_price_change_log(
+    State(state): State<AppState>,
+    _admin: AdminUser,
+) -> AppResult<Json<Vec<PricingPlanAmountChangeLogEntry>>> {
+    let rows = sqlx::query_as::<_, PricingPlanAmountChangeLogEntry>(
+        r#"
+        SELECT l.id,
+               p.name AS plan_name,
+               CAST(l.old_value AS INTEGER) AS old_amount_cents,
+               CAST(l.new_value AS INTEGER) AS new_amount_cents,
+               l.changed_at,
+               u.email AS changed_by
+        FROM pricing_change_log l
+        JOIN pricing_plans p ON p.id = l.plan_id
+        JOIN users u ON u.id = l.changed_by
+        WHERE l.field_changed = 'amount_cents'
+          AND l.old_value IS NOT NULL
+          AND l.new_value IS NOT NULL
+        ORDER BY l.changed_at DESC
+        LIMIT 500
+        "#,
+    )
+    .fetch_all(&state.db)
+    .await?;
+
+    Ok(Json(rows))
 }
 
 #[utoipa::path(

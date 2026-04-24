@@ -225,6 +225,9 @@ pub struct Subscription {
     pub status: SubscriptionStatus,
     pub current_period_start: DateTime<Utc>,
     pub current_period_end: DateTime<Utc>,
+    /// When set, this subscription was purchased from a specific `pricing_plans`
+    /// catalog row (via Checkout metadata → Stripe subscription metadata → webhooks).
+    pub pricing_plan_id: Option<Uuid>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -1041,6 +1044,42 @@ pub struct CreatePricingPlanRequest {
     pub sort_order: Option<i32>,
 }
 
+/// Controls whether saving a catalog plan also mutates existing Stripe subscriptions.
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, ToSchema, Eq, PartialEq, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum PricingStripeRolloutAudience {
+    /// Only rows where `subscriptions.pricing_plan_id` matches the plan being edited.
+    #[default]
+    LinkedSubscriptionsOnly,
+    /// Same as linked, plus legacy rows with `pricing_plan_id IS NULL` whose
+    /// `plan` enum (monthly vs annual) matches this catalog plan’s cadence.
+    ///
+    /// **Footgun:** if you operate more than one active monthly (or annual)
+    /// catalog plan, unlinked subscribers cannot be disambiguated — prefer
+    /// `linked_subscriptions_only` and ensure Checkout sends metadata.
+    LinkedAndUnlinkedLegacySameCadence,
+}
+
+/// Optional Stripe rollout payload on `PUT /api/admin/pricing/plans/{id}`.
+#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[serde(default)]
+pub struct PricingStripeRollout {
+    /// When `true`, after the catalog row is persisted the API updates each
+    /// targeted Stripe subscription’s primary line item to the new amount or
+    /// `stripe_price_id`. Requires an `Idempotency-Key` request header.
+    pub push_to_stripe_subscriptions: bool,
+    pub audience: PricingStripeRolloutAudience,
+}
+
+impl Default for PricingStripeRollout {
+    fn default() -> Self {
+        Self {
+            push_to_stripe_subscriptions: false,
+            audience: PricingStripeRolloutAudience::LinkedSubscriptionsOnly,
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct UpdatePricingPlanRequest {
     pub name: Option<String>,
@@ -1058,6 +1097,40 @@ pub struct UpdatePricingPlanRequest {
     pub is_popular: Option<bool>,
     pub is_active: Option<bool>,
     pub sort_order: Option<i32>,
+    pub stripe_rollout: Option<PricingStripeRollout>,
+}
+
+#[derive(Debug, Clone, Serialize, ToSchema)]
+pub struct AdminStripeRolloutFailure {
+    pub stripe_subscription_id: String,
+    pub user_id: Uuid,
+    pub error: String,
+}
+
+#[derive(Debug, Clone, Serialize, ToSchema)]
+pub struct AdminStripeRolloutSummary {
+    pub targeted: usize,
+    pub succeeded: usize,
+    pub failed: Vec<AdminStripeRolloutFailure>,
+}
+
+/// Response for admin plan update — catalog row plus optional Stripe rollout stats.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct AdminUpdatePricingPlanResponse {
+    #[serde(flatten)]
+    pub plan: PricingPlan,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stripe_rollout: Option<AdminStripeRolloutSummary>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
+pub struct PricingPlanAmountChangeLogEntry {
+    pub id: Uuid,
+    pub plan_name: String,
+    pub old_amount_cents: i32,
+    pub new_amount_cents: i32,
+    pub changed_at: DateTime<Utc>,
+    pub changed_by: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]

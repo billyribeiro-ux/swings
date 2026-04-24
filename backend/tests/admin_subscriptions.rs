@@ -47,6 +47,7 @@ async fn seed_subscription_for(app: &TestApp, user_id: Uuid) -> Uuid {
         &SubscriptionStatus::Active,
         now,
         now + Duration::days(30),
+        None,
     )
     .await
     .expect("upsert subscription");

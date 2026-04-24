@@ -80,3 +80,5 @@ For stable reporting in the Stripe Dashboard, you can still set **`stripe_price_
 ## 6. Production
 
 Use **live** keys on your hosts, register a real webhook endpoint in the Stripe Dashboard, and set `STRIPE_WEBHOOK_SECRET` to that endpoint’s signing secret. See [`docs/DEPLOYMENT.md`](./DEPLOYMENT.md).
+
+For a deeper comparison of **Stripe Price IDs** vs **DB-driven `price_data`** (pros/cons, enterprise norms, setup), see [`docs/stripe-pricing-models.md`](./stripe-pricing-models.md).

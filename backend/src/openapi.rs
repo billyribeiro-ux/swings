@@ -259,6 +259,7 @@ impl Modify for SecurityAddon {
         popups::public_submit_form,
         // Pricing
         crate::handlers::pricing::admin_create_plan,
+        crate::handlers::pricing::admin_plan_price_change_log,
         crate::handlers::pricing::admin_update_plan,
         crate::handlers::pricing::admin_delete_plan,
         crate::handlers::pricing::admin_toggle_plan,
@@ -419,6 +420,12 @@ impl Modify for SecurityAddon {
             crate::models::PricingPlan,
             crate::models::CreatePricingPlanRequest,
             crate::models::UpdatePricingPlanRequest,
+            crate::models::PricingStripeRollout,
+            crate::models::PricingStripeRolloutAudience,
+            crate::models::AdminUpdatePricingPlanResponse,
+            crate::models::AdminStripeRolloutSummary,
+            crate::models::AdminStripeRolloutFailure,
+            crate::models::PricingPlanAmountChangeLogEntry,
             // Coupons
             crate::models::DiscountType,
             crate::models::Coupon,

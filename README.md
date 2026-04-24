@@ -91,7 +91,7 @@ For the full RBAC/audit/security model, see
 ├── docs/                 # All long-form documentation (see index below)
 ├── scripts/              # Repo automation (audit dump, OpenAPI → TS, SEO check)
 ├── .github/workflows/    # CI: ci.yml, sql-lint.yml, openapi-drift.yml, security.yml
-├── docker-compose.yml    # Full local stack (api + db on :5432)
+├── docker-compose.yml    # Full local stack (api + db; Postgres on host :5434)
 ├── Dockerfile            # Single source of truth — used by Railway, Render, compose
 ├── .dockerignore         # Trims build context for the consolidated Dockerfile
 ├── render.yaml           # Render blueprint — references ./Dockerfile
@@ -125,7 +125,7 @@ pnpm install
 ### Spin up Postgres
 
 ```bash
-docker compose up -d db        # full stack DB on :5432, user/pass swings/swings_secret
+docker compose up -d db        # Postgres on host :5434→5432, user/pass swings/swings_secret
 ```
 
 Or use a local `psql` install — see `.env.example` for the expected

@@ -155,6 +155,7 @@ export const createCheckoutSession = command(
 		const { planSlug, priceId } = payload as CheckoutPayload;
 
 		let line_items: Stripe.Checkout.SessionCreateParams['line_items'];
+		let swingsPricingPlanId: string | undefined;
 
 		if (priceId) {
 			line_items = [{ price: priceId, quantity: 1 }];
@@ -165,6 +166,7 @@ export const createCheckoutSession = command(
 				error(400, 'Unknown or inactive plan');
 			}
 			line_items = lineItemsForPlan(plan);
+			swingsPricingPlanId = plan.id;
 		} else {
 			error(400, 'Pass planSlug (e.g. monthly) or priceId (price_...)');
 		}
@@ -181,6 +183,15 @@ export const createCheckoutSession = command(
 				mode: 'subscription',
 				payment_method_types: ['card'],
 				line_items,
+				...(swingsPricingPlanId
+					? {
+							subscription_data: {
+								metadata: {
+									swings_pricing_plan_id: swingsPricingPlanId
+								}
+							}
+						}
+					: {}),
 				success_url: `${appUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
 				cancel_url: `${appUrl}/pricing?canceled=true`,
 				allow_promotion_codes: true,

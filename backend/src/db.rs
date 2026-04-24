@@ -566,13 +566,23 @@ pub async fn upsert_subscription(
     status: &SubscriptionStatus,
     period_start: DateTime<Utc>,
     period_end: DateTime<Utc>,
+    pricing_plan_id: Option<Uuid>,
 ) -> Result<Subscription, sqlx::Error> {
     sqlx::query_as::<_, Subscription>(
         r#"
-        INSERT INTO subscriptions (id, user_id, stripe_customer_id, stripe_subscription_id, plan, status, current_period_start, current_period_end)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        INSERT INTO subscriptions (
+            id, user_id, stripe_customer_id, stripe_subscription_id,
+            plan, status, current_period_start, current_period_end, pricing_plan_id
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         ON CONFLICT (stripe_subscription_id)
-        DO UPDATE SET status = $6, plan = $5, current_period_start = $7, current_period_end = $8, updated_at = NOW()
+        DO UPDATE SET
+            status = EXCLUDED.status,
+            plan = EXCLUDED.plan,
+            current_period_start = EXCLUDED.current_period_start,
+            current_period_end = EXCLUDED.current_period_end,
+            pricing_plan_id = COALESCE(EXCLUDED.pricing_plan_id, subscriptions.pricing_plan_id),
+            updated_at = NOW()
         RETURNING *
         "#,
     )
@@ -584,8 +594,49 @@ pub async fn upsert_subscription(
     .bind(status)
     .bind(period_start)
     .bind(period_end)
+    .bind(pricing_plan_id)
     .fetch_one(pool)
     .await
+}
+
+/// Active or trialing subscriptions considered for a catalog price rollout.
+pub async fn list_subscriptions_for_pricing_rollout(
+    pool: &PgPool,
+    plan_id: Uuid,
+    include_legacy_same_cadence: bool,
+    cadence: &SubscriptionPlan,
+) -> Result<Vec<Subscription>, sqlx::Error> {
+    if include_legacy_same_cadence {
+        sqlx::query_as::<_, Subscription>(
+            r#"
+            SELECT *
+            FROM subscriptions
+            WHERE status IN ('active', 'trialing')
+              AND (
+                    pricing_plan_id = $1
+                 OR (pricing_plan_id IS NULL AND plan = $2)
+                  )
+            ORDER BY created_at ASC
+            "#,
+        )
+        .bind(plan_id)
+        .bind(cadence)
+        .fetch_all(pool)
+        .await
+    } else {
+        sqlx::query_as::<_, Subscription>(
+            r#"
+            SELECT *
+            FROM subscriptions
+            WHERE status IN ('active', 'trialing')
+              AND pricing_plan_id = $1
+            ORDER BY created_at ASC
+            "#,
+        )
+        .bind(plan_id)
+        .fetch_all(pool)
+        .await
+    }
 }
 
 pub async fn find_subscription_by_user(

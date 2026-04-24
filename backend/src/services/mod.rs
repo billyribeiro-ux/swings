@@ -1,5 +1,6 @@
 pub mod audit;
 pub mod audit_retention;
+pub mod pricing_rollout;
 pub mod dsar_admin;
 pub mod dsar_artifact_sweep;
 pub mod dsar_worker;
