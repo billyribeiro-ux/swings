@@ -169,7 +169,13 @@
 		<!-- Right: CTA + Mobile toggle -->
 		<div class="nav__right">
 			<div class="nav__cta-desktop">
-				<Button variant="primary" href="/pricing/monthly">Get Instant Access</Button>
+				<div class="nav__cta-row">
+					<Button variant="primary" href="/register">Get Instant Access</Button>
+					<p class="nav__cta-signin">
+						Already a member?
+						<a href="/login" class="nav__cta-signin-link" data-sveltekit-preload-data="hover">Sign in</a>
+					</p>
+				</div>
 			</div>
 
 			<!-- Mobile hamburger -->
@@ -242,10 +248,14 @@
 					class="mobile-menu__cta"
 					in:fly={{ y: 16, duration: tDur(400), delay: tDelay(130), easing: expoOut }}
 				>
-					<a href="/pricing/monthly" class="mobile-menu__cta-btn" onclick={closeAll}>
+					<a href="/register" class="mobile-menu__cta-btn" onclick={closeAll}>
 						Get Instant Access
 						<ArrowRightIcon size={16} weight="bold" />
 					</a>
+					<p class="mobile-menu__cta-sub">
+						Already a member?
+						<a href="/login" class="mobile-menu__cta-sub-link" onclick={closeAll}>Sign in</a>
+					</p>
 				</div>
 			</div>
 		</div>
@@ -702,8 +712,42 @@
 
 	@media (min-width: 640px) {
 		.nav__cta-desktop {
-			display: block;
+			display: flex;
+			align-items: center;
 		}
+	}
+
+	.nav__cta-row {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+	}
+
+	.nav__cta-signin {
+		margin: 0;
+		font-size: var(--fs-sm);
+		color: var(--color-grey-400);
+		line-height: var(--lh-snug);
+		white-space: nowrap;
+	}
+
+	.nav__cta-signin-link {
+		margin-left: 0.25rem;
+		color: var(--color-teal-light);
+		font-weight: var(--w-semibold);
+		text-decoration: none;
+	}
+
+	.nav__cta-signin-link:hover {
+		text-decoration: underline;
+	}
+
+	.nav__cta-signin-link:focus-visible {
+		outline: 2px solid var(--color-teal);
+		outline-offset: 3px;
+		border-radius: var(--radius-sm);
 	}
 
 	.nav__hamburger {
@@ -929,6 +973,24 @@
 
 	.mobile-menu__cta-btn:active {
 		transform: scale(0.98);
+	}
+
+	.mobile-menu__cta-sub {
+		margin: 0.75rem 0 0;
+		text-align: center;
+		font-size: var(--fs-sm);
+		color: var(--color-grey-400);
+	}
+
+	.mobile-menu__cta-sub-link {
+		margin-left: 0.25rem;
+		color: var(--color-teal-light);
+		font-weight: var(--w-semibold);
+		text-decoration: none;
+	}
+
+	.mobile-menu__cta-sub-link:hover {
+		text-decoration: underline;
 	}
 
 	@media (prefers-reduced-motion: reduce) {
