@@ -2,7 +2,6 @@
 	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
 	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
-	import { env } from '$env/dynamic/public';
 	import { createCheckoutSession } from '$lib/utils/checkout';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import Seo from '$lib/seo/Seo.svelte';
@@ -10,6 +9,7 @@
 	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
 	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
 	import SparkleIcon from 'phosphor-svelte/lib/SparkleIcon';
+	import { getActivePricingPlans } from '$lib/api/publicPricing';
 	import {
 		PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED,
 		PRICING_ANNUAL_SAVINGS_USD,
@@ -17,22 +17,25 @@
 		PRICING_MONTHLY_USD
 	} from '$lib/data/pricing';
 
-	const monthlyYearTotal = PRICING_MONTHLY_USD * 12;
+	let annualPriceUsd = $state(PRICING_ANNUAL_USD);
+	let annualSavingsUsd = $state(PRICING_ANNUAL_SAVINGS_USD);
+	let annualSavingsPercent = $state(PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED);
+	let monthlyYearTotal = $state(PRICING_MONTHLY_USD * 12);
 
-	const jsonLd = buildJsonLd([
-		productSchema({
-			name: 'Precision Options Signals Annual Plan',
-			description: `Weekly options watchlists with 5-7 high-probability setups. Save $${PRICING_ANNUAL_SAVINGS_USD}/year vs paying monthly.`,
-			price: String(PRICING_ANNUAL_USD),
-			path: '/pricing/annual',
-			billingPeriod: 'year'
-		})
-	]);
+	const jsonLd = $derived(
+		buildJsonLd([
+			productSchema({
+				name: 'Precision Options Signals Annual Plan',
+				description: `Weekly options watchlists with 5-7 high-probability setups. Save $${annualSavingsUsd}/year vs paying monthly.`,
+				price: String(annualPriceUsd),
+				path: '/pricing/annual',
+				billingPeriod: 'year'
+			})
+		])
+	);
 
 	let heroRef: HTMLElement | undefined = $state();
 	let isLoading = $state(false);
-
-	const annualPriceId = env.PUBLIC_STRIPE_ANNUAL_PRICE_ID || '';
 
 	onMount(() => {
 		if (!heroRef) return;
@@ -87,13 +90,39 @@
 			]);
 		}, heroRef as HTMLElement);
 
+		void (async () => {
+			try {
+				const plans = await getActivePricingPlans();
+				const monthly = plans.find((plan) => plan.slug === 'monthly');
+				const annual = plans.find((plan) => plan.slug === 'annual');
+
+				if (annual) {
+					annualPriceUsd = Math.round(annual.amount_cents / 100);
+				}
+				if (monthly) {
+					monthlyYearTotal = Math.round((monthly.amount_cents * 12) / 100);
+				}
+				if (monthly && annual && monthly.amount_cents > 0) {
+					const yearlyMonthlyCents = monthly.amount_cents * 12;
+					const savingsCents = yearlyMonthlyCents - annual.amount_cents;
+					annualSavingsUsd = Math.round(savingsCents / 100);
+					annualSavingsPercent = Math.round((savingsCents / yearlyMonthlyCents) * 100);
+				}
+			} catch {
+				annualPriceUsd = PRICING_ANNUAL_USD;
+				annualSavingsUsd = PRICING_ANNUAL_SAVINGS_USD;
+				annualSavingsPercent = PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED;
+				monthlyYearTotal = PRICING_MONTHLY_USD * 12;
+			}
+		})();
+
 		return () => ctx.revert();
 	});
 
 	async function handleCheckout() {
 		isLoading = true;
 		try {
-			await createCheckoutSession(annualPriceId);
+			await createCheckoutSession('annual');
 		} catch (error) {
 			console.error('Checkout failed:', error);
 			alert('Failed to start checkout. Please try again.');
@@ -101,21 +130,21 @@
 		}
 	}
 
-	const features = [
+	const features = $derived([
 		'Weekly Sunday night watchlist (5–7 setups)',
 		'Entry zones, profit targets, and stop losses',
 		'SMS & email alerts for every trade',
 		'Access to private Discord community',
 		'Exclusive educational content & webinars',
 		'Priority support & early access to new features',
-		`Save $${PRICING_ANNUAL_SAVINGS_USD}/year vs monthly plan`
-	];
+		`Save $${annualSavingsUsd}/year vs monthly plan`
+	]);
 </script>
 
 <Seo
 	title="Annual Plan - Precision Options Signals"
-	description={`Get weekly options watchlists for $${PRICING_ANNUAL_USD}/year. Save ${PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED}% vs paying monthly. 5-7 high-probability setups with entries, targets, and stops.`}
-	ogTitle={`Annual Plan $${PRICING_ANNUAL_USD}/yr (Save ${PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED}%) - Precision Options Signals`}
+	description={`Get weekly options watchlists for $${annualPriceUsd}/year. Save ${annualSavingsPercent}% vs paying monthly. 5-7 high-probability setups with entries, targets, and stops.`}
+	ogTitle={`Annual Plan $${annualPriceUsd}/yr (Save ${annualSavingsPercent}%) - Precision Options Signals`}
 	{jsonLd}
 />
 
@@ -130,18 +159,18 @@
 		</div>
 
 		<h1 class="price-title page-hero__title">
-			Annual Plan -- Save {PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED}%
+			Annual Plan -- Save {annualSavingsPercent}%
 		</h1>
 
 		<div class="price-amount price-hero__amount">
 			<div class="price-hero__price-row">
-				<span class="price-hero__price">{'$' + PRICING_ANNUAL_USD}</span>
+				<span class="price-hero__price">{'$' + annualPriceUsd}</span>
 				<span class="price-hero__suffix">/year</span>
 			</div>
 			<div class="price-hero__savings-badge">
 				<CheckCircleIcon size={16} weight="fill" color="#22B573" />
 				<span class="price-hero__savings-text">
-					Save {'$' + PRICING_ANNUAL_SAVINGS_USD} vs paying monthly for a year
+					Save {'$' + annualSavingsUsd} vs paying monthly for a year
 				</span>
 			</div>
 		</div>
@@ -186,13 +215,13 @@
 					<div class="comparison-card__row">
 						<span class="comparison-card__label">Annual Plan</span>
 						<span class="comparison-card__value comparison-card__value--teal"
-							>{'$' + PRICING_ANNUAL_USD}</span
+							>{'$' + annualPriceUsd}</span
 						>
 					</div>
 					<div class="comparison-card__row">
 						<span class="comparison-card__label comparison-card__label--green">You Save</span>
 						<span class="comparison-card__value comparison-card__value--green-lg"
-							>{'$' + PRICING_ANNUAL_SAVINGS_USD}</span
+							>{'$' + annualSavingsUsd}</span
 						>
 					</div>
 				</div>
@@ -211,7 +240,7 @@
 				</h2>
 
 				<p class="reveal-item page-cta__desc">
-					Get 12 months of weekly watchlists and save {'$' + PRICING_ANNUAL_SAVINGS_USD} compared to
+					Get 12 months of weekly watchlists and save {'$' + annualSavingsUsd} compared to
 					paying monthly.
 				</p>
 
@@ -220,7 +249,7 @@
 						{#if isLoading}
 							Processing...
 						{:else}
-							Start Annual Plan -- {'$' + PRICING_ANNUAL_USD}/year
+							Start Annual Plan -- {'$' + annualPriceUsd}/year
 							<ArrowRightIcon size={18} weight="bold" />
 						{/if}
 					</button>

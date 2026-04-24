@@ -1,30 +1,27 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
-	import { pricingPlans } from '$lib/data/pricing';
+	import { pricingPlans, PRICING_ANNUAL_SAVINGS_PCT_LABEL } from '$lib/data/pricing';
 	import { createCheckoutSession } from '$lib/utils/checkout';
 	import { hoverTilt } from '$lib/utils/animations';
-	import { env } from '$env/dynamic/public';
 	import { ctaImpression, trackCtaEvent } from '$lib/analytics/cta';
+	import { getActivePricingPlans } from '$lib/api/publicPricing';
 
 	let isLoading = $state<string | null>(null);
 	let hoveredCard = $state<string | null>(null);
+	let plansForDisplay = $state(pricingPlans);
 
 	function ctaIdForPlan(planId: string): string {
 		return `pricing_${planId}`;
 	}
 
-	async function handleCheckout(priceId: string, planId: string): Promise<void> {
-		if (!priceId) {
-			alert('Stripe is not configured. Please add your Stripe Price IDs to the .env file.');
-			return;
-		}
-
+	async function handleCheckout(planId: string): Promise<void> {
 		trackCtaEvent('click', ctaIdForPlan(planId));
 
 		isLoading = planId;
 		try {
-			await createCheckoutSession(priceId);
+			await createCheckoutSession(planId);
 		} catch (error) {
 			console.error('Checkout failed:', error);
 			alert('Failed to start checkout. Please try again.');
@@ -32,8 +29,38 @@
 		}
 	}
 
-	const monthlyPriceId = env.PUBLIC_STRIPE_MONTHLY_PRICE_ID || '';
-	const annualPriceId = env.PUBLIC_STRIPE_ANNUAL_PRICE_ID || '';
+	onMount(() => {
+		void (async () => {
+			try {
+				const livePlans = await getActivePricingPlans();
+				const bySlug = new Map(livePlans.map((plan) => [plan.slug, plan]));
+				const monthly = bySlug.get('monthly');
+				const annual = bySlug.get('annual');
+
+				let annualSavingsLabel = PRICING_ANNUAL_SAVINGS_PCT_LABEL;
+				if (monthly && annual && monthly.amount_cents > 0) {
+					const yearlyMonthlyCents = monthly.amount_cents * 12;
+					const savingsPct = Math.round(
+						((yearlyMonthlyCents - annual.amount_cents) / yearlyMonthlyCents) * 100
+					);
+					annualSavingsLabel = `Save ${savingsPct}%`;
+				}
+
+				plansForDisplay = pricingPlans.map((plan) => {
+					const live = bySlug.get(plan.id);
+					if (!live) return plan;
+					const amount = Math.round(live.amount_cents / 100);
+					return {
+						...plan,
+						amount,
+						savings: plan.id === 'annual' ? annualSavingsLabel : plan.savings
+					};
+				});
+			} catch {
+				plansForDisplay = pricingPlans;
+			}
+		})();
+	});
 </script>
 
 <section id="pricing" class="pricing" aria-labelledby="pricing-heading">
@@ -45,7 +72,7 @@
 			/>
 
 			<div class="pricing__grid">
-				{#each pricingPlans as plan, i (plan.id)}
+				{#each plansForDisplay as plan, i (plan.id)}
 					{@const isFeatured = plan.featured}
 					<div
 						class={[
@@ -122,8 +149,7 @@
 						<!-- CTA button -->
 						<button
 							type="button"
-							onclick={() =>
-								handleCheckout(plan.id === 'monthly' ? monthlyPriceId : annualPriceId, plan.id)}
+							onclick={() => handleCheckout(plan.id)}
 							disabled={isLoading === plan.id}
 							class={[
 								'pricing__cta',

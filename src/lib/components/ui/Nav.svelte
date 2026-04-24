@@ -271,6 +271,8 @@
 		top: 0;
 		right: 0;
 		left: 0;
+		display: flex;
+		align-items: center;
 		height: 100px;
 		z-index: var(--z-50);
 		isolation: isolate;
@@ -330,7 +332,8 @@
 	.nav__inner {
 		position: relative;
 		z-index: 1;
-		max-width: var(--container-max);
+		width: 100%;
+		max-width: none;
 		margin: 0 auto;
 		display: flex;
 		align-items: center;
@@ -353,7 +356,7 @@
 	@media (min-width: 768px) {
 		.nav__inner {
 			display: grid;
-			grid-template-columns: auto minmax(0, 1fr) auto;
+			grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
 			column-gap: 1rem;
 		}
 	}
@@ -371,6 +374,8 @@
 		z-index: calc(var(--z-10) + 1);
 		display: flex;
 		align-items: center;
+		justify-self: start;
+		flex-shrink: 0;
 		gap: 0.125rem;
 		font-family: var(--font-heading);
 		font-size: 1.25rem;
@@ -716,6 +721,7 @@
 		z-index: calc(var(--z-10) + 1);
 		display: flex;
 		align-items: center;
+		flex-shrink: 0;
 		gap: 0.75rem;
 	}
 
@@ -756,22 +762,23 @@
 		font-weight: var(--w-semibold);
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
-		color: var(--color-grey-500);
+		color: rgba(255, 255, 255, 0.72);
 		line-height: 1;
 		white-space: nowrap;
+		transform: translateY(-2px);
 	}
 
 	.nav__cta-signin-button {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		min-height: 2.25rem;
-		padding: 0.45rem 0.95rem;
+		min-height: 3.1875rem;
+		padding: 0.62rem 1.75rem;
 		border-radius: var(--radius-full);
 		border: 1px solid rgba(94, 234, 212, 0.38);
 		background: linear-gradient(145deg, rgba(15, 164, 175, 0.16), rgba(94, 234, 212, 0.24));
 		color: var(--color-white);
-		font-size: var(--fs-sm);
+		font-size: 1rem;
 		font-weight: var(--w-semibold);
 		text-decoration: none;
 		transition:

@@ -2,7 +2,6 @@
 	import { onMount } from 'svelte';
 	import { gsap } from 'gsap';
 	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
-	import { env } from '$env/dynamic/public';
 	import { createCheckoutSession } from '$lib/utils/checkout';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import Seo from '$lib/seo/Seo.svelte';
@@ -11,6 +10,7 @@
 	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
 	import CurrencyDollarIcon from 'phosphor-svelte/lib/CurrencyDollarIcon';
 	import { PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED, PRICING_MONTHLY_USD } from '$lib/data/pricing';
+	import { getActivePricingPlans } from '$lib/api/publicPricing';
 
 	const jsonLd = buildJsonLd([
 		productSchema({
@@ -25,8 +25,8 @@
 
 	let heroRef: HTMLElement | undefined = $state();
 	let isLoading = $state(false);
-
-	const monthlyPriceId = env.PUBLIC_STRIPE_MONTHLY_PRICE_ID || '';
+	let monthlyPriceUsd = $state(PRICING_MONTHLY_USD);
+	let annualSavingsPercent = $state(PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED);
 
 	onMount(() => {
 		if (!heroRef) return;
@@ -81,13 +81,34 @@
 			]);
 		}, heroRef as HTMLElement);
 
+		void (async () => {
+			try {
+				const plans = await getActivePricingPlans();
+				const monthly = plans.find((plan) => plan.slug === 'monthly');
+				const annual = plans.find((plan) => plan.slug === 'annual');
+
+				if (monthly) {
+					monthlyPriceUsd = Math.round(monthly.amount_cents / 100);
+				}
+				if (monthly && annual && monthly.amount_cents > 0) {
+					const yearlyMonthlyCents = monthly.amount_cents * 12;
+					annualSavingsPercent = Math.round(
+						((yearlyMonthlyCents - annual.amount_cents) / yearlyMonthlyCents) * 100
+					);
+				}
+			} catch {
+				monthlyPriceUsd = PRICING_MONTHLY_USD;
+				annualSavingsPercent = PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED;
+			}
+		})();
+
 		return () => ctx.revert();
 	});
 
 	async function handleCheckout() {
 		isLoading = true;
 		try {
-			await createCheckoutSession(monthlyPriceId);
+			await createCheckoutSession('monthly');
 		} catch (error) {
 			console.error('Checkout failed:', error);
 			alert('Failed to start checkout. Please try again.');
@@ -126,7 +147,7 @@
 
 		<div class="price-amount price-hero__amount">
 			<div class="price-hero__price-row">
-				<span class="price-hero__price">{'$' + PRICING_MONTHLY_USD}</span>
+				<span class="price-hero__price">{'$' + monthlyPriceUsd}</span>
 				<span class="price-hero__suffix">/month</span>
 			</div>
 			<p class="price-hero__note">Billed monthly. Cancel anytime.</p>
@@ -172,13 +193,13 @@
 						{#if isLoading}
 							Processing...
 						{:else}
-							Start Monthly Plan -- {'$' + PRICING_MONTHLY_USD}/mo
+							Start Monthly Plan -- {'$' + monthlyPriceUsd}/mo
 							<ArrowRightIcon size={18} weight="bold" />
 						{/if}
 					</button>
 
 					<a href="/pricing/annual" class="page-cta__link">
-						View Annual Plan (Save {PRICING_ANNUAL_SAVINGS_PERCENT_ROUNDED}%)
+						View Annual Plan (Save {annualSavingsPercent}%)
 						<ArrowRightIcon size={14} weight="bold" />
 					</a>
 				</div>
