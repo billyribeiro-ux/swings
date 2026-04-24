@@ -2,27 +2,18 @@
  * Hosted Stripe Checkout — thin client wrapper over the `createCheckoutSession`
  * remote command (`$routes/api/checkout.remote.ts`).
  *
- * Intentionally does not import `@stripe/stripe-js` so marketing pages avoid
- * loading `js.stripe.com` (and its deprecated `unload` listeners) until real
- * Elements usage exists. The remote call returns the Session URL and this
- * helper navigates the browser to it.
+ * Pass a **plan slug** (e.g. `monthly`, `annual`); the server loads active plans
+ * from the Rust API and builds the Stripe session (reuses `stripe_price_id` from
+ * the DB or inline `price_data` when unset — no env `price_` wiring required).
  */
 import { createCheckoutSession as createCheckoutSessionRemote } from '../../routes/api/checkout.remote';
-import { getPricingPlanBySlug } from '$lib/api/publicPricing';
 
-async function resolveStripePriceId(identifier: string): Promise<string> {
-	if (identifier.startsWith('price_')) return identifier;
-	const plan = await getPricingPlanBySlug(identifier);
-	if (!plan?.stripe_price_id) {
-		throw new Error(`Stripe price is not configured for plan "${identifier}"`);
-	}
-	return plan.stripe_price_id;
-}
-
-export async function createCheckoutSession(identifier: string): Promise<void> {
+export async function createCheckoutSession(planSlugOrPriceId: string): Promise<void> {
 	try {
-		const priceId = await resolveStripePriceId(identifier);
-		const { url } = await createCheckoutSessionRemote({ priceId });
+		const payload = planSlugOrPriceId.startsWith('price_')
+			? { priceId: planSlugOrPriceId }
+			: { planSlug: planSlugOrPriceId };
+		const { url } = await createCheckoutSessionRemote(payload);
 		if (url) {
 			window.location.href = url;
 		}

@@ -153,6 +153,12 @@ Or run both simultaneously with live reload:
 pnpm dev:all
 ```
 
+**Stripe (test mode) — hosted checkout + webhooks:** add `STRIPE_SECRET_KEY` and
+`PUBLIC_APP_URL` to the **repo root** `.env` (and the same `sk_test_` in
+`backend/.env`); then run `pnpm stripe:listen` in a third terminal and copy
+the `whsec_` into `backend/.env` as `STRIPE_WEBHOOK_SECRET`. See
+[`docs/stripe-local-testing.md`](./docs/stripe-local-testing.md).
+
 ---
 
 ## Common workflows
@@ -165,6 +171,7 @@ pnpm dev:all
 | Backend lint (CI parity)          | `cargo clippy --manifest-path backend/Cargo.toml --all-targets -- -D warnings` |
 | Add a new SQL migration           | Drop a `0NN_description.sql` into `backend/migrations/` (forward-only, no edits after deploy) |
 | Tail prod logs                    | `railway logs --service swings`                 |
+| Forward Stripe webhooks → local API | `pnpm stripe:listen` (requires [Stripe CLI](https://docs.stripe.com/stripe-cli)) |
 
 ---
 
@@ -242,6 +249,7 @@ shortcuts:
 
 * [`docs/RUNBOOK.md`](./docs/RUNBOOK.md) — operator runbook for new alerts.
 * [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) — Vercel + Railway go-live.
+* [`docs/stripe-local-testing.md`](./docs/stripe-local-testing.md) — test keys, webhooks, dynamic plans + `price_data`, official test cards.
 * [`docs/INFRASTRUCTURE.md`](./docs/INFRASTRUCTURE.md) — full stack topology.
 * [`docs/SEO_RUNBOOK.md`](./docs/SEO_RUNBOOK.md) — SEO operating standard.
 * [`docs/wiring/`](./docs/wiring/) — integrator-facing wiring docs

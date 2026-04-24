@@ -21,6 +21,7 @@ The root [`README.md`](../README.md) is the entry point and links here.
 | [`SEO_RUNBOOK.md`](./SEO_RUNBOOK.md) | SEO operating standard: meta-tag policy, sitemap discipline, structured data, and the `pnpm ci:seo` checks. | Frontend, content, marketing |
 | [`ci.md`](./ci.md) | What CI runs, why each check exists, and how to debug a red build. | Anyone fighting a CI failure |
 | [`google-tracking-setup-guide.md`](./google-tracking-setup-guide.md) | GA4 + GTM + Search Console setup for the SvelteKit app. | Marketing / data |
+| [`stripe-local-testing.md`](./stripe-local-testing.md) | Test-mode keys, `stripe listen`, DB price IDs, test cards, signup + checkout E2E on localhost. | Developers |
 
 ---
 

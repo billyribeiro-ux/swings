@@ -23,7 +23,8 @@
 	"scripts": {
 		"dev": "vite dev",
 		"dev:api": "cd backend && cargo run",
-		"dev:all": "concurrently -k -n web,api -c cyan,magenta \"pnpm dev\" \"cd backend && cargo run\"",
+    "dev:all": "concurrently -k -n web,api -c cyan,magenta \"pnpm dev\" \"cd backend && cargo run\"",
+    "stripe:listen": "stripe listen --forward-to http://127.0.0.1:3001/api/webhooks/stripe",
 		"build": "rm -rf .svelte-kit && vite build",
 		"preview": "vite preview",
 		"prepare": "(svelte-kit sync || echo '') && simple-git-hooks",
