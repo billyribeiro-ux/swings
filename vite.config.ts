@@ -1,6 +1,11 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import devtoolsJson from 'vite-plugin-devtools-json';
 import { defineConfig } from 'vitest/config';
 import { sveltekit } from '@sveltejs/kit/vite';
+
+const repoRoot = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
 	plugins: [sveltekit(), devtoolsJson()],
@@ -9,6 +14,12 @@ export default defineConfig({
 		chunkSizeWarningLimit: 10000
 	},
 	server: {
+		// i18n catalogues live at repo root (`messages/*.json`) and are imported from
+		// `src/lib/i18n/paraglide.ts`. SvelteKit’s dev allow-list otherwise excludes
+		// that tree — Vite refuses to read the files and the browser sees `/messages/*.json` 404s.
+		fs: {
+			allow: [path.join(repoRoot, 'messages')]
+		},
 		proxy: {
 			// Rust API (pnpm dev + cargo run in backend). Browser uses same-origin /api via getPublicApiBase().
 			'/api': {
