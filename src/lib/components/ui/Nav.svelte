@@ -170,7 +170,7 @@
 		<div class="nav__right">
 			<div class="nav__cta-desktop">
 				<div class="nav__cta-row">
-					<Button variant="primary" size="sm" href="/register">Get Instant Access</Button>
+					<Button variant="primary" href="/register">Get Instant Access</Button>
 					<div class="nav__signin">
 						<p class="nav__cta-signin-label">Already a member?</p>
 						<a href="/login" class="nav__cta-signin-button" data-sveltekit-preload-data="hover">
@@ -745,8 +745,13 @@
 	}
 
 	.nav__cta-row {
+		/* One shared border-box height for primary + sign-in (beats loose min-height + line-height drift). */
+		--nav-cta-h: 2.75rem;
+		--nav-cta-pad-x: 1.25rem;
+
 		display: flex;
-		align-items: center;
+		/* Bottom-align so primary lines up with Sign in, not the midpoint of label+button */
+		align-items: flex-end;
 		gap: 0.85rem;
 		justify-content: flex-end;
 		min-width: 0;
@@ -762,13 +767,30 @@
 		max-inline-size: 100%;
 	}
 
-	.nav__cta-row :global(.btn) {
+	.nav__cta-row :global(a.btn.btn--primary) {
 		white-space: nowrap;
 		flex: 0 0 auto;
-		align-self: center;
-		line-height: 1.25;
-		min-block-size: 0;
+		align-self: flex-end;
 		box-sizing: border-box;
+		height: var(--nav-cta-h);
+		min-height: var(--nav-cta-h);
+		max-height: var(--nav-cta-h);
+		padding-block: 0;
+		padding-inline: var(--nav-cta-pad-x);
+		line-height: 1;
+		font-size: 1rem;
+		font-weight: var(--w-semibold);
+		border-radius: var(--radius-full);
+	}
+
+	@media (min-width: 768px) and (max-width: 1023px) {
+		.nav__cta-row {
+			--nav-cta-pad-x: 1rem;
+		}
+
+		.nav__cta-row :global(a.btn.btn--primary) {
+			font-size: var(--fs-xs);
+		}
 	}
 
 	.nav__signin {
@@ -787,15 +809,19 @@
 		color: rgba(255, 255, 255, 0.72);
 		line-height: 1;
 		white-space: nowrap;
-		transform: translateY(-2px);
 	}
 
 	.nav__cta-signin-button {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		min-height: 2.5rem;
-		padding: 0.5rem 1.25rem;
+		box-sizing: border-box;
+		height: var(--nav-cta-h, 2.75rem);
+		min-height: var(--nav-cta-h, 2.75rem);
+		max-height: var(--nav-cta-h, 2.75rem);
+		padding-block: 0;
+		padding-inline: var(--nav-cta-pad-x, 1.25rem);
+		line-height: 1;
 		border-radius: var(--radius-full);
 		border: 1px solid rgba(94, 234, 212, 0.38);
 		background: linear-gradient(145deg, rgba(15, 164, 175, 0.16), rgba(94, 234, 212, 0.24));
