@@ -213,22 +213,22 @@
 	.pricing {
 		--_section-pad-block: clamp(3rem, 6vw, 7rem);
 		--_section-pad-inline: clamp(1rem, 3vw, 2rem);
-		--_grid-gap: clamp(1.25rem, 2.5vw, 2.5rem);
-		--_card-pad: clamp(1.5rem, 3vw, 2.5rem);
+		--_grid-gap: clamp(1.25rem, 2vw, 2rem);
+		--_card-pad: clamp(1.5rem, 2.5vw, 2.25rem);
 		--_card-radius: var(--radius-2xl, 1.25rem);
-		--_card-border: oklch(0.82 0.012 250);
-		--_card-bg: oklch(1 0 0);
-		--_card-bg-featured: oklch(0.99 0.005 220);
+		--_card-border: oklch(0.76 0.035 220);
+		--_card-bg: oklch(0.985 0.01 220);
 
 		/* Brand OKLCH */
 		--_teal: oklch(0.68 0.14 192);
 		--_teal-light: oklch(0.74 0.14 192);
 		--_teal-glow: oklch(0.68 0.14 192 / 0.12);
 		--_teal-glow-strong: oklch(0.68 0.14 192 / 0.2);
-		--_navy: oklch(0.22 0.04 260);
-		--_navy-mid: oklch(0.28 0.04 260);
-		--_green: oklch(0.62 0.18 155);
-		--_green-bg: oklch(0.62 0.18 155 / 0.1);
+		--_navy: oklch(0.25 0.05 255);
+		--_navy-mid: oklch(0.33 0.055 250);
+		--_navy-deep: oklch(0.22 0.055 255);
+		--_green: oklch(0.74 0.14 192);
+		--_green-bg: oklch(0.68 0.14 192 / 0.12);
 
 		/* Text OKLCH */
 		--_text-primary: oklch(0.22 0.04 260);
@@ -241,13 +241,13 @@
 		--_surface-section: oklch(0.985 0.003 250);
 
 		/* Shadows — layered for depth */
-		--_shadow-card: 0 1px 3px oklch(0.22 0.04 260 / 0.04), 0 4px 12px oklch(0.22 0.04 260 / 0.03);
+		--_shadow-card: 0 1px 2px oklch(0.22 0.04 260 / 0.05), 0 18px 44px -34px oklch(0.22 0.04 260 / 0.45);
 		--_shadow-card-hover:
-			0 4px 16px oklch(0.22 0.04 260 / 0.06), 0 12px 40px oklch(0.22 0.04 260 / 0.05);
+			0 12px 28px -18px oklch(0.22 0.04 260 / 0.28), 0 24px 60px -38px oklch(0.22 0.04 260 / 0.5);
 		--_shadow-featured:
-			0 4px 16px oklch(0.68 0.14 192 / 0.08), 0 12px 40px oklch(0.68 0.14 192 / 0.06);
+			0 18px 44px -24px oklch(0.68 0.14 192 / 0.38), 0 28px 80px -48px oklch(0.18 0.045 260 / 0.8);
 		--_shadow-featured-hover:
-			0 8px 24px oklch(0.68 0.14 192 / 0.12), 0 20px 60px oklch(0.68 0.14 192 / 0.08);
+			0 20px 52px -24px oklch(0.68 0.14 192 / 0.52), 0 34px 90px -52px oklch(0.18 0.045 260 / 0.85);
 
 		/* Timing */
 		--_dur-fast: 200ms;
@@ -286,7 +286,7 @@
 		display: grid;
 		grid-template-columns: 1fr;
 		gap: var(--_grid-gap);
-		max-inline-size: 56rem;
+		max-inline-size: 64rem;
 		margin-inline: auto;
 		margin-block-start: clamp(2rem, 4vw, 3rem);
 	}
@@ -296,16 +296,21 @@
 		position: relative;
 		container-type: inline-size;
 		container-name: pricing-card;
+		display: flex;
+		min-block-size: clamp(20rem, 34vw, 23.5rem);
+		flex-direction: column;
 		overflow: hidden;
 		border-radius: var(--_card-radius);
-		background-color: var(--_card-bg);
+		background:
+			radial-gradient(ellipse 80% 55% at 20% 0%, oklch(0.68 0.14 192 / 0.11), transparent 64%),
+			radial-gradient(ellipse 60% 50% at 100% 100%, oklch(0.74 0.14 192 / 0.07), transparent 66%),
+			linear-gradient(180deg, oklch(1 0 0) 0%, var(--_card-bg) 100%);
 		padding: var(--_card-pad);
 		padding-block-start: calc(var(--_card-pad) + 0.25rem);
 		outline: 1px solid var(--_card-border);
 		outline-offset: -1px;
-		box-shadow: 
-			0 4px 6px -1px rgba(11, 29, 58, 0.04), 
-			0 2px 4px -2px rgba(11, 29, 58, 0.03),
+		box-shadow:
+			var(--_shadow-card),
 			inset 0 1px 0 rgba(255, 255, 255, 1);
 		transition:
 			box-shadow var(--_dur-normal) var(--_ease-out),
@@ -315,21 +320,34 @@
 	}
 
 	.pricing__card:hover {
-		box-shadow: 
-			0 20px 25px -5px rgba(11, 29, 58, 0.08), 
-			0 8px 10px -6px rgba(11, 29, 58, 0.04),
+		box-shadow:
+			var(--_shadow-card-hover),
 			inset 0 1px 0 rgba(255, 255, 255, 1);
 		outline-color: oklch(0.68 0.14 192 / 0.3);
 		transform: translateY(-2px);
 	}
 
+	.pricing__card:not(.pricing__card--featured)::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		background:
+			linear-gradient(180deg, rgba(255, 255, 255, 0.8), transparent 45%),
+			linear-gradient(135deg, oklch(0.68 0.14 192 / 0.1), transparent 42%);
+		pointer-events: none;
+	}
+
 	/* Featured card */
 	.pricing__card--featured {
-		outline: none;
-		background: linear-gradient(135deg, var(--_navy), var(--_navy-mid));
-		box-shadow: 
-			0 12px 32px -4px rgba(15, 164, 175, 0.2), 
-			inset 0 1px 1px rgba(255, 255, 255, 0.1);
+		outline: 1px solid oklch(0.68 0.14 192 / 0.45);
+		background:
+			radial-gradient(ellipse 90% 70% at 50% -10%, oklch(0.68 0.14 192 / 0.3), transparent 66%),
+			radial-gradient(ellipse 70% 55% at 100% 100%, oklch(0.74 0.14 192 / 0.16), transparent 70%),
+			linear-gradient(145deg, var(--_navy) 0%, var(--_navy-mid) 58%, oklch(0.29 0.06 245) 100%);
+		box-shadow:
+			var(--_shadow-featured),
+			inset 0 1px 1px rgba(255, 255, 255, 0.12);
 	}
 
 	.pricing__card--featured::before {
@@ -366,18 +384,21 @@
 	}
 
 	.pricing__card--featured:hover {
-		box-shadow: 
-			0 20px 48px -4px rgba(15, 164, 175, 0.3), 
+		box-shadow:
+			var(--_shadow-featured-hover),
 			inset 0 1px 1px rgba(255, 255, 255, 0.1);
 		transform: translateY(-4px);
 	}
 
 	/* Text overrides for dark featured card */
-	.pricing__card--featured .pricing__plan-name,
+	.pricing__card--featured .pricing__plan-name {
+		color: rgba(255, 255, 255, 0.86);
+	}
+
 	.pricing__card--featured .pricing__note,
 	.pricing__card--featured .pricing__suffix,
 	.pricing__card--featured .pricing__trust {
-		color: rgba(255, 255, 255, 0.7);
+		color: rgba(255, 255, 255, 0.76);
 	}
 
 	/* ── Card glow (featured only) ───────────────────────────────────────── */
@@ -406,8 +427,9 @@
 		background: linear-gradient(
 			90deg,
 			transparent 0%,
-			var(--_card-border) 20%,
-			var(--_card-border) 80%,
+			var(--_teal) 20%,
+			var(--_teal-light) 50%,
+			var(--_teal) 80%,
 			transparent 100%
 		);
 		transition: background var(--_dur-normal) var(--_ease-out);
@@ -448,14 +470,16 @@
 		display: inline-block;
 		background: linear-gradient(135deg, var(--_teal), var(--_teal-light));
 		border-radius: 0 0 var(--radius-lg, 0.75rem) var(--radius-lg, 0.75rem);
-		padding-block: 0.375rem;
-		padding-inline: 1.25rem;
+		padding-block: 0.45rem;
+		padding-inline: 1.35rem;
 		font-size: clamp(0.625rem, 1.2cqi, 0.6875rem);
 		font-weight: var(--w-semibold, 600);
-		letter-spacing: 0.06em;
+		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		color: var(--_text-on-teal);
-		box-shadow: 0 2px 8px oklch(0.68 0.14 192 / 0.2);
+		box-shadow:
+			0 10px 24px -18px oklch(0.68 0.14 192 / 0.9),
+			inset 0 1px 0 rgba(255, 255, 255, 0.22);
 	}
 
 	/* ── Plan header ─────────────────────────────────────────────────────── */
@@ -465,7 +489,7 @@
 	}
 
 	.pricing__plan-name {
-		color: var(--_text-secondary);
+		color: oklch(0.29 0.06 250);
 		font-family: var(--font-ui, system-ui);
 		font-size: clamp(0.6875rem, 1.5cqi, 0.75rem);
 		font-weight: var(--w-semibold, 600);
@@ -533,7 +557,7 @@
 		color: var(--_text-secondary);
 		font-size: clamp(0.8125rem, 1.8cqi, 0.9375rem);
 		line-height: 1.5;
-		margin-block-end: 1.25rem;
+		margin-block-end: 1.1rem;
 	}
 
 	/* ── Savings ─────────────────────────────────────────────────────────── */
@@ -549,6 +573,7 @@
 		gap: 0.375rem;
 		background-color: var(--_green-bg);
 		color: var(--_green);
+		border: 1px solid oklch(0.68 0.14 192 / 0.18);
 		border-radius: var(--radius-lg, 0.75rem);
 		padding-block: 0.3125rem;
 		padding-inline: 0.75rem;
@@ -572,6 +597,7 @@
 		gap: 0.5rem;
 		inline-size: 100%;
 		border-radius: var(--radius-xl, 1rem);
+		margin-block-start: auto;
 		padding-block: 0.9375rem;
 		padding-inline: 1.5rem;
 		font-size: clamp(0.875rem, 2cqi, 0.9375rem);
@@ -614,19 +640,24 @@
 
 	/* Outline CTA */
 	.pricing__cta--outline {
-		background-color: transparent;
-		color: var(--_navy);
-		border: 2px solid oklch(0.22 0.04 260 / 0.7);
+		background:
+			linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.72)),
+			transparent;
+		color: oklch(0.25 0.05 255);
+		border: 1px solid oklch(0.68 0.14 192 / 0.45);
+		box-shadow:
+			inset 0 1px 0 rgba(255, 255, 255, 0.95),
+			0 10px 24px -22px oklch(0.68 0.14 192 / 0.65);
 	}
 
 	.pricing__cta--outline:hover {
-		background-color: var(--_navy);
+		background: linear-gradient(135deg, var(--_navy), var(--_navy-mid));
 		color: var(--_text-on-navy);
-		border-color: var(--_navy);
+		border-color: oklch(0.68 0.14 192 / 0.5);
 		transform: translateY(-1px);
 		box-shadow:
-			0 4px 12px oklch(0.22 0.04 260 / 0.12),
-			0 8px 24px oklch(0.22 0.04 260 / 0.08);
+			0 4px 12px oklch(0.22 0.04 260 / 0.16),
+			0 12px 30px oklch(0.68 0.14 192 / 0.16);
 	}
 
 	/* CTA arrow */
@@ -665,7 +696,7 @@
 		align-items: center;
 		justify-content: center;
 		gap: 0.375rem;
-		margin-block-start: 0.875rem;
+		margin-block-start: 0.9rem;
 		color: var(--_text-muted);
 		font-size: clamp(0.6875rem, 1.4cqi, 0.75rem);
 	}
