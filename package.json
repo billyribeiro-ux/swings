@@ -23,6 +23,7 @@
 	"scripts": {
 		"dev": "vite dev",
 		"dev:api": "cd backend && cargo run",
+		"predev:all": "node scripts/free-dev-ports.mjs",
 		"dev:all": "concurrently -k -n web,api -c cyan,magenta \"pnpm dev\" \"cd backend && cargo run\"",
 		"stripe:listen": "stripe listen --forward-to http://127.0.0.1:3001/api/webhooks/stripe",
 		"build": "rm -rf .svelte-kit && vite build",

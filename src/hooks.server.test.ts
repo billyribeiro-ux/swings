@@ -16,9 +16,12 @@ describe('buildCsp', () => {
 
 		expect(csp).toContain("default-src 'self'");
 		expect(csp).toContain("script-src 'self' 'nonce-test-nonce-abc' https://js.stripe.com");
+		expect(csp).toMatch(/script-src[^;]+https:\/\/va\.vercel-scripts\.com/);
 		expect(csp).toContain("style-src 'self' 'unsafe-inline'");
 		expect(csp).toContain("img-src 'self' data: https://*.r2.cloudflarestorage.com");
 		expect(csp).toContain("connect-src 'self' https://api.stripe.com https://api.resend.com");
+		expect(csp).toMatch(/connect-src[^;]+https:\/\/va\.vercel-scripts\.com/);
+		expect(csp).toContain('https://vitals.vercel-insights.com');
 		expect(csp).toContain("font-src 'self' data: https://fonts.gstatic.com");
 		expect(csp).toContain('frame-src https://js.stripe.com https://challenges.cloudflare.com');
 		expect(csp).toContain("frame-ancestors 'none'");
@@ -34,12 +37,13 @@ describe('buildCsp', () => {
 
 	it('separates directives with "; " so browsers parse each cleanly', () => {
 		const csp = buildCsp('n');
-		// 11 directive separators between 12 directives: default-src,
-		// script-src, style-src, img-src, connect-src, font-src,
-		// frame-src, frame-ancestors, base-uri, form-action, report-uri,
-		// report-to.
+		// Base: default-src, script-src, style-src, img-src, connect-src,
+		// font-src, frame-src, frame-ancestors, base-uri, form-action,
+		// report-uri, report-to. When `dev` is true, `worker-src` is appended
+		// (Vitest runs with `dev` enabled) so the count is 13.
 		const parts = csp.split('; ');
-		expect(parts.length).toBe(12);
+		expect(parts.length).toBeGreaterThanOrEqual(12);
+		expect(parts.length).toBeLessThanOrEqual(13);
 		// Each directive starts with the directive name.
 		for (const part of parts) {
 			expect(part).toMatch(/^[a-z-]+ /);

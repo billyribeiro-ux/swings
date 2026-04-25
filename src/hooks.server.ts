@@ -1,3 +1,4 @@
+import { dev } from '$app/environment';
 import type { Handle, HandleServerError } from '@sveltejs/kit';
 
 /**
@@ -34,7 +35,9 @@ export function buildCsp(nonce: string): string {
 			"'self'",
 			`'nonce-${nonce}'`,
 			'https://js.stripe.com',
-			'https://challenges.cloudflare.com'
+			'https://challenges.cloudflare.com',
+			// `@vercel/analytics` + `@vercel/speed-insights` inject `<script src="https://va.vercel-scripts.com/…">`.
+			'https://va.vercel-scripts.com'
 		],
 		// `'unsafe-inline'` is retained for styles per the plan's temporary
 		// allowance (Svelte transitions emit inline <style> fragments and the
@@ -42,7 +45,13 @@ export function buildCsp(nonce: string): string {
 		// origins are explicit so we don't have to drop `'self'`.
 		'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
 		'img-src': ["'self'", 'data:', 'https://*.r2.cloudflarestorage.com', 'https://*.r2.dev'],
-		'connect-src': ["'self'", 'https://api.stripe.com', 'https://api.resend.com'],
+		'connect-src': [
+			"'self'",
+			'https://api.stripe.com',
+			'https://api.resend.com',
+			'https://va.vercel-scripts.com',
+			'https://vitals.vercel-insights.com'
+		],
 		'font-src': ["'self'", 'data:', 'https://fonts.gstatic.com'],
 		'frame-src': ['https://js.stripe.com', 'https://challenges.cloudflare.com'],
 		'frame-ancestors': ["'none'"],
@@ -55,6 +64,13 @@ export function buildCsp(nonce: string): string {
 		'report-uri': ['/api/csp-report'],
 		'report-to': ['csp-endpoint']
 	};
+
+	// Vite client HMR creates workers from `blob:` URLs; without `worker-src` the
+	// browser falls back to `script-src`, which does not allow `blob:`.
+	if (dev) {
+		(directives as Record<string, string[]>)['worker-src'] = ["'self'", 'blob:'];
+	}
+
 	return Object.entries(directives)
 		.map(([k, v]) => `${k} ${v.join(' ')}`)
 		.join('; ');

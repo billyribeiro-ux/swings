@@ -170,7 +170,7 @@
 		<div class="nav__right">
 			<div class="nav__cta-desktop">
 				<div class="nav__cta-row">
-					<Button variant="primary" href="/register">Get Instant Access</Button>
+					<Button variant="primary" size="sm" href="/register">Get Instant Access</Button>
 					<div class="nav__signin">
 						<p class="nav__cta-signin-label">Already a member?</p>
 						<a href="/login" class="nav__cta-signin-button" data-sveltekit-preload-data="hover">
@@ -735,7 +735,9 @@
 		display: none;
 	}
 
-	@media (min-width: 640px) {
+	/* Same breakpoint as desktop nav + hamburger hide — avoids 640–767px
+	   overlap where the CTA row shares space with the menu toggle. */
+	@media (min-width: 768px) {
 		.nav__cta-desktop {
 			display: flex;
 			align-items: center;
@@ -744,9 +746,29 @@
 
 	.nav__cta-row {
 		display: flex;
-		align-items: flex-end;
+		align-items: center;
 		gap: 0.85rem;
 		justify-content: flex-end;
+		min-width: 0;
+	}
+
+	.nav__cta-desktop {
+		height: fit-content;
+		max-inline-size: 100%;
+	}
+
+	.nav__cta-row {
+		height: fit-content;
+		max-inline-size: 100%;
+	}
+
+	.nav__cta-row :global(.btn) {
+		white-space: nowrap;
+		flex: 0 0 auto;
+		align-self: center;
+		line-height: 1.25;
+		min-block-size: 0;
+		box-sizing: border-box;
 	}
 
 	.nav__signin {
@@ -772,8 +794,8 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		min-height: 3.1875rem;
-		padding: 0.62rem 1.75rem;
+		min-height: 2.5rem;
+		padding: 0.5rem 1.25rem;
 		border-radius: var(--radius-full);
 		border: 1px solid rgba(94, 234, 212, 0.38);
 		background: linear-gradient(145deg, rgba(15, 164, 175, 0.16), rgba(94, 234, 212, 0.24));
@@ -989,7 +1011,7 @@
 		margin-top: 1rem;
 	}
 
-	@media (min-width: 640px) {
+	@media (min-width: 768px) {
 		.mobile-menu__cta {
 			display: none;
 		}

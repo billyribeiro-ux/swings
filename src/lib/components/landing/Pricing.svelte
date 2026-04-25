@@ -216,7 +216,7 @@
 		--_grid-gap: clamp(1.25rem, 2.5vw, 2.5rem);
 		--_card-pad: clamp(1.5rem, 3vw, 2.5rem);
 		--_card-radius: var(--radius-2xl, 1.25rem);
-		--_card-border: oklch(0.88 0.01 250);
+		--_card-border: oklch(0.82 0.012 250);
 		--_card-bg: oklch(1 0 0);
 		--_card-bg-featured: oklch(0.99 0.005 220);
 
@@ -380,12 +380,6 @@
 		color: rgba(255, 255, 255, 0.7);
 	}
 
-	.pricing__card--featured .pricing__amount {
-		color: #ffffff;
-		background: none;
-		-webkit-text-fill-color: initial;
-	}
-
 	/* ── Card glow (featured only) ───────────────────────────────────────── */
 	.pricing__card-glow {
 		position: absolute;
@@ -512,11 +506,17 @@
 		letter-spacing: -0.03em;
 	}
 
+	/* After base `.pricing__amount` so featured legibility always wins */
 	.pricing__card--featured .pricing__amount {
-		background: linear-gradient(135deg, var(--_navy), var(--_navy-mid));
-		background-clip: text;
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
+		color: #fff;
+		background: none;
+		background-clip: border-box;
+		-webkit-background-clip: border-box;
+		-webkit-text-fill-color: #fff;
+	}
+
+	.pricing__card--featured .pricing__currency {
+		color: rgba(255, 255, 255, 0.9);
 	}
 
 	.pricing__suffix {
@@ -703,16 +703,15 @@
 	/* ── md: 768px — Tablet portrait — 2-col grid ────────────────────── */
 	@media (width >= 768px) {
 		.pricing__grid {
-			grid-template-columns: repeat(2, 1fr);
+			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 
 		.pricing__card--featured {
-			transform: scale(1.02);
 			z-index: 1;
 		}
 
 		.pricing__card--featured:hover {
-			transform: scale(1.02) translateY(-4px);
+			transform: translateY(-4px);
 		}
 	}
 
