@@ -31,7 +31,7 @@
 		query: string;
 		anchorPos: number;
 		onClose: () => void;
-		onInsertImage?: () => void;
+		onInsertImage?: (() => void) | undefined;
 	}
 
 	let { editor, visible, x, y, query, anchorPos, onClose, onInsertImage }: Props = $props();

@@ -69,7 +69,7 @@
 				duration: reduced ? 0.01 : DURATION.cinematic,
 				stagger: reduced ? 0 : 0.15,
 				ease: reduced ? 'none' : EASE.cinematic,
-				scrollTrigger: { trigger: containerRef, start: 'top 78%', once: true },
+				scrollTrigger: { trigger: container, start: 'top 78%', once: true },
 				onComplete: () => {
 					gsap.set(cards, { willChange: 'auto', clearProps: 'filter,transform' });
 				}
@@ -84,7 +84,7 @@
 				stagger: reduced ? 0 : 0.08,
 				ease: reduced ? 'none' : EASE.snappy,
 				scrollTrigger: {
-					trigger: stats[0]?.parentElement,
+					trigger: stats[0]?.parentElement ?? container,
 					start: 'top 88%',
 					once: true
 				},

@@ -76,7 +76,6 @@ describe('Toaster', () => {
 		// If rAF fired at all, the queue is empty. Skip if the browser harness
 		// suppressed rAF (rare in CI but documented for reproducibility).
 		if (toast.items.length > 0) {
-			// eslint-disable-next-line no-console
 			console.warn('Toaster auto-dismiss skipped: rAF not flushing in this env.');
 			toast.clear();
 			return;

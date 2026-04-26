@@ -91,18 +91,18 @@ export interface ManualOrderItemInput {
 	quantity: number;
 	unit_price_cents: number;
 	name: string;
-	sku?: string;
+	sku?: string | undefined;
 }
 
 export interface ManualOrderRequest {
 	email: string;
-	user_id?: string;
-	currency?: string;
+	user_id?: string | undefined;
+	currency?: string | undefined;
 	items: ManualOrderItemInput[];
-	discount_cents?: number;
-	tax_cents?: number;
-	mark_completed?: boolean;
-	notes?: string;
+	discount_cents?: number | undefined;
+	tax_cents?: number | undefined;
+	mark_completed?: boolean | undefined;
+	notes?: string | undefined;
 }
 
 export interface VoidRequest {

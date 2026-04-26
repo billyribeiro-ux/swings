@@ -168,3 +168,110 @@ pub async fn rollout_after_plan_save(
         failed,
     })
 }
+
+#[cfg(test)]
+mod tests {
+    //! Phase 8.11 — pure-helper coverage. Mocking the Stripe HTTP client
+    //! for `rollout_after_plan_save` end-to-end is tracked separately;
+    //! this module asserts the deterministic mapping helpers that gate
+    //! that workflow, so a regression in cadence/currency/interval
+    //! parsing is caught without spinning up the network.
+    use super::*;
+    use crate::models::SubscriptionPlan;
+    use chrono::Utc;
+    use uuid::Uuid;
+
+    fn make_plan(interval: &str, currency: &str) -> PricingPlan {
+        PricingPlan {
+            id: Uuid::nil(),
+            name: "Test".into(),
+            slug: "test".into(),
+            description: None,
+            stripe_price_id: None,
+            stripe_product_id: None,
+            amount_cents: 1000,
+            currency: currency.into(),
+            interval: interval.into(),
+            interval_count: 1,
+            trial_days: 0,
+            features: serde_json::json!({}),
+            highlight_text: None,
+            is_popular: false,
+            is_active: true,
+            sort_order: 0,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        }
+    }
+
+    #[test]
+    fn cadence_maps_year_to_annual() {
+        let plan = make_plan("year", "USD");
+        let cadence = subscription_cadence_for_plan(&plan).expect("year is valid");
+        assert!(matches!(cadence, SubscriptionPlan::Annual));
+    }
+
+    #[test]
+    fn cadence_maps_month_to_monthly() {
+        let plan = make_plan("month", "USD");
+        let cadence = subscription_cadence_for_plan(&plan).expect("month is valid");
+        assert!(matches!(cadence, SubscriptionPlan::Monthly));
+    }
+
+    #[test]
+    fn cadence_rejects_one_time() {
+        let plan = make_plan("one_time", "USD");
+        let err = subscription_cadence_for_plan(&plan).expect_err("one_time not supported");
+        match err {
+            AppError::BadRequest(msg) => {
+                assert!(msg.contains("one_time"), "msg: {msg}");
+            }
+            other => panic!("expected BadRequest, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn cadence_rejects_unknown_interval() {
+        let plan = make_plan("decade", "USD");
+        let err = subscription_cadence_for_plan(&plan).expect_err("decade is invalid");
+        assert!(matches!(err, AppError::BadRequest(_)));
+    }
+
+    #[test]
+    fn currency_parses_uppercase_iso() {
+        let plan = make_plan("month", "usd");
+        let c = stripe_currency(&plan).expect("usd parses");
+        assert_eq!(c, Currency::USD);
+    }
+
+    #[test]
+    fn currency_rejects_garbage() {
+        let plan = make_plan("month", "ZZZZ");
+        let err = stripe_currency(&plan).expect_err("ZZZZ should fail");
+        match err {
+            AppError::BadRequest(msg) => assert!(msg.contains("currency"), "msg: {msg}"),
+            other => panic!("expected BadRequest, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn plan_interval_maps_year() {
+        let plan = make_plan("year", "USD");
+        let i = stripe_plan_interval(&plan).expect("year");
+        assert!(matches!(i, SubscriptionInterval::Year));
+    }
+
+    #[test]
+    fn plan_interval_maps_month() {
+        let plan = make_plan("month", "USD");
+        let i = stripe_plan_interval(&plan).expect("month");
+        assert!(matches!(i, SubscriptionInterval::Month));
+    }
+
+    #[test]
+    fn plan_interval_rejects_one_time_for_inline_price_data() {
+        let plan = make_plan("one_time", "USD");
+        let err = stripe_plan_interval(&plan).expect_err("one_time has no recurring shape");
+        assert!(matches!(err, AppError::BadRequest(_)));
+    }
+}

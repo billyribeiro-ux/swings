@@ -45,19 +45,19 @@ export interface UserResponse {
 // ── ADM-15 admin members lifecycle DTOs ────────────────────────────────
 
 export interface BillingAddress {
-	line1?: string | null;
-	line2?: string | null;
-	city?: string | null;
-	state?: string | null;
-	postal_code?: string | null;
-	country?: string | null;
+	line1?: string | null | undefined;
+	line2?: string | null | undefined;
+	city?: string | null | undefined;
+	state?: string | null | undefined;
+	postal_code?: string | null | undefined;
+	country?: string | null | undefined;
 }
 
 export interface UpdateMemberRequest {
-	name?: string;
-	email?: string;
-	phone?: string;
-	billing_address?: BillingAddress;
+	name?: string | undefined;
+	email?: string | undefined;
+	phone?: string | undefined;
+	billing_address?: BillingAddress | undefined;
 }
 
 export interface SuspendMemberRequest {
@@ -326,48 +326,48 @@ export interface BlogPostListItem {
 
 export interface CreatePostPayload {
 	title: string;
-	slug?: string;
-	content?: string;
-	content_json?: Record<string, unknown>;
-	excerpt?: string;
-	featured_image_id?: string;
-	status?: PostStatus;
-	visibility?: string;
-	is_sticky?: boolean;
-	allow_comments?: boolean;
-	meta_title?: string;
-	meta_description?: string;
-	canonical_url?: string;
-	og_image_url?: string;
-	category_ids?: string[];
-	tag_ids?: string[];
-	scheduled_at?: string;
-	post_password?: string;
-	author_id?: string;
-	format?: string;
+	slug?: string | undefined;
+	content?: string | undefined;
+	content_json?: Record<string, unknown> | undefined;
+	excerpt?: string | undefined;
+	featured_image_id?: string | undefined;
+	status?: PostStatus | undefined;
+	visibility?: string | undefined;
+	is_sticky?: boolean | undefined;
+	allow_comments?: boolean | undefined;
+	meta_title?: string | undefined;
+	meta_description?: string | undefined;
+	canonical_url?: string | undefined;
+	og_image_url?: string | undefined;
+	category_ids?: string[] | undefined;
+	tag_ids?: string[] | undefined;
+	scheduled_at?: string | undefined;
+	post_password?: string | undefined;
+	author_id?: string | undefined;
+	format?: string | undefined;
 }
 
 export interface UpdatePostPayload {
-	title?: string;
-	slug?: string;
-	content?: string;
-	content_json?: Record<string, unknown>;
-	excerpt?: string;
-	featured_image_id?: string;
-	status?: PostStatus;
-	visibility?: string;
-	is_sticky?: boolean;
-	allow_comments?: boolean;
-	meta_title?: string;
-	meta_description?: string;
-	canonical_url?: string;
-	og_image_url?: string;
-	category_ids?: string[];
-	tag_ids?: string[];
-	scheduled_at?: string;
-	post_password?: string;
-	author_id?: string;
-	format?: string;
+	title?: string | undefined;
+	slug?: string | undefined;
+	content?: string | undefined;
+	content_json?: Record<string, unknown> | undefined;
+	excerpt?: string | undefined;
+	featured_image_id?: string | undefined;
+	status?: PostStatus | undefined;
+	visibility?: string | undefined;
+	is_sticky?: boolean | undefined;
+	allow_comments?: boolean | undefined;
+	meta_title?: string | undefined;
+	meta_description?: string | undefined;
+	canonical_url?: string | undefined;
+	og_image_url?: string | undefined;
+	category_ids?: string[] | undefined;
+	tag_ids?: string[] | undefined;
+	scheduled_at?: string | undefined;
+	post_password?: string | undefined;
+	author_id?: string | undefined;
+	format?: string | undefined;
 }
 
 export interface BlogCategory {
@@ -774,4 +774,3 @@ export interface PopupAnalyticsSummary {
 	submits: number;
 	conversion_rate: number;
 }
-

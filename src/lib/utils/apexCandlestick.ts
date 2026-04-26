@@ -17,7 +17,7 @@ export function buildHeroCandleOptions(opts: {
 	series: ApexOptions['series'];
 }): ApexOptions {
 	return {
-		series: opts.series,
+		...(opts.series !== undefined ? { series: opts.series } : {}),
 		chart: {
 			type: 'candlestick',
 			height: opts.height,

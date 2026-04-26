@@ -81,7 +81,7 @@
 			seoDescription = detail.seo_description ?? '';
 			bundleItems = detail.bundle_items.map((bi: BundleItem) => ({
 				child_product_id: bi.child_product_id,
-				child_variant_id: bi.child_variant_id,
+				child_variant_id: bi.child_variant_id ?? null,
 				quantity: bi.quantity,
 				position: bi.position
 			}));

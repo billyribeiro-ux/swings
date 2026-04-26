@@ -232,6 +232,94 @@ impl R2Storage {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    //! Phase 8.11 — pure-function coverage for the storage helpers.
+    //!
+    //! Network-touching paths (`upload`, `presign_get`, `delete_object`,
+    //! `ensure_bucket`, `object_exists`) require a live S3-compatible
+    //! endpoint and are exercised by separate integration tests against
+    //! MinIO; here we only assert the deterministic helpers that should
+    //! never make a network call.
+
+    use super::*;
+
+    #[test]
+    fn generate_key_uses_media_year_month_prefix() {
+        let key = R2Storage::generate_key("photo.jpg");
+        // `media/{YYYY}/{MM}/{8-hex}-photo.jpg`
+        let segments: Vec<&str> = key.splitn(4, '/').collect();
+        assert_eq!(segments.len(), 4, "key shape: {key}");
+        assert_eq!(segments[0], "media");
+        assert_eq!(segments[1].len(), 4); // 4-digit year
+        assert!(segments[1].chars().all(|c| c.is_ascii_digit()));
+        assert_eq!(segments[2].len(), 2); // zero-padded month
+        assert!(segments[2].chars().all(|c| c.is_ascii_digit()));
+        // Filename half: 8-char id + dash + sanitized name.
+        let tail = segments[3];
+        assert!(tail.contains("-photo.jpg"), "tail without sanitized name: {tail}");
+        let id_part = tail.split('-').next().expect("split before dash");
+        assert_eq!(id_part.len(), 8);
+    }
+
+    #[test]
+    fn generate_key_is_unique_across_calls() {
+        let a = R2Storage::generate_key("file.txt");
+        let b = R2Storage::generate_key("file.txt");
+        assert_ne!(a, b, "uuid prefix must differ; got {a} == {b}");
+    }
+
+    #[test]
+    fn generate_key_sanitizes_dangerous_filenames() {
+        // `sanitize_filename` strips path-traversal segments + null bytes.
+        let key = R2Storage::generate_key("../../etc/passwd");
+        // The key remains anchored on `media/{Y}/{M}/`; nothing should
+        // escape that prefix.
+        assert!(key.starts_with("media/"));
+        assert!(!key.contains("../"), "path traversal not stripped: {key}");
+    }
+
+    #[test]
+    fn public_url_for_key_joins_with_single_slash() {
+        let s = R2Storage::for_endpoint(
+            "https://emulator.example",
+            "us-east-1",
+            "bucket",
+            "https://cdn.example.test", // no trailing slash
+            "ak",
+            "sk",
+        );
+        assert_eq!(
+            s.public_url_for_key("media/2026/01/abcdef12-photo.jpg"),
+            "https://cdn.example.test/media/2026/01/abcdef12-photo.jpg"
+        );
+    }
+
+    #[test]
+    fn public_url_for_key_strips_trailing_slash_from_base() {
+        // `for_endpoint` trims a trailing slash from `public_base` so the
+        // join never produces `//`.
+        let s = R2Storage::for_endpoint(
+            "https://emulator.example",
+            "us-east-1",
+            "bucket",
+            "https://cdn.example.test/", // trailing slash
+            "ak",
+            "sk",
+        );
+        assert_eq!(s.public_url_for_key("foo.png"), "https://cdn.example.test/foo.png");
+    }
+
+    #[test]
+    fn media_backend_is_r2_reflects_variant() {
+        let local = MediaBackend::Local {
+            upload_dir: "/tmp/u".into(),
+        };
+        assert!(!local.is_r2());
+        assert_eq!(local.upload_dir(), Some("/tmp/u"));
+    }
+}
+
 /// Media persistence: local disk (dev) or Cloudflare R2 (production).
 #[derive(Clone)]
 pub enum MediaBackend {

@@ -26,8 +26,8 @@ export interface FieldProps {
 	readonly field: FieldSchema;
 	readonly value: unknown;
 	readonly data: FormDataMap;
-	readonly error?: string;
-	readonly disabled?: boolean;
+	readonly error?: string | undefined;
+	readonly disabled?: boolean | undefined;
 	readonly onChange: FieldSetter;
 }
 

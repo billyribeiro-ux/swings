@@ -6,7 +6,7 @@ export interface PostEditorPayloadInput {
 	content: string;
 	contentJson: Record<string, unknown> | null;
 	excerpt: string;
-	featuredImageId?: string;
+	featuredImageId?: string | undefined;
 	status: PostStatus;
 	visibility: string;
 	isSticky: boolean;

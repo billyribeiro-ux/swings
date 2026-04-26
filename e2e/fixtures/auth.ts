@@ -105,7 +105,12 @@ export const authedAdminTest = base.extend<AdminFixtures & AppFixtures>({
 			return;
 		}
 		const { email, password } = adminCredentials();
-		const bundle = await loginViaCookie(page.context(), page.context().request, email, password);
+		const bundle = await loginViaCookie(
+			page.context(),
+			page.context().request,
+			email,
+			password
+		);
 		if (!bundle) {
 			base.skip(
 				true,

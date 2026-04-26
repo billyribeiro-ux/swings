@@ -46,14 +46,14 @@
 		isFullscreen: boolean;
 		showSource: boolean;
 		isDistractionFree: boolean;
-		wordCount?: number;
-		charCount?: number;
+		wordCount?: number | undefined;
+		charCount?: number | undefined;
 		onToggleFullscreen: () => void;
 		onToggleSource: () => void;
 		onToggleDistractionFree: () => void;
-		onInsertToc?: () => void;
-		onInsertImage?: () => void;
-		onInsertReadMore?: () => void;
+		onInsertToc?: (() => void) | undefined;
+		onInsertImage?: (() => void) | undefined;
+		onInsertReadMore?: (() => void) | undefined;
 	}
 
 	let {

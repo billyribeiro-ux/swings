@@ -872,14 +872,14 @@ licenses` runs clean locally. We have NOT wired `cargo deny`,
 that needs `.github/workflows/*.yml` edits which are out of scope for the
 dead-code / deps / config sweep. To pick this up:
 
-  1. Add a `licenses-and-advisories` job to the existing Rust workflow
-     that runs `cargo install --locked cargo-deny` (cached) and then
-     `cargo deny --manifest-path backend/Cargo.toml check licenses advisories bans`.
-  2. Run on push + PR to `main`; non-blocking warning while the
-     advisory ignore list is empty.
-  3. Optional: add `cargo audit` as a redundant safety net — `deny check
-     advisories` reads the same RustSec database so it is mostly
-     duplicative.
+1. Add a `licenses-and-advisories` job to the existing Rust workflow
+   that runs `cargo install --locked cargo-deny` (cached) and then
+   `cargo deny --manifest-path backend/Cargo.toml check licenses advisories bans`.
+2. Run on push + PR to `main`; non-blocking warning while the
+   advisory ignore list is empty.
+3. Optional: add `cargo audit` as a redundant safety net — `deny check
+advisories` reads the same RustSec database so it is mostly
+   duplicative.
 
 ### 7.8 — `rand 0.8 → 0.9` bump (deferred)
 
@@ -892,6 +892,32 @@ plus the `gen_range` / `gen_bool` rename (also breaking). The dep-graph
 audit shows the 0.8 / 0.9 triplication is benign (only ~50 KB extra
 binary), so the bump is deferred until a quiet window where the rename
 can be done in one shot.
+
+---
+
+### 8.12 — `cargo-llvm-cov` install + CI coverage report (deferred)
+
+Phase 8 closes the test-coverage gaps surfaced by the audit (browser
+specs, e2e fixture cookie carry, UI primitive specs, store specs,
+client-error-shape coverage, observability wiring, pure-helper unit
+tests for `services::storage` + `services::pricing_rollout`). What did
+NOT land was the line-coverage tooling itself:
+
+1. Install `cargo-llvm-cov` on the developer + CI toolchain
+   (`cargo install cargo-llvm-cov --locked` plus the
+   `llvm-tools-preview` rustup component).
+2. Add a `cargo llvm-cov --workspace --html` step to `ci:backend`
+   that uploads the report as a build artifact.
+3. Set per-crate floors (target >= 80% line coverage on the backend,
+   > = 70% on the frontend) and gate the CI job on
+   > `--fail-under-lines`.
+
+Reason for deferral: `cargo-llvm-cov` requires a one-off rustup
+component install in the CI image, which is a separate Render /
+GitHub-Actions config change outside the repo's `Cargo.toml`. Tracked
+to a follow-up that bundles the toolchain bump with `cargo-audit`,
+`cargo-outdated`, and `cargo-udeps` (Phase 7.6) in a single CI image
+refresh.
 
 ---
 

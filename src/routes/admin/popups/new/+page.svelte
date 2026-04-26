@@ -448,7 +448,8 @@
 							bind:value={frequency}
 							class="pb__input"
 						>
-							{#each frequencies as f (f.value)}<option value={f.value}>{f.label}</option
+							{#each frequencies as f (f.value)}<option value={f.value}
+									>{f.label}</option
 								>{/each}
 						</select>
 					</div>

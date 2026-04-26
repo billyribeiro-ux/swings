@@ -108,9 +108,13 @@ describe('ApiClient.request', () => {
 
 	it('caller-supplied Idempotency-Key wins over auto-injected one', async () => {
 		fetchSpy.mockResolvedValueOnce(jsonResponse({ ok: true }));
-		await api.post('/api/admin/refunds', { amount: 100 }, {
-			headers: { 'Idempotency-Key': 'my-stable-key' }
-		});
+		await api.post(
+			'/api/admin/refunds',
+			{ amount: 100 },
+			{
+				headers: { 'Idempotency-Key': 'my-stable-key' }
+			}
+		);
 		const [, init] = fetchSpy.mock.calls[0] as FetchArgs;
 		const headers = new Headers(init?.headers);
 		expect(headers.get('Idempotency-Key')).toBe('my-stable-key');

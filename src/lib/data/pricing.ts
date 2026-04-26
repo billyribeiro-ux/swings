@@ -25,9 +25,9 @@ export interface PricingPlan {
 	note: string;
 	cta: string;
 	variant: 'outline' | 'primary';
-	featured?: boolean;
-	badge?: string;
-	savings?: string;
+	featured?: boolean | undefined;
+	badge?: string | undefined;
+	savings?: string | undefined;
 }
 
 export const pricingPlans: PricingPlan[] = [

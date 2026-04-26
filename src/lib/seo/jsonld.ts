@@ -167,9 +167,9 @@ export function articleSchema(opts: {
 	description: string;
 	path: string;
 	datePublished: string;
-	dateModified?: string;
-	authorName?: string;
-	image?: string;
+	dateModified?: string | undefined;
+	authorName?: string | undefined;
+	image?: string | undefined;
 }) {
 	return {
 		'@type': 'BlogPosting',

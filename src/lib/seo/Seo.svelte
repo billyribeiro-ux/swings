@@ -3,15 +3,15 @@
 	import { SITE } from './config';
 
 	interface Props {
-		title?: string;
-		description?: string;
-		ogTitle?: string;
-		ogDescription?: string;
-		ogImage?: string;
-		ogType?: string;
-		noindex?: boolean;
-		canonical?: string;
-		jsonLd?: string;
+		title?: string | undefined;
+		description?: string | undefined;
+		ogTitle?: string | undefined;
+		ogDescription?: string | undefined;
+		ogImage?: string | undefined;
+		ogType?: string | undefined;
+		noindex?: boolean | undefined;
+		canonical?: string | undefined;
+		jsonLd?: string | undefined;
 	}
 
 	let {

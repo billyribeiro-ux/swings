@@ -302,7 +302,9 @@
 			s.replace(
 				/[&<>"']/g,
 				(ch) =>
-					({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch] as string
+					({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[
+						ch
+					] as string
 			);
 		for (const r of result) {
 			const word = escape(r.word);

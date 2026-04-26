@@ -35,7 +35,6 @@ describe('safeHtml', () => {
 	});
 
 	it('strips javascript: URLs from anchor href', () => {
-		 
 		const out = safeHtml('<a href="javascript:alert(1)">click</a>');
 		expect(out).not.toMatch(/javascript:/i);
 	});
@@ -56,9 +55,7 @@ describe('safeHtml', () => {
 	});
 
 	it('strips <form> and form-input tags but keeps inner text', () => {
-		const out = safeHtml(
-			'<form><input name="user"><button>send</button>label</form>'
-		);
+		const out = safeHtml('<form><input name="user"><button>send</button>label</form>');
 		expect(out).not.toContain('<form');
 		expect(out).not.toContain('<input');
 		expect(out).not.toContain('<button');

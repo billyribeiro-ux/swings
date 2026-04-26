@@ -34,11 +34,11 @@ export interface ProductListResponse {
 }
 
 export interface ListParams {
-	page?: number;
-	per_page?: number;
-	status?: ProductStatus;
-	product_type?: ProductType;
-	search?: string;
+	page?: number | undefined;
+	per_page?: number | undefined;
+	status?: ProductStatus | undefined;
+	product_type?: ProductType | undefined;
+	search?: string | undefined;
 }
 
 /** Serialize the list-param object into a URL querystring. */

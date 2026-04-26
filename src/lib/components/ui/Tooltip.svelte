@@ -39,12 +39,12 @@
 
 	interface Props {
 		label: string;
-		placement?: Placement;
-		hotkey?: string;
-		delay?: number;
-		disabled?: boolean;
-		children?: Snippet;
-		trigger?: Snippet<[TriggerProps]>;
+		placement?: Placement | undefined;
+		hotkey?: string | undefined;
+		delay?: number | undefined;
+		disabled?: boolean | undefined;
+		children?: Snippet | undefined;
+		trigger?: Snippet<[TriggerProps]> | undefined;
 	}
 
 	let {

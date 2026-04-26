@@ -30,8 +30,8 @@ export interface CreateMemberRequest {
 	email: string;
 	name: string;
 	role: AdminUserRole;
-	temp_password?: string;
-	email_verified?: boolean;
+	temp_password?: string | undefined;
+	email_verified?: boolean | undefined;
 }
 
 export interface CreateMemberResponse {

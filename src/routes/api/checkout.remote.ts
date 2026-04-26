@@ -85,8 +85,8 @@ function lineItemsForPlan(plan: PricingPlan): Stripe.Checkout.SessionCreateParam
  * types; the validator is the contract.
  */
 interface CheckoutPayload {
-	planSlug?: string;
-	priceId?: string;
+	planSlug?: string | undefined;
+	priceId?: string | undefined;
 }
 
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/;
