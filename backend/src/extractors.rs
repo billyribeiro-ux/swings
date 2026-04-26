@@ -131,7 +131,9 @@ pub fn jwt_validation() -> Validation {
 ///
 /// Returns `None` when neither carrier yields a non-empty token.
 pub(crate) fn extract_access_token(headers: &HeaderMap) -> Option<String> {
-    if let Some(cookie_header) = headers.get(axum::http::header::COOKIE).and_then(|v| v.to_str().ok())
+    if let Some(cookie_header) = headers
+        .get(axum::http::header::COOKIE)
+        .and_then(|v| v.to_str().ok())
     {
         // RFC 6265: the request `Cookie` header is one or more
         // `name=value` pairs separated by `; `. We hand-parse rather than
@@ -388,6 +390,29 @@ impl FromRequestParts<AppState> for PrivilegedUser {
             user_id: auth_user.user_id,
             role,
         })
+    }
+}
+
+/// Like [`AuthUser`] but **infallible**: yields `Some` on a valid bearer/cookie
+/// session, `None` on anything else (missing token, expired, malformed,
+/// revoked impersonation, etc.). Use on endpoints that must succeed for
+/// unauthenticated callers — notably `POST /api/auth/logout`, which has to
+/// be safe to call with no session so the browser can always wipe its
+/// cookies cleanly.
+pub struct MaybeAuthUser(pub Option<AuthUser>);
+
+impl FromRequestParts<AppState> for MaybeAuthUser {
+    type Rejection = Infallible;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppState,
+    ) -> Result<Self, Self::Rejection> {
+        // Delegate to the fallible extractor and demote any rejection to
+        // `None`. We must not propagate the underlying `AppError` because
+        // that would defeat the whole point of an infallible variant.
+        let auth = AuthUser::from_request_parts(parts, state).await.ok();
+        Ok(MaybeAuthUser(auth))
     }
 }
 

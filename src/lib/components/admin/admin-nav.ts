@@ -39,6 +39,14 @@ export const consentAdminItems: AdminNavItem[] = [
 	{ href: '/admin/consent/banner', label: 'Banners' },
 	{ href: '/admin/consent/categories', label: 'Categories' },
 	{ href: '/admin/consent/services', label: 'Services' },
-	{ href: '/admin/consent/policies', label: 'Policies' },
-	{ href: '/admin/consent/log', label: 'Log + integrity' }
+	{ href: '/admin/consent/policy', label: 'Policy' },
+	{ href: '/admin/consent/log', label: 'Log' },
+	{ href: '/admin/consent/integrity', label: 'Integrity' }
+];
+
+export const notificationAdminItems: AdminNavItem[] = [
+	{ href: '/admin/notifications', label: 'Overview' },
+	{ href: '/admin/notifications/templates', label: 'Templates' },
+	{ href: '/admin/notifications/deliveries', label: 'Deliveries' },
+	{ href: '/admin/notifications/suppression', label: 'Suppression' }
 ];

@@ -3,12 +3,12 @@
   banners, categories, services, policies, log (+ integrity).
 -->
 <script lang="ts">
-	import ShieldCheckIcon from 'phosphor-svelte/lib/ShieldCheckIcon';
 	import MegaphoneIcon from 'phosphor-svelte/lib/MegaphoneIcon';
-	import StackIcon from 'phosphor-svelte/lib/StackIcon';
-	import PlugIcon from 'phosphor-svelte/lib/PlugIcon';
-	import FileTextIcon from 'phosphor-svelte/lib/FileTextIcon';
-	import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
+	import ListChecksIcon from 'phosphor-svelte/lib/ListChecksIcon';
+	import WrenchIcon from 'phosphor-svelte/lib/WrenchIcon';
+	import ScrollIcon from 'phosphor-svelte/lib/ScrollIcon';
+	import ClipboardTextIcon from 'phosphor-svelte/lib/ClipboardTextIcon';
+	import ShieldCheckIcon from 'phosphor-svelte/lib/ShieldCheckIcon';
 	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
 
 	const sections = [
@@ -17,35 +17,42 @@
 			icon: MegaphoneIcon,
 			eyebrow: 'Surface',
 			title: 'Banners',
-			description: 'Region × locale banner copy with live preview at the 9 PE7 breakpoints.'
+			description: 'Region × locale banner copy. Saving an existing banner bumps the server-side version.'
 		},
 		{
 			href: '/admin/consent/categories',
-			icon: StackIcon,
+			icon: ListChecksIcon,
 			eyebrow: 'Catalogue',
 			title: 'Categories',
 			description: 'Consent-category catalogue. `necessary` is protected; reorder others via sort_order.'
 		},
 		{
 			href: '/admin/consent/services',
-			icon: PlugIcon,
+			icon: WrenchIcon,
 			eyebrow: 'Integrations',
 			title: 'Services',
 			description: 'Third-party services grouped under a category (GA, Meta Pixel, Stripe, …).'
 		},
 		{
-			href: '/admin/consent/policies',
-			icon: FileTextIcon,
+			href: '/admin/consent/policy',
+			icon: ScrollIcon,
 			eyebrow: 'Legal',
-			title: 'Policies',
-			description: 'Versioned markdown privacy policy. New versions force re-consent.'
+			title: 'Policy versions',
+			description: 'Append-only markdown privacy policy. New versions force re-consent.'
 		},
 		{
 			href: '/admin/consent/log',
-			icon: ClockIcon,
+			icon: ClipboardTextIcon,
 			eyebrow: 'Audit',
-			title: 'Log + integrity',
-			description: 'Read-only view of consent_records (CONSENT-03) plus tamper-evident anchors.'
+			title: 'Consent log',
+			description: 'Read-only view of consent_records (CONSENT-03) — proof-of-consent for DSAR replies.'
+		},
+		{
+			href: '/admin/consent/integrity',
+			icon: ShieldCheckIcon,
+			eyebrow: 'Audit',
+			title: 'Integrity',
+			description: 'Tamper-evidence anchor chain — verify the consent log has not been edited.'
 		}
 	] as const;
 </script>

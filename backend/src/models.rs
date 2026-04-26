@@ -158,7 +158,12 @@ pub struct AuthResponse {
 
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct RefreshRequest {
-    pub refresh_token: String,
+    /// Optional during BFF rollout (Phase 1.3): when the SPA carries the
+    /// refresh token via the `swings_refresh` httpOnly cookie, the JSON body
+    /// is empty (`{}`) and this field is `None`. The handler reads from the
+    /// cookie jar in that case. Legacy clients can still send the value here.
+    #[serde(default)]
+    pub refresh_token: Option<String>,
 }
 
 #[derive(Debug, Serialize, ToSchema)]

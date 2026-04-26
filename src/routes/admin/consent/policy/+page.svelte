@@ -1,47 +1,37 @@
 <!--
-  Phase 2.3 — Consent services CRUD. A service row tells the consent gate
-  "when category X is granted, allow this vendor". Grouped by category in
-  the table view.
+  Phase 2.3 — Consent privacy policy versions. Append-only: every save is a
+  brand-new INSERT and old versions are immutable. Creating a new version
+  bumps the banner's `policy_version`, which forces re-consent on next page
+  load for every visitor.
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import WrenchIcon from 'phosphor-svelte/lib/WrenchIcon';
+	import ScrollIcon from 'phosphor-svelte/lib/ScrollIcon';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
-	import PencilIcon from 'phosphor-svelte/lib/PencilIcon';
+	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
 	import ArrowsClockwiseIcon from 'phosphor-svelte/lib/ArrowsClockwiseIcon';
 	import XIcon from 'phosphor-svelte/lib/XIcon';
 	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
 	import WarningIcon from 'phosphor-svelte/lib/WarningIcon';
+	import LockIcon from 'phosphor-svelte/lib/LockIcon';
 	import { ApiError } from '$lib/api/client';
 	import {
-		listServices,
-		createService,
-		updateService,
-		listCategories,
-		type AdminCategory,
-		type AdminService,
-		type ServiceUpsertBody
+		listPolicies,
+		createPolicy,
+		type AdminPolicy,
+		type PolicyCreateBody
 	} from '$lib/api/admin-consent';
 
-	type DrawerMode = 'create' | 'edit' | null;
-
-	let services = $state<AdminService[]>([]);
-	let categories = $state<AdminCategory[]>([]);
+	let policies = $state<AdminPolicy[]>([]);
 	let loading = $state(true);
 	let error = $state('');
 	let toast = $state('');
 
-	let mode = $state<DrawerMode>(null);
-	let editingId = $state<string | null>(null);
+	let drawerMode = $state<'create' | 'view' | null>(null);
+	let viewing = $state<AdminPolicy | null>(null);
 
-	let formSlug = $state('');
-	let formName = $state('');
-	let formVendor = $state('');
-	let formCategory = $state('analytics');
-	let formDomains = $state('');
-	let formPrivacyUrl = $state('');
-	let formDescription = $state('');
-	let formIsActive = $state(true);
+	let formMarkdown = $state('');
+	let formLocale = $state('en');
 	let formBusy = $state(false);
 
 	function flash(msg: string) {
@@ -53,112 +43,83 @@
 		loading = true;
 		error = '';
 		try {
-			[services, categories] = await Promise.all([listServices(), listCategories()]);
+			policies = await listPolicies();
 		} catch (e) {
-			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Failed to load services';
+			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Failed to load policies';
 		} finally {
 			loading = false;
 		}
 	}
 
 	function openCreate() {
-		formSlug = '';
-		formName = '';
-		formVendor = '';
-		formCategory = categories[0]?.key ?? 'analytics';
-		formDomains = '';
-		formPrivacyUrl = '';
-		formDescription = '';
-		formIsActive = true;
-		editingId = null;
-		mode = 'create';
+		formMarkdown = '';
+		formLocale = 'en';
+		drawerMode = 'create';
 	}
 
-	function openEdit(s: AdminService) {
-		formSlug = s.slug;
-		formName = s.name;
-		formVendor = s.vendor;
-		formCategory = s.category;
-		formDomains = s.domains.join(', ');
-		formPrivacyUrl = s.privacy_url ?? '';
-		formDescription = s.description ?? '';
-		formIsActive = s.is_active;
-		editingId = s.id;
-		mode = 'edit';
+	function openView(p: AdminPolicy) {
+		viewing = p;
+		drawerMode = 'view';
 	}
 
 	function closeDrawer() {
-		mode = null;
-		editingId = null;
+		drawerMode = null;
+		viewing = null;
 	}
 
-	async function save() {
-		if (!formName.trim() || !formVendor.trim() || !formCategory.trim()) {
-			error = 'Name, vendor, and category are required';
+	async function publish() {
+		if (!formMarkdown.trim()) {
+			error = 'Markdown body is required';
 			return;
 		}
 		formBusy = true;
 		error = '';
-		const domains = formDomains
-			.split(',')
-			.map((d) => d.trim())
-			.filter((d) => d.length > 0);
-		const body: ServiceUpsertBody = {
-			slug: formSlug.trim(),
-			name: formName.trim(),
-			vendor: formVendor.trim(),
-			category: formCategory.trim(),
-			domains,
-			privacy_url: formPrivacyUrl.trim() || null,
-			description: formDescription.trim() || null,
-			is_active: formIsActive
-		};
 		try {
-			if (mode === 'create') {
-				if (!formSlug.trim()) {
-					error = 'Slug is required';
-					formBusy = false;
-					return;
-				}
-				await createService(body);
-				flash('Service created');
-			} else if (editingId) {
-				await updateService(editingId, body);
-				flash('Service updated');
-			}
+			const body: PolicyCreateBody = {
+				markdown: formMarkdown,
+				locale: formLocale.trim() || 'en'
+			};
+			const created = await createPolicy(body);
+			flash(`Published v${created.version} (${created.locale})`);
 			closeDrawer();
 			await refresh();
 		} catch (e) {
-			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Save failed';
+			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Publish failed';
 		} finally {
 			formBusy = false;
 		}
+	}
+
+	function summary(p: AdminPolicy): string {
+		const firstLine = p.markdown.split('\n').find((l) => l.trim().length > 0) ?? '';
+		const stripped = firstLine.replace(/^#+\s*/, '').trim();
+		return stripped.length > 80 ? stripped.slice(0, 80) + '…' : stripped;
 	}
 
 	onMount(refresh);
 </script>
 
 <svelte:head>
-	<title>Consent services · Admin</title>
+	<title>Privacy policy versions · Admin</title>
 </svelte:head>
 
-<div class="page" data-testid="admin-consent-services">
+<div class="page" data-testid="admin-consent-policy">
 	<header class="page__header">
 		<div class="page__title-row">
-			<WrenchIcon size={28} weight="duotone" />
+			<ScrollIcon size={28} weight="duotone" />
 			<div class="page__copy">
 				<span class="eyebrow">Governance / Consent</span>
-				<h1 class="page__title">Services</h1>
+				<h1 class="page__title">Privacy policy versions</h1>
 				<p class="page__subtitle">
-					Third-party scripts and SDKs grouped under a consent category. The renderer keeps a
-					service inactive until its category is granted by the visitor.
+					Each version is an immutable INSERT. Publishing bumps the banner's <code>policy_version</code>
+					and forces re-consent UI for every subject on their next page load.
 				</p>
 			</div>
 		</div>
 		<div class="page__actions">
 			<button class="btn btn--primary" type="button" onclick={openCreate}>
 				<PlusIcon size={16} weight="bold" />
-				<span>New service</span>
+				<span>New version</span>
 			</button>
 			<button class="btn btn--secondary" type="button" onclick={() => void refresh()}>
 				<ArrowsClockwiseIcon size={16} weight="bold" />
@@ -166,6 +127,15 @@
 			</button>
 		</div>
 	</header>
+
+	<div class="banner">
+		<LockIcon size={18} weight="duotone" />
+		<div>
+			<strong>Append-only.</strong>
+			Old versions cannot be edited or deleted — they remain queryable for compliance proofs.
+			Publishing a new version is the only way to amend the live policy.
+		</div>
+	</div>
 
 	{#if toast}
 		<div class="toast" role="status">
@@ -183,16 +153,16 @@
 	{#if loading}
 		<div class="state state--loading">
 			<div class="state__spinner" aria-hidden="true"></div>
-			<span>Loading services…</span>
+			<span>Loading policy versions…</span>
 		</div>
-	{:else if services.length === 0}
+	{:else if policies.length === 0}
 		<div class="empty">
-			<WrenchIcon size={48} weight="duotone" />
-			<p class="empty__title">No services configured</p>
-			<p class="empty__sub">Add Google Analytics, Meta Pixel, Stripe, etc. once categories exist.</p>
+			<ScrollIcon size={48} weight="duotone" />
+			<p class="empty__title">No policy versions yet</p>
+			<p class="empty__sub">Publish v1 to get started — visitors will be re-prompted to consent.</p>
 			<button class="btn btn--primary" type="button" onclick={openCreate}>
 				<PlusIcon size={16} weight="bold" />
-				<span>New service</span>
+				<span>New version</span>
 			</button>
 		</div>
 	{:else}
@@ -201,42 +171,31 @@
 				<table class="table">
 					<thead>
 						<tr>
-							<th scope="col">Slug</th>
-							<th scope="col">Name</th>
-							<th scope="col">Vendor</th>
-							<th scope="col">Category</th>
-							<th scope="col">Domains</th>
-							<th scope="col">Status</th>
+							<th scope="col">Version</th>
+							<th scope="col">Locale</th>
+							<th scope="col">Title</th>
+							<th scope="col">Effective at</th>
+							<th scope="col">Created</th>
 							<th scope="col" class="table__actions-th" aria-label="Actions"></th>
 						</tr>
 					</thead>
 					<tbody>
-						{#each services as s (s.id)}
+						{#each policies as p (p.id)}
 							<tr>
-								<td><code class="key">{s.slug}</code></td>
-								<td>{s.name}</td>
-								<td>{s.vendor}</td>
-								<td><span class="pill pill--neutral">{s.category}</span></td>
-								<td class="domains">
-									{#if s.domains.length === 0}—{:else}
-										<code>{s.domains.slice(0, 2).join(', ')}</code>
-										{#if s.domains.length > 2}<span class="muted">+{s.domains.length - 2}</span>{/if}
-									{/if}
-								</td>
-								<td>
-									<span class={s.is_active ? 'pill pill--success' : 'pill pill--neutral'}>
-										{s.is_active ? 'Active' : 'Disabled'}
-									</span>
-								</td>
+								<td class="num">v{p.version}</td>
+								<td><code>{p.locale}</code></td>
+								<td class="desc">{summary(p)}</td>
+								<td class="ts">{new Date(p.effective_at).toLocaleString()}</td>
+								<td class="ts">{new Date(p.created_at).toLocaleString()}</td>
 								<td class="row-actions">
 									<button
 										class="btn btn--secondary btn--small"
 										type="button"
-										onclick={() => openEdit(s)}
-										aria-label="Edit"
+										onclick={() => openView(p)}
+										aria-label="View"
 									>
-										<PencilIcon size={14} weight="bold" />
-										<span>Edit</span>
+										<EyeIcon size={14} weight="bold" />
+										<span>View</span>
 									</button>
 								</td>
 							</tr>
@@ -247,7 +206,7 @@
 		</section>
 	{/if}
 
-	{#if mode}
+	{#if drawerMode}
 		<div
 			class="drawer-backdrop"
 			role="button"
@@ -256,118 +215,66 @@
 			onclick={closeDrawer}
 			onkeydown={(e) => e.key === 'Escape' && closeDrawer()}
 		></div>
-		<aside class="drawer" aria-label="Service editor">
+		<aside class="drawer" aria-label="Policy editor">
 			<header class="drawer__header">
 				<h2 class="drawer__title">
-					{mode === 'create' ? 'New service' : 'Edit service'}
+					{#if drawerMode === 'create'}New policy version{/if}
+					{#if drawerMode === 'view' && viewing}Policy v{viewing.version} · {viewing.locale}{/if}
 				</h2>
 				<button class="btn btn--secondary btn--small" type="button" onclick={closeDrawer}>
 					<XIcon size={14} weight="bold" />
 					<span>Close</span>
 				</button>
 			</header>
-			<div class="form">
-				<div class="grid-2">
+			{#if drawerMode === 'create'}
+				<div class="form">
 					<div class="field">
-						<label class="field__label" for="svc-slug">Slug</label>
+						<label class="field__label" for="pol-locale">Locale</label>
 						<input
-							id="svc-slug"
-							name="svc-slug"
+							id="pol-locale"
+							name="pol-locale"
 							class="field__input"
-							placeholder="ga4, meta-pixel, …"
-							bind:value={formSlug}
-							disabled={mode === 'edit'}
+							placeholder="en"
+							bind:value={formLocale}
 						/>
 					</div>
 					<div class="field">
-						<label class="field__label" for="svc-category">Category</label>
-						<select
-							id="svc-category"
-							name="svc-category"
-							class="field__input"
-							bind:value={formCategory}
-						>
-							{#each categories as c (c.key)}
-								<option value={c.key}>{c.label} ({c.key})</option>
-							{/each}
-						</select>
+						<label class="field__label" for="pol-md">Markdown body</label>
+						<textarea
+							id="pol-md"
+							name="pol-md"
+							class="field__input field__input--mono field__input--xtall"
+							rows={18}
+							bind:value={formMarkdown}
+						></textarea>
+					</div>
+					<p class="hint">
+						Whitespace is preserved verbatim — paste from your legal review tool without
+						re-formatting.
+					</p>
+					<div class="form__actions">
+						<button class="btn btn--primary" type="button" disabled={formBusy} onclick={publish}>
+							<CheckCircleIcon size={16} weight="bold" />
+							<span>{formBusy ? 'Publishing…' : 'Publish version'}</span>
+						</button>
+						<button class="btn btn--secondary" type="button" onclick={closeDrawer}>
+							<XIcon size={16} weight="bold" />
+							<span>Cancel</span>
+						</button>
 					</div>
 				</div>
-				<div class="grid-2">
-					<div class="field">
-						<label class="field__label" for="svc-name">Name</label>
-						<input
-							id="svc-name"
-							name="svc-name"
-							class="field__input"
-							placeholder="Google Analytics 4"
-							bind:value={formName}
-						/>
-					</div>
-					<div class="field">
-						<label class="field__label" for="svc-vendor">Vendor</label>
-						<input
-							id="svc-vendor"
-							name="svc-vendor"
-							class="field__input"
-							placeholder="Google LLC"
-							bind:value={formVendor}
-						/>
-					</div>
-				</div>
-				<div class="field">
-					<label class="field__label" for="svc-domains">Domains (comma-separated)</label>
-					<input
-						id="svc-domains"
-						name="svc-domains"
-						class="field__input"
-						placeholder="www.google-analytics.com, region1.analytics.google.com"
-						bind:value={formDomains}
-					/>
-				</div>
-				<div class="field">
-					<label class="field__label" for="svc-privacy">Privacy URL</label>
-					<input
-						id="svc-privacy"
-						name="svc-privacy"
-						type="url"
-						class="field__input"
-						placeholder="https://policies.google.com/privacy"
-						bind:value={formPrivacyUrl}
-					/>
-				</div>
-				<div class="field">
-					<label class="field__label" for="svc-desc">Description</label>
-					<textarea
-						id="svc-desc"
-						name="svc-desc"
-						class="field__input field__input--tall"
-						rows={4}
-						bind:value={formDescription}
-					></textarea>
-				</div>
-				<div class="field">
-					<label class="check-row" for="svc-active">
-						<input
-							id="svc-active"
-							name="svc-active"
-							type="checkbox"
-							bind:checked={formIsActive}
-						/>
-						<span>Enabled</span>
-					</label>
-				</div>
-				<div class="form__actions">
-					<button class="btn btn--primary" type="button" disabled={formBusy} onclick={save}>
-						<CheckCircleIcon size={16} weight="bold" />
-						<span>{formBusy ? 'Saving…' : mode === 'create' ? 'Create' : 'Save'}</span>
-					</button>
-					<button class="btn btn--secondary" type="button" onclick={closeDrawer}>
-						<XIcon size={16} weight="bold" />
-						<span>Cancel</span>
-					</button>
-				</div>
-			</div>
+			{:else if drawerMode === 'view' && viewing}
+				<dl class="meta">
+					<dt>Version</dt><dd>v{viewing.version}</dd>
+					<dt>Locale</dt><dd><code>{viewing.locale}</code></dd>
+					<dt>Effective at</dt><dd>{new Date(viewing.effective_at).toLocaleString()}</dd>
+					<dt>Created</dt><dd>{new Date(viewing.created_at).toLocaleString()}</dd>
+				</dl>
+				<details open>
+					<summary>Markdown body</summary>
+					<pre class="markdown">{viewing.markdown}</pre>
+				</details>
+			{/if}
 		</aside>
 	{/if}
 </div>
@@ -381,6 +288,11 @@
 	.eyebrow { display: inline-block; font-size: 0.6875rem; font-weight: 700; line-height: 1; letter-spacing: 0.08em; color: var(--color-grey-500); text-transform: uppercase; margin-bottom: 0.4rem; }
 	.page__title { margin: 0; font-family: var(--font-heading); font-size: 1.5rem; font-weight: 700; color: var(--color-white); letter-spacing: -0.01em; line-height: 1.2; }
 	.page__subtitle { margin: 0.35rem 0 0; font-size: 0.875rem; color: var(--color-grey-400); max-width: 42rem; line-height: 1.5; }
+	.page__subtitle code { font-size: 0.85em; padding: 0.1em 0.35em; border-radius: 0.25rem; background: rgba(255, 255, 255, 0.06); }
+
+	.banner { display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.85rem 1rem; margin-bottom: 1.25rem; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: var(--radius-lg); color: #fcd34d; font-size: 0.875rem; line-height: 1.5; }
+	.banner :global(svg) { color: #fcd34d; flex-shrink: 0; margin-top: 0.1rem; }
+	.banner strong { color: #fde68a; }
 
 	.toast, .error { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border-radius: var(--radius-lg); font-size: 0.875rem; margin-bottom: 1rem; }
 	.toast { background: rgba(15, 164, 175, 0.12); border: 1px solid rgba(15, 164, 175, 0.25); color: #5eead4; }
@@ -405,13 +317,9 @@
 	.table tbody tr:last-child td { border-bottom: none; }
 	.table__actions-th { text-align: right; }
 	.row-actions { display: flex; gap: 0.4rem; justify-content: flex-end; flex-wrap: wrap; }
-	.key { color: var(--color-teal-light); }
-	.muted { color: var(--color-grey-500); margin-left: 0.35rem; font-size: 0.75rem; }
-	.domains { max-width: 24ch; overflow: hidden; text-overflow: ellipsis; }
-
-	.pill { display: inline-flex; align-items: center; padding: 0.15rem 0.5rem; border-radius: var(--radius-full); font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-	.pill--success { background: rgba(15, 164, 175, 0.12); color: #5eead4; }
-	.pill--neutral { background: rgba(255, 255, 255, 0.06); color: var(--color-grey-300); }
+	.ts { font-variant-numeric: tabular-nums; color: var(--color-grey-300); white-space: nowrap; }
+	.num { font-variant-numeric: tabular-nums; color: var(--color-grey-300); font-weight: 600; }
+	.desc { color: var(--color-grey-300); max-width: 40ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 	.btn { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.5rem; padding: 0 0.875rem; border-radius: var(--radius-lg); font-size: 0.8125rem; font-weight: 600; border: 1px solid transparent; background: transparent; color: var(--color-grey-300); cursor: pointer; transition: background-color 150ms, border-color 150ms, color 150ms, box-shadow 150ms, transform 150ms; }
 	.btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -422,23 +330,21 @@
 	.btn--small { min-height: 2rem; padding: 0 0.65rem; font-size: 0.75rem; }
 
 	.drawer-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); z-index: 60; }
-	.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(640px, 92vw); background: var(--color-navy); border-left: 1px solid rgba(255, 255, 255, 0.08); padding: 1.5rem; overflow-y: auto; z-index: 70; box-shadow: -8px 0 24px rgba(0, 0, 0, 0.3); }
+	.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(720px, 92vw); background: var(--color-navy); border-left: 1px solid rgba(255, 255, 255, 0.08); padding: 1.5rem; overflow-y: auto; z-index: 70; box-shadow: -8px 0 24px rgba(0, 0, 0, 0.3); }
 	.drawer__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
 	.drawer__title { font-family: var(--font-heading); font-size: 1rem; font-weight: 600; color: var(--color-white); margin: 0; letter-spacing: -0.01em; }
 	.form { display: flex; flex-direction: column; gap: 0.85rem; }
 	.form__actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
-	.grid-2 { display: grid; grid-template-columns: 1fr; gap: 0.85rem; }
 	.field { display: flex; flex-direction: column; gap: 0.4rem; }
 	.field__label { font-size: 0.75rem; color: var(--color-grey-300); font-weight: 500; }
 	.field__input { min-height: 2.5rem; padding: 0.65rem 0.875rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--color-white); border-radius: var(--radius-lg); font-size: 0.875rem; width: 100%; font-family: inherit; color-scheme: dark; transition: border-color 150ms, box-shadow 150ms; }
-	.field__input--tall { min-height: 5rem; }
+	.field__input--mono { font-family: var(--font-mono); font-size: 0.78rem; }
+	.field__input--xtall { min-height: 22rem; }
 	.field__input::placeholder { color: var(--color-grey-500); }
 	.field__input:focus { outline: none; border-color: var(--color-teal); box-shadow: 0 0 0 3px rgba(15, 164, 175, 0.15); }
-	.field__input:disabled { opacity: 0.55; cursor: not-allowed; }
-	.check-row { display: inline-flex; gap: 0.5rem; align-items: center; font-size: 0.875rem; color: var(--color-grey-200); cursor: pointer; }
-	.check-row input { accent-color: var(--color-teal); }
-
-	@media (min-width: 480px) {
-		.grid-2 { grid-template-columns: 1fr 1fr; }
-	}
+	.hint { margin: 0; font-size: 0.75rem; color: var(--color-grey-500); line-height: 1.45; }
+	.meta { display: grid; grid-template-columns: 8rem 1fr; gap: 0.5rem 0.85rem; font-size: 0.875rem; color: var(--color-grey-200); margin-bottom: 1rem; }
+	.meta dt { color: var(--color-grey-500); font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+	.meta dd { margin: 0; word-break: break-all; }
+	.markdown { background: rgba(0, 0, 0, 0.3); padding: 0.85rem; border-radius: var(--radius-lg); font-size: 0.78rem; color: var(--color-grey-200); max-height: 60vh; overflow: auto; white-space: pre-wrap; word-break: break-word; font-family: var(--font-mono); }
 </style>

@@ -1,13 +1,5 @@
 import { auth } from '$lib/stores/auth.svelte';
 import { getPublicApiBase } from '$lib/api/publicApiBase';
-import type { components } from '$lib/api/schema';
-
-/**
- * FDN-02 migration demonstration: the refresh flow uses the OpenAPI-derived
- * `TokenResponse` type sourced from `schema.d.ts` (generated from the committed
- * backend snapshot). New call sites should follow this pattern.
- */
-type TokenResponse = components['schemas']['TokenResponse'];
 
 const API_BASE = getPublicApiBase();
 
@@ -15,9 +7,23 @@ interface FetchOptions extends RequestInit {
 	skipAuth?: boolean;
 }
 
+/**
+ * BFF (Phase 1.3, `docs/REMAINING-WORK.md`):
+ *
+ * Every authenticated request now carries `credentials: 'include'` so the
+ * httpOnly `swings_access` cookie travels automatically. We deliberately
+ * STOP attaching `Authorization: Bearer ...` from `auth.accessToken` —
+ * that field no longer exists. The cookie is the source of truth.
+ *
+ * The 401 → refresh → retry flow is preserved: `POST /api/auth/refresh`
+ * with `credentials: 'include'` lets the backend read the
+ * `swings_refresh` cookie and issue a rotated pair via fresh
+ * `Set-Cookie` headers. The browser swallows them; the SPA never needs
+ * to handle the raw token.
+ */
 class ApiClient {
 	private baseUrl: string;
-	/** Ensures parallel 401s share one refresh (avoids races invalidating the refresh token). */
+	/** Ensures parallel 401s share one refresh (avoids races invalidating the refresh cookie). */
 	private refreshInFlight: Promise<boolean> | null = null;
 
 	constructor(baseUrl: string) {
@@ -36,21 +42,23 @@ class ApiClient {
 			headers.set('Content-Type', 'application/json');
 		}
 
-		if (!skipAuth && auth.accessToken) {
-			headers.set('Authorization', `Bearer ${auth.accessToken}`);
-		}
-
+		// `credentials: 'include'` is the BFF contract: the browser
+		// attaches `Cookie: swings_access=...` to every request. Same-
+		// origin in production (Vercel rewrites `/api/*` → Railway) so
+		// the cookie is naturally in scope; cross-origin in dev when the
+		// SPA hits Vite-proxied `/api` over `http://localhost:5173`.
 		const response = await fetch(`${this.baseUrl}${endpoint}`, {
 			...fetchOptions,
+			credentials: 'include',
 			headers
 		});
 
-		if (response.status === 401 && !skipAuth && auth.refreshToken) {
+		if (response.status === 401 && !skipAuth) {
 			const refreshed = await this.refreshTokens();
 			if (refreshed) {
-				headers.set('Authorization', `Bearer ${auth.accessToken}`);
 				const retry = await fetch(`${this.baseUrl}${endpoint}`, {
 					...fetchOptions,
+					credentials: 'include',
 					headers
 				});
 				if (!retry.ok) {
@@ -59,7 +67,10 @@ class ApiClient {
 				}
 				return retry.json();
 			} else {
-				auth.logout();
+				// Don't await the logout fetch — the request that failed has
+				// already returned 401, the cookies are already invalid; we
+				// just need to drop in-memory `user` so the UI re-routes.
+				void auth.logout();
 				throw new ApiError(401, 'Session expired');
 			}
 		}
@@ -86,17 +97,22 @@ class ApiClient {
 
 	private async performRefresh(): Promise<boolean> {
 		try {
+			// `credentials: 'include'` ships `Cookie: swings_refresh=...`
+			// to the backend. The handler reads it from the cookie jar
+			// (no JSON body required during Phase A). The response sets
+			// rotated `Set-Cookie` headers for both halves; the browser
+			// swallows them and we never see the new tokens.
+			//
+			// IMPORTANT: do NOT send `Content-Type: application/json` with
+			// an empty body — earlier we sent `'{}'` and the typed extractor
+			// `Json<RefreshRequest>` rejected it as malformed (missing
+			// `refresh_token`) with 422 before our cookie-fallback ran.
 			const res = await fetch(`${this.baseUrl}/api/auth/refresh`, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ refresh_token: auth.refreshToken })
+				credentials: 'include'
 			});
 
-			if (!res.ok) return false;
-
-			const data: TokenResponse = await res.json();
-			auth.setTokens(data.access_token, data.refresh_token);
-			return true;
+			return res.ok;
 		} catch {
 			return false;
 		}
@@ -147,7 +163,8 @@ class ApiClient {
 	 *
 	 * Mirrors the auth + 401 → refresh → retry behaviour of
 	 * [`request`] so the operator's session stays alive across long
-	 * artefact composes.
+	 * artefact composes. `credentials: 'include'` ships the
+	 * `swings_access` cookie automatically.
 	 */
 	async getBlob(
 		endpoint: string,
@@ -155,24 +172,22 @@ class ApiClient {
 	): Promise<{ blob: Blob; filename: string | null }> {
 		const { skipAuth, ...fetchOptions } = options ?? {};
 		const headers = new Headers(fetchOptions.headers);
-		if (!skipAuth && auth.accessToken) {
-			headers.set('Authorization', `Bearer ${auth.accessToken}`);
-		}
 		let response = await fetch(`${this.baseUrl}${endpoint}`, {
 			...fetchOptions,
 			method: 'GET',
+			credentials: 'include',
 			headers
 		});
-		if (response.status === 401 && !skipAuth && auth.refreshToken) {
+		if (response.status === 401 && !skipAuth) {
 			const refreshed = await this.refreshTokens();
 			if (!refreshed) {
-				auth.logout();
+				void auth.logout();
 				throw new ApiError(401, 'Session expired');
 			}
-			headers.set('Authorization', `Bearer ${auth.accessToken}`);
 			response = await fetch(`${this.baseUrl}${endpoint}`, {
 				...fetchOptions,
 				method: 'GET',
+				credentials: 'include',
 				headers
 			});
 		}

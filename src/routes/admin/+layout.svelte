@@ -17,7 +17,6 @@
 	import CaretDoubleRightIcon from 'phosphor-svelte/lib/CaretDoubleRightIcon';
 	import ListIcon from 'phosphor-svelte/lib/ListIcon';
 	import XIcon from 'phosphor-svelte/lib/XIcon';
-	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
 	import GraduationCapIcon from 'phosphor-svelte/lib/GraduationCapIcon';
 	import CreditCardIcon from 'phosphor-svelte/lib/CreditCardIcon';
 	import TagIcon from 'phosphor-svelte/lib/TagIcon';
@@ -30,12 +29,17 @@
 	import ArrowSquareOutIcon from 'phosphor-svelte/lib/ArrowSquareOutIcon';
 	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
+	import BellIcon from 'phosphor-svelte/lib/BellIcon';
+	import StackIcon from 'phosphor-svelte/lib/StackIcon';
+	import CookieIcon from 'phosphor-svelte/lib/CookieIcon';
 	import CommandPalette from '$lib/components/admin/CommandPalette.svelte';
 	import { SITE } from '$lib/seo/config';
 	import {
 		blogAdminItems,
+		consentAdminItems,
 		courseAdminItems,
 		couponAdminItems,
+		notificationAdminItems,
 		popupAdminItems,
 		publicAdminRoutes,
 		subscriptionAdminItems
@@ -73,6 +77,8 @@
 	let subscriptionSubmenuOpen = $state(false);
 	let couponSubmenuOpen = $state(false);
 	let popupSubmenuOpen = $state(false);
+	let notificationSubmenuOpen = $state(false);
+	let consentSubmenuOpen = $state(false);
 
 	function toggleSidebarCollapsed() {
 		sidebarCollapsed = !sidebarCollapsed;
@@ -85,6 +91,8 @@
 			subscriptionSubmenuOpen = false;
 			couponSubmenuOpen = false;
 			popupSubmenuOpen = false;
+			notificationSubmenuOpen = false;
+			consentSubmenuOpen = false;
 		}
 	}
 
@@ -188,7 +196,13 @@
 				return;
 			}
 
-			auth.setAuth(res.user, res.access_token, res.refresh_token);
+			// BFF (Phase 1.3): the `/api/auth/login` response now also lands
+			// `Set-Cookie: swings_access=...; HttpOnly; SameSite=Lax` headers
+			// the browser swallowed before this line ran. We only persist the
+			// non-sensitive user record for SSR-hydration; the access /
+			// refresh tokens never enter JS state. Phase B will drop the
+			// `access_token` / `refresh_token` fields from `AuthResponse`.
+			auth.setUser(res.user);
 			adminSessionReady = true;
 		} catch (err) {
 			if (err instanceof ApiError) {
@@ -202,7 +216,11 @@
 	}
 
 	function handleLogout() {
-		auth.logout();
+		// BFF: `auth.logout()` is now async (it pings the server to clear
+		// the cookies). We deliberately do not await — the UI already
+		// re-renders the moment `user` flips to `null`, and a network
+		// hiccup must not trap the user in the admin shell.
+		void auth.logout();
 	}
 
 	const navItems = [
@@ -385,7 +403,7 @@
 					>
 						<ArticleIcon size={20} weight="duotone" />
 						<span>Blog</span>
-						<CaretDownIcon
+						<CaretRightIcon
 							size={16}
 							class="admin__nav-caret{blogSubmenuOpen ? ' admin__nav-caret--open' : ''}"
 						/>
@@ -415,7 +433,7 @@
 					>
 						<GraduationCapIcon size={20} weight="duotone" />
 						<span>Courses</span>
-						<CaretDownIcon
+						<CaretRightIcon
 							size={16}
 							class="admin__nav-caret{courseSubmenuOpen ? ' admin__nav-caret--open' : ''}"
 						/>
@@ -445,7 +463,7 @@
 					>
 						<CreditCardIcon size={20} weight="duotone" />
 						<span>Subscriptions</span>
-						<CaretDownIcon
+						<CaretRightIcon
 							size={16}
 							class="admin__nav-caret{subscriptionSubmenuOpen ? ' admin__nav-caret--open' : ''}"
 						/>
@@ -475,7 +493,7 @@
 					>
 						<TagIcon size={20} weight="duotone" />
 						<span>Coupons</span>
-						<CaretDownIcon
+						<CaretRightIcon
 							size={16}
 							class="admin__nav-caret{couponSubmenuOpen ? ' admin__nav-caret--open' : ''}"
 						/>
@@ -505,7 +523,7 @@
 					>
 						<ChatCircleDotsIcon size={20} weight="duotone" />
 						<span>Popups</span>
-						<CaretDownIcon
+						<CaretRightIcon
 							size={16}
 							class="admin__nav-caret{popupSubmenuOpen ? ' admin__nav-caret--open' : ''}"
 						/>
@@ -540,6 +558,47 @@
 					<span>Orders</span>
 				</a>
 
+				<div class="admin__nav-section">
+					<button
+						class="admin__nav-link admin__nav-link--header"
+						onclick={() => (notificationSubmenuOpen = !notificationSubmenuOpen)}
+					>
+						<BellIcon size={20} weight="duotone" />
+						<span>Notifications</span>
+						<CaretRightIcon
+							size={16}
+							class="admin__nav-caret{notificationSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+						/>
+					</button>
+					{#if notificationSubmenuOpen}
+						<div class="admin__nav-submenu">
+							{#each notificationAdminItems as item (item.href)}
+								<a
+									href={item.href}
+									class="admin__nav-sublink"
+									onclick={() => {
+										mobileMenuOpen = false;
+										notificationSubmenuOpen = false;
+									}}
+								>
+									{item.label}
+								</a>
+							{/each}
+						</div>
+					{/if}
+				</div>
+
+				<a
+					href="/admin/outbox"
+					class="admin__nav-link"
+					class:admin__nav-link--active={page.url.pathname.startsWith('/admin/outbox')}
+					onclick={() => (mobileMenuOpen = false)}
+					data-testid="nav-outbox"
+				>
+					<StackIcon size={20} weight="duotone" />
+					<span>Outbox</span>
+				</a>
+
 				<span class="admin__nav-eyebrow">Governance</span>
 				<a
 					href="/admin/security"
@@ -551,6 +610,36 @@
 					<ShieldCheckIcon size={20} weight="duotone" />
 					<span>Security</span>
 				</a>
+
+				<div class="admin__nav-section">
+					<button
+						class="admin__nav-link admin__nav-link--header"
+						onclick={() => (consentSubmenuOpen = !consentSubmenuOpen)}
+					>
+						<CookieIcon size={20} weight="duotone" />
+						<span>Consent</span>
+						<CaretRightIcon
+							size={16}
+							class="admin__nav-caret{consentSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+						/>
+					</button>
+					{#if consentSubmenuOpen}
+						<div class="admin__nav-submenu">
+							{#each consentAdminItems as item (item.href)}
+								<a
+									href={item.href}
+									class="admin__nav-sublink"
+									onclick={() => {
+										mobileMenuOpen = false;
+										consentSubmenuOpen = false;
+									}}
+								>
+									{item.label}
+								</a>
+							{/each}
+						</div>
+					{/if}
+				</div>
 
 				<a
 					href="/admin/audit"
@@ -917,15 +1006,25 @@
 	}
 
 	.admin__nav-link--header {
-		justify-content: space-between;
+		justify-content: flex-start;
 	}
 
 	:global(.admin__nav-caret) {
-		transition: transform 200ms var(--ease-out);
+		margin-left: auto;
+		flex-shrink: 0;
+		color: var(--color-grey-500);
+		transition:
+			transform 200ms var(--ease-out),
+			color 200ms var(--ease-out);
+	}
+
+	.admin__nav-link--header:hover :global(.admin__nav-caret) {
+		color: var(--color-grey-300);
 	}
 
 	:global(.admin__nav-caret--open) {
-		transform: rotate(180deg);
+		transform: rotate(90deg);
+		color: var(--color-teal-light);
 	}
 
 	.admin__nav-section {

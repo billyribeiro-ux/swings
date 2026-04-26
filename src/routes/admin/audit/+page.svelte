@@ -8,7 +8,6 @@
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import FunnelIcon from 'phosphor-svelte/lib/FunnelIcon';
 	import XIcon from 'phosphor-svelte/lib/XIcon';
-	import { auth } from '$lib/stores/auth.svelte';
 	import { ApiError } from '$lib/api/client';
 	import {
 		auditLog,
@@ -102,11 +101,8 @@
 	async function downloadCsv() {
 		try {
 			const url = auditLog.exportCsvUrl(buildQuery());
-			const res = await fetch(url, {
-				headers: {
-					Authorization: auth.accessToken ? `Bearer ${auth.accessToken}` : ''
-				}
-			});
+			// BFF (Phase 1.3): cookie-based auth — no Bearer header needed.
+			const res = await fetch(url, { credentials: 'include' });
 			if (!res.ok) {
 				error = `Export failed (${res.status})`;
 				return;

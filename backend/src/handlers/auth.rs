@@ -19,7 +19,7 @@ use validator::Validate;
 use crate::{
     db,
     error::{AppError, AppResult},
-    extractors::{AuthUser, Claims, ClientInfo, JWT_AUDIENCE, JWT_ISSUER},
+    extractors::{AuthUser, Claims, ClientInfo, MaybeAuthUser, JWT_AUDIENCE, JWT_ISSUER},
     models::*,
     notifications::send::{send_notification, Recipient, SendOptions},
     AppState,
@@ -397,7 +397,7 @@ pub(crate) async fn refresh(
     let supplied_token = jar
         .get(COOKIE_REFRESH)
         .map(|c| c.value().to_string())
-        .or_else(|| body.map(|Json(req)| req.refresh_token));
+        .or_else(|| body.and_then(|Json(req)| req.refresh_token));
     let raw_refresh = supplied_token.ok_or(AppError::Unauthorized)?;
 
     let token_hash = hash_token(&raw_refresh);
@@ -490,9 +490,22 @@ async fn me(State(state): State<AppState>, auth: AuthUser) -> AppResult<Json<Use
 )]
 pub(crate) async fn logout(
     State(state): State<AppState>,
-    auth: AuthUser,
+    MaybeAuthUser(auth): MaybeAuthUser,
     client: ClientInfo,
 ) -> AppResult<(HeaderMap, Json<serde_json::Value>)> {
+    // BFF: logout must be idempotent. A user with an expired/missing cookie
+    // (or one that was already cleared in another tab) still needs a clean
+    // way to wipe whatever session state is left in the browser. When there
+    // is no authenticated session we just emit the clear-cookie headers and
+    // return 200 — no DB work, no audit row, nothing to revoke.
+    let Some(auth) = auth else {
+        let cookies = clear_auth_cookie_headers(&state)?;
+        return Ok((
+            cookies,
+            Json(serde_json::json!({ "message": "Logged out" })),
+        ));
+    };
+
     // ADM-07-α: when the caller's session is an impersonation token,
     // a naive `delete_user_refresh_tokens(auth.user_id)` would punt
     // every refresh token of the *target* user — i.e. the admin would
@@ -552,7 +565,10 @@ pub(crate) async fn logout(
 
     db::delete_user_refresh_tokens(&state.db, auth.user_id).await?;
     let cookies = clear_auth_cookie_headers(&state)?;
-    Ok((cookies, Json(serde_json::json!({ "message": "Logged out" }))))
+    Ok((
+        cookies,
+        Json(serde_json::json!({ "message": "Logged out" })),
+    ))
 }
 
 // ── Forgot / Reset Password ─────────────────────────────────────────────

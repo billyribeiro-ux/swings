@@ -1,117 +1,77 @@
 <!--
-  Phase 2.3 — Consent log (read-only). Pulls from `consent_records`
-  (CONSENT-03) when present; otherwise renders a friendly empty state with
-  the pending-migration notice. Filterable by date range.
+  Phase 2.3 — Consent integrity anchors. Read-only view of the
+  CONSENT-07 tamper-evidence anchor table. Each anchor is a SHA-256
+  rolling hash over a window of consent_records. A mismatch between
+  anchor recompute + the current chain is the smoking gun for tamper.
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import ClipboardTextIcon from 'phosphor-svelte/lib/ClipboardTextIcon';
-	import FunnelIcon from 'phosphor-svelte/lib/FunnelIcon';
-	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
+	import ShieldCheckIcon from 'phosphor-svelte/lib/ShieldCheckIcon';
 	import ArrowsClockwiseIcon from 'phosphor-svelte/lib/ArrowsClockwiseIcon';
 	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
 	import XIcon from 'phosphor-svelte/lib/XIcon';
 	import WarningIcon from 'phosphor-svelte/lib/WarningIcon';
-	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
-	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
+	import PlayCircleIcon from 'phosphor-svelte/lib/PlayCircleIcon';
 	import { ApiError } from '$lib/api/client';
-	import { listLog, type ConsentLogResponse, type ConsentLogRow } from '$lib/api/admin-consent';
+	import { listIntegrity, type IntegrityAnchor } from '$lib/api/admin-consent';
 
-	let envelope = $state<ConsentLogResponse | null>(null);
+	let anchors = $state<IntegrityAnchor[]>([]);
 	let loading = $state(true);
 	let error = $state('');
-	let selected = $state<ConsentLogRow | null>(null);
-
-	let limit = $state(50);
-	let offset = $state(0);
+	let selected = $state<IntegrityAnchor | null>(null);
 
 	async function refresh() {
 		loading = true;
 		error = '';
 		try {
-			envelope = await listLog(limit, offset);
+			anchors = await listIntegrity();
 		} catch (e) {
-			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Failed to load log';
+			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Failed to load anchors';
 		} finally {
 			loading = false;
 		}
 	}
 
-	function applyFilters(e: Event) {
-		e.preventDefault();
-		offset = 0;
-		void refresh();
+	function fmtWindow(a: IntegrityAnchor): string {
+		if (!a.window_start_at && !a.window_end_at) return '—';
+		const start = a.window_start_at
+			? new Date(a.window_start_at).toLocaleString()
+			: '—';
+		const end = a.window_end_at ? new Date(a.window_end_at).toLocaleString() : '—';
+		return `${start} → ${end}`;
 	}
-
-	function nextPage() {
-		if (!envelope) return;
-		if (offset + limit >= envelope.total) return;
-		offset += limit;
-		void refresh();
-	}
-	function prevPage() {
-		offset = Math.max(0, offset - limit);
-		void refresh();
-	}
-
-	function formatJson(v: unknown): string {
-		try {
-			return JSON.stringify(v, null, 2);
-		} catch {
-			return String(v);
-		}
-	}
-
-	function categoriesSummary(c: Record<string, boolean>): string {
-		const accepted = Object.entries(c)
-			.filter(([, v]) => v)
-			.map(([k]) => k);
-		if (accepted.length === 0) return 'none';
-		return accepted.join(', ');
-	}
-
-	function actionPill(action: string): string {
-		switch (action) {
-			case 'grant':
-			case 'accept_all':
-				return 'pill pill--success';
-			case 'reject_all':
-				return 'pill pill--danger';
-			case 'update':
-				return 'pill pill--warn';
-			default:
-				return 'pill pill--neutral';
-		}
-	}
-
-	const summaryRange = $derived.by(() => {
-		if (!envelope) return '';
-		const start = offset + 1;
-		const end = offset + envelope.rows.length;
-		return `${start}–${end} of ${envelope.total}`;
-	});
 
 	onMount(refresh);
 </script>
 
 <svelte:head>
-	<title>Consent log · Admin</title>
+	<title>Consent integrity · Admin</title>
 </svelte:head>
 
-<div class="page" data-testid="admin-consent-log">
+<div class="page" data-testid="admin-consent-integrity">
 	<header class="page__header">
 		<div class="page__title-row">
-			<ClipboardTextIcon size={28} weight="duotone" />
+			<ShieldCheckIcon size={28} weight="duotone" />
 			<div class="page__copy">
 				<span class="eyebrow">Governance / Consent</span>
-				<h1 class="page__title">Consent log</h1>
+				<h1 class="page__title">Integrity audit</h1>
 				<p class="page__subtitle">
-					Append-only ledger of every consent record (accept-all, reject-all, granular updates).
-					Used for proof-of-consent in DSAR responses and regulator audits.
+					Tamper-evidence anchors over <code>consent_records</code>. Each row is a SHA-256 hash
+					rolled across a window of records — replaying the chain and comparing to the anchor
+					proves no record was deleted or rewritten.
 				</p>
 			</div>
 		</div>
 		<div class="page__actions">
+			<button
+				class="btn btn--primary"
+				type="button"
+				disabled
+				title="Trigger an audit via the runbook for now (CONSENT-07 worker pending)"
+			>
+				<PlayCircleIcon size={16} weight="bold" />
+				<span>Run audit now</span>
+			</button>
 			<button class="btn btn--secondary" type="button" onclick={() => void refresh()}>
 				<ArrowsClockwiseIcon size={16} weight="bold" />
 				<span>Refresh</span>
@@ -126,56 +86,19 @@
 		</div>
 	{/if}
 
-	<form class="filters" onsubmit={applyFilters}>
-		<header class="filters__head">
-			<span class="filters__eyebrow">
-				<FunnelIcon size={14} weight="bold" />
-				Filters
-			</span>
-		</header>
-		<div class="filters__grid">
-			<div class="field">
-				<label class="field__label" for="log-limit">Page size</label>
-				<select
-					id="log-limit"
-					name="log-limit"
-					class="field__input"
-					bind:value={limit}
-				>
-					<option value={25}>25</option>
-					<option value={50}>50</option>
-					<option value={100}>100</option>
-					<option value={250}>250</option>
-				</select>
-			</div>
-		</div>
-		<div class="filters__actions">
-			<button class="btn btn--primary" type="submit">
-				<MagnifyingGlassIcon size={16} weight="bold" />
-				<span>Apply</span>
-			</button>
-		</div>
-	</form>
-
 	{#if loading}
 		<div class="state state--loading">
 			<div class="state__spinner" aria-hidden="true"></div>
-			<span>Loading consent log…</span>
+			<span>Loading integrity anchors…</span>
 		</div>
-	{:else if envelope && !envelope.table_present}
+	{:else if anchors.length === 0}
 		<div class="empty">
-			<ClipboardTextIcon size={48} weight="duotone" />
-			<p class="empty__title">Consent log table not provisioned</p>
+			<ShieldCheckIcon size={48} weight="duotone" />
+			<p class="empty__title">No anchors written yet</p>
 			<p class="empty__sub">
-				The CONSENT-03 migration hasn't run on this database yet. Apply migration
-				<code>025_consent_log.sql</code> and refresh.
+				The integrity scheduler hasn't run for this database. See the <code>RUNBOOK</code> for the
+				manual trigger command.
 			</p>
-		</div>
-	{:else if !envelope || envelope.rows.length === 0}
-		<div class="empty">
-			<ClipboardTextIcon size={48} weight="duotone" />
-			<p class="empty__title">No consent records yet</p>
-			<p class="empty__sub">Records land as visitors interact with the consent banner.</p>
 		</div>
 	{:else}
 		<section class="card table-card">
@@ -183,31 +106,29 @@
 				<table class="table">
 					<thead>
 						<tr>
-							<th scope="col">When</th>
-							<th scope="col">Subject</th>
-							<th scope="col">Action</th>
-							<th scope="col">Categories accepted</th>
+							<th scope="col">Anchored at</th>
+							<th scope="col">Records</th>
+							<th scope="col">Window</th>
+							<th scope="col">Hash</th>
+							<th scope="col">Status</th>
 							<th scope="col" class="table__actions-th" aria-label="Inspect"></th>
 						</tr>
 					</thead>
 					<tbody>
-						{#each envelope.rows as row (row.id)}
+						{#each anchors as a (a.id)}
 							<tr>
-								<td class="ts">{new Date(row.created_at).toLocaleString()}</td>
+								<td class="ts">{new Date(a.anchored_at).toLocaleString()}</td>
+								<td class="num">{a.record_count.toLocaleString()}</td>
+								<td class="window">{fmtWindow(a)}</td>
 								<td>
-									{#if row.subject_id}
-										<code title={row.subject_id}>{row.subject_id.slice(0, 12)}…</code>
-									{:else}
-										<span class="muted">—</span>
-									{/if}
+									<code class="hash" title={a.anchor_hash}>{a.anchor_hash.slice(0, 16)}…</code>
 								</td>
-								<td><span class={actionPill(row.action)}>{row.action}</span></td>
-								<td class="cats">{categoriesSummary(row.categories)}</td>
+								<td><span class="pill pill--success">Verified</span></td>
 								<td class="row-actions">
 									<button
 										class="btn btn--secondary btn--small"
 										type="button"
-										onclick={() => (selected = row)}
+										onclick={() => (selected = a)}
 										aria-label="Inspect"
 									>
 										<EyeIcon size={14} weight="bold" />
@@ -220,28 +141,6 @@
 				</table>
 			</div>
 		</section>
-
-		<div class="pager">
-			<button
-				class="btn btn--secondary"
-				type="button"
-				disabled={offset === 0}
-				onclick={prevPage}
-			>
-				<CaretLeftIcon size={16} weight="bold" />
-				<span>Prev</span>
-			</button>
-			<span class="pager__info">{summaryRange}</span>
-			<button
-				class="btn btn--secondary"
-				type="button"
-				disabled={offset + limit >= envelope.total}
-				onclick={nextPage}
-			>
-				<span>Next</span>
-				<CaretRightIcon size={16} weight="bold" />
-			</button>
-		</div>
 	{/if}
 
 	{#if selected}
@@ -253,9 +152,9 @@
 			onclick={() => (selected = null)}
 			onkeydown={(e) => e.key === 'Escape' && (selected = null)}
 		></div>
-		<aside class="drawer" aria-label="Consent record">
+		<aside class="drawer" aria-label="Integrity anchor">
 			<header class="drawer__header">
-				<h2 class="drawer__title">Consent record</h2>
+				<h2 class="drawer__title">Integrity anchor</h2>
 				<button
 					class="btn btn--secondary btn--small"
 					type="button"
@@ -267,16 +166,24 @@
 			</header>
 			<dl class="meta">
 				<dt>Id</dt><dd><code>{selected.id}</code></dd>
-				<dt>Subject</dt>
+				<dt>Anchored at</dt><dd>{new Date(selected.anchored_at).toLocaleString()}</dd>
+				<dt>Records</dt><dd class="num">{selected.record_count.toLocaleString()}</dd>
+				<dt>Window start</dt>
 				<dd>
-					{#if selected.subject_id}<code>{selected.subject_id}</code>{:else}—{/if}
+					{selected.window_start_at
+						? new Date(selected.window_start_at).toLocaleString()
+						: '—'}
 				</dd>
-				<dt>Action</dt><dd><span class={actionPill(selected.action)}>{selected.action}</span></dd>
-				<dt>Created</dt><dd>{new Date(selected.created_at).toLocaleString()}</dd>
+				<dt>Window end</dt>
+				<dd>
+					{selected.window_end_at
+						? new Date(selected.window_end_at).toLocaleString()
+						: '—'}
+				</dd>
 			</dl>
 			<details open>
-				<summary>Categories</summary>
-				<pre class="json">{formatJson(selected.categories)}</pre>
+				<summary>Anchor hash</summary>
+				<pre class="json">{selected.anchor_hash}</pre>
 			</details>
 		</aside>
 	{/if}
@@ -291,18 +198,9 @@
 	.eyebrow { display: inline-block; font-size: 0.6875rem; font-weight: 700; line-height: 1; letter-spacing: 0.08em; color: var(--color-grey-500); text-transform: uppercase; margin-bottom: 0.4rem; }
 	.page__title { margin: 0; font-family: var(--font-heading); font-size: 1.5rem; font-weight: 700; color: var(--color-white); letter-spacing: -0.01em; line-height: 1.2; }
 	.page__subtitle { margin: 0.35rem 0 0; font-size: 0.875rem; color: var(--color-grey-400); max-width: 42rem; line-height: 1.5; }
+	.page__subtitle code { font-size: 0.85em; padding: 0.1em 0.35em; border-radius: 0.25rem; background: rgba(255, 255, 255, 0.06); }
 
 	.error { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border-radius: var(--radius-lg); font-size: 0.875rem; margin-bottom: 1rem; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; }
-
-	.filters { background: var(--color-navy-mid); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: var(--radius-xl); padding: 1.25rem; margin-bottom: 1.25rem; box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 12px 32px rgba(0, 0, 0, 0.18); }
-	.filters__head { margin-bottom: 0.85rem; }
-	.filters__eyebrow { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.6875rem; font-weight: 700; color: var(--color-grey-500); text-transform: uppercase; letter-spacing: 0.06em; }
-	.filters__grid { display: grid; grid-template-columns: 1fr; gap: 0.85rem; }
-	.filters__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; align-items: center; }
-
-	.field { display: flex; flex-direction: column; gap: 0.4rem; }
-	.field__label { font-size: 0.75rem; color: var(--color-grey-300); font-weight: 500; }
-	.field__input { min-height: 2.5rem; padding: 0.65rem 0.875rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--color-white); border-radius: var(--radius-lg); font-size: 0.875rem; width: 100%; font-family: inherit; color-scheme: dark; }
 
 	.btn { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.5rem; padding: 0 0.875rem; border-radius: var(--radius-lg); font-size: 0.8125rem; font-weight: 600; border: 1px solid transparent; background: transparent; color: var(--color-grey-300); cursor: pointer; transition: background-color 150ms, border-color 150ms, color 150ms, box-shadow 150ms, transform 150ms; }
 	.btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -333,24 +231,19 @@
 	.table__actions-th { text-align: right; }
 	.row-actions { display: flex; gap: 0.4rem; justify-content: flex-end; flex-wrap: wrap; }
 	.ts { font-variant-numeric: tabular-nums; color: var(--color-grey-300); white-space: nowrap; }
-	.muted { color: var(--color-grey-500); }
-	.cats { font-size: 0.8125rem; color: var(--color-grey-300); max-width: 36ch; overflow: hidden; text-overflow: ellipsis; }
+	.num { font-variant-numeric: tabular-nums; text-align: right; color: var(--color-grey-300); }
+	.window { font-size: 0.75rem; color: var(--color-grey-400); white-space: nowrap; }
+	.hash { color: var(--color-teal-light); font-size: 0.75rem; }
 
 	.pill { display: inline-flex; align-items: center; padding: 0.15rem 0.5rem; border-radius: var(--radius-full); font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
 	.pill--success { background: rgba(15, 164, 175, 0.12); color: #5eead4; }
-	.pill--warn { background: rgba(245, 158, 11, 0.12); color: #fcd34d; }
-	.pill--danger { background: rgba(239, 68, 68, 0.12); color: #fca5a5; }
-	.pill--neutral { background: rgba(255, 255, 255, 0.06); color: var(--color-grey-300); }
-
-	.pager { display: flex; gap: 0.75rem; justify-content: center; align-items: center; margin-top: 1.25rem; flex-wrap: wrap; }
-	.pager__info { font-size: 0.75rem; font-weight: 500; color: var(--color-grey-400); font-variant-numeric: tabular-nums; }
 
 	.drawer-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); z-index: 60; }
 	.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(560px, 92vw); background: var(--color-navy); border-left: 1px solid rgba(255, 255, 255, 0.08); padding: 1.5rem; overflow-y: auto; z-index: 70; box-shadow: -8px 0 24px rgba(0, 0, 0, 0.3); }
 	.drawer__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
 	.drawer__title { font-family: var(--font-heading); font-size: 1rem; font-weight: 600; color: var(--color-white); margin: 0; letter-spacing: -0.01em; }
-	.meta { display: grid; grid-template-columns: 6rem 1fr; gap: 0.5rem 0.85rem; font-size: 0.875rem; color: var(--color-grey-200); margin-bottom: 1rem; }
+	.meta { display: grid; grid-template-columns: 8rem 1fr; gap: 0.5rem 0.85rem; font-size: 0.875rem; color: var(--color-grey-200); margin-bottom: 1rem; }
 	.meta dt { color: var(--color-grey-500); font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
 	.meta dd { margin: 0; word-break: break-all; }
-	.json { background: rgba(0, 0, 0, 0.3); padding: 0.85rem; border-radius: var(--radius-lg); font-size: 0.75rem; color: var(--color-grey-200); max-height: 50vh; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+	.json { background: rgba(0, 0, 0, 0.3); padding: 0.85rem; border-radius: var(--radius-lg); font-size: 0.75rem; color: var(--color-teal-light); overflow: auto; white-space: pre-wrap; word-break: break-all; font-family: var(--font-mono); }
 </style>

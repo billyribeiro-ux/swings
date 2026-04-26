@@ -55,7 +55,9 @@
 				{ skipAuth: true }
 			);
 
-			auth.setAuth(res.user, res.access_token, res.refresh_token);
+			// BFF (Phase 1.3): registration response includes Set-Cookie for
+			// the new httpOnly session pair. We persist only the user record.
+			auth.setUser(res.user);
 			goto('/dashboard');
 		} catch (err) {
 			if (err instanceof ApiError) {

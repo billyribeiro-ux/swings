@@ -29,7 +29,12 @@
 				{ skipAuth: true }
 			);
 
-			auth.setAuth(res.user, res.access_token, res.refresh_token);
+			// BFF (Phase 1.3): the access + refresh tokens were just landed
+			// as httpOnly cookies by the server's `Set-Cookie` headers — JS
+			// neither sees them nor needs them. We persist only the
+			// non-sensitive `user` record so the UI shell renders without a
+			// flash before `/api/auth/me` round-trips on the next page.
+			auth.setUser(res.user);
 
 			if (res.user.role.toLowerCase() === 'admin') {
 				goto('/admin');

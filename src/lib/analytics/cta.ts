@@ -1,7 +1,6 @@
 import { browser } from '$app/environment';
 import { untrack } from 'svelte';
 import type { Attachment } from 'svelte/attachments';
-import { auth } from '$lib/stores/auth.svelte';
 import { getPublicApiBase } from '$lib/api/publicApiBase';
 import { ANALYTICS_OPT_OUT_KEY, ANALYTICS_SESSION_KEY } from './constants';
 
@@ -54,13 +53,16 @@ export function trackCtaEvent(
 		]
 	});
 
+	// BFF (Phase 1.3): authentication rides on the httpOnly `swings_access`
+	// cookie now — `credentials: 'include'` ships it automatically. We no
+	// longer attach `Authorization: Bearer ...` because the SPA cannot read
+	// the token. Anonymous CTA events still send (the analytics endpoint
+	// uses `OptionalAuthUser`).
 	const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-	if (auth.accessToken) {
-		headers['Authorization'] = `Bearer ${auth.accessToken}`;
-	}
 
 	fetch(`${apiBase}/api/analytics/events`, {
 		method: 'POST',
+		credentials: 'include',
 		headers,
 		body,
 		keepalive: true
