@@ -159,7 +159,7 @@
 			<article>
 				<h3>As link</h3>
 				<div class="cluster">
-					<Button href="/admin">Go to admin</Button>
+					<Button href={resolve('/admin')}>Go to admin</Button>
 					<Button href="https://svelte.dev" target="_blank" variant="link"
 						>External</Button
 					>

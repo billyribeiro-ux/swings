@@ -130,7 +130,7 @@
 							{/if}
 
 							{#if alert.chart_url}
-								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- chart_url is admin-supplied (typically TradingView) and opens in a new tab; resolve() does not apply -->
+								<!-- eslint-disable svelte/no-navigation-without-resolve -- chart_url is admin-supplied (typically TradingView) and opens in a new tab; resolve() does not apply -->
 								<a
 									href={alert.chart_url}
 									target="_blank"
@@ -139,6 +139,7 @@
 								>
 									View Chart →
 								</a>
+								<!-- eslint-enable svelte/no-navigation-without-resolve -->
 							{/if}
 						</div>
 					{/each}
