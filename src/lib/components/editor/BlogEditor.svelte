@@ -272,9 +272,9 @@
 		for (let i = 1; i <= ml; i++) {
 			for (let j = 1; j <= nl; j++) {
 				if (oW[i - 1] === nW[j - 1]) {
-					dp[i][j] = dp[i - 1][j - 1] + 1;
+					dp[i]![j] = dp[i - 1]![j - 1]! + 1;
 				} else {
-					dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+					dp[i]![j] = Math.max(dp[i - 1]![j]!, dp[i]![j - 1]!);
 				}
 			}
 		}
@@ -286,14 +286,14 @@
 		const result: Array<{ type: 'same' | 'del' | 'ins'; word: string }> = [];
 		while (i > 0 || j > 0) {
 			if (i > 0 && j > 0 && oW[i - 1] === nW[j - 1]) {
-				result.unshift({ type: 'same', word: oW[i - 1] });
+				result.unshift({ type: 'same', word: oW[i - 1]! });
 				i--;
 				j--;
-			} else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
-				result.unshift({ type: 'ins', word: nW[j - 1] });
+			} else if (j > 0 && (i === 0 || dp[i]![j - 1]! >= dp[i - 1]![j]!)) {
+				result.unshift({ type: 'ins', word: nW[j - 1]! });
 				j--;
 			} else {
-				result.unshift({ type: 'del', word: oW[i - 1] });
+				result.unshift({ type: 'del', word: oW[i - 1]! });
 				i--;
 			}
 		}
@@ -365,8 +365,8 @@
 
 		const match = textBeforeCursor.match(/(?:^|\s)(\/(\w*)$)/);
 		if (match) {
-			const slashPart = match[1];
-			slashQuery = match[2];
+			const slashPart = match[1]!;
+			slashQuery = match[2]!;
 			slashAnchorPos = from - slashPart.length;
 			try {
 				const coords = e.view.coordsAtPos(from);

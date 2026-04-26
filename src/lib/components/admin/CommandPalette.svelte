@@ -143,7 +143,7 @@
 			activeIndex = (activeIndex - 1 + (filtered.length || 1)) % (filtered.length || 1);
 		} else if (e.key === 'Enter') {
 			e.preventDefault();
-			if (filtered[activeIndex]) selectItem(filtered[activeIndex]);
+			if (filtered[activeIndex]) selectItem(filtered[activeIndex]!);
 		} else if (e.key === 'Escape') {
 			e.preventDefault();
 			onClose();

@@ -137,9 +137,9 @@ describe('ConsentStore', () => {
 			store.rejectAll();
 			store.revokeAll();
 			expect(events.length).toBe(3);
-			expect(events[0].action).toBe('granted');
-			expect(events[1].action).toBe('denied');
-			expect(events[2].action).toBe('revoked');
+			expect(events[0]!.action).toBe('granted');
+			expect(events[1]!.action).toBe('denied');
+			expect(events[2]!.action).toBe('revoked');
 		} finally {
 			window.removeEventListener(CONSENT_EVENT_NAME, handler);
 		}

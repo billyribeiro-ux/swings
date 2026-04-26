@@ -146,7 +146,7 @@
 			if (f.type === 'page_break') {
 				out.push([]);
 			} else {
-				out[out.length - 1].push(f);
+				out[out.length - 1]!.push(f);
 			}
 		}
 		return out;

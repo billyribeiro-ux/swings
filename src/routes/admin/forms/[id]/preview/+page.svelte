@@ -47,7 +47,7 @@
 
 	const id = $derived(page.params.id ?? '');
 	let form = $state<FormDef | null>(null);
-	let active = $state<Breakpoint>(breakpoints[3]);
+	let active = $state<Breakpoint>(breakpoints[3]!);
 	let err = $state<string | null>(null);
 
 	onMount(async () => {

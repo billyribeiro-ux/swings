@@ -16,8 +16,8 @@ describe('toast store', () => {
 		const id = toast.success('Saved', { duration: 0 });
 		expect(typeof id).toBe('string');
 		expect(toast.items.length).toBe(1);
-		expect(toast.items[0].variant).toBe('success');
-		expect(toast.items[0].title).toBe('Saved');
+		expect(toast.items[0]!.variant).toBe('success');
+		expect(toast.items[0]!.title).toBe('Saved');
 	});
 
 	it('error() defaults duration to 6000ms', () => {
@@ -52,8 +52,8 @@ describe('toast store', () => {
 		for (let i = 0; i < 7; i += 1) toast.info(`t${i}`, { duration: 0 });
 		expect(toast.items.length).toBe(5);
 		// Two oldest should have been shifted off.
-		expect(toast.items[0].title).toBe('t2');
-		expect(toast.items[4].title).toBe('t6');
+		expect(toast.items[0]!.title).toBe('t2');
+		expect(toast.items[4]!.title).toBe('t6');
 	});
 
 	it('action option is preserved on the item', () => {

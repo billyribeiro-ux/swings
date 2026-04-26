@@ -72,6 +72,7 @@
 	function move(from: number, to: number) {
 		const next = schema.slice();
 		const [item] = next.splice(from, 1);
+		if (!item) return;
 		next.splice(to, 0, item);
 		schema = next;
 		selected = to;

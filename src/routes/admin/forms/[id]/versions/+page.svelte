@@ -45,8 +45,8 @@
 		try {
 			versions = await api.get<Version[]>(`/admin/forms/${id}/versions`);
 			if (versions.length > 0) {
-				rightId = versions[0].id;
-				leftId = versions[1]?.id ?? versions[0].id;
+				rightId = versions[0]!.id;
+				leftId = versions[1]?.id ?? versions[0]!.id;
 			}
 		} catch (e) {
 			err = e instanceof Error ? e.message : 'Failed to load versions.';

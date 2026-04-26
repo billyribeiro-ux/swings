@@ -109,7 +109,7 @@
 		const target = idx + dir;
 		if (target < 0 || target >= elements.length) return;
 		const copy = [...elements];
-		[copy[idx], copy[target]] = [copy[target], copy[idx]];
+		[copy[idx], copy[target]] = [copy[target]!, copy[idx]!];
 		elements = copy;
 	}
 

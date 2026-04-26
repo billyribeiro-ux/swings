@@ -39,6 +39,7 @@
 		if (from === to || from < 0 || to < 0 || from >= order.length || to >= order.length) return;
 		const next = [...order];
 		const [moved] = next.splice(from, 1);
+		if (moved === undefined) return;
 		next.splice(to, 0, moved);
 		onChange(field.key, next);
 	}

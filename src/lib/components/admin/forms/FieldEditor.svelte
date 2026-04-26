@@ -23,7 +23,9 @@
 	function patchOption(idx: number, p: Partial<{ value: string; label: string }>) {
 		if (!field?.options) return;
 		const next = field.options.slice();
-		next[idx] = { ...next[idx], ...p };
+		const cur = next[idx];
+		if (!cur) return;
+		next[idx] = { ...cur, ...p };
 		patch({ options: next });
 	}
 

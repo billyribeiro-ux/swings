@@ -113,14 +113,14 @@
 	function moveUp(i: number) {
 		if (i > 0) {
 			const a = [...elements];
-			[a[i - 1], a[i]] = [a[i], a[i - 1]];
+			[a[i - 1], a[i]] = [a[i]!, a[i - 1]!];
 			elements = a;
 		}
 	}
 	function moveDown(i: number) {
 		if (i < elements.length - 1) {
 			const a = [...elements];
-			[a[i], a[i + 1]] = [a[i + 1], a[i]];
+			[a[i], a[i + 1]] = [a[i + 1]!, a[i]!];
 			elements = a;
 		}
 	}

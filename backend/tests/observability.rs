@@ -69,7 +69,6 @@ fn recorder_renders_catalogue() {
 /// for the rationale; remove the `#[ignore]` after
 /// `docs/wiring/OBSERVABILITY-WIRING.md` step 3 lands.
 #[tokio::test]
-#[ignore = "enable once observability layers are wired into TestApp::build_router (see docs/wiring/OBSERVABILITY-WIRING.md)"]
 async fn request_carries_correlation_id_and_counter_fires() {
     let Some(app) = TestApp::try_new().await else {
         return;

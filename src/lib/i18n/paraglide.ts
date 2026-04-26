@@ -175,7 +175,7 @@ function lookup(key: string): string | undefined {
 function interpolate(template: string, vars?: Readonly<Record<string, string>>): string {
 	if (!vars) return template;
 	return template.replace(/\{(\w+)\}/g, (_, name: string) => {
-		return name in vars ? vars[name] : `{${name}}`;
+		return name in vars ? (vars[name] ?? `{${name}}`) : `{${name}}`;
 	});
 }
 

@@ -172,7 +172,7 @@
 		} else if (e.key === 'Enter') {
 			e.preventDefault();
 			e.stopPropagation();
-			if (filtered[activeIndex]) selectCommand(filtered[activeIndex]);
+			if (filtered[activeIndex]) selectCommand(filtered[activeIndex]!);
 		} else if (e.key === 'Escape') {
 			e.preventDefault();
 			e.stopPropagation();

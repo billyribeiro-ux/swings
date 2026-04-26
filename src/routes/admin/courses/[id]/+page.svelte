@@ -69,7 +69,7 @@
 			price = String(data.price);
 			thumbnailUrl = data.thumbnail_url ?? '';
 			modules = data.modules ?? [];
-			if (modules.length > 0) expandedModules.add(modules[0].id);
+			if (modules.length > 0) expandedModules.add(modules[0]!.id);
 		} catch {
 			error = 'Course not found';
 		} finally {

@@ -14,14 +14,14 @@ describe('ToastStore', () => {
 		const id = store.push({ title: 'Hi' });
 		expect(typeof id).toBe('string');
 		expect(store.items.length).toBe(1);
-		expect(store.items[0].title).toBe('Hi');
+		expect(store.items[0]!.title).toBe('Hi');
 	});
 
 	it('defaults kind to "info" and duration to 5000', () => {
 		const store = new ToastStore();
 		store.push({ title: 'T' });
-		expect(store.items[0].kind).toBe('info');
-		expect(store.items[0].duration).toBe(5000);
+		expect(store.items[0]!.kind).toBe('info');
+		expect(store.items[0]!.duration).toBe(5000);
 	});
 
 	it('remove() drops a matching id and returns true', () => {

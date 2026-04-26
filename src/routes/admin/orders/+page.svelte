@@ -353,21 +353,21 @@
 							<input
 								class="cf-input"
 								placeholder="Product UUID"
-								bind:value={manualItems[i].product_id}
+								bind:value={manualItems[i]!.product_id}
 								aria-label="Product UUID"
 								required
 							/>
 							<input
 								class="cf-input"
 								placeholder="Display name"
-								bind:value={manualItems[i].name}
+								bind:value={manualItems[i]!.name}
 								aria-label="Display name"
 								required
 							/>
 							<input
 								class="cf-input"
 								placeholder="SKU (opt)"
-								bind:value={manualItems[i].sku}
+								bind:value={manualItems[i]!.sku}
 								aria-label="SKU"
 							/>
 							<input
@@ -375,7 +375,7 @@
 								type="number"
 								min="1"
 								placeholder="Qty"
-								bind:value={manualItems[i].quantity}
+								bind:value={manualItems[i]!.quantity}
 								aria-label="Quantity"
 								required
 							/>
@@ -384,7 +384,7 @@
 								type="number"
 								min="0"
 								placeholder="Unit cents"
-								bind:value={manualItems[i].unit_price_cents}
+								bind:value={manualItems[i]!.unit_price_cents}
 								aria-label="Unit price (cents)"
 								required
 							/>

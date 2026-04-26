@@ -50,6 +50,7 @@ use swings_api::{
         rate_limit::Backend as RateLimitBackend,
     },
     notifications::Service as NotificationsService,
+    observability,
     services::MediaBackend,
     AppState,
 };
@@ -836,6 +837,22 @@ fn build_router(state: &AppState) -> Router<()> {
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             maintenance_mode_mw::enforce,
+        ));
+
+    // Phase 8.10 — observability wiring: install the Prometheus recorder
+    // (process-global; safe to call repeatedly) and apply the metrics +
+    // correlation-id middlewares so the integration test in
+    // `tests/observability.rs` can assert against the same surface
+    // production exposes. Mirrors `main.rs::main` lines 720-735.
+    let metrics_handle = observability::install_recorder();
+    let router = router
+        .layer(axum::Extension(metrics_handle))
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            observability::metrics::http_middleware,
+        ))
+        .layer(axum::middleware::from_fn(
+            observability::correlation::middleware,
         ));
 
     router.with_state(state.clone())
