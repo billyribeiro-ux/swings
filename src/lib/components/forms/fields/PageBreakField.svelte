@@ -7,8 +7,10 @@
 <script lang="ts">
 	import type { FieldProps } from '../types.ts';
 	// Accept the full FieldProps bag for dispatcher-splat compatibility; the
-	// body renders nothing, so the prop values are intentionally unused.
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const _ignored: FieldProps = $props();
-	void _ignored;
+	// body renders nothing, so the prop values are intentionally unused. The
+	// `_props` binding silences `noUnusedLocals`; the leading underscore
+	// satisfies `@typescript-eslint/no-unused-vars`'s `^_` ignore pattern.
+	const _props: FieldProps = $props();
+	// svelte-ignore state_referenced_locally
+	void _props;
 </script>

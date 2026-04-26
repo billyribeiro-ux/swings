@@ -64,8 +64,12 @@ describe('Toaster', () => {
 		toast.success('Brief', { duration: 80 });
 		await tick(20);
 		expect(toast.items.length).toBe(1);
-		// rAF-driven timer; give it generous slack over `duration + animation tail`.
-		await tick(800);
+		// Wait up to 2s for the rAF-driven dismissal. Polling is more robust
+		// than a single sleep when the browser tab is throttled.
+		const start = Date.now();
+		while (toast.items.length > 0 && Date.now() - start < 2_000) {
+			await tick(50);
+		}
 		expect(toast.items.length).toBe(0);
 	});
 

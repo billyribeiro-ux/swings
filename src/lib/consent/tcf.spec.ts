@@ -12,7 +12,7 @@ function decodePayload(tcString: string): Record<string, unknown> {
 	const parts = tcString.split('.');
 	expect(parts).toHaveLength(3);
 	expect(parts[0]).toBe('swings-pub-v1');
-	const b64 = parts[1];
+	const b64 = parts[1]!;
 	// base64url → base64
 	const normal = b64.replace(/-/g, '+').replace(/_/g, '/');
 	const padded = normal + '==='.slice((normal.length + 3) % 4);
@@ -30,7 +30,7 @@ describe('buildTcString', () => {
 		expect(parts).toHaveLength(3);
 		expect(parts[0]).toBe('swings-pub-v1');
 		// Third part is a base-36 encoded epoch-second — positive integer.
-		expect(parseInt(parts[2], 36)).toBeGreaterThan(0);
+		expect(parseInt(parts[2]!, 36)).toBeGreaterThan(0);
 	});
 
 	it('encodes analytics as purposes 7, 8, 10 when granted', () => {

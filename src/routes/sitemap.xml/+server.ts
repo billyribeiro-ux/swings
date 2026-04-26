@@ -20,7 +20,7 @@ const staticPages = [
 ];
 
 export const GET: RequestHandler = async () => {
-	const today = new Date().toISOString().split('T')[0];
+	const today = new Date().toISOString().split('T')[0]!;
 
 	const coursePages: SitemapEntry[] = courses.map((c) => ({
 		path: `/courses/${c.slug}`,
@@ -47,7 +47,7 @@ export const GET: RequestHandler = async () => {
 				path: `/blog/${post.slug}`,
 				priority: '0.7',
 				changefreq: 'weekly',
-				lastmod: (post.updated_at || post.published_at || post.created_at).split('T')[0]
+				lastmod: (post.updated_at || post.published_at || post.created_at).split('T')[0]!
 			}));
 		}
 

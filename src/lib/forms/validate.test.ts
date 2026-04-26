@@ -6,14 +6,14 @@ describe('forms/validate', () => {
 		const schema: FieldSchema[] = [{ type: 'text', key: 'name', required: true }];
 		const errs = await validate(schema, {});
 		expect(errs).toHaveLength(1);
-		expect(errs[0].code).toBe('required');
-		expect(errs[0].field_key).toBe('name');
+		expect(errs[0]!.code).toBe('required');
+		expect(errs[0]!.field_key).toBe('name');
 	});
 
 	it('treats whitespace-only strings as empty', async () => {
 		const schema: FieldSchema[] = [{ type: 'text', key: 'name', required: true }];
 		const errs = await validate(schema, { name: '   ' });
-		expect(errs[0].code).toBe('required');
+		expect(errs[0]!.code).toBe('required');
 	});
 
 	it('emits min_length / max_length codes', async () => {

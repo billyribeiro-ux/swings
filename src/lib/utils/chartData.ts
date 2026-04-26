@@ -39,7 +39,7 @@ export function generateCandlestickData(
 		const low = Math.min(open, close) - Math.random() * Math.abs(change) * 0.5;
 
 		data.push({
-			time: time.toISOString().split('T')[0],
+			time: time.toISOString().split('T')[0]!,
 			open: parseFloat(open.toFixed(2)),
 			high: parseFloat(high.toFixed(2)),
 			low: parseFloat(low.toFixed(2)),
@@ -77,7 +77,7 @@ export function generateTrendData(
 		const low = Math.min(open, close) - Math.random() * Math.abs(change) * 0.6;
 
 		data.push({
-			time: time.toISOString().split('T')[0],
+			time: time.toISOString().split('T')[0]!,
 			open: parseFloat(open.toFixed(2)),
 			high: parseFloat(high.toFixed(2)),
 			low: parseFloat(low.toFixed(2)),
@@ -138,7 +138,7 @@ export function generateLineData(
 		currentValue += change;
 
 		data.push({
-			time: time.toISOString().split('T')[0],
+			time: time.toISOString().split('T')[0]!,
 			value: parseFloat(currentValue.toFixed(2))
 		});
 	}
