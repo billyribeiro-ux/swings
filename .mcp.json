@@ -3,6 +3,11 @@
 		"svelte": {
 			"type": "http",
 			"url": "https://mcp.svelte.dev/mcp"
+		},
+		"rust-analyzer": {
+			"type": "stdio",
+			"command": "/Users/billyribeiro/.cargo/bin/rust-analyzer-mcp",
+			"args": []
 		}
 	}
 }
