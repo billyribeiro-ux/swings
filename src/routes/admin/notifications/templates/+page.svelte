@@ -21,6 +21,7 @@
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import { ApiError } from '$lib/api/client';
+	import { toast } from '$lib/stores/toast.svelte';
 	import {
 		templates,
 		type CreateTemplateBody,
@@ -36,7 +37,6 @@
 	let envelope = $state<PaginatedTemplatesResponse | null>(null);
 	let loading = $state(true);
 	let error = $state('');
-	let toast = $state('');
 
 	let filters = $state<TemplateListQuery>({
 		key: '',
@@ -65,11 +65,6 @@
 	let previewBusy = $state(false);
 	let testTo = $state('');
 	let testBusy = $state(false);
-
-	function flash(msg: string) {
-		toast = msg;
-		setTimeout(() => (toast = ''), 2500);
-	}
 
 	function buildQuery(): TemplateListQuery {
 		const q: TemplateListQuery = {
@@ -178,7 +173,7 @@
 					is_active: formActive
 				};
 				await templates.create(body);
-				flash('Template created');
+				toast.success('Template created');
 			} else if (drawerMode === 'edit' && editing) {
 				const body: UpdateTemplateBody = {
 					subject: formSubject.trim() || null,
@@ -186,12 +181,14 @@
 					is_active: formActive
 				};
 				await templates.update(editing.id, body);
-				flash(`v${editing.version + 1} saved`);
+				toast.success(`Template v${editing.version + 1} saved`);
 			}
 			closeDrawer();
 			await refresh();
 		} catch (e) {
-			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Save failed';
+			toast.error('Save failed', {
+				description: e instanceof ApiError ? `${e.status}: ${e.message}` : undefined
+			});
 		} finally {
 			formBusy = false;
 		}
@@ -233,10 +230,14 @@
 		error = '';
 		try {
 			const r = await templates.testSend(editing.id, { to: testTo.trim(), context: ctx });
-			flash(`Sent · provider id ${r.provider_id.slice(0, 12)}…`);
+			toast.success('Test message sent', {
+				description: `Provider id ${r.provider_id.slice(0, 12)}…`
+			});
 			closeDrawer();
 		} catch (e) {
-			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Test send failed';
+			toast.error('Test send failed', {
+				description: e instanceof ApiError ? `${e.status}: ${e.message}` : undefined
+			});
 		} finally {
 			testBusy = false;
 		}
@@ -292,12 +293,6 @@
 		</div>
 	</header>
 
-	{#if toast}
-		<div class="toast" role="status">
-			<CheckCircleIcon size={16} weight="fill" />
-			<span>{toast}</span>
-		</div>
-	{/if}
 	{#if error}
 		<div class="error" role="alert">
 			<WarningIcon size={16} weight="fill" />
@@ -685,8 +680,7 @@
 	.page__title { margin: 0; font-family: var(--font-heading); font-size: 1.5rem; font-weight: 700; color: var(--color-white); letter-spacing: -0.01em; line-height: 1.2; }
 	.page__subtitle { margin: 0.35rem 0 0; font-size: 0.875rem; color: var(--color-grey-400); max-width: 42rem; line-height: 1.5; }
 
-	.toast, .error { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border-radius: var(--radius-lg); font-size: 0.875rem; margin-bottom: 1rem; }
-	.toast { background: rgba(15, 164, 175, 0.12); border: 1px solid rgba(15, 164, 175, 0.25); color: #5eead4; }
+	.error { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border-radius: var(--radius-lg); font-size: 0.875rem; margin-bottom: 1rem; }
 	.error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; }
 
 	.filters { background: var(--color-navy-mid); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: var(--radius-xl); padding: 1.25rem; margin-bottom: 1.25rem; box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 12px 32px rgba(0, 0, 0, 0.18); }

@@ -1,6 +1,6 @@
 use axum::{
     extract::{Path, Query, State},
-    routing::{delete, get, post, put},
+    routing::{delete, get, patch, post, put},
     Json, Router,
 };
 use chrono::{DateTime, Datelike, Duration, NaiveDate, NaiveTime, TimeZone, Utc};
@@ -9,11 +9,11 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
-    db,
+    db::{self, UserStatusFilter},
     error::{AppError, AppResult},
-    extractors::{AdminUser, ClientInfo},
+    extractors::{AdminUser, ClientInfo, PrivilegedUser},
     models::*,
-    services::audit::{record_admin_action_best_effort, AdminAction},
+    services::audit::{audit_admin_priv, record_admin_action_best_effort, AdminAction},
     stripe_api, AppState,
 };
 
@@ -26,6 +26,8 @@ pub fn router() -> Router<AppState> {
         // Members
         .route("/members", get(list_members))
         .route("/members/{id}", get(get_member))
+        .route("/members/{id}", patch(update_member_profile))
+        .route("/members/{id}/detail", get(member_detail))
         .route(
             "/members/{id}/subscription",
             get(get_member_subscription_admin),
@@ -321,16 +323,73 @@ async fn analytics_revenue(
 
 // ── Members ─────────────────────────────────────────────────────────────
 
+/// Query string accepted by `GET /api/admin/members`.
+///
+/// Backwards-compatible with the original `page` / `per_page` shape;
+/// adds optional `search`, `role`, and `status` filters that route
+/// through [`db::search_users`]. The list page on the SPA uses the same
+/// extractor so a GET without any new params behaves exactly as it did
+/// before this change.
+#[derive(Debug, serde::Deserialize, ToSchema)]
+pub struct ListMembersQuery {
+    #[serde(default)]
+    pub page: Option<i64>,
+    #[serde(default)]
+    pub per_page: Option<i64>,
+    #[serde(default)]
+    pub search: Option<String>,
+    #[serde(default)]
+    pub role: Option<String>,
+    #[serde(default)]
+    pub status: Option<String>,
+}
+
 async fn list_members(
     State(state): State<AppState>,
     _admin: AdminUser,
-    Query(params): Query<PaginationParams>,
+    Query(q): Query<ListMembersQuery>,
 ) -> AppResult<Json<PaginatedResponse<UserResponse>>> {
-    let per_page = params.per_page();
-    let offset = params.offset();
-    let page = params.page.unwrap_or(1).max(1);
+    let per_page = q.per_page.unwrap_or(20).clamp(1, 100);
+    let page = q.page.unwrap_or(1).max(1);
+    let offset = (page - 1) * per_page;
 
-    let (users, total) = db::list_users(&state.db, offset, per_page).await?;
+    let role_filter = match q.role.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+        None => None,
+        Some(r) => Some(
+            UserRole::from_str_lower(&r.to_lowercase())
+                .ok_or_else(|| AppError::BadRequest(format!("unknown role: {r}")))?,
+        ),
+    };
+    let status_filter = match q.status.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+        None => None,
+        Some(s) => Some(
+            UserStatusFilter::from_wire(&s.to_lowercase())
+                .ok_or_else(|| AppError::BadRequest(format!("unknown status: {s}")))?,
+        ),
+    };
+
+    let any_filter = q
+        .search
+        .as_deref()
+        .map(str::trim)
+        .is_some_and(|s| !s.is_empty())
+        || role_filter.is_some()
+        || status_filter.is_some();
+
+    let (users, total) = if any_filter {
+        db::search_users(
+            &state.db,
+            q.search.as_deref(),
+            role_filter.as_ref(),
+            status_filter,
+            per_page,
+            offset,
+        )
+        .await?
+    } else {
+        db::list_users(&state.db, offset, per_page).await?
+    };
+
     let total_pages = (total as f64 / per_page as f64).ceil() as i64;
 
     Ok(Json(PaginatedResponse {
@@ -568,6 +627,212 @@ pub(crate) async fn update_member_role(
 }
 
 #[utoipa::path(
+    patch,
+    path = "/api/admin/members/{id}",
+    tag = "admin",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Member id")),
+    request_body = UpdateMemberRequest,
+    responses(
+        (status = 200, description = "Member profile updated", body = UserResponse),
+        (status = 400, description = "Validation failed"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Member not found"),
+        (status = 409, description = "Email already in use")
+    )
+)]
+pub(crate) async fn update_member_profile(
+    State(state): State<AppState>,
+    admin: PrivilegedUser,
+    client: ClientInfo,
+    Path(id): Path<Uuid>,
+    Json(req): Json<UpdateMemberRequest>,
+) -> AppResult<Json<UserResponse>> {
+    admin.require(&state.policy, "admin.member.update")?;
+
+    let existing = db::find_user_by_id(&state.db, id)
+        .await?
+        .ok_or_else(|| AppError::NotFound("Member not found".to_string()))?;
+
+    // Validate the input bundle. We rely on the lightweight `validator`
+    // crate for trivial checks and do email-uniqueness in a follow-up
+    // query so the conflict error is distinct from a 400.
+    if let Some(name) = req.name.as_deref() {
+        let trimmed = name.trim();
+        if trimmed.is_empty() || trimmed.chars().count() > 200 {
+            return Err(AppError::BadRequest(
+                "name must be 1-200 characters".to_string(),
+            ));
+        }
+    }
+    let normalised_email = if let Some(email) = req.email.as_deref() {
+        let trimmed = email.trim();
+        if !trimmed.contains('@') || trimmed.len() < 3 || trimmed.len() > 320 {
+            return Err(AppError::BadRequest("invalid email address".to_string()));
+        }
+        let normalised = db::normalize_email(trimmed);
+        if normalised != existing.email {
+            if let Some(other) = db::find_user_by_email(&state.db, &normalised).await? {
+                if other.id != existing.id {
+                    return Err(AppError::Conflict(
+                        "Another account already uses that email".to_string(),
+                    ));
+                }
+            }
+        }
+        Some(normalised)
+    } else {
+        None
+    };
+
+    if let Some(phone) = req.phone.as_deref() {
+        let trimmed = phone.trim();
+        if !trimmed.is_empty() && (trimmed.len() < 4 || trimmed.len() > 32) {
+            return Err(AppError::BadRequest(
+                "phone must be 4-32 characters when provided".to_string(),
+            ));
+        }
+    }
+
+    let address_was_provided = req.billing_address.is_some();
+    let address = req.billing_address.unwrap_or_default();
+    let country_normalised = match address.country.as_deref().map(str::trim) {
+        Some(c) if !c.is_empty() => {
+            if c.len() != 2 || !c.chars().all(|ch| ch.is_ascii_alphabetic()) {
+                return Err(AppError::BadRequest(
+                    "country must be ISO 3166-1 alpha-2 (e.g. \"US\")".to_string(),
+                ));
+            }
+            Some(c.to_uppercase())
+        }
+        _ => None,
+    };
+
+    // Email change forces re-verification — the operator can flip it
+    // back on via the dedicated `verify-email` endpoint after they've
+    // confirmed the new address belongs to the account holder.
+    let verified_change = if normalised_email
+        .as_deref()
+        .is_some_and(|e| e != existing.email)
+    {
+        Some(None)
+    } else {
+        None
+    };
+
+    let updated = db::update_member_profile(
+        &state.db,
+        id,
+        req.name.as_deref().map(str::trim),
+        normalised_email.as_deref(),
+        req.phone.as_deref().map(str::trim),
+        address.line1.as_deref().map(str::trim),
+        address.line2.as_deref().map(str::trim),
+        address.city.as_deref().map(str::trim),
+        address.state.as_deref().map(str::trim),
+        address.postal_code.as_deref().map(str::trim),
+        country_normalised.as_deref(),
+        address_was_provided,
+        verified_change,
+    )
+    .await?;
+
+    // Best-effort: keep Stripe Customer's address aligned if the member
+    // has one. The local row is already saved — a Stripe outage cannot
+    // roll it back.
+    let mut stripe_outcome = serde_json::json!(null);
+    if address_was_provided || req.phone.is_some() {
+        if let Some(sub) = db::find_subscription_by_user(&state.db, id).await? {
+            match stripe_api::update_customer_address(
+                &state,
+                &sub.stripe_customer_id,
+                address.line1.as_deref().map(str::trim),
+                address.line2.as_deref().map(str::trim),
+                address.city.as_deref().map(str::trim),
+                address.state.as_deref().map(str::trim),
+                address.postal_code.as_deref().map(str::trim),
+                country_normalised.as_deref(),
+                req.phone.as_deref().map(str::trim),
+            )
+            .await
+            {
+                Ok(()) => {
+                    stripe_outcome = serde_json::json!({ "result": "synced" });
+                }
+                Err(e) => {
+                    tracing::warn!(
+                        user_id = %id,
+                        customer_id = %sub.stripe_customer_id,
+                        error = %e,
+                        "stripe customer.update failed; local profile saved regardless"
+                    );
+                    stripe_outcome = serde_json::json!({
+                        "result": "stripe_error",
+                        "error":  e.to_string(),
+                    });
+                }
+            }
+        }
+    }
+
+    audit_admin_priv(
+        &state.db,
+        &admin,
+        &client,
+        "user.update",
+        "user",
+        id.to_string(),
+        serde_json::json!({
+            "name_changed":    req.name.is_some(),
+            "email_changed":   normalised_email.as_deref().is_some_and(|e| e != existing.email),
+            "phone_changed":   req.phone.is_some(),
+            "address_changed": address_was_provided,
+            "stripe_sync":     stripe_outcome,
+        }),
+    )
+    .await;
+
+    Ok(Json(updated.into()))
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/admin/members/{id}/detail",
+    tag = "admin",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Member id")),
+    responses(
+        (status = 200, description = "Composite member detail", body = MemberDetailResponse),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Member not found")
+    )
+)]
+pub(crate) async fn member_detail(
+    State(state): State<AppState>,
+    admin: PrivilegedUser,
+    Path(id): Path<Uuid>,
+) -> AppResult<Json<MemberDetailResponse>> {
+    admin.require(&state.policy, "admin.member.read")?;
+
+    let user = db::find_user_by_id(&state.db, id)
+        .await?
+        .ok_or_else(|| AppError::NotFound("Member not found".to_string()))?;
+    let subscription = db::find_subscription_by_user(&state.db, id).await?;
+    // 20 is enough to surface the recent-actions strip on the page
+    // without forcing pagination; the dedicated audit viewer picks up
+    // anything older.
+    let activity = db::recent_admin_actions_for_user(&state.db, id, 20).await?;
+    let payment_failures = db::recent_payment_failures_for_user(&state.db, id, 10).await?;
+
+    Ok(Json(MemberDetailResponse {
+        user: user.into(),
+        subscription,
+        activity,
+        payment_failures,
+    }))
+}
+
+#[utoipa::path(
     delete,
     path = "/api/admin/members/{id}",
     tag = "admin",
@@ -589,6 +854,36 @@ pub(crate) async fn delete_member(
     // wouldn't cascade through the audit table — that's intentional).
     let snapshot = db::find_user_by_id(&state.db, id).await?;
 
+    // ADM-15: cancel any active Stripe subscription before tearing the
+    // user row down — leaving it open would orphan the recurring charge
+    // since the local row goes away. Failures are logged but never
+    // block the delete.
+    let mut stripe_outcome = serde_json::json!(null);
+    if let Some(sub) = db::find_subscription_by_user(&state.db, id).await? {
+        match stripe_api::cancel_subscription_immediately(&state, &sub.stripe_subscription_id).await
+        {
+            Ok(()) => {
+                stripe_outcome = serde_json::json!({
+                    "stripe_subscription_id": sub.stripe_subscription_id,
+                    "result": "canceled",
+                });
+            }
+            Err(e) => {
+                tracing::warn!(
+                    user_id = %id,
+                    subscription_id = %sub.stripe_subscription_id,
+                    error = %e,
+                    "stripe immediate-cancel failed during delete; row dropped regardless"
+                );
+                stripe_outcome = serde_json::json!({
+                    "stripe_subscription_id": sub.stripe_subscription_id,
+                    "result": "stripe_error",
+                    "error":  e.to_string(),
+                });
+            }
+        }
+    }
+
     db::delete_user(&state.db, id).await?;
 
     let actor_role = UserRole::from_str_lower(&admin.role).unwrap_or(UserRole::Admin);
@@ -600,6 +895,7 @@ pub(crate) async fn delete_member(
             .with_metadata(serde_json::json!({
                 "email": snapshot.as_ref().map(|u| u.email.clone()),
                 "role": snapshot.as_ref().map(|u| u.role),
+                "stripe_cancel": stripe_outcome,
             })),
     )
     .await;

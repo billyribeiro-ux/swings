@@ -11,6 +11,7 @@
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import XIcon from 'phosphor-svelte/lib/XIcon';
 	import { ApiError } from '$lib/api/client';
+	import { toast } from '$lib/stores/toast.svelte';
 	import {
 		dsarAdmin,
 		type DsarJob,
@@ -21,7 +22,6 @@
 	let envelope = $state<DsarJobListEnvelope | null>(null);
 	let loading = $state(true);
 	let error = $state('');
-	let toast = $state('');
 	let selected = $state<DsarJob | null>(null);
 
 	let filters = $state<DsarListQuery>({
@@ -47,11 +47,6 @@
 	let approveReason = $state('');
 	let approveBusy = $state(false);
 	let approvingId = $state<string | null>(null);
-
-	function flash(msg: string) {
-		toast = msg;
-		setTimeout(() => (toast = ''), 2500);
-	}
 
 	function buildQuery(): DsarListQuery {
 		const q: DsarListQuery = {
@@ -97,14 +92,18 @@
 			exportPayload = res.export;
 			exportTarget = '';
 			exportReason = '';
-			flash(
-				exportAsync
-					? `Export queued — job ${res.job.id.slice(0, 8)}…; the worker will compose it shortly`
-					: 'Export composed and persisted'
-			);
+			if (exportAsync) {
+				toast.info(`Export queued — job ${res.job.id.slice(0, 8)}…`, {
+					description: 'The worker will compose it shortly.'
+				});
+			} else {
+				toast.success('Export composed and persisted');
+			}
 			await refresh();
 		} catch (e) {
-			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Export failed';
+			toast.error('Export failed', {
+				description: e instanceof ApiError ? `${e.status}: ${e.message}` : undefined
+			});
 		} finally {
 			exportBusy = false;
 		}
@@ -122,10 +121,12 @@
 			});
 			eraseTarget = '';
 			eraseReason = '';
-			flash('Erasure queued — awaiting second-admin approval');
+			toast.warning('Erasure queued — awaiting second-admin approval');
 			await refresh();
 		} catch (e) {
-			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Failed to queue erasure';
+			toast.error('Failed to queue erasure', {
+				description: e instanceof ApiError ? `${e.status}: ${e.message}` : undefined
+			});
 		} finally {
 			eraseBusy = false;
 		}
@@ -133,19 +134,21 @@
 
 	async function approveErase(id: string) {
 		if (approveReason.trim().length < 10) {
-			error = 'Approval reason must be at least 10 characters';
+			toast.warning('Approval reason must be at least 10 characters');
 			return;
 		}
 		approveBusy = true;
 		error = '';
 		try {
 			await dsarAdmin.approveErase(id, { approval_reason: approveReason.trim() });
-			flash('Erasure approved and tombstone applied');
+			toast.success('Erasure approved and tombstone applied');
 			approvingId = null;
 			approveReason = '';
 			await refresh();
 		} catch (e) {
-			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Approval failed';
+			toast.error('Approval failed', {
+				description: e instanceof ApiError ? `${e.status}: ${e.message}` : undefined
+			});
 		} finally {
 			approveBusy = false;
 		}
@@ -155,10 +158,12 @@
 		const reason = prompt('Optional cancel reason:') ?? undefined;
 		try {
 			await dsarAdmin.cancelJob(job.id, reason);
-			flash('Job cancelled');
+			toast.success('Job cancelled');
 			await refresh();
 		} catch (e) {
-			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Cancel failed';
+			toast.error('Cancel failed', {
+				description: e instanceof ApiError ? `${e.status}: ${e.message}` : undefined
+			});
 		}
 	}
 
@@ -190,7 +195,9 @@
 			a.click();
 			a.remove();
 		} catch (e) {
-			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Download failed';
+			toast.error('Download failed', {
+				description: e instanceof ApiError ? `${e.status}: ${e.message}` : undefined
+			});
 		} finally {
 			downloadingId = null;
 		}
@@ -304,12 +311,6 @@
 		</div>
 	</header>
 
-	{#if toast}
-		<div class="toast" role="status">
-			<CheckCircleIcon size={16} weight="fill" />
-			<span>{toast}</span>
-		</div>
-	{/if}
 	{#if error}
 		<div class="error" role="alert" data-testid="dsar-error">
 			<WarningIcon size={16} weight="fill" />
@@ -775,7 +776,6 @@
 		line-height: 1.5;
 	}
 
-	.toast,
 	.error {
 		display: flex;
 		align-items: center;
@@ -784,13 +784,6 @@
 		border-radius: var(--radius-lg);
 		font-size: 0.875rem;
 		margin-bottom: 1rem;
-	}
-	.toast {
-		background: rgba(15, 164, 175, 0.12);
-		border: 1px solid rgba(15, 164, 175, 0.25);
-		color: #5eead4;
-	}
-	.error {
 		background: rgba(239, 68, 68, 0.1);
 		border: 1px solid rgba(239, 68, 68, 0.3);
 		color: #fca5a5;

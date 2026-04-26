@@ -8,6 +8,7 @@
 	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
 	import TicketIcon from 'phosphor-svelte/lib/TicketIcon';
 	import UsersIcon from 'phosphor-svelte/lib/UsersIcon';
+	import { confirmDialog } from '$lib/stores/confirm.svelte';
 
 	interface Coupon {
 		id: string; code: string; description: string | null;
@@ -84,7 +85,13 @@
 	}
 
 	async function handleDelete() {
-		if (!confirm('Are you sure you want to delete this coupon? This cannot be undone.')) return;
+		const ok = await confirmDialog({
+			title: 'Delete this coupon?',
+			message: 'Existing redemptions are preserved for reporting, but the coupon will no longer be available.',
+			confirmLabel: 'Delete',
+			variant: 'danger'
+		});
+		if (!ok) return;
 		deleting = true;
 		try { await api.del(`/api/admin/coupons/${page.params.id}`); goto('/admin/coupons'); }
 		catch (err) { error = err instanceof ApiError ? err.message : 'Failed to delete'; deleting = false; }

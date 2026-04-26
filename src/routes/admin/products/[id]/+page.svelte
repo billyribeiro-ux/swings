@@ -22,6 +22,7 @@
 	import { ApiError } from '$lib/api/client';
 	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
 	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
+	import { confirmDialog } from '$lib/stores/confirm.svelte';
 
 	const productId = $derived(page.params.id);
 
@@ -153,7 +154,13 @@
 
 	async function deleteVariant(v: ProductVariant) {
 		if (!detail) return;
-		if (!confirm(`Delete variant ${v.sku ?? v.id}? This cannot be undone.`)) return;
+		const ok = await confirmDialog({
+			title: `Delete variant ${v.sku ?? v.id}?`,
+			message: 'The variant will be removed from this product. Existing orders that reference it are preserved.',
+			confirmLabel: 'Delete variant',
+			variant: 'danger'
+		});
+		if (!ok) return;
 		try {
 			await productsApi.adminDeleteVariant(detail.id, v.id);
 			await load();
@@ -186,7 +193,13 @@
 
 	async function deleteAsset(asset: DownloadableAsset) {
 		if (!detail) return;
-		if (!confirm(`Delete asset "${asset.filename}"?`)) return;
+		const ok = await confirmDialog({
+			title: `Delete asset "${asset.filename}"?`,
+			message: 'Customers who already purchased this product will lose download access to this asset.',
+			confirmLabel: 'Delete asset',
+			variant: 'danger'
+		});
+		if (!ok) return;
 		try {
 			await productsApi.adminDeleteAsset(detail.id, asset.id);
 			await load();
@@ -223,7 +236,13 @@
 
 	async function deleteProduct() {
 		if (!detail) return;
-		if (!confirm(`Permanently delete "${detail.name}"?`)) return;
+		const ok = await confirmDialog({
+			title: `Permanently delete "${detail.name}"?`,
+			message: 'The product, its variants, downloadable assets, and bundle configuration will all be removed.',
+			confirmLabel: 'Delete product',
+			variant: 'danger'
+		});
+		if (!ok) return;
 		try {
 			await productsApi.adminDelete(detail.id);
 			goto('/admin/products');

@@ -12,11 +12,11 @@
 	import ArrowsClockwiseIcon from 'phosphor-svelte/lib/ArrowsClockwiseIcon';
 	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
 	import XIcon from 'phosphor-svelte/lib/XIcon';
-	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
 	import WarningIcon from 'phosphor-svelte/lib/WarningIcon';
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import { ApiError } from '$lib/api/client';
+	import { toast } from '$lib/stores/toast.svelte';
 	import {
 		outbox,
 		type OutboxListQuery,
@@ -28,16 +28,10 @@
 	let envelope = $state<PaginatedOutboxResponse | null>(null);
 	let loading = $state(true);
 	let error = $state('');
-	let toast = $state('');
 	let selected = $state<OutboxRowDto | null>(null);
 	let retryingId = $state<string | null>(null);
 
 	let filters = $state<OutboxListQuery>({ status: '', page: 1, per_page: 25 });
-
-	function flash(msg: string) {
-		toast = msg;
-		setTimeout(() => (toast = ''), 2500);
-	}
 
 	async function refresh() {
 		loading = true;
@@ -67,10 +61,12 @@
 		error = '';
 		try {
 			await outbox.retry(row.id);
-			flash(`Re-queued event ${row.id.slice(0, 8)}…`);
+			toast.success(`Re-queued event ${row.id.slice(0, 8)}…`);
 			await refresh();
 		} catch (e) {
-			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Retry failed';
+			toast.error('Retry failed', {
+				description: e instanceof ApiError ? `${e.status}: ${e.message}` : undefined
+			});
 		} finally {
 			retryingId = null;
 		}
@@ -155,12 +151,6 @@
 		</div>
 	</header>
 
-	{#if toast}
-		<div class="toast" role="status">
-			<CheckCircleIcon size={16} weight="fill" />
-			<span>{toast}</span>
-		</div>
-	{/if}
 	{#if error}
 		<div class="error" role="alert">
 			<WarningIcon size={16} weight="fill" />
@@ -370,8 +360,7 @@
 	.page__subtitle { margin: 0.35rem 0 0; font-size: 0.875rem; color: var(--color-grey-400); max-width: 42rem; line-height: 1.5; }
 	.page__subtitle code { font-size: 0.85em; padding: 0.1em 0.35em; border-radius: 0.25rem; background: rgba(255, 255, 255, 0.06); }
 
-	.toast, .error { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border-radius: var(--radius-lg); font-size: 0.875rem; margin-bottom: 1rem; }
-	.toast { background: rgba(15, 164, 175, 0.12); border: 1px solid rgba(15, 164, 175, 0.25); color: #5eead4; }
+	.error { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border-radius: var(--radius-lg); font-size: 0.875rem; margin-bottom: 1rem; }
 	.error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; }
 
 	.filters { background: var(--color-navy-mid); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: var(--radius-xl); padding: 1.25rem; margin-bottom: 1.25rem; box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 12px 32px rgba(0, 0, 0, 0.18); }

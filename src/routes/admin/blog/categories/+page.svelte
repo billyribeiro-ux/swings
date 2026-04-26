@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { api } from '$lib/api/client';
 	import type { BlogCategory } from '$lib/api/types';
+	import { confirmDialog } from '$lib/stores/confirm.svelte';
 
 	let categories: BlogCategory[] = $state([]);
 	let loading = $state(true);
@@ -61,7 +62,13 @@
 	}
 
 	async function deleteCategory(id: string) {
-		if (!confirm('Delete this category? Posts will be moved to Uncategorized.')) return;
+		const ok = await confirmDialog({
+			title: 'Delete this category?',
+			message: 'Posts assigned to this category will be moved to Uncategorized.',
+			confirmLabel: 'Delete',
+			variant: 'danger'
+		});
+		if (!ok) return;
 		try {
 			await api.delete(`/api/admin/blog/categories/${id}`);
 			categories = categories.filter((c) => c.id !== id);

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { api } from '$lib/api/client';
 	import type { BlogTag } from '$lib/api/types';
+	import { confirmDialog } from '$lib/stores/confirm.svelte';
 
 	let tags: BlogTag[] = $state([]);
 	let loading = $state(true);
@@ -33,7 +34,13 @@
 	}
 
 	async function deleteTag(id: string) {
-		if (!confirm('Delete this tag?')) return;
+		const ok = await confirmDialog({
+			title: 'Delete this tag?',
+			message: 'The tag will be removed from every post that currently uses it.',
+			confirmLabel: 'Delete',
+			variant: 'danger'
+		});
+		if (!ok) return;
 		try {
 			await api.delete(`/api/admin/blog/tags/${id}`);
 			tags = tags.filter((t) => t.id !== id);

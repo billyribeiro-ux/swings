@@ -13,6 +13,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { api } from '$lib/api/client';
+	import { toast } from '$lib/stores/toast.svelte';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
 	import ListBulletsIcon from 'phosphor-svelte/lib/ListBulletsIcon';
@@ -53,11 +54,15 @@
 
 	async function toggleArchive(row: FormRow) {
 		acting = row.id;
+		const next = !row.is_active;
 		try {
-			await api.put(`/admin/forms/${row.id}`, { is_active: !row.is_active });
+			await api.put(`/admin/forms/${row.id}`, { is_active: next });
+			toast.success(next ? `Restored "${row.name}"` : `Archived "${row.name}"`);
 			await load();
 		} catch (e) {
-			err = e instanceof Error ? e.message : 'Failed to update form.';
+			toast.error(next ? 'Failed to restore form' : 'Failed to archive form', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		} finally {
 			acting = null;
 		}

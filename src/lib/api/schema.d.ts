@@ -704,7 +704,7 @@ export type paths = {
         delete: operations["delete_member"];
         options?: never;
         head?: never;
-        patch?: never;
+        patch: operations["update_member_profile"];
         trace?: never;
     };
     "/api/admin/members/{id}/ban": {
@@ -733,6 +733,22 @@ export type paths = {
         get?: never;
         put?: never;
         post: operations["admin_member_billing_portal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/members/{id}/detail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["member_detail"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -861,6 +877,38 @@ export type paths = {
         get?: never;
         put?: never;
         post: operations["suspend_member"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/members/{id}/unban": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["unban_member"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/members/{id}/unsuspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["unsuspend_member"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2548,6 +2596,23 @@ export type components = {
         BannerLayout: "bar" | "box" | "popup" | "fullscreen";
         /** @enum {string} */
         BannerPosition: "top" | "bottom" | "center" | "bottom-start" | "bottom-end";
+        /**
+         * @description Billing address payload — mirrors the Stripe `Address` shape so the
+         *     JSON we accept on `PATCH /api/admin/members/{id}` round-trips into
+         *     `Customer.address` with no field-mapping at the handler edge.
+         */
+        BillingAddress: {
+            line1?: string | null;
+            line2?: string | null;
+            city?: string | null;
+            state?: string | null;
+            postal_code?: string | null;
+            /**
+             * @description ISO 3166-1 alpha-2 country code. Validated case-insensitively;
+             *     the handler normalises to upper-case before persisting.
+             */
+            country?: string | null;
+        };
         BillingPortalRequest: {
             return_url?: string | null;
         };
@@ -3748,6 +3813,24 @@ export type components = {
              */
             reason?: string | null;
         };
+        /**
+         * @description Query string accepted by `GET /api/admin/members`.
+         *
+         *     Backwards-compatible with the original `page` / `per_page` shape;
+         *     adds optional `search`, `role`, and `status` filters that route
+         *     through [`db::search_users`]. The list page on the SPA uses the same
+         *     extractor so a GET without any new params behaves exactly as it did
+         *     before this change.
+         */
+        ListMembersQuery: {
+            /** Format: int64 */
+            page?: number | null;
+            /** Format: int64 */
+            per_page?: number | null;
+            search?: string | null;
+            role?: string | null;
+            status?: string | null;
+        };
         ListResponse: {
             data: components["schemas"]["ImpersonationSession"][];
             /** Format: int64 */
@@ -3833,6 +3916,45 @@ export type components = {
             focal_x: number;
             /** Format: double */
             focal_y: number;
+            /** Format: date-time */
+            created_at: string;
+        };
+        /**
+         * @description One row in the activity timeline rendered on the member detail page.
+         *     Mirrors `admin_actions` minus the `id` (the timeline doesn't link
+         *     out to the audit viewer yet) and with the metadata pre-serialised.
+         */
+        MemberActivityEntry: {
+            action: string;
+            /** Format: uuid */
+            actor_id: string;
+            actor_role: components["schemas"]["UserRole"];
+            /** Format: date-time */
+            created_at: string;
+            metadata: unknown;
+        };
+        /**
+         * @description Composite payload returned by `GET /api/admin/members/{id}/detail`.
+         *     Pre-bundles the member, their current subscription, and the recent
+         *     activity streams the detail UI renders so the SPA needs one round
+         *     trip per page load.
+         */
+        MemberDetailResponse: {
+            user: components["schemas"]["UserResponse"];
+            subscription?: null | components["schemas"]["Subscription"];
+            activity: components["schemas"]["MemberActivityEntry"][];
+            payment_failures: components["schemas"]["MemberPaymentFailure"][];
+        };
+        /** @description One row in the recent-payment-failures list on the member detail page. */
+        MemberPaymentFailure: {
+            stripe_invoice_id?: string | null;
+            /** Format: int64 */
+            amount_cents?: number | null;
+            currency?: string | null;
+            failure_code?: string | null;
+            failure_message?: string | null;
+            /** Format: int32 */
+            attempt_count: number;
             /** Format: date-time */
             created_at: string;
         };
@@ -4093,6 +4215,15 @@ export type components = {
                 ban_reason?: string | null;
                 /** Format: date-time */
                 email_verified_at?: string | null;
+                billing_line1?: string | null;
+                billing_line2?: string | null;
+                billing_city?: string | null;
+                billing_state?: string | null;
+                billing_postal_code?: string | null;
+                billing_country?: string | null;
+                phone?: string | null;
+                /** Format: date-time */
+                suspended_until?: string | null;
             }[];
             /** Format: int64 */
             total: number;
@@ -4750,6 +4881,21 @@ export type components = {
             per_page?: number | null;
         };
         /**
+         * @description `POST /api/admin/members/{id}/suspend` body. Combines the existing
+         *     `LifecycleRequest` (just a `reason`) with an optional `until`
+         *     timestamp that flips the suspension into a *timeout*.
+         */
+        SuspendMemberRequest: {
+            reason?: string | null;
+            /**
+             * Format: date-time
+             * @description When set, the suspension auto-lifts once `now() >= until`.
+             *     Open-ended suspensions (no `until`) require a manual
+             *     `unsuspend` call.
+             */
+            until?: string | null;
+        };
+        /**
          * @description A concrete template row loaded from `notification_templates`.
          *
          *     `body_compiled` is maintained by the admin API at save time (currently a
@@ -4947,6 +5093,19 @@ export type components = {
             /** Format: double */
             focal_y?: number | null;
         };
+        /**
+         * @description `PATCH /api/admin/members/{id}` body. Every field is optional —
+         *     callers send only what they want to change. Missing keys leave the
+         *     existing column untouched; `null` is currently treated as
+         *     "no change" rather than "clear the field" so support workflows that
+         *     PATCH a single field don't accidentally wipe sibling columns.
+         */
+        UpdateMemberRequest: {
+            name?: string | null;
+            email?: string | null;
+            phone?: string | null;
+            billing_address?: null | components["schemas"]["BillingAddress"];
+        };
         UpdateModuleRequest: {
             title?: string | null;
             description?: string | null;
@@ -5116,6 +5275,15 @@ export type components = {
             ban_reason?: string | null;
             /** Format: date-time */
             email_verified_at?: string | null;
+            billing_line1?: string | null;
+            billing_line2?: string | null;
+            billing_city?: string | null;
+            billing_state?: string | null;
+            billing_postal_code?: string | null;
+            billing_country?: string | null;
+            phone?: string | null;
+            /** Format: date-time */
+            suspended_until?: string | null;
         };
         UserResponse: {
             /** Format: uuid */
@@ -5145,6 +5313,15 @@ export type components = {
             ban_reason?: string | null;
             /** Format: date-time */
             email_verified_at?: string | null;
+            billing_line1?: string | null;
+            billing_line2?: string | null;
+            billing_city?: string | null;
+            billing_state?: string | null;
+            billing_postal_code?: string | null;
+            billing_country?: string | null;
+            phone?: string | null;
+            /** Format: date-time */
+            suspended_until?: string | null;
         };
         /** @enum {string} */
         UserRole: "Member" | "Author" | "Support" | "Admin";
@@ -7261,6 +7438,61 @@ export interface operations {
             };
         };
     };
+    update_member_profile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Member id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMemberRequest"];
+            };
+        };
+        responses: {
+            /** @description Member profile updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Member not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Email already in use */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ban_member: {
         parameters: {
             query?: never;
@@ -7339,6 +7571,43 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Member not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    member_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Member id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Composite member detail */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberDetailResponse"];
+                };
             };
             /** @description Forbidden */
             403: {
@@ -7648,11 +7917,61 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LifecycleRequest"];
+                "application/json": components["schemas"]["SuspendMemberRequest"];
             };
         };
         responses: {
             /** @description Member suspended */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+            /** @description `until` is in the past */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Member not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Cannot suspend an admin */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    unban_member: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Ban lifted */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -7675,8 +7994,37 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Cannot suspend an admin */
-            409: {
+        };
+    };
+    unsuspend_member: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Suspension lifted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Member not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

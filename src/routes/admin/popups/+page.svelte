@@ -14,6 +14,9 @@
 	import UsersIcon from 'phosphor-svelte/lib/UsersIcon';
 	import PercentIcon from 'phosphor-svelte/lib/PercentIcon';
 	import ChatCircleDotsIcon from 'phosphor-svelte/lib/ChatCircleDotsIcon';
+	import { confirmDialog } from '$lib/stores/confirm.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
+	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 
 	let popups = $state<Popup[]>([]);
 	let analytics = $state<PopupAnalytics[]>([]);
@@ -46,8 +49,10 @@
 			total = popupRes.total;
 			totalPages = popupRes.total_pages;
 			analytics = analyticsRes;
-		} catch {
-			// silently handle
+		} catch (e) {
+			toast.error('Failed to load popups', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		} finally {
 			loading = false;
 		}
@@ -56,11 +61,15 @@
 	onMount(load);
 
 	async function toggleActive(popup: Popup) {
+		const next = !popup.is_active;
 		try {
-			await api.put(`/api/admin/popups/${popup.id}`, { is_active: !popup.is_active });
+			await api.put(`/api/admin/popups/${popup.id}`, { is_active: next });
+			toast.success(next ? `Activated "${popup.name}"` : `Deactivated "${popup.name}"`);
 			await load();
-		} catch {
-			alert('Failed to update popup');
+		} catch (e) {
+			toast.error('Failed to update popup', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		}
 	}
 
@@ -81,19 +90,31 @@
 				is_active: false,
 				priority: popup.priority
 			});
+			toast.success(`Duplicated "${popup.name}"`);
 			await load();
-		} catch {
-			alert('Failed to duplicate popup');
+		} catch (e) {
+			toast.error('Failed to duplicate popup', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		}
 	}
 
 	async function deletePopup(popup: Popup) {
-		if (!confirm(`Delete "${popup.name}"? This cannot be undone.`)) return;
+		const ok = await confirmDialog({
+			title: `Delete "${popup.name}"?`,
+			message: 'The popup, its targeting rules, and its analytics history will be permanently removed.',
+			confirmLabel: 'Delete',
+			variant: 'danger'
+		});
+		if (!ok) return;
 		try {
 			await api.del(`/api/admin/popups/${popup.id}`);
+			toast.success(`Deleted "${popup.name}"`);
 			await load();
-		} catch {
-			alert('Failed to delete popup');
+		} catch (e) {
+			toast.error('Failed to delete popup', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		}
 	}
 
@@ -207,17 +228,18 @@
 									{formatType(popup.popup_type)}
 								</span>
 							</div>
-							<button
-								class="toggle"
-								class:toggle--on={popup.is_active}
-								onclick={() => toggleActive(popup)}
-								title={popup.is_active ? 'Deactivate' : 'Activate'}
-								aria-label={popup.is_active ? 'Deactivate' : 'Activate'}
-							>
-								<span class="toggle__track">
-									<span class="toggle__thumb"></span>
-								</span>
-							</button>
+							<Tooltip label={popup.is_active ? 'Deactivate popup' : 'Activate popup'}>
+								<button
+									class="toggle"
+									class:toggle--on={popup.is_active}
+									onclick={() => toggleActive(popup)}
+									aria-label={popup.is_active ? 'Deactivate' : 'Activate'}
+								>
+									<span class="toggle__track">
+										<span class="toggle__thumb"></span>
+									</span>
+								</button>
+							</Tooltip>
 						</div>
 						<div class="popup-card__meta">
 							<span class="popup-card__trigger">{formatType(popup.trigger_type)}</span>
@@ -274,46 +296,50 @@
 									</td>
 									<td class="table__trigger">{formatType(popup.trigger_type)}</td>
 									<td>
-										<button
-											class="toggle"
-											class:toggle--on={popup.is_active}
-											onclick={() => toggleActive(popup)}
-											title={popup.is_active ? 'Deactivate' : 'Activate'}
-											aria-label={popup.is_active ? 'Deactivate' : 'Activate'}
-										>
-											<span class="toggle__track">
-												<span class="toggle__thumb"></span>
-											</span>
-										</button>
+										<Tooltip label={popup.is_active ? 'Deactivate popup' : 'Activate popup'}>
+											<button
+												class="toggle"
+												class:toggle--on={popup.is_active}
+												onclick={() => toggleActive(popup)}
+												aria-label={popup.is_active ? 'Deactivate' : 'Activate'}
+											>
+												<span class="toggle__track">
+													<span class="toggle__thumb"></span>
+												</span>
+											</button>
+										</Tooltip>
 									</td>
 									<td class="table__num">{stats?.total_impressions.toLocaleString() ?? '0'}</td>
 									<td class="table__num">{stats?.total_submissions.toLocaleString() ?? '0'}</td>
 									<td>
 										<div class="row-actions">
-											<a
-												href="/admin/popups/{popup.id}"
-												class="icon-btn"
-												title="Edit"
-												aria-label="Edit"
-											>
-												<PencilSimpleIcon size={14} weight="bold" />
-											</a>
-											<button
-												onclick={() => duplicatePopup(popup)}
-												class="icon-btn"
-												title="Duplicate"
-												aria-label="Duplicate"
-											>
-												<CopyIcon size={14} weight="bold" />
-											</button>
-											<button
-												onclick={() => deletePopup(popup)}
-												class="icon-btn icon-btn--destructive"
-												title="Delete"
-												aria-label="Delete"
-											>
-												<TrashIcon size={14} weight="bold" />
-											</button>
+											<Tooltip label="Edit popup">
+												<a
+													href="/admin/popups/{popup.id}"
+													class="icon-btn"
+													aria-label="Edit"
+												>
+													<PencilSimpleIcon size={14} weight="bold" />
+												</a>
+											</Tooltip>
+											<Tooltip label="Duplicate popup">
+												<button
+													onclick={() => duplicatePopup(popup)}
+													class="icon-btn"
+													aria-label="Duplicate"
+												>
+													<CopyIcon size={14} weight="bold" />
+												</button>
+											</Tooltip>
+											<Tooltip label="Delete popup">
+												<button
+													onclick={() => deletePopup(popup)}
+													class="icon-btn icon-btn--destructive"
+													aria-label="Delete"
+												>
+													<TrashIcon size={14} weight="bold" />
+												</button>
+											</Tooltip>
 										</div>
 									</td>
 								</tr>

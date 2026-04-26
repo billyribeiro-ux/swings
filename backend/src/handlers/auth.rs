@@ -275,6 +275,23 @@ pub(crate) async fn login(
         }
     };
 
+    // ADM-15: lift an expired temporary suspension (timeout) lazily on
+    // login. The `suspended_until` column is set when an operator issues
+    // a time-boxed suspension via POST /api/admin/members/{id}/suspend
+    // with `until`. Doing this here keeps us off a background sweeper
+    // while still giving the user back their account at the right moment.
+    let user = match db::lift_expired_suspension(&state.db, user.id).await {
+        Ok(Some(refreshed)) => refreshed,
+        Ok(None) => user,
+        Err(e) => {
+            // Best-effort: a failed lazy-clear must not allow login when
+            // the underlying row is still suspended. Fall through with
+            // the original row so the suspension gate below still fires.
+            tracing::warn!(error = %e, user_id = %user.id, "lift_expired_suspension failed; using stale row");
+            user
+        }
+    };
+
     // ADM-02: hard ban / suspension gate. Both states return 401 (not 403)
     // to avoid leaking account existence — the response is identical to a
     // bad-password failure.

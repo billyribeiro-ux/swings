@@ -12,6 +12,7 @@
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import XIcon from 'phosphor-svelte/lib/XIcon';
+	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 	import { ApiError } from '$lib/api/client';
 	import {
 		adminOrders,
@@ -22,11 +23,12 @@
 		type OrderListQuery,
 		type ManualOrderItemInput
 	} from '$lib/api/admin-orders';
+	import { confirmDialog } from '$lib/stores/confirm.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 
 	let envelope = $state<OrderListEnvelope | null>(null);
 	let loading = $state(true);
 	let error = $state('');
-	let toast = $state('');
 	let selected = $state<OrderDetail | null>(null);
 	let showCreate = $state(false);
 
@@ -47,11 +49,6 @@
 
 	let voidReason = $state('');
 	let voidBusy = $state(false);
-
-	function flash(msg: string) {
-		toast = msg;
-		setTimeout(() => (toast = ''), 2500);
-	}
 
 	function buildQuery(): OrderListQuery {
 		const q: OrderListQuery = { limit: filters.limit ?? 25, offset: filters.offset ?? 0 };
@@ -116,7 +113,7 @@
 				mark_completed: manualMarkCompleted,
 				notes: manualNotes.trim() || undefined
 			});
-			flash(`Order ${detail.order.number} created`);
+			toast.success(`Order ${detail.order.number} created`);
 			showCreate = false;
 			manualEmail = '';
 			manualNotes = '';
@@ -124,8 +121,8 @@
 			await refresh();
 			selected = detail;
 		} catch (e) {
-			if (e instanceof ApiError) error = `${e.status}: ${e.message}`;
-			else error = 'Manual order creation failed';
+			const description = e instanceof ApiError ? `${e.status}: ${e.message}` : undefined;
+			toast.error('Manual order creation failed', { description });
 		} finally {
 			createBusy = false;
 		}
@@ -135,7 +132,7 @@
 		if (!selected) return;
 		const amount = Number(refundAmount);
 		if (!Number.isFinite(amount) || amount <= 0) {
-			error = 'Refund amount must be > 0 cents';
+			toast.warning('Refund amount must be greater than 0 cents');
 			return;
 		}
 		refundBusy = true;
@@ -145,12 +142,14 @@
 				amount_cents: Math.round(amount),
 				reason: refundReason.trim() || undefined
 			});
-			flash(`Refunded ${formatMoney(amount, selected.order.currency)}`);
+			toast.success(`Refunded ${formatMoney(amount, selected.order.currency)}`);
 			await Promise.all([refresh(), inspect(selected.order)]);
 			refundAmount = '';
 			refundReason = '';
 		} catch (e) {
-			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Refund failed';
+			toast.error('Refund failed', {
+				description: e instanceof ApiError ? `${e.status}: ${e.message}` : undefined
+			});
 		} finally {
 			refundBusy = false;
 		}
@@ -158,17 +157,25 @@
 
 	async function voidOrder() {
 		if (!selected) return;
-		if (!confirm(`Void order ${selected.order.number}?`)) return;
+		const ok = await confirmDialog({
+			title: `Void order ${selected.order.number}?`,
+			message: 'Voiding cancels the order and releases any reserved inventory. This cannot be undone.',
+			confirmLabel: 'Void order',
+			variant: 'danger'
+		});
+		if (!ok) return;
 		voidBusy = true;
 		error = '';
 		try {
 			await adminOrders.void(selected.order.id, {
 				reason: voidReason.trim() || undefined
 			});
-			flash('Order voided');
+			toast.success('Order voided');
 			await Promise.all([refresh(), inspect(selected.order)]);
 		} catch (e) {
-			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Void failed';
+			toast.error('Void failed', {
+				description: e instanceof ApiError ? `${e.status}: ${e.message}` : undefined
+			});
 		} finally {
 			voidBusy = false;
 		}
@@ -180,7 +187,7 @@
 			// BFF (Phase 1.3): cookie-based auth — no Bearer header needed.
 			const res = await fetch(url, { credentials: 'include' });
 			if (!res.ok) {
-				error = `Export failed (${res.status})`;
+				toast.error('Orders export failed', { description: `Server returned ${res.status}` });
 				return;
 			}
 			const blob = await res.blob();
@@ -192,8 +199,11 @@
 			a.click();
 			a.remove();
 			URL.revokeObjectURL(u);
-		} catch {
-			error = 'CSV export failed';
+			toast.success('Orders CSV exported');
+		} catch (e) {
+			toast.error('Orders export failed', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		}
 	}
 
@@ -231,7 +241,6 @@
 		</div>
 	</header>
 
-	{#if toast}<div class="toast" role="status">{toast}</div>{/if}
 	{#if error}<div class="error" role="alert">{error}</div>{/if}
 
 	<form class="filter-card" onsubmit={applyFilters}>
@@ -368,14 +377,16 @@
 								aria-label="Unit price (cents)"
 								required
 							/>
-							<button
-								type="button"
-								class="icon-btn icon-btn--danger"
-								onclick={() => removeManualItem(i)}
-								aria-label="Remove item"
-							>
-								<XCircleIcon size={16} weight="bold" />
-							</button>
+							<Tooltip label="Remove item">
+								<button
+									type="button"
+									class="icon-btn icon-btn--danger"
+									onclick={() => removeManualItem(i)}
+									aria-label="Remove item"
+								>
+									<XCircleIcon size={16} weight="bold" />
+								</button>
+							</Tooltip>
 						</div>
 					{/each}
 					<button type="button" class="btn btn--secondary btn--small" onclick={addManualItem}>
@@ -441,15 +452,16 @@
 									: new Date(o.created_at).toLocaleString()}
 							</td>
 							<td class="table__actions">
-								<button
-									type="button"
-									class="icon-btn"
-									onclick={() => inspect(o)}
-									title="Inspect order {o.number}"
-									aria-label="Inspect order {o.number}"
-								>
-									<EyeIcon size={16} weight="bold" />
-								</button>
+								<Tooltip label="Inspect order {o.number}">
+									<button
+										type="button"
+										class="icon-btn"
+										onclick={() => inspect(o)}
+										aria-label="Inspect order {o.number}"
+									>
+										<EyeIcon size={16} weight="bold" />
+									</button>
+								</Tooltip>
 							</td>
 						</tr>
 					{/each}
@@ -504,15 +516,16 @@
 						{selected.order.status}
 					</span>
 				</h2>
-				<button
-					type="button"
-					class="icon-btn"
-					onclick={() => (selected = null)}
-					title="Close"
-					aria-label="Close drawer"
-				>
-					<XIcon size={16} weight="bold" />
-				</button>
+				<Tooltip label="Close" placement="left">
+					<button
+						type="button"
+						class="icon-btn"
+						onclick={() => (selected = null)}
+						aria-label="Close drawer"
+					>
+						<XIcon size={16} weight="bold" />
+					</button>
+				</Tooltip>
 			</header>
 			<dl class="drawer__meta">
 				<dt>Customer</dt>
@@ -677,15 +690,6 @@
 	}
 
 	/* ── Status messages ────────────────── */
-	.toast {
-		padding: 0.75rem 1rem;
-		background: rgba(15, 164, 175, 0.12);
-		border: 1px solid rgba(15, 164, 175, 0.3);
-		color: #5eead4;
-		border-radius: var(--radius-lg);
-		font-size: 0.875rem;
-	}
-
 	.error {
 		padding: 0.75rem 1rem;
 		background: rgba(239, 68, 68, 0.1);

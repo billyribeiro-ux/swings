@@ -14,6 +14,7 @@
 	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
 	import EyeSlashIcon from 'phosphor-svelte/lib/EyeSlashIcon';
 	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
+	import { confirmDialog } from '$lib/stores/confirm.svelte';
 
 	interface Lesson { id: string; title: string; video_url: string; is_preview: boolean; sort_order: number; }
 	interface Module { id: string; title: string; sort_order: number; lessons: Lesson[]; }
@@ -60,8 +61,14 @@
 		expandedModules.add(tempId);
 	}
 
-	function removeModule(idx: number) {
-		if (!confirm('Remove this module and all its lessons?')) return;
+	async function removeModule(idx: number) {
+		const ok = await confirmDialog({
+			title: 'Remove this module?',
+			message: 'The module and every lesson it contains will be removed from the course outline. The change is staged until you save.',
+			confirmLabel: 'Remove module',
+			variant: 'danger'
+		});
+		if (!ok) return;
 		modules = modules.filter((_, i) => i !== idx);
 	}
 
@@ -69,8 +76,14 @@
 		modules = modules.map((m, i) => i !== mi ? m : { ...m, lessons: [...m.lessons, { id: `new-lesson-${Date.now()}`, title: '', video_url: '', is_preview: false, sort_order: m.lessons.length }] });
 	}
 
-	function removeLesson(mi: number, li: number) {
-		if (!confirm('Remove this lesson?')) return;
+	async function removeLesson(mi: number, li: number) {
+		const ok = await confirmDialog({
+			title: 'Remove this lesson?',
+			message: 'The lesson will be removed from this module. The change is staged until you save.',
+			confirmLabel: 'Remove lesson',
+			variant: 'danger'
+		});
+		if (!ok) return;
 		modules = modules.map((m, i) => i !== mi ? m : { ...m, lessons: m.lessons.filter((_, j) => j !== li) });
 	}
 
@@ -107,7 +120,13 @@
 	}
 
 	async function handleDelete() {
-		if (!confirm('Delete this course? This cannot be undone.')) return;
+		const ok = await confirmDialog({
+			title: 'Delete this course?',
+			message: 'The course, its modules, and every lesson will be permanently removed. Enrolled members will lose access.',
+			confirmLabel: 'Delete course',
+			variant: 'danger'
+		});
+		if (!ok) return;
 		deleting = true;
 		try { await api.del(`/api/admin/courses/${page.params.id}`); goto('/admin/courses'); }
 		catch (err) { error = err instanceof ApiError ? err.message : 'Failed to delete'; deleting = false; }

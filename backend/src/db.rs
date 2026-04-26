@@ -91,6 +91,286 @@ pub async fn delete_user(pool: &PgPool, user_id: Uuid) -> Result<(), sqlx::Error
     Ok(())
 }
 
+/// ADM-15: lift an expired temporary suspension on first read.
+///
+/// The `users.suspended_until` column carries the deadline for a
+/// timeout-style suspension; if it is in the past on the next login
+/// attempt, the account is auto-reactivated rather than waiting for an
+/// operator to explicitly call the unsuspend endpoint. We update only
+/// when both columns are populated to avoid clobbering an open-ended
+/// suspension that has no `until`.
+///
+/// Returns the refreshed [`User`] when a row was reactivated, or `None`
+/// when the input either had no expiry or its expiry is still in the
+/// future. Caller can swap the original row out for the returned one.
+pub async fn lift_expired_suspension(
+    pool: &PgPool,
+    user_id: Uuid,
+) -> Result<Option<User>, sqlx::Error> {
+    sqlx::query_as::<_, User>(
+        r#"
+        UPDATE users
+           SET suspended_at      = NULL,
+               suspension_reason = NULL,
+               suspended_until   = NULL,
+               updated_at        = NOW()
+         WHERE id = $1
+           AND suspended_at    IS NOT NULL
+           AND suspended_until IS NOT NULL
+           AND suspended_until <= NOW()
+         RETURNING *
+        "#,
+    )
+    .bind(user_id)
+    .fetch_optional(pool)
+    .await
+}
+
+/// ADM-15: PATCH-style profile update from the admin members surface.
+///
+/// Each parameter is `Option`, mirroring the wire shape of
+/// [`crate::models::UpdateMemberRequest`]: `None` leaves the column
+/// untouched, `Some(value)` overwrites it. The address fields are
+/// passed individually rather than as a struct so the COALESCE pattern
+/// keeps every other column intact.
+#[allow(clippy::too_many_arguments)]
+pub async fn update_member_profile(
+    pool: &PgPool,
+    user_id: Uuid,
+    name: Option<&str>,
+    email: Option<&str>,
+    phone: Option<&str>,
+    billing_line1: Option<&str>,
+    billing_line2: Option<&str>,
+    billing_city: Option<&str>,
+    billing_state: Option<&str>,
+    billing_postal_code: Option<&str>,
+    billing_country: Option<&str>,
+    address_was_provided: bool,
+    email_verified_at: Option<Option<DateTime<Utc>>>,
+) -> Result<User, sqlx::Error> {
+    let normalised_email = email.map(normalize_email);
+    // When the caller submitted an `email_verified_at` reset (Some(None)),
+    // we explicitly clear the verification timestamp; when they submitted
+    // a new value, we set it; when they passed `None`, we leave it
+    // alone. Using `query_as!` would be tighter but we don't have
+    // sqlx-offline metadata for these columns yet.
+    let (verified_clear, verified_set): (bool, Option<DateTime<Utc>>) = match email_verified_at {
+        Some(None) => (true, None),
+        Some(Some(v)) => (false, Some(v)),
+        None => (false, None),
+    };
+
+    sqlx::query_as::<_, User>(
+        r#"
+        UPDATE users
+           SET name                = COALESCE($1, name),
+               email               = COALESCE($2, email),
+               phone               = COALESCE($3, phone),
+               billing_line1       = CASE WHEN $11 THEN $4  ELSE billing_line1       END,
+               billing_line2       = CASE WHEN $11 THEN $5  ELSE billing_line2       END,
+               billing_city        = CASE WHEN $11 THEN $6  ELSE billing_city        END,
+               billing_state       = CASE WHEN $11 THEN $7  ELSE billing_state       END,
+               billing_postal_code = CASE WHEN $11 THEN $8  ELSE billing_postal_code END,
+               billing_country     = CASE WHEN $11 THEN $9  ELSE billing_country     END,
+               email_verified_at   = CASE
+                                       WHEN $12 THEN NULL
+                                       WHEN $13::timestamptz IS NOT NULL THEN $13
+                                       ELSE email_verified_at
+                                     END,
+               updated_at          = NOW()
+         WHERE id = $10
+         RETURNING *
+        "#,
+    )
+    .bind(name)
+    .bind(normalised_email.as_deref())
+    .bind(phone)
+    .bind(billing_line1)
+    .bind(billing_line2)
+    .bind(billing_city)
+    .bind(billing_state)
+    .bind(billing_postal_code)
+    .bind(billing_country)
+    .bind(user_id)
+    .bind(address_was_provided)
+    .bind(verified_clear)
+    .bind(verified_set)
+    .fetch_one(pool)
+    .await
+}
+
+/// ADM-15: clear the lifecycle ban columns on a member row.
+pub async fn clear_user_ban(pool: &PgPool, user_id: Uuid) -> Result<User, sqlx::Error> {
+    sqlx::query_as::<_, User>(
+        r#"
+        UPDATE users
+           SET banned_at  = NULL,
+               ban_reason = NULL,
+               updated_at = NOW()
+         WHERE id = $1
+         RETURNING *
+        "#,
+    )
+    .bind(user_id)
+    .fetch_one(pool)
+    .await
+}
+
+/// ADM-15: clear the lifecycle suspension columns on a member row.
+pub async fn clear_user_suspension(pool: &PgPool, user_id: Uuid) -> Result<User, sqlx::Error> {
+    sqlx::query_as::<_, User>(
+        r#"
+        UPDATE users
+           SET suspended_at      = NULL,
+               suspension_reason = NULL,
+               suspended_until   = NULL,
+               updated_at        = NOW()
+         WHERE id = $1
+         RETURNING *
+        "#,
+    )
+    .bind(user_id)
+    .fetch_one(pool)
+    .await
+}
+
+/// ADM-15: timeout-style suspension (open-ended when `until` is `None`).
+///
+/// Hardens [`handlers::admin_security::suspend_member`] with the
+/// `suspended_until` deadline introduced in migration 079. The login
+/// gate consults [`lift_expired_suspension`] on the next attempt so the
+/// row reactivates lazily; we do not need a background sweeper.
+pub async fn suspend_user_until(
+    pool: &PgPool,
+    user_id: Uuid,
+    reason: Option<&str>,
+    until: Option<DateTime<Utc>>,
+) -> Result<User, sqlx::Error> {
+    sqlx::query_as::<_, User>(
+        r#"
+        UPDATE users
+           SET suspended_at      = NOW(),
+               suspension_reason = $1,
+               suspended_until   = $2,
+               banned_at         = NULL,
+               ban_reason        = NULL,
+               updated_at        = NOW()
+         WHERE id = $3
+         RETURNING *
+        "#,
+    )
+    .bind(reason)
+    .bind(until)
+    .bind(user_id)
+    .fetch_one(pool)
+    .await
+}
+
+/// ADM-15: persist the billing address Stripe Checkout returned for the
+/// customer. Called from the `checkout.session.completed` webhook so the
+/// admin members surface always reflects the latest address Stripe
+/// holds. All fields nullable — Stripe omits keys whose value is `null`.
+#[allow(clippy::too_many_arguments)]
+pub async fn update_user_checkout_profile(
+    pool: &PgPool,
+    user_id: Uuid,
+    phone: Option<&str>,
+    line1: Option<&str>,
+    line2: Option<&str>,
+    city: Option<&str>,
+    state: Option<&str>,
+    postal_code: Option<&str>,
+    country: Option<&str>,
+) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        r#"
+        UPDATE users
+           SET phone               = COALESCE($1, phone),
+               billing_line1       = COALESCE($2, billing_line1),
+               billing_line2       = COALESCE($3, billing_line2),
+               billing_city        = COALESCE($4, billing_city),
+               billing_state       = COALESCE($5, billing_state),
+               billing_postal_code = COALESCE($6, billing_postal_code),
+               billing_country     = COALESCE($7, billing_country),
+               updated_at          = NOW()
+         WHERE id = $8
+        "#,
+    )
+    .bind(phone)
+    .bind(line1)
+    .bind(line2)
+    .bind(city)
+    .bind(state)
+    .bind(postal_code)
+    .bind(country)
+    .bind(user_id)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+/// ADM-15: recent admin actions targeting a single user, used by the
+/// member detail page's activity timeline. Matches both `target_id`
+/// strings stored as the user's UUID and any audit row that names the
+/// user inside its `metadata.user_id` field (the subscription / order
+/// audits do this), via a single SELECT … UNION query for index reuse.
+pub async fn recent_admin_actions_for_user(
+    pool: &PgPool,
+    user_id: Uuid,
+    limit: i64,
+) -> Result<Vec<crate::models::MemberActivityEntry>, sqlx::Error> {
+    let id_text = user_id.to_string();
+    sqlx::query_as::<_, crate::models::MemberActivityEntry>(
+        r#"
+        SELECT action,
+               actor_id,
+               actor_role,
+               created_at,
+               metadata
+          FROM admin_actions
+         WHERE (target_kind = 'user' AND target_id = $1)
+            OR metadata ->> 'user_id' = $1
+         ORDER BY created_at DESC
+         LIMIT $2
+        "#,
+    )
+    .bind(&id_text)
+    .bind(limit)
+    .fetch_all(pool)
+    .await
+}
+
+/// ADM-15: dunning history for a single user, used by the member detail
+/// page. Joins to `payment_failures` directly on `user_id`; rows where
+/// the FK was set on insert (most modern rows) come back without the
+/// indirect `subscription.user_id` join.
+pub async fn recent_payment_failures_for_user(
+    pool: &PgPool,
+    user_id: Uuid,
+    limit: i64,
+) -> Result<Vec<crate::models::MemberPaymentFailure>, sqlx::Error> {
+    sqlx::query_as::<_, crate::models::MemberPaymentFailure>(
+        r#"
+        SELECT stripe_invoice_id,
+               amount_cents,
+               currency,
+               failure_code,
+               failure_message,
+               attempt_count,
+               created_at
+          FROM payment_failures
+         WHERE user_id = $1
+         ORDER BY created_at DESC
+         LIMIT $2
+        "#,
+    )
+    .bind(user_id)
+    .bind(limit)
+    .fetch_all(pool)
+    .await
+}
+
 pub async fn seed_admin(
     pool: &PgPool,
     email: &str,

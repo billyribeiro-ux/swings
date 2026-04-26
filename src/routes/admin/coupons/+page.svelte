@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
+	import { toast } from '$lib/stores/toast.svelte';
 	import type { Coupon, BulkCouponPayload, PaginatedResponse } from '$lib/api/types';
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
@@ -14,6 +15,7 @@
 	import ToggleRightIcon from 'phosphor-svelte/lib/ToggleRightIcon';
 	import LightningIcon from 'phosphor-svelte/lib/LightningIcon';
 	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
+	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 
 	interface CouponStats {
 		active_count: number;
@@ -60,8 +62,10 @@
 		statsLoading = true;
 		try {
 			stats = await api.get<CouponStats>('/api/admin/coupons/stats');
-		} catch {
-			/* silent */
+		} catch (e) {
+			toast.error('Failed to load coupon stats', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		} finally {
 			statsLoading = false;
 		}
@@ -82,8 +86,10 @@
 			const res = await api.get<PaginatedResponse<Coupon>>(`/api/admin/coupons?${query}`);
 			coupons = res.data;
 			totalPages = res.total_pages;
-		} catch {
-			/* silent */
+		} catch (e) {
+			toast.error('Failed to load coupons', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		} finally {
 			loading = false;
 		}
@@ -91,12 +97,16 @@
 
 	async function toggleActive(coupon: Coupon) {
 		togglingId = coupon.id;
+		const next = !coupon.is_active;
 		try {
-			await api.put(`/api/admin/coupons/${coupon.id}`, { is_active: !coupon.is_active });
-			coupon.is_active = !coupon.is_active;
+			await api.put(`/api/admin/coupons/${coupon.id}`, { is_active: next });
+			coupon.is_active = next;
+			toast.success(next ? `Activated ${coupon.code}` : `Deactivated ${coupon.code}`);
 			await loadStats();
-		} catch {
-			alert('Failed to update coupon');
+		} catch (e) {
+			toast.error('Failed to update coupon', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		} finally {
 			togglingId = null;
 		}
@@ -114,6 +124,7 @@
 				expires_at: bulkExpiresAt || undefined
 			};
 			await api.post('/api/admin/coupons/bulk', payload);
+			toast.success(`Generated ${bulkCount} coupon${bulkCount === 1 ? '' : 's'}`);
 			showBulkForm = false;
 			bulkCount = 10;
 			bulkPrefix = '';
@@ -121,8 +132,10 @@
 			bulkUsageLimit = undefined;
 			bulkExpiresAt = '';
 			await Promise.all([loadCoupons(), loadStats()]);
-		} catch {
-			alert('Failed to generate coupons');
+		} catch (e) {
+			toast.error('Failed to generate coupons', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		} finally {
 			bulkLoading = false;
 		}
@@ -399,28 +412,30 @@
 						<span class="ccard__value">{formatUsage(coupon)}</span>
 					</div>
 					<div class="ccard__foot">
-						<button
-							type="button"
-							class="toggle-btn"
-							onclick={() => toggleActive(coupon)}
-							disabled={togglingId === coupon.id}
-							title={coupon.is_active ? 'Deactivate' : 'Activate'}
-							aria-label={coupon.is_active ? 'Deactivate coupon' : 'Activate coupon'}
-						>
-							{#if coupon.is_active}
-								<ToggleRightIcon size={24} weight="fill" />
-							{:else}
-								<ToggleLeftIcon size={24} weight="bold" />
-							{/if}
-						</button>
-						<a
-							href="/admin/coupons/{coupon.id}"
-							class="icon-btn"
-							title="Edit {coupon.code}"
-							aria-label="Edit {coupon.code}"
-						>
-							<PencilSimpleIcon size={16} weight="bold" />
-						</a>
+						<Tooltip label={coupon.is_active ? 'Deactivate coupon' : 'Activate coupon'}>
+							<button
+								type="button"
+								class="toggle-btn"
+								onclick={() => toggleActive(coupon)}
+								disabled={togglingId === coupon.id}
+								aria-label={coupon.is_active ? 'Deactivate coupon' : 'Activate coupon'}
+							>
+								{#if coupon.is_active}
+									<ToggleRightIcon size={24} weight="fill" />
+								{:else}
+									<ToggleLeftIcon size={24} weight="bold" />
+								{/if}
+							</button>
+						</Tooltip>
+						<Tooltip label="Edit {coupon.code}">
+							<a
+								href="/admin/coupons/{coupon.id}"
+								class="icon-btn"
+								aria-label="Edit {coupon.code}"
+							>
+								<PencilSimpleIcon size={16} weight="bold" />
+							</a>
+						</Tooltip>
 					</div>
 				</div>
 			{/each}

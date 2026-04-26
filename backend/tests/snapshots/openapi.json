@@ -2574,6 +2574,63 @@
             "bearer_auth": []
           }
         ]
+      },
+      "patch": {
+        "tags": [
+          "admin"
+        ],
+        "operationId": "update_member_profile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Member id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMemberRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Member profile updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Member not found"
+          },
+          "409": {
+            "description": "Email already in use"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
       }
     },
     "/api/admin/members/{id}/ban": {
@@ -2672,6 +2729,49 @@
           },
           "400": {
             "description": "Member has no subscription"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Member not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/members/{id}/detail": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "operationId": "member_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Member id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Composite member detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberDetailResponse"
+                }
+              }
+            }
           },
           "403": {
             "description": "Forbidden"
@@ -3033,7 +3133,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LifecycleRequest"
+                "$ref": "#/components/schemas/SuspendMemberRequest"
               }
             }
           },
@@ -3050,6 +3150,9 @@
               }
             }
           },
+          "400": {
+            "description": "`until` is in the past"
+          },
           "403": {
             "description": "Forbidden"
           },
@@ -3058,6 +3161,90 @@
           },
           "409": {
             "description": "Cannot suspend an admin"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/members/{id}/unban": {
+      "post": {
+        "tags": [
+          "admin-security"
+        ],
+        "operationId": "unban_member",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ban lifted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Member not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/members/{id}/unsuspend": {
+      "post": {
+        "tags": [
+          "admin-security"
+        ],
+        "operationId": "unsuspend_member",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Suspension lifted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Member not found"
           }
         },
         "security": [
@@ -8111,6 +8298,49 @@
           "bottom-end"
         ]
       },
+      "BillingAddress": {
+        "type": "object",
+        "description": "Billing address payload — mirrors the Stripe `Address` shape so the\nJSON we accept on `PATCH /api/admin/members/{id}` round-trips into\n`Customer.address` with no field-mapping at the handler edge.",
+        "properties": {
+          "line1": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "line2": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "city": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "postal_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "country": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 3166-1 alpha-2 country code. Validated case-insensitively;\nthe handler normalises to upper-case before persisting."
+          }
+        }
+      },
       "BillingPortalRequest": {
         "type": "object",
         "properties": {
@@ -11863,6 +12093,44 @@
           }
         }
       },
+      "ListMembersQuery": {
+        "type": "object",
+        "description": "Query string accepted by `GET /api/admin/members`.\n\nBackwards-compatible with the original `page` / `per_page` shape;\nadds optional `search`, `role`, and `status` filters that route\nthrough [`db::search_users`]. The list page on the SPA uses the same\nextractor so a GET without any new params behaves exactly as it did\nbefore this change.",
+        "properties": {
+          "page": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "per_page": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "search": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
       "ListResponse": {
         "type": "object",
         "required": [
@@ -12103,6 +12371,119 @@
           "focal_y": {
             "type": "number",
             "format": "double"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MemberActivityEntry": {
+        "type": "object",
+        "description": "One row in the activity timeline rendered on the member detail page.\nMirrors `admin_actions` minus the `id` (the timeline doesn't link\nout to the audit viewer yet) and with the metadata pre-serialised.",
+        "required": [
+          "action",
+          "actor_id",
+          "actor_role",
+          "created_at",
+          "metadata"
+        ],
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "actor_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "actor_role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "metadata": {}
+        }
+      },
+      "MemberDetailResponse": {
+        "type": "object",
+        "description": "Composite payload returned by `GET /api/admin/members/{id}/detail`.\nPre-bundles the member, their current subscription, and the recent\nactivity streams the detail UI renders so the SPA needs one round\ntrip per page load.",
+        "required": [
+          "user",
+          "activity",
+          "payment_failures"
+        ],
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/UserResponse"
+          },
+          "subscription": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Subscription"
+              }
+            ]
+          },
+          "activity": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberActivityEntry"
+            }
+          },
+          "payment_failures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberPaymentFailure"
+            }
+          }
+        }
+      },
+      "MemberPaymentFailure": {
+        "type": "object",
+        "description": "One row in the recent-payment-failures list on the member detail page.",
+        "required": [
+          "attempt_count",
+          "created_at"
+        ],
+        "properties": {
+          "stripe_invoice_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "amount_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "failure_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "failure_message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attempt_count": {
+            "type": "integer",
+            "format": "int32"
           },
           "created_at": {
             "type": "string",
@@ -12889,6 +13270,55 @@
                   ]
                 },
                 "email_verified_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                },
+                "billing_line1": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "billing_line2": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "billing_city": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "billing_state": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "billing_postal_code": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "billing_country": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "phone": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "suspended_until": {
                   "type": [
                     "string",
                     "null"
@@ -14740,6 +15170,26 @@
           }
         }
       },
+      "SuspendMemberRequest": {
+        "type": "object",
+        "description": "`POST /api/admin/members/{id}/suspend` body. Combines the existing\n`LifecycleRequest` (just a `reason`) with an optional `until`\ntimestamp that flips the suspension into a *timeout*.",
+        "properties": {
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When set, the suspension auto-lifts once `now() >= until`.\nOpen-ended suspensions (no `until`) require a manual\n`unsuspend` call."
+          }
+        }
+      },
       "Template": {
         "type": "object",
         "description": "A concrete template row loaded from `notification_templates`.\n\n`body_compiled` is maintained by the admin API at save time (currently a\nstraight copy of `body_source` until MJML compilation lands in FDN-09);\nrendering reads `body_compiled` so the hot path never re-parses MJML.",
@@ -15447,6 +15897,40 @@
               "null"
             ],
             "format": "double"
+          }
+        }
+      },
+      "UpdateMemberRequest": {
+        "type": "object",
+        "description": "`PATCH /api/admin/members/{id}` body. Every field is optional —\ncallers send only what they want to change. Missing keys leave the\nexisting column untouched; `null` is currently treated as\n\"no change\" rather than \"clear the field\" so support workflows that\nPATCH a single field don't accidentally wipe sibling columns.",
+        "properties": {
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "billing_address": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BillingAddress"
+              }
+            ]
           }
         }
       },
@@ -16186,6 +16670,55 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "billing_line1": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "billing_line2": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "billing_city": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "billing_state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "billing_postal_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "billing_country": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "suspended_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -16292,6 +16825,55 @@
             ]
           },
           "email_verified_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "billing_line1": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "billing_line2": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "billing_city": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "billing_state": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "billing_postal_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "billing_country": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "suspended_until": {
             "type": [
               "string",
               "null"

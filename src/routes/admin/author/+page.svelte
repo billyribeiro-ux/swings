@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api, ApiError } from '$lib/api/client';
+	import { toast } from '$lib/stores/toast.svelte';
 	import type { UserResponse } from '$lib/api/types';
 	import UserCircleIcon from 'phosphor-svelte/lib/UserCircleIcon';
 	import ImageIcon from 'phosphor-svelte/lib/ImageIcon';
@@ -68,8 +69,12 @@
 			auth.setUser({ ...auth.user!, name: updated.name });
 			saved = true;
 			setTimeout(() => (saved = false), 3000);
+			toast.success('Author profile saved');
 		} catch (err) {
 			error = err instanceof ApiError ? err.message : 'Failed to save profile.';
+			toast.error('Failed to save profile', {
+				description: err instanceof Error ? err.message : undefined
+			});
 		} finally {
 			saving = false;
 		}
@@ -87,8 +92,12 @@
 			formData.append('title', `${name || 'Author'} profile photo`);
 			const media = await api.upload<{ url: string }>('/api/admin/blog/media/upload', formData);
 			avatarUrl = media.url;
+			toast.success('Avatar uploaded');
 		} catch (err) {
 			error = err instanceof ApiError ? err.message : 'Upload failed.';
+			toast.error('Avatar upload failed', {
+				description: err instanceof Error ? err.message : undefined
+			});
 		} finally {
 			uploadingAvatar = false;
 			input.value = '';

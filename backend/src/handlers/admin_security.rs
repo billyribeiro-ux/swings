@@ -30,10 +30,10 @@ use crate::{
     db,
     error::{AppError, AppResult},
     extractors::{ClientInfo, PrivilegedUser},
-    models::{UserResponse, UserRole},
+    models::{SuspendMemberRequest, UserResponse, UserRole},
     notifications::send::{send_notification, Recipient, SendOptions},
     services::audit::{record_admin_action, AdminAction},
-    AppState,
+    stripe_api, AppState,
 };
 
 /// Cap on per-page items for any admin list endpoint defined in this module.
@@ -46,8 +46,10 @@ pub fn router() -> Router<AppState> {
     Router::new()
         // Member lifecycle.
         .route("/members/{id}/suspend", post(suspend_member))
+        .route("/members/{id}/unsuspend", post(unsuspend_member))
         .route("/members/{id}/reactivate", post(reactivate_member))
         .route("/members/{id}/ban", post(ban_member))
+        .route("/members/{id}/unban", post(unban_member))
         .route(
             "/members/{id}/force-password-reset",
             post(force_password_reset),
@@ -169,9 +171,10 @@ pub struct FailedLoginResponse {
     path = "/api/admin/members/{id}/suspend",
     tag = "admin-security",
     security(("bearer_auth" = [])),
-    request_body = LifecycleRequest,
+    request_body = SuspendMemberRequest,
     responses(
         (status = 200, description = "Member suspended", body = UserResponse),
+        (status = 400, description = "`until` is in the past"),
         (status = 403, description = "Forbidden"),
         (status = 404, description = "Member not found"),
         (status = 409, description = "Cannot suspend an admin")
@@ -182,7 +185,7 @@ pub(crate) async fn suspend_member(
     admin: PrivilegedUser,
     client: ClientInfo,
     Path(target_id): Path<Uuid>,
-    Json(req): Json<LifecycleRequest>,
+    Json(req): Json<SuspendMemberRequest>,
 ) -> AppResult<Json<UserResponse>> {
     admin.require(&state.policy, "user.suspend")?;
 
@@ -201,22 +204,19 @@ pub(crate) async fn suspend_member(
         .as_deref()
         .map(str::trim)
         .filter(|s| !s.is_empty());
-    let updated = sqlx::query_as::<_, crate::models::User>(
-        r#"
-        UPDATE users
-           SET suspended_at      = NOW(),
-               suspension_reason = $1,
-               banned_at         = NULL,
-               ban_reason        = NULL,
-               updated_at        = NOW()
-         WHERE id = $2
-         RETURNING *
-        "#,
-    )
-    .bind(reason)
-    .bind(target_id)
-    .fetch_one(&state.db)
-    .await?;
+
+    // ADM-15: reject deadlines that already expired — they would be a
+    // no-op from the user's perspective (login would auto-reactivate)
+    // and almost always indicate operator confusion (timezone slip).
+    if let Some(until) = req.until {
+        if until <= Utc::now() {
+            return Err(AppError::BadRequest(
+                "`until` must be in the future".to_string(),
+            ));
+        }
+    }
+
+    let updated = db::suspend_user_until(&state.db, target_id, reason, req.until).await?;
 
     // Refresh tokens are revoked unconditionally — a suspended user must
     // not retain an active session after the action lands.
@@ -229,6 +229,88 @@ pub(crate) async fn suspend_member(
             .with_client(&client)
             .with_metadata(serde_json::json!({
                 "reason": reason,
+                "until":  req.until,
+                "previous_state": lifecycle_state(&target),
+            })),
+    )
+    .await?;
+
+    Ok(Json(updated.into()))
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/admin/members/{id}/unsuspend",
+    tag = "admin-security",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Suspension lifted", body = UserResponse),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Member not found")
+    )
+)]
+pub(crate) async fn unsuspend_member(
+    State(state): State<AppState>,
+    admin: PrivilegedUser,
+    client: ClientInfo,
+    Path(target_id): Path<Uuid>,
+) -> AppResult<Json<UserResponse>> {
+    // `user.reactivate` covers both unsuspend + unban semantically;
+    // having two separate URLs lets the audit log distinguish operator
+    // intent without inventing a second permission.
+    admin.require(&state.policy, "user.reactivate")?;
+
+    let target = db::find_user_by_id(&state.db, target_id)
+        .await?
+        .ok_or_else(|| AppError::NotFound("Member not found".to_string()))?;
+
+    let updated = db::clear_user_suspension(&state.db, target_id).await?;
+
+    record_admin_action(
+        &state.db,
+        AdminAction::new(admin.user_id, admin.role, "user.unsuspend", "user")
+            .with_target_id(target_id)
+            .with_client(&client)
+            .with_metadata(serde_json::json!({
+                "previous_state": lifecycle_state(&target),
+            })),
+    )
+    .await?;
+
+    Ok(Json(updated.into()))
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/admin/members/{id}/unban",
+    tag = "admin-security",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Ban lifted", body = UserResponse),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Member not found")
+    )
+)]
+pub(crate) async fn unban_member(
+    State(state): State<AppState>,
+    admin: PrivilegedUser,
+    client: ClientInfo,
+    Path(target_id): Path<Uuid>,
+) -> AppResult<Json<UserResponse>> {
+    admin.require(&state.policy, "user.reactivate")?;
+
+    let target = db::find_user_by_id(&state.db, target_id)
+        .await?
+        .ok_or_else(|| AppError::NotFound("Member not found".to_string()))?;
+
+    let updated = db::clear_user_ban(&state.db, target_id).await?;
+
+    record_admin_action(
+        &state.db,
+        AdminAction::new(admin.user_id, admin.role, "user.unban", "user")
+            .with_target_id(target_id)
+            .with_client(&client)
+            .with_metadata(serde_json::json!({
                 "previous_state": lifecycle_state(&target),
             })),
     )
@@ -348,6 +430,37 @@ pub(crate) async fn ban_member(
 
     db::delete_user_refresh_tokens(&state.db, target_id).await?;
 
+    // ADM-15: cancel any active Stripe subscription immediately so a
+    // banned member can't continue to be billed. Failures are *not*
+    // fatal — we always favour completing the ban over a transient
+    // Stripe outage; the failure is captured in the audit metadata so
+    // operators can retry from the subscription detail page.
+    let mut stripe_cancel_outcome = serde_json::json!(null);
+    if let Some(sub) = db::find_subscription_by_user(&state.db, target_id).await? {
+        match stripe_api::cancel_subscription_immediately(&state, &sub.stripe_subscription_id).await
+        {
+            Ok(()) => {
+                stripe_cancel_outcome = serde_json::json!({
+                    "stripe_subscription_id": sub.stripe_subscription_id,
+                    "result": "canceled",
+                });
+            }
+            Err(e) => {
+                tracing::warn!(
+                    user_id = %target_id,
+                    subscription_id = %sub.stripe_subscription_id,
+                    error = %e,
+                    "stripe immediate-cancel failed during ban; ban applied locally regardless"
+                );
+                stripe_cancel_outcome = serde_json::json!({
+                    "stripe_subscription_id": sub.stripe_subscription_id,
+                    "result": "stripe_error",
+                    "error":  e.to_string(),
+                });
+            }
+        }
+    }
+
     record_admin_action(
         &state.db,
         AdminAction::new(admin.user_id, admin.role, "user.ban", "user")
@@ -356,6 +469,7 @@ pub(crate) async fn ban_member(
             .with_metadata(serde_json::json!({
                 "reason": reason,
                 "previous_state": lifecycle_state(&target),
+                "stripe_cancel": stripe_cancel_outcome,
             })),
     )
     .await?;
@@ -849,6 +963,14 @@ mod tests {
             banned_at: None,
             ban_reason: None,
             email_verified_at: None,
+            billing_line1: None,
+            billing_line2: None,
+            billing_city: None,
+            billing_state: None,
+            billing_postal_code: None,
+            billing_country: None,
+            phone: None,
+            suspended_until: None,
         };
         let json = lifecycle_state(&user);
         assert!(json["suspended_at"].is_string());

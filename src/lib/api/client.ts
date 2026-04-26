@@ -138,6 +138,14 @@ class ApiClient {
 		});
 	}
 
+	async patch<T>(endpoint: string, body?: unknown, options?: FetchOptions): Promise<T> {
+		return this.request<T>(endpoint, {
+			...options,
+			method: 'PATCH',
+			body: body ? JSON.stringify(body) : undefined
+		});
+	}
+
 	async del<T>(endpoint: string, options?: FetchOptions): Promise<T> {
 		return this.request<T>(endpoint, { ...options, method: 'DELETE' });
 	}

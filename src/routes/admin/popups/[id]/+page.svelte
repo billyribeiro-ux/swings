@@ -15,6 +15,7 @@
 	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
+	import { confirmDialog } from '$lib/stores/confirm.svelte';
 
 	const popupId = $derived(page.params.id);
 
@@ -125,7 +126,13 @@
 	}
 
 	async function handleDelete() {
-		if (!confirm('Delete this popup? This cannot be undone.')) return;
+		const ok = await confirmDialog({
+			title: 'Delete this popup?',
+			message: 'The popup, its targeting rules, and its analytics history will be permanently removed.',
+			confirmLabel: 'Delete',
+			variant: 'danger'
+		});
+		if (!ok) return;
 		deleting = true;
 		try { await api.del(`/api/admin/popups/${popupId}`); goto('/admin/popups'); }
 		catch { error = 'Failed to delete'; deleting = false; }

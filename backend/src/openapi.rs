@@ -101,6 +101,8 @@ impl Modify for SecurityAddon {
         admin::admin_member_subscription_cancel,
         admin::admin_member_subscription_resume,
         admin::update_member_role,
+        admin::update_member_profile,
+        admin::member_detail,
         admin::delete_member,
         admin::create_watchlist,
         admin::update_watchlist,
@@ -110,8 +112,10 @@ impl Modify for SecurityAddon {
         admin::delete_alert,
         // Admin security console (ADM-05)
         admin_security::suspend_member,
+        admin_security::unsuspend_member,
         admin_security::reactivate_member,
         admin_security::ban_member,
+        admin_security::unban_member,
         admin_security::force_password_reset,
         admin_security::mark_email_verified,
         admin_security::list_sessions,
@@ -498,6 +502,13 @@ impl Modify for SecurityAddon {
             crate::models::AnalyticsIngestEvent,
             // Handler-local
             admin::RoleUpdate,
+            admin::ListMembersQuery,
+            crate::models::UpdateMemberRequest,
+            crate::models::BillingAddress,
+            crate::models::SuspendMemberRequest,
+            crate::models::MemberActivityEntry,
+            crate::models::MemberPaymentFailure,
+            crate::models::MemberDetailResponse,
             member::UpdateProfileRequest,
             // Outbox DTOs (FDN-04)
             outbox::OutboxRowDto,

@@ -10,6 +10,8 @@
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import ListChecksIcon from 'phosphor-svelte/lib/ListChecksIcon';
+	import { confirmDialog } from '$lib/stores/confirm.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 
 	let watchlists = $state<Watchlist[]>([]);
 	let total = $state(0);
@@ -26,8 +28,10 @@
 			watchlists = res.data;
 			total = res.total;
 			totalPages = res.total_pages;
-		} catch {
-			// handle
+		} catch (e) {
+			toast.error('Failed to load watchlists', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		} finally {
 			loading = false;
 		}
@@ -36,21 +40,34 @@
 	onMount(load);
 
 	async function deleteWatchlist(wl: Watchlist) {
-		if (!confirm(`Delete "${wl.title}"? This will also delete all its alerts.`)) return;
+		const ok = await confirmDialog({
+			title: `Delete "${wl.title}"?`,
+			message: 'This watchlist and every alert it contains will be permanently removed.',
+			confirmLabel: 'Delete',
+			variant: 'danger'
+		});
+		if (!ok) return;
 		try {
 			await api.del(`/api/admin/watchlists/${wl.id}`);
+			toast.success(`Deleted "${wl.title}"`);
 			await load();
-		} catch {
-			alert('Failed to delete watchlist');
+		} catch (e) {
+			toast.error('Failed to delete watchlist', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		}
 	}
 
 	async function togglePublish(wl: Watchlist) {
+		const next = !wl.published;
 		try {
-			await api.put(`/api/admin/watchlists/${wl.id}`, { published: !wl.published });
+			await api.put(`/api/admin/watchlists/${wl.id}`, { published: next });
+			toast.success(next ? `Published "${wl.title}"` : `Unpublished "${wl.title}"`);
 			await load();
-		} catch {
-			alert('Failed to update watchlist');
+		} catch (e) {
+			toast.error('Failed to update watchlist', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		}
 	}
 

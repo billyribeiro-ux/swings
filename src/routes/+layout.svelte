@@ -10,6 +10,8 @@
 	import AdminSiteBar from '$lib/components/admin/AdminSiteBar.svelte';
 	import PopupEngine from '$lib/components/popups/PopupEngine.svelte';
 	import ConsentBanner from '$lib/components/consent/ConsentBanner.svelte';
+	import ConfirmDialogHost from '$lib/components/ui/ConfirmDialogHost.svelte';
+	import Toaster from '$lib/components/ui/Toaster.svelte';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { organizationSchema, webSiteSchema, buildJsonLd } from '$lib/seo/jsonld';
 	import { SITE } from '$lib/seo/config';
@@ -124,6 +126,13 @@
 	<ConsentBanner config={bannerConfig} />
 	<PopupEngine />
 {/if}
+
+<ConfirmDialogHost />
+
+<!-- Global toast region — mounted once for admin, member, and public surfaces.
+     SSR-safe (renders nothing on the server); the client-only stack hydrates
+     and listens to the `toast` store from `$lib/stores/toast.svelte`. -->
+<Toaster />
 
 <style>
 	:global(.public-shell--wp-admin .nav) {

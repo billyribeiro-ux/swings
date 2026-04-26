@@ -25,6 +25,69 @@ export interface UserResponse {
 	youtube_url: string | null;
 	instagram_url: string | null;
 	created_at: string;
+	// ADM-15 lifecycle + billing profile fields. All optional; absent means
+	// the account is not in that state / never collected the column.
+	suspended_at?: string | null;
+	suspended_until?: string | null;
+	suspension_reason?: string | null;
+	banned_at?: string | null;
+	ban_reason?: string | null;
+	email_verified_at?: string | null;
+	billing_line1?: string | null;
+	billing_line2?: string | null;
+	billing_city?: string | null;
+	billing_state?: string | null;
+	billing_postal_code?: string | null;
+	billing_country?: string | null;
+	phone?: string | null;
+}
+
+// ── ADM-15 admin members lifecycle DTOs ────────────────────────────────
+
+export interface BillingAddress {
+	line1?: string | null;
+	line2?: string | null;
+	city?: string | null;
+	state?: string | null;
+	postal_code?: string | null;
+	country?: string | null;
+}
+
+export interface UpdateMemberRequest {
+	name?: string;
+	email?: string;
+	phone?: string;
+	billing_address?: BillingAddress;
+}
+
+export interface SuspendMemberRequest {
+	reason?: string;
+	until?: string;
+}
+
+export interface MemberActivityEntry {
+	action: string;
+	actor_id: string;
+	actor_role: string;
+	created_at: string;
+	metadata: Record<string, unknown>;
+}
+
+export interface MemberPaymentFailure {
+	stripe_invoice_id: string | null;
+	amount_cents: number | null;
+	currency: string | null;
+	failure_code: string | null;
+	failure_message: string | null;
+	attempt_count: number;
+	created_at: string;
+}
+
+export interface MemberDetailResponse {
+	user: UserResponse;
+	subscription: Subscription | null;
+	activity: MemberActivityEntry[];
+	payment_failures: MemberPaymentFailure[];
 }
 
 export interface Subscription {
@@ -711,12 +774,31 @@ export interface BulkCouponPayload {
 // ── Popups ────────────────────────────────────────────────────────────
 
 export type PopupType = 'modal' | 'slide_in' | 'banner' | 'fullscreen' | 'floating_bar' | 'inline';
-export type PopupTrigger = 'on_load' | 'exit_intent' | 'scroll_percentage' | 'time_delay' | 'click' | 'manual' | 'inactivity';
+export type PopupTrigger =
+	| 'on_load'
+	| 'exit_intent'
+	| 'scroll_percentage'
+	| 'time_delay'
+	| 'click'
+	| 'manual'
+	| 'inactivity';
 export type PopupFrequency = 'every_time' | 'once_per_session' | 'once_ever' | 'custom';
 
 export interface PopupElement {
 	id: string;
-	type: 'heading' | 'text' | 'image' | 'input' | 'email' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'button' | 'divider' | 'spacer';
+	type:
+		| 'heading'
+		| 'text'
+		| 'image'
+		| 'input'
+		| 'email'
+		| 'textarea'
+		| 'select'
+		| 'checkbox'
+		| 'radio'
+		| 'button'
+		| 'divider'
+		| 'spacer';
 	props: Record<string, unknown>;
 	style?: Record<string, string>;
 }
@@ -808,7 +890,14 @@ export interface PopupAnalytics {
 export interface SalesEvent {
 	id: string;
 	user_id: string;
-	event_type: 'new_subscription' | 'renewal' | 'upgrade' | 'downgrade' | 'cancellation' | 'refund' | 'course_purchase';
+	event_type:
+		| 'new_subscription'
+		| 'renewal'
+		| 'upgrade'
+		| 'downgrade'
+		| 'cancellation'
+		| 'refund'
+		| 'course_purchase';
 	amount_cents: number;
 	currency: string;
 	plan_id: string | null;

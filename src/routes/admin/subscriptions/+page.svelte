@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import { goto } from '$app/navigation';
+	import { toast } from '$lib/stores/toast.svelte';
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
@@ -11,6 +12,7 @@
 	import CalendarCheckIcon from 'phosphor-svelte/lib/CalendarCheckIcon';
 	import RepeatIcon from 'phosphor-svelte/lib/RepeatIcon';
 	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
+	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 
 	type SubscriptionStatus = 'active' | 'canceled' | 'past_due' | 'trialing' | 'unpaid';
 
@@ -72,8 +74,11 @@
 		statsLoading = true;
 		try {
 			stats = await api.get<SubscriptionStats>('/api/admin/subscriptions/stats');
-		} catch {
+		} catch (e) {
 			stats = null;
+			toast.error('Failed to load subscription stats', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		} finally {
 			statsLoading = false;
 		}
@@ -96,8 +101,11 @@
 			subscriptions = res.data;
 			total = res.total;
 			totalPages = res.total_pages;
-		} catch {
+		} catch (e) {
 			subscriptions = [];
+			toast.error('Failed to load subscriptions', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		} finally {
 			loading = false;
 		}
@@ -342,15 +350,16 @@
 								{sub.next_renewal ? formatDate(sub.next_renewal) : '—'}
 							</td>
 							<td class="s-table__actions">
-								<button
-									type="button"
-									class="icon-btn"
-									onclick={() => navigateToMember(sub.member_id)}
-									title="View member"
-									aria-label="View member {sub.member_name}"
-								>
-									<EyeIcon size={16} weight="bold" />
-								</button>
+								<Tooltip label="View member {sub.member_name}">
+									<button
+										type="button"
+										class="icon-btn"
+										onclick={() => navigateToMember(sub.member_id)}
+										aria-label="View member {sub.member_name}"
+									>
+										<EyeIcon size={16} weight="bold" />
+									</button>
+								</Tooltip>
 							</td>
 						</tr>
 					{/each}

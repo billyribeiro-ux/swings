@@ -19,6 +19,7 @@
 	} from '$lib/api/types';
 	import BlogEditor from './BlogEditor.svelte';
 	import MediaLibrary from './MediaLibrary.svelte';
+	import { confirmDialog } from '$lib/stores/confirm.svelte';
 	import {
 		buildPostPayload,
 		formatAutosaveRelative,
@@ -415,12 +416,14 @@
 
 	async function moveToTrash() {
 		if (!post || post.status === 'trash') return;
-		if (
-			!confirm(
-				'Move this post to the Trash? You can restore it later from Blog → Trash, or delete it permanently from there.'
-			)
-		)
-			return;
+		const ok = await confirmDialog({
+			title: 'Move this post to the Trash?',
+			message:
+				'You can restore it later from Blog → Trash, or delete it permanently from there.',
+			confirmLabel: 'Move to trash',
+			variant: 'warning'
+		});
+		if (!ok) return;
 		trashing = true;
 		saveMessage = '';
 		try {
@@ -453,12 +456,14 @@
 
 	async function deletePermanently() {
 		if (!post || post.status !== 'trash') return;
-		if (
-			!confirm(
-				'Permanently delete this post? This cannot be undone. All revisions and metadata will be removed.'
-			)
-		)
-			return;
+		const ok = await confirmDialog({
+			title: 'Permanently delete this post?',
+			message:
+				'This cannot be undone. All revisions and metadata will be removed.',
+			confirmLabel: 'Delete permanently',
+			variant: 'danger'
+		});
+		if (!ok) return;
 		deletingPermanent = true;
 		saveMessage = '';
 		try {
@@ -473,11 +478,14 @@
 	}
 
 	async function restoreRevision(revId: string) {
-		if (
-			!post ||
-			!confirm('Restore this revision? Current content will be saved as a new revision.')
-		)
-			return;
+		if (!post) return;
+		const ok = await confirmDialog({
+			title: 'Restore this revision?',
+			message: 'Your current content will be saved as a new revision before the swap.',
+			confirmLabel: 'Restore revision',
+			variant: 'warning'
+		});
+		if (!ok) return;
 		try {
 			const result = await api.post<BlogPostResponse>(
 				`/api/admin/blog/posts/${post.id}/revisions/${revId}/restore`

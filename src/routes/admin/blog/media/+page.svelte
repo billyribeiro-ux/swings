@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { api } from '$lib/api/client';
 	import type { MediaItem, PaginatedResponse } from '$lib/api/types';
+	import { confirmDialog } from '$lib/stores/confirm.svelte';
 
 	let items: MediaItem[] = $state([]);
 	let total = $state(0);
@@ -68,7 +69,13 @@
 	}
 
 	async function deleteItem(id: string) {
-		if (!confirm('Delete this media file permanently?')) return;
+		const ok = await confirmDialog({
+			title: 'Delete this media file?',
+			message: 'The file will be permanently removed and any post that embeds it will lose the asset.',
+			confirmLabel: 'Delete',
+			variant: 'danger'
+		});
+		if (!ok) return;
 		try {
 			await api.delete(`/api/admin/blog/media/${id}`);
 			items = items.filter((i) => i.id !== id);

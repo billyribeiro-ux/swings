@@ -15,6 +15,8 @@
 	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
 	import ArticleIcon from 'phosphor-svelte/lib/ArticleIcon';
 	import XIcon from 'phosphor-svelte/lib/XIcon';
+	import { confirmDialog } from '$lib/stores/confirm.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 
 	let posts: BlogPostListItem[] = $state([]);
 	let total = $state(0);
@@ -49,21 +51,40 @@
 		if (!bulkActionValue || selectedIds.length === 0) return;
 		const action = bulkActionValue;
 		bulkActionValue = '';
+		const count = selectedIds.length;
 
 		if (action === 'delete') {
 			if (statusFilter !== 'trash') {
-				alert(
-					'Permanent deletion only applies to posts in the Trash. Open the Trash tab, select posts, then choose Delete permanently.'
-				);
+				toast.warning('Permanent deletion only applies to posts in the Trash', {
+					description:
+						'Open the Trash tab, select posts, then choose Delete permanently.'
+				});
 				return;
 			}
-			if (!confirm(`Permanently delete ${selectedIds.length} post(s)? This cannot be undone.`)) return;
-			await Promise.allSettled(selectedIds.map((id) => api.delete(`/api/admin/blog/posts/${id}`)));
+			const ok = await confirmDialog({
+				title: `Permanently delete ${count} post${count === 1 ? '' : 's'}?`,
+				message: 'This action cannot be undone. The posts and their revision history will be removed.',
+				confirmLabel: 'Delete permanently',
+				variant: 'danger'
+			});
+			if (!ok) return;
+			const results = await Promise.allSettled(
+				selectedIds.map((id) => api.delete(`/api/admin/blog/posts/${id}`))
+			);
+			const failed = results.filter((r) => r.status === 'rejected').length;
+			if (failed === 0) toast.success(`Deleted ${count} post${count === 1 ? '' : 's'}`);
+			else if (failed === count) toast.error(`Failed to delete ${count} post${count === 1 ? '' : 's'}`);
+			else toast.warning(`Deleted ${count - failed} of ${count}`, { description: `${failed} failed` });
 		} else {
 			const status = action === 'trash' ? 'trash' : action === 'publish' ? 'published' : 'draft';
-			await Promise.allSettled(
+			const results = await Promise.allSettled(
 				selectedIds.map((id) => api.put(`/api/admin/blog/posts/${id}/status`, { status }))
 			);
+			const failed = results.filter((r) => r.status === 'rejected').length;
+			const verb = status === 'trash' ? 'Moved to trash' : status === 'published' ? 'Published' : 'Saved as draft';
+			if (failed === 0) toast.success(`${verb} · ${count} post${count === 1 ? '' : 's'}`);
+			else if (failed === count) toast.error(`Bulk ${action} failed`);
+			else toast.warning(`${verb} ${count - failed} of ${count}`, { description: `${failed} failed` });
 		}
 		selectedIds = [];
 		loadPosts();
@@ -83,7 +104,9 @@
 			total = res.total;
 			totalPages = res.total_pages;
 		} catch (e) {
-			console.error('Failed to load posts', e);
+			toast.error('Failed to load posts', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		} finally {
 			loading = false;
 		}
@@ -106,31 +129,52 @@
 	}
 
 	async function deletePost(id: string) {
-		if (!confirm('Move this post to trash?')) return;
+		const ok = await confirmDialog({
+			title: 'Move this post to trash?',
+			message: 'You can restore it from the Trash tab before it is permanently removed.',
+			confirmLabel: 'Move to trash',
+			variant: 'warning'
+		});
+		if (!ok) return;
 		try {
 			await api.put(`/api/admin/blog/posts/${id}/status`, { status: 'trash' });
+			toast.success('Post moved to trash');
 			loadPosts();
 		} catch (e) {
-			console.error('Failed to trash post', e);
+			toast.error('Failed to trash post', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		}
 	}
 
 	async function hardDelete(id: string) {
-		if (!confirm('Permanently delete this post? This cannot be undone.')) return;
+		const ok = await confirmDialog({
+			title: 'Permanently delete this post?',
+			message: 'This cannot be undone. The post and its revision history will be removed.',
+			confirmLabel: 'Delete permanently',
+			variant: 'danger'
+		});
+		if (!ok) return;
 		try {
 			await api.delete(`/api/admin/blog/posts/${id}`);
+			toast.success('Post permanently deleted');
 			loadPosts();
 		} catch (e) {
-			console.error('Failed to delete post', e);
+			toast.error('Failed to delete post', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		}
 	}
 
 	async function restorePost(id: string) {
 		try {
 			await api.post(`/api/admin/blog/posts/${id}/restore`);
+			toast.success('Post restored');
 			loadPosts();
 		} catch (e) {
-			console.error('Failed to restore post', e);
+			toast.error('Failed to restore post', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		}
 	}
 
@@ -216,9 +260,12 @@
 				author_id: qeAuthorId || undefined
 			});
 			closeQuickEdit();
+			toast.success('Post updated');
 			loadPosts();
 		} catch (e) {
-			console.error('Quick edit save failed', e);
+			toast.error('Quick edit save failed', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		} finally {
 			qeSaving = false;
 		}

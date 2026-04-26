@@ -33,6 +33,7 @@
 	import StackIcon from 'phosphor-svelte/lib/StackIcon';
 	import CookieIcon from 'phosphor-svelte/lib/CookieIcon';
 	import CommandPalette from '$lib/components/admin/CommandPalette.svelte';
+	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 	import { SITE } from '$lib/seo/config';
 	import {
 		blogAdminItems,
@@ -335,13 +336,19 @@
 
 		<!-- Mobile Top Bar -->
 		<header class="admin__mobile-header">
-			<button class="admin__menu-toggle" onclick={() => (mobileMenuOpen = !mobileMenuOpen)}>
-				{#if mobileMenuOpen}
-					<XIcon size={24} weight="bold" />
-				{:else}
-					<ListIcon size={24} weight="bold" />
-				{/if}
-			</button>
+			<Tooltip label={mobileMenuOpen ? 'Close menu' : 'Open menu'} placement="bottom">
+				<button
+					class="admin__menu-toggle"
+					aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+					onclick={() => (mobileMenuOpen = !mobileMenuOpen)}
+				>
+					{#if mobileMenuOpen}
+						<XIcon size={24} weight="bold" />
+					{:else}
+						<ListIcon size={24} weight="bold" />
+					{/if}
+				</button>
+			</Tooltip>
 			<a href="/" class="admin__mobile-logo">
 				<span class="admin__logo-brand">{SITE.logoBrandPrimary}</span>
 				<span class="admin__logo-accent">{SITE.logoBrandAccent}</span>
@@ -364,54 +371,63 @@
 				</a>
 				<div class="admin__sidebar-top-actions">
 					<span class="admin__badge">Admin</span>
-					<button
-						type="button"
-						class="admin__sidebar-pin"
-						onclick={toggleSidebarCollapsed}
-						aria-pressed={sidebarCollapsed}
-						aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-						title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+					<Tooltip
+						label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+						placement={sidebarCollapsed ? 'right' : 'bottom'}
 					>
-						{#if sidebarCollapsed}
-							<CaretDoubleRightIcon size={14} weight="bold" />
-						{:else}
-							<CaretDoubleLeftIcon size={14} weight="bold" />
-						{/if}
-					</button>
+						<button
+							type="button"
+							class="admin__sidebar-pin"
+							onclick={toggleSidebarCollapsed}
+							aria-pressed={sidebarCollapsed}
+							aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+						>
+							{#if sidebarCollapsed}
+								<CaretDoubleRightIcon size={14} weight="bold" />
+							{:else}
+								<CaretDoubleLeftIcon size={14} weight="bold" />
+							{/if}
+						</button>
+					</Tooltip>
 				</div>
 			</div>
 
 			<nav class="admin__nav">
 				<span class="admin__nav-eyebrow">Overview</span>
 				{#each navItems as item (item.href)}
-					<a
-						href={item.href}
-						class="admin__nav-link"
-						class:admin__nav-link--active={page.url.pathname === item.href}
-						onclick={() => (mobileMenuOpen = false)}
-					>
-						<item.icon size={20} weight="duotone" />
-						<span>{item.label}</span>
-					</a>
+					<Tooltip label={item.label} placement="right" disabled={!sidebarCollapsed}>
+						<a
+							href={item.href}
+							class="admin__nav-link"
+							class:admin__nav-link--active={page.url.pathname === item.href}
+							onclick={() => (mobileMenuOpen = false)}
+						>
+							<item.icon size={20} weight="duotone" />
+							<span>{item.label}</span>
+						</a>
+					</Tooltip>
 				{/each}
 
 				<span class="admin__nav-eyebrow">Content</span>
 				<div class="admin__nav-section">
-					<button
-						type="button"
-						class="admin__nav-link admin__nav-link--header"
-						class:admin__nav-link--header-open={blogSubmenuOpen}
-						aria-expanded={blogSubmenuOpen}
-						onclick={() => (blogSubmenuOpen = !blogSubmenuOpen)}
-					>
-						<ArticleIcon size={20} weight="duotone" />
-						<span class="admin__nav-link-label">Blog</span>
-						<CaretRightIcon
-							size={11}
-							weight="bold"
-							class="admin__nav-caret{blogSubmenuOpen ? ' admin__nav-caret--open' : ''}"
-						/>
-					</button>
+					<Tooltip label="Blog" placement="right" disabled={!sidebarCollapsed}>
+						<button
+							type="button"
+							class="admin__nav-link admin__nav-link--header"
+							class:admin__nav-link--header-open={blogSubmenuOpen}
+							aria-expanded={blogSubmenuOpen}
+							aria-label="Blog"
+							onclick={() => (blogSubmenuOpen = !blogSubmenuOpen)}
+						>
+							<ArticleIcon size={20} weight="duotone" />
+							<span class="admin__nav-link-label">Blog</span>
+							<CaretRightIcon
+								size={11}
+								weight="bold"
+								class="admin__nav-caret{blogSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+							/>
+						</button>
+					</Tooltip>
 					{#if blogSubmenuOpen}
 						<div class="admin__nav-submenu">
 							{#each blogAdminItems as item (item.href)}
@@ -431,21 +447,24 @@
 				</div>
 
 				<div class="admin__nav-section">
-					<button
-						type="button"
-						class="admin__nav-link admin__nav-link--header"
-						class:admin__nav-link--header-open={courseSubmenuOpen}
-						aria-expanded={courseSubmenuOpen}
-						onclick={() => (courseSubmenuOpen = !courseSubmenuOpen)}
-					>
-						<GraduationCapIcon size={20} weight="duotone" />
-						<span class="admin__nav-link-label">Courses</span>
-						<CaretRightIcon
-							size={11}
-							weight="bold"
-							class="admin__nav-caret{courseSubmenuOpen ? ' admin__nav-caret--open' : ''}"
-						/>
-					</button>
+					<Tooltip label="Courses" placement="right" disabled={!sidebarCollapsed}>
+						<button
+							type="button"
+							class="admin__nav-link admin__nav-link--header"
+							class:admin__nav-link--header-open={courseSubmenuOpen}
+							aria-expanded={courseSubmenuOpen}
+							aria-label="Courses"
+							onclick={() => (courseSubmenuOpen = !courseSubmenuOpen)}
+						>
+							<GraduationCapIcon size={20} weight="duotone" />
+							<span class="admin__nav-link-label">Courses</span>
+							<CaretRightIcon
+								size={11}
+								weight="bold"
+								class="admin__nav-caret{courseSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+							/>
+						</button>
+					</Tooltip>
 					{#if courseSubmenuOpen}
 						<div class="admin__nav-submenu">
 							{#each courseAdminItems as item (item.href)}
@@ -465,21 +484,24 @@
 				</div>
 
 				<div class="admin__nav-section">
-					<button
-						type="button"
-						class="admin__nav-link admin__nav-link--header"
-						class:admin__nav-link--header-open={subscriptionSubmenuOpen}
-						aria-expanded={subscriptionSubmenuOpen}
-						onclick={() => (subscriptionSubmenuOpen = !subscriptionSubmenuOpen)}
-					>
-						<CreditCardIcon size={20} weight="duotone" />
-						<span class="admin__nav-link-label">Subscriptions</span>
-						<CaretRightIcon
-							size={11}
-							weight="bold"
-							class="admin__nav-caret{subscriptionSubmenuOpen ? ' admin__nav-caret--open' : ''}"
-						/>
-					</button>
+					<Tooltip label="Subscriptions" placement="right" disabled={!sidebarCollapsed}>
+						<button
+							type="button"
+							class="admin__nav-link admin__nav-link--header"
+							class:admin__nav-link--header-open={subscriptionSubmenuOpen}
+							aria-expanded={subscriptionSubmenuOpen}
+							aria-label="Subscriptions"
+							onclick={() => (subscriptionSubmenuOpen = !subscriptionSubmenuOpen)}
+						>
+							<CreditCardIcon size={20} weight="duotone" />
+							<span class="admin__nav-link-label">Subscriptions</span>
+							<CaretRightIcon
+								size={11}
+								weight="bold"
+								class="admin__nav-caret{subscriptionSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+							/>
+						</button>
+					</Tooltip>
 					{#if subscriptionSubmenuOpen}
 						<div class="admin__nav-submenu">
 							{#each subscriptionAdminItems as item (item.href)}
@@ -499,21 +521,24 @@
 				</div>
 
 				<div class="admin__nav-section">
-					<button
-						type="button"
-						class="admin__nav-link admin__nav-link--header"
-						class:admin__nav-link--header-open={couponSubmenuOpen}
-						aria-expanded={couponSubmenuOpen}
-						onclick={() => (couponSubmenuOpen = !couponSubmenuOpen)}
-					>
-						<TagIcon size={20} weight="duotone" />
-						<span class="admin__nav-link-label">Coupons</span>
-						<CaretRightIcon
-							size={11}
-							weight="bold"
-							class="admin__nav-caret{couponSubmenuOpen ? ' admin__nav-caret--open' : ''}"
-						/>
-					</button>
+					<Tooltip label="Coupons" placement="right" disabled={!sidebarCollapsed}>
+						<button
+							type="button"
+							class="admin__nav-link admin__nav-link--header"
+							class:admin__nav-link--header-open={couponSubmenuOpen}
+							aria-expanded={couponSubmenuOpen}
+							aria-label="Coupons"
+							onclick={() => (couponSubmenuOpen = !couponSubmenuOpen)}
+						>
+							<TagIcon size={20} weight="duotone" />
+							<span class="admin__nav-link-label">Coupons</span>
+							<CaretRightIcon
+								size={11}
+								weight="bold"
+								class="admin__nav-caret{couponSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+							/>
+						</button>
+					</Tooltip>
 					{#if couponSubmenuOpen}
 						<div class="admin__nav-submenu">
 							{#each couponAdminItems as item (item.href)}
@@ -533,21 +558,24 @@
 				</div>
 
 				<div class="admin__nav-section">
-					<button
-						type="button"
-						class="admin__nav-link admin__nav-link--header"
-						class:admin__nav-link--header-open={popupSubmenuOpen}
-						aria-expanded={popupSubmenuOpen}
-						onclick={() => (popupSubmenuOpen = !popupSubmenuOpen)}
-					>
-						<ChatCircleDotsIcon size={20} weight="duotone" />
-						<span class="admin__nav-link-label">Popups</span>
-						<CaretRightIcon
-							size={11}
-							weight="bold"
-							class="admin__nav-caret{popupSubmenuOpen ? ' admin__nav-caret--open' : ''}"
-						/>
-					</button>
+					<Tooltip label="Popups" placement="right" disabled={!sidebarCollapsed}>
+						<button
+							type="button"
+							class="admin__nav-link admin__nav-link--header"
+							class:admin__nav-link--header-open={popupSubmenuOpen}
+							aria-expanded={popupSubmenuOpen}
+							aria-label="Popups"
+							onclick={() => (popupSubmenuOpen = !popupSubmenuOpen)}
+						>
+							<ChatCircleDotsIcon size={20} weight="duotone" />
+							<span class="admin__nav-link-label">Popups</span>
+							<CaretRightIcon
+								size={11}
+								weight="bold"
+								class="admin__nav-caret{popupSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+							/>
+						</button>
+					</Tooltip>
 					{#if popupSubmenuOpen}
 						<div class="admin__nav-submenu">
 							{#each popupAdminItems as item (item.href)}
@@ -567,33 +595,38 @@
 				</div>
 
 				<span class="admin__nav-eyebrow">Operations</span>
-				<a
-					href="/admin/orders"
-					class="admin__nav-link"
-					class:admin__nav-link--active={page.url.pathname.startsWith('/admin/orders')}
-					onclick={() => (mobileMenuOpen = false)}
-					data-testid="nav-orders"
-				>
-					<ReceiptIcon size={20} weight="duotone" />
-					<span>Orders</span>
-				</a>
+				<Tooltip label="Orders" placement="right" disabled={!sidebarCollapsed}>
+					<a
+						href="/admin/orders"
+						class="admin__nav-link"
+						class:admin__nav-link--active={page.url.pathname.startsWith('/admin/orders')}
+						onclick={() => (mobileMenuOpen = false)}
+						data-testid="nav-orders"
+					>
+						<ReceiptIcon size={20} weight="duotone" />
+						<span>Orders</span>
+					</a>
+				</Tooltip>
 
 				<div class="admin__nav-section">
-					<button
-						type="button"
-						class="admin__nav-link admin__nav-link--header"
-						class:admin__nav-link--header-open={notificationSubmenuOpen}
-						aria-expanded={notificationSubmenuOpen}
-						onclick={() => (notificationSubmenuOpen = !notificationSubmenuOpen)}
-					>
-						<BellIcon size={20} weight="duotone" />
-						<span class="admin__nav-link-label">Notifications</span>
-						<CaretRightIcon
-							size={11}
-							weight="bold"
-							class="admin__nav-caret{notificationSubmenuOpen ? ' admin__nav-caret--open' : ''}"
-						/>
-					</button>
+					<Tooltip label="Notifications" placement="right" disabled={!sidebarCollapsed}>
+						<button
+							type="button"
+							class="admin__nav-link admin__nav-link--header"
+							class:admin__nav-link--header-open={notificationSubmenuOpen}
+							aria-expanded={notificationSubmenuOpen}
+							aria-label="Notifications"
+							onclick={() => (notificationSubmenuOpen = !notificationSubmenuOpen)}
+						>
+							<BellIcon size={20} weight="duotone" />
+							<span class="admin__nav-link-label">Notifications</span>
+							<CaretRightIcon
+								size={11}
+								weight="bold"
+								class="admin__nav-caret{notificationSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+							/>
+						</button>
+					</Tooltip>
 					{#if notificationSubmenuOpen}
 						<div class="admin__nav-submenu">
 							{#each notificationAdminItems as item (item.href)}
@@ -612,45 +645,52 @@
 					{/if}
 				</div>
 
-				<a
-					href="/admin/outbox"
-					class="admin__nav-link"
-					class:admin__nav-link--active={page.url.pathname.startsWith('/admin/outbox')}
-					onclick={() => (mobileMenuOpen = false)}
-					data-testid="nav-outbox"
-				>
-					<StackIcon size={20} weight="duotone" />
-					<span>Outbox</span>
-				</a>
+				<Tooltip label="Outbox" placement="right" disabled={!sidebarCollapsed}>
+					<a
+						href="/admin/outbox"
+						class="admin__nav-link"
+						class:admin__nav-link--active={page.url.pathname.startsWith('/admin/outbox')}
+						onclick={() => (mobileMenuOpen = false)}
+						data-testid="nav-outbox"
+					>
+						<StackIcon size={20} weight="duotone" />
+						<span>Outbox</span>
+					</a>
+				</Tooltip>
 
 				<span class="admin__nav-eyebrow">Governance</span>
-				<a
-					href="/admin/security"
-					class="admin__nav-link"
-					class:admin__nav-link--active={page.url.pathname.startsWith('/admin/security')}
-					onclick={() => (mobileMenuOpen = false)}
-					data-testid="nav-security"
-				>
-					<ShieldCheckIcon size={20} weight="duotone" />
-					<span>Security</span>
-				</a>
+				<Tooltip label="Security" placement="right" disabled={!sidebarCollapsed}>
+					<a
+						href="/admin/security"
+						class="admin__nav-link"
+						class:admin__nav-link--active={page.url.pathname.startsWith('/admin/security')}
+						onclick={() => (mobileMenuOpen = false)}
+						data-testid="nav-security"
+					>
+						<ShieldCheckIcon size={20} weight="duotone" />
+						<span>Security</span>
+					</a>
+				</Tooltip>
 
 				<div class="admin__nav-section">
-					<button
-						type="button"
-						class="admin__nav-link admin__nav-link--header"
-						class:admin__nav-link--header-open={consentSubmenuOpen}
-						aria-expanded={consentSubmenuOpen}
-						onclick={() => (consentSubmenuOpen = !consentSubmenuOpen)}
-					>
-						<CookieIcon size={20} weight="duotone" />
-						<span class="admin__nav-link-label">Consent</span>
-						<CaretRightIcon
-							size={11}
-							weight="bold"
-							class="admin__nav-caret{consentSubmenuOpen ? ' admin__nav-caret--open' : ''}"
-						/>
-					</button>
+					<Tooltip label="Consent" placement="right" disabled={!sidebarCollapsed}>
+						<button
+							type="button"
+							class="admin__nav-link admin__nav-link--header"
+							class:admin__nav-link--header-open={consentSubmenuOpen}
+							aria-expanded={consentSubmenuOpen}
+							aria-label="Consent"
+							onclick={() => (consentSubmenuOpen = !consentSubmenuOpen)}
+						>
+							<CookieIcon size={20} weight="duotone" />
+							<span class="admin__nav-link-label">Consent</span>
+							<CaretRightIcon
+								size={11}
+								weight="bold"
+								class="admin__nav-caret{consentSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+							/>
+						</button>
+					</Tooltip>
 					{#if consentSubmenuOpen}
 						<div class="admin__nav-submenu">
 							{#each consentAdminItems as item (item.href)}
@@ -669,52 +709,62 @@
 					{/if}
 				</div>
 
-				<a
-					href="/admin/audit"
-					class="admin__nav-link"
-					class:admin__nav-link--active={page.url.pathname.startsWith('/admin/audit')}
-					onclick={() => (mobileMenuOpen = false)}
-					data-testid="nav-audit"
-				>
-					<EyeIcon size={20} weight="duotone" />
-					<span>Audit log</span>
-				</a>
+				<Tooltip label="Audit log" placement="right" disabled={!sidebarCollapsed}>
+					<a
+						href="/admin/audit"
+						class="admin__nav-link"
+						class:admin__nav-link--active={page.url.pathname.startsWith('/admin/audit')}
+						onclick={() => (mobileMenuOpen = false)}
+						data-testid="nav-audit"
+					>
+						<EyeIcon size={20} weight="duotone" />
+						<span>Audit log</span>
+					</a>
+				</Tooltip>
 
-				<a
-					href="/admin/dsar"
-					class="admin__nav-link"
-					class:admin__nav-link--active={page.url.pathname.startsWith('/admin/dsar')}
-					onclick={() => (mobileMenuOpen = false)}
-					data-testid="nav-dsar"
-				>
-					<TrashIcon size={20} weight="duotone" />
-					<span>DSAR</span>
-				</a>
+				<Tooltip label="DSAR" placement="right" disabled={!sidebarCollapsed}>
+					<a
+						href="/admin/dsar"
+						class="admin__nav-link"
+						class:admin__nav-link--active={page.url.pathname.startsWith('/admin/dsar')}
+						onclick={() => (mobileMenuOpen = false)}
+						data-testid="nav-dsar"
+					>
+						<TrashIcon size={20} weight="duotone" />
+						<span>DSAR</span>
+					</a>
+				</Tooltip>
 
-				<a
-					href="/admin/settings"
-					class="admin__nav-link"
-					class:admin__nav-link--active={page.url.pathname === '/admin/settings'}
-					onclick={() => (mobileMenuOpen = false)}
-				>
-					<GearIcon size={20} weight="duotone" />
-					<span>Settings</span>
-				</a>
+				<Tooltip label="Settings" placement="right" disabled={!sidebarCollapsed}>
+					<a
+						href="/admin/settings"
+						class="admin__nav-link"
+						class:admin__nav-link--active={page.url.pathname === '/admin/settings'}
+						onclick={() => (mobileMenuOpen = false)}
+					>
+						<GearIcon size={20} weight="duotone" />
+						<span>Settings</span>
+					</a>
+				</Tooltip>
 			</nav>
 
 			<div class="admin__sidebar-footer">
-				<a
-					href="/dashboard"
-					class="admin__nav-link admin__nav-link--back"
-					onclick={() => (mobileMenuOpen = false)}
-				>
-					<ArrowLeftIcon size={18} />
-					<span>Member Dashboard</span>
-				</a>
-				<button onclick={handleLogout} class="admin__logout">
-					<SignOutIcon size={20} weight="duotone" />
-					<span>Sign Out</span>
-				</button>
+				<Tooltip label="Member Dashboard" placement="right" disabled={!sidebarCollapsed}>
+					<a
+						href="/dashboard"
+						class="admin__nav-link admin__nav-link--back"
+						onclick={() => (mobileMenuOpen = false)}
+					>
+						<ArrowLeftIcon size={18} />
+						<span>Member Dashboard</span>
+					</a>
+				</Tooltip>
+				<Tooltip label="Sign out" placement="right">
+					<button onclick={handleLogout} class="admin__logout" aria-label="Sign out">
+						<SignOutIcon size={20} weight="duotone" />
+						<span>Sign Out</span>
+					</button>
+				</Tooltip>
 			</div>
 		</aside>
 
@@ -745,10 +795,12 @@
 						<span>Search</span>
 						<kbd class="admin__search-pill-kbd">⌘K</kbd>
 					</button>
-					<a href="/" class="admin__view-site">
-						<ArrowSquareOutIcon size={16} weight="bold" />
-						<span>View site</span>
-					</a>
+					<Tooltip label="Open public site in same tab" placement="bottom">
+						<a href="/" class="admin__view-site">
+							<ArrowSquareOutIcon size={16} weight="bold" />
+							<span>View site</span>
+						</a>
+					</Tooltip>
 				</div>
 			</header>
 			<div class="admin__content">

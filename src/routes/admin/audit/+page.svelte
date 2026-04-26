@@ -9,6 +9,7 @@
 	import FunnelIcon from 'phosphor-svelte/lib/FunnelIcon';
 	import XIcon from 'phosphor-svelte/lib/XIcon';
 	import { ApiError } from '$lib/api/client';
+	import { toast } from '$lib/stores/toast.svelte';
 	import {
 		auditLog,
 		type AuditListEnvelope,
@@ -104,7 +105,7 @@
 			// BFF (Phase 1.3): cookie-based auth — no Bearer header needed.
 			const res = await fetch(url, { credentials: 'include' });
 			if (!res.ok) {
-				error = `Export failed (${res.status})`;
+				toast.error('Audit export failed', { description: `Server returned ${res.status}` });
 				return;
 			}
 			const blob = await res.blob();
@@ -116,8 +117,11 @@
 			a.click();
 			a.remove();
 			URL.revokeObjectURL(objUrl);
-		} catch {
-			error = 'CSV export failed';
+			toast.success('Audit log exported');
+		} catch (e) {
+			toast.error('Audit export failed', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		}
 	}
 

@@ -8,6 +8,7 @@
 	import ArrowClockwiseIcon from 'phosphor-svelte/lib/ArrowClockwiseIcon';
 	import { ApiError } from '$lib/api/client';
 	import { ipAllowlist, type AllowlistEntry } from '$lib/api/admin-security';
+	import { confirmDialog } from '$lib/stores/confirm.svelte';
 
 	let entries = $state<AllowlistEntry[]>([]);
 	let loading = $state(true);
@@ -65,7 +66,13 @@
 	}
 
 	async function remove(entry: AllowlistEntry) {
-		if (!confirm(`Remove ${entry.cidr} (${entry.label})? This cannot be undone.`)) return;
+		const ok = await confirmDialog({
+			title: `Remove ${entry.cidr}?`,
+			message: `${entry.label} will be removed from the IP allowlist. If this was the last active entry, the allowlist will fail open.`,
+			confirmLabel: 'Remove',
+			variant: 'danger'
+		});
+		if (!ok) return;
 		try {
 			await ipAllowlist.remove(entry.id);
 			flash('Entry removed');

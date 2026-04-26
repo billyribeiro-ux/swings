@@ -7,6 +7,7 @@
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
 	import FloppyDiskIcon from 'phosphor-svelte/lib/FloppyDiskIcon';
+	import { confirmDialog } from '$lib/stores/confirm.svelte';
 
 	let watchlist = $state<WatchlistWithAlerts | null>(null);
 	let loading = $state(true);
@@ -113,7 +114,13 @@
 	}
 
 	async function deleteAlert(alertId: string) {
-		if (!confirm('Delete this alert?')) return;
+		const ok = await confirmDialog({
+			title: 'Delete this alert?',
+			message: 'The alert will be removed from this watchlist immediately.',
+			confirmLabel: 'Delete',
+			variant: 'danger'
+		});
+		if (!ok) return;
 		try {
 			await api.del(`/api/admin/alerts/${alertId}`);
 			if (watchlist) {

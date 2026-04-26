@@ -22,11 +22,12 @@
 		type Suppression,
 		type SuppressionListQuery
 	} from '$lib/api/admin-notifications';
+	import { confirmDialog } from '$lib/stores/confirm.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 
 	let envelope = $state<PaginatedSuppressionResponse | null>(null);
 	let loading = $state(true);
 	let error = $state('');
-	let toast = $state('');
 
 	let filters = $state<SuppressionListQuery>({ page: 1, per_page: 50 });
 
@@ -36,11 +37,6 @@
 	let formBusy = $state(false);
 
 	let removingEmail = $state<string | null>(null);
-
-	function flash(msg: string) {
-		toast = msg;
-		setTimeout(() => (toast = ''), 2500);
-	}
 
 	async function refresh() {
 		loading = true;
@@ -62,7 +58,7 @@
 
 	async function addSuppression() {
 		if (!formEmail.trim() || !formReason.trim()) {
-			error = 'Email and reason are both required';
+			toast.warning('Email and reason are both required');
 			return;
 		}
 		formBusy = true;
@@ -73,27 +69,36 @@
 				reason: formReason.trim()
 			};
 			await suppression.add(body);
-			flash(`Suppressed ${body.email}`);
+			toast.success(`Suppressed ${body.email}`);
 			drawerOpen = false;
 			await refresh();
 		} catch (e) {
-			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Suppression failed';
+			toast.error('Suppression failed', {
+				description: e instanceof ApiError ? `${e.status}: ${e.message}` : undefined
+			});
 		} finally {
 			formBusy = false;
 		}
 	}
 
 	async function removeOne(row: Suppression) {
-		const ok = confirm(`Remove ${row.email} from the suppression list?`);
+		const ok = await confirmDialog({
+			title: `Remove ${row.email} from the suppression list?`,
+			message: 'After removal, this address can receive notifications again subject to channel preferences.',
+			confirmLabel: 'Remove',
+			variant: 'warning'
+		});
 		if (!ok) return;
 		removingEmail = row.email;
 		error = '';
 		try {
 			await suppression.remove(row.email);
-			flash(`Removed ${row.email}`);
+			toast.success(`Removed ${row.email}`);
 			await refresh();
 		} catch (e) {
-			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Remove failed';
+			toast.error('Remove failed', {
+				description: e instanceof ApiError ? `${e.status}: ${e.message}` : undefined
+			});
 		} finally {
 			removingEmail = null;
 		}
@@ -150,12 +155,6 @@
 		</div>
 	</header>
 
-	{#if toast}
-		<div class="toast" role="status">
-			<CheckCircleIcon size={16} weight="fill" />
-			<span>{toast}</span>
-		</div>
-	{/if}
 	{#if error}
 		<div class="error" role="alert">
 			<WarningIcon size={16} weight="fill" />
@@ -324,9 +323,7 @@
 	.page__title { margin: 0; font-family: var(--font-heading); font-size: 1.5rem; font-weight: 700; color: var(--color-white); letter-spacing: -0.01em; line-height: 1.2; }
 	.page__subtitle { margin: 0.35rem 0 0; font-size: 0.875rem; color: var(--color-grey-400); max-width: 42rem; line-height: 1.5; }
 
-	.toast, .error { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border-radius: var(--radius-lg); font-size: 0.875rem; margin-bottom: 1rem; }
-	.toast { background: rgba(15, 164, 175, 0.12); border: 1px solid rgba(15, 164, 175, 0.25); color: #5eead4; }
-	.error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; }
+	.error { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border-radius: var(--radius-lg); font-size: 0.875rem; margin-bottom: 1rem; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; }
 
 	.state { display: flex; align-items: center; justify-content: center; gap: 0.75rem; padding: 4rem 0; color: var(--color-grey-400); font-size: 0.875rem; }
 	.state__spinner { width: 1.25rem; height: 1.25rem; border: 2px solid rgba(255, 255, 255, 0.1); border-top-color: var(--color-teal); border-radius: 50%; animation: spin 0.7s linear infinite; }

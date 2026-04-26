@@ -32,6 +32,7 @@
 		type SubmissionListQuery,
 		type SubmissionRow
 	} from '$lib/api/admin-form-submissions';
+	import { confirmDialog } from '$lib/stores/confirm.svelte';
 
 	const formId = $derived(page.params.id ?? '');
 
@@ -115,9 +116,12 @@
 		if (!formId) return;
 		if (selectedIds.size === 0) return;
 		if (bulkAction === 'delete') {
-			const ok = confirm(
-				`Permanently delete ${selectedIds.size} submission${selectedIds.size === 1 ? '' : 's'}? This cannot be undone.`
-			);
+			const ok = await confirmDialog({
+				title: `Permanently delete ${selectedIds.size} submission${selectedIds.size === 1 ? '' : 's'}?`,
+				message: 'The submissions and any attached payload will be removed. This cannot be undone.',
+				confirmLabel: 'Delete permanently',
+				variant: 'danger'
+			});
 			if (!ok) return;
 		}
 		bulkBusy = true;
@@ -139,7 +143,12 @@
 	async function rowAction(row: SubmissionRow, action: BulkAction) {
 		if (!formId) return;
 		if (action === 'delete') {
-			const ok = confirm(`Permanently delete submission ${row.id.slice(0, 8)}…?`);
+			const ok = await confirmDialog({
+				title: `Permanently delete submission ${row.id.slice(0, 8)}…?`,
+				message: 'The submission and any attached payload will be removed. This cannot be undone.',
+				confirmLabel: 'Delete permanently',
+				variant: 'danger'
+			});
 			if (!ok) return;
 		}
 		rowBusy = { ...rowBusy, [row.id]: action };

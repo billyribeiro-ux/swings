@@ -17,6 +17,7 @@
 		CreateProductRequest
 	} from '$lib/api/products';
 	import { ApiError } from '$lib/api/client';
+	import { toast } from '$lib/stores/toast.svelte';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import PackageIcon from 'phosphor-svelte/lib/PackageIcon';
 	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
@@ -24,6 +25,7 @@
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
+	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 
 	let rows = $state<Product[]>([]);
 	let total = $state(0);
@@ -64,7 +66,9 @@
 			total = res.total;
 			totalPages = res.total_pages;
 		} catch (err) {
-			console.error('[products] list failed', err);
+			toast.error('Failed to load products', {
+				description: err instanceof Error ? err.message : undefined
+			});
 		} finally {
 			loading = false;
 		}
@@ -102,10 +106,14 @@
 				description: cDescription.trim() || null
 			};
 			const created = await productsApi.adminCreate(payload);
+			toast.success(`Product "${created.name}" created`);
 			createOpen = false;
 			goto(`/admin/products/${created.id}`);
 		} catch (err) {
 			createError = err instanceof ApiError ? err.message : 'Create failed';
+			toast.error('Failed to create product', {
+				description: err instanceof Error ? err.message : undefined
+			});
 		} finally {
 			creating = false;
 		}
@@ -251,14 +259,15 @@
 								{new Date(product.updated_at).toLocaleDateString()}
 							</td>
 							<td class="pr-table__actions">
-								<a
-									href={`/admin/products/${product.id}`}
-									class="pr-icon-btn"
-									title="Edit {product.name}"
-									aria-label="Edit {product.name}"
-								>
-									<PencilSimpleIcon size={16} weight="bold" />
-								</a>
+								<Tooltip label="Edit {product.name}">
+									<a
+										href={`/admin/products/${product.id}`}
+										class="pr-icon-btn"
+										aria-label="Edit {product.name}"
+									>
+										<PencilSimpleIcon size={16} weight="bold" />
+									</a>
+								</Tooltip>
 							</td>
 						</tr>
 					{/each}

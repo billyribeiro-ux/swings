@@ -38,6 +38,23 @@ pub struct User {
     pub ban_reason: Option<String>,
     #[serde(default)]
     pub email_verified_at: Option<DateTime<Utc>>,
+    // ADM-15 billing profile + temporary-suspension window (migration 079).
+    #[serde(default)]
+    pub billing_line1: Option<String>,
+    #[serde(default)]
+    pub billing_line2: Option<String>,
+    #[serde(default)]
+    pub billing_city: Option<String>,
+    #[serde(default)]
+    pub billing_state: Option<String>,
+    #[serde(default)]
+    pub billing_postal_code: Option<String>,
+    #[serde(default)]
+    pub billing_country: Option<String>,
+    #[serde(default)]
+    pub phone: Option<String>,
+    #[serde(default)]
+    pub suspended_until: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type, PartialEq, Eq, Hash, ToSchema)]
@@ -105,6 +122,27 @@ pub struct UserResponse {
     pub ban_reason: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email_verified_at: Option<DateTime<Utc>>,
+    // ADM-15 billing profile (migration 079) — surfaced so the admin
+    // detail page can render the same address Stripe holds for the
+    // customer. `None` for either column means we never collected it
+    // (e.g. accounts created before the column existed, or a checkout
+    // that didn't request a billing address).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub billing_line1: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub billing_line2: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub billing_city: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub billing_state: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub billing_postal_code: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub billing_country: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub phone: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub suspended_until: Option<DateTime<Utc>>,
 }
 
 impl From<User> for UserResponse {
@@ -128,8 +166,106 @@ impl From<User> for UserResponse {
             banned_at: u.banned_at,
             ban_reason: u.ban_reason,
             email_verified_at: u.email_verified_at,
+            billing_line1: u.billing_line1,
+            billing_line2: u.billing_line2,
+            billing_city: u.billing_city,
+            billing_state: u.billing_state,
+            billing_postal_code: u.billing_postal_code,
+            billing_country: u.billing_country,
+            phone: u.phone,
+            suspended_until: u.suspended_until,
         }
     }
+}
+
+// ── ADM-15: admin members lifecycle / profile DTOs ──────────────────────
+
+/// Billing address payload — mirrors the Stripe `Address` shape so the
+/// JSON we accept on `PATCH /api/admin/members/{id}` round-trips into
+/// `Customer.address` with no field-mapping at the handler edge.
+#[derive(Debug, Clone, Default, Deserialize, Serialize, ToSchema)]
+pub struct BillingAddress {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub line1: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub line2: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub city: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub postal_code: Option<String>,
+    /// ISO 3166-1 alpha-2 country code. Validated case-insensitively;
+    /// the handler normalises to upper-case before persisting.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub country: Option<String>,
+}
+
+/// `PATCH /api/admin/members/{id}` body. Every field is optional —
+/// callers send only what they want to change. Missing keys leave the
+/// existing column untouched; `null` is currently treated as
+/// "no change" rather than "clear the field" so support workflows that
+/// PATCH a single field don't accidentally wipe sibling columns.
+#[derive(Debug, Default, Deserialize, ToSchema)]
+pub struct UpdateMemberRequest {
+    #[serde(default)]
+    pub name: Option<String>,
+    #[serde(default)]
+    pub email: Option<String>,
+    #[serde(default)]
+    pub phone: Option<String>,
+    #[serde(default)]
+    pub billing_address: Option<BillingAddress>,
+}
+
+/// `POST /api/admin/members/{id}/suspend` body. Combines the existing
+/// `LifecycleRequest` (just a `reason`) with an optional `until`
+/// timestamp that flips the suspension into a *timeout*.
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct SuspendMemberRequest {
+    #[serde(default)]
+    pub reason: Option<String>,
+    /// When set, the suspension auto-lifts once `now() >= until`.
+    /// Open-ended suspensions (no `until`) require a manual
+    /// `unsuspend` call.
+    #[serde(default)]
+    pub until: Option<DateTime<Utc>>,
+}
+
+/// One row in the activity timeline rendered on the member detail page.
+/// Mirrors `admin_actions` minus the `id` (the timeline doesn't link
+/// out to the audit viewer yet) and with the metadata pre-serialised.
+#[derive(Debug, Serialize, ToSchema, FromRow)]
+pub struct MemberActivityEntry {
+    pub action: String,
+    pub actor_id: Uuid,
+    pub actor_role: UserRole,
+    pub created_at: DateTime<Utc>,
+    pub metadata: serde_json::Value,
+}
+
+/// One row in the recent-payment-failures list on the member detail page.
+#[derive(Debug, Serialize, ToSchema, FromRow)]
+pub struct MemberPaymentFailure {
+    pub stripe_invoice_id: Option<String>,
+    pub amount_cents: Option<i64>,
+    pub currency: Option<String>,
+    pub failure_code: Option<String>,
+    pub failure_message: Option<String>,
+    pub attempt_count: i32,
+    pub created_at: DateTime<Utc>,
+}
+
+/// Composite payload returned by `GET /api/admin/members/{id}/detail`.
+/// Pre-bundles the member, their current subscription, and the recent
+/// activity streams the detail UI renders so the SPA needs one round
+/// trip per page load.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct MemberDetailResponse {
+    pub user: UserResponse,
+    pub subscription: Option<Subscription>,
+    pub activity: Vec<MemberActivityEntry>,
+    pub payment_failures: Vec<MemberPaymentFailure>,
 }
 
 #[derive(Debug, Deserialize, Validate, ToSchema)]

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { api } from '$lib/api/client';
 	import type { MediaItem, PaginatedResponse } from '$lib/api/types';
+	import { confirmDialog } from '$lib/stores/confirm.svelte';
 
 	interface Props {
 		open: boolean;
@@ -124,7 +125,13 @@
 
 	async function deleteSelected() {
 		if (!selected) return;
-		if (!confirm('Delete this media file?')) return;
+		const ok = await confirmDialog({
+			title: 'Delete this media file?',
+			message: 'The file will be permanently removed and any post that embeds it will lose the asset.',
+			confirmLabel: 'Delete',
+			variant: 'danger'
+		});
+		if (!ok) return;
 		try {
 			await api.delete(`/api/admin/blog/media/${selected.id}`);
 			items = items.filter((i) => i.id !== selected!.id);

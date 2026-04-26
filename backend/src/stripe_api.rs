@@ -1,9 +1,9 @@
 //! Stripe API helpers (billing portal, subscription updates).
 
 use stripe_rust::{
-    BillingPortalSession, Client, CreateBillingPortalSession, CreatePaymentIntent,
-    CreatePaymentIntentAutomaticPaymentMethods, Currency, CustomerId, PaymentIntent, Subscription,
-    SubscriptionId, UpdateSubscription,
+    Address, BillingPortalSession, CancelSubscription, Client, CreateBillingPortalSession,
+    CreatePaymentIntent, CreatePaymentIntentAutomaticPaymentMethods, Currency, Customer,
+    CustomerId, PaymentIntent, Subscription, SubscriptionId, UpdateCustomer, UpdateSubscription,
 };
 
 use crate::{
@@ -79,6 +79,87 @@ pub async fn create_form_payment_intent(
         AppError::BadRequest("Stripe returned PI without client_secret".to_string())
     })?;
     Ok((pi.id.to_string(), secret))
+}
+
+/// ADM-15: cancel a subscription *immediately* (not at period end).
+///
+/// Used by the admin members surface when banning or hard-deleting a
+/// member — leaving the subscription billable would let a banned account
+/// continue to accrue charges. Stripe's `DELETE /subscriptions/{id}`
+/// returns the subscription with `status='canceled'`; we don't surface
+/// that body to the caller because the local mirror already gets
+/// updated by the matching `customer.subscription.deleted` webhook.
+pub async fn cancel_subscription_immediately(
+    state: &AppState,
+    stripe_subscription_id: &str,
+) -> AppResult<()> {
+    let c = client(state)?;
+    let sid: SubscriptionId = stripe_subscription_id
+        .parse()
+        .map_err(|_| AppError::BadRequest("Invalid Stripe subscription id".to_string()))?;
+
+    Subscription::cancel(&c, &sid, CancelSubscription::new())
+        .await
+        .map_err(map_stripe)?;
+
+    Ok(())
+}
+
+/// ADM-15: write the customer's billing address back to the Stripe
+/// Customer object. Mirrors what Stripe's hosted billing portal would do
+/// when the customer edits their address themselves; called after the
+/// admin members PATCH so the two stores stay in sync.
+///
+/// Every field is optional — Stripe treats missing keys as "no change",
+/// so we only build the [`Address`] struct when at least one field is
+/// populated. Failures are surfaced to the caller; the admin handler
+/// degrades gracefully (audit + warn) rather than rolling back the
+/// local update.
+#[allow(clippy::too_many_arguments)]
+pub async fn update_customer_address(
+    state: &AppState,
+    stripe_customer_id: &str,
+    line1: Option<&str>,
+    line2: Option<&str>,
+    city: Option<&str>,
+    state_or_region: Option<&str>,
+    postal_code: Option<&str>,
+    country: Option<&str>,
+    phone: Option<&str>,
+) -> AppResult<()> {
+    let c = client(state)?;
+    let customer: CustomerId = stripe_customer_id
+        .parse()
+        .map_err(|_| AppError::BadRequest("Invalid Stripe customer id".to_string()))?;
+
+    let address = if line1.is_some()
+        || line2.is_some()
+        || city.is_some()
+        || state_or_region.is_some()
+        || postal_code.is_some()
+        || country.is_some()
+    {
+        Some(Address {
+            city: city.map(str::to_string),
+            country: country.map(str::to_string),
+            line1: line1.map(str::to_string),
+            line2: line2.map(str::to_string),
+            postal_code: postal_code.map(str::to_string),
+            state: state_or_region.map(str::to_string),
+        })
+    } else {
+        None
+    };
+
+    let mut params = UpdateCustomer::new();
+    params.address = address;
+    params.phone = phone;
+
+    Customer::update(&c, &customer, params)
+        .await
+        .map_err(map_stripe)?;
+
+    Ok(())
 }
 
 pub async fn set_subscription_cancel_at_period_end(

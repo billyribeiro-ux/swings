@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
+	import { toast } from '$lib/stores/toast.svelte';
 	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
@@ -10,6 +11,7 @@
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
+	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 
 	interface Course {
 		id: string;
@@ -71,7 +73,9 @@
 			total = res.total;
 			totalPages = res.total_pages;
 		} catch (e) {
-			console.error('Failed to load courses', e);
+			toast.error('Failed to load courses', {
+				description: e instanceof Error ? e.message : undefined
+			});
 		} finally {
 			loading = false;
 		}
@@ -355,14 +359,15 @@
 									: formatDate(course.created_at)}
 							</td>
 							<td class="td-actions">
-								<a
-									href="/admin/courses/{course.id}"
-									class="icon-btn"
-									title="Edit {course.title}"
-									aria-label="Edit {course.title}"
-								>
-									<PencilSimpleIcon size={16} weight="bold" />
-								</a>
+								<Tooltip label="Edit {course.title}">
+									<a
+										href="/admin/courses/{course.id}"
+										class="icon-btn"
+										aria-label="Edit {course.title}"
+									>
+										<PencilSimpleIcon size={16} weight="bold" />
+									</a>
+								</Tooltip>
 							</td>
 						</tr>
 					{/each}

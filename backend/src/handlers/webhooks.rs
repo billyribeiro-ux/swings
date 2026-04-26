@@ -407,6 +407,35 @@ async fn handle_checkout_completed(
         )
         .await?;
 
+        // ADM-15: persist the billing profile Stripe collected during
+        // checkout so the admin members surface always reflects the
+        // latest data. Every field is optional — Stripe omits unset
+        // ones — and the UPDATE is COALESCE-based, so existing values
+        // survive a sparse webhook.
+        let phone = session["customer_details"]["phone"].as_str();
+        let address = &session["customer_details"]["address"];
+        if let Err(e) = db::update_user_checkout_profile(
+            &state.db,
+            user.id,
+            phone,
+            address["line1"].as_str(),
+            address["line2"].as_str(),
+            address["city"].as_str(),
+            address["state"].as_str(),
+            address["postal_code"].as_str(),
+            address["country"].as_str(),
+        )
+        .await
+        {
+            // Logged but not fatal — the subscription itself is the
+            // primary effect of this event; address sync is observability.
+            tracing::warn!(
+                user_id = %user.id,
+                error = %e,
+                "failed to persist checkout customer_details to users row"
+            );
+        }
+
         // FDN-05: send confirmation. Plan name is best-effort — the authoritative
         // plan arrives on `customer.subscription.updated` so we use "Monthly"
         // here to match the upsert above.
