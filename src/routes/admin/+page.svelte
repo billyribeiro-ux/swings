@@ -725,7 +725,7 @@
 		font-weight: 700;
 		color: var(--color-grey-500);
 		text-transform: uppercase;
-		letter-spacing: 0.08em;
+		letter-spacing: 0.06em;
 		line-height: 1;
 	}
 
@@ -740,8 +740,8 @@
 		font-weight: 700;
 		color: var(--color-white);
 		line-height: 1.2;
-		letter-spacing: -0.01em;
-		margin: 0.25rem 0 0.5rem 0;
+		letter-spacing: -0.015em;
+		margin: 0.25rem 0 0.25rem 0;
 	}
 
 	.admin-dash__subtitle {
@@ -859,6 +859,12 @@
 
 	.admin-dash__menu-item--active {
 		color: var(--color-white);
+		background-color: rgba(15, 164, 175, 0.1);
+	}
+
+	.admin-dash__menu-item--active:hover,
+	.admin-dash__menu-item--active:focus-visible {
+		background-color: rgba(15, 164, 175, 0.16);
 	}
 
 	.admin-dash__menu-check {
@@ -920,8 +926,9 @@
 	}
 
 	.admin-dash__custom-apply {
+		align-self: flex-end;
 		margin-top: 0.25rem;
-		padding: 0.5rem 0.75rem;
+		padding: 0.45rem 0.9rem;
 		background: linear-gradient(135deg, var(--color-teal), var(--color-teal-dark));
 		border: 0;
 		border-radius: var(--radius-md);
@@ -930,12 +937,36 @@
 		font-weight: 600;
 		font-family: inherit;
 		cursor: pointer;
-		transition: opacity 120ms var(--ease-out);
+		box-shadow: 0 4px 12px -6px rgba(15, 164, 175, 0.55);
+		transition:
+			opacity 120ms var(--ease-out),
+			transform 120ms var(--ease-out),
+			box-shadow 120ms var(--ease-out);
+	}
+
+	.admin-dash__custom-apply:hover:not(:disabled) {
+		transform: translateY(-1px);
+		box-shadow: 0 6px 16px -6px rgba(15, 164, 175, 0.65);
+	}
+
+	.admin-dash__custom-apply:focus-visible {
+		outline: 2px solid var(--color-teal);
+		outline-offset: 2px;
 	}
 
 	.admin-dash__custom-apply:disabled {
 		opacity: 0.4;
 		cursor: not-allowed;
+		box-shadow: none;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.admin-dash__custom-apply {
+			transition: none;
+		}
+		.admin-dash__custom-apply:hover:not(:disabled) {
+			transform: none;
+		}
 	}
 
 	/* ====================================================================
@@ -1039,15 +1070,33 @@
 		background-color: var(--color-navy-mid);
 		border: 1px solid rgba(255, 255, 255, 0.06);
 		border-radius: var(--radius-lg);
-		box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.05) inset,
+			0 1px 2px rgba(0, 0, 0, 0.18);
 		position: relative;
 		transition:
+			transform 200ms var(--ease-out),
 			border-color 200ms var(--ease-out),
+			box-shadow 200ms var(--ease-out),
 			background-color 200ms var(--ease-out);
 	}
 
 	.kpi:hover {
-		border-color: rgba(255, 255, 255, 0.1);
+		border-color: rgba(15, 164, 175, 0.25);
+		transform: translateY(-1px);
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.07) inset,
+			0 6px 18px -8px rgba(15, 164, 175, 0.35),
+			0 1px 2px rgba(0, 0, 0, 0.2);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.kpi {
+			transition: none;
+		}
+		.kpi:hover {
+			transform: none;
+		}
 	}
 
 	.kpi__head {
@@ -1339,7 +1388,7 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
-		min-height: 2.5rem;
+		min-height: 2.75rem;
 		padding: 0 1rem;
 		background-color: rgba(255, 255, 255, 0.04);
 		border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1352,7 +1401,13 @@
 		transition:
 			background-color 150ms var(--ease-out),
 			border-color 150ms var(--ease-out),
-			transform 150ms var(--ease-out);
+			transform 150ms var(--ease-out),
+			box-shadow 150ms var(--ease-out);
+	}
+
+	.admin-dash__action:focus-visible {
+		outline: 2px solid var(--color-teal);
+		outline-offset: 2px;
 	}
 
 	.admin-dash__action :global(.admin-dash__action-arrow) {
@@ -1519,13 +1574,29 @@
 		}
 	}
 
-	/* Reduced motion — disable entrance animation */
+	/* Reduced motion — disable entrance animation, hover transforms, shimmer */
 	@media (prefers-reduced-motion: reduce) {
 		.admin-dash--ready .kpi,
 		.admin-dash--ready .admin-dash__section,
 		.admin-dash__skeleton-card {
 			animation: none;
 			opacity: 1;
+		}
+
+		.admin-dash__action,
+		.admin-dash__action--primary,
+		.member-card {
+			transition: none;
+		}
+
+		.admin-dash__action:hover,
+		.admin-dash__action--primary:hover,
+		.member-card:hover {
+			transform: none;
+		}
+
+		.admin-dash__action:hover :global(.admin-dash__action-arrow) {
+			transform: none;
 		}
 	}
 </style>

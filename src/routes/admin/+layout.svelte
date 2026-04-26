@@ -398,13 +398,17 @@
 				<span class="admin__nav-eyebrow">Content</span>
 				<div class="admin__nav-section">
 					<button
+						type="button"
 						class="admin__nav-link admin__nav-link--header"
+						class:admin__nav-link--header-open={blogSubmenuOpen}
+						aria-expanded={blogSubmenuOpen}
 						onclick={() => (blogSubmenuOpen = !blogSubmenuOpen)}
 					>
 						<ArticleIcon size={20} weight="duotone" />
-						<span>Blog</span>
+						<span class="admin__nav-link-label">Blog</span>
 						<CaretRightIcon
-							size={16}
+							size={11}
+							weight="bold"
 							class="admin__nav-caret{blogSubmenuOpen ? ' admin__nav-caret--open' : ''}"
 						/>
 					</button>
@@ -428,13 +432,17 @@
 
 				<div class="admin__nav-section">
 					<button
+						type="button"
 						class="admin__nav-link admin__nav-link--header"
+						class:admin__nav-link--header-open={courseSubmenuOpen}
+						aria-expanded={courseSubmenuOpen}
 						onclick={() => (courseSubmenuOpen = !courseSubmenuOpen)}
 					>
 						<GraduationCapIcon size={20} weight="duotone" />
-						<span>Courses</span>
+						<span class="admin__nav-link-label">Courses</span>
 						<CaretRightIcon
-							size={16}
+							size={11}
+							weight="bold"
 							class="admin__nav-caret{courseSubmenuOpen ? ' admin__nav-caret--open' : ''}"
 						/>
 					</button>
@@ -458,13 +466,17 @@
 
 				<div class="admin__nav-section">
 					<button
+						type="button"
 						class="admin__nav-link admin__nav-link--header"
+						class:admin__nav-link--header-open={subscriptionSubmenuOpen}
+						aria-expanded={subscriptionSubmenuOpen}
 						onclick={() => (subscriptionSubmenuOpen = !subscriptionSubmenuOpen)}
 					>
 						<CreditCardIcon size={20} weight="duotone" />
-						<span>Subscriptions</span>
+						<span class="admin__nav-link-label">Subscriptions</span>
 						<CaretRightIcon
-							size={16}
+							size={11}
+							weight="bold"
 							class="admin__nav-caret{subscriptionSubmenuOpen ? ' admin__nav-caret--open' : ''}"
 						/>
 					</button>
@@ -488,13 +500,17 @@
 
 				<div class="admin__nav-section">
 					<button
+						type="button"
 						class="admin__nav-link admin__nav-link--header"
+						class:admin__nav-link--header-open={couponSubmenuOpen}
+						aria-expanded={couponSubmenuOpen}
 						onclick={() => (couponSubmenuOpen = !couponSubmenuOpen)}
 					>
 						<TagIcon size={20} weight="duotone" />
-						<span>Coupons</span>
+						<span class="admin__nav-link-label">Coupons</span>
 						<CaretRightIcon
-							size={16}
+							size={11}
+							weight="bold"
 							class="admin__nav-caret{couponSubmenuOpen ? ' admin__nav-caret--open' : ''}"
 						/>
 					</button>
@@ -518,13 +534,17 @@
 
 				<div class="admin__nav-section">
 					<button
+						type="button"
 						class="admin__nav-link admin__nav-link--header"
+						class:admin__nav-link--header-open={popupSubmenuOpen}
+						aria-expanded={popupSubmenuOpen}
 						onclick={() => (popupSubmenuOpen = !popupSubmenuOpen)}
 					>
 						<ChatCircleDotsIcon size={20} weight="duotone" />
-						<span>Popups</span>
+						<span class="admin__nav-link-label">Popups</span>
 						<CaretRightIcon
-							size={16}
+							size={11}
+							weight="bold"
 							class="admin__nav-caret{popupSubmenuOpen ? ' admin__nav-caret--open' : ''}"
 						/>
 					</button>
@@ -560,13 +580,17 @@
 
 				<div class="admin__nav-section">
 					<button
+						type="button"
 						class="admin__nav-link admin__nav-link--header"
+						class:admin__nav-link--header-open={notificationSubmenuOpen}
+						aria-expanded={notificationSubmenuOpen}
 						onclick={() => (notificationSubmenuOpen = !notificationSubmenuOpen)}
 					>
 						<BellIcon size={20} weight="duotone" />
-						<span>Notifications</span>
+						<span class="admin__nav-link-label">Notifications</span>
 						<CaretRightIcon
-							size={16}
+							size={11}
+							weight="bold"
 							class="admin__nav-caret{notificationSubmenuOpen ? ' admin__nav-caret--open' : ''}"
 						/>
 					</button>
@@ -613,13 +637,17 @@
 
 				<div class="admin__nav-section">
 					<button
+						type="button"
 						class="admin__nav-link admin__nav-link--header"
+						class:admin__nav-link--header-open={consentSubmenuOpen}
+						aria-expanded={consentSubmenuOpen}
 						onclick={() => (consentSubmenuOpen = !consentSubmenuOpen)}
 					>
 						<CookieIcon size={20} weight="duotone" />
-						<span>Consent</span>
+						<span class="admin__nav-link-label">Consent</span>
 						<CaretRightIcon
-							size={16}
+							size={11}
+							weight="bold"
 							class="admin__nav-caret{consentSubmenuOpen ? ' admin__nav-caret--open' : ''}"
 						/>
 					</button>
@@ -778,6 +806,11 @@
 		background-color: rgba(255, 255, 255, 0.1);
 	}
 
+	.admin__menu-toggle:focus-visible {
+		outline: 2px solid var(--color-teal);
+		outline-offset: 2px;
+	}
+
 	.admin__mobile-logo {
 		display: flex;
 		gap: 0.3rem;
@@ -799,7 +832,7 @@
 		height: 100vh;
 		background-color: var(--color-navy);
 		border-right: 1px solid rgba(255, 255, 255, 0.06);
-		padding: 1.5rem;
+		padding: 1rem 0.75rem 1rem;
 		display: flex;
 		flex-direction: column;
 		z-index: 50;
@@ -861,6 +894,11 @@
 		background: rgba(255, 255, 255, 0.08);
 		border-color: rgba(255, 255, 255, 0.16);
 		color: var(--color-white);
+	}
+
+	.admin__sidebar-pin:focus-visible {
+		outline: 2px solid var(--color-teal);
+		outline-offset: 2px;
 	}
 
 	.admin__main-topbar {
@@ -951,14 +989,14 @@
 	.admin__nav {
 		display: flex;
 		flex-direction: column;
-		gap: 0.25rem;
+		gap: 0.125rem;
 		flex: 1;
 		min-width: 0;
 	}
 
 	.admin__nav-eyebrow {
 		display: block;
-		padding: 0.875rem 0.75rem 0.35rem;
+		padding: 1rem 0.75rem 0.4rem;
 		font-size: 0.6875rem;
 		font-weight: 700;
 		color: var(--color-grey-500);
@@ -974,9 +1012,10 @@
 	.admin__nav-link {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 0.75rem;
-		border-radius: var(--radius-lg);
+		gap: 0.625rem;
+		padding: 0.5rem 0.625rem;
+		min-height: 2.25rem;
+		border-radius: var(--radius-md);
 		color: var(--color-grey-300);
 		font-size: 0.8125rem;
 		font-weight: 500;
@@ -986,7 +1025,9 @@
 		border: none;
 		width: 100%;
 		text-align: left;
-		transition: all 200ms var(--ease-out);
+		transition:
+			color 160ms var(--ease-out),
+			background-color 160ms var(--ease-out);
 	}
 
 	.admin__nav-link:hover {
@@ -994,10 +1035,20 @@
 		background-color: rgba(255, 255, 255, 0.05);
 	}
 
+	.admin__nav-link:focus-visible {
+		outline: 2px solid var(--color-teal);
+		outline-offset: 2px;
+	}
+
 	.admin__nav-link--active {
-		color: var(--color-white);
+		color: var(--color-teal-light);
 		font-weight: 600;
-		background-color: rgba(15, 164, 175, 0.1);
+		background-color: rgba(15, 164, 175, 0.12);
+	}
+
+	.admin__nav-link--active:hover {
+		color: var(--color-teal-light);
+		background-color: rgba(15, 164, 175, 0.16);
 	}
 
 	.admin__nav-link--back {
@@ -1009,22 +1060,39 @@
 		justify-content: flex-start;
 	}
 
-	:global(.admin__nav-caret) {
-		margin-left: auto;
+	.admin__nav-link-label {
 		flex-shrink: 0;
-		color: var(--color-grey-500);
+	}
+
+	:global(.admin__nav-caret) {
+		margin-left: 0.4rem;
+		flex-shrink: 0;
+		color: var(--color-grey-600);
+		opacity: 0.85;
 		transition:
-			transform 200ms var(--ease-out),
-			color 200ms var(--ease-out);
+			transform 180ms var(--ease-out),
+			color 160ms var(--ease-out),
+			opacity 160ms var(--ease-out);
 	}
 
 	.admin__nav-link--header:hover :global(.admin__nav-caret) {
 		color: var(--color-grey-300);
+		opacity: 1;
+	}
+
+	.admin__nav-link--header-open :global(.admin__nav-caret) {
+		color: var(--color-teal-light);
+		opacity: 1;
 	}
 
 	:global(.admin__nav-caret--open) {
 		transform: rotate(90deg);
-		color: var(--color-teal-light);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		:global(.admin__nav-caret) {
+			transition: none;
+		}
 	}
 
 	.admin__nav-section {
@@ -1037,20 +1105,32 @@
 		flex-direction: column;
 	}
 
+	.admin__nav-submenu {
+		padding: 0.125rem 0 0.25rem;
+		gap: 0.0625rem;
+	}
+
 	.admin__nav-sublink {
 		display: block;
-		padding: 0.5rem 0.75rem 0.5rem 2.75rem;
+		padding: 0.4rem 0.625rem 0.4rem 2.4rem;
 		color: var(--color-grey-400);
 		font-size: 0.8125rem;
 		font-weight: 500;
 		text-decoration: none;
 		border-radius: var(--radius-md);
-		transition: all 200ms var(--ease-out);
+		transition:
+			color 160ms var(--ease-out),
+			background-color 160ms var(--ease-out);
 	}
 
 	.admin__nav-sublink:hover {
 		color: var(--color-white);
-		background-color: rgba(255, 255, 255, 0.05);
+		background-color: rgba(255, 255, 255, 0.04);
+	}
+
+	.admin__nav-sublink:focus-visible {
+		outline: 2px solid var(--color-teal);
+		outline-offset: 2px;
 	}
 
 	.admin__sidebar-footer {
@@ -1061,22 +1141,30 @@
 	.admin__logout {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
+		gap: 0.625rem;
 		width: 100%;
-		padding: 0.75rem;
-		border-radius: var(--radius-lg);
+		padding: 0.5rem 0.625rem;
+		min-height: 2.25rem;
+		border-radius: var(--radius-md);
 		color: var(--color-grey-300);
 		font-size: 0.8125rem;
 		font-weight: 500;
 		background: none;
 		border: none;
 		cursor: pointer;
-		transition: all 200ms var(--ease-out);
+		transition:
+			color 160ms var(--ease-out),
+			background-color 160ms var(--ease-out);
 	}
 
 	.admin__logout:hover {
 		color: #fca5a5;
 		background-color: rgba(239, 68, 68, 0.08);
+	}
+
+	.admin__logout:focus-visible {
+		outline: 2px solid var(--color-teal);
+		outline-offset: 2px;
 	}
 
 	.admin__main {
@@ -1201,7 +1289,7 @@
 		.admin__breadcrumbs-list {
 			display: inline-flex;
 			align-items: center;
-			gap: 0.35rem;
+			gap: 0.4rem;
 			list-style: none;
 			padding: 0;
 			margin: 0;
@@ -1211,28 +1299,40 @@
 		.admin__breadcrumbs-item {
 			display: inline-flex;
 			align-items: center;
-			gap: 0.35rem;
-			font-size: 0.875rem;
+			gap: 0.4rem;
+			font-size: 0.8125rem;
 			font-weight: 500;
 			color: var(--color-grey-300);
 			min-width: 0;
 		}
 
 		.admin__breadcrumbs-link {
-			color: var(--color-grey-300);
+			color: var(--color-grey-400);
 			font-weight: 500;
 			text-decoration: none;
-			transition: color 150ms var(--ease-out);
+			padding: 0.15rem 0.35rem;
+			margin: -0.15rem -0.35rem;
+			border-radius: var(--radius-sm);
+			transition:
+				color 150ms var(--ease-out),
+				background-color 150ms var(--ease-out);
 			white-space: nowrap;
 		}
 
 		.admin__breadcrumbs-link:hover {
 			color: var(--color-white);
+			background-color: rgba(255, 255, 255, 0.04);
+		}
+
+		.admin__breadcrumbs-link:focus-visible {
+			outline: 2px solid var(--color-teal);
+			outline-offset: 2px;
 		}
 
 		.admin__breadcrumbs-current {
 			color: var(--color-white);
 			font-weight: 600;
+			letter-spacing: -0.005em;
 			white-space: nowrap;
 			overflow: hidden;
 			text-overflow: ellipsis;
@@ -1241,20 +1341,24 @@
 		:global(.admin__breadcrumbs-sep) {
 			color: var(--color-grey-700);
 			flex-shrink: 0;
+			opacity: 0.7;
 		}
 
-		.admin__search-pill {
+		.admin__search-pill,
+		.admin__view-site {
+			box-sizing: border-box;
 			display: inline-flex;
 			align-items: center;
 			gap: 0.5rem;
-			min-height: 2.5rem;
+			height: 2.25rem;
 			padding: 0 0.75rem;
-			background-color: rgba(255, 255, 255, 0.05);
-			border: 1px solid rgba(255, 255, 255, 0.1);
+			background-color: rgba(255, 255, 255, 0.04);
+			border: 1px solid rgba(255, 255, 255, 0.08);
 			border-radius: var(--radius-lg);
-			color: var(--color-grey-300);
 			font-size: 0.8125rem;
 			font-weight: 500;
+			line-height: 1;
+			text-decoration: none;
 			cursor: pointer;
 			transition:
 				background-color 150ms var(--ease-out),
@@ -1262,10 +1366,26 @@
 				color 150ms var(--ease-out);
 		}
 
-		.admin__search-pill:hover {
-			background-color: rgba(255, 255, 255, 0.1);
-			border-color: rgba(255, 255, 255, 0.18);
+		.admin__search-pill {
+			color: var(--color-grey-300);
+		}
+
+		.admin__view-site {
 			color: var(--color-white);
+			font-weight: 600;
+		}
+
+		.admin__search-pill:hover,
+		.admin__view-site:hover {
+			background-color: rgba(255, 255, 255, 0.08);
+			border-color: rgba(255, 255, 255, 0.16);
+			color: var(--color-white);
+		}
+
+		.admin__search-pill:focus-visible,
+		.admin__view-site:focus-visible {
+			outline: 2px solid var(--color-teal);
+			outline-offset: 2px;
 		}
 
 		.admin__search-pill-kbd {
@@ -1281,29 +1401,6 @@
 			border: 1px solid rgba(255, 255, 255, 0.1);
 			border-radius: var(--radius-md);
 			line-height: 1.4;
-		}
-
-		.admin__view-site {
-			display: inline-flex;
-			align-items: center;
-			gap: 0.5rem;
-			min-height: 2.5rem;
-			padding: 0 0.875rem;
-			background-color: rgba(255, 255, 255, 0.05);
-			border: 1px solid rgba(255, 255, 255, 0.1);
-			border-radius: var(--radius-lg);
-			color: var(--color-white);
-			font-size: 0.8125rem;
-			font-weight: 600;
-			text-decoration: none;
-			transition:
-				background-color 150ms var(--ease-out),
-				border-color 150ms var(--ease-out);
-		}
-
-		.admin__view-site:hover {
-			background-color: rgba(255, 255, 255, 0.1);
-			border-color: rgba(255, 255, 255, 0.18);
 		}
 
 		.admin__content {

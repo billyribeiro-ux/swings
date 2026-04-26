@@ -225,13 +225,13 @@
 		position: fixed;
 		inset: 0;
 		z-index: 10000;
-		background: rgba(0, 0, 0, 0.6);
-		backdrop-filter: blur(4px);
-		-webkit-backdrop-filter: blur(4px);
+		background: rgba(0, 0, 0, 0.55);
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
 		display: flex;
 		align-items: flex-start;
 		justify-content: center;
-		padding: 12vh 1rem 1rem;
+		padding: 10vh 1rem 1rem;
 		box-sizing: border-box;
 	}
 
@@ -300,9 +300,14 @@
 
 	.palette-item {
 		border-radius: var(--radius-md);
+		transition: background-color 120ms var(--ease-out);
 	}
 	.palette-item--active {
-		background: rgba(15, 164, 175, 0.12);
+		background: rgba(15, 164, 175, 0.14);
+	}
+
+	.palette-item + .palette-item {
+		margin-top: 1px;
 	}
 
 	.palette-item__btn {
@@ -310,13 +315,18 @@
 		align-items: center;
 		gap: 0.75rem;
 		width: 100%;
-		padding: 0.6rem 0.75rem;
+		padding: 0.55rem 0.75rem;
 		background: transparent;
 		border: none;
 		border-radius: var(--radius-md);
 		cursor: pointer;
 		text-align: left;
 		color: var(--color-grey-200, #e2e8f0);
+	}
+
+	.palette-item__btn:focus-visible {
+		outline: 2px solid var(--color-teal);
+		outline-offset: -2px;
 	}
 
 	.palette-item__icon {
