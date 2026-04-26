@@ -113,8 +113,8 @@ pub fn jwt_validation() -> Validation {
     // which rejects ANY token carrying an `aud` claim with `InvalidAudience`.
     // Mint always sets ours (see handlers/auth.rs::generate_tokens), so we
     // must pin the expected audience here for decode to succeed. Issuer is
-    // pinned for symmetry; `verify_claim_binding` remains as a defense in
-    // depth for the rollout window when legacy tokens (no iss/aud) still exist.
+    // pinned for symmetry; `verify_claim_binding` remains as defense in
+    // depth (strict — both claims are required and must match).
     v.set_audience(&[JWT_AUDIENCE]);
     v.set_issuer(&[JWT_ISSUER]);
     v
@@ -156,30 +156,44 @@ pub(crate) fn extract_access_token(headers: &HeaderMap) -> Option<String> {
         .map(str::to_owned)
 }
 
-/// Rollout-safe `iss` / `aud` check.
+/// Strict `iss` / `aud` check.
 ///
-/// Returns `Ok(())` when:
-///   * the claim is absent (legacy token minted before this rollout), OR
-///   * the claim is present and matches the expected value.
+/// Returns `Ok(())` only when both claims are present and match the
+/// expected values pinned in [`JWT_ISSUER`] / [`JWT_AUDIENCE`]. A missing
+/// or mismatched claim collapses to [`AppError::Unauthorized`].
 ///
-/// Returns `Err(AppError::Unauthorized)` when a token carries a *wrong*
-/// value — that's unambiguously a token from a different deployment or
-/// for a different audience.
+/// Note: [`jwt_validation`] also pins `iss` / `aud` at the
+/// `jsonwebtoken` layer (which rejects tokens without the claim before we
+/// ever reach this function). This helper is kept as defense in depth
+/// against future `jwt_validation` regressions and as the single
+/// authoritative check used by the optional / impersonation paths.
 ///
-/// After `JWT_EXPIRATION_HOURS` have elapsed since this function shipped,
-/// every live session has rotated through the new mint path and we can
-/// promote the absent-claim branch to an error (see the TODO marker in
-/// `backend/src/extractors.rs` → `verify_claim_binding`).
+/// History: this function previously tolerated absent claims as a
+/// transitional concession for legacy tokens minted before the iss/aud
+/// rollout (commit d0f0eec, 2026-04-24). The rollout window has elapsed
+/// — `JWT_EXPIRATION_HOURS` is 24h, all live sessions have rotated through
+/// the new mint path, and the absent-claim branch has been promoted to an
+/// error.
 pub fn verify_claim_binding(claims: &Claims) -> Result<(), AppError> {
-    if let Some(ref iss) = claims.iss {
-        if iss != JWT_ISSUER {
+    match claims.iss.as_deref() {
+        Some(iss) if iss == JWT_ISSUER => {}
+        Some(iss) => {
             tracing::warn!(claim = %iss, "jwt issuer mismatch");
             return Err(AppError::Unauthorized);
         }
+        None => {
+            tracing::warn!("jwt missing iss claim");
+            return Err(AppError::Unauthorized);
+        }
     }
-    if let Some(ref aud) = claims.aud {
-        if aud != JWT_AUDIENCE {
+    match claims.aud.as_deref() {
+        Some(aud) if aud == JWT_AUDIENCE => {}
+        Some(aud) => {
             tracing::warn!(claim = %aud, "jwt audience mismatch");
+            return Err(AppError::Unauthorized);
+        }
+        None => {
+            tracing::warn!("jwt missing aud claim");
             return Err(AppError::Unauthorized);
         }
     }
@@ -692,6 +706,73 @@ mod tests {
     fn extract_access_token_returns_none_without_any_carrier() {
         let headers = HeaderMap::new();
         assert!(extract_access_token(&headers).is_none());
+    }
+
+    // ── verify_claim_binding (strict iss/aud) ─────────────────────────────
+
+    fn claims_with(iss: Option<&str>, aud: Option<&str>) -> Claims {
+        Claims {
+            sub: Uuid::new_v4(),
+            role: "member".into(),
+            exp: 0,
+            iat: 0,
+            iss: iss.map(str::to_owned),
+            aud: aud.map(str::to_owned),
+            imp_actor: None,
+            imp_actor_role: None,
+            imp_session: None,
+        }
+    }
+
+    #[test]
+    fn verify_claim_binding_ok_when_both_claims_match() {
+        let c = claims_with(Some(JWT_ISSUER), Some(JWT_AUDIENCE));
+        assert!(verify_claim_binding(&c).is_ok());
+    }
+
+    #[test]
+    fn verify_claim_binding_rejects_missing_iss() {
+        let c = claims_with(None, Some(JWT_AUDIENCE));
+        match verify_claim_binding(&c) {
+            Err(AppError::Unauthorized) => {}
+            other => panic!("expected Unauthorized, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn verify_claim_binding_rejects_missing_aud() {
+        let c = claims_with(Some(JWT_ISSUER), None);
+        match verify_claim_binding(&c) {
+            Err(AppError::Unauthorized) => {}
+            other => panic!("expected Unauthorized, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn verify_claim_binding_rejects_missing_both_claims() {
+        let c = claims_with(None, None);
+        match verify_claim_binding(&c) {
+            Err(AppError::Unauthorized) => {}
+            other => panic!("expected Unauthorized, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn verify_claim_binding_rejects_wrong_iss() {
+        let c = claims_with(Some("evil.example.com"), Some(JWT_AUDIENCE));
+        match verify_claim_binding(&c) {
+            Err(AppError::Unauthorized) => {}
+            other => panic!("expected Unauthorized, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn verify_claim_binding_rejects_wrong_aud() {
+        let c = claims_with(Some(JWT_ISSUER), Some("evil.example.com/app"));
+        match verify_claim_binding(&c) {
+            Err(AppError::Unauthorized) => {}
+            other => panic!("expected Unauthorized, got {other:?}"),
+        }
     }
 
     #[test]

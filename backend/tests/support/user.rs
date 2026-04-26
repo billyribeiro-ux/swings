@@ -80,7 +80,17 @@ struct HarnessClaims {
     role: String,
     iat: usize,
     exp: usize,
+    iss: &'static str,
+    aud: &'static str,
 }
+
+/// Pinned to `swings_api::extractors::JWT_ISSUER`. Kept as a constant
+/// here so the harness does not pull in the private extractor symbol.
+const HARNESS_JWT_ISSUER: &str = "precisionoptionsignals.com";
+
+/// Pinned to `swings_api::extractors::JWT_AUDIENCE`. Same rationale as
+/// [`HARNESS_JWT_ISSUER`].
+const HARNESS_JWT_AUDIENCE: &str = "precisionoptionsignals.com/app";
 
 /// Seed a user directly into the schema-scoped pool and return a fresh
 /// [`TestUser`] with a matching access token + refresh token.
@@ -135,6 +145,8 @@ pub(crate) async fn seed(
                 .max(0),
         )
         .unwrap_or(0),
+        iss: HARNESS_JWT_ISSUER,
+        aud: HARNESS_JWT_AUDIENCE,
     };
     let access_token = encode(
         &Header::default(),

@@ -119,6 +119,84 @@ Defer: i18n paraglide swap (#9), TCF v2.2 GVL upgrade (#10), MaxMind subdivision
 
 ---
 
+## Resolved in this pass (2026-04-26)
+
+### P1-1 — `/admin/_consent-preview` and `/admin/_ui-kit` admin RBAC gate
+- **Verdict:** TODO was effectively stale. The admin shell at
+  `src/routes/admin/+layout.svelte` already gates every child route via the
+  `{#if !auth.isAuthenticated || !auth.isAdmin} … {:else} {@render children()}`
+  branch, plus an `adminSessionReady` guard tied to a successful
+  `/api/auth/me` round-trip. Non-admins see the admin login form, never the
+  preview pages.
+- **Action taken:** Replaced the stale TODO comment block in both
+  `src/routes/admin/_consent-preview/+page.svelte` and
+  `src/routes/admin/_ui-kit/+page.svelte` with an `Authz:` block documenting
+  the layout-level gate, and added a tiny defense-in-depth `$effect` that
+  redirects to `/admin` via `goto(...)` if `auth.isAdmin` is ever false.
+  `svelte-autofixer` returned `issues: []` for both files.
+- **Verification:** `pnpm check` — `0 ERRORS 0 WARNINGS 0 FILES_WITH_PROBLEMS`.
+
+### P1-2 — `verify_claim_binding` rollout-window TODO
+- **Verdict:** Rollout window has elapsed. `verify_claim_binding` shipped
+  in commit `d0f0eec` on 2026-04-24; today is 2026-04-26 (≥48 h elapsed),
+  and `JWT_EXPIRATION_HOURS = 24`, so every live session has rotated through
+  the iss/aud-emitting mint path. Note also that
+  `jwt_validation()` itself was hardened on 2026-04-25 (commit `307ced9`)
+  to call `set_audience` / `set_issuer`, which already rejects tokens
+  without iss/aud at the `jsonwebtoken` decode layer.
+- **Action taken:** Promoted the absent-claim branch in
+  `backend/src/extractors.rs::verify_claim_binding` to
+  `Err(AppError::Unauthorized)`. Updated the doc-comment to reflect the
+  new strict semantics and link to the rollout history. Added 6 unit tests
+  in the same module's `#[cfg(test)] mod tests` covering
+  `{ok-when-both-match, missing-iss, missing-aud, missing-both, wrong-iss,
+  wrong-aud}`. Updated the integration-test harness
+  (`backend/tests/support/user.rs`) to mint tokens with iss/aud — without
+  this, *every* integration test that uses `seed_user`/`seed_admin` would
+  start failing at the jwt_validation layer (this was already broken since
+  2026-04-25; this pass fixes it as a side-effect).
+- **Verification:**
+  - `cargo fmt --all -- --check` — clean (no output).
+  - `cargo clippy --all-targets -- -D warnings` — clean (no warnings).
+  - `cargo test --lib extractors::` — 18 passed; 0 failed; 0 ignored
+    (12 pre-existing + 6 new).
+
+### P2 status (16 markers)
+- **None resolved.** Per the per-finding rules, P2s eligible for this pass
+  are 1-2 line cleanups (rename for clarity, remove dead branch, fix doc
+  comment). Re-reading every P2 marker:
+  - **#1–#7 (notification channels + outbound webhook):** all require new
+    feature work — provider integrations (Twilio, Slack, Discord webhooks,
+    WebPush VAPID), persistent inbox tables, HMAC-signed delivery + retry/DLQ
+    classifier. Architectural; deferred.
+  - **#8 (`/api/greeks-pdf` lead-magnet):** requires Resend/Mailgun
+    integration to actually deliver the PDF. Architectural; deferred. (See
+    REMAINING-WORK candidate below.)
+  - **#9 (i18n paraglide swap):** mechanical but coupled to multilingual
+    rollout scope. Deferred.
+  - **#10 (TCF v2.2 GVL):** requires full TCF certification + GVL
+    plumbing. Deferred.
+  - **#11 (Stripe per-currency minima):** requires per-currency minima
+    table; coupled to non-USD launch. Deferred.
+  - **#12 (EC-07 R2 asset purge):** safe today (signed-URL issuance not
+    live); coupled to entitlement-aware purge subsystem. Deferred.
+  - **#13 (`ip_hash_daily` dedupe):** would touch a cross-subsystem merge
+    (consent::records ⇄ handlers::forms). Architectural; deferred.
+  - **#14, #15, #17 (CONSENT-08 anchor scheduler):** requires a new
+    tokio-cron worker (handler + retention + alert + runbook section per
+    AGENTS.md §7/§8). Deferred.
+  - **#16 (MaxMind subdivision routing):** blocked on MaxMind region
+    plumbing; external dependency. Deferred.
+  - **#18 (`e2e/README.md` workflow gap):** the README itself documents
+    that the `.github/workflows/e2e.yml` is intentionally deferred until
+    the dedicated lane lands. The marker is a roadmap note, not a code TODO
+    — leaving as documented.
+- **Recommendation:** the deferred P2s belong in `docs/REMAINING-WORK.md`
+  (and most are already cross-referenced there); none are stale or
+  resolvable as a 1-line tweak.
+
+---
+
 ## False positives filtered
 
 Of 50 raw ripgrep hits, **32** were false positives:
