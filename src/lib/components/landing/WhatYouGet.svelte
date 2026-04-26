@@ -3,6 +3,7 @@
 	import { ScrollTrigger } from 'gsap/ScrollTrigger';
 	import { isReducedMotion } from '$lib/utils/animations';
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
+	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
 
 	const features = [
 		{
@@ -40,11 +41,16 @@
 
 		const ctx = gsap.context(() => {
 			const itemsRef = [...section.querySelectorAll<HTMLElement>('.what-you-get__item')];
-			const checksRef = [...section.querySelectorAll<SVGPathElement>('.what-you-get__check path')];
+			const checksRef = [...section.querySelectorAll<HTMLElement>('.what-you-get__check')];
 
 			// Animate items with staggered entrance
 			itemsRef.forEach((item, i) => {
 				gsap.set(item, { opacity: 0, x: -30 });
+
+				const check = checksRef[i];
+				if (check) {
+					gsap.set(check, { opacity: 0, scale: 0.5 });
+				}
 
 				ScrollTrigger.create({
 					trigger: item,
@@ -60,23 +66,14 @@
 							ease: 'power3.out'
 						});
 
-						// Checkmark draws
-						const check = checksRef[i];
+						// Check pops in
 						if (check) {
-							const length = check.getTotalLength();
-							gsap.set(check, {
-								strokeDasharray: length,
-								strokeDashoffset: length,
-								stroke: '#0FA4AF',
-								strokeWidth: 2,
-								fill: 'none'
-							});
-
 							gsap.to(check, {
-								strokeDashoffset: 0,
+								opacity: 1,
+								scale: 1,
 								duration: 0.5,
 								delay: i * 0.1 + 0.3,
-								ease: 'power2.out'
+								ease: 'back.out(2)'
 							});
 						}
 					}
@@ -99,10 +96,9 @@
 		<div class="what-you-get__grid">
 			{#each features as feature (feature.title)}
 				<div class={['what-you-get__item', { 'what-you-get__item--full': feature.fullWidth }]}>
-					<svg class="what-you-get__check" viewBox="0 0 24 24" width="24" height="24">
-						<circle cx="12" cy="12" r="10" fill="rgba(15, 164, 175, 0.1)" />
-						<path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" />
-					</svg>
+					<span class="what-you-get__check" aria-hidden="true">
+						<CheckCircleIcon size={24} weight="duotone" color="#0FA4AF" />
+					</span>
 					<div>
 						<h3 class="what-you-get__title">{feature.title}</h3>
 						<p class="what-you-get__desc">{feature.description}</p>
@@ -171,18 +167,14 @@
 	}
 
 	.what-you-get__check {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
 		margin-top: 0.125rem;
 		width: 1.5rem;
 		height: 1.5rem;
 		flex-shrink: 0;
-	}
-
-	.what-you-get__check path {
-		stroke: #0fa4af;
-		stroke-width: 2;
-		fill: none;
-		stroke-linecap: round;
-		stroke-linejoin: round;
+		color: #0fa4af;
 	}
 
 	.what-you-get__title {

@@ -169,13 +169,10 @@
 			</div>
 
 			{#if stats.recent_members.length === 0}
-				<div class="admin-dash__empty">
-					<span class="admin-dash__empty-icon" aria-hidden="true">
-						<UsersIcon size={20} weight="duotone" />
-					</span>
-					<p class="admin-dash__empty-title">No members yet</p>
-					<p class="admin-dash__empty-body">When people sign up, they'll appear here.</p>
-				</div>
+				<p class="admin-dash__empty">
+					<UsersIcon size={14} weight="regular" aria-hidden="true" />
+					<span>No members yet — sign-ups will appear here.</span>
+				</p>
 			{:else}
 				<!-- Mobile: Card view -->
 				<div class="admin-dash__cards">
@@ -621,50 +618,17 @@
 	}
 
 	/* ====================================================================
-	   EMPTY STATE
+	   EMPTY STATE — quiet inline note, not a full card
 	   ==================================================================== */
 	.admin-dash__empty {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 0.4rem;
-		min-height: 7rem;
-		max-height: 9rem;
-		padding: 1rem 1.25rem;
-		background-color: var(--color-navy-mid);
-		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-lg);
-		box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
-		text-align: center;
-	}
-
-	.admin-dash__empty-icon {
 		display: inline-flex;
 		align-items: center;
-		justify-content: center;
-		width: 2rem;
-		height: 2rem;
-		border-radius: var(--radius-md);
-		background: rgba(255, 255, 255, 0.04);
-		color: var(--color-grey-500);
-		margin-bottom: 0.125rem;
-	}
-
-	.admin-dash__empty-title {
-		font-size: 0.875rem;
-		font-weight: 600;
-		color: var(--color-white);
-		line-height: 1.35;
-		margin: 0;
-	}
-
-	.admin-dash__empty-body {
+		gap: 0.4rem;
+		padding: 0.4rem 0.65rem;
 		font-size: 0.75rem;
-		font-weight: 400;
 		color: var(--color-grey-500);
+		line-height: 1.3;
 		margin: 0;
-		line-height: 1.4;
 	}
 
 	/* ====================================================================

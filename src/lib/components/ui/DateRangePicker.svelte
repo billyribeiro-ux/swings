@@ -15,6 +15,10 @@
 		subDays,
 		startOfYear
 	} from 'date-fns';
+	import CalendarBlankIcon from 'phosphor-svelte/lib/CalendarBlankIcon';
+	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
+	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
+	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 
 	interface DatePreset {
 		label: string;
@@ -207,16 +211,13 @@
 
 <div class="drp">
 	<button class="drp__trigger" onclick={toggleOpen} type="button">
-		<svg class="drp__trigger-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-			<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-			<line x1="16" y1="2" x2="16" y2="6"/>
-			<line x1="8" y1="2" x2="8" y2="6"/>
-			<line x1="3" y1="10" x2="21" y2="10"/>
-		</svg>
+		<span class="drp__trigger-icon">
+			<CalendarBlankIcon size={16} weight="bold" />
+		</span>
 		<span class="drp__trigger-text">{displayText}</span>
-		<svg class="drp__trigger-chevron" class:drp__trigger-chevron--open={isOpen} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-			<polyline points="6 9 12 15 18 9"/>
-		</svg>
+		<span class="drp__trigger-chevron" class:drp__trigger-chevron--open={isOpen}>
+			<CaretDownIcon size={14} weight="bold" />
+		</span>
 	</button>
 
 	{#if isOpen}
@@ -242,9 +243,7 @@
 				<div class="drp__calendar">
 					<div class="drp__calendar-header">
 						<button class="drp__nav-btn" onclick={prevMonth} type="button" aria-label="Previous month">
-							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-								<polyline points="15 18 9 12 15 6"/>
-							</svg>
+							<CaretLeftIcon size={14} weight="bold" />
 						</button>
 						<span class="drp__month-label">{format(leftMonth, 'MMMM yyyy')}</span>
 						<span class="drp__nav-spacer"></span>
@@ -280,9 +279,7 @@
 						<span class="drp__nav-spacer"></span>
 						<span class="drp__month-label">{format(rightMonth, 'MMMM yyyy')}</span>
 						<button class="drp__nav-btn" onclick={nextMonth} type="button" aria-label="Next month">
-							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-								<polyline points="9 18 15 12 9 6"/>
-							</svg>
+							<CaretRightIcon size={14} weight="bold" />
 						</button>
 					</div>
 					<div class="drp__weekdays">
@@ -377,6 +374,7 @@
 	}
 
 	.drp__trigger-icon {
+		display: inline-flex;
 		flex-shrink: 0;
 		color: var(--color-teal);
 	}
@@ -386,6 +384,7 @@
 	}
 
 	.drp__trigger-chevron {
+		display: inline-flex;
 		flex-shrink: 0;
 		color: var(--color-grey-400);
 		transition: transform var(--duration-200) var(--ease-out);

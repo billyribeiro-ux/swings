@@ -7,6 +7,9 @@
 	import { hoverTilt } from '$lib/utils/animations';
 	import { ctaImpression, trackCtaEvent } from '$lib/analytics/cta';
 	import { getActivePricingPlans } from '$lib/api/publicPricing';
+	import CheckIcon from 'phosphor-svelte/lib/CheckIcon';
+	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
+	import LockSimpleIcon from 'phosphor-svelte/lib/LockSimpleIcon';
 
 	let isLoading = $state<string | null>(null);
 	let hoveredCard = $state<string | null>(null);
@@ -127,20 +130,9 @@
 						{#if plan.savings}
 							<div class="pricing__savings-wrap">
 								<span class="pricing__savings">
-									<svg
-										class="pricing__savings-icon"
-										viewBox="0 0 16 16"
-										fill="none"
-										aria-hidden="true"
-									>
-										<path
-											d="M13.5 4.5L6.5 11.5L2.5 7.5"
-											stroke="currentColor"
-											stroke-width="2"
-											stroke-linecap="round"
-											stroke-linejoin="round"
-										/>
-									</svg>
+									<span class="pricing__savings-icon" aria-hidden="true">
+										<CheckIcon size={14} weight="bold" />
+									</span>
 									{plan.savings}
 								</span>
 							</div>
@@ -165,26 +157,17 @@
 								<span>Processing…</span>
 							{:else}
 								<span>{plan.cta}</span>
-								<svg class="pricing__cta-arrow" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-									<path
-										d="M4 10h12m0 0l-4-4m4 4l-4 4"
-										stroke="currentColor"
-										stroke-width="2"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-									/>
-								</svg>
+								<span class="pricing__cta-arrow" aria-hidden="true">
+									<ArrowRightIcon size={18} weight="bold" />
+								</span>
 							{/if}
 						</button>
 
 						<!-- Trust line -->
 						<p class="pricing__trust">
-							<svg viewBox="0 0 16 16" fill="none" class="pricing__trust-icon" aria-hidden="true">
-								<path
-									d="M8 1.5a1.25 1.25 0 0 1 1.25 1.25v3h-2.5v-3A1.25 1.25 0 0 1 8 1.5ZM5.75 5.75v-3a2.25 2.25 0 1 1 4.5 0v3h1.5a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1h-7.5a1 1 0 0 1-1-1v-6.5a1 1 0 0 1 1-1h1.5Z"
-									fill="currentColor"
-								/>
-							</svg>
+							<span class="pricing__trust-icon" aria-hidden="true">
+								<LockSimpleIcon size={14} weight="fill" />
+							</span>
 							Secure checkout via Stripe
 						</p>
 					</div>
@@ -582,9 +565,17 @@
 	}
 
 	.pricing__savings-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
 		inline-size: 0.875rem;
 		block-size: 0.875rem;
 		flex-shrink: 0;
+	}
+
+	.pricing__savings-icon :global(svg) {
+		inline-size: 100%;
+		block-size: 100%;
 	}
 
 	/* ── CTA Button ──────────────────────────────────────────────────────── */
@@ -662,10 +653,18 @@
 
 	/* CTA arrow */
 	.pricing__cta-arrow {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
 		inline-size: 1.125rem;
 		block-size: 1.125rem;
 		flex-shrink: 0;
 		transition: transform var(--_dur-fast) var(--_ease-out);
+	}
+
+	.pricing__cta-arrow :global(svg) {
+		inline-size: 100%;
+		block-size: 100%;
 	}
 
 	.pricing__cta:hover .pricing__cta-arrow {
@@ -702,10 +701,18 @@
 	}
 
 	.pricing__trust-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
 		inline-size: 0.875rem;
 		block-size: 0.875rem;
 		flex-shrink: 0;
 		opacity: 0.6;
+	}
+
+	.pricing__trust-icon :global(svg) {
+		inline-size: 100%;
+		block-size: 100%;
 	}
 
 	/* ── Guarantee ───────────────────────────────────────────────────────── */
