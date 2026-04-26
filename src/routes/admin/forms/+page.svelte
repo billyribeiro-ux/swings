@@ -476,8 +476,5 @@
 			justify-content: space-between;
 			align-items: flex-start;
 		}
-		.forms-page__title {
-			font-size: 1.5rem;
-		}
 	}
 </style>

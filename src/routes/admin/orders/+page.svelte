@@ -1342,9 +1342,6 @@
 			gap: 1.5rem;
 		}
 
-		.page__title {
-			font-size: 1.5rem;
-		}
 
 		.filter-card {
 			flex-direction: row;

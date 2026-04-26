@@ -1002,9 +1002,6 @@
 			margin-bottom: 1.5rem;
 		}
 
-		.blog-admin__title {
-			font-size: 1.5rem;
-		}
 
 		.blog-admin__cta {
 			align-self: flex-end;

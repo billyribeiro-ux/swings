@@ -575,9 +575,6 @@
 			margin-bottom: 1.5rem;
 		}
 
-		.wl-admin__title {
-			font-size: 1.5rem;
-		}
 
 		.wl-admin__create {
 			align-self: flex-end;

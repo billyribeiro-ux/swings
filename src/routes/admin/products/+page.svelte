@@ -867,9 +867,6 @@
 			gap: 1.5rem;
 		}
 
-		.pr-admin__title {
-			font-size: 1.5rem;
-		}
 
 		.pr-filters {
 			flex-direction: row;

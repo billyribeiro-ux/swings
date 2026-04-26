@@ -967,9 +967,6 @@
 			gap: 1.5rem;
 		}
 
-		.courses-admin__title {
-			font-size: 1.5rem;
-		}
 
 		.stats-bar {
 			gap: 1rem;
@@ -979,9 +976,6 @@
 			padding: 1.5rem;
 		}
 
-		.stat-card__value {
-			font-size: 1.5rem;
-		}
 
 		.filter-card {
 			padding: 1.5rem;

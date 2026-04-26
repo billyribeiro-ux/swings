@@ -222,9 +222,6 @@
 	}
 
 	@media (min-width: 768px) {
-		.security-hub__title {
-			font-size: 1.5rem;
-		}
 		.security-card {
 			padding: 1.75rem;
 			border-radius: var(--radius-2xl);

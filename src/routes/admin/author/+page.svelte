@@ -628,9 +628,6 @@
 
 	/* Tablet (>=768px) — sections breathe a bit, two-column form fields */
 	@media (min-width: 768px) {
-		.author-profile__title {
-			font-size: 1.5rem;
-		}
 
 		.author-profile__form {
 			gap: 1.25rem;

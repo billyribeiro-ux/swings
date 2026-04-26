@@ -201,9 +201,6 @@
 		}
 	}
 	@media (min-width: 768px) {
-		.consent-hub__title {
-			font-size: 1.5rem;
-		}
 		.consent-card {
 			padding: 1.75rem;
 			border-radius: var(--radius-2xl);

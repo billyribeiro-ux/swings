@@ -935,9 +935,6 @@
 
 	/* Tablet+ */
 	@media (min-width: 768px) {
-		.settings-page__title {
-			font-size: 1.5rem;
-		}
 		.card__head {
 			padding: 1.75rem 1.75rem 0;
 		}

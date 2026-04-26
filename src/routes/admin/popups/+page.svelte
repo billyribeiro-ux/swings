@@ -837,9 +837,6 @@
 			align-items: flex-start;
 			justify-content: space-between;
 		}
-		.popups-page__title {
-			font-size: 1.5rem;
-		}
 		.cards {
 			display: none;
 		}

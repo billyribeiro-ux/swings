@@ -827,9 +827,6 @@
 		}
 	}
 	@media (min-width: 768px) {
-		.page__title {
-			font-size: 1.5rem;
-		}
 		.filters {
 			padding: 1.75rem;
 			border-radius: var(--radius-2xl);

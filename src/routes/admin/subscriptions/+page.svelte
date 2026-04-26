@@ -990,9 +990,6 @@
 			gap: 1.5rem;
 		}
 
-		.subs-page__title {
-			font-size: 1.5rem;
-		}
 
 		.subs-page__kpis {
 			grid-template-columns: repeat(4, 1fr);
@@ -1003,9 +1000,6 @@
 			padding: 1.5rem;
 		}
 
-		.kpi__value {
-			font-size: 1.5rem;
-		}
 
 		.filter-card {
 			padding: 1.5rem;

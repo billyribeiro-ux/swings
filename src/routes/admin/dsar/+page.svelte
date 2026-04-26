@@ -1247,9 +1247,6 @@
 		}
 	}
 	@media (min-width: 768px) {
-		.page__title {
-			font-size: 1.5rem;
-		}
 		.card,
 		.filters {
 			padding: 1.75rem;

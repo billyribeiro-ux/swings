@@ -1194,9 +1194,6 @@
 			gap: 1.5rem;
 		}
 
-		.cp__title {
-			font-size: 1.5rem;
-		}
 
 		.kpi-grid {
 			gap: 1rem;
@@ -1206,9 +1203,6 @@
 			padding: 1.5rem;
 		}
 
-		.kpi__value {
-			font-size: 1.5rem;
-		}
 
 		.bulk-form {
 			padding: 1.5rem;
