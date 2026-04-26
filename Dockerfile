@@ -34,20 +34,17 @@ FROM rust:1.93-slim-bookworm AS builder
 # The crate's alternative path (the `reqwest` feature) drags in a TLS
 # stack we don't otherwise need at build time, so installing `curl` is
 # the smaller delta.
-# NOTE on `pkg-config` + `libssl-dev`: NOT dead weight despite this repo
-# preferring rustls. `async-stripe = "0.39"` is wired with the
-# `runtime-tokio-hyper` feature, which transitively pulls in
-# `hyper-tls` → `native-tls` → `openssl-sys`. On Linux `native-tls`
-# resolves to OpenSSL (on macOS it uses Security.framework, which is
-# why local `cargo build` works without these packages). Removing them
-# breaks `docker build` with `pkg-config not found / openssl-sys = 0.9`.
-# To drop them, first migrate Stripe off `runtime-tokio-hyper` (e.g.
-# swap to a rustls-based reqwest client). Verified empirically — see
-# Phase 6.7 of `AUDIT_FIX_PLAN.md`.
+#
+# AUDIT_FIX_PLAN Phase 6.7: `pkg-config` + `libssl-dev` were removed
+# alongside the migration off `async-stripe 0.39 (runtime-tokio-hyper)`,
+# which was the last consumer of `openssl-sys` in the build graph.
+# Stripe now uses an in-tree `reqwest`-rustls wrapper (see
+# `backend/src/stripe_api.rs`); the OpenSSL development headers and
+# `pkg-config` are no longer needed by any direct or transitive crate.
+# Verified locally with `cargo tree --target all --invert openssl-sys`,
+# which reports "did not match any packages" after the change.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        pkg-config \
-        libssl-dev \
         curl \
         ca-certificates \
     && rm -rf /var/lib/apt/lists/*

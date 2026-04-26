@@ -1,11 +1,5 @@
 //! Push catalog pricing changes to Stripe subscriptions (ADM-14 extension).
 
-use stripe_rust::{
-    Currency, RequestStrategy, Subscription as StripeSubscription, SubscriptionId,
-    SubscriptionInterval, SubscriptionPriceData, SubscriptionPriceDataRecurring,
-    UpdateSubscription, UpdateSubscriptionItems,
-};
-
 use crate::{
     db,
     error::{AppError, AppResult},
@@ -13,7 +7,8 @@ use crate::{
         AdminStripeRolloutFailure, AdminStripeRolloutSummary, PricingPlan,
         PricingStripeRolloutAudience, Subscription, SubscriptionPlan,
     },
-    stripe_api, AppState,
+    stripe_api::{self, PriceUpdate, PriceUpdateKind, SubscriptionInterval},
+    AppState,
 };
 
 pub(crate) fn subscription_cadence_for_plan(plan: &PricingPlan) -> AppResult<SubscriptionPlan> {
@@ -30,12 +25,10 @@ pub(crate) fn subscription_cadence_for_plan(plan: &PricingPlan) -> AppResult<Sub
     }
 }
 
-fn stripe_currency(plan: &PricingPlan) -> AppResult<Currency> {
-    plan.currency
-        .parse::<Currency>()
-        .map_err(|_| AppError::BadRequest(format!("invalid currency `{}`", plan.currency)))
-}
-
+/// Translate the catalog's free-form `interval` string into the typed
+/// Stripe interval enum the wrapper consumes. We accept only the two
+/// recurring shapes the rollout supports — `one_time` is rejected here
+/// (and earlier, in `subscription_cadence_for_plan`).
 fn stripe_plan_interval(plan: &PricingPlan) -> AppResult<SubscriptionInterval> {
     match plan.interval.as_str() {
         "year" => Ok(SubscriptionInterval::Year),
@@ -47,21 +40,28 @@ fn stripe_plan_interval(plan: &PricingPlan) -> AppResult<SubscriptionInterval> {
     }
 }
 
+/// Light validation on the catalog's currency before we hand it to the
+/// Stripe wrapper. Kept here (rather than only inside `stripe_api`) so
+/// the rollout summary surfaces a meaningful BadRequest rather than a
+/// per-target failure burst.
+fn validate_currency(plan: &PricingPlan) -> AppResult<()> {
+    let lc = plan.currency.trim().to_ascii_lowercase();
+    if lc.len() != 3 || !lc.chars().all(|c| c.is_ascii_alphabetic()) {
+        return Err(AppError::BadRequest(format!(
+            "invalid currency `{}`",
+            plan.currency
+        )));
+    }
+    Ok(())
+}
+
 async fn update_one_stripe_subscription(
     state: &AppState,
     catalog: &PricingPlan,
     local: &Subscription,
     stripe_idempotency_key: &str,
 ) -> AppResult<()> {
-    let c = stripe_api::client(state)?.with_strategy(RequestStrategy::Idempotent(
-        stripe_idempotency_key.to_string(),
-    ));
-    let sid: SubscriptionId = local
-        .stripe_subscription_id
-        .parse()
-        .map_err(|_| AppError::BadRequest("Invalid Stripe subscription id".into()))?;
-
-    let stripe_sub = StripeSubscription::retrieve(&c, &sid, &["items.data"])
+    let stripe_sub = stripe_api::retrieve_subscription(state, &local.stripe_subscription_id)
         .await
         .map_err(|e| AppError::BadRequest(format!("Stripe: {e}")))?;
 
@@ -73,26 +73,23 @@ async fn update_one_stripe_subscription(
             items.len()
         )));
     }
-    let item_id = items[0].id.to_string();
+    let item_id = &items[0].id;
 
-    let mut params = UpdateSubscription::new();
-    // Proration: rely on Stripe’s default for subscription updates (`create_prorations`).
-    // `async-stripe` exposes duplicate `SubscriptionProrationBehavior` types on the
-    // subscription vs subscription_item modules; we avoid wiring the wrong enum here.
-
-    if let Some(ref price_id) = catalog.stripe_price_id {
+    // Decide which `price_*` we're attaching: a static, pre-created
+    // Stripe price (cheaper, preferred path) or an inline price_data
+    // shape that lets Stripe author a brand-new price under the hood.
+    let update = if let Some(ref price_id) = catalog.stripe_price_id {
         if price_id.is_empty() {
             return Err(AppError::BadRequest(
                 "stripe_price_id is set but empty — clear it or paste a valid price_ id".into(),
             ));
         }
-        params.items = Some(vec![UpdateSubscriptionItems {
-            id: Some(item_id),
-            price: Some(price_id.clone()),
-            ..UpdateSubscriptionItems::default()
-        }]);
+        PriceUpdate {
+            item_id,
+            kind: PriceUpdateKind::StaticPrice { price_id },
+        }
     } else {
-        let product_id = catalog.stripe_product_id.clone().ok_or_else(|| {
+        let product_id = catalog.stripe_product_id.as_deref().ok_or_else(|| {
             AppError::BadRequest(
                 "Dynamic catalog price (no stripe_price_id) requires stripe_product_id \
                  on the plan so Stripe can attach an inline recurring price."
@@ -104,29 +101,28 @@ async fn update_one_stripe_subscription(
                 "stripe_product_id is required for dynamic-price rollout".into(),
             ));
         }
-        let cur = stripe_currency(catalog)?;
+        validate_currency(catalog)?;
         let interval = stripe_plan_interval(catalog)?;
-        let recurring = SubscriptionPriceDataRecurring {
-            interval,
-            interval_count: Some(catalog.interval_count.max(1) as u64),
-        };
-        let price_data = SubscriptionPriceData {
-            currency: cur,
-            product: product_id,
-            recurring,
-            unit_amount: Some(i64::from(catalog.amount_cents)),
-            ..SubscriptionPriceData::default()
-        };
-        params.items = Some(vec![UpdateSubscriptionItems {
-            id: Some(item_id),
-            price_data: Some(price_data),
-            ..UpdateSubscriptionItems::default()
-        }]);
-    }
+        PriceUpdate {
+            item_id,
+            kind: PriceUpdateKind::Inline {
+                currency: &catalog.currency,
+                product_id,
+                interval,
+                interval_count: catalog.interval_count.max(1) as u64,
+                unit_amount_cents: i64::from(catalog.amount_cents),
+            },
+        }
+    };
 
-    StripeSubscription::update(&c, &sid, params)
-        .await
-        .map_err(|e| AppError::BadRequest(format!("Stripe: {e}")))?;
+    stripe_api::update_subscription_item_price(
+        state,
+        &local.stripe_subscription_id,
+        &update,
+        stripe_idempotency_key,
+    )
+    .await
+    .map_err(|e| AppError::BadRequest(format!("Stripe: {e}")))?;
     Ok(())
 }
 
@@ -240,14 +236,13 @@ mod tests {
     #[test]
     fn currency_parses_uppercase_iso() {
         let plan = make_plan("month", "usd");
-        let c = stripe_currency(&plan).expect("usd parses");
-        assert_eq!(c, Currency::USD);
+        validate_currency(&plan).expect("usd parses");
     }
 
     #[test]
     fn currency_rejects_garbage() {
         let plan = make_plan("month", "ZZZZ");
-        let err = stripe_currency(&plan).expect_err("ZZZZ should fail");
+        let err = validate_currency(&plan).expect_err("ZZZZ should fail");
         match err {
             AppError::BadRequest(msg) => assert!(msg.contains("currency"), "msg: {msg}"),
             other => panic!("expected BadRequest, got {other:?}"),

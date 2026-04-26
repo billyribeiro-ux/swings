@@ -24,11 +24,12 @@ ignore = [
     # no fixed version of `rsa`; monitor https://github.com/RustCrypto/RSA.
     "RUSTSEC-2023-0071",
 
-    # RUSTSEC-2024-0384 — `instant 0.1.x` unmaintained. Pulled in via
-    # `async-stripe 0.39` → `http-types` → `futures-lite 1` → `fastrand 1`.
-    # async-stripe 1.0 (currently rc.5) drops this chain; planned upgrade
-    # in the Stripe billing refresh — tracked separately.
-    "RUSTSEC-2024-0384",
+    # RUSTSEC-2024-0384 — RESOLVED by AUDIT_FIX_PLAN Phase 6.7. The
+    # `instant` advisory was inherited from `async-stripe 0.39` via
+    # `http-types → futures-lite → fastrand 1`. The Stripe SDK was
+    # replaced by an in-tree `reqwest`-based wrapper (see
+    # `src/stripe_api.rs`), so the chain no longer exists. Entry kept
+    # commented for one quarterly review cycle as a tombstone.
 
     # RUSTSEC-2024-0436 — `paste 1.0.x` archived by upstream. Pulled in via
     # `utoipa-axum 0.2` (our OpenAPI macro layer). utoipa is actively
@@ -41,11 +42,10 @@ ignore = [
     # on AWS SDK to bump.
     "RUSTSEC-2026-0002",
 
-    # RUSTSEC-2026-0097 — `rand 0.7.x` unsoundness with custom loggers.
-    # Pulled in via `async-stripe 0.39 → http-types 2.12`. Swings-api does
-    # not install a custom `log::Logger` so we are not exposed. Cleared by
-    # the same async-stripe 1.0 upgrade that resolves `instant`.
-    "RUSTSEC-2026-0097",
+    # RUSTSEC-2026-0097 — RESOLVED by AUDIT_FIX_PLAN Phase 6.7. The
+    # `rand 0.7.x` advisory was inherited from `async-stripe 0.39 →
+    # http-types 2.12`. Cleared along with `instant` when the SDK was
+    # replaced by the in-tree `reqwest` wrapper.
 ]
 informational_warnings = ["unmaintained", "unsound"]
 

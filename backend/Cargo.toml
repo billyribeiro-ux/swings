@@ -45,8 +45,19 @@ sha2 = "0.10"
 hmac = "0.12"
 validator = { version = "0.20", features = ["derive"] }
 
-# Stripe
-stripe-rust = { package = "async-stripe", version = "0.39", features = ["runtime-tokio-hyper"] }
+# Stripe — no SDK. We hand-roll a minimal HTTP wrapper around `reqwest`
+# (rustls-only) for the 6 REST endpoints we hit, plus an in-tree HMAC
+# webhook signature verifier (already wired in `handlers::webhooks`). This
+# replaces the unmaintained `async-stripe 0.39` (RUSTSEC-2024-0384 via
+# `instant`; pulled `hyper-tls`/`native-tls`/`openssl-sys`). See
+# `src/stripe_api.rs` for the wrapper and Phase 6.7 of `AUDIT_FIX_PLAN.md`
+# for context.
+#
+# `urlencoding` is the minimal helper needed to produce
+# `application/x-www-form-urlencoded` bodies in Stripe's bracket-notation
+# form (`metadata[ref]=…`). `serde_urlencoded` does not support nested
+# keys, so we serialise the few payloads we need by hand.
+urlencoding = "2"
 
 # Blog / Media
 axum_typed_multipart = "0.16"
