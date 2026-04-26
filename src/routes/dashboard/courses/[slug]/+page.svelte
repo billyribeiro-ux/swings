@@ -39,9 +39,9 @@
 			if (first) {
 				currentLesson = first.lesson;
 				expandedModules.add(first.moduleId);
-			} else if (data.modules.length > 0 && data.modules[0].lessons.length > 0) {
-				currentLesson = data.modules[0].lessons[0];
-				expandedModules.add(data.modules[0].id);
+			} else if (data.modules.length > 0 && data.modules[0]!.lessons.length > 0) {
+				currentLesson = data.modules[0]!.lessons[0]!;
+				expandedModules.add(data.modules[0]!.id);
 			}
 		} catch {
 			/* handle silently */

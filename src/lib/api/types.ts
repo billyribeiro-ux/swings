@@ -637,11 +637,11 @@ export interface CouponValidationResponse {
 
 export interface BulkCouponPayload {
 	count: number;
-	prefix?: string;
+	prefix?: string | undefined;
 	discount_type: DiscountType;
 	discount_value: number;
-	usage_limit?: number;
-	expires_at?: string;
+	usage_limit?: number | undefined;
+	expires_at?: string | undefined;
 }
 
 // ── Popups ────────────────────────────────────────────────────────────
@@ -719,20 +719,20 @@ export interface Popup {
 
 export interface CreatePopupPayload {
 	name: string;
-	popup_type?: PopupType;
-	trigger_type?: PopupTrigger;
-	trigger_config?: Record<string, unknown>;
-	content_json?: { elements: PopupElement[] };
-	style_json?: Partial<PopupStyle>;
-	targeting_rules?: Partial<PopupTargetingRules>;
-	display_frequency?: PopupFrequency;
-	frequency_config?: Record<string, unknown>;
-	success_message?: string;
-	redirect_url?: string;
-	is_active?: boolean;
-	starts_at?: string;
-	expires_at?: string;
-	priority?: number;
+	popup_type?: PopupType | undefined;
+	trigger_type?: PopupTrigger | undefined;
+	trigger_config?: Record<string, unknown> | undefined;
+	content_json?: { elements: PopupElement[] } | undefined;
+	style_json?: Partial<PopupStyle> | undefined;
+	targeting_rules?: Partial<PopupTargetingRules> | undefined;
+	display_frequency?: PopupFrequency | undefined;
+	frequency_config?: Record<string, unknown> | undefined;
+	success_message?: string | undefined;
+	redirect_url?: string | undefined;
+	is_active?: boolean | undefined;
+	starts_at?: string | undefined;
+	expires_at?: string | undefined;
+	priority?: number | undefined;
 }
 
 export type UpdatePopupPayload = Partial<CreatePopupPayload>;

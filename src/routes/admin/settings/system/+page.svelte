@@ -55,7 +55,7 @@
 	}
 
 	function draftValue(s: SettingView): string {
-		if (s.key in drafts) return drafts[s.key];
+		if (s.key in drafts) return drafts[s.key]!;
 		if (s.is_secret) return revealCache[s.key] ?? '';
 		if (s.value_type === 'json') {
 			try {

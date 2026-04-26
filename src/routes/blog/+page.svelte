@@ -191,7 +191,7 @@
 
 								{#if post.categories.length > 0}
 									<span class="blog-card__category"
-										>{post.categories[0].name}</span
+										>{post.categories[0]!.name}</span
 									>
 								{/if}
 

@@ -106,13 +106,13 @@ export interface ManualOrderRequest {
 }
 
 export interface VoidRequest {
-	reason?: string;
+	reason?: string | undefined;
 }
 
 export interface RefundRequest {
 	amount_cents: number;
-	reason?: string;
-	stripe_refund_id?: string;
+	reason?: string | undefined;
+	stripe_refund_id?: string | undefined;
 }
 
 export interface RefundResponse {

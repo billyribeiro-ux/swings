@@ -342,10 +342,10 @@ export interface SettingGetResponse extends SettingView {
 }
 
 export interface SettingUpsertRequest {
-	value_type?: SettingType;
-	is_secret?: boolean;
-	description?: string;
-	category?: string;
+	value_type?: SettingType | undefined;
+	is_secret?: boolean | undefined;
+	description?: string | undefined;
+	category?: string | undefined;
 	value: unknown;
 }
 

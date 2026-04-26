@@ -43,8 +43,8 @@ export interface UserSubscriptionView {
 export interface CompGrantRequest {
 	user_id: string;
 	plan_id: string;
-	duration_days?: number;
-	notes?: string;
+	duration_days?: number | undefined;
+	notes?: string | undefined;
 }
 
 export interface CompGrantResponse {
@@ -55,7 +55,7 @@ export interface CompGrantResponse {
 
 export interface ExtendRequest {
 	days: number;
-	notes?: string;
+	notes?: string | undefined;
 }
 
 export interface ExtendResponse {
@@ -66,7 +66,7 @@ export interface ExtendResponse {
 
 export interface CycleOverrideRequest {
 	anchor: string;
-	notes?: string;
+	notes?: string | undefined;
 }
 
 export interface CycleOverrideResponse {
