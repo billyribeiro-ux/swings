@@ -322,13 +322,13 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
-		min-height: 2.5rem;
+		min-height: 3rem;
 		padding: 0.65rem 1rem;
 		background: linear-gradient(135deg, var(--color-teal), var(--color-teal-dark));
 		color: var(--color-white);
 		font-weight: 600;
 		font-size: 0.875rem;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		text-decoration: none;
 		border: none;
 		cursor: pointer;
@@ -358,7 +358,7 @@
 
 	.wl-admin__skeleton-card {
 		height: 110px;
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		background: linear-gradient(
 			90deg,
 			rgba(255, 255, 255, 0.03) 0%,
@@ -375,8 +375,10 @@
 		align-items: center;
 		gap: 0.5rem;
 		padding: 3rem 1rem;
-		background-color: var(--color-navy-mid);
-		border-radius: var(--radius-xl);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
+		border-radius: var(--radius-2xl);
 		border: 1px dashed rgba(255, 255, 255, 0.1);
 		text-align: center;
 	}
@@ -414,9 +416,11 @@
 		flex-direction: column;
 		gap: 0.625rem;
 		padding: 1rem;
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		transition: all 200ms var(--ease-out);
 	}
 
@@ -501,7 +505,7 @@
 		gap: 0.4rem;
 		min-height: 2.25rem;
 		padding: 0.5rem 0.5rem;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		border: 1px solid transparent;
 		cursor: pointer;
 		font-size: 0.75rem;
@@ -556,7 +560,7 @@
 		padding: 0.5rem 0.875rem;
 		background-color: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: var(--color-white);
 		font-size: 0.75rem;
 		font-weight: 500;
@@ -604,7 +608,9 @@
 		.wl-admin__table-wrap {
 			display: block;
 			overflow-x: auto;
-			background-color: var(--color-navy-mid);
+			background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 			border: 1px solid rgba(255, 255, 255, 0.06);
 			border-radius: var(--radius-2xl);
 			box-shadow:

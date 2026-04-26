@@ -107,7 +107,7 @@
 	.tile {
 		background-color: var(--surface-bg-subtle);
 		border: 1px solid var(--surface-border-subtle);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		padding: var(--space-6);
 		display: flex;
 		flex-direction: column;
@@ -129,7 +129,7 @@
 	.gated {
 		padding: var(--space-4);
 		border: 1px solid var(--status-info-500);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		background-color: var(--status-info-50);
 	}
 	.gated--fallback {

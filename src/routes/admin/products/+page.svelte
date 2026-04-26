@@ -473,9 +473,11 @@
 		flex-direction: column;
 		gap: 0.75rem;
 		padding: 1.25rem;
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		box-shadow:
 			0 1px 0 rgba(255, 255, 255, 0.03) inset,
 			0 12px 32px rgba(0, 0, 0, 0.18);
@@ -521,11 +523,11 @@
 
 	.pr-input {
 		width: 100%;
-		min-height: 2.5rem;
-		padding: 0.65rem 0.875rem;
+		min-height: 3rem;
+		padding: 0 1.25rem;
 		background-color: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: var(--color-white);
 		font-size: 0.875rem;
 		font-family: var(--font-ui);
@@ -557,7 +559,9 @@
 	}
 
 	.pr-input--select option {
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		color: var(--color-white);
 	}
 
@@ -565,9 +569,11 @@
 	.pr-admin__loading {
 		padding: 2.5rem 1rem;
 		text-align: center;
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		color: var(--color-grey-400);
 		font-size: 0.875rem;
 	}
@@ -579,9 +585,11 @@
 		gap: 0.85rem;
 		text-align: center;
 		padding: 3rem 1.5rem;
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		color: var(--color-grey-500);
 	}
 
@@ -607,9 +615,11 @@
 	/* ── Table ──────────────────────────── */
 	.pr-table-wrap {
 		overflow-x: auto;
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		box-shadow:
 			0 1px 0 rgba(255, 255, 255, 0.03) inset,
 			0 12px 32px rgba(0, 0, 0, 0.18);
@@ -764,7 +774,7 @@
 		padding: 0.45rem 0.75rem;
 		background-color: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: var(--color-white);
 		font-size: 0.875rem;
 		font-weight: 600;
@@ -816,7 +826,7 @@
 		padding: 0.65rem 0.85rem;
 		background-color: rgba(239, 68, 68, 0.1);
 		border: 1px solid rgba(239, 68, 68, 0.3);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: #fca5a5;
 		font-size: 0.875rem;
 		margin: 0;
@@ -825,11 +835,11 @@
 	.pr-form input,
 	.pr-form select,
 	.pr-form textarea {
-		min-height: 2.5rem;
-		padding: 0.65rem 0.875rem;
+		min-height: 3rem;
+		padding: 0 1.25rem;
 		background-color: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: var(--color-white);
 		font-size: 0.875rem;
 		font-family: var(--font-ui);

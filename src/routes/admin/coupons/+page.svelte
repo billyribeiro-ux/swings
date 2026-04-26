@@ -587,12 +587,12 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
-		min-height: 2.5rem;
+		min-height: 3rem;
 		padding: 0.55rem 1rem;
 		font-size: 0.875rem;
 		font-weight: 600;
 		font-family: var(--font-ui);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		text-decoration: none;
 		cursor: pointer;
 		border: 1px solid transparent;
@@ -634,9 +634,11 @@
 	/* ── Bulk form ──────────────────────── */
 	.bulk-form {
 		padding: 1.25rem;
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(212, 168, 67, 0.25);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		box-shadow:
 			0 1px 0 rgba(255, 255, 255, 0.03) inset,
 			0 12px 32px rgba(0, 0, 0, 0.18);
@@ -679,11 +681,11 @@
 	}
 
 	.bf-input {
-		min-height: 2.5rem;
-		padding: 0.65rem 0.875rem;
+		min-height: 3rem;
+		padding: 0 1.25rem;
 		background-color: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: var(--color-white);
 		font-size: 0.875rem;
 		font-family: var(--font-ui);
@@ -712,7 +714,9 @@
 	}
 
 	.bf-input--select option {
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		color: var(--color-white);
 	}
 
@@ -735,9 +739,11 @@
 		align-items: center;
 		gap: 0.85rem;
 		padding: 1.25rem;
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		box-shadow:
 			0 1px 0 rgba(255, 255, 255, 0.03) inset,
 			0 12px 32px rgba(0, 0, 0, 0.18);
@@ -750,7 +756,7 @@
 	.kpi__icon-skel {
 		width: 2.75rem;
 		height: 2.75rem;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		background: rgba(255, 255, 255, 0.06);
 		animation: shimmer 1.5s infinite;
 		flex-shrink: 0;
@@ -797,7 +803,7 @@
 	.kpi__icon {
 		width: 2.75rem;
 		height: 2.75rem;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -848,9 +854,11 @@
 		flex-direction: column;
 		gap: 0.75rem;
 		padding: 1.25rem;
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		box-shadow:
 			0 1px 0 rgba(255, 255, 255, 0.03) inset,
 			0 12px 32px rgba(0, 0, 0, 0.18);
@@ -896,11 +904,11 @@
 
 	.filter-input {
 		width: 100%;
-		min-height: 2.5rem;
-		padding: 0.65rem 0.875rem;
+		min-height: 3rem;
+		padding: 0 1.25rem;
 		background-color: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: var(--color-white);
 		font-size: 0.875rem;
 		font-family: var(--font-ui);
@@ -932,7 +940,9 @@
 	}
 
 	.filter-input--select option {
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		color: var(--color-white);
 	}
 
@@ -945,9 +955,11 @@
 
 	.skelrow {
 		padding: 1rem;
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 	}
 
 	.empty-state {
@@ -958,9 +970,11 @@
 		text-align: center;
 		gap: 0.85rem;
 		padding: 3.5rem 2rem;
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		color: var(--color-grey-500);
 	}
 
@@ -1076,9 +1090,11 @@
 		flex-direction: column;
 		gap: 0.5rem;
 		padding: 1rem;
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 	}
 
 	.ccard__top {
@@ -1144,7 +1160,7 @@
 		padding: 0.45rem 0.75rem;
 		background-color: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: var(--color-white);
 		font-size: 0.875rem;
 		font-weight: 600;
@@ -1238,9 +1254,11 @@
 		.cp__twrap {
 			display: block;
 			overflow-x: auto;
-			background-color: var(--color-navy-mid);
+			background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 			border: 1px solid rgba(255, 255, 255, 0.06);
-			border-radius: var(--radius-xl);
+			border-radius: var(--radius-2xl);
 			box-shadow:
 				0 1px 0 rgba(255, 255, 255, 0.03) inset,
 				0 12px 32px rgba(0, 0, 0, 0.18);

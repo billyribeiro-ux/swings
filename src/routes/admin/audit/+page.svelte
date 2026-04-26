@@ -469,15 +469,17 @@
 		background: rgba(239, 68, 68, 0.1);
 		border: 1px solid rgba(239, 68, 68, 0.3);
 		color: #fca5a5;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		font-size: 0.875rem;
 		margin-bottom: 1rem;
 	}
 
 	.filters {
-		background: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		padding: 1.25rem;
 		margin-bottom: 1.25rem;
 		box-shadow:
@@ -524,12 +526,12 @@
 		font-weight: 500;
 	}
 	.field__input {
-		min-height: 2.5rem;
-		padding: 0.65rem 0.875rem;
+		min-height: 3rem;
+		padding: 0 1.25rem;
 		background: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		color: var(--color-white);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		font-size: 0.875rem;
 		width: 100%;
 		font-family: inherit;
@@ -569,9 +571,9 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
-		min-height: 2.5rem;
-		padding: 0 0.875rem;
-		border-radius: var(--radius-lg);
+		min-height: 3rem;
+		padding: 0 1.25rem;
+		border-radius: var(--radius-2xl);
 		font-size: 0.875rem;
 		font-weight: 600;
 		border: 1px solid transparent;
@@ -609,7 +611,7 @@
 		color: var(--color-white);
 	}
 	.btn--small {
-		min-height: 2rem;
+		min-height: 2.5rem;
 		padding: 0 0.65rem;
 		font-size: 0.75rem;
 	}
@@ -643,9 +645,11 @@
 		align-items: center;
 		gap: 0.5rem;
 		padding: 3rem 1rem;
-		background: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px dashed rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		color: var(--color-grey-500);
 		text-align: center;
 	}
@@ -662,9 +666,11 @@
 	}
 
 	.card {
-		background: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		box-shadow:
 			0 1px 0 rgba(255, 255, 255, 0.03) inset,
 			0 12px 32px rgba(0, 0, 0, 0.18);
@@ -812,7 +818,7 @@
 	.drawer__json {
 		background: rgba(0, 0, 0, 0.3);
 		padding: 0.85rem;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		font-size: 0.75rem;
 		color: var(--color-grey-200);
 		max-height: 50vh;

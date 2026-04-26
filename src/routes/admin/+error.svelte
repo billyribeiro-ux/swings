@@ -108,9 +108,11 @@
 		max-width: 32rem;
 		width: 100%;
 		padding: 2rem;
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		text-align: center;
 	}
 
@@ -180,7 +182,7 @@
 		justify-content: center;
 		gap: 0.4rem;
 		padding: 0.625rem 1rem;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		font-size: 0.8125rem;
 		font-weight: 600;
 		text-decoration: none;

@@ -223,7 +223,7 @@
 		background: rgba(34, 181, 115, 0.12);
 		border: 1px solid rgba(34, 181, 115, 0.25);
 		color: var(--color-green);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		font-size: var(--fs-sm);
 		margin-bottom: var(--space-4);
 	}
@@ -232,7 +232,7 @@
 		background: rgba(239, 68, 68, 0.1);
 		border: 1px solid rgba(239, 68, 68, 0.3);
 		color: #fca5a5;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		font-size: var(--fs-sm);
 		margin-bottom: var(--space-4);
 	}
@@ -254,7 +254,7 @@
 		align-items: center;
 		gap: var(--space-2);
 		padding: var(--space-2) var(--space-3);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		font-size: var(--fs-sm);
 		font-weight: var(--w-semibold);
 		border: 1px solid transparent;
@@ -283,9 +283,11 @@
 		color: var(--color-white);
 	}
 	.card {
-		background: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		padding: var(--space-4);
 	}
 	.matrix-wrap {
@@ -307,7 +309,9 @@
 		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 		position: sticky;
 		top: 0;
-		background: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 	}
 	.permission-col {
 		min-width: 18rem;

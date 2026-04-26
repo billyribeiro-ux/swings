@@ -137,9 +137,11 @@
 		flex-direction: column;
 		gap: 0.6rem;
 		padding: 1.25rem;
-		background: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		text-decoration: none;
 		color: inherit;
 		box-shadow:
@@ -165,7 +167,7 @@
 		justify-content: center;
 		width: 2.25rem;
 		height: 2.25rem;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		background: rgba(15, 164, 175, 0.15);
 		color: var(--color-teal);
 	}

@@ -589,7 +589,7 @@
 		padding: 0.75rem 1rem;
 		background: rgba(15, 164, 175, 0.12);
 		border: 1px solid rgba(15, 164, 175, 0.25);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: #5eead4;
 		font-size: 0.875rem;
 		font-weight: 500;
@@ -616,9 +616,11 @@
 	}
 
 	.card {
-		background: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		overflow: hidden;
 		box-shadow:
 			0 1px 0 rgba(255, 255, 255, 0.03) inset,
@@ -636,7 +638,7 @@
 		justify-content: center;
 		width: 2.25rem;
 		height: 2.25rem;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		flex-shrink: 0;
 	}
 	.card__icon--teal {
@@ -708,7 +710,7 @@
 		padding: 0.85rem 1rem;
 		background: rgba(15, 164, 175, 0.08);
 		border: 1px solid rgba(15, 164, 175, 0.18);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: var(--color-teal-light);
 		font-size: 0.75rem;
 		line-height: 1.55;
@@ -742,11 +744,11 @@
 	.field__input,
 	.field__textarea {
 		width: 100%;
-		min-height: 2.5rem;
-		padding: 0.65rem 0.875rem;
+		min-height: 3rem;
+		padding: 0 1.25rem;
 		background: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: var(--color-white);
 		font-size: 0.875rem;
 		font-family: var(--font-ui);
@@ -772,7 +774,7 @@
 	.field__textarea {
 		resize: vertical;
 		min-height: 4.5rem;
-		padding: 0.65rem 0.875rem;
+		padding: 0 1.25rem;
 	}
 	.field__readonly-wrap {
 		display: flex;
@@ -863,10 +865,10 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
-		min-height: 2.5rem;
-		padding: 0 0.875rem;
+		min-height: 3rem;
+		padding: 0 1.25rem;
 		border: 1px solid transparent;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		font-size: 0.875rem;
 		font-weight: 600;
 		font-family: var(--font-ui);
@@ -905,7 +907,7 @@
 		color: var(--color-white);
 	}
 	.btn--small {
-		min-height: 2rem;
+		min-height: 2.5rem;
 		padding: 0 0.65rem;
 		font-size: 0.75rem;
 	}
@@ -916,9 +918,11 @@
 		flex-direction: column;
 		gap: 0.85rem;
 		padding: 1rem 1.25rem;
-		background: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		position: sticky;
 		bottom: 1rem;
 		box-shadow:

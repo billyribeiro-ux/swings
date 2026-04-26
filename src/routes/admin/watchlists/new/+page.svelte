@@ -133,7 +133,7 @@
 		border: 1px solid rgba(239, 68, 68, 0.3);
 		color: #fca5a5;
 		padding: 0.75rem 1rem;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		font-size: var(--fs-sm);
 		margin-bottom: 1.5rem;
 	}
@@ -143,9 +143,11 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1.25rem;
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		padding: 2rem;
 	}
 
@@ -167,7 +169,7 @@
 		padding: 0.7rem 0.85rem;
 		background-color: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: var(--color-white);
 		font-size: var(--fs-base);
 		font-family: inherit;
@@ -214,7 +216,7 @@
 	.new-wl__cancel {
 		padding: 0.6rem 1.25rem;
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: var(--color-grey-400);
 		font-size: var(--fs-sm);
 		font-weight: var(--w-medium);
@@ -233,7 +235,7 @@
 		color: var(--color-white);
 		font-weight: var(--w-semibold);
 		font-size: var(--fs-sm);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		cursor: pointer;
 		transition: opacity 200ms var(--ease-out);
 	}

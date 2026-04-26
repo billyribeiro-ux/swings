@@ -668,9 +668,11 @@
 		color: var(--status-danger-500, #ef4444);
 	}
 	.pr-panel {
-		background: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		padding: 1.25rem;
 		display: flex;
 		flex-direction: column;

@@ -374,7 +374,7 @@
 		padding: 0.75rem 1rem;
 		background: rgba(239, 68, 68, 0.1);
 		border: 1px solid rgba(239, 68, 68, 0.3);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: #fca5a5;
 		font-size: var(--fs-sm);
 		margin-bottom: 1.5rem;
@@ -403,7 +403,7 @@
 	.form-card {
 		background: rgba(255, 255, 255, 0.03);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		padding: 1.25rem;
 		backdrop-filter: blur(12px);
 	}
@@ -450,7 +450,7 @@
 		padding: 0.6rem 0.85rem;
 		background: rgba(0, 0, 0, 0.2);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: var(--color-white);
 		font-size: var(--fs-sm);
 		outline: none;
@@ -475,7 +475,7 @@
 		padding: 0.75rem 0.85rem;
 		background: rgba(0, 0, 0, 0.2);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: var(--color-white);
 		font-size: var(--fs-sm);
 		font-family: var(--font-ui);
@@ -575,7 +575,7 @@
 		display: inline-flex;
 		align-items: center;
 		padding: 0.4rem 0.85rem;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		background: rgba(0, 0, 0, 0.15);
 		cursor: pointer;
@@ -616,7 +616,7 @@
 	/* ── Thumbnail preview ──────────────── */
 	.thumb-preview {
 		margin-bottom: 1rem;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		overflow: hidden;
 		border: 1px solid rgba(255, 255, 255, 0.08);
 	}
@@ -642,7 +642,7 @@
 		font-weight: var(--w-semibold);
 		font-size: var(--fs-sm);
 		border: none;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		cursor: pointer;
 		transition:
 			opacity var(--duration-150) var(--ease-out),

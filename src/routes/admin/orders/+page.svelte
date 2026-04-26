@@ -695,7 +695,7 @@
 		background: rgba(239, 68, 68, 0.1);
 		border: 1px solid rgba(239, 68, 68, 0.3);
 		color: #fca5a5;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		font-size: 0.875rem;
 	}
 
@@ -710,9 +710,11 @@
 		flex-direction: column;
 		gap: 0.75rem;
 		padding: 1.25rem;
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		box-shadow:
 			0 1px 0 rgba(255, 255, 255, 0.03) inset,
 			0 12px 32px rgba(0, 0, 0, 0.18);
@@ -768,11 +770,11 @@
 
 	.filter-input {
 		width: 100%;
-		min-height: 2.5rem;
-		padding: 0.65rem 0.875rem;
+		min-height: 3rem;
+		padding: 0 1.25rem;
 		background-color: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: var(--color-white);
 		font-size: 0.875rem;
 		font-family: var(--font-ui);
@@ -804,7 +806,9 @@
 	}
 
 	.filter-input--select option {
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		color: var(--color-white);
 	}
 
@@ -813,12 +817,12 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
-		min-height: 2.5rem;
+		min-height: 3rem;
 		padding: 0.55rem 1rem;
 		font-size: 0.875rem;
 		font-weight: 600;
 		font-family: var(--font-ui);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		border: 1px solid transparent;
 		cursor: pointer;
 		text-decoration: none;
@@ -868,7 +872,7 @@
 	}
 
 	.btn--small {
-		min-height: 2rem;
+		min-height: 2.5rem;
 		padding: 0.4rem 0.75rem;
 		font-size: 0.75rem;
 	}
@@ -905,9 +909,11 @@
 	/* ── Card / create form ─────────────── */
 	.card {
 		padding: 1.25rem;
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		box-shadow:
 			0 1px 0 rgba(255, 255, 255, 0.03) inset,
 			0 12px 32px rgba(0, 0, 0, 0.18);
@@ -963,11 +969,11 @@
 
 	.cf-input {
 		width: 100%;
-		min-height: 2.5rem;
-		padding: 0.65rem 0.875rem;
+		min-height: 3rem;
+		padding: 0 1.25rem;
 		background-color: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: var(--color-white);
 		font-size: 0.875rem;
 		font-family: var(--font-ui);
@@ -993,7 +999,7 @@
 		font-size: 0.875rem;
 		color: var(--color-grey-300);
 		cursor: pointer;
-		min-height: 2.5rem;
+		min-height: 3rem;
 	}
 
 	.items {
@@ -1002,7 +1008,7 @@
 		gap: 0.5rem;
 		padding: 0.75rem;
 		background: rgba(0, 0, 0, 0.15);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 	}
 
 	.item-row {
@@ -1027,9 +1033,11 @@
 		text-align: center;
 		gap: 0.85rem;
 		padding: 3.5rem 2rem;
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		color: var(--color-grey-500);
 	}
 
@@ -1184,7 +1192,7 @@
 		padding: 0.45rem 0.75rem;
 		background-color: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: var(--color-white);
 		font-size: 0.875rem;
 		font-weight: 600;
@@ -1323,7 +1331,7 @@
 		margin-top: 1rem;
 		padding: 1rem;
 		background: rgba(255, 255, 255, 0.03);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		border: 1px solid rgba(255, 255, 255, 0.06);
 	}
 

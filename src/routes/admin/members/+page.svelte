@@ -629,11 +629,13 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
-		min-height: 2.5rem;
-		padding: 0.65rem 0.875rem;
-		background-color: rgba(255, 255, 255, 0.05);
+		min-height: 3rem;
+		padding: 0 1.25rem;
+		background: rgba(255, 255, 255, 0.05);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-xl);
 		color: var(--color-white);
 		font-size: 0.8125rem;
 		font-weight: 600;
@@ -672,11 +674,13 @@
 
 	.members-page__search-input {
 		width: 100%;
-		min-height: 2.5rem;
-		padding: 0.65rem 0.875rem 0.65rem 2.4rem;
-		background-color: rgba(255, 255, 255, 0.05);
+		min-height: 3rem;
+		padding: 0 1.25rem 0 2.6rem;
+		background: rgba(255, 255, 255, 0.05);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-xl);
 		color: var(--color-white);
 		font-size: 0.875rem;
 		font-weight: 400;
@@ -699,20 +703,23 @@
 		display: inline-flex;
 		gap: 0.25rem;
 		padding: 0.25rem;
-		background-color: rgba(255, 255, 255, 0.03);
+		background: rgba(255, 255, 255, 0.03);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-xl);
 		align-self: flex-start;
 		flex-wrap: wrap;
 	}
 
 	.members-page__tab {
-		padding: 0.45rem 0.875rem;
+		min-height: 2.75rem;
+		padding: 0 1.25rem;
 		border: none;
-		border-radius: var(--radius-md);
+		border-radius: var(--radius-lg);
 		background: transparent;
 		color: var(--color-grey-400);
-		font-size: 0.75rem;
+		font-size: 0.8125rem;
 		font-weight: 600;
 		cursor: pointer;
 		transition: all 150ms var(--ease-out);
@@ -752,9 +759,11 @@
 		align-items: center;
 		gap: 0.5rem;
 		padding: 3rem 1rem;
-		background-color: var(--color-navy-mid);
-		border: 1px dashed rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-xl);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
+		border: 1px dashed rgba(255, 255, 255, 0.15);
+		border-radius: var(--radius-2xl);
 		text-align: center;
 	}
 
@@ -789,11 +798,14 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.625rem;
-		padding: 1rem;
-		background-color: var(--color-navy-mid);
-		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
-		transition: all 200ms var(--ease-out);
+		padding: 1.25rem;
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: var(--radius-2xl);
+		box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.2);
+		transition: all 250ms var(--ease-out);
 	}
 
 	.member-card[data-state='banned'] {
@@ -1014,13 +1026,15 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.375rem;
-		min-height: 2.25rem;
-		padding: 0.5rem 0.875rem;
-		background-color: rgba(255, 255, 255, 0.05);
+		min-height: 3rem;
+		padding: 0 1.25rem;
+		background: rgba(255, 255, 255, 0.05);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-xl);
 		color: var(--color-white);
-		font-size: 0.75rem;
+		font-size: 0.8125rem;
 		font-weight: 600;
 		cursor: pointer;
 		transition: all 150ms var(--ease-out);
@@ -1076,12 +1090,14 @@
 		.members-page__table-wrap {
 			display: block;
 			overflow-x: auto;
-			background-color: var(--color-navy-mid);
-			border: 1px solid rgba(255, 255, 255, 0.06);
+			background: rgba(19, 43, 80, 0.35);
+			backdrop-filter: blur(24px);
+			-webkit-backdrop-filter: blur(24px);
+			border: 1px solid rgba(255, 255, 255, 0.08);
 			border-radius: var(--radius-2xl);
 			box-shadow:
-				0 1px 0 rgba(255, 255, 255, 0.03) inset,
-				0 12px 32px rgba(0, 0, 0, 0.18);
+				0 1px 0 rgba(255, 255, 255, 0.05) inset,
+				0 16px 32px -8px rgba(0, 0, 0, 0.3);
 		}
 
 		.m-table {
@@ -1220,14 +1236,14 @@
 		}
 
 		.m-table__btn {
-			width: 2rem;
-			height: 2rem;
+			width: 2.5rem;
+			height: 2.5rem;
 			display: inline-flex;
 			align-items: center;
 			justify-content: center;
-			border-radius: var(--radius-md);
+			border-radius: var(--radius-lg);
 			border: 1px solid transparent;
-			background-color: rgba(255, 255, 255, 0.05);
+			background: rgba(255, 255, 255, 0.05);
 			color: var(--color-grey-200);
 			cursor: pointer;
 			transition: all 150ms var(--ease-out);

@@ -730,9 +730,11 @@
 		align-items: center;
 		gap: 0.5rem;
 		padding: 1.5rem 1rem;
-		background: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		text-align: center;
 	}
 
@@ -827,9 +829,11 @@
 		grid-template-columns: 1fr 1fr;
 		gap: 0.75rem;
 		padding: 1rem;
-		background: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		margin: 0;
 	}
 
@@ -861,11 +865,11 @@
 		align-items: center;
 		gap: 0.5rem;
 		justify-content: flex-start;
-		min-height: 2.5rem;
-		padding: 0.65rem 0.875rem;
+		min-height: 3rem;
+		padding: 0 1.25rem;
 		background-color: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.08);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: var(--color-white);
 		font-size: 0.8125rem;
 		font-weight: 600;
@@ -899,9 +903,11 @@
 	}
 
 	.member-detail__section {
-		background: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		padding: 1.25rem;
 	}
 
@@ -942,7 +948,7 @@
 	}
 
 	.member-detail__field input {
-		min-height: 2.5rem;
+		min-height: 3rem;
 		padding: 0.5rem 0.75rem;
 		background-color: rgba(255, 255, 255, 0.04);
 		border: 1px solid rgba(255, 255, 255, 0.1);

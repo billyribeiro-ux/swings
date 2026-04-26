@@ -325,7 +325,7 @@
 		background: rgba(34, 181, 115, 0.12);
 		border: 1px solid rgba(34, 181, 115, 0.25);
 		color: var(--color-green);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		font-size: var(--fs-sm);
 		margin-bottom: var(--space-4);
 	}
@@ -334,7 +334,7 @@
 		background: rgba(239, 68, 68, 0.1);
 		border: 1px solid rgba(239, 68, 68, 0.3);
 		color: #fca5a5;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		font-size: var(--fs-sm);
 		margin-bottom: var(--space-4);
 	}
@@ -343,9 +343,11 @@
 		font-size: var(--fs-sm);
 	}
 	.card {
-		background: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		padding: var(--space-5);
 		margin-bottom: var(--space-5);
 	}
@@ -388,7 +390,7 @@
 		background: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		color: var(--color-white);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		font-size: var(--fs-sm);
 	}
 	.field__input:focus {
@@ -400,7 +402,7 @@
 		align-items: center;
 		gap: var(--space-2);
 		padding: var(--space-2) var(--space-3);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		font-size: var(--fs-sm);
 		font-weight: var(--w-semibold);
 		border: 1px solid transparent;
@@ -440,7 +442,7 @@
 		margin-top: var(--space-4);
 		padding: var(--space-4);
 		border: 1px dashed rgba(15, 164, 175, 0.4);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		background: rgba(15, 164, 175, 0.06);
 	}
 	.mint-result__label {

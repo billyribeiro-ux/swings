@@ -430,8 +430,10 @@
 	.plans-page__header-left { display: flex; align-items: center; gap: 0.75rem; }
 	.plans-page__back {
 		display: flex; align-items: center; justify-content: center;
-		width: 2.25rem; height: 2.25rem; border-radius: var(--radius-lg);
-		background-color: var(--color-navy-mid); border: 1px solid rgba(255, 255, 255, 0.08);
+		width: 2.25rem; height: 2.25rem; border-radius: var(--radius-2xl);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08);
 		color: var(--color-grey-300); text-decoration: none;
 		transition: border-color var(--duration-200) var(--ease-out);
 	}
@@ -447,7 +449,7 @@
 		font-size: var(--fs-xs); font-weight: var(--w-semibold);
 		color: var(--color-white);
 		background: linear-gradient(135deg, var(--color-teal), #0d8a94);
-		border: none; border-radius: var(--radius-lg); cursor: pointer;
+		border: none; border-radius: var(--radius-2xl); cursor: pointer;
 		transition: opacity var(--duration-200) var(--ease-out), transform var(--duration-200) var(--ease-out);
 	}
 	.plans-page__add-btn:hover { opacity: 0.9; transform: translateY(-1px); }
@@ -457,7 +459,7 @@
 		color: var(--color-grey-200);
 		background: rgba(15, 164, 175, 0.08);
 		border: 1px solid rgba(15, 164, 175, 0.25);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		padding: 0.75rem 1rem;
 		margin-bottom: 1rem;
 	}
@@ -518,14 +520,18 @@
 	.plans-page__empty {
 		text-align: center; padding: 3rem 1rem;
 		color: var(--color-grey-400); font-size: var(--fs-sm);
-		background-color: var(--color-navy-mid);
-		border: 1px solid rgba(255, 255, 255, 0.06); border-radius: var(--radius-xl);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
+		border: 1px solid rgba(255, 255, 255, 0.06); border-radius: var(--radius-2xl);
 	}
 
 	/* Card */
 	.plan-card {
-		padding: 1.25rem; background-color: var(--color-navy-mid);
-		border: 1px solid rgba(255, 255, 255, 0.06); border-radius: var(--radius-xl);
+		padding: 1.25rem; background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
+		border: 1px solid rgba(255, 255, 255, 0.06); border-radius: var(--radius-2xl);
 		transition: border-color var(--duration-200) var(--ease-out);
 	}
 	.plan-card--popular { border-color: rgba(212, 168, 67, 0.3); }
@@ -626,8 +632,10 @@
 	.log-section__toggle {
 		display: flex; align-items: center; justify-content: space-between;
 		width: 100%; padding: 0.85rem 1rem;
-		background-color: var(--color-navy-mid);
-		border: 1px solid rgba(255, 255, 255, 0.06); border-radius: var(--radius-xl);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
+		border: 1px solid rgba(255, 255, 255, 0.06); border-radius: var(--radius-2xl);
 		color: var(--color-white); font-size: var(--fs-sm); font-weight: var(--w-semibold);
 		cursor: pointer; transition: border-color var(--duration-200) var(--ease-out);
 	}
@@ -635,7 +643,9 @@
 	.log-section__toggle-text { display: flex; align-items: center; gap: 0.35rem; }
 	.log-section__content {
 		margin-top: -1px; padding: 1rem;
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
 		border-radius: 0 0 var(--radius-xl) var(--radius-xl);
 	}

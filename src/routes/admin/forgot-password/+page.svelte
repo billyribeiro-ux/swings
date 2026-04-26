@@ -94,7 +94,9 @@
 	.forgot-card {
 		width: 100%;
 		max-width: 26rem;
-		background-color: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.08);
 		border-radius: var(--radius-2xl);
 		padding: 2.5rem;
@@ -154,7 +156,7 @@
 		border: 1px solid rgba(239, 68, 68, 0.3);
 		color: #fca5a5;
 		padding: 0.75rem 1rem;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		font-size: var(--fs-sm);
 		margin-bottom: 1.5rem;
 		text-align: center;
@@ -165,7 +167,7 @@
 		border: 1px solid rgba(34, 197, 94, 0.3);
 		color: #86efac;
 		padding: 1rem 1.25rem;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		font-size: var(--fs-sm);
 		text-align: center;
 		margin-bottom: 1.5rem;
@@ -201,7 +203,7 @@
 		padding: 0.75rem 1rem;
 		background-color: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: var(--color-white);
 		font-size: var(--fs-base);
 		transition: border-color 200ms var(--ease-out);
@@ -222,7 +224,7 @@
 		color: var(--color-white);
 		font-weight: var(--w-semibold);
 		font-size: var(--fs-base);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		border: none;
 		cursor: pointer;
 		transition:

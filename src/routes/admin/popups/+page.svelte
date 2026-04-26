@@ -444,9 +444,9 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
-		min-height: 2.5rem;
-		padding: 0 0.875rem;
-		border-radius: var(--radius-lg);
+		min-height: 3rem;
+		padding: 0 1.25rem;
+		border-radius: var(--radius-2xl);
 		font-size: 0.875rem;
 		font-weight: 600;
 		border: 1px solid transparent;
@@ -521,9 +521,11 @@
 		flex-direction: column;
 		gap: 0.4rem;
 		padding: 1.25rem;
-		background: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		box-shadow:
 			0 1px 0 rgba(255, 255, 255, 0.03) inset,
 			0 12px 32px rgba(0, 0, 0, 0.18);
@@ -585,9 +587,11 @@
 		align-items: center;
 		gap: 0.5rem;
 		padding: 3rem 1rem;
-		background: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px dashed rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		color: var(--color-grey-500);
 		text-align: center;
 	}
@@ -683,9 +687,11 @@
 		flex-direction: column;
 		gap: 0.65rem;
 		padding: 1rem 1.25rem;
-		background: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		box-shadow:
 			0 1px 0 rgba(255, 255, 255, 0.03) inset,
 			0 12px 32px rgba(0, 0, 0, 0.18);
@@ -731,9 +737,11 @@
 
 	.card {
 		display: none;
-		background: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		box-shadow:
 			0 1px 0 rgba(255, 255, 255, 0.03) inset,
 			0 12px 32px rgba(0, 0, 0, 0.18);
@@ -803,7 +811,7 @@
 		justify-content: center;
 		width: 2rem;
 		height: 2rem;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		background: rgba(255, 255, 255, 0.05);
 		color: var(--color-grey-200);
@@ -840,14 +848,14 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.35rem;
-		min-height: 2rem;
+		min-height: 2.5rem;
 		padding: 0 0.65rem;
 		font-size: 0.75rem;
 		font-weight: 600;
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		background: rgba(255, 255, 255, 0.05);
 		color: var(--color-grey-200);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		text-decoration: none;
 		cursor: pointer;
 		font-family: inherit;

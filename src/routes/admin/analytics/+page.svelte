@@ -497,11 +497,11 @@
 		padding: 0.25rem;
 		background: rgba(255, 255, 255, 0.04);
 		border: 1px solid rgba(255, 255, 255, 0.08);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		gap: 0.15rem;
 	}
 	.ap-preset {
-		min-height: 2rem;
+		min-height: 2.5rem;
 		padding: 0 0.75rem;
 		background: transparent;
 		border: none;
@@ -529,7 +529,7 @@
 		padding: 0.25rem 0.65rem;
 		background: rgba(255, 255, 255, 0.04);
 		border: 1px solid rgba(255, 255, 255, 0.08);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		color: var(--color-grey-400);
 	}
 	.ap-range__sep {
@@ -537,7 +537,7 @@
 		font-size: 0.75rem;
 	}
 	.ap-input {
-		min-height: 2rem;
+		min-height: 2.5rem;
 		padding: 0.35rem 0.5rem;
 		background: transparent;
 		border: 1px solid transparent;
@@ -562,14 +562,14 @@
 		margin-left: auto;
 	}
 	.ap-btn {
-		min-height: 2.5rem;
+		min-height: 3rem;
 		padding: 0 0.85rem;
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
 		font-size: 0.8125rem;
 		font-weight: 600;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		border: 1px solid transparent;
 		background: transparent;
 		color: var(--color-grey-300);
@@ -634,7 +634,7 @@
 		background: rgba(239, 68, 68, 0.1);
 		border: 1px solid rgba(239, 68, 68, 0.3);
 		color: #fca5a5;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-2xl);
 		font-size: 0.875rem;
 		line-height: 1.5;
 		margin-bottom: 1rem;
@@ -651,9 +651,11 @@
 		flex-direction: column;
 		gap: 0.4rem;
 		padding: 1.25rem;
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		background: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		box-shadow:
 			0 1px 0 rgba(255, 255, 255, 0.03) inset,
 			0 12px 32px rgba(0, 0, 0, 0.18);
@@ -701,9 +703,11 @@
 
 	.ap-card {
 		padding: 1.25rem;
-		border-radius: var(--radius-xl);
+		border-radius: var(--radius-2xl);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		background: var(--color-navy-mid);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
 		box-shadow:
 			0 1px 0 rgba(255, 255, 255, 0.03) inset,
 			0 12px 32px rgba(0, 0, 0, 0.18);

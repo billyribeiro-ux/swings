@@ -377,13 +377,15 @@
 
 	/* Sections */
 	.author-section {
-		background-color: var(--color-navy-mid);
-		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: var(--radius-2xl);
 		overflow: hidden;
 		box-shadow:
-			0 1px 0 rgba(255, 255, 255, 0.03) inset,
-			0 12px 32px rgba(0, 0, 0, 0.18);
+			0 1px 0 rgba(255, 255, 255, 0.05) inset,
+			0 12px 24px -8px rgba(0, 0, 0, 0.3);
 	}
 
 	.author-section__title {
@@ -459,17 +461,19 @@
 		align-items: center;
 		justify-content: center;
 		gap: 0.5rem;
-		min-height: 2.5rem;
-		padding: 0 1rem;
-		background-color: rgba(255, 255, 255, 0.05);
+		min-height: 3rem;
+		padding: 0 1.25rem;
+		background: rgba(255, 255, 255, 0.05);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		color: var(--color-white);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-xl);
 		font-size: 0.875rem;
 		font-weight: 600;
 		cursor: pointer;
 		transition:
-			background-color 150ms var(--ease-out),
+			background 150ms var(--ease-out),
 			border-color 150ms var(--ease-out);
 	}
 
@@ -516,11 +520,13 @@
 	}
 
 	.author-field__input {
-		min-height: 2.5rem;
-		padding: 0.65rem 0.875rem;
-		background-color: rgba(255, 255, 255, 0.05);
+		min-height: 3rem;
+		padding: 0 1.25rem;
+		background: rgba(255, 255, 255, 0.05);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-xl);
 		font-size: 0.875rem;
 		color: var(--color-white);
 		transition:
@@ -578,12 +584,12 @@
 		gap: 1rem;
 		padding: 0.875rem 1rem;
 		margin-top: 0.5rem;
-		background-color: rgba(15, 23, 42, 0.85);
-		backdrop-filter: blur(16px);
-		-webkit-backdrop-filter: blur(16px);
-		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
-		box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+		background: rgba(11, 29, 58, 0.7);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: var(--radius-2xl);
+		box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.3);
 	}
 
 	.author-save-bar__status {
@@ -609,12 +615,12 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
-		min-height: 2.5rem;
-		padding: 0 1.25rem;
+		min-height: 3rem;
+		padding: 0 1.5rem;
 		background: linear-gradient(135deg, var(--color-teal), var(--color-teal-dark, #0d8a94));
 		color: var(--color-white);
 		border: none;
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-xl);
 		font-size: 0.875rem;
 		font-weight: 600;
 		cursor: pointer;
