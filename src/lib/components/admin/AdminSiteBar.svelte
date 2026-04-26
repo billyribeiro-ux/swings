@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { auth } from '$lib/stores/auth.svelte';
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import ShieldCheckIcon from 'phosphor-svelte/lib/ShieldCheckIcon';
 	import GaugeIcon from 'phosphor-svelte/lib/GaugeIcon';
 
@@ -20,7 +21,7 @@
 			<ShieldCheckIcon size={14} weight="duotone" />
 			<span>Signed in as admin</span>
 		</span>
-		<a href="/admin" class="admin-site-bar__link">
+		<a href={resolve('/admin')} class="admin-site-bar__link">
 			<GaugeIcon size={14} weight="duotone" />
 			<span>Open dashboard</span>
 		</a>

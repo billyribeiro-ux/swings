@@ -7,6 +7,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import ClipboardTextIcon from 'phosphor-svelte/lib/ClipboardTextIcon';
 	import FunnelIcon from 'phosphor-svelte/lib/FunnelIcon';
 	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
@@ -267,7 +268,7 @@
 					Every submission against this form. Inspect the captured data, mark spam,
 					restore, or hard-delete. CSV export honours the active filter set.
 				</p>
-				<a class="back-link" href="/admin/forms/{formId}">
+				<a class="back-link" href={resolve('/admin/forms/[id]', { id: formId })}>
 					<ArrowLeftIcon size={14} weight="bold" />
 					<span>Back to form</span>
 				</a>

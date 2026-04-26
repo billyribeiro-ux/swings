@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import { api, ApiError } from '$lib/api/client';
 	import { SITE } from '$lib/seo/config';
 
@@ -58,7 +59,7 @@
 <div class="reset-page">
 	<div class="reset-card">
 		<div class="reset-card__header">
-			<a href="/" class="reset-card__logo">
+			<a href={resolve('/')} class="reset-card__logo">
 				<span class="reset-card__logo-brand">{SITE.logoBrandPrimary}</span>
 				<span class="reset-card__logo-accent">{SITE.logoBrandAccent}</span>
 			</a>
@@ -71,12 +72,14 @@
 			<div class="reset-card__error">
 				Invalid reset link. Please request a new password reset.
 			</div>
-			<a href="/admin/forgot-password" class="reset-card__back-btn">Request new reset link</a>
+			<a href={resolve('/admin/forgot-password')} class="reset-card__back-btn"
+				>Request new reset link</a
+			>
 		{:else if success}
 			<div class="reset-card__success">
 				<p>Your password has been reset successfully!</p>
 			</div>
-			<a href="/admin" class="reset-card__login-btn">Go to Login</a>
+			<a href={resolve('/admin')} class="reset-card__login-btn">Go to Login</a>
 		{:else}
 			{#if error}
 				<div class="reset-card__error">{error}</div>
@@ -118,7 +121,7 @@
 				</button>
 			</form>
 
-			<a href="/admin" class="reset-card__back">← Back to login</a>
+			<a href={resolve('/admin')} class="reset-card__back">← Back to login</a>
 		{/if}
 	</div>
 </div>

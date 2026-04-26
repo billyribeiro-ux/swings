@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { api, ApiError } from '$lib/api/client';
 	import type {
 		PopupType,
@@ -184,7 +185,7 @@
 		};
 		try {
 			await api.post('/api/admin/popups', payload);
-			goto('/admin/popups');
+			goto(resolve('/admin/popups'));
 		} catch (err) {
 			error = err instanceof ApiError ? err.message : 'Failed to create popup';
 		} finally {
@@ -196,7 +197,7 @@
 <svelte:head><title>New Popup - Admin</title></svelte:head>
 
 <div class="pb">
-	<a href="/admin/popups" class="pb__back"><ArrowLeftIcon size={18} /> Back to Popups</a>
+	<a href={resolve('/admin/popups')} class="pb__back"><ArrowLeftIcon size={18} /> Back to Popups</a>
 
 	<div class="pb__top">
 		<div class="pb__top-left">

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api, ApiError } from '$lib/api/client';
 	import type { AuthResponse } from '$lib/api/types';
@@ -37,9 +38,9 @@
 			auth.setUser(res.user);
 
 			if (res.user.role.toLowerCase() === 'admin') {
-				goto('/admin');
+				goto(resolve('/admin'));
 			} else {
-				goto('/dashboard');
+				goto(resolve('/dashboard'));
 			}
 		} catch (err) {
 			if (err instanceof ApiError) {
@@ -62,7 +63,7 @@
 
 	<main class="auth-card">
 		<header class="auth-card__header">
-			<a href="/" class="auth-card__logo" aria-label="{SITE.name} home">
+			<a href={resolve('/')} class="auth-card__logo" aria-label="{SITE.name} home">
 				<span class="auth-card__logo-brand">{SITE.logoBrandPrimary}</span>
 				<span class="auth-card__logo-accent">{SITE.logoBrandAccent}</span>
 			</a>
@@ -98,7 +99,9 @@
 			<div class="auth-form__field">
 				<div class="auth-form__label-row">
 					<label for="password" class="auth-form__label">Password</label>
-					<a href="/forgot-password" class="auth-form__forgot">Forgot password?</a>
+					<a href={resolve('/forgot-password')} class="auth-form__forgot"
+						>Forgot password?</a
+					>
 				</div>
 				<div class="auth-form__control">
 					<LockIcon size={18} weight="regular" class="auth-form__icon" />
@@ -146,11 +149,11 @@
 		<footer class="auth-card__footer">
 			<p class="auth-card__footer-line">
 				Don't have an account?
-				<a href="/register" class="auth-card__link">Create one</a>
+				<a href={resolve('/register')} class="auth-card__link">Create one</a>
 			</p>
 			<p class="auth-card__footer-line auth-card__footer-line--muted">
 				Need a new verification link?
-				<a href="/resend-verification" class="auth-card__link">Resend email</a>
+				<a href={resolve('/resend-verification')} class="auth-card__link">Resend email</a>
 			</p>
 		</footer>
 	</main>

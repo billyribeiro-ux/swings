@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { api, ApiError } from '$lib/api/client';
 	import { SITE } from '$lib/seo/config';
 
@@ -33,7 +34,7 @@
 
 <div class="verify-page">
 	<div class="verify-card">
-		<a href="/" class="verify-card__logo">
+		<a href={resolve('/')} class="verify-card__logo">
 			<span class="verify-card__logo-brand">{SITE.logoBrandPrimary}</span>
 			<span class="verify-card__logo-accent">{SITE.logoBrandAccent}</span>
 		</a>
@@ -47,7 +48,7 @@
 				If the account exists and is not verified yet, a new verification email has been
 				sent.
 			</div>
-			<a href="/login" class="verify-card__back">Back to sign in</a>
+			<a href={resolve('/login')} class="verify-card__back">Back to sign in</a>
 		{:else}
 			{#if error}
 				<div class="verify-card__error">{error}</div>
@@ -68,7 +69,7 @@
 					{loading ? 'Sending...' : 'Resend Verification'}
 				</button>
 			</form>
-			<a href="/login" class="verify-card__back">Back to sign in</a>
+			<a href={resolve('/login')} class="verify-card__back">Back to sign in</a>
 		{/if}
 	</div>
 </div>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api } from '$lib/api/client';
 	import type {
@@ -121,7 +122,9 @@
 							>
 						</div>
 						<a
-							href="/dashboard/courses/{lastAccessedCourse.slug}"
+							href={resolve('/dashboard/courses/[slug]', {
+								slug: lastAccessedCourse.slug
+							})}
 							class="continue-card__resume"
 						>
 							<PlayIcon size={16} weight="fill" />
@@ -136,12 +139,13 @@
 		<section class="overview__section">
 			<div class="overview__section-header">
 				<h3 class="overview__section-title">Enrolled Courses</h3>
-				<a href="/dashboard/courses" class="overview__link">View all</a>
+				<a href={resolve('/dashboard/courses')} class="overview__link">View all</a>
 			</div>
 
 			{#if enrollments.length === 0}
 				<p class="overview__empty">
-					No course enrollments yet. <a href="/dashboard/courses">Browse courses</a>
+					No course enrollments yet.
+					<a href={resolve('/dashboard/courses')}>Browse courses</a>
 				</p>
 			{:else}
 				<div class="overview__courses-grid">
@@ -182,7 +186,9 @@
 									>
 								</div>
 								<a
-									href="/dashboard/courses/{course?.slug ?? enrollment.course_id}"
+									href={resolve('/dashboard/courses/[slug]', {
+										slug: course?.slug ?? enrollment.course_id
+									})}
 									class="course-card__continue"
 								>
 									Continue
@@ -199,7 +205,7 @@
 		<section class="overview__section">
 			<div class="overview__section-header">
 				<h3 class="overview__section-title">Latest Watchlists</h3>
-				<a href="/dashboard/watchlists" class="overview__link">View all</a>
+				<a href={resolve('/dashboard/watchlists')} class="overview__link">View all</a>
 			</div>
 
 			{#if recentWatchlists.length === 0}
@@ -207,7 +213,10 @@
 			{:else}
 				<div class="overview__watchlists">
 					{#each recentWatchlists as wl (wl.id)}
-						<a href="/dashboard/watchlists/{wl.id}" class="wl-card">
+						<a
+							href={resolve('/dashboard/watchlists/[id]', { id: wl.id })}
+							class="wl-card"
+						>
 							<div class="wl-card__info">
 								<h4 class="wl-card__title">{wl.title}</h4>
 								<p class="wl-card__date">Week of {wl.week_of}</p>
@@ -227,15 +236,15 @@
 
 		<!-- Quick Links -->
 		<section class="overview__quick-links">
-			<a href="/dashboard/account" class="quick-link">
+			<a href={resolve('/dashboard/account')} class="quick-link">
 				<GearIcon size={20} weight="duotone" />
 				<span>Account Settings</span>
 			</a>
-			<a href="/dashboard/courses" class="quick-link">
+			<a href={resolve('/dashboard/courses')} class="quick-link">
 				<BookOpenIcon size={20} weight="duotone" />
 				<span>Browse Courses</span>
 			</a>
-			<a href="/dashboard/watchlists" class="quick-link">
+			<a href={resolve('/dashboard/watchlists')} class="quick-link">
 				<ListChecksIcon size={20} weight="duotone" />
 				<span>Watchlists</span>
 			</a>

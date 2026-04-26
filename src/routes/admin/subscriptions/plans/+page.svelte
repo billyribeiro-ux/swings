@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import type {
 		AdminUpdatePricingPlanResponse,
@@ -224,7 +225,7 @@
 <div class="plans-page">
 	<div class="plans-page__header">
 		<div class="plans-page__header-left">
-			<a href="/admin/subscriptions" class="plans-page__back">
+			<a href={resolve('/admin/subscriptions')} class="plans-page__back">
 				<ArrowLeftIcon size={18} weight="bold" />
 			</a>
 			<div>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { api, ApiError } from '$lib/api/client';
 	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
@@ -119,7 +120,7 @@
 		deleting = true;
 		try {
 			await api.del(`/api/admin/coupons/${page.params.id}`);
-			goto('/admin/coupons');
+			goto(resolve('/admin/coupons'));
 		} catch (err) {
 			error = err instanceof ApiError ? err.message : 'Failed to delete';
 			deleting = false;
@@ -134,7 +135,9 @@
 </svelte:head>
 
 <div class="ce">
-	<a href="/admin/coupons" class="ce__back"><ArrowLeftIcon size={18} /> Back to Coupons</a>
+	<a href={resolve('/admin/coupons')} class="ce__back"
+		><ArrowLeftIcon size={18} /> Back to Coupons</a
+	>
 
 	{#if loading}
 		<p class="ce__status">Loading...</p>
@@ -321,7 +324,7 @@
 					{deleting ? 'Deleting...' : 'Delete'}</button
 				>
 				<div class="ce__ar">
-					<a href="/admin/coupons" class="ce__cancel">Cancel</a>
+					<a href={resolve('/admin/coupons')} class="ce__cancel">Cancel</a>
 					<button type="submit" disabled={saving} class="ce__submit"
 						><FloppyDiskIcon size={16} weight="bold" />
 						{saving ? 'Saving...' : 'Update Coupon'}</button

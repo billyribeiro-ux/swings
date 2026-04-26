@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import { gsap } from 'gsap';
 	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -141,7 +142,7 @@
 
 	<div class="cd-hero__inner">
 		<!-- Back Link -->
-		<a href="/courses" class="cd-back cd-hero__back">
+		<a href={resolve('/courses')} class="cd-back cd-hero__back">
 			<ArrowLeftIcon size={16} weight="bold" />
 			All Courses
 		</a>
@@ -301,7 +302,7 @@
 					Enroll Now -- ${course.price}
 					<ArrowRightIcon size={18} weight="bold" />
 				</Button>
-				<Button variant="ghost" href="/courses">View All Courses</Button>
+				<Button variant="ghost" href={resolve('/courses')}>View All Courses</Button>
 			</div>
 		</ScrollReveal>
 	</div>

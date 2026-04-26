@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount, type Snippet } from 'svelte';
+	import { resolve } from '$app/paths';
 	import HouseIcon from 'phosphor-svelte/lib/HouseIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import ScalesIcon from 'phosphor-svelte/lib/ScalesIcon';
@@ -81,7 +82,7 @@
 
 	<div class="legal__hero">
 		<nav class="legal__breadcrumb" aria-label="Breadcrumb">
-			<a href="/" class="legal__crumb legal__crumb--link">
+			<a href={resolve('/')} class="legal__crumb legal__crumb--link">
 				<HouseIcon size={14} weight="regular" />
 				<span>Home</span>
 			</a>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import type { Watchlist, PaginatedResponse } from '$lib/api/types';
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
@@ -59,7 +60,7 @@
 	{:else}
 		<div class="wl-page__grid">
 			{#each watchlists as wl (wl.id)}
-				<a href="/dashboard/watchlists/{wl.id}" class="wl-item">
+				<a href={resolve('/dashboard/watchlists/[id]', { id: wl.id })} class="wl-item">
 					<div class="wl-item__header">
 						<h3 class="wl-item__title">{wl.title}</h3>
 						<span class="wl-item__date">Week of {wl.week_of}</span>

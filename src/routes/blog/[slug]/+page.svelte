@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import Seo from '$lib/seo/Seo.svelte';
 	import { articleSchema, buildJsonLd } from '$lib/seo/jsonld';
 	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
@@ -114,15 +115,16 @@
 	<article class="post-article">
 		<header class="post-header">
 			<div class="post-header__inner">
-				<a href="/blog" class="post-header__back">
+				<a href={resolve('/blog')} class="post-header__back">
 					<ArrowLeftIcon size={16} weight="bold" />
 					Back to Blog
 				</a>
 
 				<div class="post-header__meta">
 					{#each post.categories as cat (cat.id ?? cat.slug)}
-						<a href="/blog/category/{cat.slug}" class="post-header__category"
-							>{cat.name}</a
+						<a
+							href={resolve('/blog/category/[slug]', { slug: cat.slug })}
+							class="post-header__category">{cat.name}</a
 						>
 					{/each}
 				</div>
@@ -186,7 +188,9 @@
 				<div class="post-tags">
 					<span class="post-tags__label">Tags:</span>
 					{#each post.tags as tag (tag.id ?? tag.slug)}
-						<a href="/blog/tag/{tag.slug}" class="post-tags__pill">{tag.name}</a>
+						<a href={resolve('/blog/tag/[slug]', { slug: tag.slug })} class="post-tags__pill"
+							>{tag.name}</a
+						>
 					{/each}
 				</div>
 			{/if}
@@ -222,6 +226,7 @@
 					{#if post.author_twitter || post.author_linkedin || post.author_youtube || post.author_website}
 						<div class="author-box__social">
 							{#if post.author_twitter}
+								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- author social URL is externally hosted (e.g. x.com); resolve() does not apply -->
 								<a
 									href={post.author_twitter}
 									target="_blank"
@@ -233,6 +238,7 @@
 								</a>
 							{/if}
 							{#if post.author_linkedin}
+								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- author social URL is externally hosted (e.g. linkedin.com); resolve() does not apply -->
 								<a
 									href={post.author_linkedin}
 									target="_blank"
@@ -244,6 +250,7 @@
 								</a>
 							{/if}
 							{#if post.author_youtube}
+								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- author social URL is externally hosted (e.g. youtube.com); resolve() does not apply -->
 								<a
 									href={post.author_youtube}
 									target="_blank"
@@ -255,6 +262,7 @@
 								</a>
 							{/if}
 							{#if post.author_website}
+								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- author website is an author-supplied external URL; resolve() does not apply -->
 								<a
 									href={post.author_website}
 									target="_blank"
@@ -271,7 +279,7 @@
 			</div>
 
 			<div class="post-footer">
-				<a href="/blog" class="post-footer__link">
+				<a href={resolve('/blog')} class="post-footer__link">
 					<ArrowLeftIcon size={16} weight="bold" />
 					Back to all posts
 				</a>

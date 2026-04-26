@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { onMount, untrack } from 'svelte';
+	import type { Component } from 'svelte';
+	import type { IconComponentProps } from 'phosphor-svelte/lib/shared';
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api, ApiError } from '$lib/api/client';
 	import type { AuthResponse, UserResponse } from '$lib/api/types';
@@ -196,7 +199,12 @@
 		void auth.logout();
 	}
 
-	const navItems = [
+	type NavItem = {
+		href: Parameters<typeof resolve>[0];
+		label: string;
+		icon: Component<IconComponentProps, Record<string, never>, ''>;
+	};
+	const navItems: NavItem[] = [
 		{ href: '/admin', label: 'Dashboard', icon: ChartBarIcon },
 		{ href: '/admin/analytics', label: 'Analytics', icon: PresentationChartIcon },
 		{ href: '/admin/members', label: 'Members', icon: UsersIcon },
@@ -229,7 +237,7 @@
 	<div class="admin-login">
 		<div class="admin-login__card">
 			<div class="admin-login__header">
-				<a href="/" class="admin-login__logo">
+				<a href={resolve('/')} class="admin-login__logo">
 					<span class="admin-login__logo-brand">{SITE.logoBrandPrimary}</span>
 					<span class="admin-login__logo-accent">{SITE.logoBrandAccent}</span>
 				</a>
@@ -278,8 +286,8 @@
 				</button>
 			</form>
 
-			<a href="/admin/forgot-password" class="admin-login__forgot">Forgot password?</a>
-			<a href="/" class="admin-login__back">
+			<a href={resolve('/admin/forgot-password')} class="admin-login__forgot">Forgot password?</a>
+			<a href={resolve('/')} class="admin-login__back">
 				<ArrowLeftIcon size={14} weight="bold" />
 				<span>Back to site</span>
 			</a>
@@ -319,7 +327,7 @@
 					{/if}
 				</button>
 			</Tooltip>
-			<a href="/" class="admin__mobile-logo">
+			<a href={resolve('/')} class="admin__mobile-logo">
 				<span class="admin__logo-brand">{SITE.logoBrandPrimary}</span>
 				<span class="admin__logo-accent">{SITE.logoBrandAccent}</span>
 			</a>
@@ -332,7 +340,12 @@
 			class:admin__sidebar--collapsed={sidebarCollapsed}
 		>
 			<div class="admin__sidebar-top">
-				<a href="/" class="admin__logo" title={SITE.name} aria-label={SITE.name}>
+				<a
+					href={resolve('/')}
+					class="admin__logo"
+					title={SITE.name}
+					aria-label={SITE.name}
+				>
 					<span class="admin__logo-mark" aria-hidden="true">P</span>
 					<span class="admin__logo-wordmark">
 						<span class="admin__logo-brand">{SITE.logoBrandPrimary}</span>
@@ -367,7 +380,7 @@
 				{#each navItems as item (item.href)}
 					<Tooltip label={item.label} placement="right" disabled={!sidebarCollapsed}>
 						<a
-							href={item.href}
+							href={resolve(item.href)}
 							class="admin__nav-link"
 							class:admin__nav-link--active={page.url.pathname === item.href}
 							onclick={() => (mobileMenuOpen = false)}
@@ -404,7 +417,7 @@
 						<div class="admin__nav-submenu">
 							{#each blogAdminItems as item (item.href)}
 								<a
-									href={item.href}
+									href={resolve(item.href)}
 									class="admin__nav-sublink"
 									onclick={() => {
 										mobileMenuOpen = false;
@@ -443,7 +456,7 @@
 						<div class="admin__nav-submenu">
 							{#each courseAdminItems as item (item.href)}
 								<a
-									href={item.href}
+									href={resolve(item.href)}
 									class="admin__nav-sublink"
 									onclick={() => {
 										mobileMenuOpen = false;
@@ -482,7 +495,7 @@
 						<div class="admin__nav-submenu">
 							{#each subscriptionAdminItems as item (item.href)}
 								<a
-									href={item.href}
+									href={resolve(item.href)}
 									class="admin__nav-sublink"
 									onclick={() => {
 										mobileMenuOpen = false;
@@ -521,7 +534,7 @@
 						<div class="admin__nav-submenu">
 							{#each couponAdminItems as item (item.href)}
 								<a
-									href={item.href}
+									href={resolve(item.href)}
 									class="admin__nav-sublink"
 									onclick={() => {
 										mobileMenuOpen = false;
@@ -560,7 +573,7 @@
 						<div class="admin__nav-submenu">
 							{#each popupAdminItems as item (item.href)}
 								<a
-									href={item.href}
+									href={resolve(item.href)}
 									class="admin__nav-sublink"
 									onclick={() => {
 										mobileMenuOpen = false;
@@ -577,7 +590,7 @@
 				<span class="admin__nav-eyebrow">Operations</span>
 				<Tooltip label="Orders" placement="right" disabled={!sidebarCollapsed}>
 					<a
-						href="/admin/orders"
+						href={resolve('/admin/orders')}
 						class="admin__nav-link"
 						class:admin__nav-link--active={page.url.pathname.startsWith(
 							'/admin/orders'
@@ -615,7 +628,7 @@
 						<div class="admin__nav-submenu">
 							{#each notificationAdminItems as item (item.href)}
 								<a
-									href={item.href}
+									href={resolve(item.href)}
 									class="admin__nav-sublink"
 									onclick={() => {
 										mobileMenuOpen = false;
@@ -631,7 +644,7 @@
 
 				<Tooltip label="Outbox" placement="right" disabled={!sidebarCollapsed}>
 					<a
-						href="/admin/outbox"
+						href={resolve('/admin/outbox')}
 						class="admin__nav-link"
 						class:admin__nav-link--active={page.url.pathname.startsWith(
 							'/admin/outbox'
@@ -647,7 +660,7 @@
 				<span class="admin__nav-eyebrow">Governance</span>
 				<Tooltip label="Security" placement="right" disabled={!sidebarCollapsed}>
 					<a
-						href="/admin/security"
+						href={resolve('/admin/security')}
 						class="admin__nav-link"
 						class:admin__nav-link--active={page.url.pathname.startsWith(
 							'/admin/security'
@@ -685,7 +698,7 @@
 						<div class="admin__nav-submenu">
 							{#each consentAdminItems as item (item.href)}
 								<a
-									href={item.href}
+									href={resolve(item.href)}
 									class="admin__nav-sublink"
 									onclick={() => {
 										mobileMenuOpen = false;
@@ -701,7 +714,7 @@
 
 				<Tooltip label="Audit log" placement="right" disabled={!sidebarCollapsed}>
 					<a
-						href="/admin/audit"
+						href={resolve('/admin/audit')}
 						class="admin__nav-link"
 						class:admin__nav-link--active={page.url.pathname.startsWith('/admin/audit')}
 						onclick={() => (mobileMenuOpen = false)}
@@ -714,7 +727,7 @@
 
 				<Tooltip label="DSAR" placement="right" disabled={!sidebarCollapsed}>
 					<a
-						href="/admin/dsar"
+						href={resolve('/admin/dsar')}
 						class="admin__nav-link"
 						class:admin__nav-link--active={page.url.pathname.startsWith('/admin/dsar')}
 						onclick={() => (mobileMenuOpen = false)}
@@ -727,7 +740,7 @@
 
 				<Tooltip label="Settings" placement="right" disabled={!sidebarCollapsed}>
 					<a
-						href="/admin/settings"
+						href={resolve('/admin/settings')}
 						class="admin__nav-link"
 						class:admin__nav-link--active={page.url.pathname === '/admin/settings'}
 						onclick={() => (mobileMenuOpen = false)}
@@ -741,7 +754,7 @@
 			<div class="admin__sidebar-footer">
 				<Tooltip label="Member Dashboard" placement="right" disabled={!sidebarCollapsed}>
 					<a
-						href="/dashboard"
+						href={resolve('/dashboard')}
 						class="admin__nav-link admin__nav-link--back"
 						onclick={() => (mobileMenuOpen = false)}
 					>
@@ -769,6 +782,8 @@
 										>{crumb.label}</span
 									>
 								{:else}
+									<!-- Breadcrumb hrefs are derived live from `page.url.pathname` (which already has `paths.base` applied), so they don't need a second `resolve()` pass — they are already real URLs, not route-id literals. -->
+									<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 									<a href={crumb.href} class="admin__breadcrumbs-link"
 										>{crumb.label}</a
 									>
@@ -794,7 +809,7 @@
 						<kbd class="admin__search-pill-kbd">⌘K</kbd>
 					</button>
 					<Tooltip label="Open public site in same tab" placement="bottom">
-						<a href="/" class="admin__view-site">
+						<a href={resolve('/')} class="admin__view-site">
 							<ArrowSquareOutIcon size={16} weight="bold" />
 							<span>View site</span>
 						</a>

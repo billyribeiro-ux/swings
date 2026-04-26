@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import GlobeIcon from 'phosphor-svelte/lib/GlobeIcon';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
@@ -91,7 +92,7 @@
 
 <div class="page" data-testid="security-ip-allowlist">
 	<header class="page__header">
-		<a href="/admin/security" class="page__back">← Security</a>
+		<a href={resolve('/admin/security')} class="page__back">← Security</a>
 		<div class="page__title-row">
 			<GlobeIcon size={26} weight="duotone" />
 			<h1 class="page__title">IP allowlist</h1>

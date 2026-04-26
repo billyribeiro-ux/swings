@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { gsap } from 'gsap';
 	import { createCinematicCascade, EASE, DURATION, hoverTilt } from '$lib/utils/animations';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
@@ -58,11 +59,11 @@
 	});
 
 	function nextPage() {
-		if (currentPage < totalPages) goto(`?page=${currentPage + 1}`);
+		if (currentPage < totalPages) goto(`${resolve('/blog')}?page=${currentPage + 1}`);
 	}
 
 	function prevPage() {
-		if (currentPage > 1) goto(`?page=${currentPage - 1}`);
+		if (currentPage > 1) goto(`${resolve('/blog')}?page=${currentPage - 1}`);
 	}
 
 	const jsonLd = $derived(
@@ -117,9 +118,15 @@
 	<section class="page-section page-section--white" style="padding-bottom: 0;">
 		<div class="page-container">
 			<div class="blog-categories">
-				<a href="/blog" class="blog-categories__link blog-categories__link--active">All</a>
+				<a
+					href={resolve('/blog')}
+					class="blog-categories__link blog-categories__link--active">All</a
+				>
 				{#each categories as cat (cat.id)}
-					<a href="/blog/category/{cat.slug}" class="blog-categories__link">{cat.name}</a>
+					<a
+						href={resolve('/blog/category/[slug]', { slug: cat.slug })}
+						class="blog-categories__link">{cat.name}</a
+					>
 				{/each}
 			</div>
 		</div>
@@ -153,7 +160,10 @@
 							{@attach hoverTilt({ maxTilt: 3, scale: 1.01 })}
 						>
 							{#if post.featured_image_url}
-								<a href="/blog/{post.slug}" class="blog-card__image-link">
+								<a
+									href={resolve('/blog/[slug]', { slug: post.slug })}
+									class="blog-card__image-link"
+								>
 									<img
 										src={post.featured_image_url}
 										alt={post.title}
@@ -201,7 +211,10 @@
 									<p class="blog-card__excerpt">{post.excerpt}</p>
 								{/if}
 
-								<a href="/blog/{post.slug}" class="blog-card__link">
+								<a
+									href={resolve('/blog/[slug]', { slug: post.slug })}
+									class="blog-card__link"
+								>
 									Read More
 									<ArrowRightIcon size={14} weight="bold" />
 								</a>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { resolve } from '$app/paths';
 	import GearIcon from 'phosphor-svelte/lib/GearIcon';
 	import GlobeIcon from 'phosphor-svelte/lib/GlobeIcon';
 	import EnvelopeIcon from 'phosphor-svelte/lib/EnvelopeIcon';
@@ -143,7 +144,8 @@
 		<p class="settings-page__hint">
 			Looking for runtime kill-switches like <code>system.maintenance_mode</code> or encrypted
 			secrets? Use the
-			<a href="/admin/settings/system" class="settings-page__link">typed system catalogue →</a
+			<a href={resolve('/admin/settings/system')} class="settings-page__link"
+				>typed system catalogue →</a
 			>
 		</p>
 	</header>

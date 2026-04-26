@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import { toast } from '$lib/stores/toast.svelte';
 	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
@@ -134,7 +135,7 @@
 				Manage your course catalog: drafts, published lessons, and learner progression.
 			</p>
 		</div>
-		<a href="/admin/courses/new" class="btn-primary">
+		<a href={resolve('/admin/courses/new')} class="btn-primary">
 			<PlusIcon size={16} weight="bold" />
 			<span>New course</span>
 		</a>
@@ -235,7 +236,7 @@
 				{/if}
 			</p>
 			{#if !search && statusFilter === 'all'}
-				<a href="/admin/courses/new" class="btn-primary">
+				<a href={resolve('/admin/courses/new')} class="btn-primary">
 					<PlusIcon size={16} weight="bold" />
 					<span>Create course</span>
 				</a>
@@ -245,7 +246,7 @@
 		<!-- Mobile: Cards -->
 		<div class="courses-admin__cards">
 			{#each courses as course (course.id)}
-				<a href="/admin/courses/{course.id}" class="course-card">
+				<a href={resolve('/admin/courses/[id]', { id: course.id })} class="course-card">
 					<div class="course-card__thumb">
 						{#if course.thumbnail_url}
 							<img
@@ -322,7 +323,10 @@
 					{#each courses as course (course.id)}
 						<tr>
 							<td class="td-thumb">
-								<a href="/admin/courses/{course.id}" class="thumb-link">
+								<a
+									href={resolve('/admin/courses/[id]', { id: course.id })}
+									class="thumb-link"
+								>
 									{#if course.thumbnail_url}
 										<img
 											src={course.thumbnail_url}
@@ -337,7 +341,10 @@
 								</a>
 							</td>
 							<td>
-								<a href="/admin/courses/{course.id}" class="title-link">
+								<a
+									href={resolve('/admin/courses/[id]', { id: course.id })}
+									class="title-link"
+								>
 									{course.title}
 								</a>
 								<div class="title-sub">
@@ -375,7 +382,7 @@
 							<td class="td-actions">
 								<Tooltip label="Edit {course.title}">
 									<a
-										href="/admin/courses/{course.id}"
+										href={resolve('/admin/courses/[id]', { id: course.id })}
 										class="icon-btn"
 										aria-label="Edit {course.title}"
 									>

@@ -95,6 +95,7 @@
 			<p class="body">
 				{body}
 				{#if config.copy.privacyPolicyHref && privacyPolicyLabel}
+					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- privacyPolicyHref comes from admin-managed BannerConfig and is typically an external URL; resolve() does not apply -->
 					<a class="policy-link" href={config.copy.privacyPolicyHref}>
 						{privacyPolicyLabel}
 					</a>
@@ -131,6 +132,7 @@
 			</div>
 			{#if config.copy.privacyPolicyHref && privacyPolicyLabel}
 				<p class="policy-note">
+					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- privacyPolicyHref comes from admin-managed BannerConfig and is typically an external URL; resolve() does not apply -->
 					<a class="policy-link" href={config.copy.privacyPolicyHref}>
 						{privacyPolicyLabel}
 					</a>

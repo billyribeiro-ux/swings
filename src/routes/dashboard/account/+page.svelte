@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api, ApiError } from '$lib/api/client';
 	import type {
@@ -168,7 +169,7 @@
 		try {
 			await api.del('/api/member/account');
 			auth.logout();
-			goto('/');
+			goto(resolve('/'));
 		} catch (err) {
 			deleteError = err instanceof ApiError ? err.message : 'Failed to delete account';
 		} finally {
@@ -289,7 +290,7 @@
 		{:else}
 			<p class="muted">No active subscription.</p>
 			<a
-				href="/pricing/monthly"
+				href={resolve('/pricing/monthly')}
 				class="btn-primary"
 				style="display:inline-block;margin-top:.75rem;text-decoration:none;text-align:center"
 				>View Plans</a

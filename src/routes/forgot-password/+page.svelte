@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { api, ApiError } from '$lib/api/client';
 	import { SITE } from '$lib/seo/config';
 
@@ -34,7 +35,7 @@
 <div class="forgot-page">
 	<div class="forgot-card">
 		<div class="forgot-card__header">
-			<a href="/" class="forgot-card__logo">
+			<a href={resolve('/')} class="forgot-card__logo">
 				<span class="forgot-card__logo-brand">{SITE.logoBrandPrimary}</span>
 				<span class="forgot-card__logo-accent">{SITE.logoBrandAccent}</span>
 			</a>
@@ -49,7 +50,7 @@
 				<p>If an account with that email exists, a password reset link has been sent.</p>
 				<p class="forgot-card__success-hint">Check your inbox and spam folder.</p>
 			</div>
-			<a href="/login" class="forgot-card__back-btn">Back to sign in</a>
+			<a href={resolve('/login')} class="forgot-card__back-btn">Back to sign in</a>
 		{:else}
 			{#if error}
 				<div class="forgot-card__error">{error}</div>
@@ -75,7 +76,7 @@
 				</button>
 			</form>
 
-			<a href="/login" class="forgot-card__back">Back to sign in</a>
+			<a href={resolve('/login')} class="forgot-card__back">Back to sign in</a>
 		{/if}
 	</div>
 </div>

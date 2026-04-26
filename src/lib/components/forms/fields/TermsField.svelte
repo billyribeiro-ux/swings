@@ -34,6 +34,7 @@
 		/>
 		<span class="fm-check__label">
 			{field.label ?? 'I accept the'}
+			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- terms_url is supplied by the form schema and is typically an external policy URL opened in a new tab; resolve() does not apply -->
 			<a href={t.terms_url} target="_blank" rel="noopener noreferrer">terms and conditions</a>
 			{#if field.required}
 				<span class="fm-field__required" aria-hidden="true">*</span>

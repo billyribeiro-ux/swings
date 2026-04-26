@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import type { CourseEnrollment, CourseListItem, PaginatedResponse } from '$lib/api/types';
 	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
@@ -220,7 +221,10 @@
 								</div>
 							{/if}
 
-							<a href="/dashboard/courses/{course.slug}" class="course-card__action">
+							<a
+								href={resolve('/dashboard/courses/[slug]', { slug: course.slug })}
+								class="course-card__action"
+							>
 								{enrollment && enrollment.progress > 0
 									? 'Continue Learning'
 									: 'Start Course'}
@@ -295,7 +299,7 @@
 									<span class="course-card__pct">{enrollment.progress}%</span>
 								</div>
 								<a
-									href="/dashboard/courses/{course.slug}"
+									href={resolve('/dashboard/courses/[slug]', { slug: course.slug })}
 									class="course-card__action"
 								>
 									Continue Learning

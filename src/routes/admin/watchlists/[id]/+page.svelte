@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import { api, ApiError } from '$lib/api/client';
 	import type { WatchlistWithAlerts, WatchlistAlert } from '$lib/api/types';
 	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
@@ -140,7 +141,7 @@
 </svelte:head>
 
 <div class="edit-wl">
-	<a href="/admin/watchlists" class="edit-wl__back">
+	<a href={resolve('/admin/watchlists')} class="edit-wl__back">
 		<ArrowLeftIcon size={18} />
 		Back to Watchlists
 	</a>

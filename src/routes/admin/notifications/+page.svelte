@@ -4,6 +4,7 @@
   `admin/consent/+page.svelte` so the operator sees a consistent jump-off.
 -->
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import BellIcon from 'phosphor-svelte/lib/BellIcon';
 	import EnvelopeIcon from 'phosphor-svelte/lib/EnvelopeIcon';
 	import PaperPlaneTiltIcon from 'phosphor-svelte/lib/PaperPlaneTiltIcon';
@@ -59,7 +60,7 @@
 
 	<div class="grid">
 		{#each sections as s (s.href)}
-			<a class="card" href={s.href}>
+			<a class="card" href={resolve(s.href)}>
 				<div class="card__head">
 					<div class="card__icon">
 						<s.icon size={20} weight="duotone" />

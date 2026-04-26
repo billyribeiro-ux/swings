@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
 	import ChartBarIcon from 'phosphor-svelte/lib/ChartBarIcon';
 	import PresentationChartIcon from 'phosphor-svelte/lib/PresentationChartIcon';
@@ -33,70 +34,70 @@
 			label: 'Dashboard',
 			description: 'Admin overview',
 			icon: ChartBarIcon,
-			action: () => goto('/admin'),
+			action: () => goto(resolve('/admin')),
 			keywords: ['home', 'dash', 'overview', 'stats']
 		},
 		{
 			label: 'Analytics',
 			description: 'Traffic, pages, CTR',
 			icon: PresentationChartIcon,
-			action: () => goto('/admin/analytics'),
+			action: () => goto(resolve('/admin/analytics')),
 			keywords: ['analytics', 'traffic', 'views', 'ctr', 'charts', 'three']
 		},
 		{
 			label: 'Posts',
 			description: 'Manage blog posts',
 			icon: ArticleIcon,
-			action: () => goto('/admin/blog'),
+			action: () => goto(resolve('/admin/blog')),
 			keywords: ['post', 'blog', 'articles']
 		},
 		{
 			label: 'New Post',
 			description: 'Create a new blog post',
 			icon: PlusCircleIcon,
-			action: () => goto('/admin/blog/new'),
+			action: () => goto(resolve('/admin/blog/new')),
 			keywords: ['new', 'create', 'write', 'post']
 		},
 		{
 			label: 'Categories',
 			description: 'Manage blog categories',
 			icon: FolderOpenIcon,
-			action: () => goto('/admin/blog/categories'),
+			action: () => goto(resolve('/admin/blog/categories')),
 			keywords: ['category', 'categories', 'folder']
 		},
 		{
 			label: 'Tags',
 			description: 'Manage post tags',
 			icon: TagIcon,
-			action: () => goto('/admin/blog/tags'),
+			action: () => goto(resolve('/admin/blog/tags')),
 			keywords: ['tag', 'tags', 'label']
 		},
 		{
 			label: 'Media',
 			description: 'Media library',
 			icon: ImageIcon,
-			action: () => goto('/admin/blog/media'),
+			action: () => goto(resolve('/admin/blog/media')),
 			keywords: ['media', 'image', 'upload', 'library']
 		},
 		{
 			label: 'Members',
 			description: 'Manage members',
 			icon: UsersIcon,
-			action: () => goto('/admin/members'),
+			action: () => goto(resolve('/admin/members')),
 			keywords: ['member', 'user', 'people']
 		},
 		{
 			label: 'Watchlists',
 			description: 'Manage watchlists',
 			icon: ListChecksIcon,
-			action: () => goto('/admin/watchlists'),
+			action: () => goto(resolve('/admin/watchlists')),
 			keywords: ['watchlist', 'watch', 'list']
 		},
 		{
 			label: 'Author Profile',
 			description: 'Edit your author profile',
 			icon: UserCircleIcon,
-			action: () => goto('/admin/author'),
+			action: () => goto(resolve('/admin/author')),
 			keywords: ['author', 'profile', 'bio']
 		}
 	];

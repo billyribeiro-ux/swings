@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { api, ApiError } from '$lib/api/client';
@@ -199,7 +200,7 @@
 		deleting = true;
 		try {
 			await api.del(`/api/admin/courses/${page.params.id}`);
-			goto('/admin/courses');
+			goto(resolve('/admin/courses'));
 		} catch (err) {
 			error = err instanceof ApiError ? err.message : 'Failed to delete';
 			deleting = false;
@@ -212,7 +213,9 @@
 </svelte:head>
 
 <div class="ce">
-	<a href="/admin/courses" class="ce__back"><ArrowLeftIcon size={18} /> Back to Courses</a>
+	<a href={resolve('/admin/courses')} class="ce__back"
+		><ArrowLeftIcon size={18} /> Back to Courses</a
+	>
 
 	{#if loading}
 		<p class="ce__status">Loading course...</p>
@@ -437,7 +440,7 @@
 					{deleting ? 'Deleting...' : 'Delete Course'}</button
 				>
 				<div class="ce__ar">
-					<a href="/admin/courses" class="ce__cancel">Cancel</a>
+					<a href={resolve('/admin/courses')} class="ce__cancel">Cancel</a>
 					<button type="submit" disabled={saving} class="ce__save"
 						><FloppyDiskIcon size={16} weight="bold" />
 						{saving ? 'Saving...' : 'Save Course'}</button

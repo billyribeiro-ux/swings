@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import type { WatchlistWithAlerts } from '$lib/api/types';
@@ -28,7 +29,7 @@
 </svelte:head>
 
 <div class="wl-detail">
-	<a href="/dashboard/watchlists" class="wl-detail__back">
+	<a href={resolve('/dashboard/watchlists')} class="wl-detail__back">
 		<ArrowLeftIcon size={18} />
 		Back to Watchlists
 	</a>
@@ -49,6 +50,7 @@
 
 		{#if watchlist.video_url}
 			<div class="wl-detail__video">
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- video_url is admin-supplied (typically YouTube/Vimeo) and opens in a new tab; resolve() does not apply -->
 				<a
 					href={watchlist.video_url}
 					target="_blank"
@@ -127,6 +129,7 @@
 							{/if}
 
 							{#if alert.chart_url}
+								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- chart_url is admin-supplied (typically TradingView) and opens in a new tab; resolve() does not apply -->
 								<a
 									href={alert.chart_url}
 									target="_blank"

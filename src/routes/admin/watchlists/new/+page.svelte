@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { api, ApiError } from '$lib/api/client';
 	import type { Watchlist } from '$lib/api/types';
 	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
@@ -25,7 +26,7 @@
 				notes: notes || null,
 				published
 			});
-			goto(`/admin/watchlists/${wl.id}`);
+			goto(resolve('/admin/watchlists/[id]', { id: wl.id }));
 		} catch (err) {
 			error = err instanceof ApiError ? err.message : 'Failed to create watchlist';
 		} finally {
@@ -39,7 +40,7 @@
 </svelte:head>
 
 <div class="new-wl">
-	<a href="/admin/watchlists" class="new-wl__back">
+	<a href={resolve('/admin/watchlists')} class="new-wl__back">
 		<ArrowLeftIcon size={18} />
 		Back to Watchlists
 	</a>
@@ -101,7 +102,7 @@
 		</label>
 
 		<div class="new-wl__actions">
-			<a href="/admin/watchlists" class="new-wl__cancel">Cancel</a>
+			<a href={resolve('/admin/watchlists')} class="new-wl__cancel">Cancel</a>
 			<button type="submit" disabled={saving} class="new-wl__submit">
 				{saving ? 'Creating...' : 'Create Watchlist'}
 			</button>

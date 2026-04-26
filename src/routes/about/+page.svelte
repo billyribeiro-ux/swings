@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import { gsap } from 'gsap';
 	import { DURATION, EASE, createCinematicCascade, hoverTilt } from '$lib/utils/animations';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
@@ -340,7 +341,7 @@
 			</p>
 
 			<div class="reveal-item">
-				<a href="/pricing/monthly" class="page-cta-btn">
+				<a href={resolve('/pricing/monthly')} class="page-cta-btn">
 					Get Instant Access
 					<ChartLineUpIcon size={18} weight="bold" />
 				</a>

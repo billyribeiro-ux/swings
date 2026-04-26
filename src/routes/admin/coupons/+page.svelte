@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import { toast } from '$lib/stores/toast.svelte';
 	import type { Coupon, BulkCouponPayload, PaginatedResponse } from '$lib/api/types';
@@ -201,7 +202,7 @@
 				<LightningIcon size={16} weight="bold" />
 				<span>Bulk generate</span>
 			</button>
-			<a href="/admin/coupons/new" class="btn btn--primary">
+			<a href={resolve('/admin/coupons/new')} class="btn btn--primary">
 				<PlusIcon size={16} weight="bold" />
 				<span>Create coupon</span>
 			</a>
@@ -416,7 +417,9 @@
 				{@const st = couponStatus(coupon)}
 				<div class="ccard">
 					<div class="ccard__top">
-						<a href="/admin/coupons/{coupon.id}" class="ccard__code">{coupon.code}</a>
+						<a href={resolve('/admin/coupons/[id]', { id: coupon.id })} class="ccard__code"
+							>{coupon.code}</a
+						>
 						<span class="badge badge--{st}">{statusLabel(st)}</span>
 					</div>
 					<div class="ccard__row">
@@ -447,7 +450,7 @@
 						</Tooltip>
 						<Tooltip label="Edit {coupon.code}">
 							<a
-								href="/admin/coupons/{coupon.id}"
+								href={resolve('/admin/coupons/[id]', { id: coupon.id })}
 								class="icon-btn"
 								aria-label="Edit {coupon.code}"
 							>
@@ -477,8 +480,9 @@
 						{@const st = couponStatus(coupon)}
 						<tr>
 							<td>
-								<a href="/admin/coupons/{coupon.id}" class="ctable__code"
-									>{coupon.code}</a
+								<a
+									href={resolve('/admin/coupons/[id]', { id: coupon.id })}
+									class="ctable__code">{coupon.code}</a
 								>
 							</td>
 							<td>{formatDiscount(coupon)}</td>
@@ -504,7 +508,7 @@
 							</td>
 							<td class="ctable__actions">
 								<a
-									href="/admin/coupons/{coupon.id}"
+									href={resolve('/admin/coupons/[id]', { id: coupon.id })}
 									class="icon-btn"
 									title="Edit {coupon.code}"
 									aria-label="Edit {coupon.code}"

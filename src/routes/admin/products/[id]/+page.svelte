@@ -8,6 +8,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import { Button, FormField } from '$lib/components/shared';
 	import { productsApi } from '$lib/api/products';
 	import type {
@@ -249,7 +250,7 @@
 		if (!ok) return;
 		try {
 			await productsApi.adminDelete(detail.id);
-			goto('/admin/products');
+			goto(resolve('/admin/products'));
 		} catch (err) {
 			errorMessage = err instanceof ApiError ? err.message : 'Delete failed';
 		}
@@ -263,7 +264,7 @@
 <div class="pr-detail">
 	<div class="pr-detail__breadcrumb">
 		{#snippet backIcon()}<ArrowLeftIcon size={14} weight="bold" />{/snippet}
-		<Button variant="ghost" size="sm" href="/admin/products" iconLeading={backIcon}>
+		<Button variant="ghost" size="sm" href={resolve('/admin/products')} iconLeading={backIcon}>
 			Back to products
 		</Button>
 	</div>

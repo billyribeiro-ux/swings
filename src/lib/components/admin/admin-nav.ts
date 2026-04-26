@@ -1,5 +1,15 @@
+import type { resolve } from '$app/paths';
+
+/**
+ * `resolve()` from `$app/paths` accepts only literal `RouteId` values, so we
+ * tighten `href` to that exact string union. This keeps the data file
+ * JSON-serialisable (plain strings — no `resolve()` calls baked in) while
+ * giving consumers a typed input they can pass straight into `resolve(item.href)`.
+ */
+export type AdminNavHref = Parameters<typeof resolve>[0];
+
 export interface AdminNavItem {
-	href: string;
+	href: AdminNavHref;
 	label: string;
 }
 

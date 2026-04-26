@@ -11,6 +11,7 @@
 -->
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 
 	let name = $state('');
@@ -46,7 +47,7 @@
 				schema: [],
 				logic: []
 			});
-			await goto(`/admin/forms/${created.id}`);
+			await goto(resolve('/admin/forms/[id]', { id: created.id }));
 		} catch (e2) {
 			err = e2 instanceof Error ? e2.message : 'Failed to create form.';
 		} finally {
@@ -58,7 +59,7 @@
 <svelte:head><title>New form · Admin</title></svelte:head>
 
 <header class="nf-header">
-	<a class="nf-back" href="/admin/forms">← Forms</a>
+	<a class="nf-back" href={resolve('/admin/forms')}>← Forms</a>
 	<h1 class="nf-title">New form</h1>
 </header>
 
@@ -100,7 +101,11 @@
 	{/if}
 
 	<div class="nf-actions">
-		<button class="nf-btn nf-btn--ghost" type="button" onclick={() => goto('/admin/forms')}>
+		<button
+			class="nf-btn nf-btn--ghost"
+			type="button"
+			onclick={() => goto(resolve('/admin/forms'))}
+		>
 			Cancel
 		</button>
 		<button class="nf-btn nf-btn--primary" type="submit" disabled={saving}>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
 	import FloppyDiskIcon from 'phosphor-svelte/lib/FloppyDiskIcon';
@@ -76,7 +77,7 @@
 			};
 
 			const res = await api.post<CourseResponse>('/api/admin/courses', payload);
-			await goto(`/admin/courses/${res.id}`);
+			await goto(resolve('/admin/courses/[id]', { id: res.id }));
 		} catch (e) {
 			console.error('Failed to create course', e);
 			error = e instanceof Error ? e.message : 'Failed to create course.';
@@ -93,7 +94,7 @@
 <div class="new-course">
 	<!-- Header -->
 	<div class="new-course__header">
-		<a href="/admin/courses" class="back-link">
+		<a href={resolve('/admin/courses')} class="back-link">
 			<ArrowLeftIcon size={18} weight="bold" />
 			Back to Courses
 		</a>

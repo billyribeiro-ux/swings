@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import Seo from '$lib/seo/Seo.svelte';
@@ -79,7 +80,7 @@
 
 <section class="cat-hero">
 	<div class="cat-hero__inner">
-		<a href="/blog" class="cat-hero__back">
+		<a href={resolve('/blog')} class="cat-hero__back">
 			<ArrowLeftIcon size={16} weight="bold" />
 			Back to Blog
 		</a>
@@ -92,10 +93,10 @@
 {#if categories.length > 0}
 	<section class="cat-nav-section">
 		<div class="cat-nav">
-			<a href="/blog" class="cat-nav__link">All</a>
+			<a href={resolve('/blog')} class="cat-nav__link">All</a>
 			{#each categories as cat (cat.id)}
 				<a
-					href="/blog/category/{cat.slug}"
+					href={resolve('/blog/category/[slug]', { slug: cat.slug })}
 					class="cat-nav__link"
 					class:cat-nav__link--active={cat.slug === slug}
 				>
@@ -118,7 +119,10 @@
 					{#each posts as post, i (post.id)}
 						<article class="reveal-item cat-card" style="transition-delay: {i * 0.08}s">
 							{#if post.featured_image_url}
-								<a href="/blog/{post.slug}" class="cat-card__img-link">
+								<a
+									href={resolve('/blog/[slug]', { slug: post.slug })}
+									class="cat-card__img-link"
+								>
 									<img
 										src={post.featured_image_url}
 										alt={post.title}
@@ -141,12 +145,17 @@
 									{post.reading_time_minutes} min
 								</div>
 								<h2 class="cat-card__title">
-									<a href="/blog/{post.slug}">{post.title}</a>
+									<a href={resolve('/blog/[slug]', { slug: post.slug })}
+										>{post.title}</a
+									>
 								</h2>
 								{#if post.excerpt}
 									<p class="cat-card__excerpt">{post.excerpt}</p>
 								{/if}
-								<a href="/blog/{post.slug}" class="cat-card__link">
+								<a
+									href={resolve('/blog/[slug]', { slug: post.slug })}
+									class="cat-card__link"
+								>
 									Read More <ArrowRightIcon size={14} weight="bold" />
 								</a>
 							</div>

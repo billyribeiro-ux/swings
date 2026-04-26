@@ -15,6 +15,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { auth } from '$lib/stores/auth.svelte';
 	import PackageIcon from 'phosphor-svelte/lib/PackageIcon';
 	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
@@ -40,7 +41,7 @@
 	// this redirect still keeps the dev preview off the public surface.
 	$effect(() => {
 		if (!auth.loading && !auth.isAdmin) {
-			void goto('/admin', { replaceState: true });
+			void goto(resolve('/admin'), { replaceState: true });
 		}
 	});
 

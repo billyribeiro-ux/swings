@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import FloppyDiskIcon from 'phosphor-svelte/lib/FloppyDiskIcon';
 	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
 	import { api } from '$lib/api/client';
@@ -116,14 +117,16 @@
 
 <header class="builder__header">
 	<div>
-		<a class="back" href="/admin/forms">← Forms</a>
+		<a class="back" href={resolve('/admin/forms')}>← Forms</a>
 		<h1 class="builder__title">
 			{formDef ? formDef.name : 'Loading…'}
 			{#if dirty}<span class="dirty">●</span>{/if}
 		</h1>
 	</div>
 	<div class="builder__actions">
-		<a class="btn" href="/admin/forms/{id}/preview"><EyeIcon size={16} />Preview</a>
+		<a class="btn" href={resolve('/admin/forms/[id]/preview', { id })}
+			><EyeIcon size={16} />Preview</a
+		>
 		<button class="btn btn--primary" type="button" onclick={save} disabled={saving || !dirty}>
 			<FloppyDiskIcon size={16} />{saving ? 'Saving…' : 'Save version'}
 		</button>

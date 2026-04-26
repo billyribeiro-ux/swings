@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { gsap } from 'gsap';
 	import { createCinematicCascade, DURATION, EASE, hoverTilt } from '$lib/utils/animations';
 	import { courses } from '$lib/data/courses';
@@ -107,7 +108,7 @@
 				{#each courses as course, i (course.slug ?? course.title)}
 					{@const Icon = iconMap[course.icon]}
 					<a
-						href="/courses/{course.slug}"
+						href={resolve('/courses/[slug]', { slug: course.slug })}
 						class="reveal-item course-card"
 						style="transition-delay: {i * 0.08}s"
 					>

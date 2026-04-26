@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { api, ApiError } from '$lib/api/client';
 	import type { UserResponse, PaginatedResponse } from '$lib/api/types';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
@@ -90,7 +91,7 @@
 	}
 
 	async function viewMember(member: UserResponse) {
-		await goto(`/admin/members/${member.id}`);
+		await goto(resolve('/admin/members/[id]', { id: member.id }));
 	}
 
 	async function banOrUnban(member: UserResponse) {
@@ -185,7 +186,7 @@
 	}
 
 	async function quickEdit(member: UserResponse) {
-		await goto(`/admin/members/${member.id}`);
+		await goto(resolve('/admin/members/[id]', { id: member.id }));
 	}
 
 	async function toggleRole(member: UserResponse) {
@@ -229,7 +230,7 @@
 				and billing profile.
 			</p>
 		</div>
-		<a class="members-page__cta" href="/admin/members/manage">
+		<a class="members-page__cta" href={resolve('/admin/members/manage')}>
 			<MagnifyingGlassIcon size={16} weight="bold" />
 			<span>Search &amp; create</span>
 			<ArrowRightIcon size={14} weight="bold" />
@@ -371,7 +372,10 @@
 						<span class="member-card__label">Joined</span>
 						<span class="member-card__value">{formatDate(member.created_at)}</span>
 					</div>
-					<a href="/admin/members/{member.id}" class="member-card__profile">
+					<a
+						href={resolve('/admin/members/[id]', { id: member.id })}
+						class="member-card__profile"
+					>
 						<EyeIcon size={14} weight="bold" />
 						<span>View profile</span>
 					</a>

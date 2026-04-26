@@ -13,6 +13,7 @@
 -->
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { consent } from '$lib/stores/consent.svelte';
 	import ConsentBanner from '$lib/components/consent/ConsentBanner.svelte';
@@ -24,7 +25,7 @@
 	// this redirect still keeps the dev preview off the public surface.
 	$effect(() => {
 		if (!auth.loading && !auth.isAdmin) {
-			void goto('/admin', { replaceState: true });
+			void goto(resolve('/admin'), { replaceState: true });
 		}
 	});
 

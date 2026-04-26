@@ -8,6 +8,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { Button, Dialog, FormField } from '$lib/components/shared';
 	import { productsApi } from '$lib/api/products';
 	import type {
@@ -108,7 +109,7 @@
 			const created = await productsApi.adminCreate(payload);
 			toast.success(`Product "${created.name}" created`);
 			createOpen = false;
-			goto(`/admin/products/${created.id}`);
+			goto(resolve('/admin/products/[id]', { id: created.id }));
 		} catch (err) {
 			createError = err instanceof ApiError ? err.message : 'Create failed';
 			toast.error('Failed to create product', {
@@ -264,7 +265,7 @@
 							<td class="pr-table__actions">
 								<Tooltip label="Edit {product.name}">
 									<a
-										href={`/admin/products/${product.id}`}
+										href={resolve('/admin/products/[id]', { id: product.id })}
 										class="pr-icon-btn"
 										aria-label="Edit {product.name}"
 									>

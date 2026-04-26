@@ -15,6 +15,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 
 	interface Version {
@@ -123,7 +124,7 @@
 <svelte:head><title>Versions · Form Builder</title></svelte:head>
 
 <header class="versions__header">
-	<a class="versions__back" href={`/admin/forms/${id}`}>← Builder</a>
+	<a class="versions__back" href={resolve('/admin/forms/[id]', { id })}>← Builder</a>
 	<h1 class="versions__title">Versions</h1>
 </header>
 

@@ -12,6 +12,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import { toast } from '$lib/stores/toast.svelte';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
@@ -80,7 +81,7 @@
 				<p class="forms-page__subtitle">Build, preview, and manage collection forms.</p>
 			</div>
 		</div>
-		<button class="btn btn--primary" type="button" onclick={() => goto('/admin/forms/new')}>
+		<button class="btn btn--primary" type="button" onclick={() => goto(resolve('/admin/forms/new'))}>
 			<PlusIcon size={16} weight="bold" />
 			<span>New form</span>
 		</button>
@@ -103,7 +104,7 @@
 			<StackIcon size={48} weight="duotone" />
 			<p class="empty__title">No forms yet</p>
 			<p class="empty__sub">Create one to start collecting submissions.</p>
-			<button class="btn btn--primary" type="button" onclick={() => goto('/admin/forms/new')}>
+			<button class="btn btn--primary" type="button" onclick={() => goto(resolve('/admin/forms/new'))}>
 				<PlusIcon size={16} weight="bold" />
 				<span>Create your first form</span>
 			</button>
@@ -125,7 +126,10 @@
 						{#each forms as f (f.id)}
 							<tr>
 								<td>
-									<a class="table__name" href={`/admin/forms/${f.id}`}>{f.name}</a
+									<a
+										class="table__name"
+										href={resolve('/admin/forms/[id]', { id: f.id })}
+										>{f.name}</a
 									>
 									{#if f.description}<div class="table__desc">
 											{f.description}
@@ -146,7 +150,7 @@
 									<div class="actions">
 										<a
 											class="action-btn"
-											href={`/admin/forms/${f.id}`}
+											href={resolve('/admin/forms/[id]', { id: f.id })}
 											aria-label={`Edit ${f.name}`}
 											title="Edit"
 										>
@@ -155,7 +159,7 @@
 										</a>
 										<a
 											class="action-btn"
-											href={`/admin/forms/${f.id}/preview`}
+											href={resolve('/admin/forms/[id]/preview', { id: f.id })}
 											aria-label={`Preview ${f.name}`}
 											title="Preview"
 										>
@@ -164,7 +168,9 @@
 										</a>
 										<a
 											class="action-btn"
-											href={`/admin/forms/${f.id}/submissions`}
+											href={resolve('/admin/forms/[id]/submissions', {
+												id: f.id
+											})}
 											aria-label={`Submissions for ${f.name}`}
 											title="Submissions"
 										>
@@ -173,7 +179,7 @@
 										</a>
 										<a
 											class="action-btn"
-											href={`/admin/forms/${f.id}/versions`}
+											href={resolve('/admin/forms/[id]/versions', { id: f.id })}
 											aria-label={`Versions of ${f.name}`}
 											title="Versions"
 										>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 
 	const status = $derived(page.status);
 	const message = $derived(page.error?.message ?? 'Something went wrong.');
@@ -52,9 +53,11 @@
 		{/if}
 
 		<div class="error-page__actions">
-			<a class="error-page__btn error-page__btn--primary" href="/">Go home</a>
+			<a class="error-page__btn error-page__btn--primary" href={resolve('/')}>Go home</a>
 			{#if status === 401}
-				<a class="error-page__btn error-page__btn--secondary" href="/login">Sign in</a>
+				<a class="error-page__btn error-page__btn--secondary" href={resolve('/login')}
+					>Sign in</a
+				>
 			{:else}
 				<button
 					type="button"

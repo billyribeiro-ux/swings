@@ -32,6 +32,7 @@
 							>{item.label}</span
 						>
 					{:else}
+						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- href is a caller-supplied prop; resolve() must be applied at the call site -->
 						<a class="link" href={item.href}>{item.label}</a>
 					{/if}
 				</li>

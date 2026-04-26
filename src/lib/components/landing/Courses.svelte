@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
@@ -24,7 +25,7 @@
 				{#each courses as course, i (course.id)}
 					{@const Icon = iconMap[course.icon]}
 					<a
-						href="/courses/{course.slug}"
+						href={resolve('/courses/[slug]', { slug: course.slug })}
 						class="reveal-item course-card"
 						style="--i: {i};"
 					>

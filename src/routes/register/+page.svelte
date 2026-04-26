@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api, ApiError } from '$lib/api/client';
 	import type { AuthResponse } from '$lib/api/types';
@@ -58,7 +59,7 @@
 			// BFF (Phase 1.3): registration response includes Set-Cookie for
 			// the new httpOnly session pair. We persist only the user record.
 			auth.setUser(res.user);
-			goto('/dashboard');
+			goto(resolve('/dashboard'));
 		} catch (err) {
 			if (err instanceof ApiError) {
 				error = err.message;
@@ -80,7 +81,7 @@
 
 	<main class="auth-card">
 		<header class="auth-card__header">
-			<a href="/" class="auth-card__logo" aria-label="{SITE.name} home">
+			<a href={resolve('/')} class="auth-card__logo" aria-label="{SITE.name} home">
 				<span class="auth-card__logo-brand">{SITE.logoBrandPrimary}</span>
 				<span class="auth-card__logo-accent">{SITE.logoBrandAccent}</span>
 			</a>
@@ -217,9 +218,10 @@
 
 			<p class="auth-form__legal">
 				By creating an account, you agree to our
-				<a href="/terms" class="auth-card__link auth-card__link--inline">Terms</a>
+				<a href={resolve('/terms')} class="auth-card__link auth-card__link--inline">Terms</a>
 				and
-				<a href="/privacy" class="auth-card__link auth-card__link--inline">Privacy Policy</a
+				<a href={resolve('/privacy')} class="auth-card__link auth-card__link--inline"
+					>Privacy Policy</a
 				>.
 			</p>
 		</form>
@@ -241,7 +243,7 @@
 		<footer class="auth-card__footer">
 			<p class="auth-card__footer-line">
 				Already have an account?
-				<a href="/login" class="auth-card__link">Sign in</a>
+				<a href={resolve('/login')} class="auth-card__link">Sign in</a>
 			</p>
 		</footer>
 	</main>

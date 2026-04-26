@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import WarningCircleIcon from 'phosphor-svelte/lib/WarningCircleIcon';
 	import XCircleIcon from 'phosphor-svelte/lib/XCircleIcon';
 	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
@@ -87,7 +88,7 @@
 
 		<div class="dash-error__actions">
 			{#if status === 401}
-				<a class="dash-error__btn dash-error__btn--primary" href="/login">
+				<a class="dash-error__btn dash-error__btn--primary" href={resolve('/login')}>
 					<SignInIcon size={16} weight="bold" />
 					<span>Sign in</span>
 				</a>
@@ -101,7 +102,7 @@
 					<span>Try again</span>
 				</button>
 			{/if}
-			<a class="dash-error__btn dash-error__btn--secondary" href="/dashboard">
+			<a class="dash-error__btn dash-error__btn--secondary" href={resolve('/dashboard')}>
 				<HouseIcon size={16} weight="bold" />
 				<span>Go to dashboard</span>
 			</a>

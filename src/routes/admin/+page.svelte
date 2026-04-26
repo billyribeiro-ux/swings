@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { SvelteDate } from 'svelte/reactivity';
 	import { browser } from '$app/environment';
+	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import type { AdminStats, DashboardRange } from '$lib/api/types';
 	import UsersIcon from 'phosphor-svelte/lib/UsersIcon';
@@ -579,7 +580,7 @@
 					<span class="admin-dash__eyebrow admin-dash__eyebrow--inline">Members</span>
 					<h2 class="admin-dash__section-title">Recent sign-ups</h2>
 				</div>
-				<a href="/admin/members" class="admin-dash__link">
+				<a href={resolve('/admin/members')} class="admin-dash__link">
 					<span>View all</span>
 					<ArrowRightIcon size={12} weight="bold" />
 				</a>
@@ -676,18 +677,18 @@
 			</div>
 			<div class="admin-dash__actions">
 				<a
-					href="/admin/watchlists/new"
+					href={resolve('/admin/watchlists/new')}
 					class="admin-dash__action admin-dash__action--primary"
 				>
 					<PlusIcon size={16} weight="bold" />
 					<span>Create New Watchlist</span>
 				</a>
-				<a href="/admin/members" class="admin-dash__action">
+				<a href={resolve('/admin/members')} class="admin-dash__action">
 					<UsersIcon size={16} weight="duotone" />
 					<span>Manage Members</span>
 					<ArrowRightIcon size={14} weight="bold" class="admin-dash__action-arrow" />
 				</a>
-				<a href="/admin/blog" class="admin-dash__action">
+				<a href={resolve('/admin/blog')} class="admin-dash__action">
 					<BookOpenIcon size={16} weight="duotone" />
 					<span>Manage Blog</span>
 					<ArrowRightIcon size={14} weight="bold" class="admin-dash__action-arrow" />

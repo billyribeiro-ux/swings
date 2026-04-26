@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import Seo from '$lib/seo/Seo.svelte';
@@ -67,7 +68,7 @@
 
 <section class="tag-hero">
 	<div class="tag-hero__inner">
-		<a href="/blog" class="tag-hero__back">
+		<a href={resolve('/blog')} class="tag-hero__back">
 			<ArrowLeftIcon size={16} weight="bold" />
 			Back to Blog
 		</a>
@@ -88,7 +89,10 @@
 					{#each posts as post, i (post.id)}
 						<article class="reveal-item tag-card" style="transition-delay: {i * 0.08}s">
 							{#if post.featured_image_url}
-								<a href="/blog/{post.slug}" class="tag-card__img-link">
+								<a
+									href={resolve('/blog/[slug]', { slug: post.slug })}
+									class="tag-card__img-link"
+								>
 									<img
 										src={post.featured_image_url}
 										alt={post.title}
@@ -111,12 +115,17 @@
 									{post.reading_time_minutes} min
 								</div>
 								<h2 class="tag-card__title">
-									<a href="/blog/{post.slug}">{post.title}</a>
+									<a href={resolve('/blog/[slug]', { slug: post.slug })}
+										>{post.title}</a
+									>
 								</h2>
 								{#if post.excerpt}
 									<p class="tag-card__excerpt">{post.excerpt}</p>
 								{/if}
-								<a href="/blog/{post.slug}" class="tag-card__link">
+								<a
+									href={resolve('/blog/[slug]', { slug: post.slug })}
+									class="tag-card__link"
+								>
 									Read More <ArrowRightIcon size={14} weight="bold" />
 								</a>
 							</div>

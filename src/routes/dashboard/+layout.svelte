@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { onMount } from 'svelte';
 	import HouseIcon from 'phosphor-svelte/lib/HouseIcon';
@@ -13,27 +14,27 @@
 
 	onMount(() => {
 		if (!auth.isAuthenticated) {
-			goto('/login');
+			goto(resolve('/login'));
 		}
 	});
 
 	function handleLogout() {
 		auth.logout();
-		goto('/login');
+		goto(resolve('/login'));
 	}
 
 	const navItems = [
-		{ href: '/dashboard', label: 'Overview', icon: HouseIcon },
-		{ href: '/dashboard/watchlists', label: 'Watchlists', icon: ListChecksIcon },
-		{ href: '/dashboard/courses', label: 'Courses', icon: BookOpenIcon },
-		{ href: '/dashboard/account', label: 'Account', icon: UserCircleIcon }
+		{ href: resolve('/dashboard'), label: 'Overview', icon: HouseIcon },
+		{ href: resolve('/dashboard/watchlists'), label: 'Watchlists', icon: ListChecksIcon },
+		{ href: resolve('/dashboard/courses'), label: 'Courses', icon: BookOpenIcon },
+		{ href: resolve('/dashboard/account'), label: 'Account', icon: UserCircleIcon }
 	];
 </script>
 
 {#if auth.isAuthenticated}
 	<div class="dash">
 		<aside class="dash__sidebar">
-			<a href="/" class="dash__logo">
+			<a href={resolve('/')} class="dash__logo">
 				<span class="dash__logo-brand">{SITE.logoBrandPrimary}</span>
 				<span class="dash__logo-accent">{SITE.logoBrandAccent}</span>
 			</a>
@@ -49,7 +50,9 @@
 
 			<div class="dash__sidebar-footer">
 				{#if auth.isAdmin}
-					<a href="/admin" class="dash__nav-link dash__nav-link--admin"> Admin Panel </a>
+					<a href={resolve('/admin')} class="dash__nav-link dash__nav-link--admin">
+						Admin Panel
+					</a>
 				{/if}
 				<button onclick={handleLogout} class="dash__logout">
 					<SignOutIcon size={20} weight="duotone" />

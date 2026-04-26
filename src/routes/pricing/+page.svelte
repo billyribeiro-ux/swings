@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import type { PricingPlan } from '$lib/api/types';
 	import Seo from '$lib/seo/Seo.svelte';
@@ -178,7 +179,8 @@
 	}
 
 	function getCheckoutUrl(plan: DisplayPlan): string {
-		const base = plan.interval === 'month' ? '/pricing/monthly' : '/pricing/annual';
+		const base =
+			plan.interval === 'month' ? resolve('/pricing/monthly') : resolve('/pricing/annual');
 		return couponValid ? `${base}?coupon=${encodeURIComponent(couponCode)}` : base;
 	}
 </script>

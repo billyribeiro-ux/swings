@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { api, ApiError } from '$lib/api/client';
 	import type {
 		BillingPortalResponse,
@@ -313,7 +314,7 @@
 		try {
 			await api.del(`/api/admin/members/${memberId}`);
 			toast.success('Member deleted');
-			await goto('/admin/members');
+			await goto(resolve('/admin/members'));
 		} catch (e) {
 			toast.error(e instanceof ApiError ? e.message : 'Delete failed');
 		}
@@ -346,7 +347,7 @@
 </svelte:head>
 
 <div class="member-detail">
-	<a href="/admin/members" class="member-detail__back">
+	<a href={resolve('/admin/members')} class="member-detail__back">
 		<ArrowLeftIcon size={18} weight="bold" />
 		<span>Members</span>
 	</a>

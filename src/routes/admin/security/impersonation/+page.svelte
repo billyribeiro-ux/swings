@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import IdentificationBadgeIcon from 'phosphor-svelte/lib/IdentificationBadgeIcon';
 	import ArrowClockwiseIcon from 'phosphor-svelte/lib/ArrowClockwiseIcon';
 	import StopCircleIcon from 'phosphor-svelte/lib/StopCircleIcon';
@@ -102,7 +103,7 @@
 
 <div class="page" data-testid="security-impersonation">
 	<header class="page__header">
-		<a href="/admin/security" class="page__back">← Security</a>
+		<a href={resolve('/admin/security')} class="page__back">← Security</a>
 		<div class="page__title-row">
 			<IdentificationBadgeIcon size={26} weight="duotone" />
 			<h1 class="page__title">Impersonation sessions</h1>

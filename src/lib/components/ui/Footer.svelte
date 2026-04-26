@@ -2,6 +2,7 @@
 	import { fade } from 'svelte/transition';
 	import { quintOut, cubicOut } from 'svelte/easing';
 	import { prefersReducedMotion } from 'svelte/motion';
+	import { resolve } from '$app/paths';
 	import { courses } from '$lib/data/courses';
 	import EnvelopeSimpleIcon from 'phosphor-svelte/lib/EnvelopeSimpleIcon';
 	import TrendUpIcon from 'phosphor-svelte/lib/TrendUpIcon';
@@ -78,7 +79,7 @@
 			<!-- Brand -->
 			<div class="footer__col footer__col--brand">
 				<div class="footer__brand-inner">
-					<a href="/" class="footer__logo">
+					<a href={resolve('/')} class="footer__logo">
 						<span class="footer__logo-brand">{SITE.logoBrandPrimary}</span>
 						<span class="footer__logo-accent">{SITE.logoBrandAccent}</span>
 					</a>
@@ -98,7 +99,10 @@
 							class="footer__li"
 							style={motionOk && inView ? `--stagger: ${80 + i * 42}ms` : undefined}
 						>
-							<a href="/courses/{course.slug}" class="footer__link">
+							<a
+								href={resolve('/courses/[slug]', { slug: course.slug })}
+								class="footer__link"
+							>
 								<span class="footer__link-text">{course.title}</span>
 								<ArrowUpRightIcon
 									class="footer__link-icon"
@@ -113,7 +117,7 @@
 						class="footer__li footer__li--cta"
 						style={motionOk && inView ? '--stagger: 420ms' : undefined}
 					>
-						<a href="/courses" class="footer__link footer__link--emphasis">
+						<a href={resolve('/courses')} class="footer__link footer__link--emphasis">
 							<span class="footer__link-text">View all courses</span>
 							<ArrowUpRightIcon
 								class="footer__link-icon"
@@ -134,7 +138,7 @@
 						class="footer__li"
 						style={motionOk && inView ? '--stagger: 100ms' : undefined}
 					>
-						<a href="/blog" class="footer__link">
+						<a href={resolve('/blog')} class="footer__link">
 							<span class="footer__link-text">Blog</span>
 						</a>
 					</li>
@@ -142,7 +146,7 @@
 						class="footer__li"
 						style={motionOk && inView ? '--stagger: 145ms' : undefined}
 					>
-						<a href="/pricing/monthly" class="footer__link">
+						<a href={resolve('/pricing/monthly')} class="footer__link">
 							<span class="footer__link-text">Pricing</span>
 						</a>
 					</li>
@@ -150,7 +154,7 @@
 						class="footer__li"
 						style={motionOk && inView ? '--stagger: 190ms' : undefined}
 					>
-						<a href="/terms" class="footer__link">
+						<a href={resolve('/terms')} class="footer__link">
 							<span class="footer__link-text">Terms</span>
 						</a>
 					</li>
@@ -158,7 +162,7 @@
 						class="footer__li"
 						style={motionOk && inView ? '--stagger: 235ms' : undefined}
 					>
-						<a href="/privacy" class="footer__link">
+						<a href={resolve('/privacy')} class="footer__link">
 							<span class="footer__link-text">Privacy</span>
 						</a>
 					</li>

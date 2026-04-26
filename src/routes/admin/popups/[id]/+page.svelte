@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { api, ApiError } from '$lib/api/client';
 	import type {
@@ -195,7 +196,7 @@
 		deleting = true;
 		try {
 			await api.del(`/api/admin/popups/${popupId}`);
-			goto('/admin/popups');
+			goto(resolve('/admin/popups'));
 		} catch {
 			error = 'Failed to delete';
 			deleting = false;
@@ -210,7 +211,9 @@
 		<p class="popup-edit__loading">Loading popup...</p>
 	{:else}
 		<div class="popup-edit__header">
-			<a href="/admin/popups" class="popup-edit__back"><ArrowLeftIcon size={18} /> Back</a>
+			<a href={resolve('/admin/popups')} class="popup-edit__back"
+				><ArrowLeftIcon size={18} /> Back</a
+			>
 			<input
 				id="popup-name"
 				name="popup-name"

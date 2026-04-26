@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { api, ApiError } from '$lib/api/client';
 	import ArrowLeftIcon from 'phosphor-svelte/lib/ArrowLeftIcon';
 	import TicketIcon from 'phosphor-svelte/lib/TicketIcon';
@@ -48,7 +49,7 @@
 				first_purchase_only: firstPurchaseOnly,
 				active
 			});
-			goto('/admin/coupons');
+			goto(resolve('/admin/coupons'));
 		} catch (err) {
 			error = err instanceof ApiError ? err.message : 'Failed to create coupon';
 		} finally {
@@ -60,7 +61,9 @@
 <svelte:head><title>New Coupon - Admin - Precision Options Signals</title></svelte:head>
 
 <div class="pg">
-	<a href="/admin/coupons" class="back"><ArrowLeftIcon size={18} /> Back to Coupons</a>
+	<a href={resolve('/admin/coupons')} class="back"
+		><ArrowLeftIcon size={18} /> Back to Coupons</a
+	>
 	<div class="hdr">
 		<TicketIcon size={24} weight="bold" />
 		<h1>Create New Coupon</h1>
@@ -202,7 +205,7 @@
 		</div>
 
 		<div class="actions">
-			<a href="/admin/coupons" class="cancel">Cancel</a>
+			<a href={resolve('/admin/coupons')} class="cancel">Cancel</a>
 			<button type="submit" disabled={saving} class="submit"
 				>{saving ? 'Creating...' : 'Create Coupon'}</button
 			>

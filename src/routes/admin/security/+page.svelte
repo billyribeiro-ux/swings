@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import ShieldCheckIcon from 'phosphor-svelte/lib/ShieldCheckIcon';
 	import GlobeIcon from 'phosphor-svelte/lib/GlobeIcon';
 	import UserGearIcon from 'phosphor-svelte/lib/UserGearIcon';
@@ -73,7 +74,7 @@
 		{#each cards as card (card.href)}
 			<a
 				class="security-card"
-				href={card.href}
+				href={resolve(card.href)}
 				data-testid={`security-card-${card.title.toLowerCase().replace(/[^a-z]+/g, '-')}`}
 			>
 				<div class="security-card__head">

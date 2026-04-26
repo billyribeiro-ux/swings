@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { toast } from '$lib/stores/toast.svelte';
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
@@ -140,7 +141,7 @@
 	}
 
 	function navigateToMember(memberId: string) {
-		goto(`/admin/members/${memberId}`);
+		goto(resolve('/admin/members/[id]', { id: memberId }));
 	}
 </script>
 
@@ -159,7 +160,7 @@
 				{total} total.
 			</p>
 		</div>
-		<a href="/admin/subscriptions/plans" class="btn btn--primary">
+		<a href={resolve('/admin/subscriptions/plans')} class="btn btn--primary">
 			<RepeatIcon size={16} weight="bold" />
 			<span>Manage plans</span>
 		</a>

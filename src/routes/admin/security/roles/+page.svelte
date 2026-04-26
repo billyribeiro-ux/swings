@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
+	import { resolve } from '$app/paths';
 	import UserGearIcon from 'phosphor-svelte/lib/UserGearIcon';
 	import ArrowClockwiseIcon from 'phosphor-svelte/lib/ArrowClockwiseIcon';
 	import FloppyDiskIcon from 'phosphor-svelte/lib/FloppyDiskIcon';
@@ -102,7 +103,7 @@
 
 <div class="page" data-testid="security-roles">
 	<header class="page__header">
-		<a href="/admin/security" class="page__back">← Security</a>
+		<a href={resolve('/admin/security')} class="page__back">← Security</a>
 		<div class="page__title-row">
 			<UserGearIcon size={26} weight="duotone" />
 			<h1 class="page__title">Role / permission matrix</h1>

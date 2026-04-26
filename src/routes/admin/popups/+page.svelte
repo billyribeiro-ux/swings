@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import type { Popup, PopupAnalytics, PaginatedResponse } from '$lib/api/types';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
@@ -236,7 +237,7 @@
 				<ChartBarIcon size={48} weight="duotone" />
 				<p class="empty__title">No popups created yet</p>
 				<p class="empty__sub">Build a modal, banner, or slide-in to engage visitors.</p>
-				<a href="/admin/popups/new" class="btn btn--primary">
+				<a href={resolve('/admin/popups/new')} class="btn btn--primary">
 					<PlusIcon size={16} weight="bold" />
 					<span>Create your first popup</span>
 				</a>
@@ -278,7 +279,10 @@
 							<span>{stats?.total_submissions.toLocaleString() ?? 0} subs</span>
 						</div>
 						<div class="popup-card__actions">
-							<a href="/admin/popups/{popup.id}" class="action-btn">
+							<a
+								href={resolve('/admin/popups/[id]', { id: popup.id })}
+								class="action-btn"
+							>
 								<PencilSimpleIcon size={14} weight="bold" />
 								<span>Edit</span>
 							</a>
@@ -354,7 +358,9 @@
 										<div class="row-actions">
 											<Tooltip label="Edit popup">
 												<a
-													href="/admin/popups/{popup.id}"
+													href={resolve('/admin/popups/[id]', {
+														id: popup.id
+													})}
 													class="icon-btn"
 													aria-label="Edit"
 												>

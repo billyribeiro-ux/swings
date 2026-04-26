@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { courses } from '$lib/data/courses';
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import { fly, slide } from 'svelte/transition';
 	import { quintOut, expoOut } from 'svelte/easing';
 	import { prefersReducedMotion } from 'svelte/motion';
@@ -30,7 +31,7 @@
 	// Auth-aware CTA: signed-in users see a Dashboard/Admin button instead of
 	// the anonymous "Get Instant Access" + "Sign in" pair.
 	const showAuthedCta = $derived(auth.isAuthenticated);
-	const dashHref = $derived(auth.isAdmin ? '/admin' : '/dashboard');
+	const dashHref = $derived(auth.isAdmin ? resolve('/admin') : resolve('/dashboard'));
 	const dashLabel = $derived(auth.isAdmin ? 'Admin' : 'Dashboard');
 
 	function toggleCourses() {
@@ -91,7 +92,7 @@
 	<div class="nav__glow" aria-hidden="true"></div>
 	<div class="nav__inner">
 		<!-- Logo -->
-		<a href="/" class="nav__logo">
+		<a href={resolve('/')} class="nav__logo">
 			<span class="nav__logo-brand">{SITE.logoBrandPrimary}</span>
 			<span class="nav__logo-accent">{SITE.logoBrandAccent}</span>
 		</a>
@@ -99,7 +100,7 @@
 		<!-- Desktop Nav -->
 		<div class="nav__desktop">
 			<div class="nav__pill">
-				<a href="/about" class="nav__link">About</a>
+				<a href={resolve('/about')} class="nav__link">About</a>
 
 				<!-- Courses Dropdown -->
 				<div class="nav__dropdown" bind:this={dropdownRef}>
@@ -136,7 +137,7 @@
 								{#each courses as course (course.id)}
 									{@const Icon = iconMap[course.icon]}
 									<a
-										href="/courses/{course.slug}"
+										href={resolve('/courses/[slug]', { slug: course.slug })}
 										class="dropdown-item"
 										onclick={closeAll}
 									>
@@ -176,7 +177,7 @@
 
 								<div class="dropdown-panel__footer">
 									<a
-										href="/courses"
+										href={resolve('/courses')}
 										class="dropdown-panel__view-all"
 										onclick={closeAll}
 									>
@@ -189,8 +190,8 @@
 					{/if}
 				</div>
 
-				<a href="/blog" class="nav__link">Blog</a>
-				<a href="/pricing/monthly" class="nav__link">Pricing</a>
+				<a href={resolve('/blog')} class="nav__link">Blog</a>
+				<a href={resolve('/pricing/monthly')} class="nav__link">Pricing</a>
 			</div>
 		</div>
 
@@ -208,11 +209,11 @@
 							<span>{dashLabel}</span>
 						</a>
 					{:else}
-						<Button variant="primary" href="/register">Get Instant Access</Button>
+						<Button variant="primary" href={resolve('/register')}>Get Instant Access</Button>
 						<div class="nav__signin">
 							<p class="nav__cta-signin-label">Already a member?</p>
 							<a
-								href="/login"
+								href={resolve('/login')}
 								class="nav__cta-signin-button"
 								data-sveltekit-preload-data="hover"
 							>
@@ -256,7 +257,7 @@
 						{#each courses as course (course.id)}
 							{@const Icon = iconMap[course.icon]}
 							<a
-								href="/courses/{course.slug}"
+								href={resolve('/courses/[slug]', { slug: course.slug })}
 								class="mobile-course-item"
 								onclick={closeAll}
 							>
@@ -294,10 +295,12 @@
 					class="mobile-menu__links"
 					in:fly={{ y: 16, duration: tDur(400), delay: tDelay(90), easing: expoOut }}
 				>
-					<a href="/about" class="mobile-menu__link" onclick={closeAll}>About</a>
-					<a href="/courses" class="mobile-menu__link" onclick={closeAll}>All Courses</a>
-					<a href="/blog" class="mobile-menu__link" onclick={closeAll}>Blog</a>
-					<a href="/pricing/monthly" class="mobile-menu__link" onclick={closeAll}
+					<a href={resolve('/about')} class="mobile-menu__link" onclick={closeAll}>About</a>
+					<a href={resolve('/courses')} class="mobile-menu__link" onclick={closeAll}
+						>All Courses</a
+					>
+					<a href={resolve('/blog')} class="mobile-menu__link" onclick={closeAll}>Blog</a>
+					<a href={resolve('/pricing/monthly')} class="mobile-menu__link" onclick={closeAll}
 						>Pricing</a
 					>
 				</div>
@@ -313,14 +316,16 @@
 							{dashLabel}
 						</a>
 					{:else}
-						<a href="/register" class="mobile-menu__cta-btn" onclick={closeAll}>
+						<a href={resolve('/register')} class="mobile-menu__cta-btn" onclick={closeAll}>
 							Get Instant Access
 							<ArrowRightIcon size={16} weight="bold" />
 						</a>
 						<p class="mobile-menu__cta-sub">
 							Already a member?
-							<a href="/login" class="mobile-menu__cta-sub-link" onclick={closeAll}
-								>Sign in</a
+							<a
+								href={resolve('/login')}
+								class="mobile-menu__cta-sub-link"
+								onclick={closeAll}>Sign in</a
 							>
 						</p>
 					{/if}

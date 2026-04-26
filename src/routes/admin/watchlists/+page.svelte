@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import type { Watchlist, PaginatedResponse } from '$lib/api/types';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
@@ -95,7 +96,7 @@
 				publish, and manage weekly issues.
 			</p>
 		</div>
-		<a href="/admin/watchlists/new" class="wl-admin__create">
+		<a href={resolve('/admin/watchlists/new')} class="wl-admin__create">
 			<PlusIcon size={16} weight="bold" />
 			<span>New watchlist</span>
 		</a>
@@ -115,7 +116,10 @@
 				Watchlists drive your weekly subscriber alerts. Publish your first one to get
 				started.
 			</p>
-			<a href="/admin/watchlists/new" class="wl-admin__create wl-admin__create--empty">
+			<a
+				href={resolve('/admin/watchlists/new')}
+				class="wl-admin__create wl-admin__create--empty"
+			>
 				<PlusIcon size={16} weight="bold" />
 				<span>Create your first watchlist</span>
 			</a>
@@ -147,7 +151,7 @@
 					</div>
 					<div class="wl-card__actions">
 						<a
-							href="/admin/watchlists/{wl.id}"
+							href={resolve('/admin/watchlists/[id]', { id: wl.id })}
 							class="wl-card__btn wl-card__btn--edit"
 							title="Edit"
 						>
@@ -213,7 +217,7 @@
 							<td>
 								<div class="wl-table__actions">
 									<a
-										href="/admin/watchlists/{wl.id}"
+										href={resolve('/admin/watchlists/[id]', { id: wl.id })}
 										class="wl-table__btn wl-table__btn--edit"
 										title="Edit"
 										aria-label="Edit"

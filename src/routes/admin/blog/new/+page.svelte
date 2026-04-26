@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import type { CreatePostPayload, UpdatePostPayload, BlogPostResponse } from '$lib/api/types';
 	import PostEditor from '$lib/components/editor/PostEditor.svelte';
@@ -11,7 +12,7 @@
 	}
 
 	async function handleSave(post: BlogPostResponse) {
-		await goto(`/admin/blog/${post.id}`);
+		await goto(resolve('/admin/blog/[id]', { id: post.id }));
 	}
 </script>
 

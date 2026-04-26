@@ -14,6 +14,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import DeviceMobileIcon from 'phosphor-svelte/lib/DeviceMobileIcon';
 	import DeviceTabletIcon from 'phosphor-svelte/lib/DeviceTabletIcon';
@@ -66,7 +67,7 @@
 
 <header class="preview__header">
 	<div>
-		<a class="preview__back" href={`/admin/forms/${id}`}>← Builder</a>
+		<a class="preview__back" href={resolve('/admin/forms/[id]', { id })}>← Builder</a>
 		<h1 class="preview__title">{form?.name ?? 'Loading…'}</h1>
 		{#if form}<p class="preview__slug">/forms/{form.slug}</p>{/if}
 	</div>

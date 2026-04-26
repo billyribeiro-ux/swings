@@ -32,6 +32,7 @@
 
 	{#if actionLabel}
 		{#if actionHref}
+			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- actionHref is a caller-supplied prop; resolve() must be applied at the call site -->
 			<a href={actionHref} class="empty-state__action">
 				{actionLabel}
 			</a>

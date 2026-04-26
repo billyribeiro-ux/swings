@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import { api, ApiError } from '$lib/api/client';
 	import { SITE } from '$lib/seo/config';
 	import { onMount } from 'svelte';
@@ -50,7 +51,7 @@
 
 <div class="verify-page">
 	<div class="verify-card">
-		<a href="/" class="verify-card__logo">
+		<a href={resolve('/')} class="verify-card__logo">
 			<span class="verify-card__logo-brand">{SITE.logoBrandPrimary}</span>
 			<span class="verify-card__logo-accent">{SITE.logoBrandAccent}</span>
 		</a>
@@ -60,12 +61,12 @@
 			<p class="verify-card__muted">Verifying your email...</p>
 		{:else if success}
 			<div class="verify-card__success">{message}</div>
-			<a href="/login" class="verify-card__cta">Continue to sign in</a>
+			<a href={resolve('/login')} class="verify-card__cta">Continue to sign in</a>
 		{:else}
 			<div class="verify-card__error">{error}</div>
 			<div class="verify-card__actions">
-				<a href="/login" class="verify-card__back">Back to sign in</a>
-				<a href="/resend-verification" class="verify-card__back"
+				<a href={resolve('/login')} class="verify-card__back">Back to sign in</a>
+				<a href={resolve('/resend-verification')} class="verify-card__back"
 					>Resend verification email</a
 				>
 			</div>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import { gsap } from 'gsap';
 	import { createCinematicCascade, EASE, DURATION } from '$lib/utils/animations';
 	import { createCheckoutSession } from '$lib/utils/checkout';
@@ -266,7 +267,7 @@
 						{/if}
 					</button>
 
-					<a href="/pricing/monthly" class="page-cta__link">
+					<a href={resolve('/pricing/monthly')} class="page-cta__link">
 						View Monthly Plan
 						<ArrowRightIcon size={14} weight="bold" />
 					</a>

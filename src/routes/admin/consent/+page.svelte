@@ -3,6 +3,7 @@
   banners, categories, services, policies, log (+ integrity).
 -->
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import MegaphoneIcon from 'phosphor-svelte/lib/MegaphoneIcon';
 	import ListChecksIcon from 'phosphor-svelte/lib/ListChecksIcon';
 	import WrenchIcon from 'phosphor-svelte/lib/WrenchIcon';
@@ -82,7 +83,7 @@
 
 	<div class="consent-hub__grid">
 		{#each sections as s (s.href)}
-			<a class="consent-card" href={s.href}>
+			<a class="consent-card" href={resolve(s.href)}>
 				<div class="consent-card__head">
 					<div class="consent-card__icon">
 						<s.icon size={20} weight="duotone" />
