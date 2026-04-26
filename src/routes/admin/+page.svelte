@@ -1066,19 +1066,22 @@
 		flex-direction: column;
 		gap: 0.5rem;
 		min-height: 6.5rem;
-		padding: 0.875rem 1rem;
-		background-color: var(--color-navy-mid);
-		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-lg);
+		padding: 1rem 1.25rem;
+		background: linear-gradient(135deg, rgba(19, 43, 80, 0.45) 0%, rgba(19, 43, 80, 0.25) 100%);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: var(--radius-2xl);
 		box-shadow:
 			0 1px 0 rgba(255, 255, 255, 0.05) inset,
-			0 1px 2px rgba(0, 0, 0, 0.18);
+			0 12px 24px -8px rgba(0, 0, 0, 0.3);
 		position: relative;
+		overflow: hidden;
 		transition:
-			transform 200ms var(--ease-out),
-			border-color 200ms var(--ease-out),
-			box-shadow 200ms var(--ease-out),
-			background-color 200ms var(--ease-out);
+			transform 250ms var(--ease-out),
+			border-color 250ms var(--ease-out),
+			box-shadow 250ms var(--ease-out),
+			background 250ms var(--ease-out);
 	}
 
 	.kpi:hover {
@@ -1316,11 +1319,14 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
-		padding: 0.875rem 1rem;
-		background-color: var(--color-navy-mid);
-		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
-		transition: all 200ms var(--ease-out);
+		padding: 1rem 1.25rem;
+		background: rgba(19, 43, 80, 0.35);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: var(--radius-2xl);
+		box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.2);
+		transition: all 250ms var(--ease-out);
 	}
 
 	.member-card:hover {
@@ -1389,20 +1395,22 @@
 		align-items: center;
 		gap: 0.5rem;
 		min-height: 2.75rem;
-		padding: 0 1rem;
-		background-color: rgba(255, 255, 255, 0.04);
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		border-radius: var(--radius-lg);
+		padding: 0.5rem 1.25rem;
+		background: rgba(255, 255, 255, 0.05);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-xl);
 		color: var(--color-white);
 		font-size: 0.8125rem;
 		font-weight: 600;
 		text-decoration: none;
 		text-align: left;
 		transition:
-			background-color 150ms var(--ease-out),
-			border-color 150ms var(--ease-out),
-			transform 150ms var(--ease-out),
-			box-shadow 150ms var(--ease-out);
+			background 250ms var(--ease-out),
+			border-color 250ms var(--ease-out),
+			transform 250ms var(--ease-out),
+			box-shadow 250ms var(--ease-out);
 	}
 
 	.admin-dash__action:focus-visible {
@@ -1476,12 +1484,14 @@
 		/* Show table, hide cards */
 		.admin-dash__table-wrap {
 			overflow-x: auto;
-			background-color: var(--color-navy-mid);
-			border: 1px solid rgba(255, 255, 255, 0.06);
+			background: rgba(19, 43, 80, 0.35);
+			backdrop-filter: blur(24px);
+			-webkit-backdrop-filter: blur(24px);
+			border: 1px solid rgba(255, 255, 255, 0.08);
 			border-radius: var(--radius-2xl);
 			box-shadow:
-				0 1px 0 rgba(255, 255, 255, 0.03) inset,
-				0 12px 32px rgba(0, 0, 0, 0.18);
+				0 1px 0 rgba(255, 255, 255, 0.05) inset,
+				0 16px 32px -8px rgba(0, 0, 0, 0.3);
 		}
 
 		.admin-table {

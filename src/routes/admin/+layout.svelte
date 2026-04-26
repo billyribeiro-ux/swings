@@ -97,34 +97,12 @@
 		}
 	}
 
-	// NOTE: a previous version had a `$effect(() => { if (sidebarCollapsed) { ...resets } })`
-	// here that mirrored the body of `toggleSidebarCollapsed`. That effect read
-	// `sidebarCollapsed` and wrote five `$state` flags every time the layout
-	// re-rendered — redundant with the imperative path inside the toggle, and a
-	// classic "writes inside an effect that the effect (chain) reads" anti-pattern.
-	// All call sites that mutate `sidebarCollapsed` now do the resets inline.
-
 	const isPublicRoute = $derived(publicAdminRoutes.some((r) => page.url.pathname.startsWith(r)));
 
 	/** True only after /api/auth/me succeeds — avoids child pages firing admin APIs with stale localStorage JWTs. */
 	let adminSessionReady = $state(false);
 	let adminSessionCheckInFlight = false; // plain ref, NOT $state — guards a fetch lifecycle, not UI
 
-	// Why not `$effect`?
-	//   The previous version was an `$effect` that read `auth.isAuthenticated`,
-	//   `auth.isAdmin` (both `$derived` from `auth.user`) AND wrote `adminSessionReady`
-	//   plus called `auth.setUser(me)` from an async IIFE. The `setUser` write
-	//   replaced the `auth.user` reference, which invalidated `isAdmin`/`isAuthenticated`,
-	//   which retriggered the effect, which wrote `adminSessionReady = true`,
-	//   which retriggered the effect, which wrote `adminSessionCheckInFlight = false`,
-	//   which retriggered the effect again. Even though each iteration was an
-	//   early-return, Svelte 5 counts the rapid scheduled re-runs against the
-	//   `effect_update_depth_exceeded` budget and tears the runtime down.
-	//
-	//   The session-validation handshake is genuinely a one-shot per mount —
-	//   `onMount` is the right tool. We watch `auth.user` via `$effect` separately
-	//   (read-only, no writes) so a logout from another tab still flips the
-	//   sentinel back to `false`.
 	function validateAdminSession() {
 		if (adminSessionCheckInFlight) return;
 		if (!auth.isAuthenticated || !auth.isAdmin) {
@@ -197,12 +175,6 @@
 				return;
 			}
 
-			// BFF (Phase 1.3): the `/api/auth/login` response now also lands
-			// `Set-Cookie: swings_access=...; HttpOnly; SameSite=Lax` headers
-			// the browser swallowed before this line ran. We only persist the
-			// non-sensitive user record for SSR-hydration; the access /
-			// refresh tokens never enter JS state. Phase B will drop the
-			// `access_token` / `refresh_token` fields from `AuthResponse`.
 			auth.setUser(res.user);
 			adminSessionReady = true;
 		} catch (err) {
@@ -240,9 +212,7 @@
 	const breadcrumbs = $derived.by(() => {
 		const segments = page.url.pathname.split('/').filter(Boolean);
 		// Always start at /admin
-		const crumbs: { href: string; label: string }[] = [
-			{ href: '/admin', label: 'Admin' }
-		];
+		const crumbs: { href: string; label: string }[] = [{ href: '/admin', label: 'Admin' }];
 		let path = '';
 		for (const seg of segments) {
 			path += `/${seg}`;
@@ -251,7 +221,6 @@
 		}
 		return crumbs;
 	});
-
 </script>
 
 {#if isPublicRoute}
@@ -266,7 +235,9 @@
 				</a>
 				<span class="admin-login__badge">Admin</span>
 				<h1 class="admin-login__title">Admin Login</h1>
-				<p class="admin-login__subtitle">Enter your credentials to access the admin panel</p>
+				<p class="admin-login__subtitle">
+					Enter your credentials to access the admin panel
+				</p>
 			</div>
 
 			{#if loginError}
@@ -424,7 +395,9 @@
 							<CaretRightIcon
 								size={11}
 								weight="bold"
-								class="admin__nav-caret{blogSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+								class="admin__nav-caret{blogSubmenuOpen
+									? ' admin__nav-caret--open'
+									: ''}"
 							/>
 						</button>
 					</Tooltip>
@@ -461,7 +434,9 @@
 							<CaretRightIcon
 								size={11}
 								weight="bold"
-								class="admin__nav-caret{courseSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+								class="admin__nav-caret{courseSubmenuOpen
+									? ' admin__nav-caret--open'
+									: ''}"
 							/>
 						</button>
 					</Tooltip>
@@ -498,7 +473,9 @@
 							<CaretRightIcon
 								size={11}
 								weight="bold"
-								class="admin__nav-caret{subscriptionSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+								class="admin__nav-caret{subscriptionSubmenuOpen
+									? ' admin__nav-caret--open'
+									: ''}"
 							/>
 						</button>
 					</Tooltip>
@@ -535,7 +512,9 @@
 							<CaretRightIcon
 								size={11}
 								weight="bold"
-								class="admin__nav-caret{couponSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+								class="admin__nav-caret{couponSubmenuOpen
+									? ' admin__nav-caret--open'
+									: ''}"
 							/>
 						</button>
 					</Tooltip>
@@ -572,7 +551,9 @@
 							<CaretRightIcon
 								size={11}
 								weight="bold"
-								class="admin__nav-caret{popupSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+								class="admin__nav-caret{popupSubmenuOpen
+									? ' admin__nav-caret--open'
+									: ''}"
 							/>
 						</button>
 					</Tooltip>
@@ -599,7 +580,9 @@
 					<a
 						href="/admin/orders"
 						class="admin__nav-link"
-						class:admin__nav-link--active={page.url.pathname.startsWith('/admin/orders')}
+						class:admin__nav-link--active={page.url.pathname.startsWith(
+							'/admin/orders'
+						)}
 						onclick={() => (mobileMenuOpen = false)}
 						data-testid="nav-orders"
 					>
@@ -623,7 +606,9 @@
 							<CaretRightIcon
 								size={11}
 								weight="bold"
-								class="admin__nav-caret{notificationSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+								class="admin__nav-caret{notificationSubmenuOpen
+									? ' admin__nav-caret--open'
+									: ''}"
 							/>
 						</button>
 					</Tooltip>
@@ -649,7 +634,9 @@
 					<a
 						href="/admin/outbox"
 						class="admin__nav-link"
-						class:admin__nav-link--active={page.url.pathname.startsWith('/admin/outbox')}
+						class:admin__nav-link--active={page.url.pathname.startsWith(
+							'/admin/outbox'
+						)}
 						onclick={() => (mobileMenuOpen = false)}
 						data-testid="nav-outbox"
 					>
@@ -663,7 +650,9 @@
 					<a
 						href="/admin/security"
 						class="admin__nav-link"
-						class:admin__nav-link--active={page.url.pathname.startsWith('/admin/security')}
+						class:admin__nav-link--active={page.url.pathname.startsWith(
+							'/admin/security'
+						)}
 						onclick={() => (mobileMenuOpen = false)}
 						data-testid="nav-security"
 					>
@@ -687,7 +676,9 @@
 							<CaretRightIcon
 								size={11}
 								weight="bold"
-								class="admin__nav-caret{consentSubmenuOpen ? ' admin__nav-caret--open' : ''}"
+								class="admin__nav-caret{consentSubmenuOpen
+									? ' admin__nav-caret--open'
+									: ''}"
 							/>
 						</button>
 					</Tooltip>
@@ -775,10 +766,18 @@
 						{#each breadcrumbs as crumb, i (crumb.href)}
 							<li class="admin__breadcrumbs-item">
 								{#if i === breadcrumbs.length - 1}
-									<span class="admin__breadcrumbs-current" aria-current="page">{crumb.label}</span>
+									<span class="admin__breadcrumbs-current" aria-current="page"
+										>{crumb.label}</span
+									>
 								{:else}
-									<a href={crumb.href} class="admin__breadcrumbs-link">{crumb.label}</a>
-									<CaretRightIcon size={12} weight="bold" class="admin__breadcrumbs-sep" />
+									<a href={crumb.href} class="admin__breadcrumbs-link"
+										>{crumb.label}</a
+									>
+									<CaretRightIcon
+										size={12}
+										weight="bold"
+										class="admin__breadcrumbs-sep"
+									/>
 								{/if}
 							</li>
 						{/each}
@@ -833,8 +832,10 @@
 		align-items: center;
 		justify-content: space-between;
 		padding: 0.75rem 1rem;
-		background-color: var(--color-navy);
-		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+		background-color: rgba(11, 29, 58, 0.85);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 		position: sticky;
 		top: 0;
 		z-index: 30;
@@ -882,8 +883,10 @@
 		left: 0;
 		width: 16rem;
 		height: 100vh;
-		background-color: var(--color-navy);
-		border-right: 1px solid rgba(255, 255, 255, 0.06);
+		background-color: rgba(11, 29, 58, 0.85);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
+		border-right: 1px solid rgba(255, 255, 255, 0.08);
 		padding: 1rem 0.75rem 1rem;
 		display: flex;
 		flex-direction: column;
@@ -1319,11 +1322,15 @@
 			align-items: center;
 			gap: 1rem;
 			padding: 0.65rem 1.5rem;
-			border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-			background: rgba(0, 0, 0, 0.2);
-			backdrop-filter: blur(12px);
+			border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+			background: rgba(11, 29, 58, 0.7);
+			backdrop-filter: blur(24px);
+			-webkit-backdrop-filter: blur(24px);
 			min-height: 3.25rem;
 			box-sizing: border-box;
+			position: sticky;
+			top: 0;
+			z-index: 20;
 		}
 
 		.admin__main-topbar-actions {
@@ -1480,15 +1487,61 @@
 		justify-content: center;
 		padding: 1rem;
 		background: linear-gradient(145deg, var(--color-navy-deep) 0%, var(--color-navy) 100%);
+		position: relative;
+		overflow: hidden;
+	}
+
+	.admin-login::before {
+		content: '';
+		position: absolute;
+		top: -20%;
+		left: -10%;
+		width: 50%;
+		height: 50%;
+		background: radial-gradient(circle, rgba(15, 164, 175, 0.25) 0%, transparent 70%);
+		filter: blur(80px);
+		z-index: 0;
+		animation: pulse-glow-slow 8s ease-in-out infinite alternate;
+	}
+
+	.admin-login::after {
+		content: '';
+		position: absolute;
+		bottom: -20%;
+		right: -10%;
+		width: 50%;
+		height: 50%;
+		background: radial-gradient(circle, rgba(212, 168, 67, 0.15) 0%, transparent 70%);
+		filter: blur(80px);
+		z-index: 0;
+		animation: pulse-glow-slow 10s ease-in-out infinite alternate-reverse;
+	}
+
+	@keyframes pulse-glow-slow {
+		0% {
+			transform: scale(1) translate(0, 0);
+			opacity: 0.8;
+		}
+		100% {
+			transform: scale(1.1) translate(5%, 5%);
+			opacity: 1;
+		}
 	}
 
 	.admin-login__card {
 		width: 100%;
 		max-width: 26rem;
-		background-color: var(--color-navy-mid);
-		border: 1px solid rgba(255, 255, 255, 0.08);
+		background-color: rgba(19, 43, 80, 0.4);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
+		border: 1px solid rgba(255, 255, 255, 0.1);
 		border-radius: var(--radius-2xl);
 		padding: 1.5rem;
+		position: relative;
+		z-index: 1;
+		box-shadow:
+			0 25px 50px -12px rgba(0, 0, 0, 0.5),
+			0 0 0 1px rgba(255, 255, 255, 0.05) inset;
 	}
 
 	.admin-login__header {
