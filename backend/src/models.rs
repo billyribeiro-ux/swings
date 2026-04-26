@@ -385,8 +385,56 @@ pub struct WatchlistWithAlerts {
 
 // ── Admin dashboard stats ───────────────────────────────────────────────
 
+/// Selectable reporting window for `GET /api/admin/stats`.
+///
+/// All variants except `Custom` resolve to a window ending at `now` and
+/// extending back the indicated duration (or to the start of the current UTC
+/// year for `YearToDate`). `Custom` requires `from` + `to` `YYYY-MM-DD` query
+/// params (inclusive `to`).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum DashboardRange {
+    // serde's snake_case transform doesn't add underscores between letters
+    // and digits (`Last7Days` → `last7_days`), so we pin the wire labels to
+    // the analytics-style names the frontend uses.
+    #[serde(rename = "last_7_days")]
+    Last7Days,
+    #[default]
+    #[serde(rename = "last_30_days")]
+    Last30Days,
+    #[serde(rename = "last_90_days")]
+    Last90Days,
+    YearToDate,
+    Custom,
+}
+
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct DashboardStatsQuery {
+    /// Reporting window. Defaults to `last_30_days` when omitted.
+    #[serde(default)]
+    pub range: Option<DashboardRange>,
+    /// Inclusive start `YYYY-MM-DD`. Required when `range=custom`, ignored otherwise.
+    pub from: Option<String>,
+    /// Inclusive end `YYYY-MM-DD`. Required when `range=custom`, ignored otherwise.
+    pub to: Option<String>,
+}
+
+/// Per-window counts. The dashboard sends two of these — the selected window
+/// and the immediately-preceding window of identical length — so the UI can
+/// compute deltas without a second round-trip.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct PeriodWindow {
+    pub new_members: i64,
+    pub new_subscriptions: i64,
+    pub canceled_subscriptions: i64,
+    pub new_enrollments: i64,
+    pub new_watchlists: i64,
+    pub revenue_cents: i64,
+}
+
 #[derive(Debug, Serialize, ToSchema)]
 pub struct AdminStats {
+    // ── Lifetime totals (unchanged behavior — "as of now") ─────────────
     pub total_members: i64,
     pub active_subscriptions: i64,
     pub monthly_subscriptions: i64,
@@ -394,6 +442,18 @@ pub struct AdminStats {
     pub total_watchlists: i64,
     pub total_enrollments: i64,
     pub recent_members: Vec<UserResponse>,
+
+    // ── Period-scoped fields ───────────────────────────────────────────
+    /// Echo of the resolved range so the client can rehydrate the picker.
+    pub range: DashboardRange,
+    /// Resolved start of the selected window (UTC, inclusive).
+    pub from: DateTime<Utc>,
+    /// Resolved end of the selected window (UTC, exclusive).
+    pub to: DateTime<Utc>,
+    /// Counts inside the selected window.
+    pub period: PeriodWindow,
+    /// Counts inside the immediately-preceding window of equal length, for delta math.
+    pub previous_period: PeriodWindow,
 }
 
 // ── Blog Post ──────────────────────────────────────────────────────────

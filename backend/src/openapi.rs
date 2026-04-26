@@ -313,6 +313,9 @@ impl Modify for SecurityAddon {
             crate::models::UpdateAlertRequest,
             // Admin
             crate::models::AdminStats,
+            crate::models::DashboardRange,
+            crate::models::DashboardStatsQuery,
+            crate::models::PeriodWindow,
             // Admin security console (ADM-05)
             admin_security::LifecycleRequest,
             admin_security::ForcePasswordResetResponse,

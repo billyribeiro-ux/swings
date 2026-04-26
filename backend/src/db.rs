@@ -296,6 +296,100 @@ pub async fn recent_members(pool: &PgPool, limit: i64) -> Result<Vec<User>, sqlx
     .await
 }
 
+// ── Range-scoped admin dashboard counters ───────────────────────────────
+//
+// All five helpers below answer the same question: "how many rows landed in
+// table X with timestamp column Y inside `[start, end_exclusive)`?". They are
+// intentionally tiny (no pluggable predicates) so the call sites in
+// `handlers::admin::dashboard_stats` read top-to-bottom like a checklist of
+// the metrics the dashboard surfaces.
+//
+// Window semantics: half-open `[start, end_exclusive)` everywhere. That
+// matches the existing analytics endpoint (`analytics_sales_revenue_total_cents`)
+// and is what the frontend's range resolver computes.
+
+pub async fn count_users_created_between(
+    pool: &PgPool,
+    start: DateTime<Utc>,
+    end_exclusive: DateTime<Utc>,
+) -> Result<i64, sqlx::Error> {
+    let row: (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM users WHERE created_at >= $1 AND created_at < $2")
+            .bind(start)
+            .bind(end_exclusive)
+            .fetch_one(pool)
+            .await?;
+    Ok(row.0)
+}
+
+pub async fn count_subscriptions_created_between(
+    pool: &PgPool,
+    start: DateTime<Utc>,
+    end_exclusive: DateTime<Utc>,
+) -> Result<i64, sqlx::Error> {
+    let row: (i64,) = sqlx::query_as(
+        "SELECT COUNT(*) FROM subscriptions WHERE created_at >= $1 AND created_at < $2",
+    )
+    .bind(start)
+    .bind(end_exclusive)
+    .fetch_one(pool)
+    .await?;
+    Ok(row.0)
+}
+
+/// Count subscriptions whose Stripe-recorded cancellation timestamp lands in
+/// `[start, end_exclusive)`. We use `subscriptions.canceled_at` (set when
+/// Stripe finalises the cancellation) rather than `cancel_at` (the *scheduled*
+/// future cutoff) because the dashboard wants observed churn, not pending
+/// churn.
+pub async fn count_subscriptions_canceled_between(
+    pool: &PgPool,
+    start: DateTime<Utc>,
+    end_exclusive: DateTime<Utc>,
+) -> Result<i64, sqlx::Error> {
+    let row: (i64,) = sqlx::query_as(
+        "SELECT COUNT(*) FROM subscriptions WHERE canceled_at IS NOT NULL AND canceled_at >= $1 AND canceled_at < $2",
+    )
+    .bind(start)
+    .bind(end_exclusive)
+    .fetch_one(pool)
+    .await?;
+    Ok(row.0)
+}
+
+/// Course enrollments use `enrolled_at` (per `001_initial.sql`) as the
+/// creation timestamp; there is no separate `created_at` column on this
+/// table.
+pub async fn count_enrollments_created_between(
+    pool: &PgPool,
+    start: DateTime<Utc>,
+    end_exclusive: DateTime<Utc>,
+) -> Result<i64, sqlx::Error> {
+    let row: (i64,) = sqlx::query_as(
+        "SELECT COUNT(*) FROM course_enrollments WHERE enrolled_at >= $1 AND enrolled_at < $2",
+    )
+    .bind(start)
+    .bind(end_exclusive)
+    .fetch_one(pool)
+    .await?;
+    Ok(row.0)
+}
+
+pub async fn count_watchlists_created_between(
+    pool: &PgPool,
+    start: DateTime<Utc>,
+    end_exclusive: DateTime<Utc>,
+) -> Result<i64, sqlx::Error> {
+    let row: (i64,) = sqlx::query_as(
+        "SELECT COUNT(*) FROM watchlists WHERE created_at >= $1 AND created_at < $2",
+    )
+    .bind(start)
+    .bind(end_exclusive)
+    .fetch_one(pool)
+    .await?;
+    Ok(row.0)
+}
+
 // ── Password Reset Tokens ───────────────────────────────────────────────
 
 pub async fn create_password_reset_token(

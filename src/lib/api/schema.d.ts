@@ -2370,6 +2370,22 @@ export type components = {
             /** Format: int64 */
             total_enrollments: number;
             recent_members: components["schemas"]["UserResponse"][];
+            /** @description Echo of the resolved range so the client can rehydrate the picker. */
+            range: components["schemas"]["DashboardRange"];
+            /**
+             * Format: date-time
+             * @description Resolved start of the selected window (UTC, inclusive).
+             */
+            from: string;
+            /**
+             * Format: date-time
+             * @description Resolved end of the selected window (UTC, exclusive).
+             */
+            to: string;
+            /** @description Counts inside the selected window. */
+            period: components["schemas"]["PeriodWindow"];
+            /** @description Counts inside the immediately-preceding window of equal length, for delta math. */
+            previous_period: components["schemas"]["PeriodWindow"];
         };
         AdminStripeRolloutFailure: {
             stripe_subscription_id: string;
@@ -3358,6 +3374,23 @@ export type components = {
             /** Format: date-time */
             new_anchor: string;
         };
+        /**
+         * @description Selectable reporting window for `GET /api/admin/stats`.
+         *
+         *     All variants except `Custom` resolve to a window ending at `now` and
+         *     extending back the indicated duration (or to the start of the current UTC
+         *     year for `YearToDate`). `Custom` requires `from` + `to` `YYYY-MM-DD` query
+         *     params (inclusive `to`).
+         * @enum {string}
+         */
+        DashboardRange: "last_7_days" | "last_30_days" | "last_90_days" | "year_to_date" | "custom";
+        DashboardStatsQuery: {
+            range?: null | components["schemas"]["DashboardRange"];
+            /** @description Inclusive start `YYYY-MM-DD`. Required when `range=custom`, ignored otherwise. */
+            from?: string | null;
+            /** @description Inclusive end `YYYY-MM-DD`. Required when `range=custom`, ignored otherwise. */
+            to?: string | null;
+        };
         DeliveryListQuery: {
             status?: string | null;
             /** Format: uuid */
@@ -4177,6 +4210,25 @@ export type components = {
              */
             resume_token?: string | null;
         };
+        /**
+         * @description Per-window counts. The dashboard sends two of these — the selected window
+         *     and the immediately-preceding window of identical length — so the UI can
+         *     compute deltas without a second round-trip.
+         */
+        PeriodWindow: {
+            /** Format: int64 */
+            new_members: number;
+            /** Format: int64 */
+            new_subscriptions: number;
+            /** Format: int64 */
+            canceled_subscriptions: number;
+            /** Format: int64 */
+            new_enrollments: number;
+            /** Format: int64 */
+            new_watchlists: number;
+            /** Format: int64 */
+            revenue_cents: number;
+        };
         PermissionRow: {
             key: string;
             description: string;
@@ -4421,7 +4473,13 @@ export type components = {
          */
         RecurringMode: "one_time" | "forever" | "repeating";
         RefreshRequest: {
-            refresh_token: string;
+            /**
+             * @description Optional during BFF rollout (Phase 1.3): when the SPA carries the
+             *     refresh token via the `swings_refresh` httpOnly cookie, the JSON body
+             *     is empty (`{}`) and this field is `None`. The handler reads from the
+             *     cookie jar in that case. Legacy clients can still send the value here.
+             */
+            refresh_token?: string | null;
         };
         RefundRequest: {
             /** Format: int64 */

@@ -3,7 +3,7 @@ use axum::{
     routing::{delete, get, post, put},
     Json, Router,
 };
-use chrono::{Duration, NaiveDate, NaiveTime};
+use chrono::{DateTime, Datelike, Duration, NaiveDate, NaiveTime, TimeZone, Utc};
 use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
@@ -59,10 +59,90 @@ pub fn router() -> Router<AppState> {
 
 // ── Dashboard ───────────────────────────────────────────────────────────
 
+/// Resolve a [`DashboardRange`] (plus optional `from`/`to` inclusive `YYYY-MM-DD`
+/// strings) into a half-open UTC window `[start, end_exclusive)`.
+///
+/// Anchors `now = Utc::now()` once so every metric on the same response sees a
+/// consistent endpoint — without this, two consecutive `Utc::now()` reads can
+/// fall on opposite sides of a day boundary mid-request and cause the deltas
+/// to disagree with the totals by one row.
+fn resolve_dashboard_window(
+    range: DashboardRange,
+    from: Option<&str>,
+    to: Option<&str>,
+) -> AppResult<(DateTime<Utc>, DateTime<Utc>)> {
+    let now = Utc::now();
+    match range {
+        DashboardRange::Last7Days => Ok((now - Duration::days(7), now)),
+        DashboardRange::Last30Days => Ok((now - Duration::days(30), now)),
+        DashboardRange::Last90Days => Ok((now - Duration::days(90), now)),
+        DashboardRange::YearToDate => {
+            let start = Utc
+                .with_ymd_and_hms(now.year(), 1, 1, 0, 0, 0)
+                .single()
+                .ok_or_else(|| {
+                    AppError::Internal(anyhow::anyhow!("failed to resolve start of UTC year"))
+                })?;
+            Ok((start, now))
+        }
+        DashboardRange::Custom => {
+            let from_str = from.ok_or_else(|| {
+                AppError::BadRequest("range=custom requires `from` (YYYY-MM-DD)".to_string())
+            })?;
+            let to_str = to.ok_or_else(|| {
+                AppError::BadRequest("range=custom requires `to` (YYYY-MM-DD)".to_string())
+            })?;
+            let from_date = NaiveDate::parse_from_str(from_str, "%Y-%m-%d").map_err(|_| {
+                AppError::BadRequest("invalid from date (use YYYY-MM-DD)".to_string())
+            })?;
+            let to_date = NaiveDate::parse_from_str(to_str, "%Y-%m-%d").map_err(|_| {
+                AppError::BadRequest("invalid to date (use YYYY-MM-DD)".to_string())
+            })?;
+            if to_date < from_date {
+                return Err(AppError::BadRequest(
+                    "to must be on or after from".to_string(),
+                ));
+            }
+            let start = from_date.and_time(NaiveTime::MIN).and_utc();
+            let end_exclusive = (to_date + Duration::days(1))
+                .and_time(NaiveTime::MIN)
+                .and_utc();
+            Ok((start, end_exclusive))
+        }
+    }
+}
+
+async fn collect_period_window(
+    state: &AppState,
+    start: DateTime<Utc>,
+    end_exclusive: DateTime<Utc>,
+) -> AppResult<PeriodWindow> {
+    Ok(PeriodWindow {
+        new_members: db::count_users_created_between(&state.db, start, end_exclusive).await?,
+        new_subscriptions: db::count_subscriptions_created_between(&state.db, start, end_exclusive)
+            .await?,
+        canceled_subscriptions: db::count_subscriptions_canceled_between(
+            &state.db,
+            start,
+            end_exclusive,
+        )
+        .await?,
+        new_enrollments: db::count_enrollments_created_between(&state.db, start, end_exclusive)
+            .await?,
+        new_watchlists: db::count_watchlists_created_between(&state.db, start, end_exclusive)
+            .await?,
+        revenue_cents: db::analytics_sales_revenue_total_cents(&state.db, start, end_exclusive)
+            .await?,
+    })
+}
+
 async fn dashboard_stats(
     State(state): State<AppState>,
     _admin: AdminUser,
+    Query(q): Query<DashboardStatsQuery>,
 ) -> AppResult<Json<AdminStats>> {
+    // Lifetime totals — these mirror what the dashboard "as-of-now" KPIs
+    // need; the period-scoped block below adds the deltas.
     let (users, total_members) = db::list_users(&state.db, 0, 1).await?;
     let _ = users;
     let active_subscriptions = db::count_active_subscriptions(&state.db).await?;
@@ -72,6 +152,16 @@ async fn dashboard_stats(
     let total_enrollments = db::count_enrollments(&state.db).await?;
     let recent = db::recent_members(&state.db, 5).await?;
 
+    // Range-scoped block.
+    let range = q.range.unwrap_or_default();
+    let (from_ts, to_ts) = resolve_dashboard_window(range, q.from.as_deref(), q.to.as_deref())?;
+    let window_len = to_ts - from_ts;
+    let prev_to = from_ts;
+    let prev_from = from_ts - window_len;
+
+    let period = collect_period_window(&state, from_ts, to_ts).await?;
+    let previous_period = collect_period_window(&state, prev_from, prev_to).await?;
+
     Ok(Json(AdminStats {
         total_members,
         active_subscriptions,
@@ -80,6 +170,11 @@ async fn dashboard_stats(
         total_watchlists,
         total_enrollments,
         recent_members: recent.into_iter().map(UserResponse::from).collect(),
+        range,
+        from: from_ts,
+        to: to_ts,
+        period,
+        previous_period,
     }))
 }
 

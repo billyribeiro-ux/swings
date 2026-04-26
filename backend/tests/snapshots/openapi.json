@@ -7511,7 +7511,12 @@
           "annual_subscriptions",
           "total_watchlists",
           "total_enrollments",
-          "recent_members"
+          "recent_members",
+          "range",
+          "from",
+          "to",
+          "period",
+          "previous_period"
         ],
         "properties": {
           "total_members": {
@@ -7543,6 +7548,28 @@
             "items": {
               "$ref": "#/components/schemas/UserResponse"
             }
+          },
+          "range": {
+            "$ref": "#/components/schemas/DashboardRange",
+            "description": "Echo of the resolved range so the client can rehydrate the picker."
+          },
+          "from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Resolved start of the selected window (UTC, inclusive)."
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Resolved end of the selected window (UTC, exclusive)."
+          },
+          "period": {
+            "$ref": "#/components/schemas/PeriodWindow",
+            "description": "Counts inside the selected window."
+          },
+          "previous_period": {
+            "$ref": "#/components/schemas/PeriodWindow",
+            "description": "Counts inside the immediately-preceding window of equal length, for delta math."
           }
         }
       },
@@ -10798,6 +10825,47 @@
           }
         }
       },
+      "DashboardRange": {
+        "type": "string",
+        "description": "Selectable reporting window for `GET /api/admin/stats`.\n\nAll variants except `Custom` resolve to a window ending at `now` and\nextending back the indicated duration (or to the start of the current UTC\nyear for `YearToDate`). `Custom` requires `from` + `to` `YYYY-MM-DD` query\nparams (inclusive `to`).",
+        "enum": [
+          "last_7_days",
+          "last_30_days",
+          "last_90_days",
+          "year_to_date",
+          "custom"
+        ]
+      },
+      "DashboardStatsQuery": {
+        "type": "object",
+        "properties": {
+          "range": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DashboardRange",
+                "description": "Reporting window. Defaults to `last_30_days` when omitted."
+              }
+            ]
+          },
+          "from": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Inclusive start `YYYY-MM-DD`. Required when `range=custom`, ignored otherwise."
+          },
+          "to": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Inclusive end `YYYY-MM-DD`. Required when `range=custom`, ignored otherwise."
+          }
+        }
+      },
       "DeliveryListQuery": {
         "type": "object",
         "properties": {
@@ -13130,6 +13198,44 @@
           }
         }
       },
+      "PeriodWindow": {
+        "type": "object",
+        "description": "Per-window counts. The dashboard sends two of these — the selected window\nand the immediately-preceding window of identical length — so the UI can\ncompute deltas without a second round-trip.",
+        "required": [
+          "new_members",
+          "new_subscriptions",
+          "canceled_subscriptions",
+          "new_enrollments",
+          "new_watchlists",
+          "revenue_cents"
+        ],
+        "properties": {
+          "new_members": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "new_subscriptions": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "canceled_subscriptions": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "new_enrollments": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "new_watchlists": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "revenue_cents": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "PermissionRow": {
         "type": "object",
         "required": [
@@ -13876,12 +13982,13 @@
       },
       "RefreshRequest": {
         "type": "object",
-        "required": [
-          "refresh_token"
-        ],
         "properties": {
           "refresh_token": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional during BFF rollout (Phase 1.3): when the SPA carries the\nrefresh token via the `swings_refresh` httpOnly cookie, the JSON body\nis empty (`{}`) and this field is `None`. The handler reads from the\ncookie jar in that case. Legacy clients can still send the value here."
           }
         }
       },

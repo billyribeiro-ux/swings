@@ -1,45 +1,240 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { SvelteDate } from 'svelte/reactivity';
+	import { browser } from '$app/environment';
 	import { api } from '$lib/api/client';
-	import type { AdminStats } from '$lib/api/types';
+	import type { AdminStats, DashboardRange } from '$lib/api/types';
 	import UsersIcon from 'phosphor-svelte/lib/UsersIcon';
 	import LightningIcon from 'phosphor-svelte/lib/LightningIcon';
 	import ListChecksIcon from 'phosphor-svelte/lib/ListChecksIcon';
 	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
 	import TrendUpIcon from 'phosphor-svelte/lib/TrendUpIcon';
+	import TrendDownIcon from 'phosphor-svelte/lib/TrendDownIcon';
 	import CalendarCheckIcon from 'phosphor-svelte/lib/CalendarCheckIcon';
 	import CalendarBlankIcon from 'phosphor-svelte/lib/CalendarBlankIcon';
+	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
+	import CheckIcon from 'phosphor-svelte/lib/CheckIcon';
 	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 
+	// ────────────────────────────────────────────────────────────────────
+	// Range picker state
+	//
+	// The `range` lives in localStorage so navigating away and back doesn't
+	// reset it — this is the same pattern Stripe / Linear use. Custom range
+	// is split out so the chip label still reads "Custom" while the user is
+	// editing the date inputs.
+	// ────────────────────────────────────────────────────────────────────
+	const RANGE_STORAGE_KEY = 'admin-dashboard-range';
+	const RANGE_OPTIONS: { key: DashboardRange; label: string }[] = [
+		{ key: 'last_7_days', label: 'Last 7 days' },
+		{ key: 'last_30_days', label: 'Last 30 days' },
+		{ key: 'last_90_days', label: 'Last 90 days' },
+		{ key: 'year_to_date', label: 'Year to date' }
+	];
+
+	function readStoredRange(): DashboardRange {
+		if (!browser) return 'last_30_days';
+		try {
+			const v = localStorage.getItem(RANGE_STORAGE_KEY);
+			if (
+				v === 'last_7_days' ||
+				v === 'last_30_days' ||
+				v === 'last_90_days' ||
+				v === 'year_to_date' ||
+				v === 'custom'
+			) {
+				return v;
+			}
+		} catch {
+			// localStorage may throw in private mode — fall back silently.
+		}
+		return 'last_30_days';
+	}
+
+	function persistRange(v: DashboardRange) {
+		if (!browser) return;
+		try {
+			localStorage.setItem(RANGE_STORAGE_KEY, v);
+		} catch {
+			// best-effort
+		}
+	}
+
+	let range = $state<DashboardRange>('last_30_days');
+	let customFrom = $state<string>('');
+	let customTo = $state<string>('');
+	let menuOpen = $state(false);
+	let customPanelOpen = $state(false);
+	let menuButtonEl = $state<HTMLButtonElement | undefined>(undefined);
+	let menuEl = $state<HTMLDivElement | undefined>(undefined);
+
 	let stats = $state<AdminStats | null>(null);
 	let loading = $state(true);
+	let refetching = $state(false);
 	let loadError = $state<string | null>(null);
 	let mounted = $state(false);
 
-	onMount(async () => {
-		try {
-			stats = await api.get<AdminStats>('/api/admin/stats');
-			loadError = null;
-		} catch (e) {
-			// Surface a real error state instead of silently rendering nothing —
-			// the previous version showed neither the skeleton nor any data when
-			// the API failed (e.g. 401 with stale JWT), which looked like the page
-			// was stuck on the skeleton forever.
-			loadError = e instanceof Error ? e.message : 'Failed to load dashboard stats';
-			stats = null;
-		} finally {
-			loading = false;
-			mounted = true;
+	const selectedLabel = $derived.by(() => {
+		if (range === 'custom') {
+			if (customFrom && customTo) return `${customFrom} → ${customTo}`;
+			return 'Custom range';
 		}
+		return RANGE_OPTIONS.find((o) => o.key === range)?.label ?? 'Last 30 days';
 	});
 
+	function buildQuery(r: DashboardRange): string {
+		if (r === 'custom') {
+			if (!customFrom || !customTo) return '';
+			return `?range=custom&from=${encodeURIComponent(customFrom)}&to=${encodeURIComponent(
+				customTo
+			)}`;
+		}
+		return `?range=${r}`;
+	}
+
+	async function loadStats(r: DashboardRange) {
+		const qs = buildQuery(r);
+		// Custom range without complete dates: don't fire the request, just wait.
+		if (r === 'custom' && !qs) return;
+
+		// Initial load → full skeleton; subsequent → inline dim.
+		if (stats === null) loading = true;
+		else refetching = true;
+
+		try {
+			stats = await api.get<AdminStats>(`/api/admin/stats${qs}`);
+			loadError = null;
+		} catch (e) {
+			loadError = e instanceof Error ? e.message : 'Failed to load dashboard stats';
+			// Keep the previous stats on screen so the page doesn't blank out on
+			// transient errors (matches Vercel/Linear behaviour).
+		} finally {
+			loading = false;
+			refetching = false;
+			mounted = true;
+		}
+	}
+
+	function selectRange(r: DashboardRange) {
+		range = r;
+		persistRange(r);
+		menuOpen = false;
+		customPanelOpen = false;
+		void loadStats(r);
+	}
+
+	function openCustom() {
+		// Default the inputs to the currently-resolved window so the user
+		// has a sensible starting point instead of an empty form.
+		if (!customFrom || !customTo) {
+			const today = new SvelteDate();
+			const thirty = new SvelteDate(today.getTime());
+			thirty.setDate(today.getDate() - 30);
+			customFrom = thirty.toISOString().slice(0, 10);
+			customTo = today.toISOString().slice(0, 10);
+		}
+		range = 'custom';
+		menuOpen = false;
+		customPanelOpen = true;
+	}
+
+	function applyCustom() {
+		if (!customFrom || !customTo) return;
+		persistRange('custom');
+		customPanelOpen = false;
+		void loadStats('custom');
+	}
+
+	function toggleMenu() {
+		menuOpen = !menuOpen;
+		if (menuOpen) customPanelOpen = false;
+	}
+
+	function onChipKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			toggleMenu();
+		} else if (e.key === 'Escape') {
+			menuOpen = false;
+			customPanelOpen = false;
+		}
+	}
+
+	function onMenuKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape') {
+			menuOpen = false;
+			menuButtonEl?.focus();
+		}
+		if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+			e.preventDefault();
+			const items = menuEl?.querySelectorAll<HTMLElement>('[role="menuitem"]');
+			if (!items || items.length === 0) return;
+			const active = document.activeElement as HTMLElement | null;
+			let idx = Array.from(items).indexOf(active as HTMLElement);
+			if (idx === -1) idx = 0;
+			else idx = e.key === 'ArrowDown' ? (idx + 1) % items.length : (idx - 1 + items.length) % items.length;
+			items[idx]?.focus();
+		}
+	}
+
+	function onDocumentClick(e: MouseEvent) {
+		if (!menuOpen && !customPanelOpen) return;
+		const target = e.target as Node;
+		if (menuEl?.contains(target) || menuButtonEl?.contains(target)) return;
+		menuOpen = false;
+		// Don't auto-close the custom panel on outside click — the user may be
+		// dragging the native date picker which dispatches outside-target events.
+	}
+
+	onMount(() => {
+		range = readStoredRange();
+		document.addEventListener('mousedown', onDocumentClick);
+		void loadStats(range);
+		return () => {
+			document.removeEventListener('mousedown', onDocumentClick);
+		};
+	});
+
+	// ────────────────────────────────────────────────────────────────────
+	// Formatters / delta math
+	// ────────────────────────────────────────────────────────────────────
 	function formatDate(dateStr: string): string {
 		return new Date(dateStr).toLocaleDateString('en-US', {
 			month: 'short',
 			day: 'numeric'
 		});
 	}
+
+	type Delta = { kind: 'up' | 'down' | 'flat'; pctLabel: string };
+
+	function computeDelta(current: number, previous: number): Delta {
+		const diff = current - previous;
+		const pct = previous === 0 ? (current === 0 ? 0 : 100) : (diff / Math.abs(previous)) * 100;
+		const pctLabel = previous === 0 && current === 0 ? '0%' : `${Math.abs(pct).toFixed(1)}%`;
+		return {
+			kind: diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat',
+			pctLabel
+		};
+	}
+
+	const deltas = $derived.by(() => {
+		if (!stats) return null;
+		const p = stats.period;
+		const pp = stats.previous_period;
+		const netSubs = p.new_subscriptions - p.canceled_subscriptions;
+		const prevNetSubs = pp.new_subscriptions - pp.canceled_subscriptions;
+		const conversion = p.new_members > 0 ? p.new_subscriptions / p.new_members : 0;
+		const prevConversion = pp.new_members > 0 ? pp.new_subscriptions / pp.new_members : 0;
+		return {
+			members: computeDelta(p.new_members, pp.new_members),
+			subscribers: computeDelta(netSubs, prevNetSubs),
+			watchlists: computeDelta(p.new_watchlists, pp.new_watchlists),
+			enrollments: computeDelta(p.new_enrollments, pp.new_enrollments),
+			conversion: computeDelta(Math.round(conversion * 1000), Math.round(prevConversion * 1000)),
+			conversionRate: conversion
+		};
+	});
 </script>
 
 <svelte:head>
@@ -55,10 +250,99 @@
 				A snapshot of members, subscriptions, watchlists, and engagement across the platform.
 			</p>
 		</div>
-		<span class="admin-dash__date-chip" aria-label="Reporting window: last 30 days">
-			<CalendarBlankIcon size={14} weight="duotone" />
-			<span>Last 30 days</span>
-		</span>
+
+		<!-- Range picker chip ──────────────────────────────────────────── -->
+		<div class="admin-dash__range">
+			<button
+				bind:this={menuButtonEl}
+				type="button"
+				class="admin-dash__date-chip"
+				class:admin-dash__date-chip--open={menuOpen}
+				aria-haspopup="menu"
+				aria-expanded={menuOpen}
+				aria-label={`Reporting window: ${selectedLabel}. Click to change.`}
+				onclick={toggleMenu}
+				onkeydown={onChipKeydown}
+			>
+				<CalendarBlankIcon size={14} weight="duotone" />
+				<span class="admin-dash__date-chip-label">{selectedLabel}</span>
+				<CaretDownIcon size={10} weight="bold" />
+			</button>
+
+			{#if menuOpen}
+				<div
+					bind:this={menuEl}
+					class="admin-dash__menu"
+					role="menu"
+					tabindex="-1"
+					aria-label="Date range"
+					onkeydown={onMenuKeydown}
+				>
+					{#each RANGE_OPTIONS as opt (opt.key)}
+						<button
+							type="button"
+							role="menuitem"
+							class="admin-dash__menu-item"
+							class:admin-dash__menu-item--active={range === opt.key}
+							onclick={() => selectRange(opt.key)}
+						>
+							<span class="admin-dash__menu-check" aria-hidden="true">
+								{#if range === opt.key}
+									<CheckIcon size={12} weight="bold" />
+								{/if}
+							</span>
+							<span>{opt.label}</span>
+						</button>
+					{/each}
+					<div class="admin-dash__menu-divider" role="separator"></div>
+					<button
+						type="button"
+						role="menuitem"
+						class="admin-dash__menu-item"
+						class:admin-dash__menu-item--active={range === 'custom'}
+						onclick={openCustom}
+					>
+						<span class="admin-dash__menu-check" aria-hidden="true">
+							{#if range === 'custom'}
+								<CheckIcon size={12} weight="bold" />
+							{/if}
+						</span>
+						<span>Custom…</span>
+					</button>
+				</div>
+			{/if}
+
+			{#if customPanelOpen}
+				<div class="admin-dash__custom-panel" role="group" aria-label="Custom date range">
+					<label class="admin-dash__custom-field">
+						<span>From</span>
+						<input
+							type="date"
+							bind:value={customFrom}
+							max={customTo || undefined}
+							class="admin-dash__custom-input"
+						/>
+					</label>
+					<label class="admin-dash__custom-field">
+						<span>To</span>
+						<input
+							type="date"
+							bind:value={customTo}
+							min={customFrom || undefined}
+							class="admin-dash__custom-input"
+						/>
+					</label>
+					<button
+						type="button"
+						class="admin-dash__custom-apply"
+						onclick={applyCustom}
+						disabled={!customFrom || !customTo}
+					>
+						Apply
+					</button>
+				</div>
+			{/if}
+		</div>
 	</header>
 
 	{#if loading}
@@ -67,21 +351,21 @@
 				<div class="admin-dash__skeleton-card"></div>
 			{/each}
 		</div>
-	{:else if loadError}
+	{:else if loadError && !stats}
 		<div class="admin-dash__error" role="alert">
 			<p class="admin-dash__error-title">Couldn't load dashboard</p>
 			<p class="admin-dash__error-body">{loadError}</p>
-			<button
-				type="button"
-				class="admin-dash__error-retry"
-				onclick={() => location.reload()}
-			>
+			<button type="button" class="admin-dash__error-retry" onclick={() => loadStats(range)}>
 				Retry
 			</button>
 		</div>
 	{:else if stats}
 		<!-- KPI Cards -->
-		<div class="admin-dash__kpis">
+		<div
+			class="admin-dash__kpis"
+			class:admin-dash__kpis--refetching={refetching}
+			aria-busy={refetching}
+		>
 			<article class="kpi" style="--kpi-delay: 0ms;">
 				<div class="kpi__head">
 					<span class="kpi__label">Members</span>
@@ -90,7 +374,30 @@
 					</span>
 				</div>
 				<p class="kpi__value">{stats.total_members.toLocaleString()}</p>
-				<p class="kpi__hint">All registered accounts</p>
+				{#if deltas}
+					<div class="kpi__meta">
+						<span
+							class={[
+								'kpi__delta',
+								deltas.members.kind === 'up' && 'kpi__delta--up',
+								deltas.members.kind === 'down' && 'kpi__delta--down',
+								deltas.members.kind === 'flat' && 'kpi__delta--flat'
+							]}
+						>
+							{#if deltas.members.kind === 'up'}
+								<TrendUpIcon size={12} weight="bold" />
+							{:else if deltas.members.kind === 'down'}
+								<TrendDownIcon size={12} weight="bold" />
+							{:else}
+								<span class="kpi__delta-flat" aria-hidden="true">–</span>
+							{/if}
+							<span>{deltas.members.pctLabel}</span>
+						</span>
+						<span class="kpi__hint">
+							{stats.period.new_members > 0 ? '+' : ''}{stats.period.new_members.toLocaleString()} this period
+						</span>
+					</div>
+				{/if}
 			</article>
 
 			<article class="kpi" style="--kpi-delay: 60ms;">
@@ -101,7 +408,34 @@
 					</span>
 				</div>
 				<p class="kpi__value">{stats.active_subscriptions.toLocaleString()}</p>
-				<p class="kpi__hint">Currently paying customers</p>
+				{#if deltas}
+					<div class="kpi__meta">
+						<span
+							class={[
+								'kpi__delta',
+								deltas.subscribers.kind === 'up' && 'kpi__delta--up',
+								deltas.subscribers.kind === 'down' && 'kpi__delta--down',
+								deltas.subscribers.kind === 'flat' && 'kpi__delta--flat'
+							]}
+						>
+							{#if deltas.subscribers.kind === 'up'}
+								<TrendUpIcon size={12} weight="bold" />
+							{:else if deltas.subscribers.kind === 'down'}
+								<TrendDownIcon size={12} weight="bold" />
+							{:else}
+								<span class="kpi__delta-flat" aria-hidden="true">–</span>
+							{/if}
+							<span>{deltas.subscribers.pctLabel}</span>
+						</span>
+						<span class="kpi__hint">
+							{(() => {
+								const net =
+									stats.period.new_subscriptions - stats.period.canceled_subscriptions;
+								return `Net ${net > 0 ? '+' : ''}${net.toLocaleString()} this period`;
+							})()}
+						</span>
+					</div>
+				{/if}
 			</article>
 
 			<article class="kpi" style="--kpi-delay: 120ms;">
@@ -125,7 +459,30 @@
 					</span>
 				</div>
 				<p class="kpi__value">{stats.total_watchlists.toLocaleString()}</p>
-				<p class="kpi__hint">Lifetime issues released</p>
+				{#if deltas}
+					<div class="kpi__meta">
+						<span
+							class={[
+								'kpi__delta',
+								deltas.watchlists.kind === 'up' && 'kpi__delta--up',
+								deltas.watchlists.kind === 'down' && 'kpi__delta--down',
+								deltas.watchlists.kind === 'flat' && 'kpi__delta--flat'
+							]}
+						>
+							{#if deltas.watchlists.kind === 'up'}
+								<TrendUpIcon size={12} weight="bold" />
+							{:else if deltas.watchlists.kind === 'down'}
+								<TrendDownIcon size={12} weight="bold" />
+							{:else}
+								<span class="kpi__delta-flat" aria-hidden="true">–</span>
+							{/if}
+							<span>{deltas.watchlists.pctLabel}</span>
+						</span>
+						<span class="kpi__hint">
+							{stats.period.new_watchlists > 0 ? '+' : ''}{stats.period.new_watchlists.toLocaleString()} this period
+						</span>
+					</div>
+				{/if}
 			</article>
 
 			<article class="kpi" style="--kpi-delay: 240ms;">
@@ -136,7 +493,30 @@
 					</span>
 				</div>
 				<p class="kpi__value">{stats.total_enrollments.toLocaleString()}</p>
-				<p class="kpi__hint">Across all courses</p>
+				{#if deltas}
+					<div class="kpi__meta">
+						<span
+							class={[
+								'kpi__delta',
+								deltas.enrollments.kind === 'up' && 'kpi__delta--up',
+								deltas.enrollments.kind === 'down' && 'kpi__delta--down',
+								deltas.enrollments.kind === 'flat' && 'kpi__delta--flat'
+							]}
+						>
+							{#if deltas.enrollments.kind === 'up'}
+								<TrendUpIcon size={12} weight="bold" />
+							{:else if deltas.enrollments.kind === 'down'}
+								<TrendDownIcon size={12} weight="bold" />
+							{:else}
+								<span class="kpi__delta-flat" aria-hidden="true">–</span>
+							{/if}
+							<span>{deltas.enrollments.pctLabel}</span>
+						</span>
+						<span class="kpi__hint">
+							{stats.period.new_enrollments > 0 ? '+' : ''}{stats.period.new_enrollments.toLocaleString()} this period
+						</span>
+					</div>
+				{/if}
 			</article>
 
 			<article class="kpi" style="--kpi-delay: 300ms;">
@@ -147,11 +527,30 @@
 					</span>
 				</div>
 				<p class="kpi__value">
-					{stats.total_members > 0
-						? ((stats.active_subscriptions / stats.total_members) * 100).toFixed(1)
-						: '0.0'}<span class="kpi__unit">%</span>
+					{deltas ? (deltas.conversionRate * 100).toFixed(1) : '0.0'}<span class="kpi__unit">%</span>
 				</p>
-				<p class="kpi__hint">Members to active subscribers</p>
+				{#if deltas}
+					<div class="kpi__meta">
+						<span
+							class={[
+								'kpi__delta',
+								deltas.conversion.kind === 'up' && 'kpi__delta--up',
+								deltas.conversion.kind === 'down' && 'kpi__delta--down',
+								deltas.conversion.kind === 'flat' && 'kpi__delta--flat'
+							]}
+						>
+							{#if deltas.conversion.kind === 'up'}
+								<TrendUpIcon size={12} weight="bold" />
+							{:else if deltas.conversion.kind === 'down'}
+								<TrendDownIcon size={12} weight="bold" />
+							{:else}
+								<span class="kpi__delta-flat" aria-hidden="true">–</span>
+							{/if}
+							<span>{deltas.conversion.pctLabel}</span>
+						</span>
+						<span class="kpi__hint">Members → active subscribers, this period</span>
+					</div>
+				{/if}
 			</article>
 		</div>
 
@@ -357,6 +756,16 @@
 		overflow-wrap: normal;
 	}
 
+	/* ====================================================================
+	   RANGE PICKER — chip + dropdown menu + custom panel
+	   ==================================================================== */
+	.admin-dash__range {
+		position: relative;
+		display: inline-flex;
+		flex-direction: column;
+		align-items: stretch;
+	}
+
 	.admin-dash__date-chip {
 		display: inline-flex;
 		align-items: center;
@@ -371,10 +780,162 @@
 		font-weight: 500;
 		line-height: 1;
 		white-space: nowrap;
+		cursor: pointer;
+		font-family: inherit;
+		transition:
+			background-color 150ms var(--ease-out),
+			border-color 150ms var(--ease-out),
+			color 150ms var(--ease-out);
+	}
+
+	.admin-dash__date-chip:hover {
+		background: rgba(255, 255, 255, 0.07);
+		border-color: rgba(255, 255, 255, 0.14);
+		color: var(--color-white);
+	}
+
+	.admin-dash__date-chip--open {
+		background: rgba(255, 255, 255, 0.08);
+		border-color: rgba(255, 255, 255, 0.18);
+		color: var(--color-white);
+	}
+
+	.admin-dash__date-chip:focus-visible {
+		outline: 2px solid var(--color-teal);
+		outline-offset: 2px;
 	}
 
 	.admin-dash__date-chip :global(svg) {
 		color: var(--color-grey-500);
+	}
+
+	.admin-dash__date-chip--open :global(svg),
+	.admin-dash__date-chip:hover :global(svg) {
+		color: var(--color-grey-300);
+	}
+
+	.admin-dash__date-chip-label {
+		font-variant-numeric: tabular-nums;
+	}
+
+	.admin-dash__menu {
+		position: absolute;
+		top: calc(100% + 0.5rem);
+		right: 0;
+		z-index: 30;
+		min-width: 12rem;
+		display: flex;
+		flex-direction: column;
+		padding: 0.375rem;
+		background-color: var(--color-navy-mid);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-lg);
+		box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+	}
+
+	.admin-dash__menu-item {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 0.625rem;
+		background: transparent;
+		border: 0;
+		border-radius: var(--radius-md);
+		color: var(--color-grey-200);
+		font-size: 0.8125rem;
+		font-weight: 500;
+		font-family: inherit;
+		text-align: left;
+		cursor: pointer;
+		transition: background-color 120ms var(--ease-out);
+	}
+
+	.admin-dash__menu-item:hover,
+	.admin-dash__menu-item:focus-visible {
+		background-color: rgba(255, 255, 255, 0.06);
+		color: var(--color-white);
+		outline: none;
+	}
+
+	.admin-dash__menu-item--active {
+		color: var(--color-white);
+	}
+
+	.admin-dash__menu-check {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 0.875rem;
+		height: 0.875rem;
+		color: var(--color-teal);
+	}
+
+	.admin-dash__menu-divider {
+		height: 1px;
+		background-color: rgba(255, 255, 255, 0.06);
+		margin: 0.25rem 0.25rem;
+	}
+
+	.admin-dash__custom-panel {
+		position: absolute;
+		top: calc(100% + 0.5rem);
+		right: 0;
+		z-index: 29;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: 0.75rem;
+		background-color: var(--color-navy-mid);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-lg);
+		box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+		min-width: 14rem;
+	}
+
+	.admin-dash__custom-field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: var(--color-grey-500);
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
+
+	.admin-dash__custom-input {
+		padding: 0.4rem 0.5rem;
+		background-color: rgba(255, 255, 255, 0.04);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-md);
+		color: var(--color-white);
+		font-size: 0.8125rem;
+		font-family: inherit;
+		color-scheme: dark;
+	}
+
+	.admin-dash__custom-input:focus-visible {
+		outline: 2px solid var(--color-teal);
+		outline-offset: 1px;
+	}
+
+	.admin-dash__custom-apply {
+		margin-top: 0.25rem;
+		padding: 0.5rem 0.75rem;
+		background: linear-gradient(135deg, var(--color-teal), var(--color-teal-dark));
+		border: 0;
+		border-radius: var(--radius-md);
+		color: var(--color-white);
+		font-size: 0.8125rem;
+		font-weight: 600;
+		font-family: inherit;
+		cursor: pointer;
+		transition: opacity 120ms var(--ease-out);
+	}
+
+	.admin-dash__custom-apply:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
 	}
 
 	/* ====================================================================
@@ -456,6 +1017,11 @@
 		grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 		gap: 0.5rem;
 		margin-bottom: 1.5rem;
+		transition: opacity 200ms var(--ease-out);
+	}
+
+	.admin-dash__kpis--refetching {
+		opacity: 0.5;
 	}
 
 	.admin-dash--ready .kpi {
@@ -555,6 +1121,55 @@
 		line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
+	}
+
+	.kpi__meta {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+		margin-top: 0.125rem;
+	}
+
+	.kpi__delta {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.2rem;
+		padding: 0.15rem 0.4rem;
+		border-radius: var(--radius-full);
+		font-size: 0.6875rem;
+		font-weight: 700;
+		line-height: 1;
+		font-variant-numeric: tabular-nums;
+		background-color: rgba(255, 255, 255, 0.04);
+		color: var(--color-grey-400);
+	}
+
+	.kpi__delta--up {
+		background-color: rgba(15, 164, 175, 0.16);
+		color: #4fd1c5;
+	}
+
+	.kpi__delta--down {
+		background-color: rgba(239, 68, 68, 0.14);
+		color: #fca5a5;
+	}
+
+	.kpi__delta--flat {
+		color: var(--color-grey-500);
+	}
+
+	.kpi__delta-flat {
+		display: inline-block;
+		width: 12px;
+		text-align: center;
+		font-weight: 700;
+	}
+
+	.kpi__meta .kpi__hint {
+		flex: 1;
+		min-width: 0;
+		margin: 0;
 	}
 
 	/* ====================================================================

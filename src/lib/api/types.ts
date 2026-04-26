@@ -92,7 +92,24 @@ export interface CourseEnrollment {
 	completed_at: string | null;
 }
 
+export type DashboardRange =
+	| 'last_7_days'
+	| 'last_30_days'
+	| 'last_90_days'
+	| 'year_to_date'
+	| 'custom';
+
+export interface PeriodWindow {
+	new_members: number;
+	new_subscriptions: number;
+	canceled_subscriptions: number;
+	new_enrollments: number;
+	new_watchlists: number;
+	revenue_cents: number;
+}
+
 export interface AdminStats {
+	// Lifetime totals (unchanged behavior — "as of now")
 	total_members: number;
 	active_subscriptions: number;
 	monthly_subscriptions: number;
@@ -100,6 +117,12 @@ export interface AdminStats {
 	total_watchlists: number;
 	total_enrollments: number;
 	recent_members: UserResponse[];
+	// Range-scoped fields
+	range: DashboardRange;
+	from: string;
+	to: string;
+	period: PeriodWindow;
+	previous_period: PeriodWindow;
 }
 
 export interface AnalyticsTimeBucket {
