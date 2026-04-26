@@ -10,4 +10,5 @@
 	const block = $derived(field as Extract<FieldSchema, { type: 'custom_html' }>);
 </script>
 
+<!-- eslint-disable-next-line svelte/no-at-html-tags -- admin-authored HTML, sanitized via DOMPurify in safeHtml() -->
 <div class="fm-field fm-block">{@html safeHtml(block.html)}</div>

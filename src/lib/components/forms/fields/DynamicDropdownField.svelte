@@ -61,7 +61,9 @@
 			aria-busy={loading}
 			onchange={handleChange}
 		>
-			<option value="" disabled={required}>{loading ? 'Loading…' : (field.placeholder ?? 'Select an option')}</option>
+			<option value="" disabled={required}
+				>{loading ? 'Loading…' : (field.placeholder ?? 'Select an option')}</option
+			>
 			{#each options as opt (opt.value)}
 				<option value={opt.value} disabled={opt.disabled ?? false}>{opt.label}</option>
 			{/each}

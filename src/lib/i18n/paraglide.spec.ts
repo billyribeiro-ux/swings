@@ -114,9 +114,9 @@ describe('translateOrFallback', () => {
 	});
 
 	it('returns the fallback when the key is missing everywhere', () => {
-		expect(
-			translateOrFallback('this_key_does_not_exist_anywhere', 'server copy')
-		).toBe('server copy');
+		expect(translateOrFallback('this_key_does_not_exist_anywhere', 'server copy')).toBe(
+			'server copy'
+		);
 	});
 
 	it('falls back to the base-locale entry when a partial catalogue is missing the key', () => {

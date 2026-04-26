@@ -38,7 +38,9 @@
 	aria-valuetext={labels?.[current] ?? `Step ${current + 1} of ${total}`}
 >
 	<p class="fm-progress__label">
-		Step {Math.min(current + 1, total)} of {total}{labels?.[current] ? ` — ${labels[current]}` : ''}
+		Step {Math.min(current + 1, total)} of {total}{labels?.[current]
+			? ` — ${labels[current]}`
+			: ''}
 	</p>
 	<div class="fm-progress__track">
 		<div class="fm-progress__fill" style={pctStyle}></div>

@@ -230,12 +230,30 @@
 	const readingTime = $derived(Math.max(1, Math.ceil(wordCount / 238)));
 
 	const shortcodes = [
-		{ label: 'Alert Box', code: '<div class="shortcode-alert" data-type="info">\n  <strong>Note:</strong> Your message here.\n</div>' },
-		{ label: 'Call to Action', code: '<div class="shortcode-cta">\n  <h3>Ready to get started?</h3>\n  <p>Sign up today and start your journey.</p>\n  <a href="#" class="cta-button">Get Started</a>\n</div>' },
-		{ label: 'Pricing Card', code: '<div class="shortcode-pricing">\n  <h4>Pro Plan</h4>\n  <p class="price">$29/mo</p>\n  <ul>\n    <li>Feature one</li>\n    <li>Feature two</li>\n    <li>Feature three</li>\n  </ul>\n  <a href="#" class="cta-button">Choose Plan</a>\n</div>' },
-		{ label: 'Warning Box', code: '<div class="shortcode-alert" data-type="warning">\n  <strong>Warning:</strong> Please be aware of this.\n</div>' },
-		{ label: 'Success Box', code: '<div class="shortcode-alert" data-type="success">\n  <strong>Success!</strong> Operation completed.\n</div>' },
-		{ label: 'Accordion', code: '<details class="shortcode-accordion">\n  <summary>Click to expand</summary>\n  <p>Accordion content goes here.</p>\n</details>' }
+		{
+			label: 'Alert Box',
+			code: '<div class="shortcode-alert" data-type="info">\n  <strong>Note:</strong> Your message here.\n</div>'
+		},
+		{
+			label: 'Call to Action',
+			code: '<div class="shortcode-cta">\n  <h3>Ready to get started?</h3>\n  <p>Sign up today and start your journey.</p>\n  <a href="#" class="cta-button">Get Started</a>\n</div>'
+		},
+		{
+			label: 'Pricing Card',
+			code: '<div class="shortcode-pricing">\n  <h4>Pro Plan</h4>\n  <p class="price">$29/mo</p>\n  <ul>\n    <li>Feature one</li>\n    <li>Feature two</li>\n    <li>Feature three</li>\n  </ul>\n  <a href="#" class="cta-button">Choose Plan</a>\n</div>'
+		},
+		{
+			label: 'Warning Box',
+			code: '<div class="shortcode-alert" data-type="warning">\n  <strong>Warning:</strong> Please be aware of this.\n</div>'
+		},
+		{
+			label: 'Success Box',
+			code: '<div class="shortcode-alert" data-type="success">\n  <strong>Success!</strong> Operation completed.\n</div>'
+		},
+		{
+			label: 'Accordion',
+			code: '<details class="shortcode-accordion">\n  <summary>Click to expand</summary>\n  <p>Accordion content goes here.</p>\n</details>'
+		}
 	];
 
 	function insertShortcode(html: string) {
@@ -292,13 +310,34 @@
 				</button>
 				{#if showHeadingMenu}
 					<div class="toolbar__dropdown toolbar__dropdown--headings">
-						<button class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--p" onclick={setParagraph}>Paragraph</button>
-						<button class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--h1" onclick={() => setHeading(1)}>Heading 1</button>
-						<button class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--h2" onclick={() => setHeading(2)}>Heading 2</button>
-						<button class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--h3" onclick={() => setHeading(3)}>Heading 3</button>
-						<button class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--h4" onclick={() => setHeading(4)}>Heading 4</button>
-						<button class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--h5" onclick={() => setHeading(5)}>Heading 5</button>
-						<button class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--h6" onclick={() => setHeading(6)}>Heading 6</button>
+						<button
+							class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--p"
+							onclick={setParagraph}>Paragraph</button
+						>
+						<button
+							class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--h1"
+							onclick={() => setHeading(1)}>Heading 1</button
+						>
+						<button
+							class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--h2"
+							onclick={() => setHeading(2)}>Heading 2</button
+						>
+						<button
+							class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--h3"
+							onclick={() => setHeading(3)}>Heading 3</button
+						>
+						<button
+							class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--h4"
+							onclick={() => setHeading(4)}>Heading 4</button
+						>
+						<button
+							class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--h5"
+							onclick={() => setHeading(5)}>Heading 5</button
+						>
+						<button
+							class="toolbar__dropdown-item toolbar__heading-preview toolbar__heading-preview--h6"
+							onclick={() => setHeading(6)}>Heading 6</button
+						>
 					</div>
 				{/if}
 			</div>
@@ -506,8 +545,9 @@
 									onclick={removeLink}>Remove</button
 								>
 							{/if}
-							<button class="toolbar__dropdown-btn" onclick={() => (showLinkModal = false)}
-								>Cancel</button
+							<button
+								class="toolbar__dropdown-btn"
+								onclick={() => (showLinkModal = false)}>Cancel</button
 							>
 						</div>
 					</div>
@@ -550,9 +590,12 @@
 							/>
 						</label>
 						<div class="toolbar__dropdown-actions">
-							<button class="toolbar__dropdown-btn" onclick={insertYoutube}>Embed</button>
-							<button class="toolbar__dropdown-btn" onclick={() => (showYoutubeModal = false)}
-								>Cancel</button
+							<button class="toolbar__dropdown-btn" onclick={insertYoutube}
+								>Embed</button
+							>
+							<button
+								class="toolbar__dropdown-btn"
+								onclick={() => (showYoutubeModal = false)}>Cancel</button
 							>
 						</div>
 					</div>
@@ -690,7 +733,9 @@
 				</button>
 				{#if showTableMenu}
 					<div class="toolbar__dropdown">
-						<button class="toolbar__dropdown-item" onclick={insertTable}>Insert 3×3 table</button>
+						<button class="toolbar__dropdown-item" onclick={insertTable}
+							>Insert 3×3 table</button
+						>
 						{#if editor.isActive('table')}
 							<button
 								class="toolbar__dropdown-item"
@@ -751,7 +796,11 @@
 				{#if showSpecialChars}
 					<div class="toolbar__dropdown toolbar__dropdown--chars">
 						{#each specialChars as ch (ch)}
-							<button class="toolbar__char-btn" title={ch} onclick={() => insertSpecialChar(ch)}>
+							<button
+								class="toolbar__char-btn"
+								title={ch}
+								onclick={() => insertSpecialChar(ch)}
+							>
 								{specialCharDisplay[ch] || ch}
 							</button>
 						{/each}
@@ -768,7 +817,11 @@
 				<ClipboardText size={18} weight="bold" />
 			</button>
 			{#if onInsertReadMore}
-				<button class="toolbar__btn" title="Insert Read More break" onclick={onInsertReadMore}>
+				<button
+					class="toolbar__btn"
+					title="Insert Read More break"
+					onclick={onInsertReadMore}
+				>
 					<Scissors size={18} weight="bold" />
 				</button>
 			{/if}
@@ -826,7 +879,10 @@
 				{#if showShortcodeMenu}
 					<div class="toolbar__dropdown">
 						{#each shortcodes as sc (sc.label)}
-							<button class="toolbar__dropdown-item" onclick={() => insertShortcode(sc.code)}>
+							<button
+								class="toolbar__dropdown-item"
+								onclick={() => insertShortcode(sc.code)}
+							>
 								{sc.label}
 							</button>
 						{/each}

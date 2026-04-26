@@ -84,7 +84,12 @@
 		<p class="title">{title}</p>
 		{#if description}<p class="description">{description}</p>{/if}
 	</div>
-	<button type="button" class="close" aria-label="Dismiss notification" onclick={() => onclose?.(id)}>
+	<button
+		type="button"
+		class="close"
+		aria-label="Dismiss notification"
+		onclick={() => onclose?.(id)}
+	>
 		<XIcon size="1rem" weight="bold" aria-hidden="true" />
 	</button>
 </div>
@@ -107,20 +112,52 @@
 		pointer-events: auto;
 	}
 
-	.toast[data-kind='info'] { border-inline-start: 3px solid var(--status-info-500); }
-	.toast[data-kind='success'] { border-inline-start: 3px solid var(--status-success-500); }
-	.toast[data-kind='warning'] { border-inline-start: 3px solid var(--status-warning-500); }
-	.toast[data-kind='danger'] { border-inline-start: 3px solid var(--status-danger-500); }
+	.toast[data-kind='info'] {
+		border-inline-start: 3px solid var(--status-info-500);
+	}
+	.toast[data-kind='success'] {
+		border-inline-start: 3px solid var(--status-success-500);
+	}
+	.toast[data-kind='warning'] {
+		border-inline-start: 3px solid var(--status-warning-500);
+	}
+	.toast[data-kind='danger'] {
+		border-inline-start: 3px solid var(--status-danger-500);
+	}
 
-	.icon { line-height: 0; padding-block-start: var(--space-0-5); }
-	.toast[data-kind='info'] .icon { color: var(--status-info-700); }
-	.toast[data-kind='success'] .icon { color: var(--status-success-700); }
-	.toast[data-kind='warning'] .icon { color: var(--status-warning-700); }
-	.toast[data-kind='danger'] .icon { color: var(--status-danger-700); }
+	.icon {
+		line-height: 0;
+		padding-block-start: var(--space-0-5);
+	}
+	.toast[data-kind='info'] .icon {
+		color: var(--status-info-700);
+	}
+	.toast[data-kind='success'] .icon {
+		color: var(--status-success-700);
+	}
+	.toast[data-kind='warning'] .icon {
+		color: var(--status-warning-700);
+	}
+	.toast[data-kind='danger'] .icon {
+		color: var(--status-danger-700);
+	}
 
-	.body { min-inline-size: 0; }
-	.title { margin: 0; font-weight: var(--w-semibold); font-size: var(--fs-sm); line-height: var(--lh-snug); }
-	.description { margin-block-start: var(--space-1); margin-block-end: 0; font-size: var(--fs-xs); color: var(--surface-fg-muted); line-height: var(--lh-normal); }
+	.body {
+		min-inline-size: 0;
+	}
+	.title {
+		margin: 0;
+		font-weight: var(--w-semibold);
+		font-size: var(--fs-sm);
+		line-height: var(--lh-snug);
+	}
+	.description {
+		margin-block-start: var(--space-1);
+		margin-block-end: 0;
+		font-size: var(--fs-xs);
+		color: var(--surface-fg-muted);
+		line-height: var(--lh-normal);
+	}
 
 	.close {
 		appearance: none;
@@ -135,13 +172,24 @@
 		align-items: center;
 		justify-content: center;
 	}
-	.close:hover { color: var(--surface-fg-default); background-color: var(--surface-bg-muted); }
+	.close:hover {
+		color: var(--surface-fg-default);
+		background-color: var(--surface-bg-muted);
+	}
 
 	@keyframes toast-enter {
-		from { opacity: 0; transform: translateY(8px); }
-		to { opacity: 1; transform: translateY(0); }
+		from {
+			opacity: 0;
+			transform: translateY(8px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.toast { animation: none; }
+		.toast {
+			animation: none;
+		}
 	}
 </style>

@@ -14,9 +14,9 @@
 
 ## Executive summary
 
-`swings` is in good structural shape — the foundational pillars (FDN-*),
-admin platform (ADM-*), commerce (EC-*), forms (FORM-*), consent
-(CONSENT-*), popups (POP-*) and observability scaffolding all landed,
+`swings` is in good structural shape — the foundational pillars (FDN-_),
+admin platform (ADM-_), commerce (EC-_), forms (FORM-_), consent
+(CONSENT-_), popups (POP-_) and observability scaffolding all landed,
 along with 76 forward-only migrations, ~480 backend lib tests, ~67
 frontend unit tests, and a production-grade audit/RBAC catalogue. The
 **primary risk surface is no longer "does the feature exist" but
@@ -38,7 +38,7 @@ of gap dominate:
 2. **The Stripe webhook handler covers only three event types.** The
    on-ramp (`checkout.session.completed`,
    `customer.subscription.{created,updated,deleted}`) is wired; the
-   *post-purchase lifecycle* (`invoice.payment_failed`, `invoice.paid`,
+   _post-purchase lifecycle_ (`invoice.payment_failed`, `invoice.paid`,
    `charge.refunded`, `payment_intent.payment_failed`,
    `customer.subscription.trial_will_end`, dunning, dispute) is not.
    The pricing-rollout / one-time-product / form-payment-intent code
@@ -68,37 +68,37 @@ the next 4–6 weeks of work.
 
 Legend: ✅ shipped · ◐ partial / stubby · ✗ missing · n/a not in scope.
 
-| Domain | Backend CRUD | Backend RBAC (`policy.require`) | Frontend CRUD UI | Audit row | Idempotency | Tests |
-|---|---|---|---|---|---|---|
-| Members lifecycle (suspend/ban/email/sessions) | ✅ `admin_security.rs` | ✅ 11 calls | ✅ `members/[id]` + `members/manage` | ✅ | n/a (gated POSTs idempotent by id) | ✅ `admin_security.rs` (13 tests) |
-| Members search + manual create | ✅ `admin_members.rs` | ✅ 2 calls | ✅ `members/manage/+page.svelte` | ✅ | ✅ | ✅ `admin_members.rs` (12 tests) |
-| Member self profile / dashboard | ✅ `member.rs` | ✗ AuthUser only — see §3.2 #4 of AUDIT.md | ✅ | n/a | n/a | ◐ |
-| Watchlists | ✅ admin.rs | ✗ AdminUser only | ✅ list-only | ◐ best-effort | ✗ | ✗ |
-| Blog (posts/categories/tags/media) | ✅ `blog.rs` (1402 LOC) | ✗ no `policy.require` (zero calls) | ✅ rich editor | ✅ `audit_admin` everywhere | ✗ not wired | ✗ |
-| Courses / modules / lessons | ✅ `courses.rs` | ✗ no `policy.require` | ✅ | ✅ | ✗ | ✗ |
-| Coupons (incl. bulk, engine refactor) | ✅ `coupons.rs` (1274 LOC, EC-11) | ✗ no `policy.require` | ✅ | ✅ | ✗ | ✗ |
-| Popups + variants + analytics | ✅ `popups.rs` (1323 LOC) | ✗ no `policy.require` | ✅ | ✅ | ✗ | ✗ |
-| Products + variants + assets + bundles | ✅ `products.rs` | ✗ no `policy.require` | ◐ list + edit only | ✅ | ✗ | ✗ |
-| Pricing plans + rollout | ✅ `pricing.rs` + `services::pricing_rollout` | ✗ no `policy.require` | ✅ `subscriptions/plans` | ✅ | ✅ rollout requires Idempotency-Key | ✗ |
-| Orders (manual create/void/refund/CSV) | ✅ `admin_orders.rs` | ✅ 6 calls | ✅ `orders/+page.svelte` | ✅ | ✅ | ✅ 18 tests |
-| Subscriptions (comp / extend / cycle override) | ✅ `admin_subscriptions.rs` | ✅ 4 calls | ✅ `subscriptions/manual` | ✅ | ✅ | ✅ 13 tests |
-| Stripe webhooks | ◐ 3 event types | n/a webhook | n/a | ✗ never audits | ✅ via `processed_webhook_events` | ◐ signature + tampering only |
-| Public/admin checkout (`SvelteKit remote fn`) | ✅ `src/routes/api/checkout.remote.ts` | n/a | ✅ pricing pages | n/a | ◐ stripe key reused | ✗ no E2E |
-| Cart (guest + authed) | ✅ `cart.rs` | n/a (member or anon) | ✗ no admin UI for cart inspection | n/a | ✗ | ✗ |
-| Audit log viewer + FTS | ✅ `admin_audit.rs` | ✅ 3 calls | ✅ `audit/+page.svelte` | n/a self | n/a (read-only) | ✅ 12 tests |
-| DSAR (request, export, erase, sweep) | ✅ `admin_dsar.rs` (889 LOC) | ✅ 6 calls + dual-control | ✅ `dsar/+page.svelte` | ✅ | ✅ | ✅ 15 + sweep + r2 + async |
-| Security (IP allowlist, impersonation, roles) | ✅ all 3 handlers | ✅ 21 calls combined | ✅ all 3 sub-pages | ✅ | n/a (gated POST) | ✅ 11 + 21 + 10 |
-| Settings (typed catalogue) | ✅ `admin_settings.rs` | ✅ 5 calls | ✅ `settings/+page.svelte` + `settings/system` | ✅ | ✗ not on writes | ✅ 9 tests |
-| Forms builder + submissions + payment intents | ✅ `forms.rs` (928 LOC) | ✗ no `policy.require` | ◐ list + edit; **no submissions table page** | ✅ | ✗ | ✗ |
-| Consent banner / categories / services / policies / log / integrity | ✅ `admin_consent.rs` (810 LOC) | ✗ no `policy.require` | ◐ landing page only — sub-pages exist as stubs | ◐ outbox event only | ✗ | ✗ |
-| Consent DSAR (member-side) | ✅ `consent.rs::admin_router` + `public_dsar_router` | ✗ no `policy.require` | n/a (admin DSAR is the path) | ✅ | n/a | ✗ |
-| Author profile | ✅ `users` columns from 005_user_author_profile.sql | n/a | ✅ `author/+page.svelte` | ✅ | n/a | ✗ |
-| Analytics ingest + summary | ✅ `analytics.rs` + `admin.rs::analytics_*` | ✗ no `policy.require` | ✅ `analytics/+page.svelte` | n/a | n/a | ✗ |
-| Notifications (templates / deliveries / suppression) | ✅ `notifications.rs` admin router | ✗ no `policy.require` | **✗ no admin UI at all** | ✅ | ✗ | ✗ outside provider/webhook |
-| Outbox viewer / retry | ✅ `outbox.rs` | ✗ no `policy.require` | **✗ no admin UI** | ✅ | n/a | ✅ 5 tests |
-| Email verification + resend | ✅ `auth.rs::verify_email`, `resend_verification` | n/a public | ✗ no UI page (uses link in mail only) | n/a | n/a | ✗ |
-| Forgot / reset password | ✅ `auth.rs` | n/a public | ✅ `/forgot-password`, `/reset-password` | n/a | n/a | ✗ |
-| MFA / passkeys | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| Domain                                                              | Backend CRUD                                         | Backend RBAC (`policy.require`)           | Frontend CRUD UI                               | Audit row                   | Idempotency                         | Tests                             |
+| ------------------------------------------------------------------- | ---------------------------------------------------- | ----------------------------------------- | ---------------------------------------------- | --------------------------- | ----------------------------------- | --------------------------------- |
+| Members lifecycle (suspend/ban/email/sessions)                      | ✅ `admin_security.rs`                               | ✅ 11 calls                               | ✅ `members/[id]` + `members/manage`           | ✅                          | n/a (gated POSTs idempotent by id)  | ✅ `admin_security.rs` (13 tests) |
+| Members search + manual create                                      | ✅ `admin_members.rs`                                | ✅ 2 calls                                | ✅ `members/manage/+page.svelte`               | ✅                          | ✅                                  | ✅ `admin_members.rs` (12 tests)  |
+| Member self profile / dashboard                                     | ✅ `member.rs`                                       | ✗ AuthUser only — see §3.2 #4 of AUDIT.md | ✅                                             | n/a                         | n/a                                 | ◐                                 |
+| Watchlists                                                          | ✅ admin.rs                                          | ✗ AdminUser only                          | ✅ list-only                                   | ◐ best-effort               | ✗                                   | ✗                                 |
+| Blog (posts/categories/tags/media)                                  | ✅ `blog.rs` (1402 LOC)                              | ✗ no `policy.require` (zero calls)        | ✅ rich editor                                 | ✅ `audit_admin` everywhere | ✗ not wired                         | ✗                                 |
+| Courses / modules / lessons                                         | ✅ `courses.rs`                                      | ✗ no `policy.require`                     | ✅                                             | ✅                          | ✗                                   | ✗                                 |
+| Coupons (incl. bulk, engine refactor)                               | ✅ `coupons.rs` (1274 LOC, EC-11)                    | ✗ no `policy.require`                     | ✅                                             | ✅                          | ✗                                   | ✗                                 |
+| Popups + variants + analytics                                       | ✅ `popups.rs` (1323 LOC)                            | ✗ no `policy.require`                     | ✅                                             | ✅                          | ✗                                   | ✗                                 |
+| Products + variants + assets + bundles                              | ✅ `products.rs`                                     | ✗ no `policy.require`                     | ◐ list + edit only                             | ✅                          | ✗                                   | ✗                                 |
+| Pricing plans + rollout                                             | ✅ `pricing.rs` + `services::pricing_rollout`        | ✗ no `policy.require`                     | ✅ `subscriptions/plans`                       | ✅                          | ✅ rollout requires Idempotency-Key | ✗                                 |
+| Orders (manual create/void/refund/CSV)                              | ✅ `admin_orders.rs`                                 | ✅ 6 calls                                | ✅ `orders/+page.svelte`                       | ✅                          | ✅                                  | ✅ 18 tests                       |
+| Subscriptions (comp / extend / cycle override)                      | ✅ `admin_subscriptions.rs`                          | ✅ 4 calls                                | ✅ `subscriptions/manual`                      | ✅                          | ✅                                  | ✅ 13 tests                       |
+| Stripe webhooks                                                     | ◐ 3 event types                                      | n/a webhook                               | n/a                                            | ✗ never audits              | ✅ via `processed_webhook_events`   | ◐ signature + tampering only      |
+| Public/admin checkout (`SvelteKit remote fn`)                       | ✅ `src/routes/api/checkout.remote.ts`               | n/a                                       | ✅ pricing pages                               | n/a                         | ◐ stripe key reused                 | ✗ no E2E                          |
+| Cart (guest + authed)                                               | ✅ `cart.rs`                                         | n/a (member or anon)                      | ✗ no admin UI for cart inspection              | n/a                         | ✗                                   | ✗                                 |
+| Audit log viewer + FTS                                              | ✅ `admin_audit.rs`                                  | ✅ 3 calls                                | ✅ `audit/+page.svelte`                        | n/a self                    | n/a (read-only)                     | ✅ 12 tests                       |
+| DSAR (request, export, erase, sweep)                                | ✅ `admin_dsar.rs` (889 LOC)                         | ✅ 6 calls + dual-control                 | ✅ `dsar/+page.svelte`                         | ✅                          | ✅                                  | ✅ 15 + sweep + r2 + async        |
+| Security (IP allowlist, impersonation, roles)                       | ✅ all 3 handlers                                    | ✅ 21 calls combined                      | ✅ all 3 sub-pages                             | ✅                          | n/a (gated POST)                    | ✅ 11 + 21 + 10                   |
+| Settings (typed catalogue)                                          | ✅ `admin_settings.rs`                               | ✅ 5 calls                                | ✅ `settings/+page.svelte` + `settings/system` | ✅                          | ✗ not on writes                     | ✅ 9 tests                        |
+| Forms builder + submissions + payment intents                       | ✅ `forms.rs` (928 LOC)                              | ✗ no `policy.require`                     | ◐ list + edit; **no submissions table page**   | ✅                          | ✗                                   | ✗                                 |
+| Consent banner / categories / services / policies / log / integrity | ✅ `admin_consent.rs` (810 LOC)                      | ✗ no `policy.require`                     | ◐ landing page only — sub-pages exist as stubs | ◐ outbox event only         | ✗                                   | ✗                                 |
+| Consent DSAR (member-side)                                          | ✅ `consent.rs::admin_router` + `public_dsar_router` | ✗ no `policy.require`                     | n/a (admin DSAR is the path)                   | ✅                          | n/a                                 | ✗                                 |
+| Author profile                                                      | ✅ `users` columns from 005_user_author_profile.sql  | n/a                                       | ✅ `author/+page.svelte`                       | ✅                          | n/a                                 | ✗                                 |
+| Analytics ingest + summary                                          | ✅ `analytics.rs` + `admin.rs::analytics_*`          | ✗ no `policy.require`                     | ✅ `analytics/+page.svelte`                    | n/a                         | n/a                                 | ✗                                 |
+| Notifications (templates / deliveries / suppression)                | ✅ `notifications.rs` admin router                   | ✗ no `policy.require`                     | **✗ no admin UI at all**                       | ✅                          | ✗                                   | ✗ outside provider/webhook        |
+| Outbox viewer / retry                                               | ✅ `outbox.rs`                                       | ✗ no `policy.require`                     | **✗ no admin UI**                              | ✅                          | n/a                                 | ✅ 5 tests                        |
+| Email verification + resend                                         | ✅ `auth.rs::verify_email`, `resend_verification`    | n/a public                                | ✗ no UI page (uses link in mail only)          | n/a                         | n/a                                 | ✗                                 |
+| Forgot / reset password                                             | ✅ `auth.rs`                                         | n/a public                                | ✅ `/forgot-password`, `/reset-password`       | n/a                         | n/a                                 | ✗                                 |
+| MFA / passkeys                                                      | ✗                                                    | ✗                                         | ✗                                              | ✗                           | ✗                                   | ✗                                 |
 
 **Reading guide:** the rows where backend RBAC is "✗ no `policy.require`"
 are the §3 "Phase 3" target list; rows where the backend column shows
@@ -272,9 +272,9 @@ either has no admin UI or only has a list page. File paths under
 
 - **What:** the watchlists list (`/admin/watchlists/+page.svelte`,
   747 L) renders but the list-only nav is misleading — there is a `new/`
-  + `[id]/` route, but the list does not surface the publish/unpublish
-  toggle outcome reliably and the alerts surface (`/api/admin/watchlists/{id}/alerts`)
-  is not exposed.
+  - `[id]/` route, but the list does not surface the publish/unpublish
+    toggle outcome reliably and the alerts surface (`/api/admin/watchlists/{id}/alerts`)
+    is not exposed.
 - **Backend:** `backend/src/handlers/admin.rs:54` —
   `/watchlists/{id}/alerts` GET/POST + `/alerts/{id}` PUT/DELETE.
 - **Acceptance:** alerts panel inside `watchlists/[id]` lists, creates,
@@ -289,14 +289,14 @@ either has no admin UI or only has a list page. File paths under
 - **Backend:** `backend/src/handlers/products.rs:432` (variants),
   `:597` (assets), `:707` (bundle items).
 - **Acceptance:** variant grid editable in-page; assets with thumbnail
-  + delete; bundle composition via product picker.
+  - delete; bundle composition via product picker.
 - **Effort:** **M** (3 d).
 
 ### 2.7 Member detail — subscription + sessions tabs
 
 - **What:** `members/[id]/+page.svelte` exists but does not surface the
   `admin_security.rs` sessions endpoint (`GET/DELETE
-  /api/admin/security/members/{id}/sessions`) nor the
+/api/admin/security/members/{id}/sessions`) nor the
   `force-password-reset` / `verify-email` actions in a unified panel.
 - **Backend:** `admin_security.rs:46` routes.
 - **Acceptance:** sessions tab lists active refresh tokens; revoke
@@ -355,23 +355,23 @@ calls**). Ten admin handlers do not.
 For each, the verb-suffixed permissions to use already exist in the
 catalogue.
 
-| Handler | File | Routes count | Suggested perms |
-|---|---|---|---|
-| Blog | `backend/src/handlers/blog.rs` | 24 admin routes | `blog.post.create/update_*/delete_*/publish`, `blog.media.upload/delete_*`, `blog.category.manage` |
-| Courses | `backend/src/handlers/courses.rs` | 7 admin routes | `course.manage` (single perm covers all admin mutations) |
-| Coupons | `backend/src/handlers/coupons.rs` | 9 admin routes | `coupon.manage`, `coupon.read_any` for GETs |
-| Popups | `backend/src/handlers/popups.rs` | 10 admin routes | `popup.manage`, `popup.read_analytics` for analytics |
-| Products | `backend/src/handlers/products.rs` | 14 admin routes | new `product.manage` perm via migration `077_product_perms.sql` |
-| Pricing | `backend/src/handlers/pricing.rs` | 8 admin routes | `subscription.plan.manage` |
-| Forms | `backend/src/handlers/forms.rs` | 4 admin routes | `form.manage`, `form.submission.read_any`, `form.submission.delete_any` |
-| Admin consent | `backend/src/handlers/admin_consent.rs` | 11 admin routes | new `consent.config.manage` (migration), reuse `consent.log.read_any` |
-| Notifications admin | `backend/src/handlers/notifications.rs` | 8 admin routes | `notification.template.manage`, `notification.broadcast.create` |
-| Outbox | `backend/src/handlers/outbox.rs` | 3 admin routes | `admin.outbox.read`, `admin.outbox.retry` |
+| Handler             | File                                    | Routes count    | Suggested perms                                                                                    |
+| ------------------- | --------------------------------------- | --------------- | -------------------------------------------------------------------------------------------------- |
+| Blog                | `backend/src/handlers/blog.rs`          | 24 admin routes | `blog.post.create/update_*/delete_*/publish`, `blog.media.upload/delete_*`, `blog.category.manage` |
+| Courses             | `backend/src/handlers/courses.rs`       | 7 admin routes  | `course.manage` (single perm covers all admin mutations)                                           |
+| Coupons             | `backend/src/handlers/coupons.rs`       | 9 admin routes  | `coupon.manage`, `coupon.read_any` for GETs                                                        |
+| Popups              | `backend/src/handlers/popups.rs`        | 10 admin routes | `popup.manage`, `popup.read_analytics` for analytics                                               |
+| Products            | `backend/src/handlers/products.rs`      | 14 admin routes | new `product.manage` perm via migration `077_product_perms.sql`                                    |
+| Pricing             | `backend/src/handlers/pricing.rs`       | 8 admin routes  | `subscription.plan.manage`                                                                         |
+| Forms               | `backend/src/handlers/forms.rs`         | 4 admin routes  | `form.manage`, `form.submission.read_any`, `form.submission.delete_any`                            |
+| Admin consent       | `backend/src/handlers/admin_consent.rs` | 11 admin routes | new `consent.config.manage` (migration), reuse `consent.log.read_any`                              |
+| Notifications admin | `backend/src/handlers/notifications.rs` | 8 admin routes  | `notification.template.manage`, `notification.broadcast.create`                                    |
+| Outbox              | `backend/src/handlers/outbox.rs`        | 3 admin routes  | `admin.outbox.read`, `admin.outbox.retry`                                                          |
 
 **Acceptance:**
 
 1. `grep -nE "AdminUser|PrivilegedUser" backend/src/handlers/*.rs |
-   xargs -I{} grep -L "policy.require\\|policy.has" {}` returns empty.
+xargs -I{} grep -L "policy.require\\|policy.has" {}` returns empty.
 2. Every admin POST/PUT/PATCH/DELETE pairs `policy.require()` with
    `services::audit::audit_admin*()`.
 3. New CI check: a Rust unit-test under
@@ -387,30 +387,30 @@ catalogue.
 Cross-referencing `021_rbac.sql` plus 058/063/064/066/067/068/069 with
 the call sites:
 
-| Permission | Defined in | Currently checked? |
-|---|---|---|
-| `blog.post.update_own` / `_any`, `delete_own` / `_any`, `publish` | 021 | ✗ — author-vs-admin distinction collapses to AdminUser |
-| `blog.media.delete_own` / `_any` | 021 | ✗ |
-| `blog.category.manage` | 021 | ✗ |
-| `course.manage`, `course.enroll.other`, `course.progress.read_any` | 021 | ✗ |
-| `coupon.manage`, `coupon.read_any` | 021 | ✗ |
-| `popup.manage`, `popup.read_analytics` | 021 | ✗ |
-| `subscription.plan.manage` | 021 | ✗ (used by `pricing.rs`) |
-| `form.manage`, `form.submission.read_any`, `form.submission.delete_any` | 021 | ✗ |
-| `notification.template.manage`, `notification.broadcast.create` | 021 | ✗ |
-| `admin.outbox.read`, `admin.outbox.retry` | 021 | ✗ |
-| `dsar.fulfill` | 021 | ✓ (admin_dsar) |
-| `admin.audit.read` | 021 | ✓ (admin_audit + admin_security) |
-| `admin.role.manage`, `admin.permission.manage` | 021 | ✓ (admin_roles) |
-| `user.suspend / reactivate / ban / force_password_reset / email.verify / session.read / session.revoke` | 058 | ✓ (admin_security) |
-| `admin.ip_allowlist.read / manage` | 059 | ✓ (admin_ip_allowlist) |
-| `admin.impersonation.create` (`IMPERSONATE_PERMISSION`) | 060 | ✓ (admin_impersonation) |
-| `admin.settings.read / read_secret / write` | 063 | ✓ (admin_settings) |
-| `admin.role_matrix.read / manage` (`PERM_READ`/`PERM_MANAGE` in admin_roles) | 064 | ✓ (admin_roles) |
-| `admin.member.read / create` | 066 | ✓ (admin_members) |
-| `admin.subscription.read / comp / extend / billing_cycle.override` | 067 | ✓ (admin_subscriptions) |
-| `admin.order.read / create / void / refund / export` | 068 | ✓ (admin_orders) |
-| `admin.dsar.read / export / erase.request / erase.approve` | 069 | ✓ (admin_dsar) |
+| Permission                                                                                              | Defined in | Currently checked?                                     |
+| ------------------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------ |
+| `blog.post.update_own` / `_any`, `delete_own` / `_any`, `publish`                                       | 021        | ✗ — author-vs-admin distinction collapses to AdminUser |
+| `blog.media.delete_own` / `_any`                                                                        | 021        | ✗                                                      |
+| `blog.category.manage`                                                                                  | 021        | ✗                                                      |
+| `course.manage`, `course.enroll.other`, `course.progress.read_any`                                      | 021        | ✗                                                      |
+| `coupon.manage`, `coupon.read_any`                                                                      | 021        | ✗                                                      |
+| `popup.manage`, `popup.read_analytics`                                                                  | 021        | ✗                                                      |
+| `subscription.plan.manage`                                                                              | 021        | ✗ (used by `pricing.rs`)                               |
+| `form.manage`, `form.submission.read_any`, `form.submission.delete_any`                                 | 021        | ✗                                                      |
+| `notification.template.manage`, `notification.broadcast.create`                                         | 021        | ✗                                                      |
+| `admin.outbox.read`, `admin.outbox.retry`                                                               | 021        | ✗                                                      |
+| `dsar.fulfill`                                                                                          | 021        | ✓ (admin_dsar)                                         |
+| `admin.audit.read`                                                                                      | 021        | ✓ (admin_audit + admin_security)                       |
+| `admin.role.manage`, `admin.permission.manage`                                                          | 021        | ✓ (admin_roles)                                        |
+| `user.suspend / reactivate / ban / force_password_reset / email.verify / session.read / session.revoke` | 058        | ✓ (admin_security)                                     |
+| `admin.ip_allowlist.read / manage`                                                                      | 059        | ✓ (admin_ip_allowlist)                                 |
+| `admin.impersonation.create` (`IMPERSONATE_PERMISSION`)                                                 | 060        | ✓ (admin_impersonation)                                |
+| `admin.settings.read / read_secret / write`                                                             | 063        | ✓ (admin_settings)                                     |
+| `admin.role_matrix.read / manage` (`PERM_READ`/`PERM_MANAGE` in admin_roles)                            | 064        | ✓ (admin_roles)                                        |
+| `admin.member.read / create`                                                                            | 066        | ✓ (admin_members)                                      |
+| `admin.subscription.read / comp / extend / billing_cycle.override`                                      | 067        | ✓ (admin_subscriptions)                                |
+| `admin.order.read / create / void / refund / export`                                                    | 068        | ✓ (admin_orders)                                       |
+| `admin.dsar.read / export / erase.request / erase.approve`                                              | 069        | ✓ (admin_dsar)                                         |
 
 Net: **17 distinct permissions** are defined, granted to roles, but
 never enforced by any handler. They become live the moment Phase 3.1
@@ -422,12 +422,12 @@ lands.
 
 ### 4a. Local setup verification
 
-| Item | Source of truth | Verified? |
-|---|---|---|
-| `STRIPE_SECRET_KEY=sk_test_…` in `backend/.env` and root `.env` | `docs/stripe-local-testing.md:42` | Documented |
-| `STRIPE_WEBHOOK_SECRET=whsec_…` in `backend/.env` | same | Documented; rotated each `stripe listen` restart |
-| `pnpm stripe:listen` script in `package.json` | Should map to `stripe listen --forward-to http://127.0.0.1:3001/api/webhooks/stripe` | Confirmed in docs |
-| Pricing plans seeded with `stripe_price_id` (optional) **or** valid `amount_cents`+`stripe_product_id` for `price_data` mode | `pricing_plans` table; admin UI under `/admin/subscriptions/plans` | Schema present |
+| Item                                                                                                                         | Source of truth                                                                      | Verified?                                        |
+| ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------ |
+| `STRIPE_SECRET_KEY=sk_test_…` in `backend/.env` and root `.env`                                                              | `docs/stripe-local-testing.md:42`                                                    | Documented                                       |
+| `STRIPE_WEBHOOK_SECRET=whsec_…` in `backend/.env`                                                                            | same                                                                                 | Documented; rotated each `stripe listen` restart |
+| `pnpm stripe:listen` script in `package.json`                                                                                | Should map to `stripe listen --forward-to http://127.0.0.1:3001/api/webhooks/stripe` | Confirmed in docs                                |
+| Pricing plans seeded with `stripe_price_id` (optional) **or** valid `amount_cents`+`stripe_product_id` for `price_data` mode | `pricing_plans` table; admin UI under `/admin/subscriptions/plans`                   | Schema present                                   |
 
 **Action items in this section:**
 
@@ -449,18 +449,18 @@ Use the official Stripe test cards (https://docs.stripe.com/testing#cards).
 For each, document the user flow, the webhook events fired by Stripe,
 the DB rows expected on our side, and the email expected from Resend.
 
-| Scenario | Card (PAN) | Expected Stripe events | Expected DB state | Expected email |
-|---|---|---|---|---|
-| Success — credit | `4242 4242 4242 4242` | `checkout.session.completed`, `customer.subscription.created`, `invoice.paid` | `subscriptions` row `status='active'`, `pricing_plan_id` set, `users.stripe_customer_id` set, `audit_log` "checkout completed" | `subscription.confirmed` |
-| Success — debit | `4000 0566 5566 5556` | same | same | same |
-| 3DS required | `4000 0027 6000 3184` | `checkout.session.completed` (after 3DS approval), then subscription/invoice arms | same as success | same |
-| 3DS declined | `4000 0082 6000 3178` | `checkout.session.expired` | no subscription row created | none |
-| Insufficient funds | `4000 0000 0000 9995` | `checkout.session.expired` (initial) or `invoice.payment_failed` (renewal) | row stays `incomplete` then deleted, or moves to `past_due` | `subscription.payment_failed` (Phase 1.1) |
-| Stolen card | `4000 0000 0000 9979` | `checkout.session.expired` | none | none |
-| Disputed (chargeback) | `4000 0000 0000 0259` | `charge.dispute.created` | `subscriptions` should freeze pending review (new column?) | `subscription.disputed` |
-| Attaches but fails first charge | `4000 0000 0000 0341` | `customer.subscription.created`, then `invoice.payment_failed` immediately | row created `status='past_due'` | dunning |
-| Trial then card declines | `4000 0000 0000 0341` with trial period | `customer.subscription.trial_will_end` (3d before), then `invoice.payment_failed` | trial→active→past_due→canceled cascade | trial-ending + payment_failed |
-| 100% off coupon | any | `checkout.session.completed`, `customer.subscription.created` (no invoice) | as success but `coupons_usages` += 1 | `subscription.confirmed` |
+| Scenario                        | Card (PAN)                              | Expected Stripe events                                                            | Expected DB state                                                                                                              | Expected email                            |
+| ------------------------------- | --------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------- |
+| Success — credit                | `4242 4242 4242 4242`                   | `checkout.session.completed`, `customer.subscription.created`, `invoice.paid`     | `subscriptions` row `status='active'`, `pricing_plan_id` set, `users.stripe_customer_id` set, `audit_log` "checkout completed" | `subscription.confirmed`                  |
+| Success — debit                 | `4000 0566 5566 5556`                   | same                                                                              | same                                                                                                                           | same                                      |
+| 3DS required                    | `4000 0027 6000 3184`                   | `checkout.session.completed` (after 3DS approval), then subscription/invoice arms | same as success                                                                                                                | same                                      |
+| 3DS declined                    | `4000 0082 6000 3178`                   | `checkout.session.expired`                                                        | no subscription row created                                                                                                    | none                                      |
+| Insufficient funds              | `4000 0000 0000 9995`                   | `checkout.session.expired` (initial) or `invoice.payment_failed` (renewal)        | row stays `incomplete` then deleted, or moves to `past_due`                                                                    | `subscription.payment_failed` (Phase 1.1) |
+| Stolen card                     | `4000 0000 0000 9979`                   | `checkout.session.expired`                                                        | none                                                                                                                           | none                                      |
+| Disputed (chargeback)           | `4000 0000 0000 0259`                   | `charge.dispute.created`                                                          | `subscriptions` should freeze pending review (new column?)                                                                     | `subscription.disputed`                   |
+| Attaches but fails first charge | `4000 0000 0000 0341`                   | `customer.subscription.created`, then `invoice.payment_failed` immediately        | row created `status='past_due'`                                                                                                | dunning                                   |
+| Trial then card declines        | `4000 0000 0000 0341` with trial period | `customer.subscription.trial_will_end` (3d before), then `invoice.payment_failed` | trial→active→past_due→canceled cascade                                                                                         | trial-ending + payment_failed             |
+| 100% off coupon                 | any                                     | `checkout.session.completed`, `customer.subscription.created` (no invoice)        | as success but `coupons_usages` += 1                                                                                           | `subscription.confirmed`                  |
 
 ### 4c. Webhook flows to test
 
@@ -493,7 +493,7 @@ Use the same forged-but-valid signature pattern from
    assert nothing changes structurally but a `subscription.renewed`
    audit row lands.
 9. **Customer portal entry:** call `POST
-   /api/member/billing-portal` (`backend/src/handlers/member.rs:150`);
+/api/member/billing-portal` (`backend/src/handlers/member.rs:150`);
    assert returned URL is a `https://billing.stripe.com/...` and the
    call records an audit row.
 10. **Webhook signature failure (forged event):** post payload with bad
@@ -610,15 +610,15 @@ Operator-facing; suitable for a release-day go-live drill.
 
 ### 5.4 Background workers
 
-| Worker | Status | `*_last_success_unixtime` |
-|---|---|---|
-| Outbox dispatcher | ✅ running, 4 concurrent | needs metric? confirm in `events/worker.rs` |
-| Audit retention | ✅ running, 1h cadence | confirmed |
-| DSAR worker | ✅ running, 30s cadence | confirmed |
-| DSAR artefact sweep | ✅ running, 1h cadence | confirmed |
-| Idempotency GC | ✅ running, 5m cadence | confirmed |
-| **Missing:** consent integrity anchor scheduler | ✗ TODO `consent/integrity.rs:97` | n/a |
-| **Missing:** dunning sweeper (P1.1 dependency) | ✗ | n/a |
+| Worker                                          | Status                           | `*_last_success_unixtime`                   |
+| ----------------------------------------------- | -------------------------------- | ------------------------------------------- |
+| Outbox dispatcher                               | ✅ running, 4 concurrent         | needs metric? confirm in `events/worker.rs` |
+| Audit retention                                 | ✅ running, 1h cadence           | confirmed                                   |
+| DSAR worker                                     | ✅ running, 30s cadence          | confirmed                                   |
+| DSAR artefact sweep                             | ✅ running, 1h cadence           | confirmed                                   |
+| Idempotency GC                                  | ✅ running, 5m cadence           | confirmed                                   |
+| **Missing:** consent integrity anchor scheduler | ✗ TODO `consent/integrity.rs:97` | n/a                                         |
+| **Missing:** dunning sweeper (P1.1 dependency)  | ✗                                | n/a                                         |
 
 ### 5.5 PII / log hygiene
 
@@ -660,14 +660,14 @@ Operator-facing; suitable for a release-day go-live drill.
 
 ### 6.3 Test coverage targets
 
-| Layer | Today | Target |
-|---|---|---|
-| Backend unit | ~480 | 80% line coverage |
-| Backend integration | ~202 | every admin mutator + every webhook arm |
-| Frontend unit (Vitest) | 67 | 70% line coverage on `$lib/` |
-| Playwright smoke | 4 specs (CI gate) | unchanged |
-| Playwright admin | 2 specs (manual gate) | nightly job in CI |
-| Stripe checkout E2E | ✗ | nightly job (Phase 4d) |
+| Layer                  | Today                 | Target                                  |
+| ---------------------- | --------------------- | --------------------------------------- |
+| Backend unit           | ~480                  | 80% line coverage                       |
+| Backend integration    | ~202                  | every admin mutator + every webhook arm |
+| Frontend unit (Vitest) | 67                    | 70% line coverage on `$lib/`            |
+| Playwright smoke       | 4 specs (CI gate)     | unchanged                               |
+| Playwright admin       | 2 specs (manual gate) | nightly job in CI                       |
+| Stripe checkout E2E    | ✗                     | nightly job (Phase 4d)                  |
 
 Specific untested handlers (no entry under `backend/tests/`):
 `blog`, `courses`, `coupons`, `popups`, `products`, `pricing`,
@@ -681,31 +681,31 @@ adds the policy gates.
 
 ## Risk register
 
-| # | Risk | Severity | Likelihood | Mitigation |
-|---|---|---|---|---|
-| R1 | Stripe webhook only handles 3 of ~25 relevant event types; refunds, dunning, disputes silently diverge | High | Will happen on first dispute | Phase 1.1 |
-| R2 | Legacy admin handlers gate only on AdminUser, not the FDN-07 perm; support role can mutate blog/courses/coupons | High | Already true in prod | Phase 1.3 / Phase 3 |
-| R3 | Admin JWT in `localStorage`; any reflected XSS = full takeover | High | Mitigated by F17 sanitisation but structural flaw | Phase 1.2 |
-| R4 | No MFA on admin / support; sole factor is password + email recovery | High | Industry baseline | Phase 1.4 |
-| R5 | No automated Stripe E2E test; regressions discovered only by users | Medium | Inevitable on next refactor | Phase 4 |
-| R6 | DSAR erasure is dual-control but admin_consent admin write surface has no `policy.require`; an over-scoped support token could currently mutate banner/category config | Medium | Phase 3.1 closes | Phase 3 |
-| R7 | Idempotency middleware is opt-in per nest; missing on blog/courses/coupons/popups/products → admin double-clicks could double-create | Medium | Operator-facing | Phase 5.3 |
-| R8 | `OUTBOX_WORKERS=4` × `PGPOOL_MAX=10` plus 4 background workers leaves <6 connections for HTTP under burst | Low | Spikes only | Document in `docs/INFRASTRUCTURE.md` |
-| R9 | Notifications + outbox + consent admin pages missing → operators must run `psql` for triage | Low | Daily operational friction | Phase 2.1 / 2.2 / 2.3 |
-| R10 | OpenAPI snapshot under-counts paths (~144 of ~230) → frontend SDK incomplete; some endpoints called by handwritten clients | Low | Drift creeps in | Phase 6.2 |
+| #   | Risk                                                                                                                                                                   | Severity | Likelihood                                        | Mitigation                           |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------- | ------------------------------------ |
+| R1  | Stripe webhook only handles 3 of ~25 relevant event types; refunds, dunning, disputes silently diverge                                                                 | High     | Will happen on first dispute                      | Phase 1.1                            |
+| R2  | Legacy admin handlers gate only on AdminUser, not the FDN-07 perm; support role can mutate blog/courses/coupons                                                        | High     | Already true in prod                              | Phase 1.3 / Phase 3                  |
+| R3  | Admin JWT in `localStorage`; any reflected XSS = full takeover                                                                                                         | High     | Mitigated by F17 sanitisation but structural flaw | Phase 1.2                            |
+| R4  | No MFA on admin / support; sole factor is password + email recovery                                                                                                    | High     | Industry baseline                                 | Phase 1.4                            |
+| R5  | No automated Stripe E2E test; regressions discovered only by users                                                                                                     | Medium   | Inevitable on next refactor                       | Phase 4                              |
+| R6  | DSAR erasure is dual-control but admin_consent admin write surface has no `policy.require`; an over-scoped support token could currently mutate banner/category config | Medium   | Phase 3.1 closes                                  | Phase 3                              |
+| R7  | Idempotency middleware is opt-in per nest; missing on blog/courses/coupons/popups/products → admin double-clicks could double-create                                   | Medium   | Operator-facing                                   | Phase 5.3                            |
+| R8  | `OUTBOX_WORKERS=4` × `PGPOOL_MAX=10` plus 4 background workers leaves <6 connections for HTTP under burst                                                              | Low      | Spikes only                                       | Document in `docs/INFRASTRUCTURE.md` |
+| R9  | Notifications + outbox + consent admin pages missing → operators must run `psql` for triage                                                                            | Low      | Daily operational friction                        | Phase 2.1 / 2.2 / 2.3                |
+| R10 | OpenAPI snapshot under-counts paths (~144 of ~230) → frontend SDK incomplete; some endpoints called by handwritten clients                                             | Low      | Drift creeps in                                   | Phase 6.2                            |
 
 ---
 
 ## Suggested execution order
 
-| Week | Phase items in flight |
-|---|---|
-| 1 | **Phase 1.1** (Stripe webhooks) + **Phase 1.3** (RBAC wiring on legacy) in parallel; **Phase 4d** harness scaffolding |
-| 2 | **Phase 1.2** (BFF cookie) lands; **Phase 4** test matrix + manual QA drill |
-| 3 | **Phase 2.1–2.3** (notifications, outbox, consent UIs); **Phase 5.1** alerts + runbook |
-| 4 | **Phase 1.4** (MFA TOTP); **Phase 2.4–2.6** (forms, watchlists, products UIs); **Phase 5.2** rate-limit hardening |
-| 5 | **Phase 2.7–2.10** (member detail, cart inspector, sub detail, impersonation banner); **Phase 5.3** idempotency expansion |
-| 6 | **Phase 6** polish — docs, OpenAPI regen, SDK regen, missing handler tests |
+| Week | Phase items in flight                                                                                                     |
+| ---- | ------------------------------------------------------------------------------------------------------------------------- |
+| 1    | **Phase 1.1** (Stripe webhooks) + **Phase 1.3** (RBAC wiring on legacy) in parallel; **Phase 4d** harness scaffolding     |
+| 2    | **Phase 1.2** (BFF cookie) lands; **Phase 4** test matrix + manual QA drill                                               |
+| 3    | **Phase 2.1–2.3** (notifications, outbox, consent UIs); **Phase 5.1** alerts + runbook                                    |
+| 4    | **Phase 1.4** (MFA TOTP); **Phase 2.4–2.6** (forms, watchlists, products UIs); **Phase 5.2** rate-limit hardening         |
+| 5    | **Phase 2.7–2.10** (member detail, cart inspector, sub detail, impersonation banner); **Phase 5.3** idempotency expansion |
+| 6    | **Phase 6** polish — docs, OpenAPI regen, SDK regen, missing handler tests                                                |
 
 **Critical path:** R1 (webhooks) and R2 (RBAC) gate everything because
 they affect production correctness; both must land before BFF cookies
@@ -721,76 +721,76 @@ Read `head -3` of every migration to extract the FDN- / ADM- /
 EC- / FORM- / CONSENT- / POP- / AUTH- prefix that names the
 subsystem.
 
-| Version | File | Subsystem | One-liner |
-|---|---|---|---|
-| 001 | `001_initial.sql` | FDN | Bootstrap: `users`, `subscriptions`, `refresh_tokens`, watchlists, alerts; enums `user_role`, `subscription_plan`, `subscription_status`, `trade_direction` |
-| 002 | `002_blog.sql` | BLOG | Blog posts + media + post_status enum |
-| 003 | `003_password_resets.sql` | AUTH | password_reset_tokens table |
-| 004 | `004_media_title.sql` | BLOG | media.title column |
-| 005 | `005_user_author_profile.sql` | AUTH | user bio/position/website columns |
-| 006 | `006_post_format.sql` | BLOG | post.format column |
-| 007 | `007_post_meta.sql` | BLOG | post_meta key/value sidecar |
-| 008 | `008_media_focal.sql` | BLOG | media focal_x/focal_y |
-| 009 | `009_analytics.sql` | ANL | analytics_sessions + analytics_events |
-| 010 | `010_normalize_user_emails.sql` | AUTH | lowercase email canonicalisation |
-| 011 | `011_courses.sql` | EDU | courses + modules + lessons + progress |
-| 012 | `012_pricing_plans.sql` | EC | pricing_plans + change-log |
-| 013 | `013_coupons.sql` | EC | coupons v1 + usages |
-| 014 | `014_analytics_enhanced.sql` | ANL | sales_events for revenue funnel |
-| 015 | `015_popups.sql` | POP | popups v1 + submissions + events |
-| 016 | `016_blog_trash_meta.sql` | BLOG | pre_trash_status / trashed_at columns |
-| 017 | `017_webhook_idempotency.sql` | FDN | processed_webhook_events |
-| 018 | `018_refresh_token_families.sql` | AUTH | rotation + reuse detection |
-| 019 | `019_outbox.sql` | FDN-04 | transactional outbox table |
-| 020 | `020_notifications.sql` | FDN-05 | templates + deliveries + suppression + preferences |
-| 021 | `021_rbac.sql` | FDN-07 | RBAC catalogue (perms, role_perms) + author/support roles |
-| 022 | `022_rate_limits.sql` | FDN-08 | Postgres-backed sliding-window rate limit |
-| 023 | `023_webhook_source.sql` | FDN-09 | webhook idempotency multi-source key |
-| 024 | `024_consent.sql` | CONSENT-01 | banners / categories / services / policies |
-| 025 | `025_consent_log.sql` | CONSENT-03 | consent_records + dsar_requests |
-| 026 | `026_consent_regions.sql` | CONSENT-05 | regional banner config seeds |
-| 027 | `027_forms.sql` | FORM-01 | form schema + fields + submissions |
-| 028 | `028_consent_integrity.sql` | CONSENT-07 | tamper-evidence anchor table |
-| 030 | `030_products.sql` | EC-01 | digital-goods product model |
-| 031 | `031_cart.sql` | EC-03 | cart by user_id or anonymous_id |
-| 032 | `032_form_partials.sql` | FORM-04 | save-and-resume |
-| 033 | `033_form_uploads.sql` | FORM-05 | chunked file uploads |
-| 034 | `034_form_payments.sql` | FORM-08 | Stripe payment intents from form submissions |
-| 035 | `035_orders.sql` | EC-05 | orders + refunds + state-transition log |
-| 036 | `036_tax.sql` | EC-08 | manual tax rates + exempt customers |
-| 037 | `037_user_downloads.sql` | EC-07 | digital delivery grants |
-| 038 | `038_product_search.sql` | EC-02 | tsvector + faceting + nested categories |
-| 039 | `039_addresses.sql` | EC-04 | address book |
-| 041 | `041_subscriptions_v2.sql` | EC-09 | pause/resume, prorations, dunning, switching |
-| 042 | `042_memberships.sql` | EC-10 | membership tiers |
-| 043 | `043_coupons_refactor.sql` | EC-11 | Money-native, BOGO-aware coupons |
-| 050 | `050_popups_targeting.sql` | POP-01 | expanded triggers/targeting |
-| 051 | `051_popup_variants.sql` | POP-02 | A/B variants |
-| 052 | `052_popup_templates.sql` | POP-03 | template library |
-| 053 | `053_popup_visitor_state.sql` | POP-05 | per-visitor frequency cap |
-| 054 | `054_popup_attributions.sql` | POP-06 | revenue attribution |
-| 055 | `055_admin_actions.sql` | ADM-01 | admin/support audit log |
-| 056 | `056_user_lifecycle.sql` | ADM-02 | user lifecycle columns + auth telemetry |
-| 057 | `057_subscription_status_paused.sql` | ADM-03 | enum value `paused` for subscription_status |
-| 058 | `058_admin_lifecycle_perms.sql` | ADM-04 | perm catalogue extension for member lifecycle |
-| 059 | `059_admin_ip_allowlist.sql` | ADM-06 | IP allowlist table + perms |
-| 060 | `060_impersonation_sessions.sql` | ADM-07 | impersonation server-side state |
-| 061 | `061_impersonation_notification.sql` | ADM-07-α | impersonation notification template |
-| 062 | `062_app_settings.sql` | ADM-08 | typed settings catalogue |
-| 063 | `063_settings_perms.sql` | ADM-08 | perms for settings |
-| 064 | `064_role_matrix_perms.sql` | ADM-09 | perms for role/perm matrix admin |
-| 065 | `065_users_search.sql` | ADM-10 | indexes for admin user search |
-| 066 | `066_member_admin_perms.sql` | ADM-10 | perms for member admin |
-| 067 | `067_subscription_admin.sql` | ADM-11 | manual subscription ops admin surface |
-| 068 | `068_orders_admin_perms.sql` | ADM-12 | perms for orders admin |
-| 069 | `069_dsar_admin.sql` | ADM-13 | admin-initiated DSAR + dual-control erasure |
-| 070 | `070_admin_actions_fts.sql` | ADM-14 | FTS over admin_actions |
-| 071 | `071_idempotency_keys.sql` | ADM-15 | idempotency cache table |
-| 072 | `072_audit_retention.sql` | ADM-16 | audit retention configuration |
-| 073 | `073_dsar_export_async.sql` | ADM-17 | async DSAR export pipeline |
-| 074 | `074_idempotency_gc_settings.sql` | ADM-20 | tunable settings for idempotency GC |
-| 075 | `075_email_verification_template.sql` | AUTH-01 | email verification template |
-| 076 | `076_subscriptions_pricing_plan_id.sql` | EC-09b | link Stripe subs to catalog plan |
+| Version | File                                    | Subsystem  | One-liner                                                                                                                                                   |
+| ------- | --------------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 001     | `001_initial.sql`                       | FDN        | Bootstrap: `users`, `subscriptions`, `refresh_tokens`, watchlists, alerts; enums `user_role`, `subscription_plan`, `subscription_status`, `trade_direction` |
+| 002     | `002_blog.sql`                          | BLOG       | Blog posts + media + post_status enum                                                                                                                       |
+| 003     | `003_password_resets.sql`               | AUTH       | password_reset_tokens table                                                                                                                                 |
+| 004     | `004_media_title.sql`                   | BLOG       | media.title column                                                                                                                                          |
+| 005     | `005_user_author_profile.sql`           | AUTH       | user bio/position/website columns                                                                                                                           |
+| 006     | `006_post_format.sql`                   | BLOG       | post.format column                                                                                                                                          |
+| 007     | `007_post_meta.sql`                     | BLOG       | post_meta key/value sidecar                                                                                                                                 |
+| 008     | `008_media_focal.sql`                   | BLOG       | media focal_x/focal_y                                                                                                                                       |
+| 009     | `009_analytics.sql`                     | ANL        | analytics_sessions + analytics_events                                                                                                                       |
+| 010     | `010_normalize_user_emails.sql`         | AUTH       | lowercase email canonicalisation                                                                                                                            |
+| 011     | `011_courses.sql`                       | EDU        | courses + modules + lessons + progress                                                                                                                      |
+| 012     | `012_pricing_plans.sql`                 | EC         | pricing_plans + change-log                                                                                                                                  |
+| 013     | `013_coupons.sql`                       | EC         | coupons v1 + usages                                                                                                                                         |
+| 014     | `014_analytics_enhanced.sql`            | ANL        | sales_events for revenue funnel                                                                                                                             |
+| 015     | `015_popups.sql`                        | POP        | popups v1 + submissions + events                                                                                                                            |
+| 016     | `016_blog_trash_meta.sql`               | BLOG       | pre_trash_status / trashed_at columns                                                                                                                       |
+| 017     | `017_webhook_idempotency.sql`           | FDN        | processed_webhook_events                                                                                                                                    |
+| 018     | `018_refresh_token_families.sql`        | AUTH       | rotation + reuse detection                                                                                                                                  |
+| 019     | `019_outbox.sql`                        | FDN-04     | transactional outbox table                                                                                                                                  |
+| 020     | `020_notifications.sql`                 | FDN-05     | templates + deliveries + suppression + preferences                                                                                                          |
+| 021     | `021_rbac.sql`                          | FDN-07     | RBAC catalogue (perms, role_perms) + author/support roles                                                                                                   |
+| 022     | `022_rate_limits.sql`                   | FDN-08     | Postgres-backed sliding-window rate limit                                                                                                                   |
+| 023     | `023_webhook_source.sql`                | FDN-09     | webhook idempotency multi-source key                                                                                                                        |
+| 024     | `024_consent.sql`                       | CONSENT-01 | banners / categories / services / policies                                                                                                                  |
+| 025     | `025_consent_log.sql`                   | CONSENT-03 | consent_records + dsar_requests                                                                                                                             |
+| 026     | `026_consent_regions.sql`               | CONSENT-05 | regional banner config seeds                                                                                                                                |
+| 027     | `027_forms.sql`                         | FORM-01    | form schema + fields + submissions                                                                                                                          |
+| 028     | `028_consent_integrity.sql`             | CONSENT-07 | tamper-evidence anchor table                                                                                                                                |
+| 030     | `030_products.sql`                      | EC-01      | digital-goods product model                                                                                                                                 |
+| 031     | `031_cart.sql`                          | EC-03      | cart by user_id or anonymous_id                                                                                                                             |
+| 032     | `032_form_partials.sql`                 | FORM-04    | save-and-resume                                                                                                                                             |
+| 033     | `033_form_uploads.sql`                  | FORM-05    | chunked file uploads                                                                                                                                        |
+| 034     | `034_form_payments.sql`                 | FORM-08    | Stripe payment intents from form submissions                                                                                                                |
+| 035     | `035_orders.sql`                        | EC-05      | orders + refunds + state-transition log                                                                                                                     |
+| 036     | `036_tax.sql`                           | EC-08      | manual tax rates + exempt customers                                                                                                                         |
+| 037     | `037_user_downloads.sql`                | EC-07      | digital delivery grants                                                                                                                                     |
+| 038     | `038_product_search.sql`                | EC-02      | tsvector + faceting + nested categories                                                                                                                     |
+| 039     | `039_addresses.sql`                     | EC-04      | address book                                                                                                                                                |
+| 041     | `041_subscriptions_v2.sql`              | EC-09      | pause/resume, prorations, dunning, switching                                                                                                                |
+| 042     | `042_memberships.sql`                   | EC-10      | membership tiers                                                                                                                                            |
+| 043     | `043_coupons_refactor.sql`              | EC-11      | Money-native, BOGO-aware coupons                                                                                                                            |
+| 050     | `050_popups_targeting.sql`              | POP-01     | expanded triggers/targeting                                                                                                                                 |
+| 051     | `051_popup_variants.sql`                | POP-02     | A/B variants                                                                                                                                                |
+| 052     | `052_popup_templates.sql`               | POP-03     | template library                                                                                                                                            |
+| 053     | `053_popup_visitor_state.sql`           | POP-05     | per-visitor frequency cap                                                                                                                                   |
+| 054     | `054_popup_attributions.sql`            | POP-06     | revenue attribution                                                                                                                                         |
+| 055     | `055_admin_actions.sql`                 | ADM-01     | admin/support audit log                                                                                                                                     |
+| 056     | `056_user_lifecycle.sql`                | ADM-02     | user lifecycle columns + auth telemetry                                                                                                                     |
+| 057     | `057_subscription_status_paused.sql`    | ADM-03     | enum value `paused` for subscription_status                                                                                                                 |
+| 058     | `058_admin_lifecycle_perms.sql`         | ADM-04     | perm catalogue extension for member lifecycle                                                                                                               |
+| 059     | `059_admin_ip_allowlist.sql`            | ADM-06     | IP allowlist table + perms                                                                                                                                  |
+| 060     | `060_impersonation_sessions.sql`        | ADM-07     | impersonation server-side state                                                                                                                             |
+| 061     | `061_impersonation_notification.sql`    | ADM-07-α   | impersonation notification template                                                                                                                         |
+| 062     | `062_app_settings.sql`                  | ADM-08     | typed settings catalogue                                                                                                                                    |
+| 063     | `063_settings_perms.sql`                | ADM-08     | perms for settings                                                                                                                                          |
+| 064     | `064_role_matrix_perms.sql`             | ADM-09     | perms for role/perm matrix admin                                                                                                                            |
+| 065     | `065_users_search.sql`                  | ADM-10     | indexes for admin user search                                                                                                                               |
+| 066     | `066_member_admin_perms.sql`            | ADM-10     | perms for member admin                                                                                                                                      |
+| 067     | `067_subscription_admin.sql`            | ADM-11     | manual subscription ops admin surface                                                                                                                       |
+| 068     | `068_orders_admin_perms.sql`            | ADM-12     | perms for orders admin                                                                                                                                      |
+| 069     | `069_dsar_admin.sql`                    | ADM-13     | admin-initiated DSAR + dual-control erasure                                                                                                                 |
+| 070     | `070_admin_actions_fts.sql`             | ADM-14     | FTS over admin_actions                                                                                                                                      |
+| 071     | `071_idempotency_keys.sql`              | ADM-15     | idempotency cache table                                                                                                                                     |
+| 072     | `072_audit_retention.sql`               | ADM-16     | audit retention configuration                                                                                                                               |
+| 073     | `073_dsar_export_async.sql`             | ADM-17     | async DSAR export pipeline                                                                                                                                  |
+| 074     | `074_idempotency_gc_settings.sql`       | ADM-20     | tunable settings for idempotency GC                                                                                                                         |
+| 075     | `075_email_verification_template.sql`   | AUTH-01    | email verification template                                                                                                                                 |
+| 076     | `076_subscriptions_pricing_plan_id.sql` | EC-09b     | link Stripe subs to catalog plan                                                                                                                            |
 
 Gaps `029, 040, 044–049` are intentional reservations
 (see AGENTS.md §5).
@@ -804,56 +804,56 @@ The full catalogue is in `021_rbac.sql` plus the
 Below is the production matrix (enforced today) cross-referenced with
 the **handler that calls `policy.require()` for it**.
 
-| Permission key | member | author | support | admin | Enforced by handler |
-|---|---|---|---|---|---|
-| `user.self.read` / `update` | ✓ | ✓ | ✓ | ✓ | implicit (member.rs uses AuthUser) |
-| `user.other.read` | — | — | ✓ | ✓ | ✗ (admin.rs::list_members uses AdminUser) |
-| `user.other.update` / `delete` | — | — | — | ✓ | ✗ |
-| `user.suspend` / `reactivate` / `ban` / `force_password_reset` / `email.verify` / `session.read` / `session.revoke` | — | — | varies | ✓ | **admin_security.rs** |
-| `blog.post.create` / `update_own` / `delete_own` / `publish` | — | ✓ | — | ✓ | ✗ — Phase 3.1 |
-| `blog.post.update_any` / `delete_any` | — | — | — | ✓ | ✗ — Phase 3.1 |
-| `blog.media.upload` / `delete_own` | — | ✓ | — | ✓ | ✗ |
-| `blog.media.delete_any` | — | — | — | ✓ | ✗ |
-| `blog.category.manage` | — | — | — | ✓ | ✗ |
-| `course.read_enrolled` / `enroll.self` / `progress.read_self` | ✓ | ✓ | ✓ | ✓ | implicit |
-| `course.read_any` / `progress.read_any` | — | — | ✓ | ✓ | ✗ — Phase 3.1 |
-| `course.manage` / `enroll.other` | — | — | — | ✓ | ✗ |
-| `coupon.apply` | ✓ | ✓ | ✓ | ✓ | implicit |
-| `coupon.read_any` | — | — | ✓ | ✓ | ✗ |
-| `coupon.manage` | — | — | — | ✓ | ✗ |
-| `order.mine.read` / `invoice.read_self` | ✓ | ✓ | ✓ | ✓ | implicit |
-| `order.any.read` / `invoice.read_any` | — | — | ✓ | ✓ | **admin_orders.rs** (PERM_READ alias) |
-| `order.refund.create` | — | — | ✓ (capped) | ✓ | **admin_orders.rs** (PERM_REFUND) |
-| `order.any.update` | — | — | — | ✓ | **admin_orders.rs** (PERM_VOID) |
-| `subscription.mine.read` / `manage` | ✓ | ✓ | ✓ | ✓ | implicit |
-| `subscription.any.read` | — | — | ✓ | ✓ | **admin_subscriptions.rs** (PERM_READ) |
-| `subscription.any.manage` | — | — | — | ✓ | **admin_subscriptions.rs** (PERM_COMP / EXTEND / CYCLE) |
-| `subscription.plan.manage` | — | — | — | ✓ | ✗ — Phase 3.1 (pricing.rs) |
-| `popup.submit` / `event` | ✓ | ✓ | ✓ | ✓ | implicit |
-| `popup.manage` | — | — | — | ✓ | ✗ |
-| `popup.read_analytics` | — | — | — | ✓ | ✗ |
-| `form.submit` | ✓ | ✓ | ✓ | ✓ | implicit |
-| `form.manage` | — | — | — | ✓ | ✗ |
-| `form.submission.read_any` | — | — | ✓ | ✓ | ✗ |
-| `form.submission.delete_any` | — | — | — | ✓ | ✗ |
-| `consent.record` / `log.read_self` / `dsar.submit` | ✓ | ✓ | ✓ | ✓ | implicit |
-| `consent.log.read_any` | — | — | ✓ | ✓ | ✗ — admin_consent.rs |
-| `dsar.fulfill` | — | — | ✓ | ✓ | **admin_dsar.rs** |
-| `notification.mine.read` / `mark_read` | ✓ | ✓ | ✓ | ✓ | implicit |
-| `notification.broadcast.create` | — | — | — | ✓ | ✗ |
-| `notification.template.manage` | — | — | — | ✓ | ✗ |
-| `admin.dashboard.read` | — | — | ✓ | ✓ | **PrivilegedUser extractor** |
-| `admin.audit.read` | — | — | ✓ | ✓ | **admin_audit.rs**, **admin_security.rs** |
-| `admin.role.manage` / `permission.manage` | — | — | — | ✓ | **admin_roles.rs** |
-| `admin.outbox.read` / `retry` | — | — | ✓ | ✓ | ✗ — outbox.rs |
-| `admin.ip_allowlist.read` / `manage` | — | — | — | ✓ | **admin_ip_allowlist.rs** |
-| `admin.impersonation.create` (ADM-07) | — | — | — | ✓ | **admin_impersonation.rs** |
-| `admin.settings.read` / `read_secret` / `write` | — | — | partial | ✓ | **admin_settings.rs** |
-| `admin.role_matrix.read` / `manage` | — | — | — | ✓ | **admin_roles.rs** |
-| `admin.member.read` / `create` | — | — | ✓ | ✓ | **admin_members.rs** |
-| `admin.subscription.read` / `comp` / `extend` / `billing_cycle.override` | — | — | varies | ✓ | **admin_subscriptions.rs** |
-| `admin.order.read` / `create` / `void` / `refund` / `export` | — | — | varies | ✓ | **admin_orders.rs** |
-| `admin.dsar.read` / `export` / `erase.request` / `erase.approve` | — | — | varies | ✓ | **admin_dsar.rs** |
+| Permission key                                                                                                      | member | author | support    | admin | Enforced by handler                                     |
+| ------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ---------- | ----- | ------------------------------------------------------- |
+| `user.self.read` / `update`                                                                                         | ✓      | ✓      | ✓          | ✓     | implicit (member.rs uses AuthUser)                      |
+| `user.other.read`                                                                                                   | —      | —      | ✓          | ✓     | ✗ (admin.rs::list_members uses AdminUser)               |
+| `user.other.update` / `delete`                                                                                      | —      | —      | —          | ✓     | ✗                                                       |
+| `user.suspend` / `reactivate` / `ban` / `force_password_reset` / `email.verify` / `session.read` / `session.revoke` | —      | —      | varies     | ✓     | **admin_security.rs**                                   |
+| `blog.post.create` / `update_own` / `delete_own` / `publish`                                                        | —      | ✓      | —          | ✓     | ✗ — Phase 3.1                                           |
+| `blog.post.update_any` / `delete_any`                                                                               | —      | —      | —          | ✓     | ✗ — Phase 3.1                                           |
+| `blog.media.upload` / `delete_own`                                                                                  | —      | ✓      | —          | ✓     | ✗                                                       |
+| `blog.media.delete_any`                                                                                             | —      | —      | —          | ✓     | ✗                                                       |
+| `blog.category.manage`                                                                                              | —      | —      | —          | ✓     | ✗                                                       |
+| `course.read_enrolled` / `enroll.self` / `progress.read_self`                                                       | ✓      | ✓      | ✓          | ✓     | implicit                                                |
+| `course.read_any` / `progress.read_any`                                                                             | —      | —      | ✓          | ✓     | ✗ — Phase 3.1                                           |
+| `course.manage` / `enroll.other`                                                                                    | —      | —      | —          | ✓     | ✗                                                       |
+| `coupon.apply`                                                                                                      | ✓      | ✓      | ✓          | ✓     | implicit                                                |
+| `coupon.read_any`                                                                                                   | —      | —      | ✓          | ✓     | ✗                                                       |
+| `coupon.manage`                                                                                                     | —      | —      | —          | ✓     | ✗                                                       |
+| `order.mine.read` / `invoice.read_self`                                                                             | ✓      | ✓      | ✓          | ✓     | implicit                                                |
+| `order.any.read` / `invoice.read_any`                                                                               | —      | —      | ✓          | ✓     | **admin_orders.rs** (PERM_READ alias)                   |
+| `order.refund.create`                                                                                               | —      | —      | ✓ (capped) | ✓     | **admin_orders.rs** (PERM_REFUND)                       |
+| `order.any.update`                                                                                                  | —      | —      | —          | ✓     | **admin_orders.rs** (PERM_VOID)                         |
+| `subscription.mine.read` / `manage`                                                                                 | ✓      | ✓      | ✓          | ✓     | implicit                                                |
+| `subscription.any.read`                                                                                             | —      | —      | ✓          | ✓     | **admin_subscriptions.rs** (PERM_READ)                  |
+| `subscription.any.manage`                                                                                           | —      | —      | —          | ✓     | **admin_subscriptions.rs** (PERM_COMP / EXTEND / CYCLE) |
+| `subscription.plan.manage`                                                                                          | —      | —      | —          | ✓     | ✗ — Phase 3.1 (pricing.rs)                              |
+| `popup.submit` / `event`                                                                                            | ✓      | ✓      | ✓          | ✓     | implicit                                                |
+| `popup.manage`                                                                                                      | —      | —      | —          | ✓     | ✗                                                       |
+| `popup.read_analytics`                                                                                              | —      | —      | —          | ✓     | ✗                                                       |
+| `form.submit`                                                                                                       | ✓      | ✓      | ✓          | ✓     | implicit                                                |
+| `form.manage`                                                                                                       | —      | —      | —          | ✓     | ✗                                                       |
+| `form.submission.read_any`                                                                                          | —      | —      | ✓          | ✓     | ✗                                                       |
+| `form.submission.delete_any`                                                                                        | —      | —      | —          | ✓     | ✗                                                       |
+| `consent.record` / `log.read_self` / `dsar.submit`                                                                  | ✓      | ✓      | ✓          | ✓     | implicit                                                |
+| `consent.log.read_any`                                                                                              | —      | —      | ✓          | ✓     | ✗ — admin_consent.rs                                    |
+| `dsar.fulfill`                                                                                                      | —      | —      | ✓          | ✓     | **admin_dsar.rs**                                       |
+| `notification.mine.read` / `mark_read`                                                                              | ✓      | ✓      | ✓          | ✓     | implicit                                                |
+| `notification.broadcast.create`                                                                                     | —      | —      | —          | ✓     | ✗                                                       |
+| `notification.template.manage`                                                                                      | —      | —      | —          | ✓     | ✗                                                       |
+| `admin.dashboard.read`                                                                                              | —      | —      | ✓          | ✓     | **PrivilegedUser extractor**                            |
+| `admin.audit.read`                                                                                                  | —      | —      | ✓          | ✓     | **admin_audit.rs**, **admin_security.rs**               |
+| `admin.role.manage` / `permission.manage`                                                                           | —      | —      | —          | ✓     | **admin_roles.rs**                                      |
+| `admin.outbox.read` / `retry`                                                                                       | —      | —      | ✓          | ✓     | ✗ — outbox.rs                                           |
+| `admin.ip_allowlist.read` / `manage`                                                                                | —      | —      | —          | ✓     | **admin_ip_allowlist.rs**                               |
+| `admin.impersonation.create` (ADM-07)                                                                               | —      | —      | —          | ✓     | **admin_impersonation.rs**                              |
+| `admin.settings.read` / `read_secret` / `write`                                                                     | —      | —      | partial    | ✓     | **admin_settings.rs**                                   |
+| `admin.role_matrix.read` / `manage`                                                                                 | —      | —      | —          | ✓     | **admin_roles.rs**                                      |
+| `admin.member.read` / `create`                                                                                      | —      | —      | ✓          | ✓     | **admin_members.rs**                                    |
+| `admin.subscription.read` / `comp` / `extend` / `billing_cycle.override`                                            | —      | —      | varies     | ✓     | **admin_subscriptions.rs**                              |
+| `admin.order.read` / `create` / `void` / `refund` / `export`                                                        | —      | —      | varies     | ✓     | **admin_orders.rs**                                     |
+| `admin.dsar.read` / `export` / `erase.request` / `erase.approve`                                                    | —      | —      | varies     | ✓     | **admin_dsar.rs**                                       |
 
 **Implicit** = the route's `AuthUser` / `AdminUser` extractor proves
 the role string but the per-action permission is not consulted.
@@ -862,4 +862,37 @@ Phase 3 promotes every "✗" entry above to a real
 
 ---
 
-*End of report.*
+## Audit Phase 7 — deferred items
+
+### 7.6 — CI install of cargo tools (deferred)
+
+`backend/deny.toml` is now in the repo (Phase 7.4) and `cargo deny check
+licenses` runs clean locally. We have NOT wired `cargo deny`,
+`cargo audit`, or `cargo geiger` into the GitHub Actions workflow yet —
+that needs `.github/workflows/*.yml` edits which are out of scope for the
+dead-code / deps / config sweep. To pick this up:
+
+  1. Add a `licenses-and-advisories` job to the existing Rust workflow
+     that runs `cargo install --locked cargo-deny` (cached) and then
+     `cargo deny --manifest-path backend/Cargo.toml check licenses advisories bans`.
+  2. Run on push + PR to `main`; non-blocking warning while the
+     advisory ignore list is empty.
+  3. Optional: add `cargo audit` as a redundant safety net — `deny check
+     advisories` reads the same RustSec database so it is mostly
+     duplicative.
+
+### 7.8 — `rand 0.8 → 0.9` bump (deferred)
+
+`backend/Cargo.toml` keeps `rand = "0.8"`. The 0.9 bump renames
+`thread_rng() → rng()` and `Rng::gen() → Rng::random()`. The current
+codebase has 13+ call sites across 7 files (`commerce/downloads.rs`,
+`consent/records.rs`, `popups/gamified.rs`, `events/outbox.rs`,
+`handlers/{webhooks, coupons, forms}.rs`, `notifications/unsubscribe.rs`)
+plus the `gen_range` / `gen_bool` rename (also breaking). The dep-graph
+audit shows the 0.8 / 0.9 triplication is benign (only ~50 KB extra
+binary), so the bump is deferred until a quiet window where the rename
+can be done in one shot.
+
+---
+
+_End of report._

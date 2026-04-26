@@ -14,13 +14,13 @@ import ButtonWithChildren from './_fixtures/ButtonWithChildren.svelte';
 
 describe('Button', () => {
 	it('renders as <button> by default', async () => {
-		render(ButtonWithChildren, { label: 'Save' });
+		render(ButtonWithChildren, { props: { label: 'Save' } });
 		const btn = page.getByRole('button', { name: 'Save' });
 		await expect.element(btn).toBeInTheDocument();
 	});
 
 	it('renders as <a> when href is provided', async () => {
-		render(ButtonWithChildren, { label: 'Docs', href: '/docs' });
+		render(ButtonWithChildren, { props: { label: 'Docs', href: '/docs' } });
 		const link = page.getByRole('link', { name: 'Docs' });
 		await expect.element(link).toBeInTheDocument();
 		await expect.element(link).toHaveAttribute('href', '/docs');
@@ -28,9 +28,11 @@ describe('Button', () => {
 
 	it('auto-sets rel for target="_blank"', async () => {
 		render(ButtonWithChildren, {
-			label: 'External',
-			href: 'https://svelte.dev',
-			target: '_blank'
+			props: {
+				label: 'External',
+				href: 'https://svelte.dev',
+				target: '_blank'
+			}
 		});
 		const link = page.getByRole('link', { name: 'External' });
 		await expect.element(link).toHaveAttribute('rel', 'noopener noreferrer');
@@ -38,7 +40,7 @@ describe('Button', () => {
 
 	it('disables click when disabled', async () => {
 		const onclick = vi.fn();
-		render(ButtonWithChildren, { label: 'Blocked', disabled: true, onclick });
+		render(ButtonWithChildren, { props: { label: 'Blocked', disabled: true, onclick } });
 		const btn = page.getByRole('button', { name: 'Blocked' });
 		await expect.element(btn).toBeDisabled();
 		await btn.click().catch(() => {
@@ -48,7 +50,7 @@ describe('Button', () => {
 	});
 
 	it('disables anchor navigation when disabled', async () => {
-		render(ButtonWithChildren, { label: 'Docs', href: '/docs', disabled: true });
+		render(ButtonWithChildren, { props: { label: 'Docs', href: '/docs', disabled: true } });
 		const link = page.getByRole('link', { name: 'Docs' });
 		await expect.element(link).toHaveAttribute('aria-disabled', 'true');
 		await expect.element(link).not.toHaveAttribute('href');
@@ -56,7 +58,7 @@ describe('Button', () => {
 
 	it('renders a spinner and aria-busy when loading', async () => {
 		const onclick = vi.fn();
-		render(ButtonWithChildren, { label: 'Loading', loading: true, onclick });
+		render(ButtonWithChildren, { props: { label: 'Loading', loading: true, onclick } });
 		const btn = page.getByRole('button', { name: 'Loading' });
 		await expect.element(btn).toHaveAttribute('aria-busy', 'true');
 		// Spinner has role="status" from the <Spinner> child.

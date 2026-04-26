@@ -91,7 +91,12 @@
 		</div>
 
 		<label class="new-wl__checkbox">
-			<input id="watchlist-published" name="published" type="checkbox" bind:checked={published} />
+			<input
+				id="watchlist-published"
+				name="published"
+				type="checkbox"
+				bind:checked={published}
+			/>
 			<span>Publish immediately</span>
 		</label>
 

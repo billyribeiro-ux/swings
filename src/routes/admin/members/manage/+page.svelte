@@ -96,7 +96,11 @@
 		}
 	}
 
-	function statusBadge(u: { suspended_at?: string | null; banned_at?: string | null; email_verified_at?: string | null }) {
+	function statusBadge(u: {
+		suspended_at?: string | null;
+		banned_at?: string | null;
+		email_verified_at?: string | null;
+	}) {
 		if (u.banned_at) return { label: 'banned', cls: 'badge--err' };
 		if (u.suspended_at) return { label: 'suspended', cls: 'badge--warn' };
 		if (!u.email_verified_at) return { label: 'unverified', cls: 'badge--off' };
@@ -221,7 +225,11 @@
 					<span>Mark email verified</span>
 				</label>
 				<div class="form-actions">
-					<button class="btn btn--ghost" type="button" onclick={() => (showCreate = false)}>
+					<button
+						class="btn btn--ghost"
+						type="button"
+						onclick={() => (showCreate = false)}
+					>
 						Cancel
 					</button>
 					<button class="btn btn--primary" type="submit" disabled={createBusy}>
@@ -260,7 +268,13 @@
 				</thead>
 				<tbody>
 					{#each envelope.data as u (u.id)}
-						{@const s = statusBadge(u as { suspended_at?: string | null; banned_at?: string | null; email_verified_at?: string | null })}
+						{@const s = statusBadge(
+							u as {
+								suspended_at?: string | null;
+								banned_at?: string | null;
+								email_verified_at?: string | null;
+							}
+						)}
 						<tr>
 							<td>{u.email}</td>
 							<td>{u.name}</td>
@@ -273,11 +287,7 @@
 			</table>
 		</div>
 		<div class="pager">
-			<button
-				class="btn btn--ghost"
-				disabled={(envelope.page ?? 1) <= 1}
-				onclick={prevPage}
-			>
+			<button class="btn btn--ghost" disabled={(envelope.page ?? 1) <= 1} onclick={prevPage}>
 				Prev
 			</button>
 			<span class="pager__info">

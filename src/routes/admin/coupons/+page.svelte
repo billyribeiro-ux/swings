@@ -148,7 +148,8 @@
 
 	function formatDiscount(c: Coupon): string {
 		if (c.discount_type === 'percentage') return `${c.discount_value}% off`;
-		if (c.discount_type === 'fixed_amount') return `$${(c.discount_value / 100).toFixed(0)} off`;
+		if (c.discount_type === 'fixed_amount')
+			return `$${(c.discount_value / 100).toFixed(0)} off`;
 		return `${c.discount_value}-day trial`;
 	}
 
@@ -187,11 +188,16 @@
 			<span class="cp__eyebrow">Promotions</span>
 			<h1 class="cp__title">Coupons</h1>
 			<p class="cp__subtitle">
-				Create and manage discount codes. Issue percent-off, fixed-amount, or trial coupons in bulk.
+				Create and manage discount codes. Issue percent-off, fixed-amount, or trial coupons
+				in bulk.
 			</p>
 		</div>
 		<div class="cp__actions">
-			<button type="button" class="btn btn--secondary" onclick={() => (showBulkForm = !showBulkForm)}>
+			<button
+				type="button"
+				class="btn btn--secondary"
+				onclick={() => (showBulkForm = !showBulkForm)}
+			>
 				<LightningIcon size={16} weight="bold" />
 				<span>Bulk generate</span>
 			</button>
@@ -242,7 +248,12 @@
 				<div class="bf-field">
 					<label class="bf-label" for="bf-type">Discount type</label>
 					<div class="select-wrap">
-						<select id="bf-type" name="bf-type" bind:value={bulkDiscountType} class="bf-input bf-input--select">
+						<select
+							id="bf-type"
+							name="bf-type"
+							bind:value={bulkDiscountType}
+							class="bf-input bf-input--select"
+						>
 							<option value="percentage">Percentage</option>
 							<option value="fixed_amount">Fixed amount</option>
 						</select>
@@ -287,7 +298,11 @@
 				</div>
 			</div>
 			<div class="bulk-form__foot">
-				<button type="button" class="btn btn--secondary" onclick={() => (showBulkForm = false)}>
+				<button
+					type="button"
+					class="btn btn--secondary"
+					onclick={() => (showBulkForm = false)}
+				>
 					Cancel
 				</button>
 				<button type="submit" class="btn btn--primary" disabled={bulkLoading}>
@@ -390,7 +405,8 @@
 			<TicketIcon size={48} weight="duotone" />
 			<h2 class="empty-state__title">No coupons found</h2>
 			<p class="empty-state__desc">
-				Try adjusting your search or status filter, or create a new coupon to start offering discounts.
+				Try adjusting your search or status filter, or create a new coupon to start offering
+				discounts.
 			</p>
 		</div>
 	{:else}
@@ -418,7 +434,9 @@
 								class="toggle-btn"
 								onclick={() => toggleActive(coupon)}
 								disabled={togglingId === coupon.id}
-								aria-label={coupon.is_active ? 'Deactivate coupon' : 'Activate coupon'}
+								aria-label={coupon.is_active
+									? 'Deactivate coupon'
+									: 'Activate coupon'}
 							>
 								{#if coupon.is_active}
 									<ToggleRightIcon size={24} weight="fill" />
@@ -459,7 +477,9 @@
 						{@const st = couponStatus(coupon)}
 						<tr>
 							<td>
-								<a href="/admin/coupons/{coupon.id}" class="ctable__code">{coupon.code}</a>
+								<a href="/admin/coupons/{coupon.id}" class="ctable__code"
+									>{coupon.code}</a
+								>
 							</td>
 							<td>{formatDiscount(coupon)}</td>
 							<td class="ctable__num">{formatUsage(coupon)}</td>
@@ -471,7 +491,9 @@
 									onclick={() => toggleActive(coupon)}
 									disabled={togglingId === coupon.id}
 									title={coupon.is_active ? 'Deactivate' : 'Activate'}
-									aria-label={coupon.is_active ? 'Deactivate coupon' : 'Activate coupon'}
+									aria-label={coupon.is_active
+										? 'Deactivate coupon'
+										: 'Activate coupon'}
 								>
 									{#if coupon.is_active}
 										<ToggleRightIcon size={22} weight="fill" />
@@ -1225,7 +1247,6 @@
 			gap: 1.5rem;
 		}
 
-
 		.kpi-grid {
 			gap: 1rem;
 		}
@@ -1233,7 +1254,6 @@
 		.kpi {
 			padding: 1.5rem;
 		}
-
 
 		.bulk-form {
 			padding: 1.5rem;
@@ -1255,8 +1275,8 @@
 			display: block;
 			overflow-x: auto;
 			background: rgba(19, 43, 80, 0.35);
-		backdrop-filter: blur(24px);
-		-webkit-backdrop-filter: blur(24px);
+			backdrop-filter: blur(24px);
+			-webkit-backdrop-filter: blur(24px);
 			border: 1px solid rgba(255, 255, 255, 0.06);
 			border-radius: var(--radius-2xl);
 			box-shadow:

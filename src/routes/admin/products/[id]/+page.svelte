@@ -157,7 +157,8 @@
 		if (!detail) return;
 		const ok = await confirmDialog({
 			title: `Delete variant ${v.sku ?? v.id}?`,
-			message: 'The variant will be removed from this product. Existing orders that reference it are preserved.',
+			message:
+				'The variant will be removed from this product. Existing orders that reference it are preserved.',
 			confirmLabel: 'Delete variant',
 			variant: 'danger'
 		});
@@ -196,7 +197,8 @@
 		if (!detail) return;
 		const ok = await confirmDialog({
 			title: `Delete asset "${asset.filename}"?`,
-			message: 'Customers who already purchased this product will lose download access to this asset.',
+			message:
+				'Customers who already purchased this product will lose download access to this asset.',
 			confirmLabel: 'Delete asset',
 			variant: 'danger'
 		});
@@ -239,7 +241,8 @@
 		if (!detail) return;
 		const ok = await confirmDialog({
 			title: `Permanently delete "${detail.name}"?`,
-			message: 'The product, its variants, downloadable assets, and bundle configuration will all be removed.',
+			message:
+				'The product, its variants, downloadable assets, and bundle configuration will all be removed.',
 			confirmLabel: 'Delete product',
 			variant: 'danger'
 		});
@@ -280,13 +283,16 @@
 			</div>
 			<div class="pr-detail__header-actions">
 				{#if detail.status !== 'published'}
-					<Button variant="primary" onclick={() => setStatus('published')}>Publish</Button>
+					<Button variant="primary" onclick={() => setStatus('published')}>Publish</Button
+					>
 				{/if}
 				{#if detail.status === 'published'}
-					<Button variant="secondary" onclick={() => setStatus('draft')}>Unpublish</Button>
+					<Button variant="secondary" onclick={() => setStatus('draft')}>Unpublish</Button
+					>
 				{/if}
 				{#if detail.status !== 'archived'}
-					<Button variant="tertiary" onclick={() => setStatus('archived')}>Archive</Button>
+					<Button variant="tertiary" onclick={() => setStatus('archived')}>Archive</Button
+					>
 				{/if}
 				<Button variant="danger" onclick={deleteProduct}>Delete</Button>
 			</div>
@@ -452,7 +458,10 @@
 								</td>
 								<td>{v.is_active ? 'Yes' : 'No'}</td>
 								<td>
-									{#snippet trashIcon()}<TrashIcon size={14} weight="bold" />{/snippet}
+									{#snippet trashIcon()}<TrashIcon
+											size={14}
+											weight="bold"
+										/>{/snippet}
 									<Button
 										variant="ghost"
 										size="sm"
@@ -526,7 +535,10 @@
 								</td>
 								<td>{a.access_policy}</td>
 								<td>
-									{#snippet trashIcon2()}<TrashIcon size={14} weight="bold" />{/snippet}
+									{#snippet trashIcon2()}<TrashIcon
+											size={14}
+											weight="bold"
+										/>{/snippet}
 									<Button
 										variant="ghost"
 										size="sm"
@@ -638,7 +650,9 @@
 											aria-label={`Row ${idx + 1} child variant id`}
 											value={item.child_variant_id ?? ''}
 											oninput={(e) => {
-												const v = (e.target as HTMLInputElement).value.trim();
+												const v = (
+													e.target as HTMLInputElement
+												).value.trim();
 												item.child_variant_id = v || null;
 											}}
 										/>

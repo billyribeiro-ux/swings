@@ -31,7 +31,7 @@ Drop `prometheus/admin-alerts.rules.yml` somewhere in your Prometheus
 ```yaml
 # prometheus.yml
 rule_files:
-  - "/etc/prometheus/rules/*.rules.yml"
+  - '/etc/prometheus/rules/*.rules.yml'
 ```
 
 Validate before loading:
@@ -42,8 +42,8 @@ promtool check rules ops/prometheus/admin-alerts.rules.yml
 
 ### Grafana dashboard
 
-The dashboard JSON is structured for Grafana's *file-based
-provisioning* path. Mount it under
+The dashboard JSON is structured for Grafana's _file-based
+provisioning_ path. Mount it under
 `/etc/grafana/provisioning/dashboards/` along with a provider config:
 
 ```yaml
@@ -74,36 +74,36 @@ Every counter/gauge/histogram referenced in the rules + dashboards is
 emitted by the Rust backend via the `metrics` facade. The full set as
 of 2026-04-19:
 
-| Metric | Type | Where emitted |
-|---|---|---|
-| `dsar_export_claimed_total` | counter | `services/dsar_worker.rs` |
-| `dsar_export_completed_total` | counter | `services/dsar_worker.rs` |
-| `dsar_export_failed_total{stage}` | counter | `services/dsar_worker.rs` |
-| `dsar_export_duration_seconds` | histogram | `services/dsar_worker.rs` |
-| `dsar_artifacts_swept_total` | counter | `services/dsar_artifact_sweep.rs` |
-| `dsar_artifacts_sweep_duration_seconds` | histogram | `services/dsar_artifact_sweep.rs` |
-| `dsar_artifacts_sweep_last_success_unixtime` | gauge | `services/dsar_artifact_sweep.rs` |
-| `dsar_artifacts_sweep_failed_total{stage}` | counter | `services/dsar_artifact_sweep.rs` |
-| `idempotency_claimed_total` | counter | `middleware/idempotency.rs` |
-| `idempotency_replay_total` | counter | `middleware/idempotency.rs` |
-| `idempotency_in_flight_total` | counter | `middleware/idempotency.rs` |
-| `idempotency_mismatch_total` | counter | `middleware/idempotency.rs` |
-| `idempotency_claim_race_total` | counter | `middleware/idempotency.rs` |
-| `idempotency_db_error_total` | counter | `middleware/idempotency.rs` |
-| `idempotency_keys_pruned_total` | counter | `services/idempotency_gc.rs` |
-| `idempotency_keys_prune_duration_seconds` | histogram | `services/idempotency_gc.rs` |
-| `idempotency_keys_prune_last_success_unixtime` | gauge | `services/idempotency_gc.rs` |
-| `idempotency_keys_prune_failed_total` | counter | `services/idempotency_gc.rs` |
-| `idempotency_keys_table_rows` | gauge | `services/idempotency_gc.rs` |
-| `audit_pruned_total` | counter | `services/audit_retention.rs` |
-| `audit_prune_iterations_total` | counter | `services/audit_retention.rs` |
-| `audit_prune_duration_seconds` | histogram | `services/audit_retention.rs` |
-| `audit_prune_errors_total` | counter | `services/audit_retention.rs` |
-| `audit_prune_last_success_unixtime` | gauge | `services/audit_retention.rs` |
-| `admin_mutation_rate_limited_total{backend}` | counter | `middleware/rate_limit.rs` |
-| `impersonation_mint_rate_limited_total` | counter | `handlers/admin_impersonation.rs` |
-| `impersonation_revoke_total` | counter | `security/impersonation.rs` |
-| `maintenance_mode_blocked_total` | counter | `middleware/maintenance_mode.rs` |
+| Metric                                         | Type      | Where emitted                     |
+| ---------------------------------------------- | --------- | --------------------------------- |
+| `dsar_export_claimed_total`                    | counter   | `services/dsar_worker.rs`         |
+| `dsar_export_completed_total`                  | counter   | `services/dsar_worker.rs`         |
+| `dsar_export_failed_total{stage}`              | counter   | `services/dsar_worker.rs`         |
+| `dsar_export_duration_seconds`                 | histogram | `services/dsar_worker.rs`         |
+| `dsar_artifacts_swept_total`                   | counter   | `services/dsar_artifact_sweep.rs` |
+| `dsar_artifacts_sweep_duration_seconds`        | histogram | `services/dsar_artifact_sweep.rs` |
+| `dsar_artifacts_sweep_last_success_unixtime`   | gauge     | `services/dsar_artifact_sweep.rs` |
+| `dsar_artifacts_sweep_failed_total{stage}`     | counter   | `services/dsar_artifact_sweep.rs` |
+| `idempotency_claimed_total`                    | counter   | `middleware/idempotency.rs`       |
+| `idempotency_replay_total`                     | counter   | `middleware/idempotency.rs`       |
+| `idempotency_in_flight_total`                  | counter   | `middleware/idempotency.rs`       |
+| `idempotency_mismatch_total`                   | counter   | `middleware/idempotency.rs`       |
+| `idempotency_claim_race_total`                 | counter   | `middleware/idempotency.rs`       |
+| `idempotency_db_error_total`                   | counter   | `middleware/idempotency.rs`       |
+| `idempotency_keys_pruned_total`                | counter   | `services/idempotency_gc.rs`      |
+| `idempotency_keys_prune_duration_seconds`      | histogram | `services/idempotency_gc.rs`      |
+| `idempotency_keys_prune_last_success_unixtime` | gauge     | `services/idempotency_gc.rs`      |
+| `idempotency_keys_prune_failed_total`          | counter   | `services/idempotency_gc.rs`      |
+| `idempotency_keys_table_rows`                  | gauge     | `services/idempotency_gc.rs`      |
+| `audit_pruned_total`                           | counter   | `services/audit_retention.rs`     |
+| `audit_prune_iterations_total`                 | counter   | `services/audit_retention.rs`     |
+| `audit_prune_duration_seconds`                 | histogram | `services/audit_retention.rs`     |
+| `audit_prune_errors_total`                     | counter   | `services/audit_retention.rs`     |
+| `audit_prune_last_success_unixtime`            | gauge     | `services/audit_retention.rs`     |
+| `admin_mutation_rate_limited_total{backend}`   | counter   | `middleware/rate_limit.rs`        |
+| `impersonation_mint_rate_limited_total`        | counter   | `handlers/admin_impersonation.rs` |
+| `impersonation_revoke_total`                   | counter   | `security/impersonation.rs`       |
+| `maintenance_mode_blocked_total`               | counter   | `middleware/maintenance_mode.rs`  |
 
 The Rust side is configured to expose them via the existing Prometheus
 exporter route (see `main.rs`); no scrape-config changes are required

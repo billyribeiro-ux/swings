@@ -24,7 +24,10 @@
 				var el = document.getElementById('swings-fonts');
 				if (!el) return;
 				if (el.sheet) el.media = 'all';
-				else el.addEventListener('load', function () { el.media = 'all'; });
+				else
+					el.addEventListener('load', function () {
+						el.media = 'all';
+					});
 			})();
 		</script>
 		<noscript>

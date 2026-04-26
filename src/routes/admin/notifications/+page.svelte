@@ -50,8 +50,8 @@
 				<span class="eyebrow">Operations</span>
 				<h1 class="page__title">Notifications</h1>
 				<p class="page__subtitle">
-					Manage transactional + marketing templates, inspect every delivery the platform has
-					attempted, and curate the suppression list that gates outbound sends.
+					Manage transactional + marketing templates, inspect every delivery the platform
+					has attempted, and curate the suppression list that gates outbound sends.
 				</p>
 			</div>
 		</div>

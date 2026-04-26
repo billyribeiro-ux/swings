@@ -33,7 +33,11 @@
 		loading = true;
 
 		try {
-			await api.post('/api/auth/reset-password', { token, new_password: newPassword }, { skipAuth: true });
+			await api.post(
+				'/api/auth/reset-password',
+				{ token, new_password: newPassword },
+				{ skipAuth: true }
+			);
 			success = true;
 		} catch (err) {
 			if (err instanceof ApiError) {
@@ -63,7 +67,9 @@
 		</div>
 
 		{#if !token}
-			<div class="reset-card__error">Invalid reset link. Please request a new password reset.</div>
+			<div class="reset-card__error">
+				Invalid reset link. Please request a new password reset.
+			</div>
 			<a href="/forgot-password" class="reset-card__back-btn">Request new reset link</a>
 		{:else if success}
 			<div class="reset-card__success">

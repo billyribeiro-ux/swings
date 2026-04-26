@@ -38,7 +38,9 @@
 
 	const isInactive = $derived(disabled || loading);
 	// Auto-assign `rel="noopener noreferrer"` for _blank anchors if unset.
-	const anchorRel = $derived(target === '_blank' && rel === undefined ? 'noopener noreferrer' : rel);
+	const anchorRel = $derived(
+		target === '_blank' && rel === undefined ? 'noopener noreferrer' : rel
+	);
 
 	function handleClick(e: MouseEvent) {
 		if (isInactive) {

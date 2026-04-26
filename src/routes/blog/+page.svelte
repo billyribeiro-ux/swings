@@ -17,7 +17,6 @@
 
 	const posts = $derived(data.posts);
 	const categories = $derived(data.categories);
-	const _total = $derived(data.total);
 	// Renamed from `page` to avoid shadowing the `page` import from `$app/state`.
 	const currentPage = $derived(data.page);
 	const totalPages = $derived(data.totalPages);
@@ -107,8 +106,8 @@
 		<h1 class="blog-title page-hero__title">Trading Insights & Education</h1>
 
 		<p class="blog-subtitle page-hero__subtitle">
-			Strategies, analysis, and lessons from the trading desk to help you level up your options
-			game.
+			Strategies, analysis, and lessons from the trading desk to help you level up your
+			options game.
 		</p>
 	</div>
 </section>
@@ -132,18 +131,27 @@
 	<div class="page-container">
 		{#if posts.length === 0}
 			<div class="blog-empty">
-				<ArticleIcon size={48} weight="duotone" color="#0FA4AF" class="blog-coming-soon__icon" />
+				<ArticleIcon
+					size={48}
+					weight="duotone"
+					color="#0FA4AF"
+					class="blog-coming-soon__icon"
+				/>
 				<h3 class="blog-coming-soon__title">No Posts Yet</h3>
 				<p class="blog-coming-soon__desc">
-					We're working on new content. Check back soon for trading insights, strategies, and
-					education.
+					We're working on new content. Check back soon for trading insights, strategies,
+					and education.
 				</p>
 			</div>
 		{:else}
 			<ScrollReveal>
 				<div class="blog-grid">
 					{#each posts as post, i (post.id)}
-						<article class="reveal-item blog-card" style="transition-delay: {i * 0.08}s" {@attach hoverTilt({ maxTilt: 3, scale: 1.01 })}>
+						<article
+							class="reveal-item blog-card"
+							style="transition-delay: {i * 0.08}s"
+							{@attach hoverTilt({ maxTilt: 3, scale: 1.01 })}
+						>
 							{#if post.featured_image_url}
 								<a href="/blog/{post.slug}" class="blog-card__image-link">
 									<img
@@ -157,8 +165,14 @@
 							<div class="blog-card__body">
 								<div class="blog-card__meta">
 									<span class="blog-card__meta-item">
-										<CalendarBlankIcon size={14} weight="bold" class="blog-card__meta-icon" />
-										{new Date(post.published_at || post.created_at).toLocaleDateString('en-US', {
+										<CalendarBlankIcon
+											size={14}
+											weight="bold"
+											class="blog-card__meta-icon"
+										/>
+										{new Date(
+											post.published_at || post.created_at
+										).toLocaleDateString('en-US', {
 											month: 'short',
 											day: 'numeric',
 											year: 'numeric'
@@ -166,13 +180,19 @@
 									</span>
 									<span>•</span>
 									<span class="blog-card__meta-item">
-										<ClockIcon size={14} weight="bold" class="blog-card__meta-icon" />
+										<ClockIcon
+											size={14}
+											weight="bold"
+											class="blog-card__meta-icon"
+										/>
 										{post.reading_time_minutes} min read
 									</span>
 								</div>
 
 								{#if post.categories.length > 0}
-									<span class="blog-card__category">{post.categories[0].name}</span>
+									<span class="blog-card__category"
+										>{post.categories[0].name}</span
+									>
 								{/if}
 
 								<h2 class="blog-card__title">{post.title}</h2>
@@ -193,8 +213,10 @@
 
 			{#if totalPages > 1}
 				<div class="blog-pagination">
-					<button class="blog-pagination__btn" disabled={currentPage <= 1} onclick={prevPage}
-						>← Previous</button
+					<button
+						class="blog-pagination__btn"
+						disabled={currentPage <= 1}
+						onclick={prevPage}>← Previous</button
 					>
 					<span class="blog-pagination__info">Page {currentPage} of {totalPages}</span>
 					<button

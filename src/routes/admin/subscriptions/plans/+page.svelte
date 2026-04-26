@@ -78,7 +78,9 @@
 
 	async function loadPriceLog() {
 		try {
-			priceLog = await api.get<PricingPlanPriceLogEntry[]>('/api/admin/pricing/plans/price-log');
+			priceLog = await api.get<PricingPlanPriceLogEntry[]>(
+				'/api/admin/pricing/plans/price-log'
+			);
 		} catch {
 			priceLog = [];
 		}
@@ -116,7 +118,10 @@
 				name: editDraft.name,
 				amount_cents: Math.round(parseFloat(editDraft.amount_dollars) * 100),
 				interval: editDraft.interval,
-				features: editDraft.features.split('\n').map((f) => f.trim()).filter(Boolean),
+				features: editDraft.features
+					.split('\n')
+					.map((f) => f.trim())
+					.filter(Boolean),
 				trial_days: parseInt(editDraft.trial_days) || 0,
 				stripe_price_id: editDraft.stripe_price_id
 			};
@@ -126,10 +131,9 @@
 					audience: editDraft.rollout_audience
 				};
 			}
-			const fetchOpts =
-				editDraft.push_to_stripe_subscribers
-					? { headers: { 'Idempotency-Key': crypto.randomUUID() } }
-					: undefined;
+			const fetchOpts = editDraft.push_to_stripe_subscribers
+				? { headers: { 'Idempotency-Key': crypto.randomUUID() } }
+				: undefined;
 			const res = await api.put<AdminUpdatePricingPlanResponse>(
 				`/api/admin/pricing/plans/${planId}`,
 				payload,
@@ -163,14 +167,24 @@
 				name: newPlan.name,
 				amount_cents: Math.round(parseFloat(newPlan.amount_dollars) * 100),
 				interval: newPlan.interval,
-				features: newPlan.features.split('\n').map((f) => f.trim()).filter(Boolean),
+				features: newPlan.features
+					.split('\n')
+					.map((f) => f.trim())
+					.filter(Boolean),
 				trial_days: parseInt(newPlan.trial_days) || 0,
 				stripe_price_id: newPlan.stripe_price_id
 			};
 			await api.post('/api/admin/pricing/plans', payload);
 			await loadPlans();
 			showNewForm = false;
-			newPlan = { name: '', amount_dollars: '', interval: 'month', features: '', trial_days: '0', stripe_price_id: '' };
+			newPlan = {
+				name: '',
+				amount_dollars: '',
+				interval: 'month',
+				features: '',
+				trial_days: '0',
+				stripe_price_id: ''
+			};
 		} catch {
 			// keep form open on error
 		} finally {
@@ -179,12 +193,22 @@
 	}
 
 	function formatMoney(cents: number): string {
-		return '$' + (cents / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+		return (
+			'$' +
+			(cents / 100).toLocaleString('en-US', {
+				minimumFractionDigits: 0,
+				maximumFractionDigits: 0
+			})
+		);
 	}
 
 	function formatDate(dateStr: string): string {
 		return new Date(dateStr).toLocaleDateString('en-US', {
-			month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+			month: 'short',
+			day: 'numeric',
+			year: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit'
 		});
 	}
 
@@ -208,7 +232,13 @@
 				<p class="plans-page__subtitle">{plans.length} plans configured</p>
 			</div>
 		</div>
-		<button class="plans-page__add-btn" onclick={() => { showNewForm = true; editingId = null; }}>
+		<button
+			class="plans-page__add-btn"
+			onclick={() => {
+				showNewForm = true;
+				editingId = null;
+			}}
+		>
 			<PlusIcon size={16} weight="bold" /> Add Plan
 		</button>
 	</div>
@@ -223,16 +253,35 @@
 			<div class="plan-card__fields">
 				<label class="field" for="new-plan-name">
 					<span class="field__label">Name</span>
-					<input id="new-plan-name" name="plan-name" type="text" class="field__input" bind:value={newPlan.name} placeholder="e.g. Pro Monthly" />
+					<input
+						id="new-plan-name"
+						name="plan-name"
+						type="text"
+						class="field__input"
+						bind:value={newPlan.name}
+						placeholder="e.g. Pro Monthly"
+					/>
 				</label>
 				<div class="field-row">
 					<label class="field field--half" for="new-plan-amount">
 						<span class="field__label">Price ($)</span>
-						<input id="new-plan-amount" name="plan-amount" type="text" class="field__input" bind:value={newPlan.amount_dollars} placeholder="49.00" />
+						<input
+							id="new-plan-amount"
+							name="plan-amount"
+							type="text"
+							class="field__input"
+							bind:value={newPlan.amount_dollars}
+							placeholder="49.00"
+						/>
 					</label>
 					<label class="field field--half" for="new-plan-interval">
 						<span class="field__label">Interval</span>
-						<select id="new-plan-interval" name="plan-interval" class="field__input" bind:value={newPlan.interval}>
+						<select
+							id="new-plan-interval"
+							name="plan-interval"
+							class="field__input"
+							bind:value={newPlan.interval}
+						>
 							<option value="month">Monthly</option>
 							<option value="year">Yearly</option>
 						</select>
@@ -240,22 +289,51 @@
 				</div>
 				<label class="field" for="new-plan-features">
 					<span class="field__label">Features (one per line)</span>
-					<textarea id="new-plan-features" name="plan-features" class="field__textarea" bind:value={newPlan.features} rows="4" placeholder="Feature one&#10;Feature two"></textarea>
+					<textarea
+						id="new-plan-features"
+						name="plan-features"
+						class="field__textarea"
+						bind:value={newPlan.features}
+						rows="4"
+						placeholder="Feature one&#10;Feature two"
+					></textarea>
 				</label>
 				<div class="field-row">
 					<label class="field field--half" for="new-plan-trial-days">
 						<span class="field__label">Trial Days</span>
-						<input id="new-plan-trial-days" name="plan-trial-days" type="number" class="field__input" bind:value={newPlan.trial_days} />
+						<input
+							id="new-plan-trial-days"
+							name="plan-trial-days"
+							type="number"
+							class="field__input"
+							bind:value={newPlan.trial_days}
+						/>
 					</label>
 					<label class="field field--half" for="new-plan-stripe-price">
 						<span class="field__label">Stripe Price ID</span>
-						<input id="new-plan-stripe-price" name="plan-stripe-price-id" type="text" class="field__input" bind:value={newPlan.stripe_price_id} placeholder="price_..." />
+						<input
+							id="new-plan-stripe-price"
+							name="plan-stripe-price-id"
+							type="text"
+							class="field__input"
+							bind:value={newPlan.stripe_price_id}
+							placeholder="price_..."
+						/>
 					</label>
 				</div>
 			</div>
 			<div class="plan-card__actions">
-				<button class="btn btn--ghost" onclick={() => { showNewForm = false; }}>Cancel</button>
-				<button class="btn btn--primary" disabled={saving === 'new' || !newPlan.name || !newPlan.amount_dollars} onclick={createPlan}>
+				<button
+					class="btn btn--ghost"
+					onclick={() => {
+						showNewForm = false;
+					}}>Cancel</button
+				>
+				<button
+					class="btn btn--primary"
+					disabled={saving === 'new' || !newPlan.name || !newPlan.amount_dollars}
+					onclick={createPlan}
+				>
 					{#if saving === 'new'}Saving...{:else}<FloppyDiskIcon size={15} weight="bold" /> Create{/if}
 				</button>
 			</div>
@@ -279,21 +357,48 @@
 	{:else}
 		<div class="plans-page__grid">
 			{#each plans as plan (plan.id)}
-				<div class="plan-card" class:plan-card--popular={plan.is_popular} class:plan-card--inactive={!plan.is_active}>
+				<div
+					class="plan-card"
+					class:plan-card--popular={plan.is_popular}
+					class:plan-card--inactive={!plan.is_active}
+				>
 					{#if editingId === plan.id}
 						<div class="plan-card__fields">
 							<label class="field" for={`edit-plan-name-${plan.id}`}>
 								<span class="field__label">Name</span>
-								<input id={`edit-plan-name-${plan.id}`} name="plan-name" type="text" class="field__input" bind:value={editDraft.name} />
+								<input
+									id={`edit-plan-name-${plan.id}`}
+									name="plan-name"
+									type="text"
+									class="field__input"
+									bind:value={editDraft.name}
+								/>
 							</label>
 							<div class="field-row">
-								<label class="field field--half" for={`edit-plan-amount-${plan.id}`}>
+								<label
+									class="field field--half"
+									for={`edit-plan-amount-${plan.id}`}
+								>
 									<span class="field__label">Price ($)</span>
-									<input id={`edit-plan-amount-${plan.id}`} name="plan-amount" type="text" class="field__input" bind:value={editDraft.amount_dollars} />
+									<input
+										id={`edit-plan-amount-${plan.id}`}
+										name="plan-amount"
+										type="text"
+										class="field__input"
+										bind:value={editDraft.amount_dollars}
+									/>
 								</label>
-								<label class="field field--half" for={`edit-plan-interval-${plan.id}`}>
+								<label
+									class="field field--half"
+									for={`edit-plan-interval-${plan.id}`}
+								>
 									<span class="field__label">Interval</span>
-									<select id={`edit-plan-interval-${plan.id}`} name="plan-interval" class="field__input" bind:value={editDraft.interval}>
+									<select
+										id={`edit-plan-interval-${plan.id}`}
+										name="plan-interval"
+										class="field__input"
+										bind:value={editDraft.interval}
+									>
 										<option value="month">Monthly</option>
 										<option value="year">Yearly</option>
 									</select>
@@ -301,30 +406,66 @@
 							</div>
 							<label class="field" for={`edit-plan-features-${plan.id}`}>
 								<span class="field__label">Features (one per line)</span>
-								<textarea id={`edit-plan-features-${plan.id}`} name="plan-features" class="field__textarea" bind:value={editDraft.features} rows="4"></textarea>
+								<textarea
+									id={`edit-plan-features-${plan.id}`}
+									name="plan-features"
+									class="field__textarea"
+									bind:value={editDraft.features}
+									rows="4"
+								></textarea>
 							</label>
 							<div class="field-row">
-								<label class="field field--half" for={`edit-plan-trial-days-${plan.id}`}>
+								<label
+									class="field field--half"
+									for={`edit-plan-trial-days-${plan.id}`}
+								>
 									<span class="field__label">Trial Days</span>
-									<input id={`edit-plan-trial-days-${plan.id}`} name="plan-trial-days" type="number" class="field__input" bind:value={editDraft.trial_days} />
+									<input
+										id={`edit-plan-trial-days-${plan.id}`}
+										name="plan-trial-days"
+										type="number"
+										class="field__input"
+										bind:value={editDraft.trial_days}
+									/>
 								</label>
-								<label class="field field--half" for={`edit-plan-stripe-price-${plan.id}`}>
+								<label
+									class="field field--half"
+									for={`edit-plan-stripe-price-${plan.id}`}
+								>
 									<span class="field__label">Stripe Price ID</span>
-									<input id={`edit-plan-stripe-price-${plan.id}`} name="plan-stripe-price-id" type="text" class="field__input" bind:value={editDraft.stripe_price_id} />
+									<input
+										id={`edit-plan-stripe-price-${plan.id}`}
+										name="plan-stripe-price-id"
+										type="text"
+										class="field__input"
+										bind:value={editDraft.stripe_price_id}
+									/>
 								</label>
 							</div>
 							<div class="rollout-panel">
-								<label class="rollout-panel__toggle" for={`edit-plan-push-stripe-${plan.id}`}>
-									<input id={`edit-plan-push-stripe-${plan.id}`} name="plan-push-stripe" type="checkbox" bind:checked={editDraft.push_to_stripe_subscribers} />
-									<span>Also update existing Stripe subscriptions after save</span>
+								<label
+									class="rollout-panel__toggle"
+									for={`edit-plan-push-stripe-${plan.id}`}
+								>
+									<input
+										id={`edit-plan-push-stripe-${plan.id}`}
+										name="plan-push-stripe"
+										type="checkbox"
+										bind:checked={editDraft.push_to_stripe_subscribers}
+									/>
+									<span>Also update existing Stripe subscriptions after save</span
+									>
 								</label>
 								<p class="rollout-panel__hint">
-									Requires Stripe configuration and an <code>Idempotency-Key</code> (sent automatically).
-									Only runs when you change billing fields (price, currency, interval, or Stripe price id).
+									Requires Stripe configuration and an <code>Idempotency-Key</code
+									> (sent automatically). Only runs when you change billing fields (price,
+									currency, interval, or Stripe price id).
 								</p>
 								{#if editDraft.push_to_stripe_subscribers}
 									<fieldset class="rollout-panel__audience">
-										<legend class="rollout-panel__legend">Which subscriptions to update</legend>
+										<legend class="rollout-panel__legend"
+											>Which subscriptions to update</legend
+										>
 										<label class="rollout-panel__radio">
 											<input
 												type="radio"
@@ -332,7 +473,10 @@
 												value="linked_subscriptions_only"
 												bind:group={editDraft.rollout_audience}
 											/>
-											<span>Linked only (recommended) — members who checked out with this catalog plan</span>
+											<span
+												>Linked only (recommended) — members who checked out
+												with this catalog plan</span
+											>
 										</label>
 										<label class="rollout-panel__radio">
 											<input
@@ -341,7 +485,10 @@
 												value="linked_and_unlinked_legacy_same_cadence"
 												bind:group={editDraft.rollout_audience}
 											/>
-											<span>Linked + legacy same cadence — also monthly/annual rows missing catalog link (use with care)</span>
+											<span
+												>Linked + legacy same cadence — also monthly/annual
+												rows missing catalog link (use with care)</span
+											>
 										</label>
 									</fieldset>
 								{/if}
@@ -349,8 +496,15 @@
 						</div>
 						<div class="plan-card__actions">
 							<button class="btn btn--ghost" onclick={cancelEdit}>Cancel</button>
-							<button class="btn btn--primary" disabled={saving === plan.id} onclick={() => saveEdit(plan.id)}>
-								{#if saving === plan.id}Saving...{:else}<FloppyDiskIcon size={15} weight="bold" /> Save{/if}
+							<button
+								class="btn btn--primary"
+								disabled={saving === plan.id}
+								onclick={() => saveEdit(plan.id)}
+							>
+								{#if saving === plan.id}Saving...{:else}<FloppyDiskIcon
+										size={15}
+										weight="bold"
+									/> Save{/if}
 							</button>
 						</div>
 					{:else}
@@ -362,7 +516,9 @@
 									<span class="badge badge--inactive">Inactive</span>
 								{/if}
 								{#if plan.is_popular}
-									<span class="badge badge--popular"><StarIcon size={12} weight="fill" /> Popular</span>
+									<span class="badge badge--popular"
+										><StarIcon size={12} weight="fill" /> Popular</span
+									>
 								{/if}
 							</div>
 							<button class="plan-card__edit-btn" onclick={() => startEdit(plan)}>
@@ -392,9 +548,17 @@
 	{/if}
 
 	<div class="log-section">
-		<button class="log-section__toggle" onclick={() => { logOpen = !logOpen; }}>
+		<button
+			class="log-section__toggle"
+			onclick={() => {
+				logOpen = !logOpen;
+			}}
+		>
 			<span class="log-section__toggle-text">Price Change Log</span>
-			{#if logOpen}<CaretUpIcon size={16} weight="bold" />{:else}<CaretDownIcon size={16} weight="bold" />{/if}
+			{#if logOpen}<CaretUpIcon size={16} weight="bold" />{:else}<CaretDownIcon
+					size={16}
+					weight="bold"
+				/>{/if}
 		</button>
 		{#if logOpen}
 			<div class="log-section__content">
@@ -407,12 +571,16 @@
 								<div class="log-entry__info">
 									<span class="log-entry__plan">{entry.plan_name}</span>
 									<span class="log-entry__change">
-										{formatMoney(entry.old_amount_cents)} &rarr; {formatMoney(entry.new_amount_cents)}
+										{formatMoney(entry.old_amount_cents)} &rarr; {formatMoney(
+											entry.new_amount_cents
+										)}
 									</span>
 								</div>
 								<div class="log-entry__meta">
 									<span>{entry.changed_by}</span>
-									<span class="log-entry__date">{formatDate(entry.changed_at)}</span>
+									<span class="log-entry__date"
+										>{formatDate(entry.changed_at)}</span
+									>
 								</div>
 							</div>
 						{/each}
@@ -425,34 +593,67 @@
 
 <style>
 	.plans-page__header {
-		display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin-bottom: 1.5rem;
 	}
-	.plans-page__header-left { display: flex; align-items: center; gap: 0.75rem; }
+	.plans-page__header-left {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
 	.plans-page__back {
-		display: flex; align-items: center; justify-content: center;
-		width: 2.25rem; height: 2.25rem; border-radius: var(--radius-2xl);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: var(--radius-2xl);
 		background: rgba(19, 43, 80, 0.35);
 		backdrop-filter: blur(24px);
-		-webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08);
-		color: var(--color-grey-300); text-decoration: none;
+		-webkit-backdrop-filter: blur(24px);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		color: var(--color-grey-300);
+		text-decoration: none;
 		transition: border-color var(--duration-200) var(--ease-out);
 	}
-	.plans-page__back:hover { border-color: var(--color-teal); color: var(--color-white); }
-	.plans-page__title {
-		font-size: var(--fs-xl); font-weight: var(--w-bold);
-		color: var(--color-white); font-family: var(--font-heading);
+	.plans-page__back:hover {
+		border-color: var(--color-teal);
+		color: var(--color-white);
 	}
-	.plans-page__subtitle { font-size: var(--fs-xs); color: var(--color-grey-400); margin-top: 0.1rem; }
+	.plans-page__title {
+		font-size: var(--fs-xl);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+		font-family: var(--font-heading);
+	}
+	.plans-page__subtitle {
+		font-size: var(--fs-xs);
+		color: var(--color-grey-400);
+		margin-top: 0.1rem;
+	}
 	.plans-page__add-btn {
-		display: inline-flex; align-items: center; gap: 0.35rem;
-		align-self: flex-start; padding: 0.55rem 1rem;
-		font-size: var(--fs-xs); font-weight: var(--w-semibold);
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		align-self: flex-start;
+		padding: 0.55rem 1rem;
+		font-size: var(--fs-xs);
+		font-weight: var(--w-semibold);
 		color: var(--color-white);
 		background: linear-gradient(135deg, var(--color-teal), #0d8a94);
-		border: none; border-radius: var(--radius-2xl); cursor: pointer;
-		transition: opacity var(--duration-200) var(--ease-out), transform var(--duration-200) var(--ease-out);
+		border: none;
+		border-radius: var(--radius-2xl);
+		cursor: pointer;
+		transition:
+			opacity var(--duration-200) var(--ease-out),
+			transform var(--duration-200) var(--ease-out);
 	}
-	.plans-page__add-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+	.plans-page__add-btn:hover {
+		opacity: 0.9;
+		transform: translateY(-1px);
+	}
 
 	.rollout-banner {
 		font-size: var(--fs-sm);
@@ -479,7 +680,9 @@
 		color: var(--color-grey-200);
 		cursor: pointer;
 	}
-	.rollout-panel__toggle input { margin-top: 0.2rem; }
+	.rollout-panel__toggle input {
+		margin-top: 0.2rem;
+	}
 	.rollout-panel__hint {
 		font-size: var(--fs-2xs);
 		color: var(--color-grey-500);
@@ -511,173 +714,401 @@
 		margin-top: 0.35rem;
 		cursor: pointer;
 	}
-	.rollout-panel__radio input { margin-top: 0.15rem; }
+	.rollout-panel__radio input {
+		margin-top: 0.15rem;
+	}
 
 	/* Grid */
 	.plans-page__grid {
-		display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 2rem;
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1rem;
+		margin-bottom: 2rem;
 	}
 	.plans-page__empty {
-		text-align: center; padding: 3rem 1rem;
-		color: var(--color-grey-400); font-size: var(--fs-sm);
+		text-align: center;
+		padding: 3rem 1rem;
+		color: var(--color-grey-400);
+		font-size: var(--fs-sm);
 		background: rgba(19, 43, 80, 0.35);
 		backdrop-filter: blur(24px);
 		-webkit-backdrop-filter: blur(24px);
-		border: 1px solid rgba(255, 255, 255, 0.06); border-radius: var(--radius-2xl);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: var(--radius-2xl);
 	}
 
 	/* Card */
 	.plan-card {
-		padding: 1.25rem; background: rgba(19, 43, 80, 0.35);
+		padding: 1.25rem;
+		background: rgba(19, 43, 80, 0.35);
 		backdrop-filter: blur(24px);
 		-webkit-backdrop-filter: blur(24px);
-		border: 1px solid rgba(255, 255, 255, 0.06); border-radius: var(--radius-2xl);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: var(--radius-2xl);
 		transition: border-color var(--duration-200) var(--ease-out);
 	}
-	.plan-card--popular { border-color: rgba(212, 168, 67, 0.3); }
-	.plan-card--inactive { opacity: 0.6; }
-	.plan-card--form { border-color: rgba(15, 164, 175, 0.3); margin-bottom: 1rem; }
-	.plan-card--skeleton { min-height: 14rem; }
+	.plan-card--popular {
+		border-color: rgba(212, 168, 67, 0.3);
+	}
+	.plan-card--inactive {
+		opacity: 0.6;
+	}
+	.plan-card--form {
+		border-color: rgba(15, 164, 175, 0.3);
+		margin-bottom: 1rem;
+	}
+	.plan-card--skeleton {
+		min-height: 14rem;
+	}
 
 	.skeleton-block {
 		border-radius: var(--radius-md);
 		background: rgba(255, 255, 255, 0.06);
 		animation: shimmer 1.5s infinite;
 	}
-	.skeleton-block--title { height: 1.25rem; width: 50%; margin-bottom: 0.75rem; }
-	.skeleton-block--price { height: 2rem; width: 35%; margin-bottom: 1rem; }
-	.skeleton-block--features { height: 5rem; width: 100%; }
-	@keyframes shimmer { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
+	.skeleton-block--title {
+		height: 1.25rem;
+		width: 50%;
+		margin-bottom: 0.75rem;
+	}
+	.skeleton-block--price {
+		height: 2rem;
+		width: 35%;
+		margin-bottom: 1rem;
+	}
+	.skeleton-block--features {
+		height: 5rem;
+		width: 100%;
+	}
+	@keyframes shimmer {
+		0%,
+		100% {
+			opacity: 0.4;
+		}
+		50% {
+			opacity: 0.8;
+		}
+	}
 
-	.plan-card__top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
-	.plan-card__badges { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+	.plan-card__top {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 0.75rem;
+	}
+	.plan-card__badges {
+		display: flex;
+		gap: 0.4rem;
+		flex-wrap: wrap;
+	}
 	.plan-card__form-title {
-		font-size: var(--fs-md); font-weight: var(--w-semibold);
-		color: var(--color-white); margin-bottom: 1rem;
+		font-size: var(--fs-md);
+		font-weight: var(--w-semibold);
+		color: var(--color-white);
+		margin-bottom: 1rem;
 	}
 
 	.badge {
-		font-size: var(--fs-2xs); font-weight: var(--w-semibold);
-		padding: 0.15rem 0.5rem; border-radius: var(--radius-full);
+		font-size: var(--fs-2xs);
+		font-weight: var(--w-semibold);
+		padding: 0.15rem 0.5rem;
+		border-radius: var(--radius-full);
 	}
-	.badge--active { background-color: rgba(34, 181, 115, 0.12); color: var(--color-green); }
-	.badge--inactive { background-color: rgba(255, 255, 255, 0.06); color: var(--color-grey-400); }
+	.badge--active {
+		background-color: rgba(34, 181, 115, 0.12);
+		color: var(--color-green);
+	}
+	.badge--inactive {
+		background-color: rgba(255, 255, 255, 0.06);
+		color: var(--color-grey-400);
+	}
 	.badge--popular {
-		display: inline-flex; align-items: center; gap: 0.2rem;
-		background-color: rgba(212, 168, 67, 0.15); color: var(--color-gold);
+		display: inline-flex;
+		align-items: center;
+		gap: 0.2rem;
+		background-color: rgba(212, 168, 67, 0.15);
+		color: var(--color-gold);
 	}
 
 	.plan-card__edit-btn {
-		display: flex; align-items: center; gap: 0.25rem;
-		padding: 0.3rem 0.6rem; font-size: var(--fs-xs); font-weight: var(--w-medium);
-		color: var(--color-grey-300); background: none;
-		border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--radius-md);
-		cursor: pointer; transition: border-color var(--duration-200) var(--ease-out), color var(--duration-200) var(--ease-out);
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 0.3rem 0.6rem;
+		font-size: var(--fs-xs);
+		font-weight: var(--w-medium);
+		color: var(--color-grey-300);
+		background: none;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-md);
+		cursor: pointer;
+		transition:
+			border-color var(--duration-200) var(--ease-out),
+			color var(--duration-200) var(--ease-out);
 	}
-	.plan-card__edit-btn:hover { border-color: var(--color-teal); color: var(--color-white); }
+	.plan-card__edit-btn:hover {
+		border-color: var(--color-teal);
+		color: var(--color-white);
+	}
 
-	.plan-card__name { font-size: var(--fs-md); font-weight: var(--w-semibold); color: var(--color-white); margin-bottom: 0.35rem; }
-	.plan-card__price { display: flex; align-items: baseline; gap: 0.15rem; margin-bottom: 0.4rem; }
-	.plan-card__amount { font-size: var(--fs-2xl); font-weight: var(--w-bold); color: var(--color-white); }
-	.plan-card__interval { font-size: var(--fs-sm); color: var(--color-grey-400); }
-	.plan-card__trial { font-size: var(--fs-xs); color: var(--color-teal); margin-bottom: 0.5rem; }
+	.plan-card__name {
+		font-size: var(--fs-md);
+		font-weight: var(--w-semibold);
+		color: var(--color-white);
+		margin-bottom: 0.35rem;
+	}
+	.plan-card__price {
+		display: flex;
+		align-items: baseline;
+		gap: 0.15rem;
+		margin-bottom: 0.4rem;
+	}
+	.plan-card__amount {
+		font-size: var(--fs-2xl);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+	}
+	.plan-card__interval {
+		font-size: var(--fs-sm);
+		color: var(--color-grey-400);
+	}
+	.plan-card__trial {
+		font-size: var(--fs-xs);
+		color: var(--color-teal);
+		margin-bottom: 0.5rem;
+	}
 
-	.plan-card__features { list-style: none; padding: 0; margin: 0.5rem 0 0; display: flex; flex-direction: column; gap: 0.4rem; }
+	.plan-card__features {
+		list-style: none;
+		padding: 0;
+		margin: 0.5rem 0 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
 	.plan-card__feature {
-		display: flex; align-items: center; gap: 0.4rem;
-		font-size: var(--fs-sm); color: var(--color-grey-300);
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: var(--fs-sm);
+		color: var(--color-grey-300);
 	}
-	.plan-card__feature :global(svg) { color: var(--color-green); flex-shrink: 0; }
+	.plan-card__feature :global(svg) {
+		color: var(--color-green);
+		flex-shrink: 0;
+	}
 
 	/* Form fields */
-	.plan-card__fields { display: flex; flex-direction: column; gap: 0.75rem; }
-	.plan-card__actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
-	.field { display: flex; flex-direction: column; gap: 0.25rem; }
-	.field__label { font-size: var(--fs-xs); font-weight: var(--w-medium); color: var(--color-grey-400); }
+	.plan-card__fields {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+	.plan-card__actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.5rem;
+		margin-top: 1rem;
+	}
+	.field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+	.field__label {
+		font-size: var(--fs-xs);
+		font-weight: var(--w-medium);
+		color: var(--color-grey-400);
+	}
 	.field__input {
-		padding: 0.55rem 0.75rem; background-color: var(--color-navy);
-		border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--radius-md);
-		color: var(--color-white); font-size: var(--fs-sm); font-family: var(--font-ui);
+		padding: 0.55rem 0.75rem;
+		background-color: var(--color-navy);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-md);
+		color: var(--color-white);
+		font-size: var(--fs-sm);
+		font-family: var(--font-ui);
 		transition: border-color var(--duration-200) var(--ease-out);
 	}
-	.field__input:focus { outline: none; border-color: var(--color-teal); }
-	.field__textarea {
-		padding: 0.55rem 0.75rem; background-color: var(--color-navy);
-		border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--radius-md);
-		color: var(--color-white); font-size: var(--fs-sm); font-family: var(--font-ui);
-		resize: vertical; transition: border-color var(--duration-200) var(--ease-out);
+	.field__input:focus {
+		outline: none;
+		border-color: var(--color-teal);
 	}
-	.field__textarea:focus { outline: none; border-color: var(--color-teal); }
-	.field-row { display: flex; gap: 0.75rem; }
-	.field--half { flex: 1; }
+	.field__textarea {
+		padding: 0.55rem 0.75rem;
+		background-color: var(--color-navy);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-md);
+		color: var(--color-white);
+		font-size: var(--fs-sm);
+		font-family: var(--font-ui);
+		resize: vertical;
+		transition: border-color var(--duration-200) var(--ease-out);
+	}
+	.field__textarea:focus {
+		outline: none;
+		border-color: var(--color-teal);
+	}
+	.field-row {
+		display: flex;
+		gap: 0.75rem;
+	}
+	.field--half {
+		flex: 1;
+	}
 
 	/* Buttons */
 	.btn {
-		display: inline-flex; align-items: center; gap: 0.3rem;
-		padding: 0.5rem 0.85rem; font-size: var(--fs-xs); font-weight: var(--w-semibold);
-		border-radius: var(--radius-md); cursor: pointer; border: none;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		padding: 0.5rem 0.85rem;
+		font-size: var(--fs-xs);
+		font-weight: var(--w-semibold);
+		border-radius: var(--radius-md);
+		cursor: pointer;
+		border: none;
 		transition: opacity var(--duration-200) var(--ease-out);
 	}
-	.btn:disabled { opacity: 0.5; cursor: not-allowed; }
-	.btn--primary { background: linear-gradient(135deg, var(--color-teal), #0d8a94); color: var(--color-white); }
-	.btn--primary:hover:not(:disabled) { opacity: 0.9; }
+	.btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+	.btn--primary {
+		background: linear-gradient(135deg, var(--color-teal), #0d8a94);
+		color: var(--color-white);
+	}
+	.btn--primary:hover:not(:disabled) {
+		opacity: 0.9;
+	}
 	.btn--ghost {
-		background: none; color: var(--color-grey-400);
+		background: none;
+		color: var(--color-grey-400);
 		border: 1px solid rgba(255, 255, 255, 0.1);
 	}
-	.btn--ghost:hover:not(:disabled) { color: var(--color-white); border-color: rgba(255, 255, 255, 0.2); }
+	.btn--ghost:hover:not(:disabled) {
+		color: var(--color-white);
+		border-color: rgba(255, 255, 255, 0.2);
+	}
 
 	/* Price Change Log */
-	.log-section { margin-top: 1rem; }
+	.log-section {
+		margin-top: 1rem;
+	}
 	.log-section__toggle {
-		display: flex; align-items: center; justify-content: space-between;
-		width: 100%; padding: 0.85rem 1rem;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		width: 100%;
+		padding: 0.85rem 1rem;
 		background: rgba(19, 43, 80, 0.35);
 		backdrop-filter: blur(24px);
 		-webkit-backdrop-filter: blur(24px);
-		border: 1px solid rgba(255, 255, 255, 0.06); border-radius: var(--radius-2xl);
-		color: var(--color-white); font-size: var(--fs-sm); font-weight: var(--w-semibold);
-		cursor: pointer; transition: border-color var(--duration-200) var(--ease-out);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: var(--radius-2xl);
+		color: var(--color-white);
+		font-size: var(--fs-sm);
+		font-weight: var(--w-semibold);
+		cursor: pointer;
+		transition: border-color var(--duration-200) var(--ease-out);
 	}
-	.log-section__toggle:hover { border-color: rgba(255, 255, 255, 0.12); }
-	.log-section__toggle-text { display: flex; align-items: center; gap: 0.35rem; }
+	.log-section__toggle:hover {
+		border-color: rgba(255, 255, 255, 0.12);
+	}
+	.log-section__toggle-text {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
 	.log-section__content {
-		margin-top: -1px; padding: 1rem;
+		margin-top: -1px;
+		padding: 1rem;
 		background: rgba(19, 43, 80, 0.35);
 		backdrop-filter: blur(24px);
 		-webkit-backdrop-filter: blur(24px);
 		border: 1px solid rgba(255, 255, 255, 0.06);
 		border-radius: 0 0 var(--radius-xl) var(--radius-xl);
 	}
-	.log-section__empty { font-size: var(--fs-sm); color: var(--color-grey-400); text-align: center; padding: 1rem 0; }
-	.log-section__list { display: flex; flex-direction: column; gap: 0.5rem; }
+	.log-section__empty {
+		font-size: var(--fs-sm);
+		color: var(--color-grey-400);
+		text-align: center;
+		padding: 1rem 0;
+	}
+	.log-section__list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
 	.log-entry {
-		display: flex; flex-direction: column; gap: 0.25rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
 		padding: 0.6rem 0;
 		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 	}
-	.log-entry:last-child { border-bottom: none; }
-	.log-entry__info { display: flex; justify-content: space-between; align-items: center; }
-	.log-entry__plan { font-size: var(--fs-sm); font-weight: var(--w-semibold); color: var(--color-white); }
-	.log-entry__change { font-size: var(--fs-sm); color: var(--color-grey-300); }
-	.log-entry__meta { display: flex; justify-content: space-between; font-size: var(--fs-xs); color: var(--color-grey-500); }
-	.log-entry__date { color: var(--color-grey-500); }
+	.log-entry:last-child {
+		border-bottom: none;
+	}
+	.log-entry__info {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.log-entry__plan {
+		font-size: var(--fs-sm);
+		font-weight: var(--w-semibold);
+		color: var(--color-white);
+	}
+	.log-entry__change {
+		font-size: var(--fs-sm);
+		color: var(--color-grey-300);
+	}
+	.log-entry__meta {
+		display: flex;
+		justify-content: space-between;
+		font-size: var(--fs-xs);
+		color: var(--color-grey-500);
+	}
+	.log-entry__date {
+		color: var(--color-grey-500);
+	}
 
 	/* Responsive */
 	@media (min-width: 480px) {
-		.plans-page__grid { grid-template-columns: repeat(2, 1fr); }
+		.plans-page__grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
 	}
 	@media (min-width: 768px) {
 		.plans-page__header {
-			flex-direction: row; justify-content: space-between; align-items: flex-start;
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: flex-start;
 		}
-		.plans-page__title { font-size: var(--fs-2xl); }
-		.plans-page__add-btn { align-self: auto; padding: 0.6rem 1.25rem; font-size: var(--fs-sm); }
-		.plan-card { padding: 1.5rem; }
-		.log-entry { flex-direction: row; justify-content: space-between; align-items: center; }
-		.log-entry__meta { gap: 1rem; }
+		.plans-page__title {
+			font-size: var(--fs-2xl);
+		}
+		.plans-page__add-btn {
+			align-self: auto;
+			padding: 0.6rem 1.25rem;
+			font-size: var(--fs-sm);
+		}
+		.plan-card {
+			padding: 1.5rem;
+		}
+		.log-entry {
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: center;
+		}
+		.log-entry__meta {
+			gap: 1rem;
+		}
 	}
 	@media (min-width: 1024px) {
-		.plans-page__grid { grid-template-columns: repeat(3, 1fr); }
+		.plans-page__grid {
+			grid-template-columns: repeat(3, 1fr);
+		}
 	}
 </style>

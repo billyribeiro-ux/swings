@@ -52,7 +52,11 @@
 					path: path || '/',
 					referrer: document.referrer ? document.referrer.slice(0, 2048) : null,
 					metadata: {
-						user_status: auth.isAuthenticated ? (auth.isAdmin ? 'admin' : 'member') : 'logged_out'
+						user_status: auth.isAuthenticated
+							? auth.isAdmin
+								? 'admin'
+								: 'member'
+							: 'logged_out'
 					}
 				}
 			]

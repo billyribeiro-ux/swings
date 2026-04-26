@@ -32,9 +32,9 @@
 	<header class="kit-header">
 		<h1>Consent primitives</h1>
 		<p class="lede">
-			Banner + preferences modal + gate, rendered against stub config. Live
-			until CONSENT-01 backend replaces the stubs. <code>/admin/_ui-kit</code> is the
-			companion page for PE7 shared primitives.
+			Banner + preferences modal + gate, rendered against stub config. Live until CONSENT-01
+			backend replaces the stubs. <code>/admin/_ui-kit</code> is the companion page for PE7 shared
+			primitives.
 		</p>
 	</header>
 
@@ -51,7 +51,8 @@
 	<section class="tile">
 		<h2>Bar layout (bottom)</h2>
 		<p class="note">
-			Persists until the user decides. The real app shell mounts exactly one of these globally.
+			Persists until the user decides. The real app shell mounts exactly one of these
+			globally.
 		</p>
 		<ConsentBanner config={barConfig} forceOpen />
 	</section>
@@ -65,8 +66,8 @@
 	<section class="tile">
 		<h2>Popup layout</h2>
 		<p class="note">
-			Blocking modal. Delegates focus-trap to <code>Dialog</code>. Use sparingly — blocks content
-			until decision.
+			Blocking modal. Delegates focus-trap to <code>Dialog</code>. Use sparingly — blocks
+			content until decision.
 		</p>
 		<ConsentBanner config={popupConfig} forceOpen />
 	</section>
@@ -101,9 +102,19 @@
 		flex-direction: column;
 		gap: var(--space-8);
 	}
-	.kit-header { display: flex; flex-direction: column; gap: var(--space-2); }
-	.lede { margin: 0; color: var(--surface-fg-muted); }
-	code { font-family: var(--font-mono); font-size: 0.95em; }
+	.kit-header {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+	}
+	.lede {
+		margin: 0;
+		color: var(--surface-fg-muted);
+	}
+	code {
+		font-family: var(--font-mono);
+		font-size: 0.95em;
+	}
 	.tile {
 		background-color: var(--surface-bg-subtle);
 		border: 1px solid var(--surface-border-subtle);
@@ -113,8 +124,15 @@
 		flex-direction: column;
 		gap: var(--space-4);
 	}
-	.tile h2 { margin: 0; font-size: var(--fs-lg); }
-	.note { margin: 0; color: var(--surface-fg-muted); font-size: var(--fs-sm); }
+	.tile h2 {
+		margin: 0;
+		font-size: var(--fs-lg);
+	}
+	.note {
+		margin: 0;
+		color: var(--surface-fg-muted);
+		font-size: var(--fs-sm);
+	}
 	.state {
 		margin: 0;
 		padding: var(--space-3);
@@ -125,7 +143,11 @@
 		font-size: var(--fs-xs);
 		overflow: auto;
 	}
-	.cluster { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+	.cluster {
+		display: flex;
+		gap: var(--space-3);
+		flex-wrap: wrap;
+	}
 	.gated {
 		padding: var(--space-4);
 		border: 1px solid var(--status-info-500);

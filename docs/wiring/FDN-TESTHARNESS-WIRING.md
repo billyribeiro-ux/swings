@@ -46,12 +46,12 @@ every subsystem landing in Phase 4 benefits for free.
 
 Alternatives considered and rejected:
 
-| Option | Why not |
-|---|---|
-| DB-per-test (`CREATE DATABASE`) | Requires elevated privileges many shared Postgres hosts won't grant; slower to spin up. |
-| `#[sqlx::test]` + `macros` feature | Requires a `Cargo.toml` edit; our scope forbids that. |
-| `testcontainers` + Docker-in-CI | Docker not guaranteed in every dev environment; our scope explicitly forbids it. |
-| Transaction-per-test | Handlers commit via nested transactions, so rollback-based isolation loses any cross-request state — breaks multi-request flows like refresh-token rotation. |
+| Option                             | Why not                                                                                                                                                      |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| DB-per-test (`CREATE DATABASE`)    | Requires elevated privileges many shared Postgres hosts won't grant; slower to spin up.                                                                      |
+| `#[sqlx::test]` + `macros` feature | Requires a `Cargo.toml` edit; our scope forbids that.                                                                                                        |
+| `testcontainers` + Docker-in-CI    | Docker not guaranteed in every dev environment; our scope explicitly forbids it.                                                                             |
+| Transaction-per-test               | Handlers commit via nested transactions, so rollback-based isolation loses any cross-request state — breaks multi-request flows like refresh-token rotation. |
 
 ### Router mirroring
 
@@ -124,16 +124,16 @@ sqlx = { version = "0.8", features = [
 
 ### Already present (confirmed)
 
-* `tempfile = "3"` — used for `MediaBackend::Local` uploads tempdir.
-* `tower::util::ServiceExt::oneshot` — enabled transitively via
+- `tempfile = "3"` — used for `MediaBackend::Local` uploads tempdir.
+- `tower::util::ServiceExt::oneshot` — enabled transitively via
   `tower_governor → tonic → tower/util` feature. If that transitive path
   is ever removed, add `tower = { version = "0.5", features = ["util"] }`
   explicitly.
 
 ### Not required (explicitly out of scope)
 
-* No `testcontainers`, no `sqlx-testcontainers`, no Docker spawn logic.
-* No dev-dependency migration — the harness compiles inside the existing
+- No `testcontainers`, no `sqlx-testcontainers`, no Docker spawn logic.
+- No dev-dependency migration — the harness compiles inside the existing
   `[dependencies]` block because integration tests are compiled as
   separate crates inside the same package.
 
@@ -141,12 +141,12 @@ sqlx = { version = "0.8", features = [
 
 ## 3. Required environment variables
 
-| Var | Required? | Description |
-|---|---|---|
-| `DATABASE_URL_TEST` | preferred | Postgres URL where the harness has `CREATE SCHEMA` privileges. |
-| `DATABASE_URL` | fallback | Used if `DATABASE_URL_TEST` is absent. |
-| `JWT_SECRET` | optional | Overrides the per-process test secret (needed only when a test cross-verifies a token produced by another process). |
-| `KEEP_TEST_SCHEMA` | optional | Set to `1` to skip `DROP SCHEMA` on test teardown — lets you inspect fixture state after a failure. |
+| Var                 | Required? | Description                                                                                                         |
+| ------------------- | --------- | ------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL_TEST` | preferred | Postgres URL where the harness has `CREATE SCHEMA` privileges.                                                      |
+| `DATABASE_URL`      | fallback  | Used if `DATABASE_URL_TEST` is absent.                                                                              |
+| `JWT_SECRET`        | optional  | Overrides the per-process test secret (needed only when a test cross-verifies a token produced by another process). |
+| `KEEP_TEST_SCHEMA`  | optional  | Set to `1` to skip `DROP SCHEMA` on test teardown — lets you inspect fixture state after a failure.                 |
 
 If neither DB URL is set, `TestApp::try_new` returns `None` and the test
 function should `return` early. The `example_auth_flow` exemplar shows

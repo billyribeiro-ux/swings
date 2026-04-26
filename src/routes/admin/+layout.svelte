@@ -295,7 +295,6 @@
 	<div class="admin">
 		<!-- Mobile Menu Overlay -->
 		{#if mobileMenuOpen}
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div
 				class="admin__overlay"
 				role="button"

@@ -144,7 +144,15 @@ const config = {
 			handleHttpError: 'warn',
 			handleMissingId: 'warn',
 			crawl: true,
-			entries: ['/', '/about', '/courses', '/blog', '/pricing', '/pricing/monthly', '/pricing/annual']
+			entries: [
+				'/',
+				'/about',
+				'/courses',
+				'/blog',
+				'/pricing',
+				'/pricing/monthly',
+				'/pricing/annual'
+			]
 		}
 	}
 };
@@ -529,7 +537,6 @@ src/
 #### `src/routes/+layout.svelte`
 
 ```svelte
-// src/routes/+layout.svelte
 <script lang="ts">
 	import '../app.css';
 	import { browser } from '$app/environment';
@@ -565,6 +572,7 @@ src/
 	const _globalJsonLd = buildJsonLd([organizationSchema(), webSiteSchema()]);
 </script>
 
+// src/routes/+layout.svelte
 <svelte:head>
 	<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 	<meta name="author" content="Billy Ribeiro" />
@@ -572,7 +580,9 @@ src/
 	{#if isNoindexRoute}
 		<meta name="robots" content="noindex, nofollow" />
 	{/if}
-	<script type="application/ld+json">{_globalJsonLd}</script>
+	<script type="application/ld+json">
+{_globalJsonLd}
+	</script>
 </svelte:head>
 
 <AnalyticsBeacon />
@@ -620,7 +630,6 @@ export const trailingSlash = 'never';
 #### `src/routes/admin/+layout.svelte`
 
 ```svelte
-// src/routes/admin/+layout.svelte
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/state';
@@ -790,9 +799,9 @@ export const trailingSlash = 'never';
 		{ href: '/admin/watchlists', label: 'Watchlists', icon: ListChecks },
 		{ href: '/admin/author', label: 'Author Profile', icon: UserCircle }
 	];
-
 </script>
 
+// src/routes/admin/+layout.svelte
 {#if isPublicRoute}
 	{@render children()}
 {:else if !auth.isAuthenticated || !auth.isAdmin}
@@ -1723,7 +1732,6 @@ export const ssr = false;
 #### `src/routes/dashboard/+layout.svelte`
 
 ```svelte
-// src/routes/dashboard/+layout.svelte
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { auth } from '$lib/stores/auth.svelte';
@@ -1756,6 +1764,7 @@ export const ssr = false;
 	];
 </script>
 
+// src/routes/dashboard/+layout.svelte
 {#if auth.isAuthenticated}
 	<div class="dash">
 		<aside class="dash__sidebar">
@@ -3169,12 +3178,31 @@ export interface BulkCouponPayload {
 // ── Popups ────────────────────────────────────────────────────────────
 
 export type PopupType = 'modal' | 'slide_in' | 'banner' | 'fullscreen' | 'floating_bar' | 'inline';
-export type PopupTrigger = 'on_load' | 'exit_intent' | 'scroll_percentage' | 'time_delay' | 'click' | 'manual' | 'inactivity';
+export type PopupTrigger =
+	| 'on_load'
+	| 'exit_intent'
+	| 'scroll_percentage'
+	| 'time_delay'
+	| 'click'
+	| 'manual'
+	| 'inactivity';
 export type PopupFrequency = 'every_time' | 'once_per_session' | 'once_ever' | 'custom';
 
 export interface PopupElement {
 	id: string;
-	type: 'heading' | 'text' | 'image' | 'input' | 'email' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'button' | 'divider' | 'spacer';
+	type:
+		| 'heading'
+		| 'text'
+		| 'image'
+		| 'input'
+		| 'email'
+		| 'textarea'
+		| 'select'
+		| 'checkbox'
+		| 'radio'
+		| 'button'
+		| 'divider'
+		| 'spacer';
 	props: Record<string, unknown>;
 	style?: Record<string, string>;
 }
@@ -3266,7 +3294,14 @@ export interface PopupAnalytics {
 export interface SalesEvent {
 	id: string;
 	user_id: string;
-	event_type: 'new_subscription' | 'renewal' | 'upgrade' | 'downgrade' | 'cancellation' | 'refund' | 'course_purchase';
+	event_type:
+		| 'new_subscription'
+		| 'renewal'
+		| 'upgrade'
+		| 'downgrade'
+		| 'cancellation'
+		| 'refund'
+		| 'course_purchase';
 	amount_cents: number;
 	currency: string;
 	plan_id: string | null;
@@ -4110,12 +4145,31 @@ export interface BulkCouponPayload {
 // ── Popups ────────────────────────────────────────────────────────────
 
 export type PopupType = 'modal' | 'slide_in' | 'banner' | 'fullscreen' | 'floating_bar' | 'inline';
-export type PopupTrigger = 'on_load' | 'exit_intent' | 'scroll_percentage' | 'time_delay' | 'click' | 'manual' | 'inactivity';
+export type PopupTrigger =
+	| 'on_load'
+	| 'exit_intent'
+	| 'scroll_percentage'
+	| 'time_delay'
+	| 'click'
+	| 'manual'
+	| 'inactivity';
 export type PopupFrequency = 'every_time' | 'once_per_session' | 'once_ever' | 'custom';
 
 export interface PopupElement {
 	id: string;
-	type: 'heading' | 'text' | 'image' | 'input' | 'email' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'button' | 'divider' | 'spacer';
+	type:
+		| 'heading'
+		| 'text'
+		| 'image'
+		| 'input'
+		| 'email'
+		| 'textarea'
+		| 'select'
+		| 'checkbox'
+		| 'radio'
+		| 'button'
+		| 'divider'
+		| 'spacer';
 	props: Record<string, unknown>;
 	style?: Record<string, string>;
 }
@@ -4207,7 +4261,14 @@ export interface PopupAnalytics {
 export interface SalesEvent {
 	id: string;
 	user_id: string;
-	event_type: 'new_subscription' | 'renewal' | 'upgrade' | 'downgrade' | 'cancellation' | 'refund' | 'course_purchase';
+	event_type:
+		| 'new_subscription'
+		| 'renewal'
+		| 'upgrade'
+		| 'downgrade'
+		| 'cancellation'
+		| 'refund'
+		| 'course_purchase';
 	amount_cents: number;
 	currency: string;
 	plan_id: string | null;
@@ -15109,8 +15170,9 @@ test-results
 
 #### `README.md`
 
-```markdown
+````markdown
 // README.md
+
 # Precision Options Signals — SvelteKit Landing Page
 
 Premium stock alert service landing page built with **SvelteKit** (Svelte 5), **TailwindCSS v4**, **GSAP**, and **Stripe** integration.
@@ -15139,6 +15201,7 @@ Premium stock alert service landing page built with **SvelteKit** (Svelte 5), **
 ```bash
 pnpm install
 ```
+````
 
 ### 2. Configure Environment Variables
 
@@ -15291,7 +15354,8 @@ For production, set up webhooks to handle subscription events:
 ## 📄 License
 
 Private — All Rights Reserved
-```
+
+````
 
 #### `backend/README.md`
 
@@ -15321,34 +15385,34 @@ sqlx migrate run
 
 # 4. Start the server
 cargo run
-```
+````
 
 The API will start on `http://localhost:3001` by default.
 
 ## Environment Variables
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `DATABASE_URL` | Yes | - | PostgreSQL connection string. For Neon, include `sslmode=require`. |
-| `JWT_SECRET` | Yes | - | Secret key for JWT signing |
-| `JWT_EXPIRATION_HOURS` | No | `24` | Access token lifetime |
-| `REFRESH_TOKEN_EXPIRATION_DAYS` | No | `30` | Refresh token lifetime |
-| `PORT` | No | `3001` | Server port |
-| `FRONTEND_URL` | No | `http://localhost:5173` | Frontend URL for CORS |
-| `CORS_ALLOWED_ORIGINS` | No | `FRONTEND_URL` | Comma-separated **exact** browser origins (scheme + host + port). No trailing `/`. List every origin browsers use (e.g. apex and `www` separately if both are live). |
-| `API_URL` | No | `http://localhost:3001` | Public base URL of this API (used for absolute media URLs in local upload mode). |
-| `UPLOAD_DIR` | No | `./uploads` | Local media directory when R2 is not configured. |
-| `STRIPE_SECRET_KEY` | No | - | Stripe secret key |
-| `STRIPE_WEBHOOK_SECRET` | No | - | Stripe webhook signing secret |
-| `APP_ENV` | No | `development` | Set to `production` to enforce production-only guards (admin seed, R2, Stripe, JWT, URLs, etc.). |
-| `ADMIN_EMAIL` | Dev optional / Prod required | - | Seed admin email |
-| `ADMIN_PASSWORD` | Dev optional / Prod required | - | Seed admin password |
-| `ADMIN_NAME` | No | `Admin` | Seed admin display name |
-| `R2_ACCOUNT_ID` | Prod required | - | Cloudflare account id for S3-compatible endpoint |
-| `R2_ACCESS_KEY_ID` | Prod required | - | R2 API token access key |
-| `R2_SECRET_ACCESS_KEY` | Prod required | - | R2 API token secret |
-| `R2_BUCKET_NAME` | Prod required | - | Bucket name |
-| `R2_PUBLIC_URL` | Prod required | - | Public base URL for objects (no trailing `/`) |
+| Variable                        | Required                     | Default                 | Description                                                                                                                                                          |
+| ------------------------------- | ---------------------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                  | Yes                          | -                       | PostgreSQL connection string. For Neon, include `sslmode=require`.                                                                                                   |
+| `JWT_SECRET`                    | Yes                          | -                       | Secret key for JWT signing                                                                                                                                           |
+| `JWT_EXPIRATION_HOURS`          | No                           | `24`                    | Access token lifetime                                                                                                                                                |
+| `REFRESH_TOKEN_EXPIRATION_DAYS` | No                           | `30`                    | Refresh token lifetime                                                                                                                                               |
+| `PORT`                          | No                           | `3001`                  | Server port                                                                                                                                                          |
+| `FRONTEND_URL`                  | No                           | `http://localhost:5173` | Frontend URL for CORS                                                                                                                                                |
+| `CORS_ALLOWED_ORIGINS`          | No                           | `FRONTEND_URL`          | Comma-separated **exact** browser origins (scheme + host + port). No trailing `/`. List every origin browsers use (e.g. apex and `www` separately if both are live). |
+| `API_URL`                       | No                           | `http://localhost:3001` | Public base URL of this API (used for absolute media URLs in local upload mode).                                                                                     |
+| `UPLOAD_DIR`                    | No                           | `./uploads`             | Local media directory when R2 is not configured.                                                                                                                     |
+| `STRIPE_SECRET_KEY`             | No                           | -                       | Stripe secret key                                                                                                                                                    |
+| `STRIPE_WEBHOOK_SECRET`         | No                           | -                       | Stripe webhook signing secret                                                                                                                                        |
+| `APP_ENV`                       | No                           | `development`           | Set to `production` to enforce production-only guards (admin seed, R2, Stripe, JWT, URLs, etc.).                                                                     |
+| `ADMIN_EMAIL`                   | Dev optional / Prod required | -                       | Seed admin email                                                                                                                                                     |
+| `ADMIN_PASSWORD`                | Dev optional / Prod required | -                       | Seed admin password                                                                                                                                                  |
+| `ADMIN_NAME`                    | No                           | `Admin`                 | Seed admin display name                                                                                                                                              |
+| `R2_ACCOUNT_ID`                 | Prod required                | -                       | Cloudflare account id for S3-compatible endpoint                                                                                                                     |
+| `R2_ACCESS_KEY_ID`              | Prod required                | -                       | R2 API token access key                                                                                                                                              |
+| `R2_SECRET_ACCESS_KEY`          | Prod required                | -                       | R2 API token secret                                                                                                                                                  |
+| `R2_BUCKET_NAME`                | Prod required                | -                       | Bucket name                                                                                                                                                          |
+| `R2_PUBLIC_URL`                 | Prod required                | -                       | Public base URL for objects (no trailing `/`)                                                                                                                        |
 
 ### CORS
 
@@ -15373,6 +15437,7 @@ The API uses SQLx pool options suited to serverless Postgres: bounded acquire ti
 ## API Endpoints
 
 ### Auth
+
 - `POST /api/auth/register` - Create account
 - `POST /api/auth/login` - Sign in
 - `POST /api/auth/refresh` - Refresh tokens
@@ -15380,6 +15445,7 @@ The API uses SQLx pool options suited to serverless Postgres: bounded acquire ti
 - `POST /api/auth/logout` - Sign out (invalidates refresh tokens)
 
 ### Member (requires auth)
+
 - `GET /api/member/profile` - Get profile
 - `PUT /api/member/profile` - Update profile
 - `GET /api/member/subscription` - Get subscription status
@@ -15389,6 +15455,7 @@ The API uses SQLx pool options suited to serverless Postgres: bounded acquire ti
 - `PUT /api/member/courses/:id/progress` - Update course progress
 
 ### Admin (requires admin role)
+
 - `GET /api/admin/stats` - Dashboard statistics
 - `GET /api/admin/members` - List all members (paginated)
 - `GET /api/admin/members/:id` - Get member details
@@ -15405,6 +15472,7 @@ The API uses SQLx pool options suited to serverless Postgres: bounded acquire ti
 - `DELETE /api/admin/alerts/:id` - Delete alert
 
 ### Webhooks
+
 - `POST /api/webhooks/stripe` - Stripe webhook handler
 
 ## Database Schema
@@ -15423,5 +15491,7 @@ After registering via the frontend, promote a user to admin via psql:
 ```sql
 UPDATE users SET role = 'admin' WHERE email = 'your@email.com';
 ```
+
 ```
 
+```

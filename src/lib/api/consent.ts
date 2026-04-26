@@ -39,12 +39,7 @@ export type BannerPosition = 'top' | 'bottom' | 'center' | 'bottom-start' | 'bot
  */
 export type ConsentAction = 'granted' | 'denied' | 'updated' | 'revoked' | 'expired' | 'prefill';
 
-export type DsarKind =
-	| 'access'
-	| 'delete'
-	| 'portability'
-	| 'rectification'
-	| 'opt_out_sale';
+export type DsarKind = 'access' | 'delete' | 'portability' | 'rectification' | 'opt_out_sale';
 
 export type ConsentRecordResponse = components['schemas']['ConsentRecordResponse'];
 export type MyConsentResponse = components['schemas']['MyConsentResponse'];
@@ -156,10 +151,7 @@ export const STUB_BANNER_CONFIG: BannerConfig = {
  * exists for admin-preview flows where the admin wants to see the EU
  * banner without spoofing headers.
  */
-export async function fetchBannerConfig(
-	locale?: string,
-	region?: string
-): Promise<BannerConfig> {
+export async function fetchBannerConfig(locale?: string, region?: string): Promise<BannerConfig> {
 	const params = new URLSearchParams();
 	const resolvedLocale =
 		locale ??
@@ -271,11 +263,7 @@ export async function submitDsarRequest(
 	kind: DsarKind,
 	payload?: Readonly<Record<string, unknown>>
 ): Promise<DsarSubmitResponse> {
-	return api.post<DsarSubmitResponse>(
-		'/api/dsar',
-		{ email, kind, payload },
-		{ skipAuth: true }
-	);
+	return api.post<DsarSubmitResponse>('/api/dsar', { email, kind, payload }, { skipAuth: true });
 }
 
 function readLocalConsent(): FetchMyConsentResponse | null {
@@ -285,7 +273,10 @@ function readLocalConsent(): FetchMyConsentResponse | null {
 		if (!raw) return null;
 		const parsed = JSON.parse(raw) as unknown;
 		if (!parsed || typeof parsed !== 'object') return null;
-		const envelope = parsed as Partial<{ categories: Record<string, boolean>; decidedAt: string }>;
+		const envelope = parsed as Partial<{
+			categories: Record<string, boolean>;
+			decidedAt: string;
+		}>;
 		if (!envelope.categories || !envelope.decidedAt) return null;
 		return { categories: envelope.categories, decidedAt: envelope.decidedAt };
 	} catch {

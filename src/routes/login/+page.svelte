@@ -164,7 +164,8 @@
 		display: grid;
 		place-items: center;
 		padding: clamp(1rem, 4vw, 3rem);
-		background: radial-gradient(
+		background:
+			radial-gradient(
 				ellipse 120% 80% at 50% -10%,
 				rgba(15, 164, 175, 0.18),
 				transparent 60%
@@ -190,11 +191,7 @@
 	.auth-card {
 		width: 100%;
 		max-width: 28rem;
-		background: linear-gradient(
-			165deg,
-			rgba(19, 43, 80, 0.95) 0%,
-			rgba(12, 27, 46, 0.95) 100%
-		);
+		background: linear-gradient(165deg, rgba(19, 43, 80, 0.95) 0%, rgba(12, 27, 46, 0.95) 100%);
 		border: 1px solid rgba(255, 255, 255, 0.08);
 		border-radius: var(--radius-2xl);
 		padding: clamp(1.75rem, 3vw, 2.5rem);

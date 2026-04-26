@@ -38,11 +38,14 @@
 			<span class="verify-card__logo-accent">{SITE.logoBrandAccent}</span>
 		</a>
 		<h1 class="verify-card__title">Resend Verification Email</h1>
-		<p class="verify-card__subtitle">Enter your account email to receive a fresh verification link.</p>
+		<p class="verify-card__subtitle">
+			Enter your account email to receive a fresh verification link.
+		</p>
 
 		{#if success}
 			<div class="verify-card__success">
-				If the account exists and is not verified yet, a new verification email has been sent.
+				If the account exists and is not verified yet, a new verification email has been
+				sent.
 			</div>
 			<a href="/login" class="verify-card__back">Back to sign in</a>
 		{:else}

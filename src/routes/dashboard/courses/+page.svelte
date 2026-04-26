@@ -1,11 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
-	import type {
-		CourseEnrollment,
-		CourseListItem,
-		PaginatedResponse
-	} from '$lib/api/types';
+	import type { CourseEnrollment, CourseListItem, PaginatedResponse } from '$lib/api/types';
 	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
 	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
 	import FunnelIcon from 'phosphor-svelte/lib/FunnelIcon';
@@ -40,13 +36,9 @@
 
 	let enrolledCourseIds = $derived(new Set(enrollments.map((e) => e.course_id)));
 
-	let enrolledCourses = $derived(
-		allCourses.filter((c) => enrolledCourseIds.has(c.id))
-	);
+	let enrolledCourses = $derived(allCourses.filter((c) => enrolledCourseIds.has(c.id)));
 
-	let browseCourses = $derived(
-		allCourses.filter((c) => c.published)
-	);
+	let browseCourses = $derived(allCourses.filter((c) => c.published));
 
 	function filterCourses(courses: CourseListItem[]): CourseListItem[] {
 		let result = courses;
@@ -95,7 +87,9 @@
 	async function handleEnroll(courseId: string) {
 		enrolling = courseId;
 		try {
-			const enrollment = await api.post<CourseEnrollment>(`/api/member/courses/${courseId}/enroll`);
+			const enrollment = await api.post<CourseEnrollment>(
+				`/api/member/courses/${courseId}/enroll`
+			);
 			enrollments = [...enrollments, enrollment];
 		} catch {
 			// handle silently
@@ -227,7 +221,9 @@
 							{/if}
 
 							<a href="/dashboard/courses/{course.slug}" class="course-card__action">
-								{enrollment && enrollment.progress > 0 ? 'Continue Learning' : 'Start Course'}
+								{enrollment && enrollment.progress > 0
+									? 'Continue Learning'
+									: 'Start Course'}
 								<ArrowRightIcon size={14} />
 							</a>
 						</div>
@@ -298,7 +294,10 @@
 									</div>
 									<span class="course-card__pct">{enrollment.progress}%</span>
 								</div>
-								<a href="/dashboard/courses/{course.slug}" class="course-card__action">
+								<a
+									href="/dashboard/courses/{course.slug}"
+									class="course-card__action"
+								>
 									Continue Learning
 									<ArrowRightIcon size={14} />
 								</a>

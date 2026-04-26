@@ -7,11 +7,7 @@
 	import EyeSlashIcon from 'phosphor-svelte/lib/EyeSlashIcon';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import { ApiError } from '$lib/api/client';
-	import {
-		appSettings,
-		type SettingType,
-		type SettingView
-	} from '$lib/api/admin-security';
+	import { appSettings, type SettingType, type SettingView } from '$lib/api/admin-security';
 
 	let settings = $state<SettingView[]>([]);
 	let loading = $state(true);
@@ -134,7 +130,10 @@
 		try {
 			const res = await appSettings.get(s.key, true);
 			const v = (res.revealed_value ?? '') as unknown;
-			revealCache = { ...revealCache, [s.key]: typeof v === 'string' ? v : JSON.stringify(v) };
+			revealCache = {
+				...revealCache,
+				[s.key]: typeof v === 'string' ? v : JSON.stringify(v)
+			};
 		} catch (e) {
 			error = e instanceof ApiError ? `Reveal denied (${e.status})` : 'Reveal failed';
 		}
@@ -275,7 +274,10 @@
 										class="field__input"
 										value={draftValue(s)}
 										onchange={(e) =>
-											setDraft(s.key, (e.currentTarget as HTMLSelectElement).value)}
+											setDraft(
+												s.key,
+												(e.currentTarget as HTMLSelectElement).value
+											)}
 									>
 										<option value="true">true</option>
 										<option value="false">false</option>
@@ -286,23 +288,33 @@
 										rows="6"
 										value={draftValue(s)}
 										oninput={(e) =>
-											setDraft(s.key, (e.currentTarget as HTMLTextAreaElement).value)}
+											setDraft(
+												s.key,
+												(e.currentTarget as HTMLTextAreaElement).value
+											)}
 									></textarea>
 								{:else if s.is_secret}
 									<div class="secret-row">
 										<input
 											class="field__input"
 											type={revealCache[s.key] ? 'text' : 'password'}
-											placeholder={revealCache[s.key] ? '' : '*** redacted ***'}
+											placeholder={revealCache[s.key]
+												? ''
+												: '*** redacted ***'}
 											value={draftValue(s)}
 											oninput={(e) =>
-												setDraft(s.key, (e.currentTarget as HTMLInputElement).value)}
+												setDraft(
+													s.key,
+													(e.currentTarget as HTMLInputElement).value
+												)}
 										/>
 										<button
 											class="btn btn--ghost btn--small"
 											type="button"
 											onclick={() => reveal(s)}
-											title={revealCache[s.key] ? 'Hide' : 'Reveal current value'}
+											title={revealCache[s.key]
+												? 'Hide'
+												: 'Reveal current value'}
 										>
 											{#if revealCache[s.key]}
 												<EyeSlashIcon size={14} />
@@ -316,7 +328,10 @@
 										class="field__input"
 										value={draftValue(s)}
 										oninput={(e) =>
-											setDraft(s.key, (e.currentTarget as HTMLInputElement).value)}
+											setDraft(
+												s.key,
+												(e.currentTarget as HTMLInputElement).value
+											)}
 									/>
 								{/if}
 								<div class="row__actions">

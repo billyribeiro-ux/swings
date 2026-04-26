@@ -127,7 +127,9 @@
 		cursor: grab;
 		transition: background 120ms ease;
 	}
-	.palette__btn:hover { background: var(--color-surface-3); }
+	.palette__btn:hover {
+		background: var(--color-surface-3);
+	}
 	.palette__btn:focus-visible {
 		outline: 2px solid var(--color-focus-ring);
 		outline-offset: 2px;

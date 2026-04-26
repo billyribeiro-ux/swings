@@ -2,6 +2,12 @@
 name = "swings-api"
 version = "0.1.0"
 edition = "2021"
+# Audit Phase 7.5 — first-party crate is intentionally not for publication.
+# `UNLICENSED` is the SPDX form for "no license granted to others"; combined
+# with `publish = false` it satisfies cargo-deny without implying any
+# distribution rights.
+license = "UNLICENSED"
+publish = false
 
 [dependencies]
 # Web framework

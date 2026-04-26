@@ -77,7 +77,11 @@ export interface ConsentEventDetail {
  * store internals.
  */
 export function defaultCategoryMap(
-	categories: ReadonlyArray<{ key: string; required: boolean; defaultEnabled: boolean }> = DEFAULT_CATEGORIES
+	categories: ReadonlyArray<{
+		key: string;
+		required: boolean;
+		defaultEnabled: boolean;
+	}> = DEFAULT_CATEGORIES
 ): Record<string, boolean> {
 	const map: Record<string, boolean> = {};
 	for (const cat of categories) {
@@ -347,6 +351,4 @@ export class ConsentStore {
  * Shared default instance. Most consumers want this. Instantiate directly with
  * `new ConsentStore(undefined)` for tests that need an isolated fixture.
  */
-export const consent: ConsentStore = browser
-	? new ConsentStore()
-	: new ConsentStore(undefined);
+export const consent: ConsentStore = browser ? new ConsentStore() : new ConsentStore(undefined);

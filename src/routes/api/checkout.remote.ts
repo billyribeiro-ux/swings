@@ -42,17 +42,14 @@ async function fetchActivePlans(): Promise<PricingPlan[]> {
 	return res.json() as Promise<PricingPlan[]>;
 }
 
-function lineItemsForPlan(
-	plan: PricingPlan
-): Stripe.Checkout.SessionCreateParams['line_items'] {
+function lineItemsForPlan(plan: PricingPlan): Stripe.Checkout.SessionCreateParams['line_items'] {
 	if (plan.stripe_price_id) {
 		return [{ price: plan.stripe_price_id, quantity: 1 }];
 	}
 
 	// No Price object in DB yet: Stripe allows inline `price_data` (creates a Price per checkout for reporting).
 	// @see line_items — one of `price` or `price_data` (subscription + recurring)
-	const interval: Stripe.Price.Recurring.Interval =
-		plan.interval === 'year' ? 'year' : 'month';
+	const interval: Stripe.Price.Recurring.Interval = plan.interval === 'year' ? 'year' : 'month';
 	if (plan.interval === 'one_time') {
 		error(400, 'This plan is not a subscription; use a one-time payment flow');
 	}
@@ -99,7 +96,9 @@ const checkoutSchema = {
 	'~standard': {
 		version: 1 as const,
 		vendor: 'swings',
-		validate(value: unknown):
+		validate(
+			value: unknown
+		):
 			| { value: CheckoutPayload }
 			| { issues: { message: string; path?: (string | number)[] }[] } {
 			const issues: { message: string; path?: (string | number)[] }[] = [];
@@ -111,7 +110,10 @@ const checkoutSchema = {
 			let planSlug: string | undefined;
 			if (body.planSlug !== undefined) {
 				if (typeof body.planSlug !== 'string' || !SLUG_RE.test(body.planSlug)) {
-					issues.push({ message: 'planSlug must be a lowercase slug', path: ['planSlug'] });
+					issues.push({
+						message: 'planSlug must be a lowercase slug',
+						path: ['planSlug']
+					});
 				} else {
 					planSlug = body.planSlug;
 				}

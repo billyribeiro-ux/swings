@@ -34,23 +34,23 @@ The **amount customers pay** for that catalog line item is defined by a **Stripe
 
 ### How to set up (Swings)
 
-1. **Stripe (Test or Live mode)**  
-   - [Products](https://dashboard.stripe.com/products) → create or pick a **Product**.  
+1. **Stripe (Test or Live mode)**
+   - [Products](https://dashboard.stripe.com/products) → create or pick a **Product**.
    - Add a recurring **Price** (monthly / yearly). Copy the Price id (`price_xxxxxxxx`).
 
-2. **Database / Admin**  
-   - Open **Admin → Subscriptions → Plans** (`/admin/subscriptions/plans`).  
+2. **Database / Admin**
+   - Open **Admin → Subscriptions → Plans** (`/admin/subscriptions/plans`).
    - Edit the plan (or create one) so that:
-     - **`amount_cents` / interval / currency** match the Stripe Price (keeps your public `/api/pricing/plans` accurate).  
-     - **`stripe_price_id`** is set to that `price_…` value.  
+     - **`amount_cents` / interval / currency** match the Stripe Price (keeps your public `/api/pricing/plans` accurate).
+     - **`stripe_price_id`** is set to that `price_…` value.
    - Save. The public API now returns the same merchandising data **and** checkout will use `line_items: [{ price: stripe_price_id, quantity: 1 }]`.
 
-3. **Environment (unchanged from other docs)**  
-   - **Root `.env`:** `STRIPE_SECRET_KEY`, `PUBLIC_APP_URL` — see [`stripe-local-testing.md`](./stripe-local-testing.md).  
+3. **Environment (unchanged from other docs)**
+   - **Root `.env`:** `STRIPE_SECRET_KEY`, `PUBLIC_APP_URL` — see [`stripe-local-testing.md`](./stripe-local-testing.md).
    - **`backend/.env`:** same `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` for webhooks.
 
-4. **Verify**  
-   - `GET /api/pricing/plans` shows the plan with `stripe_price_id` populated.  
+4. **Verify**
+   - `GET /api/pricing/plans` shows the plan with `stripe_price_id` populated.
    - Run through Checkout; in the Stripe Dashboard, the Payment / Subscription line item should reference the **named Price**, not only inline metadata.
 
 ---
@@ -75,32 +75,32 @@ The **amount customers pay** for that catalog line item is defined by a **Stripe
 
 ### How to set up (Swings)
 
-1. **Stripe**  
+1. **Stripe**
    - You only need a **Stripe account** and **test (or live) API keys**—no requirement to pre-create a Product/Price for each plan **for checkout to work**.
 
-2. **Database / Admin**  
-   - In **Admin → Subscriptions → Plans**, ensure **`stripe_price_id`** is **blank** for the plans you want to drive dynamically.  
-   - Set **`amount_cents`**, **`currency`**, **`interval`** (`month` / `year`), **`name`**, **`slug`**, etc., to what you want customers to see and pay.  
+2. **Database / Admin**
+   - In **Admin → Subscriptions → Plans**, ensure **`stripe_price_id`** is **blank** for the plans you want to drive dynamically.
+   - Set **`amount_cents`**, **`currency`**, **`interval`** (`month` / `year`), **`name`**, **`slug`**, etc., to what you want customers to see and pay.
    - Mark the plan **active** if your UI filters on that flag.
 
-3. **Environment**  
+3. **Environment**
    - Same as Model A: root `.env` + `backend/.env` keys as in [`stripe-local-testing.md`](./stripe-local-testing.md).
 
-4. **Verify**  
-   - `GET /api/pricing/plans` shows `stripe_price_id: null` for those rows.  
+4. **Verify**
+   - `GET /api/pricing/plans` shows `stripe_price_id: null` for those rows.
    - Checkout from the site uses **`planSlug`**; the server resolves the plan and uses **`price_data`**.
 
 ---
 
 ## Side-by-side summary
 
-| Dimension | Model A (`stripe_price_id`) | Model B (`price_data`, id null) |
-|-----------|----------------------------|----------------------------------|
-| **Source of truth for the charged amount** | Stripe Price object | Postgres `pricing_plans` row |
-| **Typical Stripe Dashboard** | Clean Product/Price catalog | More Checkout-driven objects |
-| **Speed of price experiments** | Slower unless automated | Faster |
-| **Mismatch risk** | DB display vs Stripe if pointer not updated | Lower until you introduce Price IDs |
-| **Enterprise norm for core revenue** | **Common** | **Uncommon as sole long-term approach** |
+| Dimension                                  | Model A (`stripe_price_id`)                 | Model B (`price_data`, id null)         |
+| ------------------------------------------ | ------------------------------------------- | --------------------------------------- |
+| **Source of truth for the charged amount** | Stripe Price object                         | Postgres `pricing_plans` row            |
+| **Typical Stripe Dashboard**               | Clean Product/Price catalog                 | More Checkout-driven objects            |
+| **Speed of price experiments**             | Slower unless automated                     | Faster                                  |
+| **Mismatch risk**                          | DB display vs Stripe if pointer not updated | Lower until you introduce Price IDs     |
+| **Enterprise norm for core revenue**       | **Common**                                  | **Uncommon as sole long-term approach** |
 
 ---
 
@@ -135,11 +135,11 @@ Saving a plan in **Admin → Subscriptions → Plans** always updates Postgres a
 
 ## Which should you use here?
 
-| Situation | Recommendation |
-|-----------|----------------|
-| **Local / staging / MVP** | Model B is fine; iterate quickly. |
-| **Production, stable catalog** | Prefer Model A for each paid plan you care to reconcile in Stripe. |
-| **Hybrid** | Some plans with `stripe_price_id` (enterprise SKUs), others null (experiments)—**document** which is which so operators do not “fix” amounts in the wrong system. |
+| Situation                      | Recommendation                                                                                                                                                    |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Local / staging / MVP**      | Model B is fine; iterate quickly.                                                                                                                                 |
+| **Production, stable catalog** | Prefer Model A for each paid plan you care to reconcile in Stripe.                                                                                                |
+| **Hybrid**                     | Some plans with `stripe_price_id` (enterprise SKUs), others null (experiments)—**document** which is which so operators do not “fix” amounts in the wrong system. |
 
 ---
 
@@ -154,6 +154,6 @@ Saving a plan in **Admin → Subscriptions → Plans** always updates Postgres a
 
 ## See also
 
-- [`docs/stripe-local-testing.md`](./stripe-local-testing.md) — test keys, `stripe listen`, webhook secret, test cards.  
-- [`docs/DEPLOYMENT.md`](./DEPLOYMENT.md) — live keys and production webhook endpoints.  
+- [`docs/stripe-local-testing.md`](./stripe-local-testing.md) — test keys, `stripe listen`, webhook secret, test cards.
+- [`docs/DEPLOYMENT.md`](./DEPLOYMENT.md) — live keys and production webhook endpoints.
 - Stripe docs: [Checkout Session `line_items`](https://docs.stripe.com/api/checkout/sessions/create#create_checkout_session-line_items), [Prices](https://docs.stripe.com/api/prices).

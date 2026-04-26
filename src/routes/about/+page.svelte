@@ -9,7 +9,7 @@
 	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
 	import UsersIcon from 'phosphor-svelte/lib/UsersIcon';
 	import ChartLineUpIcon from 'phosphor-svelte/lib/ChartLineUpIcon';
-	
+
 	import ShieldCheckIcon from 'phosphor-svelte/lib/ShieldCheckIcon';
 	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
 	import ListChecksIcon from 'phosphor-svelte/lib/ListChecksIcon';
@@ -88,9 +88,9 @@
 		</h1>
 
 		<p class="about-subtitle page-hero__subtitle page-hero__subtitle--wide">
-			Founded by Billy Ribeiro and Freddie Ferber, Precision Options Signals was built on a single
-			conviction: traders don't fail because of bad alerts -- they fail because no one ever
-			explained the <em>why</em> behind the trade.
+			Founded by Billy Ribeiro and Freddie Ferber, Precision Options Signals was built on a
+			single conviction: traders don't fail because of bad alerts -- they fail because no one
+			ever explained the <em>why</em> behind the trade.
 		</p>
 	</div>
 </section>
@@ -106,12 +106,14 @@
 
 				<div class="reveal-item page-prose">
 					<p>
-						Billy brings over a decade of institutional-grade market experience, including his time
-						as head trader at ZMC Capital and mentorship under <strong>Mark McGoldrick</strong>,
-						Goldman Sachs' former Global Head of Proprietary Trading. Freddie Ferber, a longtime
-						student who became a world-class trader in his own right, brings a practitioner's
-						perspective -- the kind of clarity that only comes from learning the hard lessons
-						firsthand and building real, consistent edge from them.
+						Billy brings over a decade of institutional-grade market experience,
+						including his time as head trader at ZMC Capital and mentorship under <strong
+							>Mark McGoldrick</strong
+						>, Goldman Sachs' former Global Head of Proprietary Trading. Freddie Ferber,
+						a longtime student who became a world-class trader in his own right, brings
+						a practitioner's perspective -- the kind of clarity that only comes from
+						learning the hard lessons firsthand and building real, consistent edge from
+						them.
 					</p>
 
 					<p>
@@ -121,16 +123,17 @@
 					</p>
 
 					<p>
-						Every Sunday night, members receive a curated watchlist of 5-7 high-probability options
-						setups -- each one hand-selected and fully structured with entry zones, profit targets,
-						and defined stop losses. No noise. No filler. Just setups that meet an
-						institutional-grade threshold before they ever reach your inbox.
+						Every Sunday night, members receive a curated watchlist of 5-7
+						high-probability options setups -- each one hand-selected and fully
+						structured with entry zones, profit targets, and defined stop losses. No
+						noise. No filler. Just setups that meet an institutional-grade threshold
+						before they ever reach your inbox.
 					</p>
 
 					<p>
-						Precision Options Signals serves <strong>18,000+ active traders</strong> across all experience levels,
-						from professionals refining their edge to disciplined beginners building their first repeatable
-						framework.
+						Precision Options Signals serves <strong>18,000+ active traders</strong> across
+						all experience levels, from professionals refining their edge to disciplined beginners
+						building their first repeatable framework.
 					</p>
 				</div>
 			</div>
@@ -149,46 +152,61 @@
 			/>
 
 			<div class="about-features-grid">
-				<div class="reveal-item about-feature-card" {@attach hoverTilt({ maxTilt: 6, scale: 1.02 })}>
+				<div
+					class="reveal-item about-feature-card"
+					{@attach hoverTilt({ maxTilt: 6, scale: 1.02 })}
+				>
 					<div class="about-feature-card__icon">
 						<EyeIcon size={24} weight="duotone" color="#0FA4AF" />
 					</div>
 					<h3 class="about-feature-card__title">Total Transparency</h3>
 					<p class="about-feature-card__desc">
-						Every setup comes with full logic. We want you to understand exactly why we take a
-						trade, so eventually, you don't need us anymore.
+						Every setup comes with full logic. We want you to understand exactly why we
+						take a trade, so eventually, you don't need us anymore.
 					</p>
 				</div>
 
-				<div class="reveal-item about-feature-card" {@attach hoverTilt({ maxTilt: 6, scale: 1.02 })}>
+				<div
+					class="reveal-item about-feature-card"
+					{@attach hoverTilt({ maxTilt: 6, scale: 1.02 })}
+				>
 					<div class="about-feature-card__icon">
 						<ListChecksIcon size={24} weight="duotone" color="#0FA4AF" />
 					</div>
 					<h3 class="about-feature-card__title">Pre-Market Preparation</h3>
 					<p class="about-feature-card__desc">
-						Watchlists arrive on Sunday. You have hours to review the charts, set your alerts, and
-						prepare your execution plan before the bell rings Monday morning.
+						Watchlists arrive on Sunday. You have hours to review the charts, set your
+						alerts, and prepare your execution plan before the bell rings Monday
+						morning.
 					</p>
 				</div>
 
-				<div class="reveal-item about-feature-card" {@attach hoverTilt({ maxTilt: 6, scale: 1.02 })}>
+				<div
+					class="reveal-item about-feature-card"
+					{@attach hoverTilt({ maxTilt: 6, scale: 1.02 })}
+				>
 					<div class="about-feature-card__icon">
 						<ShieldCheckIcon size={24} weight="duotone" color="#0FA4AF" />
 					</div>
 					<h3 class="about-feature-card__title">Strict Risk Control</h3>
 					<p class="about-feature-card__desc">
-						No diamond hands. No hoping. Every trade has a defined invalidation level. If the thesis
-						breaks, we take the small loss and preserve capital for the next edge.
+						No diamond hands. No hoping. Every trade has a defined invalidation level.
+						If the thesis breaks, we take the small loss and preserve capital for the
+						next edge.
 					</p>
 				</div>
 
-				<div class="reveal-item about-feature-card" {@attach hoverTilt({ maxTilt: 6, scale: 1.02 })}>
+				<div
+					class="reveal-item about-feature-card"
+					{@attach hoverTilt({ maxTilt: 6, scale: 1.02 })}
+				>
 					<div class="about-feature-card__icon">
 						<TrophyIcon size={28} weight="duotone" color="#0FA4AF" />
 					</div>
 					<h3 class="about-feature-card__title">Education Embedded</h3>
 					<p class="about-feature-card__desc">
-						You'll understand <em>why</em> the setup qualifies, not just what to click. Learn the methodology.
+						You'll understand <em>why</em> the setup qualifies, not just what to click. Learn
+						the methodology.
 					</p>
 				</div>
 
@@ -198,8 +216,8 @@
 					</div>
 					<h3 class="about-feature-card__title">Designed for Real Schedules</h3>
 					<p class="about-feature-card__desc">
-						Sunday delivery means you're prepared before the week begins, not chasing it. Trade on
-						your terms.
+						Sunday delivery means you're prepared before the week begins, not chasing
+						it. Trade on your terms.
 					</p>
 				</div>
 			</div>
@@ -230,13 +248,14 @@
 
 					<div class="founder-card__bio">
 						<p>
-							Over a decade of institutional-grade market experience, including head trader at ZMC
-							Capital. Mentored by Mark McGoldrick, Goldman Sachs' former Global Head of Proprietary
-							Trading.
+							Over a decade of institutional-grade market experience, including head
+							trader at ZMC Capital. Mentored by Mark McGoldrick, Goldman Sachs'
+							former Global Head of Proprietary Trading.
 						</p>
 						<p>
-							Billy's approach: focus on high-probability setups, manage risk religiously, and never
-							chase trades. That philosophy is the foundation of Precision Options Signals.
+							Billy's approach: focus on high-probability setups, manage risk
+							religiously, and never chase trades. That philosophy is the foundation
+							of Precision Options Signals.
 						</p>
 					</div>
 
@@ -257,7 +276,10 @@
 				</div>
 
 				<!-- Freddie Ferber -->
-				<div class="reveal-item founder-card" {@attach hoverTilt({ maxTilt: 4, scale: 1.01 })}>
+				<div
+					class="reveal-item founder-card"
+					{@attach hoverTilt({ maxTilt: 4, scale: 1.01 })}
+				>
 					<div class="founder-card__header">
 						<img
 							src="/images/freddie-ferber.jpg"
@@ -275,13 +297,14 @@
 
 					<div class="founder-card__bio">
 						<p>
-							A longtime student who became a world-class trader in his own right. Freddie brings a
-							practitioner's perspective -- the kind of clarity that only comes from learning the
-							hard lessons firsthand.
+							A longtime student who became a world-class trader in his own right.
+							Freddie brings a practitioner's perspective -- the kind of clarity that
+							only comes from learning the hard lessons firsthand.
 						</p>
 						<p>
-							His focus on building real, consistent edge from experience complements Billy's
-							institutional approach, creating a complete methodology for traders at every level.
+							His focus on building real, consistent edge from experience complements
+							Billy's institutional approach, creating a complete methodology for
+							traders at every level.
 						</p>
 					</div>
 
@@ -312,8 +335,8 @@
 			<h2 class="reveal-item page-dark-heading">Ready to Join Us?</h2>
 
 			<p class="reveal-item page-dark-subtitle">
-				Get weekly watchlists, structured courses, and join a community of traders who are serious
-				about results.
+				Get weekly watchlists, structured courses, and join a community of traders who are
+				serious about results.
 			</p>
 
 			<div class="reveal-item">

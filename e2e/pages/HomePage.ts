@@ -26,7 +26,11 @@ export class HomePage {
 	}
 
 	async visitPricingFromNav(): Promise<void> {
-		await landmarks.primaryNav(this.page).getByRole('link', { name: /pricing/i }).first().click();
+		await landmarks
+			.primaryNav(this.page)
+			.getByRole('link', { name: /pricing/i })
+			.first()
+			.click();
 		await expect(this.page).toHaveURL(/\/pricing/);
 	}
 }

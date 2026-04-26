@@ -25,7 +25,10 @@ test('time-delay popup mounts, closes, and records a submission', async ({ page,
 	const eventRequests: Array<{ event_type?: string; popup_id?: string }> = [];
 	await page.route('**/api/popups/event', async (route) => {
 		try {
-			const body = route.request().postDataJSON() as { event_type?: string; popup_id?: string };
+			const body = route.request().postDataJSON() as {
+				event_type?: string;
+				popup_id?: string;
+			};
 			eventRequests.push(body);
 		} catch {
 			eventRequests.push({});
@@ -48,11 +51,9 @@ test('time-delay popup mounts, closes, and records a submission', async ({ page,
 	// The engine waits for `afterNavigate`; allow a generous window for the
 	// slowest time-delay trigger (15s upper bound is ample for CI).
 	const popup = page.getByRole('dialog').first();
-	await popup
-		.waitFor({ state: 'visible', timeout: 15_000 })
-		.catch(() => {
-			test.skip(true, 'No popup visible within 15s — configuration does not hit this page.');
-		});
+	await popup.waitFor({ state: 'visible', timeout: 15_000 }).catch(() => {
+		test.skip(true, 'No popup visible within 15s — configuration does not hit this page.');
+	});
 
 	// Guard: if skip fired above, the locator is no longer valid. Re-check.
 	const visible = await popup.isVisible().catch(() => false);
@@ -62,9 +63,7 @@ test('time-delay popup mounts, closes, and records a submission', async ({ page,
 	expect(eventRequests.some((e) => e.event_type === 'impression')).toBe(true);
 
 	// Close action: click the first button inside the dialog labelled X/close/dismiss.
-	const closeButton = popup
-		.getByRole('button', { name: /close|dismiss|no thanks|×|x/i })
-		.first();
+	const closeButton = popup.getByRole('button', { name: /close|dismiss|no thanks|×|x/i }).first();
 	if (await closeButton.isVisible().catch(() => false)) {
 		await closeButton.click();
 		await expect(popup).toBeHidden({ timeout: 5_000 });

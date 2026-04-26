@@ -35,7 +35,9 @@
 
 	$effect(() => {
 		// Keep DOM in sync when external code replaces the value (e.g. resume).
+		// Contenteditable host requires imperative innerHTML write to seed the editor with backend-sanitized HTML.
 		if (hostEl && hostEl.innerHTML !== current) {
+			// eslint-disable-next-line svelte/no-dom-manipulating
 			hostEl.innerHTML = current;
 		}
 	});
@@ -71,7 +73,7 @@
 	<p id={countId} class="fm-field__help">
 		{charCount}
 		{#if rt.max_length}/ {rt.max_length}{/if}
-		 characters
+		characters
 	</p>
 	{#if error}
 		<p id={errorId} class="fm-field__error" role="alert" aria-live="polite">{error}</p>

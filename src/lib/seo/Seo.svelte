@@ -70,6 +70,9 @@
 	<meta name="twitter:image" content={resolvedOgImage} />
 
 	{#if jsonLd}
-		<script type="application/ld+json">{jsonLd}</script>
+		<!-- prettier-ignore -->
+		<script type="application/ld+json">
+{jsonLd}
+		</script>
 	{/if}
 </svelte:head>

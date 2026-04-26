@@ -84,7 +84,8 @@
 				return {
 					dom: container,
 					update(updated: { type: unknown; attrs: Record<string, string> }) {
-						if (updated.type !== (node as unknown as { type: unknown }).type) return false;
+						if (updated.type !== (node as unknown as { type: unknown }).type)
+							return false;
 						img.src = updated.attrs.src || '';
 						img.alt = updated.attrs.alt || '';
 						if (updated.attrs.width) img.style.width = updated.attrs.width;
@@ -116,7 +117,14 @@
 		onInsertImage?: () => void;
 		autosaveStatus?: 'idle' | 'pending' | 'saving' | 'saved' | 'error';
 		lastSavedAt?: Date | null;
-		revisions?: Array<{ id: string; revision_number: number; title: string; created_at: string; author_name: string; content?: string }>;
+		revisions?: Array<{
+			id: string;
+			revision_number: number;
+			title: string;
+			created_at: string;
+			author_name: string;
+			content?: string;
+		}>;
 		focusKeyword?: string;
 		metaTitle?: string;
 		metaDescription?: string;
@@ -156,13 +164,11 @@
 	// Derived SEO metrics
 	const seoTitleLength = $derived(metaTitle.length);
 	const seoTitleStatus = $derived(
-		seoTitleLength >= 50 && seoTitleLength <= 60 ? 'good' :
-		seoTitleLength > 0 ? 'warn' : 'none'
+		seoTitleLength >= 50 && seoTitleLength <= 60 ? 'good' : seoTitleLength > 0 ? 'warn' : 'none'
 	);
 	const seoDescLength = $derived(metaDescription.length);
 	const seoDescStatus = $derived(
-		seoDescLength >= 150 && seoDescLength <= 160 ? 'good' :
-		seoDescLength > 0 ? 'warn' : 'none'
+		seoDescLength >= 150 && seoDescLength <= 160 ? 'good' : seoDescLength > 0 ? 'warn' : 'none'
 	);
 
 	// Keyword density
@@ -178,8 +184,8 @@
 	const readabilityScore = $derived.by(() => {
 		const text = editor?.getText() || '';
 		if (!text.trim()) return 0;
-		const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-		const words = text.split(/\s+/).filter(w => w.length > 0);
+		const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 0);
+		const words = text.split(/\s+/).filter((w) => w.length > 0);
 		if (words.length === 0 || sentences.length === 0) return 0;
 		// Count syllables (rough approximation)
 		function countSyllables(word: string): number {
@@ -192,22 +198,27 @@
 		}
 		const totalSyllables = words.reduce((acc, w) => acc + countSyllables(w), 0);
 		// Flesch Reading Ease = 206.835 - 1.015*(words/sentences) - 84.6*(syllables/words)
-		const score = 206.835 - 1.015 * (words.length / sentences.length) - 84.6 * (totalSyllables / words.length);
+		const score =
+			206.835 -
+			1.015 * (words.length / sentences.length) -
+			84.6 * (totalSyllables / words.length);
 		return Math.round(Math.max(0, Math.min(100, score)));
 	});
 
 	const readabilityLabel = $derived(
-		readabilityScore >= 80 ? 'Very Easy' :
-		readabilityScore >= 60 ? 'Easy' :
-		readabilityScore >= 40 ? 'Moderate' :
-		readabilityScore >= 20 ? 'Difficult' :
-		'Very Difficult'
+		readabilityScore >= 80
+			? 'Very Easy'
+			: readabilityScore >= 60
+				? 'Easy'
+				: readabilityScore >= 40
+					? 'Moderate'
+					: readabilityScore >= 20
+						? 'Difficult'
+						: 'Very Difficult'
 	);
 
 	const readabilityColor = $derived(
-		readabilityScore >= 60 ? '#22c55e' :
-		readabilityScore >= 40 ? '#f59e0b' :
-		'#ef4444'
+		readabilityScore >= 60 ? '#22c55e' : readabilityScore >= 40 ? '#f59e0b' : '#ef4444'
 	);
 
 	// Autosave time ago
@@ -227,10 +238,11 @@
 	});
 
 	// Revision diff
-	const selectedRevision = $derived(revisions.find(r => r.id === selectedRevisionId));
+	const selectedRevision = $derived(revisions.find((r) => r.id === selectedRevisionId));
 	const diffHtml = $derived.by(() => {
 		if (!selectedRevision || !editor) return '';
-		if (!selectedRevision.content) return '<em>Revision content not available for inline comparison. Use the restore button in the sidebar to preview this revision.</em>';
+		if (!selectedRevision.content)
+			return '<em>Revision content not available for inline comparison. Use the restore button in the sidebar to preview this revision.</em>';
 		const currentText = editor.getText();
 		const revText = stripHtml(selectedRevision.content);
 		return computeInlineDiff(revText, currentText);
@@ -269,12 +281,14 @@
 
 		// Backtrack to build diff
 		const parts: string[] = [];
-		let i = ml, j = nl;
+		let i = ml,
+			j = nl;
 		const result: Array<{ type: 'same' | 'del' | 'ins'; word: string }> = [];
 		while (i > 0 || j > 0) {
 			if (i > 0 && j > 0 && oW[i - 1] === nW[j - 1]) {
 				result.unshift({ type: 'same', word: oW[i - 1] });
-				i--; j--;
+				i--;
+				j--;
 			} else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
 				result.unshift({ type: 'ins', word: nW[j - 1] });
 				j--;
@@ -284,13 +298,20 @@
 			}
 		}
 
+		const escape = (s: string) =>
+			s.replace(
+				/[&<>"']/g,
+				(ch) =>
+					({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch] as string
+			);
 		for (const r of result) {
+			const word = escape(r.word);
 			if (r.type === 'del') {
-				parts.push(`<span class="diff-del">${r.word}</span>`);
+				parts.push(`<span class="diff-del">${word}</span>`);
 			} else if (r.type === 'ins') {
-				parts.push(`<span class="diff-ins">${r.word}</span>`);
+				parts.push(`<span class="diff-ins">${word}</span>`);
 			} else {
-				parts.push(r.word);
+				parts.push(word);
 			}
 		}
 
@@ -309,7 +330,10 @@
 		doc.descendants((node) => {
 			if (node.type.name === 'heading') {
 				const text = node.textContent;
-				const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+				const id = text
+					.toLowerCase()
+					.replace(/[^a-z0-9]+/g, '-')
+					.replace(/^-|-$/g, '');
 				headings.push({ level: node.attrs.level, text, id });
 			}
 		});
@@ -318,7 +342,7 @@
 
 		let tocHtml = '<div class="toc-block"><h4>Table of Contents</h4><ul>';
 		for (const h of headings) {
-			const indent = h.level > 2 ? ' style="margin-left: ' + ((h.level - 2) * 1) + 'rem"' : '';
+			const indent = h.level > 2 ? ' style="margin-left: ' + (h.level - 2) * 1 + 'rem"' : '';
 			tocHtml += `<li${indent}><a href="#${h.id}">${h.text}</a></li>`;
 		}
 		tocHtml += '</ul></div>';
@@ -473,7 +497,11 @@
 	}
 </script>
 
-<div class="blog-editor" class:blog-editor--fullscreen={isFullscreen} class:blog-editor--distraction-free={isDistractionFree}>
+<div
+	class="blog-editor"
+	class:blog-editor--fullscreen={isFullscreen}
+	class:blog-editor--distraction-free={isDistractionFree}
+>
 	{#if editor}
 		{#if !isDistractionFree}
 			<EditorToolbar
@@ -516,7 +544,12 @@
 
 	<!-- Autosave indicator -->
 	{#if autosaveLabel}
-		<div class="blog-editor__autosave-bar" class:blog-editor__autosave-bar--saved={autosaveStatus === 'saved'} class:blog-editor__autosave-bar--pending={autosaveStatus === 'pending'} class:blog-editor__autosave-bar--error={autosaveStatus === 'error'}>
+		<div
+			class="blog-editor__autosave-bar"
+			class:blog-editor__autosave-bar--saved={autosaveStatus === 'saved'}
+			class:blog-editor__autosave-bar--pending={autosaveStatus === 'pending'}
+			class:blog-editor__autosave-bar--error={autosaveStatus === 'error'}
+		>
 			{#if autosaveStatus === 'saved'}
 				<span class="blog-editor__autosave-dot blog-editor__autosave-dot--green"></span>
 			{:else if autosaveStatus === 'pending'}
@@ -537,7 +570,10 @@
 				{showSeoPanel ? 'Hide' : 'Show'} SEO Analysis
 			</button>
 			{#if revisions.length > 0}
-				<button class="blog-editor__panel-btn" onclick={() => (showRevisionDiff = !showRevisionDiff)}>
+				<button
+					class="blog-editor__panel-btn"
+					onclick={() => (showRevisionDiff = !showRevisionDiff)}
+				>
 					{showRevisionDiff ? 'Hide' : 'Show'} Revision Diff
 				</button>
 			{/if}
@@ -571,8 +607,18 @@
 							style="width: {Math.min(100, (seoTitleLength / 70) * 100)}%"
 						></div>
 					</div>
-					<span class="seo-panel__metric-value" class:seo-panel__metric-value--good={seoTitleStatus === 'good'} class:seo-panel__metric-value--warn={seoTitleStatus === 'warn'}>
-						{seoTitleLength}/60 chars {seoTitleStatus === 'good' ? '(ideal)' : seoTitleLength > 60 ? '(too long)' : seoTitleLength > 0 ? '(too short)' : ''}
+					<span
+						class="seo-panel__metric-value"
+						class:seo-panel__metric-value--good={seoTitleStatus === 'good'}
+						class:seo-panel__metric-value--warn={seoTitleStatus === 'warn'}
+					>
+						{seoTitleLength}/60 chars {seoTitleStatus === 'good'
+							? '(ideal)'
+							: seoTitleLength > 60
+								? '(too long)'
+								: seoTitleLength > 0
+									? '(too short)'
+									: ''}
 					</span>
 				</div>
 
@@ -586,15 +632,34 @@
 							style="width: {Math.min(100, (seoDescLength / 180) * 100)}%"
 						></div>
 					</div>
-					<span class="seo-panel__metric-value" class:seo-panel__metric-value--good={seoDescStatus === 'good'} class:seo-panel__metric-value--warn={seoDescStatus === 'warn'}>
-						{seoDescLength}/160 chars {seoDescStatus === 'good' ? '(ideal)' : seoDescLength > 160 ? '(too long)' : seoDescLength > 0 ? '(too short)' : ''}
+					<span
+						class="seo-panel__metric-value"
+						class:seo-panel__metric-value--good={seoDescStatus === 'good'}
+						class:seo-panel__metric-value--warn={seoDescStatus === 'warn'}
+					>
+						{seoDescLength}/160 chars {seoDescStatus === 'good'
+							? '(ideal)'
+							: seoDescLength > 160
+								? '(too long)'
+								: seoDescLength > 0
+									? '(too short)'
+									: ''}
 					</span>
 				</div>
 
 				<div class="seo-panel__metric">
 					<span class="seo-panel__metric-label">Keyword Density</span>
-					<span class="seo-panel__metric-value" class:seo-panel__metric-value--good={keywordDensity >= 1 && keywordDensity <= 3} class:seo-panel__metric-value--warn={keywordDensity > 3}>
-						{keywordDensity}% {keywordDensity >= 1 && keywordDensity <= 3 ? '(good)' : keywordDensity > 3 ? '(too high)' : '(add keyword)'}
+					<span
+						class="seo-panel__metric-value"
+						class:seo-panel__metric-value--good={keywordDensity >= 1 &&
+							keywordDensity <= 3}
+						class:seo-panel__metric-value--warn={keywordDensity > 3}
+					>
+						{keywordDensity}% {keywordDensity >= 1 && keywordDensity <= 3
+							? '(good)'
+							: keywordDensity > 3
+								? '(too high)'
+								: '(add keyword)'}
 					</span>
 				</div>
 
@@ -614,22 +679,40 @@
 			<h4 class="seo-panel__title">Revision Comparison</h4>
 			<div class="revision-panel__select">
 				<label class="seo-panel__label" for="revision-select">Compare with revision:</label>
-				<select id="revision-select" name="revision-select" class="seo-panel__input" bind:value={selectedRevisionId}>
+				<select
+					id="revision-select"
+					name="revision-select"
+					class="seo-panel__input"
+					bind:value={selectedRevisionId}
+				>
 					<option value="">Select a revision...</option>
 					{#each revisions as rev (rev.id)}
 						<option value={rev.id}>
-							#{rev.revision_number} - {rev.author_name} ({new Date(rev.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })})
+							#{rev.revision_number} - {rev.author_name} ({new Date(
+								rev.created_at
+							).toLocaleDateString('en-US', {
+								month: 'short',
+								day: 'numeric',
+								hour: '2-digit',
+								minute: '2-digit'
+							})})
 						</option>
 					{/each}
 				</select>
 			</div>
 			{#if selectedRevisionId && diffHtml}
 				<div class="revision-panel__diff">
+					<!-- diffHtml is built locally from stripped textContent with words HTML-escaped (computeInlineDiff). -->
+					<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 					{@html diffHtml}
 				</div>
 				<div class="revision-panel__legend">
-					<span class="revision-panel__legend-item"><span class="diff-del-sample"></span> Removed</span>
-					<span class="revision-panel__legend-item"><span class="diff-ins-sample"></span> Added</span>
+					<span class="revision-panel__legend-item"
+						><span class="diff-del-sample"></span> Removed</span
+					>
+					<span class="revision-panel__legend-item"
+						><span class="diff-ins-sample"></span> Added</span
+					>
 				</div>
 			{:else if selectedRevisionId}
 				<p class="revision-panel__empty">No differences or revision content unavailable.</p>
@@ -1127,7 +1210,9 @@
 		height: 100%;
 		background: var(--color-grey-500, #475569);
 		border-radius: 2px;
-		transition: width 0.3s, background 0.3s;
+		transition:
+			width 0.3s,
+			background 0.3s;
 	}
 
 	.seo-panel__bar--good {
@@ -1267,19 +1352,19 @@
 		border-left: 3px solid;
 	}
 
-	.blog-editor :global(.blog-editor__content .shortcode-alert[data-type="info"]) {
+	.blog-editor :global(.blog-editor__content .shortcode-alert[data-type='info']) {
 		background: rgba(59, 130, 246, 0.1);
 		border-color: #3b82f6;
 		color: #93c5fd;
 	}
 
-	.blog-editor :global(.blog-editor__content .shortcode-alert[data-type="warning"]) {
+	.blog-editor :global(.blog-editor__content .shortcode-alert[data-type='warning']) {
 		background: rgba(245, 158, 11, 0.1);
 		border-color: #f59e0b;
 		color: #fcd34d;
 	}
 
-	.blog-editor :global(.blog-editor__content .shortcode-alert[data-type="success"]) {
+	.blog-editor :global(.blog-editor__content .shortcode-alert[data-type='success']) {
 		background: rgba(34, 197, 94, 0.1);
 		border-color: #22c55e;
 		color: #86efac;

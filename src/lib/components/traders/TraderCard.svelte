@@ -11,8 +11,8 @@
 	let { trader }: Props = $props();
 </script>
 
-<button 
-	onclick={() => modal.showProfile(trader.id)} 
+<button
+	onclick={() => modal.showProfile(trader.id)}
 	class="trader-card"
 	{@attach hoverTilt({ maxTilt: 10, scale: 1.04 })}
 >

@@ -104,57 +104,57 @@ every background worker, and begin serving on `$PORT` (default `3001`).
 
 ### Where admin credentials live
 
-| Environment | Where `ADMIN_EMAIL` / `ADMIN_PASSWORD` go |
-|-------------|-------------------------------------------|
-| **Local** | `backend/.env` only — file is **gitignored** (`backend/.gitignore`). Copy from `.env.example`, put your real password there. That is the normal way to work: secrets on disk for dev, never in git. |
-| **Production** | Same variable names in Railway / Render / etc. **Variables** UI — not a committed file. |
-| **Database** | After first successful seed, only `users.password_hash` exists (Argon2). Plaintext is not recoverable. Changing `.env` later does not rotate an existing admin’s password (see `db::seed_admin` `ON CONFLICT`); delete the user row or use password reset if you forgot it. |
+| Environment    | Where `ADMIN_EMAIL` / `ADMIN_PASSWORD` go                                                                                                                                                                                                                                   |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Local**      | `backend/.env` only — file is **gitignored** (`backend/.gitignore`). Copy from `.env.example`, put your real password there. That is the normal way to work: secrets on disk for dev, never in git.                                                                         |
+| **Production** | Same variable names in Railway / Render / etc. **Variables** UI — not a committed file.                                                                                                                                                                                     |
+| **Database**   | After first successful seed, only `users.password_hash` exists (Argon2). Plaintext is not recoverable. Changing `.env` later does not rotate an existing admin’s password (see `db::seed_admin` `ON CONFLICT`); delete the user row or use password reset if you forgot it. |
 
 ---
 
 ## Environment variables
 
 The contract is enforced by `src/config.rs`. In `APP_ENV=production` the
-process **panics on startup** if any *required-in-prod* variable is
+process **panics on startup** if any _required-in-prod_ variable is
 missing or empty.
 
 ### Required (always)
 
-| Variable                         | Purpose                                       |
-| -------------------------------- | --------------------------------------------- |
-| `DATABASE_URL`                   | Postgres DSN (`sslmode=require` for Neon)     |
-| `JWT_SECRET`                     | HS256 signing key for access tokens           |
+| Variable       | Purpose                                   |
+| -------------- | ----------------------------------------- |
+| `DATABASE_URL` | Postgres DSN (`sslmode=require` for Neon) |
+| `JWT_SECRET`   | HS256 signing key for access tokens       |
 
 ### Required in production
 
-| Variable               | Purpose                                                        |
-| ---------------------- | -------------------------------------------------------------- |
-| `ADMIN_EMAIL`          | First-boot admin seed — login email                            |
-| `ADMIN_PASSWORD`       | First-boot admin seed — password (argon2id-hashed at rest)     |
-| `API_URL`              | Public base URL of this API                                    |
-| `FRONTEND_URL`         | Browser origin of the SvelteKit app (used for CORS + redirects)|
-| `STRIPE_SECRET_KEY`    | Stripe live secret                                             |
-| `STRIPE_WEBHOOK_SECRET`| Stripe webhook signature secret                                |
-| `R2_ACCOUNT_ID`        | Cloudflare account ID                                          |
-| `R2_ACCESS_KEY_ID`     | R2 API token access key                                        |
-| `R2_SECRET_ACCESS_KEY` | R2 API token secret                                            |
-| `R2_BUCKET_NAME`       | R2 bucket name                                                 |
-| `R2_PUBLIC_URL`        | Public CDN base for R2 objects (no trailing `/`)               |
+| Variable                | Purpose                                                         |
+| ----------------------- | --------------------------------------------------------------- |
+| `ADMIN_EMAIL`           | First-boot admin seed — login email                             |
+| `ADMIN_PASSWORD`        | First-boot admin seed — password (argon2id-hashed at rest)      |
+| `API_URL`               | Public base URL of this API                                     |
+| `FRONTEND_URL`          | Browser origin of the SvelteKit app (used for CORS + redirects) |
+| `STRIPE_SECRET_KEY`     | Stripe live secret                                              |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signature secret                                 |
+| `R2_ACCOUNT_ID`         | Cloudflare account ID                                           |
+| `R2_ACCESS_KEY_ID`      | R2 API token access key                                         |
+| `R2_SECRET_ACCESS_KEY`  | R2 API token secret                                             |
+| `R2_BUCKET_NAME`        | R2 bucket name                                                  |
+| `R2_PUBLIC_URL`         | Public CDN base for R2 objects (no trailing `/`)                |
 
 ### Optional (with defaults)
 
-| Variable                          | Default                  | Notes                                       |
-| --------------------------------- | ------------------------ | ------------------------------------------- |
-| `JWT_EXPIRATION_HOURS`            | `24`                     | Access token lifetime                        |
-| `REFRESH_TOKEN_EXPIRATION_DAYS`   | `30`                     | Refresh token family lifetime                |
-| `PORT`                            | `3001`                   | TCP port to bind                             |
-| `CORS_ALLOWED_ORIGINS`            | `FRONTEND_URL`           | Comma-separated **exact** origins            |
-| `UPLOAD_DIR`                      | `./uploads`              | Local media path when R2 isn't configured    |
-| `APP_ENV`                         | `development`            | `production` flips the strict-config guards  |
-| `ADMIN_NAME`                      | `Admin`                  | Display name on the seeded admin             |
-| `AUDIT_RETENTION_INTERVAL_SECS`   | `86400` (24h)            | Audit-log retention worker tick              |
-| `DSAR_SWEEP_INTERVAL_SECS`        | `3600` (1h)              | DSAR artefact TTL sweep worker tick          |
-| `IDEMPOTENCY_GC_INTERVAL_SECS`    | `900` (15m)              | Idempotency cache GC worker tick             |
+| Variable                        | Default        | Notes                                       |
+| ------------------------------- | -------------- | ------------------------------------------- |
+| `JWT_EXPIRATION_HOURS`          | `24`           | Access token lifetime                       |
+| `REFRESH_TOKEN_EXPIRATION_DAYS` | `30`           | Refresh token family lifetime               |
+| `PORT`                          | `3001`         | TCP port to bind                            |
+| `CORS_ALLOWED_ORIGINS`          | `FRONTEND_URL` | Comma-separated **exact** origins           |
+| `UPLOAD_DIR`                    | `./uploads`    | Local media path when R2 isn't configured   |
+| `APP_ENV`                       | `development`  | `production` flips the strict-config guards |
+| `ADMIN_NAME`                    | `Admin`        | Display name on the seeded admin            |
+| `AUDIT_RETENTION_INTERVAL_SECS` | `86400` (24h)  | Audit-log retention worker tick             |
+| `DSAR_SWEEP_INTERVAL_SECS`      | `3600` (1h)    | DSAR artefact TTL sweep worker tick         |
+| `IDEMPOTENCY_GC_INTERVAL_SECS`  | `900` (15m)    | Idempotency cache GC worker tick            |
 
 `R2_TEST_*` variables (separate from the runtime `R2_*` set) gate the R2
 integration tests against a local MinIO/LocalStack emulator.
@@ -163,9 +163,9 @@ integration tests against a local MinIO/LocalStack emulator.
 
 ## Database & migrations
 
-* **Engine:** PostgreSQL 16+
-* **Driver:** sqlx 0.8 (compile-time-checked queries via `sqlx::query!`)
-* **Strategy:** forward-only — a migration committed to `main` is
+- **Engine:** PostgreSQL 16+
+- **Driver:** sqlx 0.8 (compile-time-checked queries via `sqlx::query!`)
+- **Strategy:** forward-only — a migration committed to `main` is
   immutable. Editing a checksummed migration after deploy will fail
   boot with `migration N was previously applied but has been modified`.
 
@@ -176,22 +176,22 @@ prefix is unique and validated by CI.
 
 Notable schema regions:
 
-| Theme                | Migrations                                  |
-| -------------------- | ------------------------------------------- |
-| Auth & users         | `001`, `010`, `018`                         |
-| Blog & media         | `002`, `004`, `006`–`008`, `016`            |
-| Analytics            | `009`, `014`                                |
-| Products & catalog   | `030` (products + variants + bundles)       |
-| Commerce (cart→ord)  | `031`, `035`, `036`, `037`, `038`, `039`    |
-| Subscriptions        | `041`, `042`, `057`, `067`                  |
-| Coupons              | `013`, `043`                                |
-| Forms                | `027`, `032`–`034`                          |
-| Popups               | `015`, `050`–`054`                          |
-| Consent / DSAR       | `024`–`028`, `069`, `073`                   |
-| RBAC                 | `021`, `058`, `063`–`068`                   |
-| Admin observability  | `055`, `070`, `072`                         |
-| Idempotency          | `017`, `071`, `074`                         |
-| Impersonation / IP   | `059`–`061`                                 |
+| Theme               | Migrations                               |
+| ------------------- | ---------------------------------------- |
+| Auth & users        | `001`, `010`, `018`                      |
+| Blog & media        | `002`, `004`, `006`–`008`, `016`         |
+| Analytics           | `009`, `014`                             |
+| Products & catalog  | `030` (products + variants + bundles)    |
+| Commerce (cart→ord) | `031`, `035`, `036`, `037`, `038`, `039` |
+| Subscriptions       | `041`, `042`, `057`, `067`               |
+| Coupons             | `013`, `043`                             |
+| Forms               | `027`, `032`–`034`                       |
+| Popups              | `015`, `050`–`054`                       |
+| Consent / DSAR      | `024`–`028`, `069`, `073`                |
+| RBAC                | `021`, `058`, `063`–`068`                |
+| Admin observability | `055`, `070`, `072`                      |
+| Idempotency         | `017`, `071`, `074`                      |
+| Impersonation / IP  | `059`–`061`                              |
 
 Run them locally with `sqlx migrate run`, or just start the binary —
 `main.rs` runs `sqlx::migrate!()` before serving.
@@ -204,12 +204,12 @@ Run them locally with `sqlx migrate run`, or just start the binary —
 channel; each emits Prometheus metrics consumed by
 [`ops/prometheus/admin-alerts.rules.yml`](../ops/prometheus/admin-alerts.rules.yml).
 
-| Worker                   | Module                              | Default tick | Metric prefix              |
-| ------------------------ | ----------------------------------- | ------------ | -------------------------- |
-| Audit-log retention      | `services/audit_retention.rs`       | 24h          | `audit_retention_*`        |
-| DSAR async job processor | `services/dsar_worker.rs`           | 30s          | `dsar_jobs_*`              |
-| DSAR artefact TTL sweep  | `services/dsar_artifact_sweep.rs`   | 1h           | `dsar_artifacts_swept_*`   |
-| Idempotency cache GC     | `services/idempotency_gc.rs`        | 15m          | `idempotency_gc_*`         |
+| Worker                   | Module                            | Default tick | Metric prefix            |
+| ------------------------ | --------------------------------- | ------------ | ------------------------ |
+| Audit-log retention      | `services/audit_retention.rs`     | 24h          | `audit_retention_*`      |
+| DSAR async job processor | `services/dsar_worker.rs`         | 30s          | `dsar_jobs_*`            |
+| DSAR artefact TTL sweep  | `services/dsar_artifact_sweep.rs` | 1h           | `dsar_artifacts_swept_*` |
+| Idempotency cache GC     | `services/idempotency_gc.rs`      | 15m          | `idempotency_gc_*`       |
 
 See [`docs/RUNBOOK.md`](../docs/RUNBOOK.md) for diagnosis and
 remediation of every alert these emit.
@@ -225,20 +225,20 @@ dev it is served by `utoipa-swagger-ui` and SwaggerUI is mounted at
 
 Top-level route prefixes:
 
-| Prefix             | Purpose                                               | Auth         |
-| ------------------ | ----------------------------------------------------- | ------------ |
-| `/api/auth/*`      | Register / login / refresh / me / logout              | mixed        |
-| `/api/member/*`    | Self-service (profile, subscription, downloads)       | `AuthUser`   |
-| `/api/admin/*`     | Back-office surface (members, orders, audit, DSAR…)   | `AdminUser`  |
-| `/api/catalog/*`   | Public catalog                                        | public       |
-| `/api/blog/*`      | Blog reads                                            | public       |
-| `/api/courses/*`   | Course reads + enrolment progress                     | mixed        |
-| `/api/popups/*`    | Popup serve + impression tracking                     | public       |
-| `/api/forms/*`     | Public form submissions                               | public       |
-| `/api/consent/*`   | Consent record + DSAR submit                          | mixed        |
-| `/api/webhooks/*`  | Stripe (HMAC-verified)                                | webhook      |
-| `/metrics`         | Prometheus scrape endpoint                            | admin-gated in prod, public in dev |
-| `/api/openapi.json`| OpenAPI 3.1 spec                                      | admin-gated in prod, public in dev |
+| Prefix              | Purpose                                             | Auth                               |
+| ------------------- | --------------------------------------------------- | ---------------------------------- |
+| `/api/auth/*`       | Register / login / refresh / me / logout            | mixed                              |
+| `/api/member/*`     | Self-service (profile, subscription, downloads)     | `AuthUser`                         |
+| `/api/admin/*`      | Back-office surface (members, orders, audit, DSAR…) | `AdminUser`                        |
+| `/api/catalog/*`    | Public catalog                                      | public                             |
+| `/api/blog/*`       | Blog reads                                          | public                             |
+| `/api/courses/*`    | Course reads + enrolment progress                   | mixed                              |
+| `/api/popups/*`     | Popup serve + impression tracking                   | public                             |
+| `/api/forms/*`      | Public form submissions                             | public                             |
+| `/api/consent/*`    | Consent record + DSAR submit                        | mixed                              |
+| `/api/webhooks/*`   | Stripe (HMAC-verified)                              | webhook                            |
+| `/metrics`          | Prometheus scrape endpoint                          | admin-gated in prod, public in dev |
+| `/api/openapi.json` | OpenAPI 3.1 spec                                    | admin-gated in prod, public in dev |
 
 `PUT`/`POST`/`DELETE` calls under `/api/admin/*` require an
 `Idempotency-Key` header and are subject to per-actor mutation rate
@@ -259,13 +259,13 @@ DATABASE_URL_TEST=postgres://postgres:postgres@localhost:5433/swings \
 
 Highlights:
 
-* `tests/admin_idempotency.rs::concurrent_same_key_creates_exactly_one_resource`
+- `tests/admin_idempotency.rs::concurrent_same_key_creates_exactly_one_resource`
   — 16-way concurrent race against the idempotency middleware.
-* `tests/dsar_r2_artifact.rs` — DSAR worker round-trip against an
+- `tests/dsar_r2_artifact.rs` — DSAR worker round-trip against an
   S3-compatible emulator (skips if `R2_TEST_*` not set).
-* `tests/authz_matrix.rs` — golden snapshot of the
+- `tests/authz_matrix.rs` — golden snapshot of the
   `role_permissions` seeded by migration 21.
-* `tests/openapi_snapshot.rs` — fails CI if the generated OpenAPI
+- `tests/openapi_snapshot.rs` — fails CI if the generated OpenAPI
   schema drifts from `tests/snapshots/openapi.json`.
 
 CI parity:
@@ -281,11 +281,11 @@ cargo build --release
 
 ## Local Docker workflows
 
-| Need                                    | Command                                                         |
-| --------------------------------------- | --------------------------------------------------------------- |
-| Full local stack (api + db + uploads)   | `docker compose -f ../docker-compose.yml up`                    |
-| Test-only Postgres on `:5433`           | `docker compose -f docker-compose.yml up -d db`                 |
-| Build the production image              | `docker build -f ../Dockerfile -t swings-api ..`                |
+| Need                                  | Command                                          |
+| ------------------------------------- | ------------------------------------------------ |
+| Full local stack (api + db + uploads) | `docker compose -f ../docker-compose.yml up`     |
+| Test-only Postgres on `:5433`         | `docker compose -f docker-compose.yml up -d db`  |
+| Build the production image            | `docker build -f ../Dockerfile -t swings-api ..` |
 
 There is only one Dockerfile, at the repo root (`../Dockerfile`). It
 is consumed by Railway, Render, and the local `docker-compose.yml` —
@@ -296,26 +296,26 @@ the context small.
 
 ## Production checklist
 
-* All env vars in [Required in production](#required-in-production) are
+- All env vars in [Required in production](#required-in-production) are
   set and non-empty.
-* `APP_ENV=production` is set.
-* Postgres is reachable from the container (Railway uses
+- `APP_ENV=production` is set.
+- Postgres is reachable from the container (Railway uses
   `postgres.railway.internal`).
-* The R2 bucket exists and the IAM policy permits `Get/Put/Delete`.
-* The Prometheus scraper has access to `/metrics`.
-* Alert rules in [`../ops/prometheus/admin-alerts.rules.yml`](../ops/prometheus/admin-alerts.rules.yml)
+- The R2 bucket exists and the IAM policy permits `Get/Put/Delete`.
+- The Prometheus scraper has access to `/metrics`.
+- Alert rules in [`../ops/prometheus/admin-alerts.rules.yml`](../ops/prometheus/admin-alerts.rules.yml)
   are loaded; on-call has access to [`../docs/RUNBOOK.md`](../docs/RUNBOOK.md).
 
 ---
 
 ## Further reading
 
-* [`../docs/INFRASTRUCTURE.md`](../docs/INFRASTRUCTURE.md) — full topology.
-* [`../docs/DEPLOYMENT.md`](../docs/DEPLOYMENT.md) — Vercel + Railway go-live.
-* [`../docs/RUNBOOK.md`](../docs/RUNBOOK.md) — operator runbook for every alert.
-* [`../docs/wiring/FDN-TESTHARNESS-WIRING.md`](../docs/wiring/FDN-TESTHARNESS-WIRING.md)
+- [`../docs/INFRASTRUCTURE.md`](../docs/INFRASTRUCTURE.md) — full topology.
+- [`../docs/DEPLOYMENT.md`](../docs/DEPLOYMENT.md) — Vercel + Railway go-live.
+- [`../docs/RUNBOOK.md`](../docs/RUNBOOK.md) — operator runbook for every alert.
+- [`../docs/wiring/FDN-TESTHARNESS-WIRING.md`](../docs/wiring/FDN-TESTHARNESS-WIRING.md)
   — how the integration test harness is wired.
-* [`../docs/wiring/OBSERVABILITY-WIRING.md`](../docs/wiring/OBSERVABILITY-WIRING.md)
+- [`../docs/wiring/OBSERVABILITY-WIRING.md`](../docs/wiring/OBSERVABILITY-WIRING.md)
   — tracing + metrics scaffolding.
-* [`../docs/archive/AUDIT_PHASE3_PLAN.md`](../docs/archive/AUDIT_PHASE3_PLAN.md)
+- [`../docs/archive/AUDIT_PHASE3_PLAN.md`](../docs/archive/AUDIT_PHASE3_PLAN.md)
   — original §12 authz matrix (historical, but still the reference).

@@ -13,12 +13,12 @@ jobs that upload SARIF.
 
 ### Jobs
 
-| Job                        | What it does                                                                                                         |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `frontend`                 | `pnpm install --frozen-lockfile` → `pnpm ci:frontend` (`gen:types` + `check` + `lint` + `ci:seo` + `test:unit` + `build`). |
-| `backend`                  | `cargo fmt --check` → `cargo clippy -D warnings` → `cargo test` → `cargo build`. Rust pinned to **1.93** via `rust-toolchain.toml`. |
-| `backend-coverage`         | Informational. Runs `cargo llvm-cov --workspace --lcov` and uploads `lcov.info` as a build artefact. No gate.         |
-| `e2e-smoke`                | Runs the `smoke-chromium` Playwright project against `pnpm build && pnpm preview` (frontend only, no backend required). |
+| Job                | What it does                                                                                                                        |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `frontend`         | `pnpm install --frozen-lockfile` → `pnpm ci:frontend` (`gen:types` + `check` + `lint` + `ci:seo` + `test:unit` + `build`).          |
+| `backend`          | `cargo fmt --check` → `cargo clippy -D warnings` → `cargo test` → `cargo build`. Rust pinned to **1.93** via `rust-toolchain.toml`. |
+| `backend-coverage` | Informational. Runs `cargo llvm-cov --workspace --lcov` and uploads `lcov.info` as a build artefact. No gate.                       |
+| `e2e-smoke`        | Runs the `smoke-chromium` Playwright project against `pnpm build && pnpm preview` (frontend only, no backend required).             |
 
 ### Reproduce locally
 

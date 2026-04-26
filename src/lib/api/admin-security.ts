@@ -132,8 +132,7 @@ export interface ReplaceRoleRequest {
 
 export const roleMatrix = {
 	list: () => api.get<MatrixResponse>('/api/admin/security/roles'),
-	listPermissions: () =>
-		api.get<PermissionsResponse>('/api/admin/security/roles/permissions'),
+	listPermissions: () => api.get<PermissionsResponse>('/api/admin/security/roles/permissions'),
 	grant: (role: string, permission: string) =>
 		api.post<RolePermPair>(
 			`/api/admin/security/roles/${encodeURIComponent(role)}/${encodeURIComponent(permission)}`
@@ -147,8 +146,7 @@ export const roleMatrix = {
 			`/api/admin/security/roles/${encodeURIComponent(role)}`,
 			{ permissions }
 		),
-	reload: () =>
-		api.post<{ reloaded: number }>('/api/admin/security/roles/_reload')
+	reload: () => api.post<{ reloaded: number }>('/api/admin/security/roles/_reload')
 };
 
 // ── Audit log (ADM-14) ──────────────────────────────────────────────────
@@ -197,8 +195,7 @@ function audit_qs(q: AuditListQuery): string {
 }
 
 export const auditLog = {
-	list: (q: AuditListQuery = {}) =>
-		api.get<AuditListEnvelope>(`/api/admin/audit${audit_qs(q)}`),
+	list: (q: AuditListQuery = {}) => api.get<AuditListEnvelope>(`/api/admin/audit${audit_qs(q)}`),
 	get: (id: string) => api.get<AuditRow>(`/api/admin/audit/${encodeURIComponent(id)}`),
 	exportCsvUrl: (q: AuditListQuery = {}) => `/api/admin/audit/export.csv${audit_qs(q)}`
 };

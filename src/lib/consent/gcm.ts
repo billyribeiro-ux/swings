@@ -113,9 +113,7 @@ export function pushGcmUpdate(categories: Readonly<Record<string, boolean>>): vo
  * are omitted from the frame — GCM treats missing signals as "unchanged",
  * which is exactly what we want when a category doesn't appear.
  */
-export function mapCategoriesToGcm(
-	categories: Readonly<Record<string, boolean>>
-): GcmUpdateConfig {
+export function mapCategoriesToGcm(categories: Readonly<Record<string, boolean>>): GcmUpdateConfig {
 	const toSignal = (v: boolean | undefined): GcmSignal => (v === true ? 'granted' : 'denied');
 	const out: Record<string, GcmSignal> = {};
 
@@ -149,9 +147,7 @@ let bridgeInstalled = false;
  * time (synchronously) so late-mounting consumers see the already-granted
  * categories immediately, not just on the next user interaction.
  */
-export function installGcmBridge(
-	currentCategories?: Readonly<Record<string, boolean>>
-): void {
+export function installGcmBridge(currentCategories?: Readonly<Record<string, boolean>>): void {
 	if (typeof window === 'undefined') return;
 	if (bridgeInstalled) return;
 	bridgeInstalled = true;

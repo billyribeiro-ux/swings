@@ -100,8 +100,9 @@
 									})}
 								</td>
 								<td>
-									<button class="action-link action-link--danger" onclick={() => deleteTag(tag.id)}
-										>Delete</button
+									<button
+										class="action-link action-link--danger"
+										onclick={() => deleteTag(tag.id)}>Delete</button
 									>
 								</td>
 							</tr>

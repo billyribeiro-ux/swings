@@ -61,7 +61,9 @@
 				value={field.key}
 				oninput={(e) => patch({ key: e.currentTarget.value })}
 			/>
-			<small class="editor__hint">Stable identifier; never rename after collecting submissions.</small>
+			<small class="editor__hint"
+				>Stable identifier; never rename after collecting submissions.</small
+			>
 		</div>
 
 		<div class="editor__group">
@@ -133,8 +135,8 @@
 							type="button"
 							class="editor__remove"
 							onclick={() => removeOption(idx)}
-							aria-label="Remove option"
-						>×</button>
+							aria-label="Remove option">×</button
+						>
 					</div>
 				{/each}
 			</div>
@@ -176,16 +178,31 @@
 		letter-spacing: 0.05em;
 		color: var(--color-text-muted);
 	}
-	.editor__group { display: flex; flex-direction: column; gap: var(--space-1); }
-	.editor__group--inline { flex-direction: row; align-items: center; gap: var(--space-2); }
-	.editor__row { display: flex; align-items: center; justify-content: space-between; }
+	.editor__group {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1);
+	}
+	.editor__group--inline {
+		flex-direction: row;
+		align-items: center;
+		gap: var(--space-2);
+	}
+	.editor__row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
 	.editor__label {
 		font-size: var(--font-size-xs);
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
 		color: var(--color-text-muted);
 	}
-	.editor__label--inline { text-transform: none; letter-spacing: normal; }
+	.editor__label--inline {
+		text-transform: none;
+		letter-spacing: normal;
+	}
 	.editor__input {
 		padding: var(--space-1) var(--space-2);
 		font-size: var(--font-size-sm);
@@ -198,17 +215,28 @@
 		outline: 2px solid var(--color-focus-ring);
 		outline-offset: 1px;
 	}
-	.editor__input--mono { font-family: var(--font-mono); }
-	.editor__input--multiline { resize: vertical; min-block-size: 4lh; }
-	.editor__input--small { padding: 2px var(--space-1); }
-	.editor__hint { font-size: var(--font-size-2xs); color: var(--color-text-muted); }
+	.editor__input--mono {
+		font-family: var(--font-mono);
+	}
+	.editor__input--multiline {
+		resize: vertical;
+		min-block-size: 4lh;
+	}
+	.editor__input--small {
+		padding: 2px var(--space-1);
+	}
+	.editor__hint {
+		font-size: var(--font-size-2xs);
+		color: var(--color-text-muted);
+	}
 	.editor__option {
 		display: grid;
 		grid-template-columns: 1fr 1fr auto;
 		gap: var(--space-1);
 		align-items: center;
 	}
-	.editor__add, .editor__remove {
+	.editor__add,
+	.editor__remove {
 		background: transparent;
 		border: 1px solid var(--color-border);
 		color: var(--color-text);
@@ -217,5 +245,8 @@
 		cursor: pointer;
 		font-size: var(--font-size-sm);
 	}
-	.editor__add:hover, .editor__remove:hover { background: var(--color-surface-3); }
+	.editor__add:hover,
+	.editor__remove:hover {
+		background: var(--color-surface-3);
+	}
 </style>

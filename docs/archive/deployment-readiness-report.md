@@ -103,19 +103,19 @@ export function getPublicApiBase(): string {
 
 ## Section 3: Server-Side Data Fetching
 
-| File | API base source | `fetch` source | Issues |
-|------|-----------------|----------------|--------|
-| [`src/routes/blog/+page.server.ts`](src/routes/blog/+page.server.ts) | `getPublicApiBase()` via module `const API = getPublicApiBase()` | `load` destructuring `{ url, fetch }` | [✅ PASS] None |
-| [`src/routes/blog/[slug]/+page.server.ts`](src/routes/blog/[slug]/+page.server.ts) | Same | `load` destructuring `{ params, fetch }` | [✅ PASS] None |
+| File                                                                               | API base source                                                  | `fetch` source                           | Issues         |
+| ---------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------- | -------------- |
+| [`src/routes/blog/+page.server.ts`](src/routes/blog/+page.server.ts)               | `getPublicApiBase()` via module `const API = getPublicApiBase()` | `load` destructuring `{ url, fetch }`    | [✅ PASS] None |
+| [`src/routes/blog/[slug]/+page.server.ts`](src/routes/blog/[slug]/+page.server.ts) | Same                                                             | `load` destructuring `{ params, fetch }` | [✅ PASS] None |
 
 Both use SvelteKit `fetch` from the load argument (not a global/custom import).
 
 ## Section 4: SvelteKit API Routes (Stay on Vercel)
 
-| File | External service | `$env/dynamic/private` for secrets? | Notes |
-|------|------------------|--------------------------------------|-------|
-| [`src/routes/api/create-checkout-session/+server.ts`](src/routes/api/create-checkout-session/+server.ts) | **Stripe** (`stripe.checkout.sessions.create`) | [✅ PASS] Yes — `env.STRIPE_SECRET_KEY` from `$env/dynamic/private`; public URLs via `$env/dynamic/public` | Does not call the Rust API |
-| [`src/routes/api/greeks-pdf/+server.ts`](src/routes/api/greeks-pdf/+server.ts) | **None** (stub: logs email, TODO for email/list provider) | [⚠️ WARN] No — no secrets module; no real integration yet | [✅ PASS] Does not reference the Rust API |
+| File                                                                                                     | External service                                          | `$env/dynamic/private` for secrets?                                                                        | Notes                                     |
+| -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| [`src/routes/api/create-checkout-session/+server.ts`](src/routes/api/create-checkout-session/+server.ts) | **Stripe** (`stripe.checkout.sessions.create`)            | [✅ PASS] Yes — `env.STRIPE_SECRET_KEY` from `$env/dynamic/private`; public URLs via `$env/dynamic/public` | Does not call the Rust API                |
+| [`src/routes/api/greeks-pdf/+server.ts`](src/routes/api/greeks-pdf/+server.ts)                           | **None** (stub: logs email, TODO for email/list provider) | [⚠️ WARN] No — no secrets module; no real integration yet                                                  | [✅ PASS] Does not reference the Rust API |
 
 ## Section 5: Vite Dev Proxy
 
@@ -171,7 +171,15 @@ const config = {
 			handleHttpError: 'warn',
 			handleMissingId: 'warn',
 			crawl: true,
-			entries: ['/', '/about', '/courses', '/blog', '/pricing', '/pricing/monthly', '/pricing/annual']
+			entries: [
+				'/',
+				'/about',
+				'/courses',
+				'/blog',
+				'/pricing',
+				'/pricing/monthly',
+				'/pricing/annual'
+			]
 		}
 	}
 };
@@ -194,38 +202,38 @@ export default config;
 
 **Variables / checks when `APP_ENV=production`:**
 
-| Check | Name(s) |
-|-------|---------|
-| Non-empty config field | `DATABASE_URL` |
-| Non-empty config field | `JWT_SECRET` |
-| Non-empty config field | `API_URL` |
-| Non-empty config field | `FRONTEND_URL` |
-| Non-empty config field | `STRIPE_SECRET_KEY` |
-| Non-empty config field | `STRIPE_WEBHOOK_SECRET` |
-| Env var non-empty | `ADMIN_EMAIL` |
-| Env var non-empty | `ADMIN_PASSWORD` |
-| R2 bundle | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL` (must all succeed for `R2Storage::from_env()`) |
+| Check                  | Name(s)                                                                                                                                       |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Non-empty config field | `DATABASE_URL`                                                                                                                                |
+| Non-empty config field | `JWT_SECRET`                                                                                                                                  |
+| Non-empty config field | `API_URL`                                                                                                                                     |
+| Non-empty config field | `FRONTEND_URL`                                                                                                                                |
+| Non-empty config field | `STRIPE_SECRET_KEY`                                                                                                                           |
+| Non-empty config field | `STRIPE_WEBHOOK_SECRET`                                                                                                                       |
+| Env var non-empty      | `ADMIN_EMAIL`                                                                                                                                 |
+| Env var non-empty      | `ADMIN_PASSWORD`                                                                                                                              |
+| R2 bundle              | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL` (must all succeed for `R2Storage::from_env()`) |
 
 ## Section 9: Backend Auth — Token Rotation
 
 **Report: implemented** (see [`backend/src/handlers/auth.rs`](backend/src/handlers/auth.rs))
 
-| Requirement | Status |
-|-------------|--------|
-| Login creates a new `family_id` per session | [✅ PASS] `generate_tokens` uses `let family_id = Uuid::new_v4()` before `store_refresh_token` (also used for register) |
-| Refresh: if `used` is true, revoke family | [✅ PASS] `if stored.used { db::delete_refresh_tokens_by_family(...); return Err(...) }` |
-| Refresh marks old token used before issuing new | [✅ PASS] `db::mark_refresh_token_used(&state.db, stored.id).await?` then new refresh stored |
-| New refresh uses same `family_id` | [✅ PASS] `store_refresh_token(..., stored.family_id, false)` |
+| Requirement                                     | Status                                                                                                                  |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Login creates a new `family_id` per session     | [✅ PASS] `generate_tokens` uses `let family_id = Uuid::new_v4()` before `store_refresh_token` (also used for register) |
+| Refresh: if `used` is true, revoke family       | [✅ PASS] `if stored.used { db::delete_refresh_tokens_by_family(...); return Err(...) }`                                |
+| Refresh marks old token used before issuing new | [✅ PASS] `db::mark_refresh_token_used(&state.db, stored.id).await?` then new refresh stored                            |
+| New refresh uses same `family_id`               | [✅ PASS] `store_refresh_token(..., stored.family_id, false)`                                                           |
 
 ## Section 10: Backend Rate Limiting
 
 [`backend/src/middleware/rate_limit.rs`](backend/src/middleware/rate_limit.rs) — all three layers exist:
 
-| Layer | Burst | Refill period | Effective steady rate (comment in code) |
-|-------|-------|---------------|----------------------------------------|
-| `login_layer()` | 5 | 12s | ~5 requests/minute per IP |
-| `register_layer()` | 10 | 360s | 10 requests/hour per IP |
-| `forgot_password_layer()` | 3 | 1200s | 3 requests/hour per IP |
+| Layer                     | Burst | Refill period | Effective steady rate (comment in code) |
+| ------------------------- | ----- | ------------- | --------------------------------------- |
+| `login_layer()`           | 5     | 12s           | ~5 requests/minute per IP               |
+| `register_layer()`        | 10    | 360s          | 10 requests/hour per IP                 |
+| `forgot_password_layer()` | 3     | 1200s         | 3 requests/hour per IP                  |
 
 [`backend/src/handlers/auth.rs`](backend/src/handlers/auth.rs) router — [✅ PASS] `/register` uses `register_layer()`, `/login` uses `login_layer()`, `/forgot-password` uses `forgot_password_layer()`.
 
@@ -283,13 +291,13 @@ Ordered list under [`backend/migrations/`](backend/migrations/):
 
 ## Section 14: Build Verification
 
-| Command | Result |
-|---------|--------|
-| `pnpm check` | [✅ PASS] `svelte-check found 0 errors and 0 warnings` |
-| `pnpm lint` | [✅ PASS] `eslint .` (exit 0) |
-| `pnpm build` | [✅ PASS] Vite build + `@sveltejs/adapter-vercel` done (exit 0) |
-| `cd backend && cargo check` | [✅ PASS] exit 0 |
-| `cd backend && cargo clippy -- -D warnings` | [✅ PASS] exit 0 |
+| Command                                     | Result                                                          |
+| ------------------------------------------- | --------------------------------------------------------------- |
+| `pnpm check`                                | [✅ PASS] `svelte-check found 0 errors and 0 warnings`          |
+| `pnpm lint`                                 | [✅ PASS] `eslint .` (exit 0)                                   |
+| `pnpm build`                                | [✅ PASS] Vite build + `@sveltejs/adapter-vercel` done (exit 0) |
+| `cd backend && cargo check`                 | [✅ PASS] exit 0                                                |
+| `cd backend && cargo clippy -- -D warnings` | [✅ PASS] exit 0                                                |
 
 Rust toolchain was available; no backend checks skipped.
 
@@ -297,47 +305,47 @@ Rust toolchain was available; no backend checks skipped.
 
 ### Vercel (frontend + SvelteKit serverless)
 
-| Variable | Required | Purpose |
-|----------|----------|---------|
-| `VITE_API_URL` | Recommended (SSR/blog/sitemap) | Public Railway API origin for server-side `fetch` to Rust API when not relying on same-origin relative URLs |
-| `PUBLIC_APP_URL` | Required for checkout UX | Base URL for Stripe success/cancel redirects in [`create-checkout-session`](src/routes/api/create-checkout-session/+server.ts) |
-| `STRIPE_SECRET_KEY` | Required for checkout | Stripe server secret in SvelteKit API route (`$env/dynamic/private`) |
-| `PUBLIC_STRIPE_MONTHLY_PRICE_ID` | Required for monthly pricing flow | Stripe Price ID (client/pricing pages) |
-| `PUBLIC_STRIPE_ANNUAL_PRICE_ID` | Required for annual pricing flow | Stripe Price ID |
-| `PUBLIC_SERVICE_WORKER_IN_DEV` | Optional | Enable SW in dev ([`svelte.config.js`](svelte.config.js)) |
+| Variable                         | Required                          | Purpose                                                                                                                        |
+| -------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `VITE_API_URL`                   | Recommended (SSR/blog/sitemap)    | Public Railway API origin for server-side `fetch` to Rust API when not relying on same-origin relative URLs                    |
+| `PUBLIC_APP_URL`                 | Required for checkout UX          | Base URL for Stripe success/cancel redirects in [`create-checkout-session`](src/routes/api/create-checkout-session/+server.ts) |
+| `STRIPE_SECRET_KEY`              | Required for checkout             | Stripe server secret in SvelteKit API route (`$env/dynamic/private`)                                                           |
+| `PUBLIC_STRIPE_MONTHLY_PRICE_ID` | Required for monthly pricing flow | Stripe Price ID (client/pricing pages)                                                                                         |
+| `PUBLIC_STRIPE_ANNUAL_PRICE_ID`  | Required for annual pricing flow  | Stripe Price ID                                                                                                                |
+| `PUBLIC_SERVICE_WORKER_IN_DEV`   | Optional                          | Enable SW in dev ([`svelte.config.js`](svelte.config.js))                                                                      |
 
-*Note: Stripe **webhook** secret and subscription sync live on the **Railway** Rust service, not this table.*
+_Note: Stripe **webhook** secret and subscription sync live on the **Railway** Rust service, not this table._
 
 ### Railway (backend)
 
-| Variable | Required | Purpose |
-|----------|----------|---------|
-| `DATABASE_URL` | Yes | Postgres connection |
-| `JWT_SECRET` | Yes | JWT signing |
-| `JWT_EXPIRATION_HOURS` | Optional (default 24) | Access token lifetime |
-| `REFRESH_TOKEN_EXPIRATION_DAYS` | Optional (default 30) | Refresh token lifetime |
-| `PORT` | Optional (default 3001) | Listen port (Railway often overrides) |
-| `FRONTEND_URL` | Yes (production guard) | CORS fallback / app links |
-| `CORS_ALLOWED_ORIGINS` | Recommended | Explicit allowed origins (comma-separated); falls back to `FRONTEND_URL` |
-| `API_URL` | Yes (production guard) | Public API base URL (emails, links, webhooks) |
-| `APP_URL` | Optional | Default `http://localhost:5173` in code |
-| `APP_ENV` | Optional (`development` default) | Set `production` to enable strict startup checks |
-| `STRIPE_SECRET_KEY` | Yes if `APP_ENV=production` | Stripe API from Rust |
-| `STRIPE_WEBHOOK_SECRET` | Yes if `APP_ENV=production` | Verify Stripe webhooks |
-| `ADMIN_EMAIL` | Yes if `APP_ENV=production` | Admin seed |
-| `ADMIN_PASSWORD` | Yes if `APP_ENV=production` | Admin seed |
-| `ADMIN_NAME` | Optional | Admin display name |
-| `UPLOAD_DIR` | Optional (`./uploads`) | Local media directory |
-| `R2_ACCOUNT_ID` | Yes if `APP_ENV=production` (current code) | R2 S3 endpoint |
-| `R2_ACCESS_KEY_ID` | Yes if `APP_ENV=production` | R2 credentials |
-| `R2_SECRET_ACCESS_KEY` | Yes if `APP_ENV=production` | R2 credentials |
-| `R2_BUCKET_NAME` | Yes if `APP_ENV=production` | R2 bucket |
-| `R2_PUBLIC_URL` | Yes if `APP_ENV=production` | Public base URL for R2 objects |
-| `SMTP_HOST` | Optional | Mail relay (Postmark: `smtp.postmarkapp.com`) |
-| `SMTP_PORT` | Optional | Typically 587 |
-| `SMTP_USER` | Optional* | If empty, email service disabled in [`main.rs`](backend/src/main.rs) |
-| `SMTP_PASSWORD` | Optional* | Postmark server token |
-| `SMTP_FROM` | Optional | From address |
+| Variable                        | Required                                   | Purpose                                                                  |
+| ------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------ |
+| `DATABASE_URL`                  | Yes                                        | Postgres connection                                                      |
+| `JWT_SECRET`                    | Yes                                        | JWT signing                                                              |
+| `JWT_EXPIRATION_HOURS`          | Optional (default 24)                      | Access token lifetime                                                    |
+| `REFRESH_TOKEN_EXPIRATION_DAYS` | Optional (default 30)                      | Refresh token lifetime                                                   |
+| `PORT`                          | Optional (default 3001)                    | Listen port (Railway often overrides)                                    |
+| `FRONTEND_URL`                  | Yes (production guard)                     | CORS fallback / app links                                                |
+| `CORS_ALLOWED_ORIGINS`          | Recommended                                | Explicit allowed origins (comma-separated); falls back to `FRONTEND_URL` |
+| `API_URL`                       | Yes (production guard)                     | Public API base URL (emails, links, webhooks)                            |
+| `APP_URL`                       | Optional                                   | Default `http://localhost:5173` in code                                  |
+| `APP_ENV`                       | Optional (`development` default)           | Set `production` to enable strict startup checks                         |
+| `STRIPE_SECRET_KEY`             | Yes if `APP_ENV=production`                | Stripe API from Rust                                                     |
+| `STRIPE_WEBHOOK_SECRET`         | Yes if `APP_ENV=production`                | Verify Stripe webhooks                                                   |
+| `ADMIN_EMAIL`                   | Yes if `APP_ENV=production`                | Admin seed                                                               |
+| `ADMIN_PASSWORD`                | Yes if `APP_ENV=production`                | Admin seed                                                               |
+| `ADMIN_NAME`                    | Optional                                   | Admin display name                                                       |
+| `UPLOAD_DIR`                    | Optional (`./uploads`)                     | Local media directory                                                    |
+| `R2_ACCOUNT_ID`                 | Yes if `APP_ENV=production` (current code) | R2 S3 endpoint                                                           |
+| `R2_ACCESS_KEY_ID`              | Yes if `APP_ENV=production`                | R2 credentials                                                           |
+| `R2_SECRET_ACCESS_KEY`          | Yes if `APP_ENV=production`                | R2 credentials                                                           |
+| `R2_BUCKET_NAME`                | Yes if `APP_ENV=production`                | R2 bucket                                                                |
+| `R2_PUBLIC_URL`                 | Yes if `APP_ENV=production`                | Public base URL for R2 objects                                           |
+| `SMTP_HOST`                     | Optional                                   | Mail relay (Postmark: `smtp.postmarkapp.com`)                            |
+| `SMTP_PORT`                     | Optional                                   | Typically 587                                                            |
+| `SMTP_USER`                     | Optional\*                                 | If empty, email service disabled in [`main.rs`](backend/src/main.rs)     |
+| `SMTP_PASSWORD`                 | Optional\*                                 | Postmark server token                                                    |
+| `SMTP_FROM`                     | Optional                                   | From address                                                             |
 
 \*For production email, treat SMTP vars as required operationally even if the binary can start without them.
 
@@ -345,11 +353,11 @@ Rust toolchain was available; no backend checks skipped.
 
 Typical records when Postmark verifies a sender domain (exact values come from the Postmark dashboard for your domain):
 
-| Record type | Name (example) | Purpose |
-|-------------|----------------|---------|
-| TXT | `@` or delegated subdomain | **DKIM** — Postmark signing keys |
-| CNAME | `pm-bounces` or return-path host | **Return-Path** / bounce domain |
-| TXT | `@` | **SPF** — authorize Postmark to send for the domain |
+| Record type | Name (example)                   | Purpose                                             |
+| ----------- | -------------------------------- | --------------------------------------------------- |
+| TXT         | `@` or delegated subdomain       | **DKIM** — Postmark signing keys                    |
+| CNAME       | `pm-bounces` or return-path host | **Return-Path** / bounce domain                     |
+| TXT         | `@`                              | **SPF** — authorize Postmark to send for the domain |
 
 ## Action Items
 

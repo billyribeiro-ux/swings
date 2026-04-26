@@ -13,8 +13,7 @@ import type { components } from '$lib/api/schema';
 
 export type Template = components['schemas']['Template'];
 export type RenderedTemplate = components['schemas']['RenderedTemplate'];
-export type PaginatedTemplatesResponse =
-	components['schemas']['PaginatedTemplatesResponse'];
+export type PaginatedTemplatesResponse = components['schemas']['PaginatedTemplatesResponse'];
 
 export interface TemplateListQuery {
 	key?: string;
@@ -73,9 +72,7 @@ export const templates = {
 		);
 	},
 	get(id: string): Promise<Template> {
-		return api.get<Template>(
-			`/api/admin/notifications/templates/${encodeURIComponent(id)}`
-		);
+		return api.get<Template>(`/api/admin/notifications/templates/${encodeURIComponent(id)}`);
 	},
 	create(body: CreateTemplateBody): Promise<Template> {
 		return api.post<Template>('/api/admin/notifications/templates', body);
@@ -103,8 +100,7 @@ export const templates = {
 // ── Deliveries ───────────────────────────────────────────────────────────
 
 export type DeliveryRow = components['schemas']['DeliveryRow'];
-export type PaginatedDeliveriesResponse =
-	components['schemas']['PaginatedDeliveriesResponse'];
+export type PaginatedDeliveriesResponse = components['schemas']['PaginatedDeliveriesResponse'];
 
 export interface DeliveryListQuery {
 	status?: string;
@@ -124,8 +120,7 @@ export const deliveries = {
 // ── Suppression ──────────────────────────────────────────────────────────
 
 export type Suppression = components['schemas']['Suppression'];
-export type PaginatedSuppressionResponse =
-	components['schemas']['PaginatedSuppressionResponse'];
+export type PaginatedSuppressionResponse = components['schemas']['PaginatedSuppressionResponse'];
 
 export interface SuppressionListQuery {
 	page?: number;
@@ -138,9 +133,7 @@ export interface AddSuppressionBody {
 }
 
 export const suppression = {
-	list(
-		q: SuppressionListQuery = {}
-	): Promise<PaginatedSuppressionResponse> {
+	list(q: SuppressionListQuery = {}): Promise<PaginatedSuppressionResponse> {
 		return api.get<PaginatedSuppressionResponse>(
 			`/api/admin/notifications/suppression${buildQs(q as Record<string, unknown>)}`
 		);
@@ -149,9 +142,8 @@ export const suppression = {
 		return api.post<Suppression>('/api/admin/notifications/suppression', body);
 	},
 	remove(email: string): Promise<{ removed: boolean }> {
-		return api.post<{ removed: boolean }>(
-			'/api/admin/notifications/suppression/remove',
-			{ email }
-		);
+		return api.post<{ removed: boolean }>('/api/admin/notifications/suppression/remove', {
+			email
+		});
 	}
 };

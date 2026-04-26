@@ -173,7 +173,11 @@
 			const active = document.activeElement as HTMLElement | null;
 			let idx = Array.from(items).indexOf(active as HTMLElement);
 			if (idx === -1) idx = 0;
-			else idx = e.key === 'ArrowDown' ? (idx + 1) % items.length : (idx - 1 + items.length) % items.length;
+			else
+				idx =
+					e.key === 'ArrowDown'
+						? (idx + 1) % items.length
+						: (idx - 1 + items.length) % items.length;
 			items[idx]?.focus();
 		}
 	}
@@ -231,7 +235,10 @@
 			subscribers: computeDelta(netSubs, prevNetSubs),
 			watchlists: computeDelta(p.new_watchlists, pp.new_watchlists),
 			enrollments: computeDelta(p.new_enrollments, pp.new_enrollments),
-			conversion: computeDelta(Math.round(conversion * 1000), Math.round(prevConversion * 1000)),
+			conversion: computeDelta(
+				Math.round(conversion * 1000),
+				Math.round(prevConversion * 1000)
+			),
 			conversionRate: conversion
 		};
 	});
@@ -247,7 +254,8 @@
 			<span class="admin-dash__eyebrow">Overview</span>
 			<h1 class="admin-dash__title">Admin Dashboard</h1>
 			<p class="admin-dash__subtitle">
-				A snapshot of members, subscriptions, watchlists, and engagement across the platform.
+				A snapshot of members, subscriptions, watchlists, and engagement across the
+				platform.
 			</p>
 		</div>
 
@@ -394,7 +402,9 @@
 							<span>{deltas.members.pctLabel}</span>
 						</span>
 						<span class="kpi__hint">
-							{stats.period.new_members > 0 ? '+' : ''}{stats.period.new_members.toLocaleString()} this period
+							{stats.period.new_members > 0
+								? '+'
+								: ''}{stats.period.new_members.toLocaleString()} this period
 						</span>
 					</div>
 				{/if}
@@ -430,7 +440,8 @@
 						<span class="kpi__hint">
 							{(() => {
 								const net =
-									stats.period.new_subscriptions - stats.period.canceled_subscriptions;
+									stats.period.new_subscriptions -
+									stats.period.canceled_subscriptions;
 								return `Net ${net > 0 ? '+' : ''}${net.toLocaleString()} this period`;
 							})()}
 						</span>
@@ -446,7 +457,8 @@
 					</span>
 				</div>
 				<p class="kpi__value">
-					{stats.monthly_subscriptions.toLocaleString()}<span class="kpi__sep">/</span>{stats.annual_subscriptions.toLocaleString()}
+					{stats.monthly_subscriptions.toLocaleString()}<span class="kpi__sep">/</span
+					>{stats.annual_subscriptions.toLocaleString()}
 				</p>
 				<p class="kpi__hint">Plan distribution</p>
 			</article>
@@ -479,7 +491,9 @@
 							<span>{deltas.watchlists.pctLabel}</span>
 						</span>
 						<span class="kpi__hint">
-							{stats.period.new_watchlists > 0 ? '+' : ''}{stats.period.new_watchlists.toLocaleString()} this period
+							{stats.period.new_watchlists > 0
+								? '+'
+								: ''}{stats.period.new_watchlists.toLocaleString()} this period
 						</span>
 					</div>
 				{/if}
@@ -513,7 +527,9 @@
 							<span>{deltas.enrollments.pctLabel}</span>
 						</span>
 						<span class="kpi__hint">
-							{stats.period.new_enrollments > 0 ? '+' : ''}{stats.period.new_enrollments.toLocaleString()} this period
+							{stats.period.new_enrollments > 0
+								? '+'
+								: ''}{stats.period.new_enrollments.toLocaleString()} this period
 						</span>
 					</div>
 				{/if}
@@ -527,7 +543,9 @@
 					</span>
 				</div>
 				<p class="kpi__value">
-					{deltas ? (deltas.conversionRate * 100).toFixed(1) : '0.0'}<span class="kpi__unit">%</span>
+					{deltas ? (deltas.conversionRate * 100).toFixed(1) : '0.0'}<span
+						class="kpi__unit">%</span
+					>
 				</p>
 				{#if deltas}
 					<div class="kpi__meta">
@@ -579,7 +597,9 @@
 						<div class="member-card">
 							<div class="member-card__row">
 								<span class="member-card__label">Name</span>
-								<span class="member-card__value member-card__name">{member.name}</span>
+								<span class="member-card__value member-card__name"
+									>{member.name}</span
+								>
 							</div>
 							<div class="member-card__row">
 								<span class="member-card__label">Email</span>
@@ -600,7 +620,9 @@
 							</div>
 							<div class="member-card__row">
 								<span class="member-card__label">Joined</span>
-								<span class="member-card__value">{formatDate(member.created_at)}</span>
+								<span class="member-card__value"
+									>{formatDate(member.created_at)}</span
+								>
 							</div>
 						</div>
 					{/each}
@@ -633,7 +655,9 @@
 											{member.role}
 										</span>
 									</td>
-									<td class="admin-table__muted">{formatDate(member.created_at)}</td>
+									<td class="admin-table__muted"
+										>{formatDate(member.created_at)}</td
+									>
 								</tr>
 							{/each}
 						</tbody>
@@ -651,7 +675,10 @@
 				</div>
 			</div>
 			<div class="admin-dash__actions">
-				<a href="/admin/watchlists/new" class="admin-dash__action admin-dash__action--primary">
+				<a
+					href="/admin/watchlists/new"
+					class="admin-dash__action admin-dash__action--primary"
+				>
 					<PlusIcon size={16} weight="bold" />
 					<span>Create New Watchlist</span>
 				</a>

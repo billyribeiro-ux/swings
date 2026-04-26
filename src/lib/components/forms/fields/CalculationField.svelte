@@ -65,7 +65,7 @@
 			class="fm-input fm-calc"
 			for={field.key}
 			aria-describedby={describedBy}
-			aria-live="polite"
-		>{Number.isFinite(computed) ? computed : '—'}</output>
+			aria-live="polite">{Number.isFinite(computed) ? computed : '—'}</output
+		>
 	{/snippet}
 </FieldFrame>

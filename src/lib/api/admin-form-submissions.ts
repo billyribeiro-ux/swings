@@ -6,8 +6,7 @@ import { api } from '$lib/api/client';
 import type { components } from '$lib/api/schema';
 
 export type SubmissionRow = components['schemas']['SubmissionRow'];
-export type PaginatedSubmissions =
-	components['schemas']['PaginatedSubmissions'];
+export type PaginatedSubmissions = components['schemas']['PaginatedSubmissions'];
 
 export interface SubmissionListQuery {
 	status?: string;
@@ -39,28 +38,23 @@ function buildQs(params: Record<string, unknown>): string {
 }
 
 export const formSubmissions = {
-	list(
-		formId: string,
-		q: SubmissionListQuery = {}
-	): Promise<PaginatedSubmissions> {
+	list(formId: string, q: SubmissionListQuery = {}): Promise<PaginatedSubmissions> {
 		return api.get<PaginatedSubmissions>(
 			`/api/admin/forms/${encodeURIComponent(formId)}/submissions${buildQs(
 				q as Record<string, unknown>
 			)}`
 		);
 	},
-	bulkAction(
-		formId: string,
-		body: BulkActionRequest
-	): Promise<BulkActionResponse> {
+	bulkAction(formId: string, body: BulkActionRequest): Promise<BulkActionResponse> {
 		return api.post<BulkActionResponse>(
 			`/api/admin/forms/${encodeURIComponent(formId)}/submissions/bulk`,
 			body
 		);
 	},
 	csvExportUrl(formId: string, q: SubmissionListQuery = {}): string {
-		return `/api/admin/forms/${encodeURIComponent(formId)}/submissions${buildQs(
-			{ ...q, format: 'csv' } as Record<string, unknown>
-		)}`;
+		return `/api/admin/forms/${encodeURIComponent(formId)}/submissions${buildQs({
+			...q,
+			format: 'csv'
+		} as Record<string, unknown>)}`;
 	}
 };

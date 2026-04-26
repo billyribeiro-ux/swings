@@ -61,7 +61,10 @@ assertRule(
 );
 
 for (const requiredDisallow of ['Disallow: /dashboard', 'Disallow: /admin', 'Disallow: /api/']) {
-	assertRule(robotsSource.includes(requiredDisallow), `robots.txt missing "${requiredDisallow}".`);
+	assertRule(
+		robotsSource.includes(requiredDisallow),
+		`robots.txt missing "${requiredDisallow}".`
+	);
 }
 
 if (failures.length > 0) {

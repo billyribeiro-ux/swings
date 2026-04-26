@@ -28,11 +28,7 @@ export type FormData = Readonly<Record<string, unknown>>;
 export type AsyncRuleName = 'unique_email';
 
 export interface AsyncRuleRunner {
-	run(
-		fieldKey: string,
-		rule: AsyncRuleName,
-		value: unknown
-	): Promise<ValidationError | null>;
+	run(fieldKey: string, rule: AsyncRuleName, value: unknown): Promise<ValidationError | null>;
 }
 
 export const noopAsyncRuleRunner: AsyncRuleRunner = {
@@ -171,11 +167,7 @@ export async function validate(
 
 // ── Per-field dispatch ────────────────────────────────────────────────
 
-function validateField(
-	field: FieldSchema,
-	data: FormData,
-	errors: ValidationError[]
-): void {
+function validateField(field: FieldSchema, data: FormData, errors: ValidationError[]): void {
 	const value = data[field.key];
 
 	if (field.required && isEmpty(value)) {
@@ -251,11 +243,7 @@ function validateField(
 
 // ── Helpers ───────────────────────────────────────────────────────────
 
-function err(
-	field_key: string,
-	code: string,
-	message: string
-): ValidationError {
+function err(field_key: string, code: string, message: string): ValidationError {
 	return { field_key, code, message };
 }
 
@@ -280,11 +268,7 @@ function isDecorative(f: FieldSchema): boolean {
 	);
 }
 
-function checkString(
-	field: FieldSchema,
-	value: unknown,
-	errors: ValidationError[]
-): void {
+function checkString(field: FieldSchema, value: unknown, errors: ValidationError[]): void {
 	if (typeof value !== 'string') {
 		errors.push(err(field.key, 'type', `${label(field)} must be text.`));
 		return;
@@ -293,12 +277,20 @@ function checkString(
 	const rules = field as Partial<LengthRules>;
 	if (rules.min_length !== undefined && len < rules.min_length) {
 		errors.push(
-			err(field.key, 'min_length', `${label(field)} must be at least ${rules.min_length} characters.`)
+			err(
+				field.key,
+				'min_length',
+				`${label(field)} must be at least ${rules.min_length} characters.`
+			)
 		);
 	}
 	if (rules.max_length !== undefined && len > rules.max_length) {
 		errors.push(
-			err(field.key, 'max_length', `${label(field)} must be at most ${rules.max_length} characters.`)
+			err(
+				field.key,
+				'max_length',
+				`${label(field)} must be at most ${rules.max_length} characters.`
+			)
 		);
 	}
 }
@@ -322,24 +314,14 @@ function checkPattern(
 	}
 }
 
-function checkEmail(
-	field: FieldSchema,
-	value: unknown,
-	errors: ValidationError[]
-): void {
+function checkEmail(field: FieldSchema, value: unknown, errors: ValidationError[]): void {
 	const s = typeof value === 'string' ? value : '';
 	if (!EMAIL_RE.test(s)) {
-		errors.push(
-			err(field.key, 'email', `${label(field)} must be a valid email address.`)
-		);
+		errors.push(err(field.key, 'email', `${label(field)} must be a valid email address.`));
 	}
 }
 
-function checkPhone(
-	field: FieldSchema,
-	value: unknown,
-	errors: ValidationError[]
-): void {
+function checkPhone(field: FieldSchema, value: unknown, errors: ValidationError[]): void {
 	const s = typeof value === 'string' ? value : '';
 	if (!PHONE_RE.test(s)) {
 		errors.push(
@@ -352,11 +334,7 @@ function checkPhone(
 	}
 }
 
-function checkUrl(
-	field: FieldSchema,
-	value: unknown,
-	errors: ValidationError[]
-): void {
+function checkUrl(field: FieldSchema, value: unknown, errors: ValidationError[]): void {
 	const s = typeof value === 'string' ? value : '';
 	let ok: boolean;
 	try {
@@ -417,7 +395,9 @@ function checkDate(
 	const s = typeof value === 'string' ? value : '';
 	const parsed = parseIsoDate(s);
 	if (!parsed) {
-		errors.push(err(field.key, 'date', `${label(field)} must be an ISO-8601 date (YYYY-MM-DD).`));
+		errors.push(
+			err(field.key, 'date', `${label(field)} must be an ISO-8601 date (YYYY-MM-DD).`)
+		);
 		return;
 	}
 	if (min) {
@@ -434,23 +414,17 @@ function checkDate(
 	}
 }
 
-function checkTime(
-	field: FieldSchema,
-	value: unknown,
-	errors: ValidationError[]
-): void {
+function checkTime(field: FieldSchema, value: unknown, errors: ValidationError[]): void {
 	const s = typeof value === 'string' ? value : '';
 	const ok = /^\d{2}:\d{2}(?::\d{2})?$/.test(s);
 	if (!ok) {
-		errors.push(err(field.key, 'time', `${label(field)} must be a 24-hour time (HH:MM or HH:MM:SS).`));
+		errors.push(
+			err(field.key, 'time', `${label(field)} must be a 24-hour time (HH:MM or HH:MM:SS).`)
+		);
 	}
 }
 
-function checkDatetime(
-	field: FieldSchema,
-	value: unknown,
-	errors: ValidationError[]
-): void {
+function checkDatetime(field: FieldSchema, value: unknown, errors: ValidationError[]): void {
 	const s = typeof value === 'string' ? value : '';
 	const ok = s.length > 0 && !Number.isNaN(Date.parse(s));
 	if (!ok) {
@@ -476,16 +450,28 @@ function checkFiles(
 	const arr = value as FileDescriptor[];
 	if (rules.min_files !== undefined && arr.length < rules.min_files) {
 		errors.push(
-			err(field.key, 'min_files', `${label(field)} requires at least ${rules.min_files} file(s).`)
+			err(
+				field.key,
+				'min_files',
+				`${label(field)} requires at least ${rules.min_files} file(s).`
+			)
 		);
 	}
 	if (rules.max_files !== undefined && arr.length > rules.max_files) {
 		errors.push(
-			err(field.key, 'max_files', `${label(field)} accepts at most ${rules.max_files} file(s).`)
+			err(
+				field.key,
+				'max_files',
+				`${label(field)} accepts at most ${rules.max_files} file(s).`
+			)
 		);
 	}
 	arr.forEach((f, idx) => {
-		if (rules.max_file_size !== undefined && typeof f?.size === 'number' && f.size > rules.max_file_size) {
+		if (
+			rules.max_file_size !== undefined &&
+			typeof f?.size === 'number' &&
+			f.size > rules.max_file_size
+		) {
 			errors.push(
 				err(
 					field.key,
@@ -496,9 +482,7 @@ function checkFiles(
 		}
 		if (rules.allowed_mime_types && rules.allowed_mime_types.length > 0) {
 			const mime = typeof f?.mime_type === 'string' ? f.mime_type : '';
-			const ok = rules.allowed_mime_types.some(
-				(m) => m.toLowerCase() === mime.toLowerCase()
-			);
+			const ok = rules.allowed_mime_types.some((m) => m.toLowerCase() === mime.toLowerCase());
 			if (!ok) {
 				errors.push(
 					err(
@@ -525,7 +509,11 @@ function checkMultiSelect(
 	}
 	if (min !== undefined && value.length < min) {
 		errors.push(
-			err(field.key, 'min_selections', `${label(field)} requires at least ${min} selection(s).`)
+			err(
+				field.key,
+				'min_selections',
+				`${label(field)} requires at least ${min} selection(s).`
+			)
 		);
 	}
 	if (max !== undefined && value.length > max) {

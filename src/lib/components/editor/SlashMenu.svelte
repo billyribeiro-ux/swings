@@ -131,14 +131,16 @@
 			? COMMANDS
 			: COMMANDS.filter((c) => {
 					const q = query.toLowerCase();
-					return c.label.toLowerCase().includes(q) || c.keywords.some((k) => k.startsWith(q));
+					return (
+						c.label.toLowerCase().includes(q) || c.keywords.some((k) => k.startsWith(q))
+					);
 				})
 	);
 
 	$effect(() => {
 		// Reset highlight whenever the query changes — read it explicitly so the
 		// effect actually depends on it (the assignment alone is not a dep).
-		const _query = query;
+		void query;
 		activeIndex = 0;
 	});
 
@@ -186,7 +188,7 @@
 	$effect(() => {
 		// Re-run when activeIndex or visible change — DOM queries inside an effect are
 		// not tracked, so we read activeIndex explicitly to register the dep.
-		const _activeIndex = activeIndex;
+		void activeIndex;
 		if (visible && menuEl) {
 			const item = menuEl.querySelector<HTMLElement>('.slash-item--active');
 			item?.scrollIntoView({ block: 'nearest' });

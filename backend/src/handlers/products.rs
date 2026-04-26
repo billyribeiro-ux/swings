@@ -10,6 +10,11 @@
 //! Every mutating admin handler publishes a `commerce.product.*` event via
 //! the FDN-04 outbox so later EC-subsystems (catalog denormalization, Stripe
 //! sync, search index refresh) can subscribe without changing these handlers.
+//
+// Audit Phase 7.1: this module is the canonical caller of every helper in
+// `commerce::repo` (and `handlers/cart.rs` aliases the same module as
+// `product_repo`). The dead-code report flagged repo.rs as orphaned, but
+// the grep audit shows ~25 call sites here — keep both files.
 
 use axum::{
     extract::{Path, Query, State},

@@ -349,9 +349,10 @@
 		focalX = Math.round(((clientX - rect.left) / rect.width) * 100) / 100;
 		focalY = Math.round(((clientY - rect.top) / rect.height) * 100) / 100;
 		if (featuredImageId) {
-			api
-				.put(`/api/admin/media/${featuredImageId}`, { focal_x: focalX, focal_y: focalY })
-				.catch(() => {});
+			api.put(`/api/admin/media/${featuredImageId}`, {
+				focal_x: focalX,
+				focal_y: focalY
+			}).catch(() => {});
 		}
 	}
 
@@ -458,8 +459,7 @@
 		if (!post || post.status !== 'trash') return;
 		const ok = await confirmDialog({
 			title: 'Permanently delete this post?',
-			message:
-				'This cannot be undone. All revisions and metadata will be removed.',
+			message: 'This cannot be undone. All revisions and metadata will be removed.',
 			confirmLabel: 'Delete permanently',
 			variant: 'danger'
 		});
@@ -519,12 +519,14 @@
 				<div class="post-editor__trash-banner__text">
 					<p class="post-editor__trash-banner__title">This post is in the Trash</p>
 					<p class="post-editor__trash-banner__hint">
-						Restore it to continue editing and publishing, or delete it permanently. Trashed posts are
-						not shown on the public site.
+						Restore it to continue editing and publishing, or delete it permanently.
+						Trashed posts are not shown on the public site.
 					</p>
 					{#if post.pre_trash_status}
 						<p class="post-editor__trash-banner__meta">
-							Before trash, status was <strong>{post.pre_trash_status.replace(/_/g, ' ')}</strong>
+							Before trash, status was <strong
+								>{post.pre_trash_status.replace(/_/g, ' ')}</strong
+							>
 							{#if post.trashed_at}
 								· moved {new Date(post.trashed_at).toLocaleString()}
 							{/if}
@@ -581,7 +583,12 @@
 
 		<!-- Status bar -->
 		<div class="post-editor__statusbar">
-			<span>{wordCount} words · {charCount} characters · ~{Math.max(1, Math.ceil(wordCount / 238))} min read</span>
+			<span
+				>{wordCount} words · {charCount} characters · ~{Math.max(
+					1,
+					Math.ceil(wordCount / 238)
+				)} min read</span
+			>
 			<span
 				class="post-editor__autosave"
 				class:post-editor__autosave--pending={autosaveStatus === 'pending'}
@@ -594,7 +601,9 @@
 				{:else if autosaveStatus === 'saving'}
 					<span class="autosave-dot autosave-dot--pulse"></span> Saving draft...
 				{:else if autosaveStatus === 'saved'}
-					<span class="autosave-dot autosave-dot--green"></span> Saved {formatAutosaveRelative(lastSavedAt)}
+					<span class="autosave-dot autosave-dot--green"></span> Saved {formatAutosaveRelative(
+						lastSavedAt
+					)}
 				{:else if autosaveStatus === 'error'}
 					<span class="autosave-dot autosave-dot--red"></span> Autosave failed
 				{/if}
@@ -646,7 +655,11 @@
 								disabled={saving}
 							>
 								<PaperPlane size={16} weight="bold" />
-								<span>{mode === 'edit' && post?.status === 'published' ? 'Update' : 'Publish'}</span>
+								<span
+									>{mode === 'edit' && post?.status === 'published'
+										? 'Update'
+										: 'Publish'}</span
+								>
 							</button>
 						{/if}
 					</div>
@@ -758,7 +771,12 @@
 					{/if}
 
 					<label class="sidebar-field sidebar-field--inline">
-						<input id="post-sticky" name="post-sticky" type="checkbox" bind:checked={isSticky} />
+						<input
+							id="post-sticky"
+							name="post-sticky"
+							type="checkbox"
+							bind:checked={isSticky}
+						/>
 						<span>Sticky post</span>
 					</label>
 
@@ -956,7 +974,10 @@
 									alt="Featured"
 									style="object-position: {focalX * 100}% {focalY * 100}%"
 								/>
-								<span class="focal-dot" style="left:{focalX * 100}%;top:{focalY * 100}%"></span>
+								<span
+									class="focal-dot"
+									style="left:{focalX * 100}%;top:{focalY * 100}%"
+								></span>
 							</div>
 							<p class="focal-hint">Click image to set focal point</p>
 							<button class="featured-remove" onclick={removeFeaturedImage}>
@@ -1009,7 +1030,9 @@
 
 					<label class="sidebar-field">
 						<span class="sidebar-field__label">
-							Meta description <span class="char-count">({metaDescription.length}/160)</span>
+							Meta description <span class="char-count"
+								>({metaDescription.length}/160)</span
+							>
 						</span>
 						<textarea
 							id="post-meta-description"
@@ -1079,7 +1102,11 @@
 				<div class="sidebar-section__content">
 					<div class="social-card">
 						{#if featuredImageUrl || ogImageUrl}
-							<img class="social-card__img" src={ogImageUrl || featuredImageUrl} alt="" />
+							<img
+								class="social-card__img"
+								src={ogImageUrl || featuredImageUrl}
+								alt=""
+							/>
 						{:else}
 							<div class="social-card__placeholder">No image set</div>
 						{/if}
@@ -1103,7 +1130,9 @@
 							{#each revisions.slice(0, 10) as rev (rev.id)}
 								<div class="revision-item">
 									<div class="revision-item__info">
-										<span class="revision-item__number">#{rev.revision_number}</span>
+										<span class="revision-item__number"
+											>#{rev.revision_number}</span
+										>
 										<span class="revision-item__author">{rev.author_name}</span>
 										<span class="revision-item__date">
 											{new Date(rev.created_at).toLocaleDateString('en-US', {
@@ -1114,7 +1143,10 @@
 											})}
 										</span>
 									</div>
-									<button class="revision-item__restore" onclick={() => restoreRevision(rev.id)}>
+									<button
+										class="revision-item__restore"
+										onclick={() => restoreRevision(rev.id)}
+									>
 										<ArrowCounterClockwise size={14} weight="bold" />
 										<span>Restore</span>
 									</button>
@@ -1249,8 +1281,13 @@
 	}
 
 	@keyframes pulse-dot {
-		0%, 100% { opacity: 1; }
-		50% { opacity: 0.3; }
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.3;
+		}
 	}
 
 	/* Sidebar */

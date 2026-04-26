@@ -68,7 +68,9 @@ class ToastStore {
 	private push(variant: ToastVariant, title: string, options: ToastOptions = {}): string {
 		const id = generateId();
 		const duration =
-			typeof options.duration === 'number' ? options.duration : DEFAULT_DURATION_BY_VARIANT[variant];
+			typeof options.duration === 'number'
+				? options.duration
+				: DEFAULT_DURATION_BY_VARIANT[variant];
 		const item: ToastItem = {
 			id,
 			variant,

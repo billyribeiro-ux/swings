@@ -28,7 +28,10 @@ export default defineConfig(
 			// typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.
 			// see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors
 			'no-undef': 'off',
-			'@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }]
+			'@typescript-eslint/no-unused-vars': [
+				'warn',
+				{ argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
+			]
 		}
 	},
 	{
@@ -42,11 +45,20 @@ export default defineConfig(
 			}
 		},
 		rules: {
-			'svelte/no-navigation-without-resolve': 'off',
-			'svelte/require-each-key': 'off',
-			'svelte/no-dom-manipulating': 'off',
-			'svelte/no-at-html-tags': 'off',
-			'svelte/no-unused-svelte-ignore': 'off'
+			// `require-each-key` (each block keys), `no-dom-manipulating`, `no-at-html-tags` and
+			// `no-unused-svelte-ignore` are all back at their default `error` level. Every existing
+			// `{@html …}` site has a targeted `eslint-disable-next-line` comment with a one-line WHY:
+			// content is either statically authored marketing copy or sanitized via DOMPurify in
+			// `$lib/utils/safeHtml`.
+			//
+			// `svelte/no-navigation-without-resolve` is intentionally held at `warn`. The SvelteKit 2
+			// `resolve()` migration is a 232-warning / 73-file mechanical sweep that is out of scope
+			// for the audit-fix pass. Tracked as a follow-up; see AUDIT_FIX_PLAN.md Phase 6.1.
+			'svelte/no-navigation-without-resolve': 'warn',
+			'svelte/require-each-key': 'error',
+			'svelte/no-dom-manipulating': 'error',
+			'svelte/no-at-html-tags': 'error',
+			'svelte/no-unused-svelte-ignore': 'error'
 		}
 	}
 );

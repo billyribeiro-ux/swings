@@ -18,8 +18,11 @@
 	import { toasts as defaultStore } from '$lib/stores/toasts.svelte';
 	import type { ToastRegionProps as Props } from './ToastRegion.types';
 
-	const { position = 'bottom-end', store = defaultStore, label = 'Notifications' }: Props =
-		$props();
+	const {
+		position = 'bottom-end',
+		store = defaultStore,
+		label = 'Notifications'
+	}: Props = $props();
 </script>
 
 <div

@@ -69,13 +69,20 @@
 			.attr('x2', '0%')
 			.attr('y2', '100%');
 
-		gradient.append('stop').attr('offset', '0%').attr('stop-color', '#0fa4af').attr('stop-opacity', 0.5);
-		gradient.append('stop').attr('offset', '100%').attr('stop-color', '#0fa4af').attr('stop-opacity', 0.02);
+		gradient
+			.append('stop')
+			.attr('offset', '0%')
+			.attr('stop-color', '#0fa4af')
+			.attr('stop-opacity', 0.5);
+		gradient
+			.append('stop')
+			.attr('offset', '100%')
+			.attr('stop-color', '#0fa4af')
+			.attr('stop-opacity', 0.02);
 
 		// Clip path for animation
 		const clipId = 'revenue-clip';
-		defs
-			.append('clipPath')
+		defs.append('clipPath')
 			.attr('id', clipId)
 			.append('rect')
 			.attr('x', 0)
@@ -229,7 +236,12 @@
 			const d0 = data[i - 1];
 			const d1 = data[i];
 			if (!d0) return;
-			const d = d1 && x0.getTime() - parseDate(d0.date).getTime() > parseDate(d1.date).getTime() - x0.getTime() ? d1 : d0;
+			const d =
+				d1 &&
+				x0.getTime() - parseDate(d0.date).getTime() >
+					parseDate(d1.date).getTime() - x0.getTime()
+					? d1
+					: d0;
 
 			const px = xScale(parseDate(d.date));
 			const py = yScale(d.revenue_cents);
@@ -242,6 +254,8 @@
 				tooltipEl.style.opacity = '1';
 				tooltipEl.style.left = `${px + margin.left}px`;
 				tooltipEl.style.top = `${py + margin.top - 50}px`;
+				// D3 mouseover handler writes formatted (date + currency) values into a bound element; values are not user input.
+				// eslint-disable-next-line svelte/no-dom-manipulating
 				tooltipEl.innerHTML = `
 					<div class="rc-tooltip__date">${formatDate(d.date)}</div>
 					<div class="rc-tooltip__value">${formatDollars(d.revenue_cents)}</div>

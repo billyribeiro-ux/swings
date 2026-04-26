@@ -10,14 +10,7 @@
 		onaction?: () => void;
 	}
 
-	let {
-		icon,
-		title,
-		description,
-		actionLabel,
-		actionHref,
-		onaction
-	}: Props = $props();
+	let { icon, title, description, actionLabel, actionHref, onaction }: Props = $props();
 
 	function handleActionClick() {
 		onaction?.();

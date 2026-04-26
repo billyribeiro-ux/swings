@@ -43,24 +43,13 @@
 	import './forms.css';
 	import { onMount, tick } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
-	import {
-		loadPartial,
-		savePartial,
-		submitForm
-	} from '$lib/api/forms';
+	import { loadPartial, savePartial, submitForm } from '$lib/api/forms';
 	import { validate } from '$lib/forms/validate';
 	import type { ValidationError, FormDataMap } from './types.ts';
 	import FormField from './FormField.svelte';
 	import StepProgress from './StepProgress.svelte';
 
-	const {
-		slug,
-		schema,
-		logic = [],
-		settings,
-		onSuccess,
-		onError
-	}: FormRendererProps = $props();
+	const { slug, schema, logic = [], settings, onSuccess, onError }: FormRendererProps = $props();
 
 	// ── Reactive state ───────────────────────────────────────────────────
 	let data = $state<Record<string, unknown>>({});
@@ -101,7 +90,10 @@
 			case 'and':
 				return (cond.conditions ?? []).every((c) => evaluateCondition(c, d));
 			case 'or':
-				return (cond.conditions ?? []).length > 0 && (cond.conditions ?? []).some((c) => evaluateCondition(c, d));
+				return (
+					(cond.conditions ?? []).length > 0 &&
+					(cond.conditions ?? []).some((c) => evaluateCondition(c, d))
+				);
 			default:
 				return false;
 		}
@@ -121,7 +113,8 @@
 			else if (a.kind === 'show' && a.field) shown.add(a.field);
 			else if (a.kind === 'require_field' && a.field) required.add(a.field);
 			else if (a.kind === 'skip_step' && typeof a.step === 'number') skippedSteps.add(a.step);
-			else if (a.kind === 'set_value' && a.field) setValues.push({ field: a.field, value: a.value });
+			else if (a.kind === 'set_value' && a.field)
+				setValues.push({ field: a.field, value: a.value });
 		}
 		return { hidden, shown, required, skippedSteps, setValues };
 	});
@@ -313,7 +306,8 @@
 			tabindex="-1"
 		>
 			<p class="fm-error-summary__title">
-				There {errors.length === 1 ? 'is 1 problem' : `are ${errors.length} problems`} with your submission.
+				There {errors.length === 1 ? 'is 1 problem' : `are ${errors.length} problems`} with your
+				submission.
 			</p>
 			<ul class="fm-error-summary__list">
 				{#each errors as e (e.field_key + e.code)}
@@ -334,7 +328,7 @@
 					<FormField
 						field={{ ...field, required: isFieldRequired(field) }}
 						value={data[field.key]}
-						data={data}
+						{data}
 						error={errors.find((e) => e.field_key === field.key)?.message}
 						disabled={submitting}
 						onChange={setField}
@@ -361,12 +355,22 @@
 
 		<div class="fm-actions">
 			{#if isMultiStep && currentStep > 0}
-				<button type="button" class="fm-btn fm-btn--ghost" onclick={goPrev} disabled={submitting}>
+				<button
+					type="button"
+					class="fm-btn fm-btn--ghost"
+					onclick={goPrev}
+					disabled={submitting}
+				>
 					Back
 				</button>
 			{/if}
 			{#if isMultiStep && currentStep < totalSteps - 1}
-				<button type="button" class="fm-btn fm-btn--primary" onclick={goNext} disabled={submitting}>
+				<button
+					type="button"
+					class="fm-btn fm-btn--primary"
+					onclick={goNext}
+					disabled={submitting}
+				>
 					Next
 				</button>
 			{:else}

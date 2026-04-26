@@ -132,7 +132,9 @@
 								class:legal__toc-link--active={activeId === s.id}
 								aria-current={activeId === s.id ? 'location' : undefined}
 							>
-								<span class="legal__toc-index">{String(i + 1).padStart(2, '0')}</span>
+								<span class="legal__toc-index"
+									>{String(i + 1).padStart(2, '0')}</span
+								>
 								<span class="legal__toc-label">{s.label}</span>
 							</a>
 						</li>
@@ -152,7 +154,9 @@
 					<h3 id="legal-contact-heading" class="legal__contact-title">Questions?</h3>
 					<p class="legal__contact-text">
 						Our team is here to help. Reach us at
-						<a href={`mailto:${contactEmail}`} class="legal__contact-link">{contactEmail}</a>
+						<a href={`mailto:${contactEmail}`} class="legal__contact-link"
+							>{contactEmail}</a
+						>
 						and we'll respond within one business day.
 					</p>
 				</div>
@@ -186,11 +190,7 @@
 		position: absolute;
 		inset: 0;
 		background-image:
-			radial-gradient(
-				ellipse 60% 40% at 50% 0%,
-				rgba(15, 164, 175, 0.15),
-				transparent 60%
-			),
+			radial-gradient(ellipse 60% 40% at 50% 0%, rgba(15, 164, 175, 0.15), transparent 60%),
 			linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
 			linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
 		background-size:
@@ -354,11 +354,7 @@
 		padding: 1.25rem 1rem;
 		border-radius: var(--radius-xl);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		background: linear-gradient(
-			165deg,
-			rgba(19, 43, 80, 0.55) 0%,
-			rgba(12, 27, 46, 0.65) 100%
-		);
+		background: linear-gradient(165deg, rgba(19, 43, 80, 0.55) 0%, rgba(12, 27, 46, 0.65) 100%);
 		backdrop-filter: blur(12px) saturate(1.1);
 	}
 
@@ -522,7 +518,9 @@
 		text-decoration: underline;
 		text-decoration-color: rgba(15, 164, 175, 0.4);
 		text-underline-offset: 3px;
-		transition: color 180ms var(--ease-out), text-decoration-color 180ms var(--ease-out);
+		transition:
+			color 180ms var(--ease-out),
+			text-decoration-color 180ms var(--ease-out);
 	}
 
 	:global(.legal__article.prose a:hover) {

@@ -133,7 +133,7 @@ app = app.route("/metrics", metrics_route);
 ```
 
 Then adjust the `.layer(…)` chain at the bottom of the router
-composition to include, *before* `TraceLayer`:
+composition to include, _before_ `TraceLayer`:
 
 ```rust
 let app = app
@@ -161,7 +161,7 @@ wraps the outermost. With the composition above:
 5. `Extension(metrics_handle)` is innermost → the `/metrics` handler
    pulls the handle via `Extension<PrometheusHandle>`.
 
-If the integrator places `correlation::layer` *after* `http_middleware`,
+If the integrator places `correlation::layer` _after_ `http_middleware`,
 metric observations still work but the log events the HTTP middleware
 emits (via `tracing::debug!` or similar) lose their `request_id` field.
 Keep the order above.
@@ -170,11 +170,11 @@ Keep the order above.
 
 ## 4. Env vars
 
-| Var          | Values            | Default                          | Effect                                          |
-| ------------ | ----------------- | -------------------------------- | ----------------------------------------------- |
-| `LOG_FORMAT` | `json` \| `pretty` | auto (json if APP_ENV=production) | Force log format regardless of APP_ENV.         |
-| `APP_ENV`    | `production`, else | `development`                    | Secondary signal; `json` when `=production`.     |
-| `RUST_LOG`   | tracing filter    | `swings_api=debug,tower_http=debug` | Filter passed to `EnvFilter::try_from_default_env`. |
+| Var          | Values             | Default                             | Effect                                              |
+| ------------ | ------------------ | ----------------------------------- | --------------------------------------------------- |
+| `LOG_FORMAT` | `json` \| `pretty` | auto (json if APP_ENV=production)   | Force log format regardless of APP_ENV.             |
+| `APP_ENV`    | `production`, else | `development`                       | Secondary signal; `json` when `=production`.        |
+| `RUST_LOG`   | tracing filter     | `swings_api=debug,tower_http=debug` | Filter passed to `EnvFilter::try_from_default_env`. |
 
 No new secrets — correlation ids are generated locally; metrics are
 served over the same port as the API behind the admin gate.
@@ -203,11 +203,11 @@ curl -i -H 'X-Request-Id: test-id-0123456789abcdef' \
 
 Expected:
 
-* `/metrics` returns `200 OK` with `Content-Type: text/plain; version=0.0.4; charset=utf-8`.
-* The body starts with `# HELP http_requests_total …` (and the rest of
+- `/metrics` returns `200 OK` with `Content-Type: text/plain; version=0.0.4; charset=utf-8`.
+- The body starts with `# HELP http_requests_total …` (and the rest of
   the catalogue).
-* Subsequent requests increase the `http_requests_total{route="/api/blog",…}` sample.
-* Every response carries an `X-Request-Id` header.
+- Subsequent requests increase the `http_requests_total{route="/api/blog",…}` sample.
+- Every response carries an `X-Request-Id` header.
 
 After verification, unignore the E2E observability test:
 
@@ -222,13 +222,13 @@ once the wiring lands.
 
 ## 6. Non-scope (explicitly deferred)
 
-* **OpenTelemetry**: traces + OTLP exporter are Phase 5. The JSON log
+- **OpenTelemetry**: traces + OTLP exporter are Phase 5. The JSON log
   format carries `request_id` so pivoting from logs → traces is possible
   by trace-id propagation as a follow-up.
-* **Alerts**: PagerDuty / Grafana wiring lives at the
+- **Alerts**: PagerDuty / Grafana wiring lives at the
   infrastructure repo level; metric names here are chosen to match the
   catalogue in `../archive/AUDIT_PHASE3_PLAN.md` §11.
-* **Per-handler business spans**: every handler already uses
+- **Per-handler business spans**: every handler already uses
   `#[tracing::instrument(…)]`; correlation-id binding is enough to tie
   logs back to a request. Business-level span conventions
   (`checkout.create_session` et al. from §11) are a FDN-05/EC-05 scope

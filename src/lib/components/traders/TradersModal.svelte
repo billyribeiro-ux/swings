@@ -65,7 +65,8 @@
 					<div in:fly={{ y: 24, duration: 450, delay: 120, easing: expoOut }}>
 						<h2 class="modal-title">Meet The Traders</h2>
 						<p class="modal-subtitle">
-							Get to know the experts behind Precision Options Signals and their trading methodologies.
+							Get to know the experts behind Precision Options Signals and their
+							trading methodologies.
 						</p>
 
 						<div class="modal-grid">

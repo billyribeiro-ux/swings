@@ -304,9 +304,9 @@
 			<div class="page__copy">
 				<h1 class="page__title">DSAR &amp; right-to-erasure</h1>
 				<p class="page__subtitle">
-					Operator-driven Data Subject Access Requests. Exports compose synchronously or via a
-					background worker. Erasures are dual-control: one admin requests, a different admin
-					approves.
+					Operator-driven Data Subject Access Requests. Exports compose synchronously or
+					via a background worker. Erasures are dual-control: one admin requests, a
+					different admin approves.
 				</p>
 			</div>
 		</div>
@@ -531,9 +531,13 @@
 					<tbody>
 						{#each envelope.data as job (job.id)}
 							<tr>
-								<td class="table__ts">{new Date(job.created_at).toLocaleString()}</td>
+								<td class="table__ts"
+									>{new Date(job.created_at).toLocaleString()}</td
+								>
 								<td>
-									<span class="pill pill--kind pill--kind-{job.kind}">{job.kind}</span>
+									<span class="pill pill--kind pill--kind-{job.kind}"
+										>{job.kind}</span
+									>
 								</td>
 								<td>
 									<span class="pill {statusClass(job.status)}">{job.status}</span>
@@ -573,13 +577,17 @@
 												{#if downloadingId === job.id}
 													…
 												{:else}
-													Download{#if hint}<span class="ttl-hint"> · {hint}</span>{/if}
+													Download{#if hint}<span class="ttl-hint">
+															· {hint}</span
+														>{/if}
 												{/if}
 											</span>
 										</button>
 									{/if}
 									{#if job.kind === 'export' && (job.status === 'pending' || job.status === 'composing')}
-										<span class="pill pill--warn" title="Worker in flight">queued</span>
+										<span class="pill pill--warn" title="Worker in flight"
+											>queued</span
+										>
 									{/if}
 									{#if job.kind === 'erase' && job.status === 'pending'}
 										<button
@@ -623,7 +631,11 @@
 												data-testid="dsar-approve-confirm"
 											>
 												<TrashIcon size={14} weight="bold" />
-												<span>{approveBusy ? 'Tombstoning…' : 'Confirm tombstone'}</span>
+												<span
+													>{approveBusy
+														? 'Tombstoning…'
+														: 'Confirm tombstone'}</span
+												>
 											</button>
 											<button
 												class="btn btn--secondary"
@@ -672,64 +684,71 @@
 		</div>
 	{/if}
 
-	<Drawer
-		open={selected !== null}
-		onclose={() => (selected = null)}
-		title="DSAR job"
-		size="lg"
-	>
+	<Drawer open={selected !== null} onclose={() => (selected = null)} title="DSAR job" size="lg">
 		{#if selected}
 			<div data-testid="dsar-drawer">
-			<dl class="drawer__meta">
-				<dt>Id</dt><dd><code>{selected.id}</code></dd>
-				<dt>Kind</dt><dd>{selected.kind}</dd>
-				<dt>Status</dt><dd>{selected.status}</dd>
-				<dt>Target</dt><dd><code>{selected.target_user_id}</code></dd>
-				<dt>Created</dt><dd>{new Date(selected.created_at).toLocaleString()}</dd>
-				<dt>Updated</dt><dd>{new Date(selected.updated_at).toLocaleString()}</dd>
-				<dt>Requested by</dt><dd><code>{selected.requested_by}</code></dd>
-				<dt>Request reason</dt><dd>{selected.request_reason}</dd>
-				{#if selected.approved_by}
-					<dt>Approved by</dt><dd><code>{selected.approved_by}</code></dd>
+				<dl class="drawer__meta">
+					<dt>Id</dt>
+					<dd><code>{selected.id}</code></dd>
+					<dt>Kind</dt>
+					<dd>{selected.kind}</dd>
+					<dt>Status</dt>
+					<dd>{selected.status}</dd>
+					<dt>Target</dt>
+					<dd><code>{selected.target_user_id}</code></dd>
+					<dt>Created</dt>
+					<dd>{new Date(selected.created_at).toLocaleString()}</dd>
+					<dt>Updated</dt>
+					<dd>{new Date(selected.updated_at).toLocaleString()}</dd>
+					<dt>Requested by</dt>
+					<dd><code>{selected.requested_by}</code></dd>
+					<dt>Request reason</dt>
+					<dd>{selected.request_reason}</dd>
+					{#if selected.approved_by}
+						<dt>Approved by</dt>
+						<dd><code>{selected.approved_by}</code></dd>
+					{/if}
+					{#if selected.approval_reason}
+						<dt>Approval reason</dt>
+						<dd>{selected.approval_reason}</dd>
+					{/if}
+					{#if selected.completed_at}
+						<dt>Completed</dt>
+						<dd>{new Date(selected.completed_at).toLocaleString()}</dd>
+					{/if}
+					{#if selected.failure_reason}
+						<dt>Failure</dt>
+						<dd>{selected.failure_reason}</dd>
+					{/if}
+					{#if selected.artifact_kind}
+						<dt>Artefact</dt>
+						<dd>
+							<code>{selected.artifact_kind}</code>
+							{#if selected.artifact_storage_key}
+								·&nbsp;<code title={selected.artifact_storage_key}>
+									{selected.artifact_storage_key.length > 32
+										? selected.artifact_storage_key.slice(0, 32) + '…'
+										: selected.artifact_storage_key}
+								</code>
+							{/if}
+						</dd>
+					{/if}
+					{#if selected.artifact_expires_at}
+						<dt>Expires</dt>
+						<dd>
+							{new Date(selected.artifact_expires_at).toLocaleString()}
+							{#if expiryHint(selected)}
+								·&nbsp;<span class="muted-inline">{expiryHint(selected)}</span>
+							{/if}
+						</dd>
+					{/if}
+				</dl>
+				{#if selected.erasure_summary}
+					<details open>
+						<summary>Erasure summary</summary>
+						<pre class="json">{formatJson(selected.erasure_summary)}</pre>
+					</details>
 				{/if}
-				{#if selected.approval_reason}
-					<dt>Approval reason</dt><dd>{selected.approval_reason}</dd>
-				{/if}
-				{#if selected.completed_at}
-					<dt>Completed</dt><dd>{new Date(selected.completed_at).toLocaleString()}</dd>
-				{/if}
-				{#if selected.failure_reason}
-					<dt>Failure</dt><dd>{selected.failure_reason}</dd>
-				{/if}
-				{#if selected.artifact_kind}
-					<dt>Artefact</dt>
-					<dd>
-						<code>{selected.artifact_kind}</code>
-						{#if selected.artifact_storage_key}
-							·&nbsp;<code title={selected.artifact_storage_key}>
-								{selected.artifact_storage_key.length > 32
-									? selected.artifact_storage_key.slice(0, 32) + '…'
-									: selected.artifact_storage_key}
-							</code>
-						{/if}
-					</dd>
-				{/if}
-				{#if selected.artifact_expires_at}
-					<dt>Expires</dt>
-					<dd>
-						{new Date(selected.artifact_expires_at).toLocaleString()}
-						{#if expiryHint(selected)}
-							·&nbsp;<span class="muted-inline">{expiryHint(selected)}</span>
-						{/if}
-					</dd>
-				{/if}
-			</dl>
-			{#if selected.erasure_summary}
-				<details open>
-					<summary>Erasure summary</summary>
-					<pre class="json">{formatJson(selected.erasure_summary)}</pre>
-				</details>
-			{/if}
 			</div>
 		{/if}
 		{#snippet footer()}

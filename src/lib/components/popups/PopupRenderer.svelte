@@ -18,7 +18,11 @@
 
 	const style = $derived(popup.style_json);
 	const elements = $derived(popup.content_json?.elements ?? []);
-	const isFormPopup = $derived(elements.some((el: PopupElement) => ['input', 'email', 'textarea', 'select', 'checkbox', 'radio'].includes(el.type)));
+	const isFormPopup = $derived(
+		elements.some((el: PopupElement) =>
+			['input', 'email', 'textarea', 'select', 'checkbox', 'radio'].includes(el.type)
+		)
+	);
 
 	onMount(() => {
 		requestAnimationFrame(() => {
@@ -27,7 +31,10 @@
 	});
 
 	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape' && (popup.popup_type === 'modal' || popup.popup_type === 'fullscreen')) {
+		if (
+			e.key === 'Escape' &&
+			(popup.popup_type === 'modal' || popup.popup_type === 'fullscreen')
+		) {
 			onclose?.();
 		}
 	}
@@ -44,27 +51,39 @@
 
 	function getAnimationClass(animation: string): string {
 		switch (animation) {
-			case 'fade': return 'popup-anim--fade';
-			case 'slide_up': return 'popup-anim--slide-up';
-			case 'slide_down': return 'popup-anim--slide-down';
-			case 'slide_left': return 'popup-anim--slide-left';
-			case 'slide_right': return 'popup-anim--slide-right';
-			case 'scale': return 'popup-anim--scale';
-			default: return '';
+			case 'fade':
+				return 'popup-anim--fade';
+			case 'slide_up':
+				return 'popup-anim--slide-up';
+			case 'slide_down':
+				return 'popup-anim--slide-down';
+			case 'slide_left':
+				return 'popup-anim--slide-left';
+			case 'slide_right':
+				return 'popup-anim--slide-right';
+			case 'scale':
+				return 'popup-anim--scale';
+			default:
+				return '';
 		}
 	}
 
 	function getPositionClass(popupType: string): string {
 		switch (popupType) {
-			case 'modal': return 'popup-pos--modal';
-			case 'slide_in': return 'popup-pos--slide-in';
-			case 'banner': return 'popup-pos--banner';
-			case 'fullscreen': return 'popup-pos--fullscreen';
-			case 'floating_bar': return 'popup-pos--floating-bar';
-			default: return 'popup-pos--modal';
+			case 'modal':
+				return 'popup-pos--modal';
+			case 'slide_in':
+				return 'popup-pos--slide-in';
+			case 'banner':
+				return 'popup-pos--banner';
+			case 'fullscreen':
+				return 'popup-pos--fullscreen';
+			case 'floating_bar':
+				return 'popup-pos--floating-bar';
+			default:
+				return 'popup-pos--modal';
 		}
 	}
-
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -72,10 +91,14 @@
 <div
 	class="popup-wrapper {getPositionClass(popup.popup_type)}"
 	class:popup-wrapper--visible={visible}
-	class:popup-banner--bottom={popup.popup_type === 'banner' && popup.trigger_config?.position === 'bottom'}
-	class:popup-banner--top={popup.popup_type === 'banner' && popup.trigger_config?.position !== 'bottom'}
-	class:popup-floating--bottom={popup.popup_type === 'floating_bar' && popup.trigger_config?.position === 'bottom'}
-	class:popup-floating--top={popup.popup_type === 'floating_bar' && popup.trigger_config?.position !== 'bottom'}
+	class:popup-banner--bottom={popup.popup_type === 'banner' &&
+		popup.trigger_config?.position === 'bottom'}
+	class:popup-banner--top={popup.popup_type === 'banner' &&
+		popup.trigger_config?.position !== 'bottom'}
+	class:popup-floating--bottom={popup.popup_type === 'floating_bar' &&
+		popup.trigger_config?.position === 'bottom'}
+	class:popup-floating--top={popup.popup_type === 'floating_bar' &&
+		popup.trigger_config?.position !== 'bottom'}
 >
 	{#if style.backdrop && (popup.popup_type === 'modal' || popup.popup_type === 'fullscreen')}
 		<!-- The explicit `.popup-close` button + Escape key already provide
@@ -99,7 +122,9 @@
 			{style.padding ? `padding: ${style.padding};` : ''}
 			{style.shadow ? `box-shadow: ${style.shadow};` : ''}
 		"
-		role={popup.popup_type === 'modal' || popup.popup_type === 'fullscreen' ? 'dialog' : 'complementary'}
+		role={popup.popup_type === 'modal' || popup.popup_type === 'fullscreen'
+			? 'dialog'
+			: 'complementary'}
 		aria-label={popup.name}
 	>
 		<button
@@ -114,7 +139,9 @@
 		{#if submitted && popup.success_message}
 			<div class="popup-success">
 				<div class="popup-success__icon">&#10003;</div>
-				<p class="popup-success__text" style="color: {style.textColor || '#ffffff'}">{popup.success_message}</p>
+				<p class="popup-success__text" style="color: {style.textColor || '#ffffff'}">
+					{popup.success_message}
+				</p>
 			</div>
 		{:else}
 			<form onsubmit={handleFormSubmit} class="popup-form">
@@ -134,7 +161,6 @@
 						>
 							{props.text || ''}
 						</h2>
-
 					{:else if element.type === 'text'}
 						<p
 							class="popup-el popup-el--text"
@@ -147,11 +173,12 @@
 						>
 							{props.text || ''}
 						</p>
-
 					{:else if element.type === 'image'}
 						<div
 							class="popup-el popup-el--image"
-							style="{elStyle.marginBottom ? `margin-bottom: ${elStyle.marginBottom};` : ''}"
+							style={elStyle.marginBottom
+								? `margin-bottom: ${elStyle.marginBottom};`
+								: ''}
 						>
 							<img
 								src={String(props.src || '')}
@@ -164,38 +191,56 @@
 								"
 							/>
 						</div>
-
 					{:else if element.type === 'email' || element.type === 'input'}
 						<div
 							class="popup-el popup-el--field"
-							style="{elStyle.marginBottom ? `margin-bottom: ${elStyle.marginBottom};` : ''}"
+							style={elStyle.marginBottom
+								? `margin-bottom: ${elStyle.marginBottom};`
+								: ''}
 						>
 							{#if props.label}
-								<label class="popup-field__label" for="popup-field-{element.id}" style="color: {style.textColor || '#ffffff'}">
+								<label
+									class="popup-field__label"
+									for="popup-field-{element.id}"
+									style="color: {style.textColor || '#ffffff'}"
+								>
 									{props.label}
-									{#if props.required}<span class="popup-field__required">*</span>{/if}
+									{#if props.required}<span class="popup-field__required">*</span
+										>{/if}
 								</label>
 							{/if}
 							<input
 								id="popup-field-{element.id}"
-								type={element.type === 'email' ? 'email' : String(props.inputType || 'text')}
+								type={element.type === 'email'
+									? 'email'
+									: String(props.inputType || 'text')}
 								placeholder={String(props.placeholder || '')}
 								required={!!props.required}
 								class="popup-field__input"
 								style="--accent: {style.accentColor || '#0fa4af'}"
-								oninput={(e) => updateFormValue(String(props.name || element.id), (e.target as HTMLInputElement).value)}
+								oninput={(e) =>
+									updateFormValue(
+										String(props.name || element.id),
+										(e.target as HTMLInputElement).value
+									)}
 							/>
 						</div>
-
 					{:else if element.type === 'textarea'}
 						<div
 							class="popup-el popup-el--field"
-							style="{elStyle.marginBottom ? `margin-bottom: ${elStyle.marginBottom};` : ''}"
+							style={elStyle.marginBottom
+								? `margin-bottom: ${elStyle.marginBottom};`
+								: ''}
 						>
 							{#if props.label}
-								<label class="popup-field__label" for="popup-field-{element.id}" style="color: {style.textColor || '#ffffff'}">
+								<label
+									class="popup-field__label"
+									for="popup-field-{element.id}"
+									style="color: {style.textColor || '#ffffff'}"
+								>
 									{props.label}
-									{#if props.required}<span class="popup-field__required">*</span>{/if}
+									{#if props.required}<span class="popup-field__required">*</span
+										>{/if}
 								</label>
 							{/if}
 							<textarea
@@ -205,19 +250,29 @@
 								rows={Number(props.rows) || 3}
 								class="popup-field__textarea"
 								style="--accent: {style.accentColor || '#0fa4af'}"
-								oninput={(e) => updateFormValue(String(props.name || element.id), (e.target as HTMLTextAreaElement).value)}
+								oninput={(e) =>
+									updateFormValue(
+										String(props.name || element.id),
+										(e.target as HTMLTextAreaElement).value
+									)}
 							></textarea>
 						</div>
-
 					{:else if element.type === 'select'}
 						<div
 							class="popup-el popup-el--field"
-							style="{elStyle.marginBottom ? `margin-bottom: ${elStyle.marginBottom};` : ''}"
+							style={elStyle.marginBottom
+								? `margin-bottom: ${elStyle.marginBottom};`
+								: ''}
 						>
 							{#if props.label}
-								<label class="popup-field__label" for="popup-field-{element.id}" style="color: {style.textColor || '#ffffff'}">
+								<label
+									class="popup-field__label"
+									for="popup-field-{element.id}"
+									style="color: {style.textColor || '#ffffff'}"
+								>
 									{props.label}
-									{#if props.required}<span class="popup-field__required">*</span>{/if}
+									{#if props.required}<span class="popup-field__required">*</span
+										>{/if}
 								</label>
 							{/if}
 							<select
@@ -225,42 +280,64 @@
 								required={!!props.required}
 								class="popup-field__select"
 								style="--accent: {style.accentColor || '#0fa4af'}"
-								onchange={(e) => updateFormValue(String(props.name || element.id), (e.target as HTMLSelectElement).value)}
+								onchange={(e) =>
+									updateFormValue(
+										String(props.name || element.id),
+										(e.target as HTMLSelectElement).value
+									)}
 							>
 								{#if props.placeholder}
 									<option value="" disabled selected>{props.placeholder}</option>
 								{/if}
-								{#each (props.options as Array<{label: string; value: string}>) || [] as opt (opt.value)}
+								{#each (props.options as Array<{ label: string; value: string }>) || [] as opt (opt.value)}
 									<option value={opt.value}>{opt.label}</option>
 								{/each}
 							</select>
 						</div>
-
 					{:else if element.type === 'checkbox'}
 						<fieldset
 							class="popup-el popup-el--fieldset"
-							style="{elStyle.marginBottom ? `margin-bottom: ${elStyle.marginBottom};` : ''}"
+							style={elStyle.marginBottom
+								? `margin-bottom: ${elStyle.marginBottom};`
+								: ''}
 						>
 							{#if props.label}
-								<legend class="popup-field__label" style="color: {style.textColor || '#ffffff'}">
+								<legend
+									class="popup-field__label"
+									style="color: {style.textColor || '#ffffff'}"
+								>
 									{props.label}
 								</legend>
 							{/if}
 							<div class="popup-field__checks">
-								{#each (props.options as Array<{label: string; value: string}>) || [] as opt (opt.value)}
-									<label class="popup-field__check-label" style="color: {style.textColor || '#ffffff'}">
+								{#each (props.options as Array<{ label: string; value: string }>) || [] as opt (opt.value)}
+									<label
+										class="popup-field__check-label"
+										style="color: {style.textColor || '#ffffff'}"
+									>
 										<input
 											type="checkbox"
 											value={opt.value}
 											class="popup-field__check"
 											style="--accent: {style.accentColor || '#0fa4af'}"
 											onchange={() => {
-												const current = (formValues[String(props.name || element.id)] as string[]) || [];
+												const current =
+													(formValues[
+														String(props.name || element.id)
+													] as string[]) || [];
 												const idx = current.indexOf(opt.value);
 												if (idx >= 0) {
-													updateFormValue(String(props.name || element.id), current.filter((_: string, i: number) => i !== idx));
+													updateFormValue(
+														String(props.name || element.id),
+														current.filter(
+															(_: string, i: number) => i !== idx
+														)
+													);
 												} else {
-													updateFormValue(String(props.name || element.id), [...current, opt.value]);
+													updateFormValue(
+														String(props.name || element.id),
+														[...current, opt.value]
+													);
 												}
 											}}
 										/>
@@ -269,34 +346,44 @@
 								{/each}
 							</div>
 						</fieldset>
-
 					{:else if element.type === 'radio'}
 						<fieldset
 							class="popup-el popup-el--fieldset"
-							style="{elStyle.marginBottom ? `margin-bottom: ${elStyle.marginBottom};` : ''}"
+							style={elStyle.marginBottom
+								? `margin-bottom: ${elStyle.marginBottom};`
+								: ''}
 						>
 							{#if props.label}
-								<legend class="popup-field__label" style="color: {style.textColor || '#ffffff'}">
+								<legend
+									class="popup-field__label"
+									style="color: {style.textColor || '#ffffff'}"
+								>
 									{props.label}
 								</legend>
 							{/if}
 							<div class="popup-field__checks">
-								{#each (props.options as Array<{label: string; value: string}>) || [] as opt (opt.value)}
-									<label class="popup-field__check-label" style="color: {style.textColor || '#ffffff'}">
+								{#each (props.options as Array<{ label: string; value: string }>) || [] as opt (opt.value)}
+									<label
+										class="popup-field__check-label"
+										style="color: {style.textColor || '#ffffff'}"
+									>
 										<input
 											type="radio"
 											name="popup-radio-{element.id}"
 											value={opt.value}
 											class="popup-field__check"
 											style="--accent: {style.accentColor || '#0fa4af'}"
-											onchange={() => updateFormValue(String(props.name || element.id), opt.value)}
+											onchange={() =>
+												updateFormValue(
+													String(props.name || element.id),
+													opt.value
+												)}
 										/>
 										<span>{opt.label}</span>
 									</label>
 								{/each}
 							</div>
 						</fieldset>
-
 					{:else if element.type === 'button'}
 						<div
 							class="popup-el popup-el--button-wrap"
@@ -326,7 +413,6 @@
 								{props.text || 'Submit'}
 							</button>
 						</div>
-
 					{:else if element.type === 'divider'}
 						<hr
 							class="popup-el popup-el--divider"
@@ -336,7 +422,6 @@
 								{elStyle.marginBottom ? `margin-bottom: ${elStyle.marginBottom};` : ''}
 							"
 						/>
-
 					{:else if element.type === 'spacer'}
 						<div
 							class="popup-el popup-el--spacer"
@@ -365,8 +450,12 @@
 	}
 
 	@keyframes popup-backdrop-in {
-		from { opacity: 0; }
-		to { opacity: 1; }
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
 	}
 
 	/* Wrapper positioning */
@@ -473,7 +562,9 @@
 	.popup-anim--slide-up {
 		opacity: 0;
 		transform: translateY(24px);
-		transition: opacity 300ms ease-out, transform 300ms ease-out;
+		transition:
+			opacity 300ms ease-out,
+			transform 300ms ease-out;
 	}
 
 	.popup-anim--slide-up.popup-container--visible {
@@ -484,7 +575,9 @@
 	.popup-anim--slide-down {
 		opacity: 0;
 		transform: translateY(-24px);
-		transition: opacity 300ms ease-out, transform 300ms ease-out;
+		transition:
+			opacity 300ms ease-out,
+			transform 300ms ease-out;
 	}
 
 	.popup-anim--slide-down.popup-container--visible {
@@ -495,7 +588,9 @@
 	.popup-anim--slide-left {
 		opacity: 0;
 		transform: translateX(24px);
-		transition: opacity 300ms ease-out, transform 300ms ease-out;
+		transition:
+			opacity 300ms ease-out,
+			transform 300ms ease-out;
 	}
 
 	.popup-anim--slide-left.popup-container--visible {
@@ -506,7 +601,9 @@
 	.popup-anim--slide-right {
 		opacity: 0;
 		transform: translateX(-24px);
-		transition: opacity 300ms ease-out, transform 300ms ease-out;
+		transition:
+			opacity 300ms ease-out,
+			transform 300ms ease-out;
 	}
 
 	.popup-anim--slide-right.popup-container--visible {
@@ -517,7 +614,9 @@
 	.popup-anim--scale {
 		opacity: 0;
 		transform: scale(0.9);
-		transition: opacity 300ms ease-out, transform 300ms ease-out;
+		transition:
+			opacity 300ms ease-out,
+			transform 300ms ease-out;
 	}
 
 	.popup-anim--scale.popup-container--visible {
@@ -684,7 +783,9 @@
 		font-size: var(--fs-sm);
 		font-weight: var(--w-semibold);
 		cursor: pointer;
-		transition: opacity 200ms ease-out, transform 200ms ease-out;
+		transition:
+			opacity 200ms ease-out,
+			transform 200ms ease-out;
 	}
 
 	.popup-btn:hover {

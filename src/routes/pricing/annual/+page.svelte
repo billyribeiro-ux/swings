@@ -182,12 +182,22 @@
 	<div class="page-container">
 		<ScrollReveal>
 			<div class="price-features page-narrow">
-				<h2 class="page-section__heading page-section__heading--center">Everything Included</h2>
+				<h2 class="page-section__heading page-section__heading--center">
+					Everything Included
+				</h2>
 
 				<div class="feature-list">
 					{#each features as feature, i (feature)}
-						<div class="reveal-item feature-list__item" style="transition-delay: {i * 0.06}s">
-							<CheckCircleIcon size={24} weight="fill" color="#0FA4AF" class="feature-list__icon" />
+						<div
+							class="reveal-item feature-list__item"
+							style="transition-delay: {i * 0.06}s"
+						>
+							<CheckCircleIcon
+								size={24}
+								weight="fill"
+								color="#0FA4AF"
+								class="feature-list__icon"
+							/>
 							<p class="feature-list__text">{feature}</p>
 						</div>
 					{/each}
@@ -219,7 +229,9 @@
 						>
 					</div>
 					<div class="comparison-card__row">
-						<span class="comparison-card__label comparison-card__label--green">You Save</span>
+						<span class="comparison-card__label comparison-card__label--green"
+							>You Save</span
+						>
 						<span class="comparison-card__value comparison-card__value--green-lg"
 							>{'$' + annualSavingsUsd}</span
 						>
@@ -240,8 +252,8 @@
 				</h2>
 
 				<p class="reveal-item page-cta__desc">
-					Get 12 months of weekly watchlists and save {'$' + annualSavingsUsd} compared to
-					paying monthly.
+					Get 12 months of weekly watchlists and save {'$' + annualSavingsUsd} compared to paying
+					monthly.
 				</p>
 
 				<div class="reveal-item page-cta__actions">

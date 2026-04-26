@@ -121,7 +121,9 @@
 
 				<div class="post-header__meta">
 					{#each post.categories as cat (cat.id ?? cat.slug)}
-						<a href="/blog/category/{cat.slug}" class="post-header__category">{cat.name}</a>
+						<a href="/blog/category/{cat.slug}" class="post-header__category"
+							>{cat.name}</a
+						>
 					{/each}
 				</div>
 
@@ -138,11 +140,14 @@
 					</span>
 					<span class="post-header__info-item">
 						<CalendarBlankIcon size={16} weight="bold" />
-						{new Date(post.published_at || post.created_at).toLocaleDateString('en-US', {
-							month: 'long',
-							day: 'numeric',
-							year: 'numeric'
-						})}
+						{new Date(post.published_at || post.created_at).toLocaleDateString(
+							'en-US',
+							{
+								month: 'long',
+								day: 'numeric',
+								year: 'numeric'
+							}
+						)}
 					</span>
 					<span class="post-header__info-item">
 						<ClockIcon size={16} weight="bold" />
@@ -173,6 +178,7 @@
 
 		<div class="post-body">
 			<div class="post-content">
+				<!-- eslint-disable-next-line svelte/no-at-html-tags -- blog content sanitized via DOMPurify in safeHtml() -->
 				{@html safeHtml(post.content)}
 			</div>
 
@@ -199,7 +205,9 @@
 							decoding="async"
 						/>
 					{:else}
-						<div class="author-box__placeholder"><UserIcon size={36} weight="thin" /></div>
+						<div class="author-box__placeholder">
+							<UserIcon size={36} weight="thin" />
+						</div>
 					{/if}
 				</div>
 				<div class="author-box__info">

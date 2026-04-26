@@ -51,16 +51,16 @@ pnpm workspace plus a Cargo crate at `backend/`.
                        /metrics
 ```
 
-* **Frontend** — SvelteKit (Svelte 5 runes), TailwindCSS v4, GSAP, Three.js,
+- **Frontend** — SvelteKit (Svelte 5 runes), TailwindCSS v4, GSAP, Three.js,
   Tiptap. Deployed to Vercel via `@sveltejs/adapter-vercel`.
-* **Backend** — Axum-on-Tokio with SQLx and an in-process worker pool for
+- **Backend** — Axum-on-Tokio with SQLx and an in-process worker pool for
   background tasks (DSAR export, audit-log retention, idempotency-cache GC,
   artefact TTL sweep). Built and shipped from `backend/`.
-* **Database** — PostgreSQL 16 with 67 forward-only `sqlx` migrations
+- **Database** — PostgreSQL 16 with 67 forward-only `sqlx` migrations
   in `backend/migrations/` (versions 001–075, gap-tolerant).
-* **Object storage** — Cloudflare R2 (S3-compatible) for media and DSAR
+- **Object storage** — Cloudflare R2 (S3-compatible) for media and DSAR
   exports, with a `Local` filesystem fallback for development.
-* **Observability** — Prometheus metrics on `/metrics`; provisioning-ready
+- **Observability** — Prometheus metrics on `/metrics`; provisioning-ready
   rules and Grafana dashboard live in [`ops/`](./ops/).
 
 For the full RBAC/audit/security model, see
@@ -105,14 +105,14 @@ For the full RBAC/audit/security model, see
 
 ### Prerequisites
 
-| Tool       | Version            | Notes                                          |
-| ---------- | ------------------ | ---------------------------------------------- |
-| Node.js    | `>=24.14.1`        | Pinned in `package.json#engines`               |
-| pnpm       | `10.33.0`          | `corepack enable` then `corepack prepare`      |
-| Rust       | `1.83+` stable     | `rustup default stable`                        |
-| PostgreSQL | `16.x`             | Local install or via `docker compose up -d db` |
+| Tool       | Version            | Notes                                                              |
+| ---------- | ------------------ | ------------------------------------------------------------------ |
+| Node.js    | `>=24.14.1`        | Pinned in `package.json#engines`                                   |
+| pnpm       | `10.33.0`          | `corepack enable` then `corepack prepare`                          |
+| Rust       | `1.83+` stable     | `rustup default stable`                                            |
+| PostgreSQL | `16.x`             | Local install or via `docker compose up -d db`                     |
 | sqlx-cli   | `0.8.x`            | `cargo install sqlx-cli --no-default-features --features postgres` |
-| Docker     | `24+` *(optional)* | Only needed for compose / R2 emulator (MinIO)  |
+| Docker     | `24+` _(optional)_ | Only needed for compose / R2 emulator (MinIO)                      |
 
 ### Clone & install
 
@@ -163,15 +163,15 @@ the `whsec_` into `backend/.env` as `STRIPE_WEBHOOK_SECRET`. See
 
 ## Common workflows
 
-| Goal                              | Command                                         |
-| --------------------------------- | ----------------------------------------------- |
-| Regenerate frontend OpenAPI types | `pnpm gen:types`                                |
-| Type-check + lint frontend        | `pnpm check && pnpm lint`                       |
-| Format everything                 | `pnpm format` · `cargo fmt --manifest-path backend/Cargo.toml` |
-| Backend lint (CI parity)          | `cargo clippy --manifest-path backend/Cargo.toml --all-targets -- -D warnings` |
-| Add a new SQL migration           | Drop a `0NN_description.sql` into `backend/migrations/` (forward-only, no edits after deploy) |
-| Tail prod logs                    | `railway logs --service swings`                 |
-| Forward Stripe webhooks → local API | `pnpm stripe:listen` (requires [Stripe CLI](https://docs.stripe.com/stripe-cli)) |
+| Goal                                | Command                                                                                       |
+| ----------------------------------- | --------------------------------------------------------------------------------------------- |
+| Regenerate frontend OpenAPI types   | `pnpm gen:types`                                                                              |
+| Type-check + lint frontend          | `pnpm check && pnpm lint`                                                                     |
+| Format everything                   | `pnpm format` · `cargo fmt --manifest-path backend/Cargo.toml`                                |
+| Backend lint (CI parity)            | `cargo clippy --manifest-path backend/Cargo.toml --all-targets -- -D warnings`                |
+| Add a new SQL migration             | Drop a `0NN_description.sql` into `backend/migrations/` (forward-only, no edits after deploy) |
+| Tail prod logs                      | `railway logs --service swings`                                                               |
+| Forward Stripe webhooks → local API | `pnpm stripe:listen` (requires [Stripe CLI](https://docs.stripe.com/stripe-cli))              |
 
 ---
 
@@ -203,12 +203,12 @@ no S3-compatible emulator (MinIO/LocalStack) is running.
 
 ## Deployment
 
-| Surface  | Platform | Source of truth                                       | Runtime                        |
-| -------- | -------- | ----------------------------------------------------- | ------------------------------ |
-| Frontend | Vercel   | `vercel.json` + `svelte.config.js` (`adapter-vercel`) | Edge / Node (auto)             |
-| Backend  | Railway  | root `Dockerfile` (build context = repo root)         | `swings-api` service           |
-| Backend  | Render   | `render.yaml` → root `Dockerfile`                     | mirror deploy target           |
-| Database | Railway  | provisioned Postgres 16 add-on                        | persistent volume              |
+| Surface  | Platform | Source of truth                                       | Runtime              |
+| -------- | -------- | ----------------------------------------------------- | -------------------- |
+| Frontend | Vercel   | `vercel.json` + `svelte.config.js` (`adapter-vercel`) | Edge / Node (auto)   |
+| Backend  | Railway  | root `Dockerfile` (build context = repo root)         | `swings-api` service |
+| Backend  | Render   | `render.yaml` → root `Dockerfile`                     | mirror deploy target |
+| Database | Railway  | provisioned Postgres 16 add-on                        | persistent volume    |
 
 A healthy Railway boot prints:
 
@@ -230,15 +230,15 @@ infra topology, see [`docs/INFRASTRUCTURE.md`](./docs/INFRASTRUCTURE.md).
 
 ## Operations
 
-* **Metrics & alerts** — Prometheus rules in
+- **Metrics & alerts** — Prometheus rules in
   [`ops/prometheus/admin-alerts.rules.yml`](./ops/prometheus/admin-alerts.rules.yml),
   Grafana dashboard in
   [`ops/grafana/admin-overview.dashboard.json`](./ops/grafana/admin-overview.dashboard.json),
   provisioning instructions in [`ops/README.md`](./ops/README.md).
-* **On-call runbook** — [`docs/RUNBOOK.md`](./docs/RUNBOOK.md). Every alert in
+- **On-call runbook** — [`docs/RUNBOOK.md`](./docs/RUNBOOK.md). Every alert in
   the rules file links here via `runbook_url`.
-* **Security policy** — [`SECURITY.md`](./SECURITY.md).
-* **CI policy** — [`docs/ci.md`](./docs/ci.md).
+- **Security policy** — [`SECURITY.md`](./SECURITY.md).
+- **CI policy** — [`docs/ci.md`](./docs/ci.md).
 
 ---
 
@@ -247,30 +247,30 @@ infra topology, see [`docs/INFRASTRUCTURE.md`](./docs/INFRASTRUCTURE.md).
 The canonical list lives in [`docs/README.md`](./docs/README.md). Quick
 shortcuts:
 
-* [`docs/RUNBOOK.md`](./docs/RUNBOOK.md) — operator runbook for new alerts.
-* [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) — Vercel + Railway go-live.
-* [`docs/stripe-local-testing.md`](./docs/stripe-local-testing.md) — test keys, webhooks, dynamic plans + `price_data`, official test cards.
-* [`docs/INFRASTRUCTURE.md`](./docs/INFRASTRUCTURE.md) — full stack topology.
-* [`docs/SEO_RUNBOOK.md`](./docs/SEO_RUNBOOK.md) — SEO operating standard.
-* [`docs/wiring/`](./docs/wiring/) — integrator-facing wiring docs
+- [`docs/RUNBOOK.md`](./docs/RUNBOOK.md) — operator runbook for new alerts.
+- [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) — Vercel + Railway go-live.
+- [`docs/stripe-local-testing.md`](./docs/stripe-local-testing.md) — test keys, webhooks, dynamic plans + `price_data`, official test cards.
+- [`docs/INFRASTRUCTURE.md`](./docs/INFRASTRUCTURE.md) — full stack topology.
+- [`docs/SEO_RUNBOOK.md`](./docs/SEO_RUNBOOK.md) — SEO operating standard.
+- [`docs/wiring/`](./docs/wiring/) — integrator-facing wiring docs
   (test harness, observability, common utilities).
-* [`docs/archive/`](./docs/archive/) — historical audit phases and reports
+- [`docs/archive/`](./docs/archive/) — historical audit phases and reports
   kept for traceability; **not** the source of truth for current behaviour.
 
 ---
 
 ## Conventions
 
-* **Languages** — Rust 2021 edition, TypeScript strict, Svelte 5 runes only.
-* **No `any`, no `unwrap()`** in checked-in code paths (tests excluded).
-* **Migrations are forward-only.** Edit a migration after it has been
-  applied to *any* environment and the next boot will fail the sqlx
+- **Languages** — Rust 2021 edition, TypeScript strict, Svelte 5 runes only.
+- **No `any`, no `unwrap()`** in checked-in code paths (tests excluded).
+- **Migrations are forward-only.** Edit a migration after it has been
+  applied to _any_ environment and the next boot will fail the sqlx
   checksum guard. Add a new migration instead.
-* **Audit everything** — admin mutations route through
+- **Audit everything** — admin mutations route through
   `services::audit::record(...)` so the action lands in `admin_actions`.
-* **No mutation without a permission check** — every admin handler calls
+- **No mutation without a permission check** — every admin handler calls
   `policy.require(ctx, "<perm>")`. The matrix is seeded by migration 21.
-* **Idempotency-Key** — required on admin POSTs; middleware + GC are
+- **Idempotency-Key** — required on admin POSTs; middleware + GC are
   documented in [`docs/RUNBOOK.md`](./docs/RUNBOOK.md).
 
 For agent-tool-specific guidance (Cursor, Codex, Claude Code, Copilot),
@@ -280,11 +280,11 @@ see [`AGENTS.md`](./AGENTS.md).
 
 ## Contributing & support
 
-* File issues / PRs on GitHub.
-* Use [Conventional Commits](https://www.conventionalcommits.org/) for
+- File issues / PRs on GitHub.
+- Use [Conventional Commits](https://www.conventionalcommits.org/) for
   commit subjects (`feat:`, `fix:`, `docs:`, `chore:`, …).
-* Pre-commit hook runs `pnpm lint` and `pnpm test:unit -- --run`. Don't
+- Pre-commit hook runs `pnpm lint` and `pnpm test:unit -- --run`. Don't
   bypass it without a documented reason.
-* Security-sensitive issues: see [`SECURITY.md`](./SECURITY.md).
+- Security-sensitive issues: see [`SECURITY.md`](./SECURITY.md).
 
 — Maintained by the swings core team.

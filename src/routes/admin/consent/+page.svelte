@@ -17,21 +17,24 @@
 			icon: MegaphoneIcon,
 			eyebrow: 'Surface',
 			title: 'Banners',
-			description: 'Region × locale banner copy. Saving an existing banner bumps the server-side version.'
+			description:
+				'Region × locale banner copy. Saving an existing banner bumps the server-side version.'
 		},
 		{
 			href: '/admin/consent/categories',
 			icon: ListChecksIcon,
 			eyebrow: 'Catalogue',
 			title: 'Categories',
-			description: 'Consent-category catalogue. `necessary` is protected; reorder others via sort_order.'
+			description:
+				'Consent-category catalogue. `necessary` is protected; reorder others via sort_order.'
 		},
 		{
 			href: '/admin/consent/services',
 			icon: WrenchIcon,
 			eyebrow: 'Integrations',
 			title: 'Services',
-			description: 'Third-party services grouped under a category (GA, Meta Pixel, Stripe, …).'
+			description:
+				'Third-party services grouped under a category (GA, Meta Pixel, Stripe, …).'
 		},
 		{
 			href: '/admin/consent/policy',
@@ -45,14 +48,16 @@
 			icon: ClipboardTextIcon,
 			eyebrow: 'Audit',
 			title: 'Consent log',
-			description: 'Read-only view of consent_records (CONSENT-03) — proof-of-consent for DSAR replies.'
+			description:
+				'Read-only view of consent_records (CONSENT-03) — proof-of-consent for DSAR replies.'
 		},
 		{
 			href: '/admin/consent/integrity',
 			icon: ShieldCheckIcon,
 			eyebrow: 'Audit',
 			title: 'Integrity',
-			description: 'Tamper-evidence anchor chain — verify the consent log has not been edited.'
+			description:
+				'Tamper-evidence anchor chain — verify the consent log has not been edited.'
 		}
 	] as const;
 </script>
@@ -68,7 +73,8 @@
 			<div class="consent-hub__copy">
 				<h1 class="consent-hub__title">Consent</h1>
 				<p class="consent-hub__subtitle">
-					Banner, category, service, and policy configuration plus the append-only consent log.
+					Banner, category, service, and policy configuration plus the append-only consent
+					log.
 				</p>
 			</div>
 		</div>

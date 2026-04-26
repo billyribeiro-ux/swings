@@ -60,9 +60,9 @@ e.g. `use crate::common::money::Money;`.
 
 ## 3. Environment variables
 
-| Name               | Required? | Purpose                                                                                             |
-| ------------------ | --------- | --------------------------------------------------------------------------------------------------- |
-| `MAXMIND_DB_PATH`  | optional  | Filesystem path to a GeoLite2-Country `.mmdb` file. If unset or unreadable, `geo::country_from_ip` logs one warning and subsequently returns `None`. |
+| Name              | Required? | Purpose                                                                                                                                              |
+| ----------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MAXMIND_DB_PATH` | optional  | Filesystem path to a GeoLite2-Country `.mmdb` file. If unset or unreadable, `geo::country_from_ip` logs one warning and subsequently returns `None`. |
 
 No other env vars are introduced. `common::html` and `common::ua` are entirely
 in-memory; `common::money` has no external config.
@@ -83,9 +83,9 @@ All three must pass with zero warnings. FDN-01's 20 existing `error::tests::*`
 must continue to pass; the new modules add:
 
 - `common::money::tests` — 22 tests
-- `common::geo::tests`   — 11 tests
-- `common::ua::tests`    — 6 tests
-- `common::html::tests`  — 15 tests
+- `common::geo::tests` — 11 tests
+- `common::ua::tests` — 6 tests
+- `common::html::tests` — 15 tests
 
 Total new tests: 54.
 

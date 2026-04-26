@@ -90,7 +90,10 @@
 			const formData = new FormData();
 			formData.append('file', file);
 			formData.append('title', `${name || 'Author'} profile photo`);
-			const media = await api.upload<{ url: string }>('/api/admin/blog/media/upload', formData);
+			const media = await api.upload<{ url: string }>(
+				'/api/admin/blog/media/upload',
+				formData
+			);
 			avatarUrl = media.url;
 			toast.success('Avatar uploaded');
 		} catch (err) {
@@ -113,7 +116,9 @@
 	<div class="author-profile__header">
 		<span class="author-profile__eyebrow">Profile</span>
 		<h1 class="author-profile__title">Author Profile</h1>
-		<p class="author-profile__subtitle">This information appears on your published blog posts.</p>
+		<p class="author-profile__subtitle">
+			This information appears on your published blog posts.
+		</p>
 	</div>
 
 	{#if loading}
@@ -128,7 +133,11 @@
 						<div class="avatar-editor">
 							<div class="avatar-editor__preview">
 								{#if avatarUrl}
-									<img src={avatarUrl} alt="Author profile" class="avatar-editor__img" />
+									<img
+										src={avatarUrl}
+										alt="Author profile"
+										class="avatar-editor__img"
+									/>
 								{:else}
 									<div class="avatar-editor__placeholder">
 										<UserCircleIcon size={64} weight="thin" />
@@ -153,7 +162,9 @@
 									/>
 								</label>
 								<div class="author-field">
-									<label for="avatar-url" class="author-field__label">Or paste a URL</label>
+									<label for="avatar-url" class="author-field__label"
+										>Or paste a URL</label
+									>
 									<input
 										id="avatar-url"
 										name="avatar-url"
@@ -176,7 +187,8 @@
 					<h2 class="author-section__title">Personal Info</h2>
 					<div class="author-section__content author-section__content--grid">
 						<div class="author-field">
-							<label for="author-name" class="author-field__label">Display Name</label>
+							<label for="author-name" class="author-field__label">Display Name</label
+							>
 							<input
 								id="author-name"
 								name="author-name"
@@ -188,7 +200,9 @@
 							/>
 						</div>
 						<div class="author-field">
-							<label for="author-position" class="author-field__label">Position / Title</label>
+							<label for="author-position" class="author-field__label"
+								>Position / Title</label
+							>
 							<input
 								id="author-position"
 								name="author-position"
@@ -643,7 +657,6 @@
 
 	/* Tablet (>=768px) — sections breathe a bit, two-column form fields */
 	@media (min-width: 768px) {
-
 		.author-profile__form {
 			gap: 1.25rem;
 		}

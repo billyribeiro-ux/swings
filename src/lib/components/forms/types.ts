@@ -10,11 +10,7 @@
  * dispatcher's union exhaustion.
  */
 
-import type {
-	FieldSchema,
-	ValidationError,
-	FormData as FormDataMap
-} from '$lib/forms/validate';
+import type { FieldSchema, ValidationError, FormData as FormDataMap } from '$lib/forms/validate';
 
 export type { FieldSchema, ValidationError, FormDataMap };
 

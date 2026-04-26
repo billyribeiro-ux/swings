@@ -84,9 +84,12 @@
 						</span>
 						<span class="copy">
 							<span class="label">{step.label}</span>
-							{#if step.description}<span class="description">{step.description}</span>{/if}
+							{#if step.description}<span class="description">{step.description}</span
+								>{/if}
 						</span>
-						{#if status === 'complete'}<span class="visually-hidden"> Completed</span>{/if}
+						{#if status === 'complete'}<span class="visually-hidden">
+								Completed</span
+							>{/if}
 					</button>
 				{:else}
 					<div class="step-inner">
@@ -99,9 +102,12 @@
 						</span>
 						<span class="copy">
 							<span class="label">{step.label}</span>
-							{#if step.description}<span class="description">{step.description}</span>{/if}
+							{#if step.description}<span class="description">{step.description}</span
+								>{/if}
 						</span>
-						{#if status === 'complete'}<span class="visually-hidden"> Completed</span>{/if}
+						{#if status === 'complete'}<span class="visually-hidden">
+								Completed</span
+							>{/if}
 					</div>
 				{/if}
 			</li>
@@ -142,7 +148,9 @@
 		font: inherit;
 		cursor: pointer;
 	}
-	div.step-inner { cursor: default; }
+	div.step-inner {
+		cursor: default;
+	}
 	.indicator {
 		flex: 0 0 auto;
 		inline-size: 1.75rem;
@@ -168,10 +176,24 @@
 		color: var(--neutral-0);
 		border-color: var(--status-success-500);
 	}
-	.copy { display: flex; flex-direction: column; min-inline-size: 0; }
-	.label { font-size: var(--fs-sm); font-weight: var(--w-medium); line-height: var(--lh-snug); }
-	.description { font-size: var(--fs-xs); color: var(--surface-fg-muted); line-height: var(--lh-normal); }
-	.step[data-status='current'] .label { color: var(--brand-teal-700); }
+	.copy {
+		display: flex;
+		flex-direction: column;
+		min-inline-size: 0;
+	}
+	.label {
+		font-size: var(--fs-sm);
+		font-weight: var(--w-medium);
+		line-height: var(--lh-snug);
+	}
+	.description {
+		font-size: var(--fs-xs);
+		color: var(--surface-fg-muted);
+		line-height: var(--lh-normal);
+	}
+	.step[data-status='current'] .label {
+		color: var(--brand-teal-700);
+	}
 	.visually-hidden {
 		position: absolute;
 		inline-size: 1px;
@@ -184,6 +206,8 @@
 		border: 0;
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.step-inner { transition: none; }
+		.step-inner {
+			transition: none;
+		}
 	}
 </style>

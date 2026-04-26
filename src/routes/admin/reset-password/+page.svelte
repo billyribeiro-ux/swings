@@ -68,7 +68,9 @@
 		</div>
 
 		{#if !token}
-			<div class="reset-card__error">Invalid reset link. Please request a new password reset.</div>
+			<div class="reset-card__error">
+				Invalid reset link. Please request a new password reset.
+			</div>
 			<a href="/admin/forgot-password" class="reset-card__back-btn">Request new reset link</a>
 		{:else if success}
 			<div class="reset-card__success">

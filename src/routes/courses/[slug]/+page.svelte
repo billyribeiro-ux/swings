@@ -134,7 +134,8 @@
 <section
 	bind:this={heroRef}
 	class="cd-hero"
-	style="background: linear-gradient(145deg, {course.gradient.from} 0%, {course.gradient.to} 100%);"
+	style="background: linear-gradient(145deg, {course.gradient.from} 0%, {course.gradient
+		.to} 100%);"
 >
 	<div class="cd-hero__grid-overlay"></div>
 
@@ -210,7 +211,12 @@
 			<div class="learn-grid">
 				{#each course.whatYouLearn as item, i (item)}
 					<div class="reveal-item learn-grid__item" style="transition-delay: {i * 0.06}s">
-						<CheckCircleIcon size={22} weight="fill" color="#0FA4AF" class="learn-grid__icon" />
+						<CheckCircleIcon
+							size={22}
+							weight="fill"
+							color="#0FA4AF"
+							class="learn-grid__icon"
+						/>
 						<p class="learn-grid__text">{item}</p>
 					</div>
 				{/each}
@@ -227,7 +233,10 @@
 
 			<div class="curriculum">
 				{#each course.curriculum as module, i (module.title)}
-					<div class="reveal-item curriculum__module" style="transition-delay: {i * 0.06}s">
+					<div
+						class="reveal-item curriculum__module"
+						style="transition-delay: {i * 0.06}s"
+					>
 						<div class="curriculum__module-header">
 							<h3 class="curriculum__module-title">{module.title}</h3>
 						</div>
@@ -259,8 +268,16 @@
 
 			<div class="features-grid">
 				{#each course.features as feature, i (feature)}
-					<div class="reveal-item features-grid__item" style="transition-delay: {i * 0.06}s">
-						<CheckCircleIcon size={22} weight="fill" color="#0FA4AF" class="features-grid__icon" />
+					<div
+						class="reveal-item features-grid__item"
+						style="transition-delay: {i * 0.06}s"
+					>
+						<CheckCircleIcon
+							size={22}
+							weight="fill"
+							color="#0FA4AF"
+							class="features-grid__icon"
+						/>
 						<p class="features-grid__text">{feature}</p>
 					</div>
 				{/each}

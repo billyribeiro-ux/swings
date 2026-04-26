@@ -217,7 +217,9 @@
 								bind:group={difficulty}
 								class="sr-only"
 							/>
-							<span class="radio-pill__text">{level.charAt(0).toUpperCase() + level.slice(1)}</span>
+							<span class="radio-pill__text"
+								>{level.charAt(0).toUpperCase() + level.slice(1)}</span
+							>
 						</label>
 					{/each}
 				</div>
@@ -286,7 +288,11 @@
 
 				{#if thumbnailUrl}
 					<div class="thumb-preview">
-						<img src={thumbnailUrl} alt="Thumbnail preview" class="thumb-preview__img" />
+						<img
+							src={thumbnailUrl}
+							alt="Thumbnail preview"
+							class="thumb-preview__img"
+						/>
 					</div>
 				{/if}
 

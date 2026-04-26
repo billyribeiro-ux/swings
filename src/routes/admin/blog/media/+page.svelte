@@ -70,7 +70,8 @@
 	async function deleteItem(id: string) {
 		const ok = await confirmDialog({
 			title: 'Delete this media file?',
-			message: 'The file will be permanently removed and any post that embeds it will lose the asset.',
+			message:
+				'The file will be permanently removed and any post that embeds it will lose the asset.',
 			confirmLabel: 'Delete',
 			variant: 'danger'
 		});
@@ -161,7 +162,9 @@
 >
 	<div class="media-admin__header">
 		<h1>
-			Media Library <span class="media-admin__count">{total} file{total !== 1 ? 's' : ''}</span>
+			Media Library <span class="media-admin__count"
+				>{total} file{total !== 1 ? 's' : ''}</span
+			>
 		</h1>
 		<div class="media-admin__header-actions">
 			<input
@@ -216,11 +219,17 @@
 							onclick={() => selectItem(item)}
 						>
 							{#if item.mime_type.startsWith('image/')}
-								<img src={item.url} alt={item.alt_text || item.original_filename} loading="lazy" />
+								<img
+									src={item.url}
+									alt={item.alt_text || item.original_filename}
+									loading="lazy"
+								/>
 							{:else}
 								<div class="file-icon">📄</div>
 							{/if}
-							<span class="media-grid__name">{item.title || item.original_filename}</span>
+							<span class="media-grid__name"
+								>{item.title || item.original_filename}</span
+							>
 						</button>
 					{/each}
 				</div>
@@ -233,14 +242,23 @@
 							onclick={() => selectItem(item)}
 						>
 							{#if item.mime_type.startsWith('image/')}
-								<img class="media-list__thumb" src={item.url} alt="" loading="lazy" />
+								<img
+									class="media-list__thumb"
+									src={item.url}
+									alt=""
+									loading="lazy"
+								/>
 							{:else}
 								<span class="media-list__thumb media-list__thumb--file">📄</span>
 							{/if}
-							<span class="media-list__name">{item.title || item.original_filename}</span>
+							<span class="media-list__name"
+								>{item.title || item.original_filename}</span
+							>
 							<span class="media-list__meta">{formatSize(item.file_size)}</span>
 							<span class="media-list__meta">{item.mime_type}</span>
-							<span class="media-list__date">{new Date(item.created_at).toLocaleDateString()}</span>
+							<span class="media-list__date"
+								>{new Date(item.created_at).toLocaleDateString()}</span
+							>
 						</button>
 					{/each}
 				</div>
@@ -256,7 +274,9 @@
 						{/if}
 					</div>
 					<p class="media-detail__name">{selected.original_filename}</p>
-					<p class="media-detail__meta">{formatSize(selected.file_size)} · {selected.mime_type}</p>
+					<p class="media-detail__meta">
+						{formatSize(selected.file_size)} · {selected.mime_type}
+					</p>
 					{#if selected.width && selected.height}
 						<p class="media-detail__meta">{selected.width} × {selected.height}px</p>
 					{/if}
@@ -298,7 +318,9 @@
 							placeholder="Describe the image…"
 						/>
 
-						<label class="media-detail__label" for="media-selected-caption">Caption</label>
+						<label class="media-detail__label" for="media-selected-caption"
+							>Caption</label
+						>
 						<input
 							id="media-selected-caption"
 							name="media-caption"

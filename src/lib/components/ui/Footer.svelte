@@ -53,7 +53,10 @@
 		<div class="footer__bg-gradient"></div>
 		<div class="footer__bg-grid"></div>
 		{#if inView && motionOk}
-			<div class="footer__glow footer__glow--a" in:fade={{ duration: 900, easing: cubicOut }}></div>
+			<div
+				class="footer__glow footer__glow--a"
+				in:fade={{ duration: 900, easing: cubicOut }}
+			></div>
 			<div
 				class="footer__glow footer__glow--b"
 				in:fade={{ duration: 1100, delay: 80, easing: cubicOut }}
@@ -64,7 +67,8 @@
 	<div class="footer__container">
 		<div class="footer__top-line" aria-hidden="true">
 			{#if inView && motionOk}
-				<span class="footer__top-line-fill" in:fade={{ duration: 700, easing: quintOut }}></span>
+				<span class="footer__top-line-fill" in:fade={{ duration: 700, easing: quintOut }}
+				></span>
 			{:else}
 				<span class="footer__top-line-fill footer__top-line-fill--static"></span>
 			{/if}
@@ -79,7 +83,8 @@
 						<span class="footer__logo-accent">{SITE.logoBrandAccent}</span>
 					</a>
 					<p class="footer__tagline">
-						Weekly options watchlists and structured trading courses, built by Billy Ribeiro.
+						Weekly options watchlists and structured trading courses, built by Billy
+						Ribeiro.
 					</p>
 				</div>
 			</div>
@@ -110,7 +115,12 @@
 					>
 						<a href="/courses" class="footer__link footer__link--emphasis">
 							<span class="footer__link-text">View all courses</span>
-							<ArrowUpRightIcon class="footer__link-icon" size={14} weight="bold" aria-hidden="true" />
+							<ArrowUpRightIcon
+								class="footer__link-icon"
+								size={14}
+								weight="bold"
+								aria-hidden="true"
+							/>
 						</a>
 					</li>
 				</ul>
@@ -120,22 +130,34 @@
 			<nav class="footer__col" aria-labelledby="footer-company-heading">
 				<h4 id="footer-company-heading" class="footer__heading">Explore</h4>
 				<ul class="footer__list">
-					<li class="footer__li" style={motionOk && inView ? '--stagger: 100ms' : undefined}>
+					<li
+						class="footer__li"
+						style={motionOk && inView ? '--stagger: 100ms' : undefined}
+					>
 						<a href="/blog" class="footer__link">
 							<span class="footer__link-text">Blog</span>
 						</a>
 					</li>
-					<li class="footer__li" style={motionOk && inView ? '--stagger: 145ms' : undefined}>
+					<li
+						class="footer__li"
+						style={motionOk && inView ? '--stagger: 145ms' : undefined}
+					>
 						<a href="/pricing/monthly" class="footer__link">
 							<span class="footer__link-text">Pricing</span>
 						</a>
 					</li>
-					<li class="footer__li" style={motionOk && inView ? '--stagger: 190ms' : undefined}>
+					<li
+						class="footer__li"
+						style={motionOk && inView ? '--stagger: 190ms' : undefined}
+					>
 						<a href="/terms" class="footer__link">
 							<span class="footer__link-text">Terms</span>
 						</a>
 					</li>
-					<li class="footer__li" style={motionOk && inView ? '--stagger: 235ms' : undefined}>
+					<li
+						class="footer__li"
+						style={motionOk && inView ? '--stagger: 235ms' : undefined}
+					>
 						<a href="/privacy" class="footer__link">
 							<span class="footer__link-text">Privacy</span>
 						</a>
@@ -162,7 +184,12 @@
 			<div class="footer__bottom-inner">
 				<p class="footer__copyright">© {currentYear} {SITE.name}. All rights reserved.</p>
 				<div class="footer__disclaimer">
-					<TrendUpIcon size={14} weight="bold" class="footer__disclaimer-icon" aria-hidden="true" />
+					<TrendUpIcon
+						size={14}
+						weight="bold"
+						class="footer__disclaimer-icon"
+						aria-hidden="true"
+					/>
 					<span>Trading involves risk. Past performance ≠ future results.</span>
 				</div>
 			</div>
@@ -196,7 +223,11 @@
 		inset: 0;
 		background:
 			radial-gradient(ellipse 80% 55% at 50% -20%, rgba(15, 164, 175, 0.18), transparent 55%),
-			radial-gradient(ellipse 60% 40% at 100% 100%, rgba(212, 168, 67, 0.06), transparent 45%),
+			radial-gradient(
+				ellipse 60% 40% at 100% 100%,
+				rgba(212, 168, 67, 0.06),
+				transparent 45%
+			),
 			linear-gradient(180deg, rgba(19, 43, 80, 0.65) 0%, var(--color-navy) 38%);
 	}
 
@@ -360,7 +391,9 @@
 	/* lg: four columns */
 	@media (min-width: 1024px) {
 		.footer__grid {
-			grid-template-columns: minmax(240px, 1.5fr) minmax(120px, 1fr) minmax(120px, 1fr) minmax(280px, 1.5fr);
+			grid-template-columns:
+				minmax(240px, 1.5fr) minmax(120px, 1fr) minmax(120px, 1fr)
+				minmax(280px, 1.5fr);
 			gap: clamp(1.75rem, 2.5vw, 2.75rem) clamp(1.5rem, 2.5vw, 2.5rem);
 			margin-bottom: clamp(2.25rem, 3vw, 3rem);
 		}
@@ -377,7 +410,9 @@
 	/* xl: extra horizontal gap on very wide layouts */
 	@media (min-width: 1280px) {
 		.footer__grid {
-			grid-template-columns: minmax(280px, 1.5fr) minmax(140px, 1fr) minmax(140px, 1fr) minmax(320px, 1.5fr);
+			grid-template-columns:
+				minmax(280px, 1.5fr) minmax(140px, 1fr) minmax(140px, 1fr)
+				minmax(320px, 1.5fr);
 			gap: 2.5rem 3rem;
 		}
 	}

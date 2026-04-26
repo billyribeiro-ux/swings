@@ -27,18 +27,18 @@ Checkout runs in SvelteKit (`src/routes/api/checkout.remote.ts`):
 
 ### Root `.env` (SvelteKit)
 
-| Variable | Example |
-| --- | --- |
-| `STRIPE_SECRET_KEY` | `sk_test_...` |
-| `PUBLIC_APP_URL` | `http://localhost:5173` |
+| Variable            | Example                 |
+| ------------------- | ----------------------- |
+| `STRIPE_SECRET_KEY` | `sk_test_...`           |
+| `PUBLIC_APP_URL`    | `http://localhost:5173` |
 
 `PUBLIC_STRIPE_PUBLISHABLE_KEY` is only for embedded **Elements**-style UIs, not for hosted Checkout.
 
 ### `backend/.env`
 
-| Variable | Example |
-| --- | --- |
-| `STRIPE_SECRET_KEY` | same `sk_test_...` |
+| Variable                | Example                                              |
+| ----------------------- | ---------------------------------------------------- |
+| `STRIPE_SECRET_KEY`     | same `sk_test_...`                                   |
 | `STRIPE_WEBHOOK_SECRET` | from Stripe CLI in dev (`whsec_...`) — see section 3 |
 
 ---

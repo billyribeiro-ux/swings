@@ -24,7 +24,15 @@ const config = {
 			handleHttpError: 'warn',
 			handleMissingId: 'warn',
 			crawl: true,
-			entries: ['/', '/about', '/courses', '/blog', '/pricing', '/pricing/monthly', '/pricing/annual']
+			entries: [
+				'/',
+				'/about',
+				'/courses',
+				'/blog',
+				'/pricing',
+				'/pricing/monthly',
+				'/pricing/annual'
+			]
 		},
 		// SvelteKit 2.27+ experimental: type-safe server↔client RPC via
 		// `.remote.ts` files exporting `query` / `form` / `command` / `prerender`

@@ -11,10 +11,7 @@
  * marketing loads that exist today.
  */
 
-import {
-	CONSENT_EVENT_NAME,
-	type ConsentEventDetail
-} from '$lib/stores/consent.svelte';
+import { CONSENT_EVENT_NAME, type ConsentEventDetail } from '$lib/stores/consent.svelte';
 import { consent } from '$lib/stores/consent.svelte';
 
 /**

@@ -141,10 +141,7 @@ export function createCategory(body: CategoryUpsertBody): Promise<AdminCategory>
 }
 
 export function updateCategory(key: string, body: CategoryUpsertBody): Promise<AdminCategory> {
-	return api.put<AdminCategory>(
-		`/api/admin/consent/categories/${encodeURIComponent(key)}`,
-		body
-	);
+	return api.put<AdminCategory>(`/api/admin/consent/categories/${encodeURIComponent(key)}`, body);
 }
 
 // ── Services ─────────────────────────────────────────────────────────────
@@ -173,10 +170,7 @@ export function createPolicy(body: PolicyCreateBody): Promise<AdminPolicy> {
 
 // ── Log (CONSENT-03 read-only view) ──────────────────────────────────────
 
-export function listLog(
-	limit?: number,
-	offset?: number
-): Promise<ConsentLogResponse> {
+export function listLog(limit?: number, offset?: number): Promise<ConsentLogResponse> {
 	const params = new URLSearchParams();
 	if (limit != null) params.set('limit', String(limit));
 	if (offset != null) params.set('offset', String(offset));

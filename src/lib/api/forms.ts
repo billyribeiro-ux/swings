@@ -67,11 +67,9 @@ export async function submitForm(
 		files: (opts.files ?? []) as unknown as SubmitRequest['files'],
 		anonymous_id: opts.anonymousId ?? null
 	} as SubmitRequest;
-	return api.post<SubmitResponse>(
-		`/api/forms/${encodeURIComponent(slug)}/submit`,
-		body,
-		{ skipAuth: true }
-	);
+	return api.post<SubmitResponse>(`/api/forms/${encodeURIComponent(slug)}/submit`, body, {
+		skipAuth: true
+	});
 }
 
 /**
@@ -87,20 +85,15 @@ export async function savePartial(
 		data: data as unknown as PartialRequest['data'],
 		resume_token: resumeToken ?? null
 	} as PartialRequest;
-	return api.post<PartialResponse>(
-		`/api/forms/${encodeURIComponent(slug)}/partial`,
-		body,
-		{ skipAuth: true }
-	);
+	return api.post<PartialResponse>(`/api/forms/${encodeURIComponent(slug)}/partial`, body, {
+		skipAuth: true
+	});
 }
 
 /**
  * Fetch a previously-saved partial by token.
  */
-export async function loadPartial(
-	slug: string,
-	resumeToken: string
-): Promise<FormData> {
+export async function loadPartial(slug: string, resumeToken: string): Promise<FormData> {
 	return api.get<FormData>(
 		`/api/forms/${encodeURIComponent(slug)}/partial?token=${encodeURIComponent(resumeToken)}`,
 		{ skipAuth: true }

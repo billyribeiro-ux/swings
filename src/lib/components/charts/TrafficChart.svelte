@@ -50,10 +50,18 @@
 			d3.max(data, (d) => d.unique_sessions) ?? 0,
 			1
 		);
-		const yLeft = d3.scaleLinear().domain([0, maxPvSess * 1.08]).nice().range([innerH, 0]);
+		const yLeft = d3
+			.scaleLinear()
+			.domain([0, maxPvSess * 1.08])
+			.nice()
+			.range([innerH, 0]);
 
 		const maxImp = Math.max(d3.max(data, (d) => d.impressions) ?? 0, 1);
-		const yRight = d3.scaleLinear().domain([0, maxImp * 1.08]).nice().range([innerH, 0]);
+		const yRight = d3
+			.scaleLinear()
+			.domain([0, maxImp * 1.08])
+			.nice()
+			.range([innerH, 0]);
 
 		const linePv = d3
 			.line<AnalyticsTimeBucket>()
@@ -148,7 +156,12 @@
 					.attr('stroke-width', 2)
 					.attr('stroke-dasharray', item.dash);
 			} else {
-				legend.append('circle').attr('cx', gx).attr('cy', 4).attr('r', 4).attr('fill', item.c);
+				legend
+					.append('circle')
+					.attr('cx', gx)
+					.attr('cy', 4)
+					.attr('r', 4)
+					.attr('fill', item.c);
 			}
 			legend
 				.append('text')

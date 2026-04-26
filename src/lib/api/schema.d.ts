@@ -2607,12 +2607,30 @@ export type components = {
         ApplyCouponRequest: {
             code: string;
         };
+        /**
+         * @description Response returned by [`post_apply_coupon`].
+         *
+         *     Carries both the audit-plan canonical fields (`ok`, `coupon_id`,
+         *     `applied_at`) and the legacy [`CouponValidationResponse`] aliases
+         *     (`valid`, `message`) so the existing dashboard page at
+         *     `routes/dashboard/account/+page.svelte` keeps rendering after the
+         *     Phase 4.6 rollout. `valid` mirrors `ok` because every 200 response
+         *     represents a successful redemption — failure paths land on 4xx with
+         *     an `AppError` body instead.
+         */
         ApplyCouponResponse: {
             ok: boolean;
             /** Format: uuid */
             coupon_id: string;
             /** Format: date-time */
             applied_at: string;
+            /**
+             * @description Legacy alias for `ok` — frontend compatibility with the
+             *     pre-existing `CouponValidationResponse` shape.
+             */
+            valid: boolean;
+            /** @description Human-readable success message; surfaced verbatim by the SPA. */
+            message: string;
         };
         AuditListEnvelope: {
             data: components["schemas"]["AuditRow"][];

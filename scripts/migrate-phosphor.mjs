@@ -27,8 +27,7 @@ const SRC = path.resolve(__dirname, '..', 'src');
  *    import ShieldCheck from "phosphor-svelte/lib/ShieldCheck";
  *  Skips lines that already end with `Icon`.
  */
-const IMPORT_RE =
-	/import\s+(\w+)\s+from\s+['"]phosphor-svelte\/lib\/([A-Z]\w*?)['"];?/g;
+const IMPORT_RE = /import\s+(\w+)\s+from\s+['"]phosphor-svelte\/lib\/([A-Z]\w*?)['"];?/g;
 
 async function walk(dir) {
 	const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -75,7 +74,9 @@ for (const file of files) {
 	if (updated !== original) {
 		await fs.writeFile(file, updated, 'utf8');
 		totalFiles++;
-		console.log(`✓ ${path.relative(path.resolve(__dirname, '..'), file)}  (${renames.length} icon${renames.length === 1 ? '' : 's'})`);
+		console.log(
+			`✓ ${path.relative(path.resolve(__dirname, '..'), file)}  (${renames.length} icon${renames.length === 1 ? '' : 's'})`
+		);
 	}
 }
 

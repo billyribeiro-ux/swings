@@ -164,8 +164,16 @@
 
 				<div class="feature-list">
 					{#each features as feature, i (feature)}
-						<div class="reveal-item feature-list__item" style="transition-delay: {i * 0.06}s">
-							<CheckCircleIcon size={24} weight="fill" color="#0FA4AF" class="feature-list__icon" />
+						<div
+							class="reveal-item feature-list__item"
+							style="transition-delay: {i * 0.06}s"
+						>
+							<CheckCircleIcon
+								size={24}
+								weight="fill"
+								color="#0FA4AF"
+								class="feature-list__icon"
+							/>
 							<p class="feature-list__text">{feature}</p>
 						</div>
 					{/each}
@@ -185,7 +193,8 @@
 				</h2>
 
 				<p class="reveal-item page-cta__desc">
-					Join hundreds of traders who trust Precision Options Signals for their weekly options watchlists.
+					Join hundreds of traders who trust Precision Options Signals for their weekly
+					options watchlists.
 				</p>
 
 				<div class="reveal-item page-cta__actions">

@@ -45,6 +45,7 @@
 	<!-- Bio -->
 	<div class="profile__bio">
 		{#each trader.bio as paragraph (paragraph)}
+			<!-- eslint-disable-next-line svelte/no-at-html-tags -- bio content sanitized via DOMPurify in safeHtml() -->
 			<p class="profile__bio-text">{@html safeHtml(paragraph)}</p>
 		{/each}
 	</div>

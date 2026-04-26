@@ -152,14 +152,19 @@
 									</td>
 									<td class="actions-cell">
 										<button class="action-link" onclick={saveEdit}>Save</button>
-										<button class="action-link" onclick={() => (editingId = null)}>Cancel</button>
+										<button
+											class="action-link"
+											onclick={() => (editingId = null)}>Cancel</button
+										>
 									</td>
 								{:else}
 									<td class="name-cell">{cat.name}</td>
 									<td class="slug-cell">{cat.slug}</td>
 									<td class="desc-cell">{cat.description || '—'}</td>
 									<td class="actions-cell">
-										<button class="action-link" onclick={() => startEdit(cat)}>Edit</button>
+										<button class="action-link" onclick={() => startEdit(cat)}
+											>Edit</button
+										>
 										<button
 											class="action-link action-link--danger"
 											onclick={() => deleteCategory(cat.id)}>Delete</button

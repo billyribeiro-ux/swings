@@ -110,9 +110,6 @@ export interface SubscriptionStatusResponse {
 	is_active: boolean;
 }
 
-/** @deprecated use SubscriptionStatusResponse */
-export type SubscriptionResponse = SubscriptionStatusResponse;
-
 export interface BillingPortalResponse {
 	url: string;
 }
@@ -373,12 +370,6 @@ export interface UpdatePostPayload {
 	format?: string;
 }
 
-export interface AutosavePayload {
-	title?: string;
-	content?: string;
-	content_json?: Record<string, unknown>;
-}
-
 export interface BlogCategory {
 	id: string;
 	name: string;
@@ -423,16 +414,6 @@ export interface MediaItem {
 	focal_x: number;
 	focal_y: number;
 	created_at: string;
-}
-
-export interface PostListFilters {
-	page?: number;
-	per_page?: number;
-	status?: PostStatus;
-	author_id?: string;
-	category_slug?: string;
-	tag_slug?: string;
-	search?: string;
 }
 
 // ── Courses ───────────────────────────────────────────────────────────
@@ -522,58 +503,6 @@ export interface CourseListItem {
 	created_at: string;
 }
 
-export interface CreateCoursePayload {
-	title: string;
-	slug?: string;
-	description?: string;
-	short_description?: string;
-	thumbnail_url?: string;
-	trailer_video_url?: string;
-	difficulty?: string;
-	price_cents?: number;
-	currency?: string;
-	is_free?: boolean;
-	is_included_in_subscription?: boolean;
-	sort_order?: number;
-	published?: boolean;
-	estimated_duration_minutes?: number;
-}
-
-export interface UpdateCoursePayload {
-	title?: string;
-	slug?: string;
-	description?: string;
-	short_description?: string;
-	thumbnail_url?: string;
-	trailer_video_url?: string;
-	difficulty?: string;
-	price_cents?: number;
-	currency?: string;
-	is_free?: boolean;
-	is_included_in_subscription?: boolean;
-	sort_order?: number;
-	published?: boolean;
-	estimated_duration_minutes?: number;
-}
-
-export interface CreateModulePayload {
-	title: string;
-	description?: string;
-	sort_order?: number;
-}
-
-export interface CreateLessonPayload {
-	title: string;
-	slug?: string;
-	description?: string;
-	content?: string;
-	content_json?: Record<string, unknown>;
-	video_url?: string;
-	video_duration_seconds?: number;
-	sort_order?: number;
-	is_preview?: boolean;
-}
-
 // ── Pricing Plans ─────────────────────────────────────────────────────
 
 export interface PricingPlan {
@@ -660,16 +589,6 @@ export type AdminUpdatePricingPlanResponse = PricingPlan & {
 	stripe_rollout?: AdminStripeRolloutSummary | null;
 };
 
-export interface PricingChangeLog {
-	id: string;
-	plan_id: string;
-	field_changed: string;
-	old_value: string | null;
-	new_value: string | null;
-	changed_by: string;
-	changed_at: string;
-}
-
 export interface PricingPlanPriceLogEntry {
 	id: string;
 	plan_name: string;
@@ -709,57 +628,11 @@ export interface Coupon {
 	updated_at: string;
 }
 
-export interface CreateCouponPayload {
-	code?: string;
-	description?: string;
-	discount_type: DiscountType;
-	discount_value: number;
-	min_purchase_cents?: number;
-	max_discount_cents?: number;
-	applies_to?: string;
-	applicable_plan_ids?: string[];
-	applicable_course_ids?: string[];
-	usage_limit?: number;
-	per_user_limit?: number;
-	starts_at?: string;
-	expires_at?: string;
-	is_active?: boolean;
-	stackable?: boolean;
-	first_purchase_only?: boolean;
-}
-
-export interface UpdateCouponPayload {
-	description?: string;
-	discount_type?: DiscountType;
-	discount_value?: number;
-	min_purchase_cents?: number;
-	max_discount_cents?: number;
-	applies_to?: string;
-	applicable_plan_ids?: string[];
-	applicable_course_ids?: string[];
-	usage_limit?: number;
-	per_user_limit?: number;
-	starts_at?: string;
-	expires_at?: string;
-	is_active?: boolean;
-	stackable?: boolean;
-	first_purchase_only?: boolean;
-}
-
 export interface CouponValidationResponse {
 	valid: boolean;
 	coupon: Coupon | null;
 	discount_amount_cents: number | null;
 	message: string;
-}
-
-export interface CouponUsage {
-	id: string;
-	coupon_id: string;
-	user_id: string;
-	subscription_id: string | null;
-	discount_applied_cents: number;
-	used_at: string;
 }
 
 export interface BulkCouponPayload {
@@ -902,51 +775,3 @@ export interface PopupAnalyticsSummary {
 	conversion_rate: number;
 }
 
-// ── Revenue Analytics ─────────────────────────────────────────────────
-
-export interface SalesEvent {
-	id: string;
-	user_id: string;
-	event_type:
-		| 'new_subscription'
-		| 'renewal'
-		| 'upgrade'
-		| 'downgrade'
-		| 'cancellation'
-		| 'refund'
-		| 'course_purchase';
-	amount_cents: number;
-	currency: string;
-	plan_id: string | null;
-	coupon_id: string | null;
-	stripe_payment_intent_id: string | null;
-	stripe_invoice_id: string | null;
-	metadata: Record<string, unknown>;
-	created_at: string;
-}
-
-export interface MonthlyRevenueSummary {
-	year: number;
-	month: number;
-	revenue_cents: number;
-	new_subscribers: number;
-	churned: number;
-}
-
-export interface PlanRevenueSummary {
-	plan_name: string;
-	subscriber_count: number;
-	revenue_cents: number;
-}
-
-export interface RevenueAnalytics {
-	total_revenue_cents: number;
-	mrr_cents: number;
-	arr_cents: number;
-	total_subscribers: number;
-	churn_rate: number;
-	avg_revenue_per_user_cents: number;
-	revenue_by_month: MonthlyRevenueSummary[];
-	revenue_by_plan: PlanRevenueSummary[];
-	recent_sales: SalesEvent[];
-}

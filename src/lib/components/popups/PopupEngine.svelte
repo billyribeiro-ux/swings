@@ -3,7 +3,7 @@
 	import { afterNavigate } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { page } from '$app/state';
-import { api, ApiError } from '$lib/api/client';
+	import { api, ApiError } from '$lib/api/client';
 	import { auth } from '$lib/stores/auth.svelte';
 	import type { Popup } from '$lib/api/types';
 	import PopupRenderer from './PopupRenderer.svelte';
@@ -15,8 +15,8 @@ import { api, ApiError } from '$lib/api/client';
 	let visiblePopupIds = $state<Set<string>>(new Set());
 	let cleanupFns: Array<() => void> = [];
 	let popupRequestSeq = 0;
-let popupFetchFailures = 0;
-let popupFetchPauseUntil = 0;
+	let popupFetchFailures = 0;
+	let popupFetchPauseUntil = 0;
 
 	const currentPath = $derived(page.url.pathname);
 
@@ -213,7 +213,9 @@ let popupFetchPauseUntil = 0;
 				}
 
 				const events = ['mousemove', 'keydown', 'scroll', 'touchstart', 'click'] as const;
-				events.forEach((evt) => window.addEventListener(evt, resetTimer, { passive: true }));
+				events.forEach((evt) =>
+					window.addEventListener(evt, resetTimer, { passive: true })
+				);
 
 				return () => {
 					clearTimeout(timer);

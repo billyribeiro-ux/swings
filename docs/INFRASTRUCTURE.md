@@ -32,29 +32,29 @@ Cloudflare DNS                                ← DNS + CDN for media
 
 ## 1. Frontend — Vercel Pro
 
-| Detail | Value |
-|--------|-------|
-| **Service** | Vercel |
-| **Plan** | Pro |
-| **Cost** | $20/month |
-| **Framework** | SvelteKit with `@sveltejs/adapter-vercel` |
-| **Package manager** | pnpm (override in Vercel project settings) |
-| **Build machine** | Turbo (30 vCPU, 60 GB RAM — default on Pro) |
-| **Bandwidth** | 1 TB/month included |
-| **Edge requests** | 10M/month included |
-| **Function duration** | Up to 800s with Fluid Compute |
-| **Function memory** | Up to 4 GB |
-| **Concurrent builds** | 12 |
-| **Daily deploys** | 6,000 |
-| **Split routing** | `false` (default — single function, fewer cold starts) |
+| Detail                | Value                                                  |
+| --------------------- | ------------------------------------------------------ |
+| **Service**           | Vercel                                                 |
+| **Plan**              | Pro                                                    |
+| **Cost**              | $20/month                                              |
+| **Framework**         | SvelteKit with `@sveltejs/adapter-vercel`              |
+| **Package manager**   | pnpm (override in Vercel project settings)             |
+| **Build machine**     | Turbo (30 vCPU, 60 GB RAM — default on Pro)            |
+| **Bandwidth**         | 1 TB/month included                                    |
+| **Edge requests**     | 10M/month included                                     |
+| **Function duration** | Up to 800s with Fluid Compute                          |
+| **Function memory**   | Up to 4 GB                                             |
+| **Concurrent builds** | 12                                                     |
+| **Daily deploys**     | 6,000                                                  |
+| **Split routing**     | `false` (default — single function, fewer cold starts) |
 
 ### Vercel Environment Variables
 
-| Variable | Value | Scope |
-|----------|-------|-------|
-| `PRIVATE_API_URL` | `https://api.yourdomain.com` | Server only |
-| `PUBLIC_APP_URL` | `https://yourdomain.com` | Client + Server |
-| `STRIPE_PUBLIC_KEY` | `pk_live_...` | Client + Server |
+| Variable            | Value                        | Scope           |
+| ------------------- | ---------------------------- | --------------- |
+| `PRIVATE_API_URL`   | `https://api.yourdomain.com` | Server only     |
+| `PUBLIC_APP_URL`    | `https://yourdomain.com`     | Client + Server |
+| `STRIPE_PUBLIC_KEY` | `pk_live_...`                | Client + Server |
 
 ### SvelteKit Configuration
 
@@ -63,12 +63,12 @@ Cloudflare DNS                                ← DNS + CDN for media
 import adapter from '@sveltejs/adapter-vercel';
 
 export default {
-  kit: {
-    adapter: adapter({
-      runtime: 'nodejs22.x',
-      split: false,
-    })
-  }
+	kit: {
+		adapter: adapter({
+			runtime: 'nodejs22.x',
+			split: false
+		})
+	}
 };
 ```
 
@@ -81,45 +81,45 @@ export default {
 
 ## 2. Backend API — Railway Pro
 
-| Detail | Value |
-|--------|-------|
-| **Service** | Railway |
-| **Plan** | Pro |
-| **Cost** | $20/month base + usage (includes $20 usage credit) |
-| **Runtime** | Rust binary via Docker |
-| **Framework** | Axum 0.8.x |
-| **Database driver** | SQLx 0.8.x |
-| **Deploy method** | GitHub push → auto-build from `backend/Dockerfile` |
-| **Region** | US East (closest to Vercel + Neon) |
-| **Max resources** | 32 GB RAM, 32 vCPU (Pro limit) |
-| **Networking** | Public HTTPS domain auto-provisioned |
-| **Spend limit** | Set to $50/month (configurable in Railway dashboard) |
+| Detail              | Value                                                |
+| ------------------- | ---------------------------------------------------- |
+| **Service**         | Railway                                              |
+| **Plan**            | Pro                                                  |
+| **Cost**            | $20/month base + usage (includes $20 usage credit)   |
+| **Runtime**         | Rust binary via Docker                               |
+| **Framework**       | Axum 0.8.x                                           |
+| **Database driver** | SQLx 0.8.x                                           |
+| **Deploy method**   | GitHub push → auto-build from `backend/Dockerfile`   |
+| **Region**          | US East (closest to Vercel + Neon)                   |
+| **Max resources**   | 32 GB RAM, 32 vCPU (Pro limit)                       |
+| **Networking**      | Public HTTPS domain auto-provisioned                 |
+| **Spend limit**     | Set to $50/month (configurable in Railway dashboard) |
 
 ### Railway Environment Variables
 
-| Variable | Value |
-|----------|-------|
-| `DATABASE_URL` | Neon connection string (pooled endpoint) |
-| `JWT_SECRET` | Strong random 64-char string |
-| `APP_ENV` | `production` |
-| `ADMIN_EMAIL` | Admin email address |
-| `ADMIN_PASSWORD` | Strong admin password |
-| `API_URL` | `https://api.yourdomain.com` |
-| `FRONTEND_URL` | `https://yourdomain.com` |
-| `CORS_ALLOWED_ORIGINS` | `https://yourdomain.com,https://*.vercel.app` |
-| `PORT` | `3001` (or Railway's `$PORT`) |
-| `STRIPE_SECRET_KEY` | `sk_live_...` |
-| `STRIPE_WEBHOOK_SECRET` | `whsec_...` |
-| `R2_ACCOUNT_ID` | Cloudflare Account ID |
-| `R2_ACCESS_KEY_ID` | R2 API token access key |
-| `R2_SECRET_ACCESS_KEY` | R2 API token secret |
-| `R2_BUCKET_NAME` | Bucket name |
-| `R2_PUBLIC_URL` | `https://media.yourdomain.com` |
-| `SMTP_HOST` | `smtp.postmarkapp.com` |
-| `SMTP_PORT` | `587` |
-| `SMTP_USER` | Postmark Server API Token |
-| `SMTP_PASSWORD` | Postmark Server API Token (same as user) |
-| `SMTP_FROM` | `noreply@yourdomain.com` |
+| Variable                | Value                                         |
+| ----------------------- | --------------------------------------------- |
+| `DATABASE_URL`          | Neon connection string (pooled endpoint)      |
+| `JWT_SECRET`            | Strong random 64-char string                  |
+| `APP_ENV`               | `production`                                  |
+| `ADMIN_EMAIL`           | Admin email address                           |
+| `ADMIN_PASSWORD`        | Strong admin password                         |
+| `API_URL`               | `https://api.yourdomain.com`                  |
+| `FRONTEND_URL`          | `https://yourdomain.com`                      |
+| `CORS_ALLOWED_ORIGINS`  | `https://yourdomain.com,https://*.vercel.app` |
+| `PORT`                  | `3001` (or Railway's `$PORT`)                 |
+| `STRIPE_SECRET_KEY`     | `sk_live_...`                                 |
+| `STRIPE_WEBHOOK_SECRET` | `whsec_...`                                   |
+| `R2_ACCOUNT_ID`         | Cloudflare Account ID                         |
+| `R2_ACCESS_KEY_ID`      | R2 API token access key                       |
+| `R2_SECRET_ACCESS_KEY`  | R2 API token secret                           |
+| `R2_BUCKET_NAME`        | Bucket name                                   |
+| `R2_PUBLIC_URL`         | `https://media.yourdomain.com`                |
+| `SMTP_HOST`             | `smtp.postmarkapp.com`                        |
+| `SMTP_PORT`             | `587`                                         |
+| `SMTP_USER`             | Postmark Server API Token                     |
+| `SMTP_PASSWORD`         | Postmark Server API Token (same as user)      |
+| `SMTP_FROM`             | `noreply@yourdomain.com`                      |
 
 ### Rust Dependencies (additions to existing Cargo.toml)
 
@@ -133,19 +133,19 @@ tower_governor = "0.6"
 
 ## 3. Database — Neon Scale
 
-| Detail | Value |
-|--------|-------|
-| **Service** | Neon |
-| **Plan** | Scale |
-| **Cost** | $5/month minimum (usage-based) |
-| **Compute rate** | $0.222/CU-hour |
-| **Storage rate** | $0.35/GB-month |
-| **Max autoscale** | Up to 56 CUs (224 GB RAM) |
-| **Scale to zero** | Yes (350ms cold start) |
-| **PITR** | Up to 30 days |
-| **Branches** | 25 included per project |
-| **Compliance** | SOC 2 Type 2, HIPAA eligible |
-| **Region** | `us-east-1` (AWS) |
+| Detail                 | Value                             |
+| ---------------------- | --------------------------------- |
+| **Service**            | Neon                              |
+| **Plan**               | Scale                             |
+| **Cost**               | $5/month minimum (usage-based)    |
+| **Compute rate**       | $0.222/CU-hour                    |
+| **Storage rate**       | $0.35/GB-month                    |
+| **Max autoscale**      | Up to 56 CUs (224 GB RAM)         |
+| **Scale to zero**      | Yes (350ms cold start)            |
+| **PITR**               | Up to 30 days                     |
+| **Branches**           | 25 included per project           |
+| **Compliance**         | SOC 2 Type 2, HIPAA eligible      |
+| **Region**             | `us-east-1` (AWS)                 |
 | **Connection pooling** | Built-in (use `-pooler` endpoint) |
 
 ### Connection String Format
@@ -172,10 +172,10 @@ let pool = sqlx::postgres::PgPoolOptions::new()
 
 ### Branching Workflow
 
-| Branch | Purpose | Lifecycle |
-|--------|---------|-----------|
-| `main` | Production database | Permanent |
-| `dev` | Shared development | Long-lived |
+| Branch      | Purpose                | Lifecycle                          |
+| ----------- | ---------------------- | ---------------------------------- |
+| `main`      | Production database    | Permanent                          |
+| `dev`       | Shared development     | Long-lived                         |
 | `feature/*` | Per-feature/PR testing | Create on PR open, delete on merge |
 
 Create branches in Neon console or via CLI:
@@ -192,34 +192,34 @@ All 16 existing migrations (`001_initial.sql` through `016_blog_trash_meta.sql`)
 
 ## 4. Media Storage — Cloudflare R2
 
-| Detail | Value |
-|--------|-------|
-| **Service** | Cloudflare R2 |
-| **Plan** | Free tier (then pay-as-you-go) |
-| **Cost** | $0/month (free tier: 10 GB storage, 1M Class A ops, 10M Class B ops) |
-| **Storage rate** | $0.015/GB-month (after free tier) |
-| **Egress** | $0 (always free) |
-| **API** | S3-compatible |
-| **CDN** | Cloudflare global network (330+ data centers) |
-| **Custom domain** | `media.yourdomain.com` |
+| Detail            | Value                                                                |
+| ----------------- | -------------------------------------------------------------------- |
+| **Service**       | Cloudflare R2                                                        |
+| **Plan**          | Free tier (then pay-as-you-go)                                       |
+| **Cost**          | $0/month (free tier: 10 GB storage, 1M Class A ops, 10M Class B ops) |
+| **Storage rate**  | $0.015/GB-month (after free tier)                                    |
+| **Egress**        | $0 (always free)                                                     |
+| **API**           | S3-compatible                                                        |
+| **CDN**           | Cloudflare global network (330+ data centers)                        |
+| **Custom domain** | `media.yourdomain.com`                                               |
 
 ### Bucket Configuration
 
-| Setting | Value |
-|---------|-------|
-| Bucket name | `yourdomain-media` |
-| Public access | Enabled (or custom domain) |
-| CORS | Allow `https://yourdomain.com` |
+| Setting       | Value                                                            |
+| ------------- | ---------------------------------------------------------------- |
+| Bucket name   | `yourdomain-media`                                               |
+| Public access | Enabled (or custom domain)                                       |
+| CORS          | Allow `https://yourdomain.com`                                   |
 | Cache-Control | `public, max-age=31536000, immutable` (set per-object on upload) |
 
 ### R2 API Token
 
 Create in Cloudflare Dashboard → R2 → Manage R2 API Tokens:
 
-| Permission | Value |
-|------------|-------|
-| Object Read & Write | Yes |
-| Bucket scope | `yourdomain-media` only |
+| Permission          | Value                   |
+| ------------------- | ----------------------- |
+| Object Read & Write | Yes                     |
+| Bucket scope        | `yourdomain-media` only |
 
 ### Storage Key Format
 
@@ -231,78 +231,78 @@ Example: `media/2026/04/a1b2c3d4-hero-image.webp`
 
 ### What Replaces What
 
-| Before | After |
-|--------|-------|
-| `UPLOAD_DIR` on local disk | R2 bucket |
-| `ServeDir` at `/uploads/*` | Direct access via `media.yourdomain.com` |
-| `media.storage_path` = local path | `media.storage_path` = R2 key |
+| Before                                | After                                            |
+| ------------------------------------- | ------------------------------------------------ |
+| `UPLOAD_DIR` on local disk            | R2 bucket                                        |
+| `ServeDir` at `/uploads/*`            | Direct access via `media.yourdomain.com`         |
+| `media.storage_path` = local path     | `media.storage_path` = R2 key                    |
 | `media.url` = `{API_URL}/uploads/...` | `media.url` = `https://media.yourdomain.com/...` |
 
 ---
 
 ## 5. Transactional Email — Postmark Basic
 
-| Detail | Value |
-|--------|-------|
-| **Service** | Postmark |
-| **Plan** | Basic |
-| **Cost** | $15/month |
-| **Included emails** | 10,000/month |
-| **Overage** | $1.80/1,000 emails |
-| **Deliverability** | ~98.5% inbox placement |
-| **Integration** | SMTP relay (drop-in replacement for existing `lettre` config) |
+| Detail              | Value                                                         |
+| ------------------- | ------------------------------------------------------------- |
+| **Service**         | Postmark                                                      |
+| **Plan**            | Basic                                                         |
+| **Cost**            | $15/month                                                     |
+| **Included emails** | 10,000/month                                                  |
+| **Overage**         | $1.80/1,000 emails                                            |
+| **Deliverability**  | ~98.5% inbox placement                                        |
+| **Integration**     | SMTP relay (drop-in replacement for existing `lettre` config) |
 
 ### SMTP Configuration
 
-| Setting | Value |
-|---------|-------|
-| Host | `smtp.postmarkapp.com` |
-| Port | `587` (TLS) |
-| Username | Your Server API Token |
+| Setting  | Value                              |
+| -------- | ---------------------------------- |
+| Host     | `smtp.postmarkapp.com`             |
+| Port     | `587` (TLS)                        |
+| Username | Your Server API Token              |
 | Password | Your Server API Token (same value) |
-| From | `noreply@yourdomain.com` |
+| From     | `noreply@yourdomain.com`           |
 
 ### DNS Records for Domain Verification
 
 Postmark requires DKIM and Return-Path records. Add these in Cloudflare DNS:
 
-| Type | Name | Value |
-|------|------|-------|
-| TXT | `20xxxxxxxx._domainkey.yourdomain.com` | (provided by Postmark) |
-| CNAME | `pm-bounces.yourdomain.com` | `pm.mtasv.net` |
+| Type  | Name                                   | Value                  |
+| ----- | -------------------------------------- | ---------------------- |
+| TXT   | `20xxxxxxxx._domainkey.yourdomain.com` | (provided by Postmark) |
+| CNAME | `pm-bounces.yourdomain.com`            | `pm.mtasv.net`         |
 
 ### Email Types Sent
 
-| Email | Trigger | Stream |
-|-------|---------|--------|
-| Welcome | User registration | Transactional |
-| Password reset | Forgot password request | Transactional |
-| Email verification | Registration / email change | Transactional |
-| Subscription confirmation | Stripe checkout completed | Transactional |
-| Subscription cancellation | User cancels | Transactional |
+| Email                     | Trigger                     | Stream        |
+| ------------------------- | --------------------------- | ------------- |
+| Welcome                   | User registration           | Transactional |
+| Password reset            | Forgot password request     | Transactional |
+| Email verification        | Registration / email change | Transactional |
+| Subscription confirmation | Stripe checkout completed   | Transactional |
+| Subscription cancellation | User cancels                | Transactional |
 
 ---
 
 ## 6. DNS — Cloudflare Free
 
-| Detail | Value |
-|--------|-------|
-| **Service** | Cloudflare |
-| **Plan** | Free |
-| **Cost** | $0/month |
+| Detail       | Value                                      |
+| ------------ | ------------------------------------------ |
+| **Service**  | Cloudflare                                 |
+| **Plan**     | Free                                       |
+| **Cost**     | $0/month                                   |
 | **Features** | DNS, DDoS protection, free SSL, page rules |
 
 ### DNS Records
 
-| Type | Name | Value | Proxy Status |
-|------|------|-------|-------------|
-| CNAME | `@` | `cname.vercel-dns.com` | DNS only (gray cloud) |
-| CNAME | `www` | `cname.vercel-dns.com` | DNS only (gray cloud) |
-| CNAME | `api` | `your-service.up.railway.app` | DNS only (gray cloud) |
-| CNAME | `media` | `your-bucket.r2.dev` | Proxied (orange cloud) |
-| TXT | `@` | Vercel domain verification TXT | N/A |
-| TXT | DKIM selector | Postmark DKIM value | N/A |
-| CNAME | `pm-bounces` | `pm.mtasv.net` | DNS only |
+| Type  | Name          | Value                          | Proxy Status           |
+| ----- | ------------- | ------------------------------ | ---------------------- |
+| CNAME | `@`           | `cname.vercel-dns.com`         | DNS only (gray cloud)  |
+| CNAME | `www`         | `cname.vercel-dns.com`         | DNS only (gray cloud)  |
+| CNAME | `api`         | `your-service.up.railway.app`  | DNS only (gray cloud)  |
+| CNAME | `media`       | `your-bucket.r2.dev`           | Proxied (orange cloud) |
+| TXT   | `@`           | Vercel domain verification TXT | N/A                    |
+| TXT   | DKIM selector | Postmark DKIM value            | N/A                    |
+| CNAME | `pm-bounces`  | `pm.mtasv.net`                 | DNS only               |
 
 **Important:** Vercel and Railway manage their own TLS certificates. Do NOT proxy these through Cloudflare (use DNS-only / gray cloud). Only proxy the `media` subdomain through Cloudflare for CDN caching.
 
@@ -310,25 +310,25 @@ Postmark requires DKIM and Return-Path records. Add these in Cloudflare DNS:
 
 ## 7. Payments — Stripe
 
-| Detail | Value |
-|--------|-------|
-| **Service** | Stripe |
-| **Plan** | Pay-as-you-go |
-| **Cost** | 2.9% + $0.30 per transaction |
-| **Rust crate** | `async-stripe` |
+| Detail               | Value                                            |
+| -------------------- | ------------------------------------------------ |
+| **Service**          | Stripe                                           |
+| **Plan**             | Pay-as-you-go                                    |
+| **Cost**             | 2.9% + $0.30 per transaction                     |
+| **Rust crate**       | `async-stripe`                                   |
 | **Webhook endpoint** | `https://api.yourdomain.com/api/webhooks/stripe` |
-| **Webhook signing** | `hmac` + `sha2` (existing implementation) |
+| **Webhook signing**  | `hmac` + `sha2` (existing implementation)        |
 
 ### Webhook Events to Subscribe
 
-| Event | Purpose |
-|-------|---------|
-| `checkout.session.completed` | New subscription created |
+| Event                           | Purpose                  |
+| ------------------------------- | ------------------------ |
+| `checkout.session.completed`    | New subscription created |
 | `customer.subscription.created` | Subscription record sync |
-| `customer.subscription.updated` | Plan change / renewal |
-| `customer.subscription.deleted` | Cancellation |
-| `invoice.payment_succeeded` | Payment confirmation |
-| `invoice.payment_failed` | Failed payment handling |
+| `customer.subscription.updated` | Plan change / renewal    |
+| `customer.subscription.deleted` | Cancellation             |
+| `invoice.payment_succeeded`     | Payment confirmation     |
+| `invoice.payment_failed`        | Failed payment handling  |
 
 ### Idempotency
 
@@ -340,20 +340,20 @@ New `processed_webhook_events` table prevents duplicate processing. Every webhoo
 
 ### Refresh Token Rotation
 
-| Feature | Implementation |
-|---------|---------------|
-| Family tracking | `family_id` column on `refresh_tokens` table |
-| Token rotation | Each refresh issues new token, marks old as `used` |
+| Feature         | Implementation                                     |
+| --------------- | -------------------------------------------------- |
+| Family tracking | `family_id` column on `refresh_tokens` table       |
+| Token rotation  | Each refresh issues new token, marks old as `used` |
 | Reuse detection | If `used` token is presented, revoke entire family |
-| Login | Creates new `family_id` per session |
+| Login           | Creates new `family_id` per session                |
 
 ### Rate Limiting
 
-| Endpoint | Limit | Window |
-|----------|-------|--------|
-| `/api/auth/login` | 5 requests | Per 60 seconds per IP |
-| `/api/auth/register` | 10 requests | Per 60 minutes per IP |
-| `/api/auth/forgot-password` | 3 requests | Per 60 minutes per IP |
+| Endpoint                    | Limit       | Window                |
+| --------------------------- | ----------- | --------------------- |
+| `/api/auth/login`           | 5 requests  | Per 60 seconds per IP |
+| `/api/auth/register`        | 10 requests | Per 60 minutes per IP |
+| `/api/auth/forgot-password` | 3 requests  | Per 60 minutes per IP |
 
 Implementation: `tower-governor` with `SmartIpKeyExtractor` (reads `X-Forwarded-For` behind Railway's proxy).
 
@@ -371,27 +371,27 @@ The SvelteKit frontend manages browser sessions:
 
 ## 9. Domain Structure
 
-| Domain | Destination | Purpose |
-|--------|-------------|---------|
-| `yourdomain.com` | Vercel | SvelteKit frontend |
-| `www.yourdomain.com` | Vercel (redirect to apex) | SEO canonical |
-| `api.yourdomain.com` | Railway | Rust/Axum API |
-| `media.yourdomain.com` | Cloudflare R2 via CDN | Uploaded media files |
+| Domain                 | Destination               | Purpose              |
+| ---------------------- | ------------------------- | -------------------- |
+| `yourdomain.com`       | Vercel                    | SvelteKit frontend   |
+| `www.yourdomain.com`   | Vercel (redirect to apex) | SEO canonical        |
+| `api.yourdomain.com`   | Railway                   | Rust/Axum API        |
+| `media.yourdomain.com` | Cloudflare R2 via CDN     | Uploaded media files |
 
 ---
 
 ## 10. Monthly Cost Summary
 
-| Service | Plan | Monthly Cost |
-|---------|------|-------------|
-| Vercel | Pro | $20 |
-| Railway | Pro | $20 base + ~$5-15 usage |
-| Neon | Scale | $5-20 (usage-based) |
-| Cloudflare R2 | Free tier | $0 |
-| Cloudflare DNS | Free | $0 |
-| Postmark | Basic | $15 |
-| Stripe | Pay-as-you-go | 2.9% + $0.30/txn |
-| **Total (infrastructure)** | | **$60-90/month** |
+| Service                    | Plan          | Monthly Cost            |
+| -------------------------- | ------------- | ----------------------- |
+| Vercel                     | Pro           | $20                     |
+| Railway                    | Pro           | $20 base + ~$5-15 usage |
+| Neon                       | Scale         | $5-20 (usage-based)     |
+| Cloudflare R2              | Free tier     | $0                      |
+| Cloudflare DNS             | Free          | $0                      |
+| Postmark                   | Basic         | $15                     |
+| Stripe                     | Pay-as-you-go | 2.9% + $0.30/txn        |
+| **Total (infrastructure)** |               | **$60-90/month**        |
 
 **At launch with light traffic: ~$60/month**
 **With moderate traffic and active members: ~$70-80/month**
@@ -469,16 +469,16 @@ CREATE INDEX IF NOT EXISTS idx_refresh_tokens_family_id
 
 ## 13. What You Don't Need Yet
 
-| Thing | Why Not | When to Add |
-|-------|---------|-------------|
-| Redis | Traffic doesn't warrant a cache layer | When you need session storage, job queues, or API response caching |
-| Cargo workspace split | Compile times aren't a bottleneck yet | When full rebuilds exceed 3-5 minutes |
-| Multi-region | Single US East region serves fine | When you have significant international traffic |
-| CDN for API responses | Cloudflare free plan in front of Railway | When API response caching would help |
-| Background job queue | Stripe webhooks and analytics handle inline | When you need async email sends, report generation, etc. |
-| Monitoring/APM | Railway built-in metrics + Neon dashboard | When you need distributed tracing (OpenTelemetry → Grafana) |
-| Log aggregation | Railway logs + structured `tracing` output | When you need searchable log history beyond Railway's retention |
+| Thing                 | Why Not                                     | When to Add                                                        |
+| --------------------- | ------------------------------------------- | ------------------------------------------------------------------ |
+| Redis                 | Traffic doesn't warrant a cache layer       | When you need session storage, job queues, or API response caching |
+| Cargo workspace split | Compile times aren't a bottleneck yet       | When full rebuilds exceed 3-5 minutes                              |
+| Multi-region          | Single US East region serves fine           | When you have significant international traffic                    |
+| CDN for API responses | Cloudflare free plan in front of Railway    | When API response caching would help                               |
+| Background job queue  | Stripe webhooks and analytics handle inline | When you need async email sends, report generation, etc.           |
+| Monitoring/APM        | Railway built-in metrics + Neon dashboard   | When you need distributed tracing (OpenTelemetry → Grafana)        |
+| Log aggregation       | Railway logs + structured `tracing` output  | When you need searchable log history beyond Railway's retention    |
 
 ---
 
-*End of document.*
+_End of document._

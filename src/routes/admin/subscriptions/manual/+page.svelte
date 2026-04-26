@@ -173,7 +173,9 @@
 					<dd><code>{sub.id}</code></dd>
 					<dt>Status</dt>
 					<dd>
-						<span class="badge {view.subscription.is_active ? 'badge--ok' : 'badge--off'}">
+						<span
+							class="badge {view.subscription.is_active ? 'badge--ok' : 'badge--off'}"
+						>
 							{sub.status}
 						</span>
 					</dd>
@@ -289,7 +291,8 @@
 									<span class="badge badge--ok">{m.status}</span>
 								</td>
 								<td>{new Date(m.starts_at).toLocaleDateString()}</td>
-								<td>{m.ends_at ? new Date(m.ends_at).toLocaleDateString() : '∞'}</td>
+								<td>{m.ends_at ? new Date(m.ends_at).toLocaleDateString() : '∞'}</td
+								>
 								<td>{m.granted_by}</td>
 							</tr>
 						{/each}

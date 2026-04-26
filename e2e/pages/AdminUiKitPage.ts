@@ -25,24 +25,32 @@ export class AdminUiKitPage {
 
 	buttonSection(): Locator {
 		return this.page.getByRole('region', { name: /buttons?/i }).or(
-			this.page.locator('section').filter({ hasText: /buttons?/i }).first()
+			this.page
+				.locator('section')
+				.filter({ hasText: /buttons?/i })
+				.first()
 		);
 	}
 
 	dialogSection(): Locator {
 		return this.page.getByRole('region', { name: /dialog/i }).or(
-			this.page.locator('section').filter({ hasText: /dialog/i }).first()
+			this.page
+				.locator('section')
+				.filter({ hasText: /dialog/i })
+				.first()
 		);
 	}
 
 	toastSection(): Locator {
-		return this.page.getByRole('region', { name: /toast/i }).or(
-			this.page.locator('section').filter({ hasText: /toast/i }).first()
-		);
+		return this.page
+			.getByRole('region', { name: /toast/i })
+			.or(this.page.locator('section').filter({ hasText: /toast/i }).first());
 	}
 
 	async openDialogShowcase(): Promise<void> {
-		const trigger = this.dialogSection().getByRole('button', { name: /open dialog|open/i }).first();
+		const trigger = this.dialogSection()
+			.getByRole('button', { name: /open dialog|open/i })
+			.first();
 		await trigger.click();
 	}
 

@@ -20,7 +20,9 @@ export class RegisterPage {
 
 	async open(): Promise<void> {
 		await this.page.goto('/register');
-		await expect(this.page.getByRole('heading', { level: 1, name: /create your account/i })).toBeVisible();
+		await expect(
+			this.page.getByRole('heading', { level: 1, name: /create your account/i })
+		).toBeVisible();
 	}
 
 	async enterCredentials(input: RegisterInput): Promise<void> {

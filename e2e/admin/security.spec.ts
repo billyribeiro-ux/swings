@@ -61,10 +61,7 @@ test.describe('admin security · IP allowlist', () => {
 		await page.getByTestId('ip-label-input').fill(label);
 		await page.getByTestId('ip-allowlist-create').click();
 
-		const row = page
-			.getByTestId('ip-allowlist-table')
-			.locator('tr')
-			.filter({ hasText: label });
+		const row = page.getByTestId('ip-allowlist-table').locator('tr').filter({ hasText: label });
 		await expect(row).toBeVisible({ timeout: 5_000 });
 		await expect(row).toContainText('Active');
 
@@ -104,9 +101,14 @@ test.describe('admin security · impersonation', () => {
 });
 
 test.describe('admin security · role matrix', () => {
-	test('renders the matrix and a checkbox toggle marks the form dirty', async ({ app, page }: Fixtures) => {
+	test('renders the matrix and a checkbox toggle marks the form dirty', async ({
+		app,
+		page
+	}: Fixtures) => {
 		await app.goto('/admin/security/roles');
-		await expect(page.getByRole('heading', { name: /Role \/ permission matrix/i })).toBeVisible();
+		await expect(
+			page.getByRole('heading', { name: /Role \/ permission matrix/i })
+		).toBeVisible();
 
 		const matrix = page.getByTestId('roles-matrix');
 		await expect(matrix).toBeVisible({ timeout: 5_000 });

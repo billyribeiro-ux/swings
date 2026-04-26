@@ -83,10 +83,7 @@ export const adminSubs = {
 	comp: (body: CompGrantRequest) =>
 		api.post<CompGrantResponse>('/api/admin/subscriptions/comp', body),
 	extend: (id: string, body: ExtendRequest) =>
-		api.post<ExtendResponse>(
-			`/api/admin/subscriptions/${encodeURIComponent(id)}/extend`,
-			body
-		),
+		api.post<ExtendResponse>(`/api/admin/subscriptions/${encodeURIComponent(id)}/extend`, body),
 	overrideCycle: (id: string, body: CycleOverrideRequest) =>
 		api.post<CycleOverrideResponse>(
 			`/api/admin/subscriptions/${encodeURIComponent(id)}/billing-cycle`,

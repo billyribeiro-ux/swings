@@ -28,7 +28,9 @@
 				{@const isLast = i === items.length - 1}
 				<li class="item">
 					{#if isLast || !item.href}
-						<span class="current" aria-current={isLast ? 'page' : undefined}>{item.label}</span>
+						<span class="current" aria-current={isLast ? 'page' : undefined}
+							>{item.label}</span
+						>
 					{:else}
 						<a class="link" href={item.href}>{item.label}</a>
 					{/if}

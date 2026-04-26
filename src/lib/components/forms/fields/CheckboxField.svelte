@@ -28,7 +28,7 @@
 			name={field.key}
 			type="checkbox"
 			class="fm-check__input"
-			checked={checked}
+			{checked}
 			{disabled}
 			aria-describedby={describedBy}
 			aria-invalid={!!error}

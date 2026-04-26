@@ -52,7 +52,9 @@
 		{#snippet failed(err, reset)}
 			<div class="editor-error">
 				<p>The editor crashed unexpectedly.</p>
-				<p class="editor-error__detail">{err instanceof Error ? err.message : String(err)}</p>
+				<p class="editor-error__detail">
+					{err instanceof Error ? err.message : String(err)}
+				</p>
 				<button class="editor-error__reset" onclick={reset}>Try again</button>
 			</div>
 		{/snippet}

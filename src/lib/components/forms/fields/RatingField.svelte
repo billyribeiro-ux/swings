@@ -10,9 +10,7 @@
 	const { field, value, error, disabled = false, onChange }: FieldProps = $props();
 	const r = $derived(field as Extract<FieldSchema, { type: 'rating' }>);
 	const maxStars = $derived(r.max_stars ?? 5);
-	const current = $derived(
-		typeof value === 'number' && Number.isInteger(value) ? value : 0
-	);
+	const current = $derived(typeof value === 'number' && Number.isInteger(value) ? value : 0);
 	const controlId = $derived(`form-field-${field.key}`);
 	const helpId = $derived(field.helpText ? `${controlId}-help` : undefined);
 	const errorId = $derived(error ? `${controlId}-err` : undefined);

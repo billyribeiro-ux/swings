@@ -131,8 +131,7 @@ function qs(q: OrderListQuery): string {
 }
 
 export const adminOrders = {
-	list: (q: OrderListQuery = {}) =>
-		api.get<OrderListEnvelope>(`/api/admin/orders${qs(q)}`),
+	list: (q: OrderListQuery = {}) => api.get<OrderListEnvelope>(`/api/admin/orders${qs(q)}`),
 	get: (id: string) => api.get<OrderDetail>(`/api/admin/orders/${encodeURIComponent(id)}`),
 	createManual: (body: ManualOrderRequest) => api.post<OrderDetail>('/api/admin/orders', body),
 	void: (id: string, body: VoidRequest) =>

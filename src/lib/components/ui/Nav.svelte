@@ -21,7 +21,6 @@
 	let isMobileOpen = $state(false);
 	let dropdownRef: HTMLDivElement | undefined = $state();
 	let scrolled = $state(false);
-	let navRef: HTMLElement | undefined = $state();
 	let scrollRaf = 0;
 
 	const motion = $derived(!prefersReducedMotion.current);
@@ -86,7 +85,6 @@
 <svelte:window onclick={handleWindowClick} onkeydown={handleKeydown} onscroll={handleScroll} />
 
 <nav
-	bind:this={navRef}
 	class={['nav', scrolled && 'nav--scrolled', isMobileOpen && 'nav--mobile-open']}
 	aria-label="Primary"
 >
@@ -110,7 +108,11 @@
 						onclick={toggleCourses}
 						aria-expanded={isCoursesOpen}
 						aria-haspopup="true"
-						class={['nav__link', 'nav__link--dropdown', isCoursesOpen && 'nav__link--active']}
+						class={[
+							'nav__link',
+							'nav__link--dropdown',
+							isCoursesOpen && 'nav__link--active'
+						]}
 					>
 						Courses
 						<CaretDownIcon
@@ -133,33 +135,51 @@
 							<div class="dropdown-panel__inner">
 								{#each courses as course (course.id)}
 									{@const Icon = iconMap[course.icon]}
-									<a href="/courses/{course.slug}" class="dropdown-item" onclick={closeAll}>
+									<a
+										href="/courses/{course.slug}"
+										class="dropdown-item"
+										onclick={closeAll}
+									>
 										<div
 											class="dropdown-item__icon"
-											style="background: linear-gradient(135deg, {course.gradient.from}, {course
-												.gradient.to});"
+											style="background: linear-gradient(135deg, {course
+												.gradient.from}, {course.gradient.to});"
 										>
 											{#if Icon}
 												<Icon size={22} weight="duotone" color="white" />
 											{:else}
-												<span class="dropdown-item__icon-fallback">{course.level.charAt(0)}</span>
+												<span class="dropdown-item__icon-fallback"
+													>{course.level.charAt(0)}</span
+												>
 											{/if}
 										</div>
 										<div class="dropdown-item__content">
 											<h4 class="dropdown-item__title">{course.title}</h4>
 											<p class="dropdown-item__desc">{course.description}</p>
 											<div class="dropdown-item__meta">
-												<span class="dropdown-item__price">${course.price}</span>
+												<span class="dropdown-item__price"
+													>${course.price}</span
+												>
 												<span class="dropdown-item__sep">·</span>
-												<span class="dropdown-item__level">{course.level}</span>
+												<span class="dropdown-item__level"
+													>{course.level}</span
+												>
 											</div>
 										</div>
-										<ArrowRightIcon size={14} weight="bold" class="dropdown-item__arrow" />
+										<ArrowRightIcon
+											size={14}
+											weight="bold"
+											class="dropdown-item__arrow"
+										/>
 									</a>
 								{/each}
 
 								<div class="dropdown-panel__footer">
-									<a href="/courses" class="dropdown-panel__view-all" onclick={closeAll}>
+									<a
+										href="/courses"
+										class="dropdown-panel__view-all"
+										onclick={closeAll}
+									>
 										View All Courses
 										<ArrowRightIcon size={14} weight="bold" />
 									</a>
@@ -191,7 +211,11 @@
 						<Button variant="primary" href="/register">Get Instant Access</Button>
 						<div class="nav__signin">
 							<p class="nav__cta-signin-label">Already a member?</p>
-							<a href="/login" class="nav__cta-signin-button" data-sveltekit-preload-data="hover">
+							<a
+								href="/login"
+								class="nav__cta-signin-button"
+								data-sveltekit-preload-data="hover"
+							>
 								Sign in
 							</a>
 						</div>
@@ -231,23 +255,35 @@
 					<div class="mobile-menu__courses">
 						{#each courses as course (course.id)}
 							{@const Icon = iconMap[course.icon]}
-							<a href="/courses/{course.slug}" class="mobile-course-item" onclick={closeAll}>
+							<a
+								href="/courses/{course.slug}"
+								class="mobile-course-item"
+								onclick={closeAll}
+							>
 								<div
 									class="mobile-course-item__icon"
-									style="background: linear-gradient(135deg, {course.gradient.from}, {course
-										.gradient.to});"
+									style="background: linear-gradient(135deg, {course.gradient
+										.from}, {course.gradient.to});"
 								>
 									{#if Icon}
 										<Icon size={20} weight="duotone" color="white" />
 									{:else}
-										<span class="mobile-course-item__icon-fallback">{course.level.charAt(0)}</span>
+										<span class="mobile-course-item__icon-fallback"
+											>{course.level.charAt(0)}</span
+										>
 									{/if}
 								</div>
 								<div class="mobile-course-item__content">
 									<h4 class="mobile-course-item__title">{course.title}</h4>
-									<p class="mobile-course-item__meta">{course.level} · ${course.price}</p>
+									<p class="mobile-course-item__meta">
+										{course.level} · ${course.price}
+									</p>
 								</div>
-								<ArrowRightIcon size={16} weight="bold" class="mobile-course-item__arrow" />
+								<ArrowRightIcon
+									size={16}
+									weight="bold"
+									class="mobile-course-item__arrow"
+								/>
 							</a>
 						{/each}
 					</div>
@@ -261,7 +297,9 @@
 					<a href="/about" class="mobile-menu__link" onclick={closeAll}>About</a>
 					<a href="/courses" class="mobile-menu__link" onclick={closeAll}>All Courses</a>
 					<a href="/blog" class="mobile-menu__link" onclick={closeAll}>Blog</a>
-					<a href="/pricing/monthly" class="mobile-menu__link" onclick={closeAll}>Pricing</a>
+					<a href="/pricing/monthly" class="mobile-menu__link" onclick={closeAll}
+						>Pricing</a
+					>
 				</div>
 
 				<!-- Mobile CTA -->
@@ -281,7 +319,9 @@
 						</a>
 						<p class="mobile-menu__cta-sub">
 							Already a member?
-							<a href="/login" class="mobile-menu__cta-sub-link" onclick={closeAll}>Sign in</a>
+							<a href="/login" class="mobile-menu__cta-sub-link" onclick={closeAll}
+								>Sign in</a
+							>
 						</p>
 					{/if}
 				</div>

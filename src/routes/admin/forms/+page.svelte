@@ -125,12 +125,19 @@
 						{#each forms as f (f.id)}
 							<tr>
 								<td>
-									<a class="table__name" href={`/admin/forms/${f.id}`}>{f.name}</a>
-									{#if f.description}<div class="table__desc">{f.description}</div>{/if}
+									<a class="table__name" href={`/admin/forms/${f.id}`}>{f.name}</a
+									>
+									{#if f.description}<div class="table__desc">
+											{f.description}
+										</div>{/if}
 								</td>
 								<td><code class="table__slug">{f.slug}</code></td>
 								<td>
-									<span class="pill {f.is_active ? 'pill--success' : 'pill--neutral'}">
+									<span
+										class="pill {f.is_active
+											? 'pill--success'
+											: 'pill--neutral'}"
+									>
 										{f.is_active ? 'Active' : 'Archived'}
 									</span>
 								</td>
@@ -178,14 +185,19 @@
 											class="action-btn action-btn--destructive"
 											onclick={() => toggleArchive(f)}
 											disabled={acting === f.id}
-											aria-label={f.is_active ? `Archive ${f.name}` : `Restore ${f.name}`}
+											aria-label={f.is_active
+												? `Archive ${f.name}`
+												: `Restore ${f.name}`}
 											title={f.is_active ? 'Archive' : 'Restore'}
 										>
 											{#if f.is_active}
 												<ArchiveIcon size={14} weight="bold" />
 												<span>Archive</span>
 											{:else}
-												<ArrowCounterClockwiseIcon size={14} weight="bold" />
+												<ArrowCounterClockwiseIcon
+													size={14}
+													weight="bold"
+												/>
 												<span>Restore</span>
 											{/if}
 										</button>

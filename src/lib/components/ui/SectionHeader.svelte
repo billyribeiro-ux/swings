@@ -115,6 +115,7 @@
 <div bind:this={headerRef} class="section-header" data-dark={dark || undefined}>
 	<span bind:this={eyebrowRef} class="section-header__eyebrow hero-eyebrow">{eyebrow}</span>
 	<h2 bind:this={titleRef} class="section-header__title">
+		<!-- eslint-disable-next-line svelte/no-at-html-tags -- titles are hard-coded in callers with intentional <br/> and <strong> markup -->
 		{@html title}
 	</h2>
 	{#if subtitle}

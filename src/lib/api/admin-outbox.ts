@@ -7,15 +7,9 @@ import type { components } from '$lib/api/schema';
 
 export type OutboxRowDto = components['schemas']['OutboxRowDto'];
 export type OutboxRetryResponse = components['schemas']['OutboxRetryResponse'];
-export type PaginatedOutboxResponse =
-	components['schemas']['PaginatedOutboxResponse'];
+export type PaginatedOutboxResponse = components['schemas']['PaginatedOutboxResponse'];
 
-export type OutboxStatusFilter =
-	| 'pending'
-	| 'in_flight'
-	| 'delivered'
-	| 'failed'
-	| 'dead_letter';
+export type OutboxStatusFilter = 'pending' | 'in_flight' | 'delivered' | 'failed' | 'dead_letter';
 
 export interface OutboxListQuery {
 	status?: OutboxStatusFilter | '';
@@ -43,8 +37,6 @@ export const outbox = {
 		return api.get<OutboxRowDto>(`/api/admin/outbox/${encodeURIComponent(id)}`);
 	},
 	retry(id: string): Promise<OutboxRetryResponse> {
-		return api.post<OutboxRetryResponse>(
-			`/api/admin/outbox/${encodeURIComponent(id)}/retry`
-		);
+		return api.post<OutboxRetryResponse>(`/api/admin/outbox/${encodeURIComponent(id)}/retry`);
 	}
 };

@@ -20,7 +20,11 @@
 		verifying = true;
 		error = '';
 		try {
-			const res = await api.post<{ message?: string }>('/api/auth/verify-email', { token }, { skipAuth: true });
+			const res = await api.post<{ message?: string }>(
+				'/api/auth/verify-email',
+				{ token },
+				{ skipAuth: true }
+			);
 			success = true;
 			message = res.message ?? 'Email verified successfully.';
 		} catch (err) {
@@ -61,7 +65,9 @@
 			<div class="verify-card__error">{error}</div>
 			<div class="verify-card__actions">
 				<a href="/login" class="verify-card__back">Back to sign in</a>
-				<a href="/resend-verification" class="verify-card__back">Resend verification email</a>
+				<a href="/resend-verification" class="verify-card__back"
+					>Resend verification email</a
+				>
 			</div>
 		{/if}
 	</div>

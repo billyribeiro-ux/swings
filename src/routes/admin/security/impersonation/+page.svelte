@@ -4,10 +4,7 @@
 	import ArrowClockwiseIcon from 'phosphor-svelte/lib/ArrowClockwiseIcon';
 	import StopCircleIcon from 'phosphor-svelte/lib/StopCircleIcon';
 	import { ApiError } from '$lib/api/client';
-	import {
-		impersonation,
-		type ImpersonationSession
-	} from '$lib/api/admin-security';
+	import { impersonation, type ImpersonationSession } from '$lib/api/admin-security';
 
 	let sessions = $state<ImpersonationSession[]>([]);
 	let nextCursor = $state<string | null>(null);
@@ -91,7 +88,8 @@
 			revokeReason = '';
 			await refresh();
 		} catch (e) {
-			error = e instanceof ApiError ? `${e.status}: ${e.message}` : 'Failed to revoke session';
+			error =
+				e instanceof ApiError ? `${e.status}: ${e.message}` : 'Failed to revoke session';
 		}
 	}
 
@@ -210,7 +208,11 @@
 					{#each sessions as session (session.id)}
 						<tr>
 							<td><code title={session.id}>{session.id.slice(0, 8)}…</code></td>
-							<td><code title={session.target_user_id}>{session.target_user_id.slice(0, 8)}…</code></td>
+							<td
+								><code title={session.target_user_id}
+									>{session.target_user_id.slice(0, 8)}…</code
+								></td
+							>
 							<td class="reason-cell">{session.reason}</td>
 							<td>
 								<span

@@ -62,8 +62,8 @@
 			<div class="security-hub__copy">
 				<h1 class="security-hub__title">Security</h1>
 				<p class="security-hub__subtitle">
-					Operator-grade controls for the admin panel: IP allowlist, impersonation, roles &amp;
-					permissions, DSAR, and the audit log.
+					Operator-grade controls for the admin panel: IP allowlist, impersonation, roles
+					&amp; permissions, DSAR, and the audit log.
 				</p>
 			</div>
 		</div>

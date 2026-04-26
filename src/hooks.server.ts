@@ -134,10 +134,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	response.headers.set('Content-Security-Policy', buildCsp(nonce));
 	// Pair `report-to` above with the matching `Reporting-Endpoints`
 	// header so modern browsers know where to POST CSP violations.
-	response.headers.set(
-		'Reporting-Endpoints',
-		'csp-endpoint="/api/csp-report"'
-	);
+	response.headers.set('Reporting-Endpoints', 'csp-endpoint="/api/csp-report"');
 	response.headers.set(
 		'Strict-Transport-Security',
 		'max-age=63072000; includeSubDomains; preload'

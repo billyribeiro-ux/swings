@@ -35,7 +35,10 @@ test.describe('home page', () => {
 		// Only flag genuinely app-level errors. We tolerate network-level 404s
 		// bubbling from analytics beacons in local preview.
 		const appErrors = errors.filter(
-			(line) => !/Failed to load resource|ERR_CONNECTION|favicon|\/api\/analytics/i.test(line)
+			(line) =>
+				!/Failed to load resource|ERR_CONNECTION|favicon|\/api\/analytics|_vercel\/(insights|speed-insights)|nosniff/i.test(
+					line
+				)
 		);
 		expect(appErrors, `unexpected console errors: ${JSON.stringify(appErrors)}`).toEqual([]);
 	});
@@ -55,7 +58,9 @@ test.describe('home page', () => {
 		try {
 			const mod = await import('@axe-core/playwright').catch(() => null);
 			if (mod && 'default' in mod) {
-				builder = new (mod as unknown as { default: new (p: typeof page) => unknown }).default(page);
+				builder = new (
+					mod as unknown as { default: new (p: typeof page) => unknown }
+				).default(page);
 				hasAxe = true;
 			}
 		} catch {
@@ -64,6 +69,9 @@ test.describe('home page', () => {
 		test.skip(!hasAxe, 'Install @axe-core/playwright (devDep) to enable accessibility gating.');
 		const analyze = (builder as { analyze: () => Promise<{ violations: unknown[] }> }).analyze;
 		const results = await analyze.call(builder);
-		expect(results.violations, `axe violations: ${JSON.stringify(results.violations, null, 2)}`).toEqual([]);
+		expect(
+			results.violations,
+			`axe violations: ${JSON.stringify(results.violations, null, 2)}`
+		).toEqual([]);
 	});
 });

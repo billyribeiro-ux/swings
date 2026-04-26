@@ -266,7 +266,11 @@
 					<div class="course-card__body">
 						<div class="course-card__top">
 							<h3 class="course-card__title">{course.title}</h3>
-							<span class="badge {course.is_published ? 'badge--published' : 'badge--draft'}">
+							<span
+								class="badge {course.is_published
+									? 'badge--published'
+									: 'badge--draft'}"
+							>
 								{course.is_published ? 'Published' : 'Draft'}
 							</span>
 						</div>
@@ -290,7 +294,9 @@
 							{/if}
 						</div>
 						<div class="course-card__date">
-							{course.is_published ? formatDate(course.published_at) : formatDate(course.created_at)}
+							{course.is_published
+								? formatDate(course.published_at)
+								: formatDate(course.created_at)}
 						</div>
 					</div>
 				</a>
@@ -318,7 +324,11 @@
 							<td class="td-thumb">
 								<a href="/admin/courses/{course.id}" class="thumb-link">
 									{#if course.thumbnail_url}
-										<img src={course.thumbnail_url} alt={course.title} class="table-thumb" />
+										<img
+											src={course.thumbnail_url}
+											alt={course.title}
+											class="table-thumb"
+										/>
 									{:else}
 										<div class="table-thumb-placeholder">
 											<BookOpenIcon size={18} weight="duotone" />
@@ -349,7 +359,11 @@
 							</td>
 							<td class="td-duration">{course.estimated_duration || '—'}</td>
 							<td>
-								<span class="badge {course.is_published ? 'badge--published' : 'badge--draft'}">
+								<span
+									class="badge {course.is_published
+										? 'badge--published'
+										: 'badge--draft'}"
+								>
 									{course.is_published ? 'Published' : 'Draft'}
 								</span>
 							</td>
@@ -984,7 +998,6 @@
 			gap: 1.5rem;
 		}
 
-
 		.stats-bar {
 			gap: 1rem;
 		}
@@ -992,7 +1005,6 @@
 		.stat-card {
 			padding: 1.5rem;
 		}
-
 
 		.filter-card {
 			padding: 1.5rem;
@@ -1006,8 +1018,8 @@
 			display: block;
 			overflow-x: auto;
 			background: rgba(19, 43, 80, 0.35);
-		backdrop-filter: blur(24px);
-		-webkit-backdrop-filter: blur(24px);
+			backdrop-filter: blur(24px);
+			-webkit-backdrop-filter: blur(24px);
 			border: 1px solid rgba(255, 255, 255, 0.06);
 			border-radius: var(--radius-2xl);
 			box-shadow:

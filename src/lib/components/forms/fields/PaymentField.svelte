@@ -20,7 +20,11 @@
 
 	interface StripeLike {
 		elements(options: Record<string, unknown>): StripeElements;
-		confirmPayment(options: { elements: StripeElements; confirmParams: Record<string, unknown>; redirect: 'if_required' }): Promise<{
+		confirmPayment(options: {
+			elements: StripeElements;
+			confirmParams: Record<string, unknown>;
+			redirect: 'if_required';
+		}): Promise<{
 			paymentIntent?: { id: string; status: string };
 			error?: { message: string };
 		}>;
@@ -143,6 +147,8 @@
 		<!-- elements may legitimately be null if a later effect tears down. -->
 	{/if}
 	{#if error || localError}
-		<p id={errorId} class="fm-field__error" role="alert" aria-live="polite">{error ?? localError}</p>
+		<p id={errorId} class="fm-field__error" role="alert" aria-live="polite">
+			{error ?? localError}
+		</p>
 	{/if}
 </div>

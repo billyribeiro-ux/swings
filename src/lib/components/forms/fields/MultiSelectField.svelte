@@ -52,7 +52,8 @@
 					value={opt.value}
 					checked={selected.includes(opt.value)}
 					disabled={disabled || (opt.disabled ?? false)}
-					onchange={(e) => handleToggle(opt.value, (e.currentTarget as HTMLInputElement).checked)}
+					onchange={(e) =>
+						handleToggle(opt.value, (e.currentTarget as HTMLInputElement).checked)}
 				/>
 				<span class="fm-check__label">{opt.label}</span>
 			</label>

@@ -168,6 +168,7 @@
 							{currentLesson.description}
 						</p>{/if}
 					{#if currentLesson.content}<div class="lesson-body">
+							<!-- eslint-disable-next-line svelte/no-at-html-tags -- lesson content sanitized via DOMPurify in safeHtml() -->
 							{@html safeHtml(currentLesson.content)}
 						</div>{/if}
 				</div>
@@ -177,7 +178,8 @@
 						>{:else}<div></div>{/if}
 					{#if nextLesson}<button
 							class="nav-btn nav-btn--next"
-							onclick={() => goTo(nextLesson!)}>Next <ArrowRightIcon size={16} /></button
+							onclick={() => goTo(nextLesson!)}
+							>Next <ArrowRightIcon size={16} /></button
 						>{:else}<div></div>{/if}
 				</div>
 			{:else}

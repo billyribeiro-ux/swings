@@ -18,7 +18,9 @@
 	// Union of schema-order + current order; unknown values are dropped.
 	const order = $derived.by(() => {
 		const known = new Set(r.options.map((o) => o.value));
-		const fromValue = Array.isArray(value) ? (value as unknown[]).filter((v): v is string => typeof v === 'string' && known.has(v)) : [];
+		const fromValue = Array.isArray(value)
+			? (value as unknown[]).filter((v): v is string => typeof v === 'string' && known.has(v))
+			: [];
 		const seen = new Set(fromValue);
 		const fallback = r.options.map((o) => o.value).filter((v) => !seen.has(v));
 		return [...fromValue, ...fallback];

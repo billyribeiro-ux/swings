@@ -4,8 +4,10 @@
 #
 # This is the *single* Dockerfile for the backend. It is consumed by:
 #   * Railway       — build context = repo root (see `backend/railway.toml`)
-#   * Render        — build context = repo root (see `render.yaml`)
 #   * docker compose — build context = repo root (see `docker-compose.yml`)
+#
+# Render is no longer a supported deployment target — Railway is canonical
+# (see `docs/DEPLOYMENT.md`).
 #
 # Build context is always the repo root so that the `COPY backend/...`
 # instructions resolve consistently across every PaaS. There is no
@@ -32,6 +34,16 @@ FROM rust:1.93-slim-bookworm AS builder
 # The crate's alternative path (the `reqwest` feature) drags in a TLS
 # stack we don't otherwise need at build time, so installing `curl` is
 # the smaller delta.
+# NOTE on `pkg-config` + `libssl-dev`: NOT dead weight despite this repo
+# preferring rustls. `async-stripe = "0.39"` is wired with the
+# `runtime-tokio-hyper` feature, which transitively pulls in
+# `hyper-tls` → `native-tls` → `openssl-sys`. On Linux `native-tls`
+# resolves to OpenSSL (on macOS it uses Security.framework, which is
+# why local `cargo build` works without these packages). Removing them
+# breaks `docker build` with `pkg-config not found / openssl-sys = 0.9`.
+# To drop them, first migrate Stripe off `runtime-tokio-hyper` (e.g.
+# swap to a rustls-based reqwest client). Verified empirically — see
+# Phase 6.7 of `AUDIT_FIX_PLAN.md`.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         pkg-config \
@@ -58,7 +70,7 @@ RUN touch src/main.rs && cargo build --release
 FROM debian:bookworm-slim
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates libssl3 \
+    && apt-get install -y --no-install-recommends ca-certificates libssl3 curl \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --system --gid 10001 app \
     && useradd  --system --uid 10001 --gid app --home-dir /app --shell /usr/sbin/nologin app
@@ -73,5 +85,11 @@ RUN mkdir -p uploads && chown -R app:app /app
 USER app
 
 EXPOSE 3001
+
+# Liveness probe — `handlers::health::router()` mounts `/health` (not under
+# `/api`, see `backend/src/main.rs`). The endpoint never touches Postgres,
+# so a failing healthcheck means the Axum process itself is wedged.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -fsS http://127.0.0.1:3001/health || exit 1
 
 CMD ["./swings-api"]

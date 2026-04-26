@@ -101,6 +101,8 @@
 		{/if}
 	</div>
 	{#if error || localError}
-		<p id={errorId} class="fm-field__error" role="alert" aria-live="polite">{error ?? localError}</p>
+		<p id={errorId} class="fm-field__error" role="alert" aria-live="polite">
+			{error ?? localError}
+		</p>
 	{/if}
 </div>

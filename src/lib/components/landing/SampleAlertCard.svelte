@@ -46,9 +46,9 @@
 	});
 </script>
 
-<article 
-	bind:this={cardRef} 
-	class="alert-card" 
+<article
+	bind:this={cardRef}
+	class="alert-card"
 	aria-label="Sample stock alert preview"
 	{@attach hoverTilt({ maxTilt: 6, scale: 1.02 })}
 >
@@ -68,7 +68,12 @@
 			<div class="alert-card__symbol-row">
 				<span class="alert-card__ticker">{sampleAlert.ticker}</span>
 				<span class="alert-card__chip">
-					<TrendUpIcon size={14} weight="bold" class="alert-card__chip-icon" aria-hidden="true" />
+					<TrendUpIcon
+						size={14}
+						weight="bold"
+						class="alert-card__chip-icon"
+						aria-hidden="true"
+					/>
 					Bullish
 				</span>
 			</div>
@@ -82,7 +87,13 @@
 				<span class="alert-card__chart-tag">Daily candles</span>
 			</div>
 			<div class="alert-card__chart-inner">
-				<MiniChart ticker={sampleAlert.ticker} trend="up" height={188} days={14} showcase={true} />
+				<MiniChart
+					ticker={sampleAlert.ticker}
+					trend="up"
+					height={188}
+					days={14}
+					showcase={true}
+				/>
 			</div>
 		</div>
 	</div>
@@ -132,7 +143,12 @@
 	</div>
 
 	<div class="alert-card__notes">
-		<LightbulbIcon size={18} weight="duotone" class="alert-card__notes-icon" aria-hidden="true" />
+		<LightbulbIcon
+			size={18}
+			weight="duotone"
+			class="alert-card__notes-icon"
+			aria-hidden="true"
+		/>
 		<p class="alert-card__notes-text">{sampleAlert.notes}</p>
 	</div>
 </article>
@@ -409,7 +425,11 @@
 		padding: 1rem 1rem 1rem 0.95rem;
 		border-radius: var(--radius-lg);
 		border: 1px solid rgba(15, 164, 175, 0.25);
-		background: linear-gradient(120deg, rgba(15, 164, 175, 0.12) 0%, rgba(15, 23, 42, 0.5) 100%);
+		background: linear-gradient(
+			120deg,
+			rgba(15, 164, 175, 0.12) 0%,
+			rgba(15, 23, 42, 0.5) 100%
+		);
 	}
 
 	:global(.alert-card__notes-icon) {

@@ -119,13 +119,19 @@
 						<article class="reveal-item cat-card" style="transition-delay: {i * 0.08}s">
 							{#if post.featured_image_url}
 								<a href="/blog/{post.slug}" class="cat-card__img-link">
-									<img src={post.featured_image_url} alt={post.title} loading="lazy" />
+									<img
+										src={post.featured_image_url}
+										alt={post.title}
+										loading="lazy"
+									/>
 								</a>
 							{/if}
 							<div class="cat-card__body">
 								<div class="cat-card__meta">
 									<CalendarBlankIcon size={14} weight="bold" />
-									{new Date(post.published_at || post.created_at).toLocaleDateString('en-US', {
+									{new Date(
+										post.published_at || post.created_at
+									).toLocaleDateString('en-US', {
 										month: 'short',
 										day: 'numeric',
 										year: 'numeric'

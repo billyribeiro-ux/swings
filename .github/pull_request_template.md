@@ -1,10 +1,10 @@
 ## What Changed
 
-- 
+-
 
 ## Why
 
-- 
+-
 
 ## Test Plan
 

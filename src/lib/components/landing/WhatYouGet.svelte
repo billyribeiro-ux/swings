@@ -95,7 +95,12 @@
 
 		<div class="what-you-get__grid">
 			{#each features as feature (feature.title)}
-				<div class={['what-you-get__item', { 'what-you-get__item--full': feature.fullWidth }]}>
+				<div
+					class={[
+						'what-you-get__item',
+						{ 'what-you-get__item--full': feature.fullWidth }
+					]}
+				>
 					<span class="what-you-get__check" aria-hidden="true">
 						<CheckCircleIcon size={24} weight="duotone" color="#0FA4AF" />
 					</span>

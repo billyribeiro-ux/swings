@@ -15,7 +15,10 @@
 	// non-empty line is user-friendly.
 	function sanitizeMessage(raw: string | undefined): string {
 		if (!raw) return 'Something went wrong.';
-		const firstLine = raw.split(/\r?\n/).find((line) => line.trim().length > 0)?.trim();
+		const firstLine = raw
+			.split(/\r?\n/)
+			.find((line) => line.trim().length > 0)
+			?.trim();
 		if (!firstLine) return 'Something went wrong.';
 		// Trim a trailing stack-frame fragment like " (at fn (...))" if present.
 		return firstLine.replace(/\s+at\s+.*$/i, '').slice(0, 240);

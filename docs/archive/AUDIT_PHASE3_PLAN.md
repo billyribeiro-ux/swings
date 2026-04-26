@@ -9,16 +9,17 @@
 
 I need six architectural calls before the plan is actionable. You did not supply them, so I am proceeding on the following defaults. Each has a concrete rationale; any can be reversed with limited rework before Phase 4 begins on its dependent subsystem.
 
-| # | Decision | Default | Rationale |
-|---|---|---|---|
-| D1 | **E-commerce scope** | **Digital-goods trim** (products: simple + subscription + downloadable + bundle of digital). No shipping, no physical inventory, no B2B sub-users, no multi-location stock. US Stripe Tax + EU VAT MOSS only. | The business is a trader-signals + LMS SaaS; shipping/inventory parity would be gold-plating. All targets (subs, courses, downloadables, memberships) are digital. If I'm wrong, raise scope **before FDN phase exits**. |
-| D2 | **Type contract** | **`utoipa` (Rust annotation-first) → OpenAPI 3.1 → `openapi-typescript` codegen for frontend**. | Keeps Rust as single source of truth; no hand-written `src/lib/api/types.ts` drift. `utoipa` integrates with axum via `utoipa-axum`. Frontend regenerates types in `pnpm check` / prebuild. |
-| D3 | **Queue / event bus** | **Postgres-backed transactional outbox** (`outbox_events` table + background worker pool in the API binary; room to swap for `pgmq` extension or Redis Streams later). | We are already 100% on Postgres. Redis adds ops surface (and $) for something a transactional outbox + `LISTEN`/`NOTIFY` covers. Semantics: at-least-once with idempotency-keyed consumers. |
-| D4 | **Email provider** | **Resend** (API-based) for transactional + marketing. Lettre SMTP retained as a dev-only fallback behind `EMAIL_PROVIDER=smtp`. | Delivery webhooks (bounce / complaint / open / click), built-in suppression, React-Email / MJML compile support. Aligns with notifications DLQ. |
-| D5 | **Geo detection** | **Cloudflare `CF-IPCountry` + Vercel `X-Vercel-IP-Country` edge headers primary**, **MaxMind GeoLite2 (`maxminddb` crate) embedded fallback** when the API is hit directly (Railway origin). | Zero-latency in the common path (edge-forwarded); accurate fallback for direct traffic and for city-level detail when needed. |
-| D6 | **CSS rebuild sequencing** | **Phase 3.5 prerequisite** — PE7 token migration lands before any new admin/public UI ships in Phase 4. | New Svelte components must not inherit hex tokens. Existing surfaces keep hex tokens behind an `@layer overrides` compatibility shim until each surface is migrated. |
+| #   | Decision                   | Default                                                                                                                                                                                                       | Rationale                                                                                                                                                                                                                |
+| --- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| D1  | **E-commerce scope**       | **Digital-goods trim** (products: simple + subscription + downloadable + bundle of digital). No shipping, no physical inventory, no B2B sub-users, no multi-location stock. US Stripe Tax + EU VAT MOSS only. | The business is a trader-signals + LMS SaaS; shipping/inventory parity would be gold-plating. All targets (subs, courses, downloadables, memberships) are digital. If I'm wrong, raise scope **before FDN phase exits**. |
+| D2  | **Type contract**          | **`utoipa` (Rust annotation-first) → OpenAPI 3.1 → `openapi-typescript` codegen for frontend**.                                                                                                               | Keeps Rust as single source of truth; no hand-written `src/lib/api/types.ts` drift. `utoipa` integrates with axum via `utoipa-axum`. Frontend regenerates types in `pnpm check` / prebuild.                              |
+| D3  | **Queue / event bus**      | **Postgres-backed transactional outbox** (`outbox_events` table + background worker pool in the API binary; room to swap for `pgmq` extension or Redis Streams later).                                        | We are already 100% on Postgres. Redis adds ops surface (and $) for something a transactional outbox + `LISTEN`/`NOTIFY` covers. Semantics: at-least-once with idempotency-keyed consumers.                              |
+| D4  | **Email provider**         | **Resend** (API-based) for transactional + marketing. Lettre SMTP retained as a dev-only fallback behind `EMAIL_PROVIDER=smtp`.                                                                               | Delivery webhooks (bounce / complaint / open / click), built-in suppression, React-Email / MJML compile support. Aligns with notifications DLQ.                                                                          |
+| D5  | **Geo detection**          | **Cloudflare `CF-IPCountry` + Vercel `X-Vercel-IP-Country` edge headers primary**, **MaxMind GeoLite2 (`maxminddb` crate) embedded fallback** when the API is hit directly (Railway origin).                  | Zero-latency in the common path (edge-forwarded); accurate fallback for direct traffic and for city-level detail when needed.                                                                                            |
+| D6  | **CSS rebuild sequencing** | **Phase 3.5 prerequisite** — PE7 token migration lands before any new admin/public UI ships in Phase 4.                                                                                                       | New Svelte components must not inherit hex tokens. Existing surfaces keep hex tokens behind an `@layer overrides` compatibility shim until each surface is migrated.                                                     |
 
 I will also assume:
+
 - **Multi-tenancy:** single tenant (this one site). No saleable "for other orgs" multi-tenancy in scope.
 - **i18n surface:** consent banner + consent log + DSAR flows are i18n-ready (required by EU regs). Commerce/UI i18n is out of scope for Phase 4 v1.
 - **Feature flags:** simple env-var gating (`ENABLE_CONSENT_BANNER=1` etc.). No LaunchDarkly/ConfigCat.
@@ -115,6 +116,7 @@ Arrows are hard preconditions; each subsystem inside a group can be built in the
 Replace `src/styles/tokens.css`, `global.css`, `reset.css`, delete unused `src/routes/layout.css`.
 
 New files:
+
 - `src/styles/layers.css` — `@layer reset, base, tokens, layout, components, utilities, overrides;`
 - `src/styles/tokens.css` — OKLCH color scales for navy/teal/gold/neutral/status, typographic scale using `clamp()` with the 9-tier breakpoint system, spacing, radii, shadows, z-index, motion.
 - `src/styles/breakpoints.css` — the 9-tier system:
@@ -141,6 +143,7 @@ New files:
 ### FDN-04 — Transactional outbox + worker pool
 
 - **Migration `019_outbox.sql`:**
+
   ```sql
   CREATE TABLE outbox_events (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -168,6 +171,7 @@ New files:
     is_active      BOOLEAN NOT NULL DEFAULT TRUE
   );
   ```
+
 - **Module tree:**
   ```
   backend/src/events/
@@ -188,6 +192,7 @@ New files:
 ### FDN-05 — Notifications core
 
 - **Migration `020_notifications.sql`:**
+
   ```sql
   CREATE TABLE notification_templates (
     id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -250,6 +255,7 @@ New files:
     used         BOOLEAN NOT NULL DEFAULT FALSE
   );
   ```
+
 - **Module tree:**
   ```
   backend/src/notifications/
@@ -289,6 +295,7 @@ New files:
 ### FDN-07 — Authz policy engine
 
 - **Migration `021_rbac.sql`:**
+
   ```sql
   -- Roles: keep existing enum `user_role` (member, admin); add 'author' and 'support' via ALTER TYPE.
   ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'author';
@@ -304,6 +311,7 @@ New files:
     PRIMARY KEY (role, permission)
   );
   ```
+
 - Seed permission catalogue in same migration (`blog.*`, `course.*`, `coupon.*`, `order.*`, `subscription.*`, `popup.*`, `form.*`, `consent.*`, `notification.*`, `admin.*`).
 - **Module:** `backend/src/authz.rs` with `Policy` + `require(AuthUser, "blog.post.update", &post)` helper; row-level checks inline (author_id match etc.).
 - Extract from `extractors.rs`: `AdminUser` stays but gains `has_permission(&str) -> bool` (checks cached role→permission join loaded at startup + reloaded on admin mutation).
@@ -345,6 +353,7 @@ New files:
 ## 3. CONSENT MANAGEMENT
 
 ### CONSENT-01 Banner + category model
+
 - **Migration `023_consent.sql`:**
   ```sql
   CREATE TABLE consent_policies (
@@ -388,12 +397,15 @@ New files:
 - **Frontend:** `src/lib/components/consent/ConsentBanner.svelte`, `.../ConsentPreferences.svelte` (in-app "Manage Cookies") using Svelte 5 runes, PE7 tokens, `{@attach}` for focus trap, dialog ARIA, ESC-to-close.
 
 ### CONSENT-02 Script blocker + consent gate
+
 - `src/lib/consent/gate.ts` — `loadScript(url, { categories: ['analytics'] })` resolves only after the user has granted matching categories, otherwise defers until grant event.
 - Replace unconditional `AnalyticsBeacon.svelte` load with a consent-gated mount.
 - `data-consent-category="analytics"` HTML attribute pattern for inline `<script>` blocks in `app.html` / MDX; a tiny runtime scans them after consent and hydrates.
 
 ### CONSENT-03 Consent log + DSAR
+
 - **Migration `024_consent_log.sql`:**
+
   ```sql
   CREATE TABLE consent_records (
     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -427,24 +439,29 @@ New files:
     created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
   );
   ```
+
 - `POST /api/consent/record`, `GET /api/consent/me`, `POST /api/dsar`, `GET /api/admin/dsar`, `POST /api/admin/dsar/{id}/fulfill`.
 - DSAR fulfillment worker: emits ZIP with JSON of `users`, `orders`, `subscriptions`, `notification_deliveries`, `form_submissions`, `consent_records` for the subject.
 
 ### CONSENT-04 Consent Mode v2 + TCF v2.2 + GPC
+
 - `src/lib/consent/gcm.ts` — writes `dataLayer.push(['consent','default'|'update', {...}])` with `ad_storage`, `analytics_storage`, `ad_user_data`, `ad_personalization` signals.
 - Client reads `navigator.globalPrivacyControl`; if true, default to `denied` for marketing/personalization and record a `gpc_signal=true` consent row.
 - TCF v2.2: a dependency (`@iabtcf/core` npm) constructs the TC string from category selections; emitted in `__tcfapi` postmessage protocol shim.
 
 ### CONSENT-05 Geo variants
+
 - `backend/src/consent/geo.rs` — resolves region → banner config.
 - Public endpoint `/api/consent/banner` returns the resolved config (single round-trip; cacheable per region).
 
 ### CONSENT-06 i18n
+
 - Add `@inlang/paraglide-js-adapter-sveltekit` (or raw JSON message store) — low-blast scope: consent flows + DSAR + unsubscribe only.
 - `backend/src/i18n/` holds 40+ translation catalogs (`en, es, fr, de, it, pt-BR, nl, sv, da, nb, fi, pl, cs, el, ro, hu, …, ja, ko, zh-Hans, zh-Hant, ar, he, tr, id, th, vi, hi`).
 - Translation sources stored in Postgres (`notification_templates` table already supports `locale`) and/or JSON files served from R2.
 
 ### CONSENT-07 Admin UI + policy versioning
+
 - Routes: `/admin/consent/banner`, `/admin/consent/categories`, `/admin/consent/services`, `/admin/consent/policies`, `/admin/consent/log`, `/admin/dsar`.
 - Live preview of banner at all 9 breakpoints.
 - Audit log immutable (INSERT-only table + periodic hash-chain snapshot into an `integrity_anchors` table for tamper evidence).
@@ -454,7 +471,9 @@ New files:
 ## 4. FORMS
 
 ### FORM-01 Schema model
+
 - **Migration `025_forms.sql`:**
+
   ```sql
   CREATE TABLE forms (
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -520,64 +539,83 @@ New files:
     created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
   );
   ```
+
 - **Canonical schema JSON shape** (documented in OpenAPI):
   ```json
   {
-    "id": "form-root",
-    "version": 1,
-    "steps": [
-      {
-        "id": "step-1",
-        "title": "Contact",
-        "fields": [
-          { "id": "email", "type": "email", "label": "Email", "required": true, "validation": { "asyncUnique": "users.email" } },
-          { "id": "phone", "type": "phone", "country": "US", "required": false }
-        ]
-      }
-    ],
-    "logic": [
-      { "when": { "field": "email", "op": "matches", "value": ".*@corp\\.com" }, "then": { "show": ["step-2"] } }
-    ]
+  	"id": "form-root",
+  	"version": 1,
+  	"steps": [
+  		{
+  			"id": "step-1",
+  			"title": "Contact",
+  			"fields": [
+  				{
+  					"id": "email",
+  					"type": "email",
+  					"label": "Email",
+  					"required": true,
+  					"validation": { "asyncUnique": "users.email" }
+  				},
+  				{ "id": "phone", "type": "phone", "country": "US", "required": false }
+  			]
+  		}
+  	],
+  	"logic": [
+  		{
+  			"when": { "field": "email", "op": "matches", "value": ".*@corp\\.com" },
+  			"then": { "show": ["step-2"] }
+  		}
+  	]
   }
   ```
 - Field types catalogue (all 33 from Phase 2 §2.2): `text, email, phone, url, textarea, number, slider, rating, date, time, datetime, select, multi_select, radio, checkbox, file, image, signature, richtext, hidden, html, section_break, page_break, address, consent, terms, html_block, payment, subscription, nps, likert, matrix, ranking, calculation, api_dropdown, country, state, post_ref, product_ref`.
 
 ### FORM-02 Validation engine
+
 - Rust `backend/src/forms/validation.rs` — interprets the schema, validates per-field + cross-field + async (DB check e.g. unique). Matches equivalent client-side TS engine for optimistic UX.
 - Shared JSON of validators so client & server agree byte-for-byte.
 
 ### FORM-03 Submission store + audit
+
 - `POST /api/forms/{slug}/submit` (optional auth), records IP-hashed + UA + referrer + UTM (parsed from `Referer` + payload body), runs anti-spam pipeline, persists.
 
 ### FORM-04 Multi-step / conditional / save-and-resume / repeaters
+
 - Server emits resume tokens (random 32-byte, SHA-256 stored); client can resume via `/forms/{slug}?resume={token}`.
 - Repeater fields: array under `data` keyed by field id; validation walks per-item.
 
 ### FORM-05 File uploads
+
 - `POST /api/forms/{slug}/upload` — multipart; chunked uploads via `Content-Range`; R2 put with per-submission prefix key `forms/{form_id}/{submission_draft_id}/…`.
 - MIME sniff on server (first 512 B) to reject spoofed extensions.
 
 ### FORM-06 Anti-spam
+
 - Honeypot field `form_hp` always emitted; rejects if filled.
 - Cloudflare Turnstile (`TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET`); verify via `https://challenges.cloudflare.com/turnstile/v0/siteverify`.
 - Akismet adapter (optional) for text fields.
 - Dedupe: hash (form_id + email + normalized payload) and reject within 60s window.
 
 ### FORM-07 Integrations
+
 - Event emitted on successful submit: `form.submission.created` → outbox fan-out.
 - Adapters under `backend/src/events/handlers/integration_*.rs`: Mailchimp, ActiveCampaign, ConvertKit, HubSpot, Salesforce, Zapier (catch-all webhook), Make, Google Sheets (service account), Notion, Airtable, Zoho.
 - Per-form selection stored in `forms.settings.integrations[]` with encrypted credentials (sealed box via `age`-style or KMS; v1 envelope-encrypt with `APP_DATA_KEY`).
 
 ### FORM-08 Payment field
+
 - Field type `payment` renders Stripe Elements on client; server creates a PaymentIntent with `automatic_payment_methods: true`, returns client secret; submission row is linked to the resulting `orders` row (built in EC-05).
 - Donation sub-variant with suggested amounts; subscription sub-variant creates a Stripe subscription.
 
 ### FORM-09 Admin builder
+
 - Route: `/admin/forms/**` with drag/drop palette → `schema` JSON edit.
 - Live preview iframe at all 9 breakpoints.
 - Version diff viewer (`form_versions`).
 
 ### FORM-10 Public renderer
+
 - `src/lib/components/forms/FormRenderer.svelte` + `FormField.svelte` per field type (33 sub-components under `.../forms/fields/`).
 - WCAG 2.2 AA: `aria-describedby`, `aria-invalid`, `aria-live="polite"` error summary, correct `fieldset`/`legend`, keyboard focus ring via `:focus-visible`.
 
@@ -586,10 +624,12 @@ New files:
 ## 5. POPUPS (gap-fill)
 
 ### POP-01 Expanded triggers & targeting
+
 - **Migration `026_popups_ext.sql`:** add `variant_group_id UUID`, `targeting_rules` already JSONB — extend schema to cover `geo`, `utm`, `url_regex`, `cart_value_cents`, `cart_contains_sku[]`, `membership_tier`, `time_of_day`, `day_of_week`, `returning_visitor` bools/ranges. Drop the 6-popup-type CHECK constraint and use a lookup table `popup_types(key TEXT PK, label TEXT, description TEXT, is_active BOOL)` to permit `content_locker`, `countdown`, `notification`, `spin_to_win`, `scratch_card`.
 - Server-side filter logic in `handlers/popups.rs::matches_targeting_rules` expanded; geo resolved via FDN-06.
 
 ### POP-02 A/B testing
+
 - **Migration `027_popup_variants.sql`:**
   ```sql
   CREATE TABLE popup_variants (
@@ -609,14 +649,17 @@ New files:
 - Significance: two-proportion z-test on (impressions, submissions) reported in admin; auto-promote the winner when `p < 0.05` AND `min_samples >= N`.
 
 ### POP-03 Template library
+
 - Ship 12+ starter templates (newsletter, exit-intent discount, content locker, countdown urgency bar, spin-to-win, scratch card, NPS, survey, lead magnet download, announcement bar, cookie pre-banner, feedback). Stored as seed rows in `popups` with `is_active=FALSE` + a `is_template BOOL` flag (`ALTER TABLE popups ADD COLUMN is_template BOOLEAN NOT NULL DEFAULT FALSE`).
 
 ### POP-04 Additional popup types
+
 - `content_locker`: wraps page content in a blurred panel until form submit or category grant.
 - `countdown`: supports fixed end date + per-visitor rolling countdown (persisted in localStorage).
 - `gamified`: `spin_to_win` with prize weight array and a `coupon_generator` hook that creates a one-time coupon on win.
 
 ### POP-05 Server-side frequency capping
+
 - **Migration `028_popup_impressions.sql`:**
   ```sql
   CREATE TABLE popup_visitor_state (
@@ -632,6 +675,7 @@ New files:
 - `frequency_config` interpreter honors `every_n_days`, `until_converted`, `max_dismissals`.
 
 ### POP-06 Revenue attribution + form embedding
+
 - When an order/subscription is completed within `ATTRIBUTION_WINDOW_HOURS` (default 24) of a popup submission on the same session, write a `popup_attributions(popup_id, variant_id, session_id, order_id, amount_cents, attributed_at)` row.
 - Popups can embed a Domain-2 form via `content_json.elements[].type="form_ref"` with `form_id`.
 
@@ -640,6 +684,7 @@ New files:
 ## 6. E-COMMERCE (digital-goods trim)
 
 ### EC-01 Product model
+
 - **Migration `030_products.sql`:**
   ```sql
   CREATE TYPE product_kind AS ENUM ('simple','subscription','downloadable','bundle');
@@ -691,10 +736,12 @@ New files:
 - Map existing `courses` and `pricing_plans` to `products` via application-level façade (no destructive migration in phase 4; instead create a `v_products_all` view that unions the three if needed, but the cleaner path is to migrate courses→products with a `kind='downloadable'` plus a `course_contents` link table. Discuss at Phase 4 kickoff.).
 
 ### EC-02 Catalog / facets / search
+
 - Postgres tsvector full-text index + faceting via `materialized_view product_facets`; pagination + sort via keyset.
 - Optional Phase 5 swap to Meilisearch.
 
 ### EC-03 Cart
+
 - **Migration `031_cart.sql`:**
   ```sql
   CREATE TABLE carts (
@@ -728,11 +775,13 @@ New files:
 - Abandoned-cart: scheduled worker emits `cart.abandoned` event after 24h of inactivity.
 
 ### EC-04 Checkout
+
 - New route group `/checkout/**` with Stripe Elements embed.
 - `POST /api/checkout/sessions` — creates `orders` row in `pending`, PaymentIntent with metadata, returns client secret + idempotency key flow.
 - Address book: `addresses(id, user_id, kind, country, state, postal_code, city, line1, line2, is_default)` under migration `032_addresses.sql`.
 
 ### EC-05 Orders
+
 - **Migration `033_orders.sql`:**
   ```sql
   CREATE TYPE order_status AS ENUM ('pending','processing','on_hold','completed','refunded','cancelled','failed');
@@ -765,18 +814,22 @@ New files:
 - State machine enforced in `backend/src/orders/state.rs` with typed transitions.
 
 ### EC-06 Invoice + receipt PDFs
+
 - `backend/src/pdf/` — uses `printpdf` or `weasyprint` sidecar (Dockerfile hint). Generates invoice + receipt + packing slip (blank for digital orders).
 - Delivered via `GET /api/orders/{id}/invoice.pdf` (user-scoped) or `GET /api/admin/orders/{id}/invoice.pdf`.
 
 ### EC-07 Digital delivery
+
 - On `order.completed`, emit `order.downloadable.granted` events → worker creates rows in `user_downloads(user_id, product_id, asset_id, expires_at, downloads_remaining)`.
 - `GET /api/downloads/{token}` — issues an R2 presigned URL with short TTL (5 min), decrements quota.
 
 ### EC-08 Tax
+
 - Primary: Stripe Tax (set `automatic_tax: enabled` on PaymentIntent + collect VAT ID field on checkout).
 - Fallback: `tax_rates(region, rate, compound, class)` table for jurisdictions we handle manually.
 
 ### EC-09 Subscriptions 2.0
+
 - Extend `subscriptions`:
   ```sql
   ALTER TABLE subscriptions
@@ -809,6 +862,7 @@ New files:
 - Dunning worker: retry schedule `{+1d, +3d, +7d, +14d}`; cancel after last attempt.
 
 ### EC-10 Memberships
+
 - **Migration `034_memberships.sql`:**
   ```sql
   CREATE TABLE membership_plans (
@@ -842,11 +896,13 @@ New files:
 - Restriction engine: `fn can_access(user_id, resource_type, resource_id) -> bool` consulted by blog / courses / products / downloadable handlers.
 
 ### EC-11 Coupon engine refactor
+
 - **Migration `035_coupons_money.sql`:** change `coupons.discount_value` to split columns `percentage_bps INT` (basis points) + `fixed_cents BIGINT`, or keep single column but migrate API + models off `f64`. Add `excludes_plan_ids`, `excludes_product_ids`, `excludes_category_ids` UUID[] columns.
 - Introduce BOGO engine: `bogo_rules JSONB` (`buy:{product_id or category}`, `get:{product_id}`, `quantity`, `discount_value`).
 - Cart integration: apply during cart-total recalculation, not only at Stripe Checkout.
 
 ### EC-12 Reports
+
 - Event-sourced MRR/ARR/LTV/churn/cohorts from `sales_events`, `subscription_changes`, `orders`, `refunds`.
 - Admin UI charts: `/admin/analytics/revenue`, `/admin/analytics/cohorts`, `/admin/analytics/funnel`, `/admin/analytics/coupons`.
 
@@ -1071,64 +1127,70 @@ Coverage goal: 85%+ on Rust services/handlers, 80%+ on Svelte component unit tes
 
 ### Authz matrix (excerpt; full matrix lives in `backend/src/authz.rs`)
 
-| Resource | Action | Member | Author | Support | Admin |
-|---|---|---|---|---|---|
-| `user.self` | read/update | ✓ | ✓ | ✓ | ✓ |
-| `user.other` | read | ✗ | ✗ | ✓ (read-only) | ✓ |
-| `user.other` | delete | ✗ | ✗ | ✗ | ✓ |
-| `blog.post` | create | ✗ | ✓ | ✗ | ✓ |
-| `blog.post` | update own | ✗ | ✓ | ✗ | ✓ |
-| `blog.post` | update any | ✗ | ✗ | ✗ | ✓ |
-| `order.mine` | read | ✓ | ✓ | ✓ | ✓ |
-| `order.any` | read | ✗ | ✗ | ✓ | ✓ |
-| `order.refund` | create | ✗ | ✗ | ✓ ($ cap) | ✓ |
-| `coupon.*` | manage | ✗ | ✗ | ✗ | ✓ |
-| `consent.log` | read any | ✗ | ✗ | ✓ | ✓ |
-| `dsar.fulfill` | execute | ✗ | ✗ | ✓ | ✓ |
-| `notification.broadcast` | create | ✗ | ✗ | ✗ | ✓ |
-| `outbox.retry` | execute | ✗ | ✗ | ✓ | ✓ |
+| Resource                 | Action      | Member | Author | Support       | Admin |
+| ------------------------ | ----------- | ------ | ------ | ------------- | ----- |
+| `user.self`              | read/update | ✓      | ✓      | ✓             | ✓     |
+| `user.other`             | read        | ✗      | ✗      | ✓ (read-only) | ✓     |
+| `user.other`             | delete      | ✗      | ✗      | ✗             | ✓     |
+| `blog.post`              | create      | ✗      | ✓      | ✗             | ✓     |
+| `blog.post`              | update own  | ✗      | ✓      | ✗             | ✓     |
+| `blog.post`              | update any  | ✗      | ✗      | ✗             | ✓     |
+| `order.mine`             | read        | ✓      | ✓      | ✓             | ✓     |
+| `order.any`              | read        | ✗      | ✗      | ✓             | ✓     |
+| `order.refund`           | create      | ✗      | ✗      | ✓ ($ cap)     | ✓     |
+| `coupon.*`               | manage      | ✗      | ✗      | ✗             | ✓     |
+| `consent.log`            | read any    | ✗      | ✗      | ✓             | ✓     |
+| `dsar.fulfill`           | execute     | ✗      | ✗      | ✓             | ✓     |
+| `notification.broadcast` | create      | ✗      | ✗      | ✗             | ✓     |
+| `outbox.retry`           | execute     | ✗      | ✗      | ✓             | ✓     |
 
 ### Rate limits (per-IP unless noted)
 
-| Route | Limit |
-|---|---|
-| `POST /api/auth/login` | 5/min (existing) |
-| `POST /api/auth/register` | 10/hour (existing) |
-| `POST /api/auth/forgot-password` | 3/hour (existing) |
-| `POST /api/forms/{slug}/submit` | 10/min/IP, 30/min/form |
-| `POST /api/forms/{slug}/upload` | 20/min/IP, 1GB/day/IP |
-| `POST /api/popups/submit` | 20/min/IP |
-| `POST /api/popups/event` | 120/min/IP |
-| `POST /api/consent/record` | 30/min/IP |
-| `POST /api/dsar` | 5/day/email |
-| `POST /api/checkout/sessions` | 20/min/user |
-| `POST /api/cart/*` | 120/min/user |
-| `POST /api/webhooks/*` | 500/min/source (after signature verify) |
+| Route                            | Limit                                   |
+| -------------------------------- | --------------------------------------- |
+| `POST /api/auth/login`           | 5/min (existing)                        |
+| `POST /api/auth/register`        | 10/hour (existing)                      |
+| `POST /api/auth/forgot-password` | 3/hour (existing)                       |
+| `POST /api/forms/{slug}/submit`  | 10/min/IP, 30/min/form                  |
+| `POST /api/forms/{slug}/upload`  | 20/min/IP, 1GB/day/IP                   |
+| `POST /api/popups/submit`        | 20/min/IP                               |
+| `POST /api/popups/event`         | 120/min/IP                              |
+| `POST /api/consent/record`       | 30/min/IP                               |
+| `POST /api/dsar`                 | 5/day/email                             |
+| `POST /api/checkout/sessions`    | 20/min/user                             |
+| `POST /api/cart/*`               | 120/min/user                            |
+| `POST /api/webhooks/*`           | 500/min/source (after signature verify) |
 
 ### CSRF
+
 - All browser API calls go through same-origin `/api/*` (Vercel rewrite → Railway). Cross-origin credentialed requests rejected.
 - Mutating endpoints require `Authorization: Bearer` **or** a `X-CSRF-Token` header matching a double-submit cookie (set by `hooks.server.ts` on login).
 
 ### Input sanitization
+
 - User-generated HTML (blog posts, form richtext, popup `html_block`) passes through `ammonia` with category-specific allowlist before persistence; a second pass on render.
 - SVG uploads rejected in media library unless `ALLOW_SVG_UPLOADS=1` and content scanned for `<script>` / `on*=`.
 
 ### File upload hardening
-- MIME sniff (first 512 B) + whitelist (image/*, application/pdf, text/csv, video/mp4, application/zip for course assets).
+
+- MIME sniff (first 512 B) + whitelist (image/\*, application/pdf, text/csv, video/mp4, application/zip for course assets).
 - Size limit per field (default 10MB), per submission (default 50MB), per day per IP.
 - Virus scan (ClamAV sidecar container) behind `SCAN_UPLOADS=1` flag for v1 ops.
 - Served via R2 with `Content-Disposition: attachment; filename="…"` and `X-Content-Type-Options: nosniff`.
 
 ### PCI scope
+
 - No card data ever hits our servers. Stripe Elements + PaymentIntent flow; we store only `stripe_payment_intent_id` / last-4 / brand in `orders.metadata`.
 - Admin UI never renders raw card fields.
 - PCI-DSS SAQ-A eligibility maintained.
 
 ### Webhook signing
+
 - Every inbound webhook verifies provider signature with constant-time compare and ±5-min timestamp tolerance (pattern in place for Stripe; mirror for Resend, Twilio, Turnstile server-verify, Mailchimp et al).
 - Outbound webhooks (to customer-configured URLs) sign with `HMAC-SHA256(secret, timestamp + "." + body)` + include `Swings-Webhook-Id`, `Swings-Webhook-Timestamp`, `Swings-Webhook-Signature` headers.
 
 ### Secrets
+
 - `.env` local only; production secrets via Railway + Vercel env vars.
 - Add to `.env.example`: `DATABASE_URL`, `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `APP_ENV`, `CORS_ALLOWED_ORIGINS`, `SMTP_*`, `RESEND_*`, `R2_*`, `TURNSTILE_*`, `TWILIO_*`, `MAXMIND_DB_PATH`.
 - `backend/src/config.rs::assert_production_ready` extended to fail-fast on all prod-required vars.
@@ -1139,14 +1201,14 @@ Coverage goal: 85%+ on Rust services/handlers, 80%+ on Svelte component unit tes
 
 For sizing only — real estimates rebuild per-subsystem during Phase 4 kickoff.
 
-| Block | Focused senior-eng-weeks |
-|---|---|
-| FDN-01..09 | 5 |
-| CONSENT-01..07 | 4 |
-| FORM-01..10 | 8 |
-| POP-01..06 | 3 |
-| EC-01..12 | 10 |
-| **Total** | **~30 eng-weeks** |
+| Block          | Focused senior-eng-weeks |
+| -------------- | ------------------------ |
+| FDN-01..09     | 5                        |
+| CONSENT-01..07 | 4                        |
+| FORM-01..10    | 8                        |
+| POP-01..06     | 3                        |
+| EC-01..12      | 10                       |
+| **Total**      | **~30 eng-weeks**        |
 
 ---
 
@@ -1167,6 +1229,7 @@ Unless you specify otherwise, Phase 4 proceeds in this order; each block is stop
 ## CHECKPOINT
 
 Phase 3 deliverable complete. Awaiting review of:
+
 - **The 6 default decisions (§0).** Flag any to flip; highest-blast-radius flip is D3 (outbox vs. Redis).
 - **Scope trim (§0 D1).** If full WooCommerce parity is actually in scope, shipping/inventory/B2B subsystems add ~8 more eng-weeks and touch EC-01 heavily.
 - **Sequencing (§14).** Happy to reorder — e.g. if CONSENT is urgent for a regulatory deadline it can jump FDN-06..09 with a deferred-fixup backlog.

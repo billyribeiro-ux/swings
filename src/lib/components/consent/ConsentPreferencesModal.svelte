@@ -82,13 +82,7 @@
 	}
 </script>
 
-<Dialog
-	{open}
-	{onclose}
-	title={modalTitle}
-	description={modalDescription}
-	size="md"
->
+<Dialog {open} {onclose} title={modalTitle} description={modalDescription} size="md">
 	<ul class="category-list" aria-label="Consent categories">
 		{#each categories as cat (cat.key)}
 			{@const descId = `consent-cat-${cat.key}-desc`}

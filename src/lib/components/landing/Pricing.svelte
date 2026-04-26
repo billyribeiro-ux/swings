@@ -92,7 +92,10 @@
 						onmouseenter={() => (hoveredCard = plan.id)}
 						onmouseleave={() => (hoveredCard = null)}
 						{@attach ctaImpression({ ctaId: ctaIdForPlan(plan.id) })}
-						{@attach hoverTilt({ maxTilt: isFeatured ? 8 : 4, scale: isFeatured ? 1.03 : 1.01 })}
+						{@attach hoverTilt({
+							maxTilt: isFeatured ? 8 : 4,
+							scale: isFeatured ? 1.03 : 1.01
+						})}
 					>
 						<!-- Ambient light effect for featured -->
 						{#if isFeatured}
@@ -111,7 +114,12 @@
 
 						<!-- Plan header -->
 						<div class="pricing__header">
-							<h3 class={['pricing__plan-name', { 'pricing__plan-name--spaced': plan.badge }]}>
+							<h3
+								class={[
+									'pricing__plan-name',
+									{ 'pricing__plan-name--spaced': plan.badge }
+								]}
+							>
 								{plan.name}
 							</h3>
 						</div>
@@ -176,7 +184,8 @@
 
 			<!-- Bottom guarantee -->
 			<p class="pricing__guarantee">
-				Not sure yet? Every plan includes full access from day one. No hidden fees, no upsells.
+				Not sure yet? Every plan includes full access from day one. No hidden fees, no
+				upsells.
 			</p>
 		</ScrollReveal>
 	</div>
@@ -224,13 +233,17 @@
 		--_surface-section: oklch(0.985 0.003 250);
 
 		/* Shadows — layered for depth */
-		--_shadow-card: 0 1px 2px oklch(0.22 0.04 260 / 0.05), 0 18px 44px -34px oklch(0.22 0.04 260 / 0.45);
+		--_shadow-card:
+			0 1px 2px oklch(0.22 0.04 260 / 0.05), 0 18px 44px -34px oklch(0.22 0.04 260 / 0.45);
 		--_shadow-card-hover:
-			0 12px 28px -18px oklch(0.22 0.04 260 / 0.28), 0 24px 60px -38px oklch(0.22 0.04 260 / 0.5);
+			0 12px 28px -18px oklch(0.22 0.04 260 / 0.28),
+			0 24px 60px -38px oklch(0.22 0.04 260 / 0.5);
 		--_shadow-featured:
-			0 18px 44px -24px oklch(0.68 0.14 192 / 0.38), 0 28px 80px -48px oklch(0.18 0.045 260 / 0.8);
+			0 18px 44px -24px oklch(0.68 0.14 192 / 0.38),
+			0 28px 80px -48px oklch(0.18 0.045 260 / 0.8);
 		--_shadow-featured-hover:
-			0 20px 52px -24px oklch(0.68 0.14 192 / 0.52), 0 34px 90px -52px oklch(0.18 0.045 260 / 0.85);
+			0 20px 52px -24px oklch(0.68 0.14 192 / 0.52),
+			0 34px 90px -52px oklch(0.18 0.045 260 / 0.85);
 
 		/* Timing */
 		--_dur-fast: 200ms;
@@ -251,8 +264,16 @@
 		position: absolute;
 		inset: 0;
 		background:
-			radial-gradient(ellipse 80% 60% at 50% 0%, oklch(0.68 0.14 192 / 0.03), transparent 70%),
-			radial-gradient(ellipse 60% 50% at 80% 100%, oklch(0.68 0.14 192 / 0.02), transparent 60%);
+			radial-gradient(
+				ellipse 80% 60% at 50% 0%,
+				oklch(0.68 0.14 192 / 0.03),
+				transparent 70%
+			),
+			radial-gradient(
+				ellipse 60% 50% at 80% 100%,
+				oklch(0.68 0.14 192 / 0.02),
+				transparent 60%
+			);
 		pointer-events: none;
 	}
 
@@ -285,8 +306,16 @@
 		overflow: hidden;
 		border-radius: var(--_card-radius);
 		background:
-			radial-gradient(ellipse 80% 55% at 20% 0%, oklch(0.68 0.14 192 / 0.11), transparent 64%),
-			radial-gradient(ellipse 60% 50% at 100% 100%, oklch(0.74 0.14 192 / 0.07), transparent 66%),
+			radial-gradient(
+				ellipse 80% 55% at 20% 0%,
+				oklch(0.68 0.14 192 / 0.11),
+				transparent 64%
+			),
+			radial-gradient(
+				ellipse 60% 50% at 100% 100%,
+				oklch(0.74 0.14 192 / 0.07),
+				transparent 66%
+			),
 			linear-gradient(180deg, oklch(1 0 0) 0%, var(--_card-bg) 100%);
 		padding: var(--_card-pad);
 		padding-block-start: calc(var(--_card-pad) + 0.25rem);
@@ -325,9 +354,22 @@
 	.pricing__card--featured {
 		outline: 1px solid oklch(0.68 0.14 192 / 0.45);
 		background:
-			radial-gradient(ellipse 90% 70% at 50% -10%, oklch(0.68 0.14 192 / 0.3), transparent 66%),
-			radial-gradient(ellipse 70% 55% at 100% 100%, oklch(0.74 0.14 192 / 0.16), transparent 70%),
-			linear-gradient(145deg, var(--_navy) 0%, var(--_navy-mid) 58%, oklch(0.29 0.06 245) 100%);
+			radial-gradient(
+				ellipse 90% 70% at 50% -10%,
+				oklch(0.68 0.14 192 / 0.3),
+				transparent 66%
+			),
+			radial-gradient(
+				ellipse 70% 55% at 100% 100%,
+				oklch(0.74 0.14 192 / 0.16),
+				transparent 70%
+			),
+			linear-gradient(
+				145deg,
+				var(--_navy) 0%,
+				var(--_navy-mid) 58%,
+				oklch(0.29 0.06 245) 100%
+			);
 		box-shadow:
 			var(--_shadow-featured),
 			inset 0 1px 1px rgba(255, 255, 255, 0.12);
@@ -346,8 +388,12 @@
 			var(--_teal-light),
 			transparent 25%
 		);
-		-webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-		mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+		-webkit-mask:
+			linear-gradient(#fff 0 0) content-box,
+			linear-gradient(#fff 0 0);
+		mask:
+			linear-gradient(#fff 0 0) content-box,
+			linear-gradient(#fff 0 0);
 		-webkit-mask-composite: xor;
 		mask-composite: exclude;
 		pointer-events: none;

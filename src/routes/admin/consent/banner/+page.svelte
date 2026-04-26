@@ -190,8 +190,8 @@
 				<span class="eyebrow">Governance / Consent</span>
 				<h1 class="page__title">Banners</h1>
 				<p class="page__subtitle">
-					One config per (region, locale). The active banner shapes copy + button labels for every
-					visitor; saving an existing config bumps the server-side version.
+					One config per (region, locale). The active banner shapes copy + button labels
+					for every visitor; saving an existing config bumps the server-side version.
 				</p>
 			</div>
 		</div>
@@ -247,10 +247,14 @@
 					</header>
 					<h2 class="card__title">{bannerTitle(b)}</h2>
 					<dl class="card__meta">
-						<dt>Layout</dt><dd><code>{b.layout}</code></dd>
-						<dt>Position</dt><dd><code>{b.position}</code></dd>
-						<dt>Version</dt><dd>v{b.version}</dd>
-						<dt>Updated</dt><dd>{new Date(b.updated_at).toLocaleString()}</dd>
+						<dt>Layout</dt>
+						<dd><code>{b.layout}</code></dd>
+						<dt>Position</dt>
+						<dd><code>{b.position}</code></dd>
+						<dt>Version</dt>
+						<dd>v{b.version}</dd>
+						<dt>Updated</dt>
+						<dd>{new Date(b.updated_at).toLocaleString()}</dd>
 					</dl>
 					<div class="card__actions">
 						<button
@@ -292,11 +296,7 @@
 				<h2 class="drawer__title">
 					{mode === 'create' ? 'New banner' : 'Edit banner'}
 				</h2>
-				<button
-					class="btn btn--secondary btn--small"
-					type="button"
-					onclick={closeDrawer}
-				>
+				<button class="btn btn--secondary btn--small" type="button" onclick={closeDrawer}>
 					<XIcon size={14} weight="bold" />
 					<span>Close</span>
 				</button>
@@ -329,7 +329,12 @@
 				<div class="grid-2">
 					<div class="field">
 						<label class="field__label" for="bn-layout">Layout</label>
-						<select id="bn-layout" name="bn-layout" class="field__input" bind:value={layout}>
+						<select
+							id="bn-layout"
+							name="bn-layout"
+							class="field__input"
+							bind:value={layout}
+						>
 							<option value="bar">Bar</option>
 							<option value="modal">Modal</option>
 							<option value="corner">Corner</option>
@@ -337,7 +342,12 @@
 					</div>
 					<div class="field">
 						<label class="field__label" for="bn-position">Position</label>
-						<select id="bn-position" name="bn-position" class="field__input" bind:value={position}>
+						<select
+							id="bn-position"
+							name="bn-position"
+							class="field__input"
+							bind:value={position}
+						>
 							<option value="top">Top</option>
 							<option value="bottom">Bottom</option>
 							<option value="bottom-left">Bottom left</option>
@@ -348,7 +358,12 @@
 				</div>
 				<div class="field">
 					<label class="check-row" for="bn-active">
-						<input id="bn-active" name="bn-active" type="checkbox" bind:checked={isActive} />
+						<input
+							id="bn-active"
+							name="bn-active"
+							type="checkbox"
+							bind:checked={isActive}
+						/>
 						<span>Active (serve as live banner for this region/locale)</span>
 					</label>
 				</div>
@@ -433,7 +448,12 @@
 					</div>
 				</div>
 				<div class="form__actions">
-					<button class="btn btn--primary" type="button" disabled={formBusy} onclick={save}>
+					<button
+						class="btn btn--primary"
+						type="button"
+						disabled={formBusy}
+						onclick={save}
+					>
 						<CheckCircleIcon size={16} weight="bold" />
 						<span>{formBusy ? 'Saving…' : mode === 'create' ? 'Create' : 'Save'}</span>
 					</button>
@@ -448,76 +468,382 @@
 </div>
 
 <style>
-	.page { max-width: 80rem; padding: 0 0 3rem; }
-	.page__header { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start; justify-content: space-between; margin-bottom: 1.25rem; }
-	.page__title-row { display: flex; align-items: flex-start; gap: 0.85rem; color: var(--color-white); flex: 1; min-width: 0; }
-	.page__copy { min-width: 0; }
-	.page__actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-	.eyebrow { display: inline-block; font-size: 0.6875rem; font-weight: 700; line-height: 1; letter-spacing: 0.08em; color: var(--color-grey-500); text-transform: uppercase; margin-bottom: 0.4rem; }
-	.page__title { margin: 0; font-family: var(--font-heading); font-size: 1.5rem; font-weight: 700; color: var(--color-white); letter-spacing: -0.01em; line-height: 1.2; }
-	.page__subtitle { margin: 0.35rem 0 0; font-size: 0.875rem; color: var(--color-grey-400); max-width: 42rem; line-height: 1.5; }
+	.page {
+		max-width: 80rem;
+		padding: 0 0 3rem;
+	}
+	.page__header {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+		align-items: flex-start;
+		justify-content: space-between;
+		margin-bottom: 1.25rem;
+	}
+	.page__title-row {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.85rem;
+		color: var(--color-white);
+		flex: 1;
+		min-width: 0;
+	}
+	.page__copy {
+		min-width: 0;
+	}
+	.page__actions {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+	.eyebrow {
+		display: inline-block;
+		font-size: 0.6875rem;
+		font-weight: 700;
+		line-height: 1;
+		letter-spacing: 0.08em;
+		color: var(--color-grey-500);
+		text-transform: uppercase;
+		margin-bottom: 0.4rem;
+	}
+	.page__title {
+		margin: 0;
+		font-family: var(--font-heading);
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: var(--color-white);
+		letter-spacing: -0.01em;
+		line-height: 1.2;
+	}
+	.page__subtitle {
+		margin: 0.35rem 0 0;
+		font-size: 0.875rem;
+		color: var(--color-grey-400);
+		max-width: 42rem;
+		line-height: 1.5;
+	}
 
-	.toast, .error { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border-radius: var(--radius-2xl); font-size: 0.875rem; margin-bottom: 1rem; }
-	.toast { background: rgba(15, 164, 175, 0.12); border: 1px solid rgba(15, 164, 175, 0.25); color: #5eead4; }
-	.error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; }
+	.toast,
+	.error {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.75rem 1rem;
+		border-radius: var(--radius-2xl);
+		font-size: 0.875rem;
+		margin-bottom: 1rem;
+	}
+	.toast {
+		background: rgba(15, 164, 175, 0.12);
+		border: 1px solid rgba(15, 164, 175, 0.25);
+		color: #5eead4;
+	}
+	.error {
+		background: rgba(239, 68, 68, 0.1);
+		border: 1px solid rgba(239, 68, 68, 0.3);
+		color: #fca5a5;
+	}
 
-	.state { display: flex; align-items: center; justify-content: center; gap: 0.75rem; padding: 4rem 0; color: var(--color-grey-400); font-size: 0.875rem; }
-	.state__spinner { width: 1.25rem; height: 1.25rem; border: 2px solid rgba(255, 255, 255, 0.1); border-top-color: var(--color-teal); border-radius: 50%; animation: spin 0.7s linear infinite; }
-	@keyframes spin { to { transform: rotate(360deg); } }
+	.state {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		padding: 4rem 0;
+		color: var(--color-grey-400);
+		font-size: 0.875rem;
+	}
+	.state__spinner {
+		width: 1.25rem;
+		height: 1.25rem;
+		border: 2px solid rgba(255, 255, 255, 0.1);
+		border-top-color: var(--color-teal);
+		border-radius: 50%;
+		animation: spin 0.7s linear infinite;
+	}
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
 
-	.empty { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 3rem 1rem; background: rgba(19, 43, 80, 0.35);
+	.empty {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 3rem 1rem;
+		background: rgba(19, 43, 80, 0.35);
 		backdrop-filter: blur(24px);
-		-webkit-backdrop-filter: blur(24px); border: 1px dashed rgba(255, 255, 255, 0.1); border-radius: var(--radius-2xl); color: var(--color-grey-500); text-align: center; }
-	.empty :global(svg) { color: var(--color-grey-500); }
-	.empty__title { margin: 0.5rem 0 0; font-size: 1rem; font-weight: 600; color: var(--color-white); }
-	.empty__sub { margin: 0 0 0.75rem; font-size: 0.875rem; color: var(--color-grey-400); }
+		-webkit-backdrop-filter: blur(24px);
+		border: 1px dashed rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-2xl);
+		color: var(--color-grey-500);
+		text-align: center;
+	}
+	.empty :global(svg) {
+		color: var(--color-grey-500);
+	}
+	.empty__title {
+		margin: 0.5rem 0 0;
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--color-white);
+	}
+	.empty__sub {
+		margin: 0 0 0.75rem;
+		font-size: 0.875rem;
+		color: var(--color-grey-400);
+	}
 
-	.grid { display: grid; gap: 0.85rem; grid-template-columns: 1fr; }
-	.card { background: rgba(19, 43, 80, 0.35);
+	.grid {
+		display: grid;
+		gap: 0.85rem;
+		grid-template-columns: 1fr;
+	}
+	.card {
+		background: rgba(19, 43, 80, 0.35);
 		backdrop-filter: blur(24px);
-		-webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: var(--radius-2xl); padding: 1.25rem; box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 12px 32px rgba(0, 0, 0, 0.18); display: flex; flex-direction: column; gap: 0.75rem; }
-	.card__head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
-	.card__eyebrow { font-size: 0.6875rem; font-weight: 700; color: var(--color-grey-500); text-transform: uppercase; letter-spacing: 0.06em; }
-	.card__title { margin: 0; font-family: var(--font-heading); font-size: 1rem; font-weight: 600; color: var(--color-white); letter-spacing: -0.005em; line-height: 1.3; }
-	.card__meta { display: grid; grid-template-columns: 5.5rem 1fr; gap: 0.35rem 0.75rem; font-size: 0.8125rem; color: var(--color-grey-200); margin: 0; }
-	.card__meta dt { color: var(--color-grey-500); font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-	.card__meta dd { margin: 0; font-variant-numeric: tabular-nums; }
-	.card__actions { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: auto; padding-top: 0.5rem; }
+		-webkit-backdrop-filter: blur(24px);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: var(--radius-2xl);
+		padding: 1.25rem;
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.03) inset,
+			0 12px 32px rgba(0, 0, 0, 0.18);
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+	.card__head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+	.card__eyebrow {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: var(--color-grey-500);
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
+	.card__title {
+		margin: 0;
+		font-family: var(--font-heading);
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--color-white);
+		letter-spacing: -0.005em;
+		line-height: 1.3;
+	}
+	.card__meta {
+		display: grid;
+		grid-template-columns: 5.5rem 1fr;
+		gap: 0.35rem 0.75rem;
+		font-size: 0.8125rem;
+		color: var(--color-grey-200);
+		margin: 0;
+	}
+	.card__meta dt {
+		color: var(--color-grey-500);
+		font-size: 0.6875rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+	.card__meta dd {
+		margin: 0;
+		font-variant-numeric: tabular-nums;
+	}
+	.card__actions {
+		display: flex;
+		gap: 0.4rem;
+		flex-wrap: wrap;
+		margin-top: auto;
+		padding-top: 0.5rem;
+	}
 
-	.pill { display: inline-flex; align-items: center; padding: 0.15rem 0.5rem; border-radius: var(--radius-full); font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-	.pill--success { background: rgba(15, 164, 175, 0.12); color: #5eead4; }
-	.pill--neutral { background: rgba(255, 255, 255, 0.06); color: var(--color-grey-300); }
+	.pill {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.15rem 0.5rem;
+		border-radius: var(--radius-full);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+	.pill--success {
+		background: rgba(15, 164, 175, 0.12);
+		color: #5eead4;
+	}
+	.pill--neutral {
+		background: rgba(255, 255, 255, 0.06);
+		color: var(--color-grey-300);
+	}
 
-	.btn { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 3rem; padding: 0 1.25rem; border-radius: var(--radius-2xl); font-size: 0.8125rem; font-weight: 600; border: 1px solid transparent; background: transparent; color: var(--color-grey-300); cursor: pointer; transition: background-color 150ms, border-color 150ms, color 150ms, box-shadow 150ms, transform 150ms; }
-	.btn:disabled { opacity: 0.4; cursor: not-allowed; }
-	.btn--primary { background: linear-gradient(135deg, var(--color-teal), var(--color-teal-dark, #0d8a94)); color: var(--color-white); box-shadow: 0 6px 16px -4px rgba(15, 164, 175, 0.45); }
-	.btn--primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 18px -4px rgba(15, 164, 175, 0.55); }
-	.btn--secondary { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); color: var(--color-grey-200); }
-	.btn--secondary:hover:not(:disabled) { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.18); color: var(--color-white); }
-	.btn--small { min-height: 2.5rem; padding: 0 0.65rem; font-size: 0.75rem; }
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		min-height: 3rem;
+		padding: 0 1.25rem;
+		border-radius: var(--radius-2xl);
+		font-size: 0.8125rem;
+		font-weight: 600;
+		border: 1px solid transparent;
+		background: transparent;
+		color: var(--color-grey-300);
+		cursor: pointer;
+		transition:
+			background-color 150ms,
+			border-color 150ms,
+			color 150ms,
+			box-shadow 150ms,
+			transform 150ms;
+	}
+	.btn:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+	.btn--primary {
+		background: linear-gradient(135deg, var(--color-teal), var(--color-teal-dark, #0d8a94));
+		color: var(--color-white);
+		box-shadow: 0 6px 16px -4px rgba(15, 164, 175, 0.45);
+	}
+	.btn--primary:hover:not(:disabled) {
+		transform: translateY(-1px);
+		box-shadow: 0 8px 18px -4px rgba(15, 164, 175, 0.55);
+	}
+	.btn--secondary {
+		background: rgba(255, 255, 255, 0.05);
+		border-color: rgba(255, 255, 255, 0.1);
+		color: var(--color-grey-200);
+	}
+	.btn--secondary:hover:not(:disabled) {
+		background: rgba(255, 255, 255, 0.1);
+		border-color: rgba(255, 255, 255, 0.18);
+		color: var(--color-white);
+	}
+	.btn--small {
+		min-height: 2.5rem;
+		padding: 0 0.65rem;
+		font-size: 0.75rem;
+	}
 
-	.drawer-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); z-index: 60; }
-	.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(640px, 92vw); background: var(--color-navy); border-left: 1px solid rgba(255, 255, 255, 0.08); padding: 1.5rem; overflow-y: auto; z-index: 70; box-shadow: -8px 0 24px rgba(0, 0, 0, 0.3); }
-	.drawer__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-	.drawer__title { font-family: var(--font-heading); font-size: 1rem; font-weight: 600; color: var(--color-white); margin: 0; letter-spacing: -0.01em; }
-	.form { display: flex; flex-direction: column; gap: 0.85rem; }
-	.form__actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
-	.grid-2 { display: grid; grid-template-columns: 1fr; gap: 0.85rem; }
-	.field { display: flex; flex-direction: column; gap: 0.4rem; }
-	.field__label { font-size: 0.75rem; color: var(--color-grey-300); font-weight: 500; }
-	.field__input { min-height: 3rem; padding: 0 1.25rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--color-white); border-radius: var(--radius-2xl); font-size: 0.875rem; width: 100%; font-family: inherit; color-scheme: dark; transition: border-color 150ms, box-shadow 150ms; }
-	.field__input--tall { min-height: 6rem; }
-	.field__input::placeholder { color: var(--color-grey-500); }
-	.field__input:focus { outline: none; border-color: var(--color-teal); box-shadow: 0 0 0 3px rgba(15, 164, 175, 0.15); }
-	.field__input:disabled { opacity: 0.55; cursor: not-allowed; }
-	.check-row { display: inline-flex; gap: 0.5rem; align-items: center; font-size: 0.875rem; color: var(--color-grey-200); cursor: pointer; }
-	.check-row input { accent-color: var(--color-teal); }
+	.drawer-backdrop {
+		position: fixed;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.55);
+		z-index: 60;
+	}
+	.drawer {
+		position: fixed;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		width: min(640px, 92vw);
+		background: var(--color-navy);
+		border-left: 1px solid rgba(255, 255, 255, 0.08);
+		padding: 1.5rem;
+		overflow-y: auto;
+		z-index: 70;
+		box-shadow: -8px 0 24px rgba(0, 0, 0, 0.3);
+	}
+	.drawer__header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1rem;
+	}
+	.drawer__title {
+		font-family: var(--font-heading);
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--color-white);
+		margin: 0;
+		letter-spacing: -0.01em;
+	}
+	.form {
+		display: flex;
+		flex-direction: column;
+		gap: 0.85rem;
+	}
+	.form__actions {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+		margin-top: 0.5rem;
+	}
+	.grid-2 {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 0.85rem;
+	}
+	.field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
+	.field__label {
+		font-size: 0.75rem;
+		color: var(--color-grey-300);
+		font-weight: 500;
+	}
+	.field__input {
+		min-height: 3rem;
+		padding: 0 1.25rem;
+		background: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		color: var(--color-white);
+		border-radius: var(--radius-2xl);
+		font-size: 0.875rem;
+		width: 100%;
+		font-family: inherit;
+		color-scheme: dark;
+		transition:
+			border-color 150ms,
+			box-shadow 150ms;
+	}
+	.field__input--tall {
+		min-height: 6rem;
+	}
+	.field__input::placeholder {
+		color: var(--color-grey-500);
+	}
+	.field__input:focus {
+		outline: none;
+		border-color: var(--color-teal);
+		box-shadow: 0 0 0 3px rgba(15, 164, 175, 0.15);
+	}
+	.field__input:disabled {
+		opacity: 0.55;
+		cursor: not-allowed;
+	}
+	.check-row {
+		display: inline-flex;
+		gap: 0.5rem;
+		align-items: center;
+		font-size: 0.875rem;
+		color: var(--color-grey-200);
+		cursor: pointer;
+	}
+	.check-row input {
+		accent-color: var(--color-teal);
+	}
 
 	@media (min-width: 480px) {
-		.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-		.grid-2 { grid-template-columns: 1fr 1fr; }
+		.grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+		.grid-2 {
+			grid-template-columns: 1fr 1fr;
+		}
 	}
 	@media (min-width: 1024px) {
-		.grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+		.grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
 	}
 </style>

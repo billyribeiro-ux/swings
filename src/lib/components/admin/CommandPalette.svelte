@@ -199,7 +199,9 @@
 							onmouseenter={() => (activeIndex = i)}
 						>
 							<button class="palette-item__btn" onclick={() => selectItem(item)}>
-								<span class="palette-item__icon"><item.icon size={18} weight="bold" /></span>
+								<span class="palette-item__icon"
+									><item.icon size={18} weight="bold" /></span
+								>
 								<span class="palette-item__text">
 									<span class="palette-item__label">{item.label}</span>
 									{#if item.description}

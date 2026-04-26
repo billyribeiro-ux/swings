@@ -103,7 +103,11 @@
 				<h3 class="schedule-countdowns__title">Next watchlist</h3>
 				<p class="schedule-countdowns__sub">Sundays at 6:00 PM Eastern Time</p>
 
-				<div class="schedule-countdowns__chips" role="timer" aria-label="Time until next watchlist delivery">
+				<div
+					class="schedule-countdowns__chips"
+					role="timer"
+					aria-label="Time until next watchlist delivery"
+				>
 					{#if ready}
 						<div class="schedule-countdowns__chip">
 							<span class="schedule-countdowns__chip-value">{wDays}</span>
@@ -123,19 +127,31 @@
 						</div>
 					{:else}
 						<div class="schedule-countdowns__chip">
-							<span class="schedule-countdowns__chip-value schedule-countdowns__placeholder">—</span>
+							<span
+								class="schedule-countdowns__chip-value schedule-countdowns__placeholder"
+								>—</span
+							>
 							<span class="schedule-countdowns__chip-label">Days</span>
 						</div>
 						<div class="schedule-countdowns__chip">
-							<span class="schedule-countdowns__chip-value schedule-countdowns__placeholder">—</span>
+							<span
+								class="schedule-countdowns__chip-value schedule-countdowns__placeholder"
+								>—</span
+							>
 							<span class="schedule-countdowns__chip-label">Hours</span>
 						</div>
 						<div class="schedule-countdowns__chip">
-							<span class="schedule-countdowns__chip-value schedule-countdowns__placeholder">—</span>
+							<span
+								class="schedule-countdowns__chip-value schedule-countdowns__placeholder"
+								>—</span
+							>
 							<span class="schedule-countdowns__chip-label">Minutes</span>
 						</div>
 						<div class="schedule-countdowns__chip">
-							<span class="schedule-countdowns__chip-value schedule-countdowns__placeholder">—</span>
+							<span
+								class="schedule-countdowns__chip-value schedule-countdowns__placeholder"
+								>—</span
+							>
 							<span class="schedule-countdowns__chip-label">Seconds</span>
 						</div>
 					{/if}
@@ -143,11 +159,15 @@
 
 				<p class="schedule-countdowns__when">
 					<span class="schedule-countdowns__when-label">Scheduled for</span>
-					<span class="schedule-countdowns__when-value">{ready ? deliveryWhen : '—'}</span>
+					<span class="schedule-countdowns__when-value">{ready ? deliveryWhen : '—'}</span
+					>
 				</p>
 			</article>
 
-			<article class="schedule-countdowns__card" {@attach hoverTilt({ maxTilt: 4, scale: 1.01 })}>
+			<article
+				class="schedule-countdowns__card"
+				{@attach hoverTilt({ maxTilt: 4, scale: 1.01 })}
+			>
 				<div class="schedule-countdowns__icon-wrap" aria-hidden="true">
 					<ClockIcon size={26} weight="duotone" color="#0FA4AF" />
 				</div>
@@ -155,10 +175,7 @@
 				<h3 class="schedule-countdowns__title">Market opens</h3>
 				<p class="schedule-countdowns__sub">Mon–Fri · 9:30 AM Eastern Time</p>
 
-				<div
-					class="schedule-countdowns__clock kpi-value"
-					aria-hidden="true"
-				>
+				<div class="schedule-countdowns__clock kpi-value" aria-hidden="true">
 					{#if ready}
 						{pad2(mHours)}:{pad2(mMinutes)}:{pad2(mSeconds)}
 					{:else}
@@ -168,8 +185,8 @@
 
 				<p class="schedule-countdowns__sr">
 					{#if ready}
-						Countdown to the next US cash session open at {marketWhen}. Hours may exceed twenty-four
-						when the next session is more than a day away.
+						Countdown to the next US cash session open at {marketWhen}. Hours may exceed
+						twenty-four when the next session is more than a day away.
 					{:else}
 						Loading countdown to the next market open.
 					{/if}
@@ -236,8 +253,8 @@
 		background: linear-gradient(150deg, #ffffff 0%, #f4f7fb 100%);
 		border-radius: var(--radius-xl);
 		padding: 2.25rem;
-		box-shadow: 
-			0 4px 6px -1px rgba(11, 29, 58, 0.04), 
+		box-shadow:
+			0 4px 6px -1px rgba(11, 29, 58, 0.04),
 			0 2px 4px -2px rgba(11, 29, 58, 0.03),
 			inset 0 1px 0 rgba(255, 255, 255, 1);
 		border: 1px solid rgba(226, 232, 240, 0.9);
@@ -247,8 +264,8 @@
 	}
 
 	.schedule-countdowns__card:hover {
-		box-shadow: 
-			0 20px 25px -5px rgba(11, 29, 58, 0.08), 
+		box-shadow:
+			0 20px 25px -5px rgba(11, 29, 58, 0.08),
 			0 8px 10px -6px rgba(11, 29, 58, 0.04),
 			inset 0 1px 0 rgba(255, 255, 255, 1);
 		border-color: rgba(203, 213, 225, 0.8);
@@ -335,7 +352,11 @@
 		letter-spacing: 0.02em;
 		margin-bottom: 1.25rem;
 		line-height: 1.1;
-		background: linear-gradient(135deg, var(--color-navy) 0%, var(--color-teal-dark, #0d8a94) 100%);
+		background: linear-gradient(
+			135deg,
+			var(--color-navy) 0%,
+			var(--color-teal-dark, #0d8a94) 100%
+		);
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
 		background-clip: text;

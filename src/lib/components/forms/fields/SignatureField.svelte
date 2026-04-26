@@ -75,10 +75,7 @@
 	}
 </script>
 
-<div
-	class="fm-field fm-field--signature"
-	class:fm-field--invalid={!!error}
->
+<div class="fm-field fm-field--signature" class:fm-field--invalid={!!error}>
 	<div class="fm-field__label">
 		<label for={controlId}>
 			{field.label ?? field.key}
@@ -108,12 +105,7 @@
 		tabindex="0"
 	></canvas>
 	<div class="fm-signature__actions">
-		<button
-			type="button"
-			class="fm-btn fm-btn--ghost"
-			onclick={clear}
-			{disabled}
-		>
+		<button type="button" class="fm-btn fm-btn--ghost" onclick={clear} {disabled}>
 			<EraserIcon size={18} />
 			<span>Clear</span>
 		</button>

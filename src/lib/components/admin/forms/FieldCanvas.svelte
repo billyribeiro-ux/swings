@@ -15,7 +15,9 @@
 	};
 	const { schema, selectedIndex, onSelect, onDelete, onMove, onAdd }: Props = $props();
 
-	function handleDragOver(e: DragEvent) { e.preventDefault(); }
+	function handleDragOver(e: DragEvent) {
+		e.preventDefault();
+	}
 	function handleDrop(e: DragEvent, atIndex: number) {
 		e.preventDefault();
 		const type = e.dataTransfer?.getData('text/x-form-field');
@@ -116,7 +118,9 @@
 		background: var(--color-surface-2);
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-sm);
-		transition: border-color 120ms ease, box-shadow 120ms ease;
+		transition:
+			border-color 120ms ease,
+			box-shadow 120ms ease;
 	}
 	.canvas__row--selected {
 		border-color: var(--color-accent);
@@ -170,11 +174,19 @@
 		border-radius: var(--radius-sm);
 		cursor: pointer;
 	}
-	.icon-btn:hover { background: var(--color-surface-3); color: var(--color-text); }
-	.icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+	.icon-btn:hover {
+		background: var(--color-surface-3);
+		color: var(--color-text);
+	}
+	.icon-btn:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
 	.icon-btn:focus-visible {
 		outline: 2px solid var(--color-focus-ring);
 		outline-offset: 1px;
 	}
-	.icon-btn--danger:hover { color: var(--color-danger); }
+	.icon-btn--danger:hover {
+		color: var(--color-danger);
+	}
 </style>

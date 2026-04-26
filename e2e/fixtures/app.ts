@@ -180,7 +180,11 @@ export class AppClient {
 		}
 	}
 
-	async register(input: { email: string; password: string; name: string }): Promise<PlaywrightResponse | null> {
+	async register(input: {
+		email: string;
+		password: string;
+		name: string;
+	}): Promise<PlaywrightResponse | null> {
 		await this.goto('/register');
 		const responsePromise = this.page.waitForResponse(
 			(r) => r.url().endsWith('/api/auth/register'),

@@ -1,11 +1,6 @@
 <script lang="ts">
 	import { gsap } from 'gsap';
-	import {
-		createCinematicCascade,
-		DURATION,
-		EASE,
-		hoverTilt
-	} from '$lib/utils/animations';
+	import { createCinematicCascade, DURATION, EASE, hoverTilt } from '$lib/utils/animations';
 	import { courses } from '$lib/data/courses';
 	import ScrollReveal from '$lib/components/ui/ScrollReveal.svelte';
 	import SectionHeader from '$lib/components/ui/SectionHeader.svelte';
@@ -71,7 +66,11 @@
 	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
 	import PulseIcon from 'phosphor-svelte/lib/PulseIcon';
 
-	const iconMap: Record<string, typeof BookOpenIcon> = { BookOpenIcon, PulseIcon, GraduationCapIcon };
+	const iconMap: Record<string, typeof BookOpenIcon> = {
+		BookOpenIcon,
+		PulseIcon,
+		GraduationCapIcon
+	};
 </script>
 
 <Seo
@@ -94,8 +93,8 @@
 		<h1 class="courses-title page-hero__title">Level Up Your Options Game</h1>
 
 		<p class="courses-subtitle page-hero__subtitle">
-			Structured courses designed to take you from the basics to confidently trading options at
-			your own pace.
+			Structured courses designed to take you from the basics to confidently trading options
+			at your own pace.
 		</p>
 	</div>
 </section>
@@ -115,8 +114,8 @@
 						<!-- Visual Header -->
 						<div
 							class="course-card__header"
-							style="background: linear-gradient(145deg, {course.gradient.from} 0%, {course.gradient
-								.to} 100%);"
+							style="background: linear-gradient(145deg, {course.gradient
+								.from} 0%, {course.gradient.to} 100%);"
 						>
 							<div class="course-card__header-grid"></div>
 
@@ -140,11 +139,19 @@
 
 							<div class="course-card__meta">
 								<div class="course-card__meta-item">
-									<ClockIcon size={15} weight="bold" class="course-card__meta-icon" />
+									<ClockIcon
+										size={15}
+										weight="bold"
+										class="course-card__meta-icon"
+									/>
 									<span>{course.duration}</span>
 								</div>
 								<div class="course-card__meta-item">
-									<GraduationCapIcon size={15} weight="bold" class="course-card__meta-icon" />
+									<GraduationCapIcon
+										size={15}
+										weight="bold"
+										class="course-card__meta-icon"
+									/>
 									<span>{course.modules} modules</span>
 								</div>
 							</div>
@@ -156,7 +163,11 @@
 								</div>
 								<span class="course-card__cta-pill">
 									Learn More
-									<ArrowRightIcon size={16} weight="bold" class="course-card__cta-arrow" />
+									<ArrowRightIcon
+										size={16}
+										weight="bold"
+										class="course-card__cta-arrow"
+									/>
 								</span>
 							</div>
 						</div>
@@ -194,7 +205,8 @@
 					</div>
 					<h3 class="why-item__title">Real-World Examples</h3>
 					<p class="why-item__desc">
-						Every lesson includes actual chart examples and trade setups you can apply immediately.
+						Every lesson includes actual chart examples and trade setups you can apply
+						immediately.
 					</p>
 				</div>
 

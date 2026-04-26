@@ -80,7 +80,8 @@
 
 		function focusables(): HTMLElement[] {
 			return Array.from(node.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
-				(el) => !el.hasAttribute('disabled') && el.tabIndex !== -1 && el.offsetParent !== null
+				(el) =>
+					!el.hasAttribute('disabled') && el.tabIndex !== -1 && el.offsetParent !== null
 			);
 		}
 

@@ -38,13 +38,13 @@ groups:
           team: platform
           domain: dsar
         annotations:
-          summary: "DSAR exports are failing at {{ $value | printf \"%.3f\" }}/s"
+          summary: 'DSAR exports are failing at {{ $value | printf "%.3f" }}/s'
           description: |
             The async DSAR worker is failing one or more jobs per ~3 minutes
             sustained over the last 10 minutes. Inspect failure_reason on
             recent rows in `dsar_jobs` and the `dsar_export_failed_total`
             label set (stage=claim|process).
-          runbook_url: "https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#DsarExportFailureSpike"
+          runbook_url: 'https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#DsarExportFailureSpike'
 
       - alert: DsarExportBacklogGrowing
         expr: |
@@ -61,12 +61,12 @@ groups:
           team: platform
           domain: dsar
         annotations:
-          summary: "DSAR worker is claiming jobs faster than it completes them"
+          summary: 'DSAR worker is claiming jobs faster than it completes them'
           description: |
             Claim rate exceeded completion rate over the last 30m. Jobs may
             be stuck in `composing`. Check worker logs for poison messages,
             R2 upload errors, or DB long-running compose queries.
-          runbook_url: "https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#DsarExportBacklogGrowing"
+          runbook_url: 'https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#DsarExportBacklogGrowing'
 
       - alert: DsarArtifactSweepStuck
         expr: |
@@ -77,12 +77,12 @@ groups:
           team: platform
           domain: dsar
         annotations:
-          summary: "DSAR artefact sweep has not succeeded in over 2 hours"
+          summary: 'DSAR artefact sweep has not succeeded in over 2 hours'
           description: |
             Either the sweep worker is wedged or it is hitting persistent
             errors. Expired DSAR artefacts will leak storage until this is
             resolved. Check `dsar_artifacts_sweep_failed_total{stage=...}`.
-          runbook_url: "https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#DsarArtifactSweepStuck"
+          runbook_url: 'https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#DsarArtifactSweepStuck'
 
       - alert: DsarArtifactSweepFailureSpike
         expr: |
@@ -93,12 +93,12 @@ groups:
           team: platform
           domain: dsar
         annotations:
-          summary: "DSAR sweep deletes are failing"
+          summary: 'DSAR sweep deletes are failing'
           description: |
             R2/local deletes are erroring at non-trivial rate. May indicate
             credential rotation drift, a partial bucket-policy change, or
             a corrupted storage_key in the database.
-          runbook_url: "https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#DsarArtifactSweepFailureSpike"
+          runbook_url: 'https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#DsarArtifactSweepFailureSpike'
 
   # ---------------------------------------------------------------
   # 2. Idempotency — middleware + GC worker
@@ -115,12 +115,12 @@ groups:
           team: platform
           domain: idempotency
         annotations:
-          summary: "Idempotency-key GC has not succeeded in over an hour"
+          summary: 'Idempotency-key GC has not succeeded in over an hour'
           description: |
             The `idempotency_keys` table will grow unbounded until this is
             resolved. Check the worker process is alive and that
             `idempotency.gc_batch_size` in `app_settings` is sane.
-          runbook_url: "https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#IdempotencyGcStuck"
+          runbook_url: 'https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#IdempotencyGcStuck'
 
       - alert: IdempotencyKeysTableTooLarge
         expr: |
@@ -131,12 +131,12 @@ groups:
           team: platform
           domain: idempotency
         annotations:
-          summary: "idempotency_keys table has crossed 1M rows"
+          summary: 'idempotency_keys table has crossed 1M rows'
           description: |
             Either the GC is too slow or the TTL is set far too long.
             Increase `idempotency.gc_batch_size` or shorten the TTL.
             Investigate whether a client is mass-replaying.
-          runbook_url: "https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#IdempotencyKeysTableTooLarge"
+          runbook_url: 'https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#IdempotencyKeysTableTooLarge'
 
       - alert: IdempotencyInFlightSurge
         expr: |
@@ -147,13 +147,13 @@ groups:
           team: platform
           domain: idempotency
         annotations:
-          summary: "Sustained surge of in-flight idempotency conflicts"
+          summary: 'Sustained surge of in-flight idempotency conflicts'
           description: |
             Clients are firing concurrent requests with the same
             Idempotency-Key. Most often this is a retry storm from a
             misbehaving caller; less commonly it is a webhook driving
             the same key from multiple sources.
-          runbook_url: "https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#IdempotencyInFlightSurge"
+          runbook_url: 'https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#IdempotencyInFlightSurge'
 
       - alert: IdempotencyMismatchSpike
         expr: |
@@ -164,12 +164,12 @@ groups:
           team: platform
           domain: idempotency
         annotations:
-          summary: "Clients are reusing Idempotency-Keys with different bodies"
+          summary: 'Clients are reusing Idempotency-Keys with different bodies'
           description: |
             Either a client bug (the key is being re-used across distinct
             requests) or a deliberate probing attempt. Inspect the
             originating user_id and request signature.
-          runbook_url: "https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#IdempotencyMismatchSpike"
+          runbook_url: 'https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#IdempotencyMismatchSpike'
 
   # ---------------------------------------------------------------
   # 3. Audit-log retention
@@ -186,12 +186,12 @@ groups:
           team: platform
           domain: audit
         annotations:
-          summary: "Audit retention has not succeeded in over 24h"
+          summary: 'Audit retention has not succeeded in over 24h'
           description: |
             The audit-pruner is not making progress. The `admin_actions`
             table will grow unbounded if this is left unresolved past
             the configured retention window.
-          runbook_url: "https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#AuditPruneStuck"
+          runbook_url: 'https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#AuditPruneStuck'
 
       - alert: AuditPruneErrorRate
         expr: |
@@ -202,8 +202,8 @@ groups:
           team: platform
           domain: audit
         annotations:
-          summary: "Audit pruner is erroring at non-trivial rate"
-          runbook_url: "https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#AuditPruneErrorRate"
+          summary: 'Audit pruner is erroring at non-trivial rate'
+          runbook_url: 'https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#AuditPruneErrorRate'
 
   # ---------------------------------------------------------------
   # 4. Admin mutation rate-limit
@@ -220,12 +220,12 @@ groups:
           team: platform
           domain: rbac
         annotations:
-          summary: "Sustained burst of admin-mutation rate-limit hits"
+          summary: 'Sustained burst of admin-mutation rate-limit hits'
           description: |
             One or more admin sessions are bumping the per-actor token
             bucket. Either an automation script is misbehaving or an
             insider/ATO is probing. Cross-reference with audit log.
-          runbook_url: "https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#AdminMutationRateLimitSurge"
+          runbook_url: 'https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#AdminMutationRateLimitSurge'
 
   # ---------------------------------------------------------------
   # 5. Impersonation
@@ -242,12 +242,12 @@ groups:
           team: platform
           domain: impersonation
         annotations:
-          summary: "Operators are hitting the impersonation-mint rate limit"
+          summary: 'Operators are hitting the impersonation-mint rate limit'
           description: |
             An admin is minting impersonation sessions faster than the
             policy allows. May indicate genuine support load, may
             indicate misuse — check the audit log.
-          runbook_url: "https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#ImpersonationMintRateLimited"
+          runbook_url: 'https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#ImpersonationMintRateLimited'
 
       - alert: ImpersonationRevokeStorm
         expr: |
@@ -258,11 +258,11 @@ groups:
           team: platform
           domain: impersonation
         annotations:
-          summary: "Many impersonation sessions being revoked"
+          summary: 'Many impersonation sessions being revoked'
           description: |
             Likely benign (support shift change or scripted cleanup),
             but worth correlating with any active incident.
-          runbook_url: "https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#ImpersonationRevokeStorm"
+          runbook_url: 'https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#ImpersonationRevokeStorm'
 
   # ---------------------------------------------------------------
   # 6. Maintenance kill-switch (informational)
@@ -279,9 +279,9 @@ groups:
           team: platform
           domain: ops
         annotations:
-          summary: "Maintenance mode is rejecting traffic"
+          summary: 'Maintenance mode is rejecting traffic'
           description: |
             The kill-switch is on. If this is unintentional, flip it
             off in `app_settings`. If intentional, suppress this alert
             for the duration of the maintenance window.
-          runbook_url: "https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#MaintenanceModeActive"
+          runbook_url: 'https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#MaintenanceModeActive'

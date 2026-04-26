@@ -251,7 +251,10 @@
 							<td class="pr-table__name">{product.name}</td>
 							<td class="pr-table__mono">{product.slug}</td>
 							<td class="pr-table__type">{typeLabel(product.product_type)}</td>
-							<td><span class={statusClass(product.status)}>{product.status}</span></td>
+							<td
+								><span class={statusClass(product.status)}>{product.status}</span
+								></td
+							>
 							<td class="pr-table__right pr-table__num">
 								{fmtMoney(product.price_cents, product.currency)}
 							</td>
@@ -885,7 +888,6 @@
 			justify-content: space-between;
 			gap: 1.5rem;
 		}
-
 
 		.pr-filters {
 			flex-direction: row;

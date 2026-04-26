@@ -133,7 +133,8 @@
 		if (!selected) return;
 		const ok = await confirmDialog({
 			title: 'Delete this media file?',
-			message: 'The file will be permanently removed and any post that embeds it will lose the asset.',
+			message:
+				'The file will be permanently removed and any post that embeds it will lose the asset.',
 			confirmLabel: 'Delete',
 			variant: 'danger'
 		});
@@ -296,7 +297,9 @@
 								{formatSize(selected.file_size)} · {selected.mime_type}
 							</p>
 							{#if selected.width && selected.height}
-								<p class="media-details__meta">{selected.width} × {selected.height}px</p>
+								<p class="media-details__meta">
+									{selected.width} × {selected.height}px
+								</p>
 							{/if}
 						</div>
 
@@ -351,7 +354,10 @@
 						</div>
 
 						<div class="media-details__actions">
-							<button class="media-details__btn media-details__btn--insert" onclick={saveAndInsert}>
+							<button
+								class="media-details__btn media-details__btn--insert"
+								onclick={saveAndInsert}
+							>
 								Insert into post
 							</button>
 							<button

@@ -109,7 +109,8 @@
 		font-family: inherit;
 		font-size: var(--fs-md);
 		line-height: var(--lh-normal);
-		transition: border-color var(--duration-150) var(--ease-out),
+		transition:
+			border-color var(--duration-150) var(--ease-out),
 			box-shadow var(--duration-150) var(--ease-out);
 	}
 
@@ -255,7 +256,8 @@
 		font-weight: var(--w-semibold);
 		border: 1px solid transparent;
 		cursor: pointer;
-		transition: background-color var(--duration-150) var(--ease-out),
+		transition:
+			background-color var(--duration-150) var(--ease-out),
 			border-color var(--duration-150) var(--ease-out),
 			color var(--duration-150) var(--ease-out);
 	}
@@ -743,7 +745,8 @@
 		font-variant-numeric: tabular-nums;
 		cursor: pointer;
 		background-color: var(--surface-bg-canvas);
-		transition: background-color var(--duration-150) var(--ease-out),
+		transition:
+			background-color var(--duration-150) var(--ease-out),
 			border-color var(--duration-150) var(--ease-out);
 	}
 
@@ -939,7 +942,6 @@
 			grid-column: 1 / -1;
 		}
 	}
-
 
 	@media (min-width: 640px) {
 		.fm-actions {

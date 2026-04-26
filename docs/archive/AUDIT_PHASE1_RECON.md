@@ -136,36 +136,36 @@ swings/
 
 **Direct dependencies (from `backend/Cargo.toml`):**
 
-| Crate | Pinned | Latest (Apr 2026) | Notes |
-|---|---|---|---|
-| `axum` | 0.8 (+macros,multipart) | 0.8.x | Current. |
-| `axum-extra` | 0.12 (+typed-header, cookie) | 0.12.x | Current. |
-| `tokio` | 1 (full) | 1.48+ | Unpinned minor. |
-| `tower` | 0.5 | 0.5.x | Current. |
-| `tower-http` | 0.6 (cors, trace, fs) | 0.6.x | Current. |
-| `sqlx` | 0.8 (postgres+chrono+uuid+json+rust_decimal+migrate) | 0.8.x | Current. |
-| `jsonwebtoken` | 10 | 10.x | Current. |
-| `argon2` | 0.5 | 0.5.x | Current. |
-| `serde`/`serde_json` | 1 | 1.x | Current. |
-| `uuid` | 1 (v4, serde) | 1.x | Current. |
-| `chrono` | 0.4 (serde) | 0.4.x | Current. |
-| `dotenvy` | 0.15 | 0.15.x | Current. |
-| `tracing` / `tracing-subscriber` | 0.1 / 0.3 | Current. |
-| `thiserror` | 2 | 2.x | Current. |
-| `anyhow` | 1 | 1.x | Current. |
-| `sha2` / `hmac` | 0.10 / 0.12 | Current. |
-| `validator` | 0.20 (derive) | 0.20+ | Current. |
-| `stripe-rust` (`async-stripe`) | 0.39 (tokio-hyper) | — | Package `async-stripe`; check for newer if needed. |
-| `axum_typed_multipart` | 0.16 | 0.16+ | Current. |
-| `tempfile` | 3 | — | Current. |
-| `sanitize-filename` | 0.6 | — | Current. |
-| `lettre` | 0.11 (tokio1-rustls, smtp, builder) | 0.11.x | Current. |
-| `tera` | 1 | 1.x | Templates inlined as `const` strings (not on-disk). |
-| `rand` | 0.8 | 0.9.x exists | **Slightly outdated** (rand 0.9). Minor. |
-| `rust_decimal` | 1 (serde-with-str) | 1.x | Current. |
-| `aws-sdk-s3` | 1 (rt-tokio, rustls) | 1.x | Current. |
-| `bytes` | 1 | 1.x | Current. |
-| `governor` / `tower_governor` | 0.10 / 0.8 | Current. |
+| Crate                            | Pinned                                               | Latest (Apr 2026) | Notes                                               |
+| -------------------------------- | ---------------------------------------------------- | ----------------- | --------------------------------------------------- |
+| `axum`                           | 0.8 (+macros,multipart)                              | 0.8.x             | Current.                                            |
+| `axum-extra`                     | 0.12 (+typed-header, cookie)                         | 0.12.x            | Current.                                            |
+| `tokio`                          | 1 (full)                                             | 1.48+             | Unpinned minor.                                     |
+| `tower`                          | 0.5                                                  | 0.5.x             | Current.                                            |
+| `tower-http`                     | 0.6 (cors, trace, fs)                                | 0.6.x             | Current.                                            |
+| `sqlx`                           | 0.8 (postgres+chrono+uuid+json+rust_decimal+migrate) | 0.8.x             | Current.                                            |
+| `jsonwebtoken`                   | 10                                                   | 10.x              | Current.                                            |
+| `argon2`                         | 0.5                                                  | 0.5.x             | Current.                                            |
+| `serde`/`serde_json`             | 1                                                    | 1.x               | Current.                                            |
+| `uuid`                           | 1 (v4, serde)                                        | 1.x               | Current.                                            |
+| `chrono`                         | 0.4 (serde)                                          | 0.4.x             | Current.                                            |
+| `dotenvy`                        | 0.15                                                 | 0.15.x            | Current.                                            |
+| `tracing` / `tracing-subscriber` | 0.1 / 0.3                                            | Current.          |
+| `thiserror`                      | 2                                                    | 2.x               | Current.                                            |
+| `anyhow`                         | 1                                                    | 1.x               | Current.                                            |
+| `sha2` / `hmac`                  | 0.10 / 0.12                                          | Current.          |
+| `validator`                      | 0.20 (derive)                                        | 0.20+             | Current.                                            |
+| `stripe-rust` (`async-stripe`)   | 0.39 (tokio-hyper)                                   | —                 | Package `async-stripe`; check for newer if needed.  |
+| `axum_typed_multipart`           | 0.16                                                 | 0.16+             | Current.                                            |
+| `tempfile`                       | 3                                                    | —                 | Current.                                            |
+| `sanitize-filename`              | 0.6                                                  | —                 | Current.                                            |
+| `lettre`                         | 0.11 (tokio1-rustls, smtp, builder)                  | 0.11.x            | Current.                                            |
+| `tera`                           | 1                                                    | 1.x               | Templates inlined as `const` strings (not on-disk). |
+| `rand`                           | 0.8                                                  | 0.9.x exists      | **Slightly outdated** (rand 0.9). Minor.            |
+| `rust_decimal`                   | 1 (serde-with-str)                                   | 1.x               | Current.                                            |
+| `aws-sdk-s3`                     | 1 (rt-tokio, rustls)                                 | 1.x               | Current.                                            |
+| `bytes`                          | 1                                                    | 1.x               | Current.                                            |
+| `governor` / `tower_governor`    | 0.10 / 0.8                                           | Current.          |
 
 **Missing crates that Phase 3/4 will require** (not present today): `reqwest` (carrier APIs, SaaS webhooks), `html-escape`/`ammonia` (HTML sanitisation for user content & forms), `ulid` or strong order-number generator, `jiff` or equivalent for complex TZ logic in subscriptions, `opentelemetry` for spans, `base64`, `urlencoding`, `woothee`/`uap-core` (UA parsing for consent + analytics), `maxminddb` (geo for consent), `lazy_static`/`once_cell` for regex caches, `quick-xml`/`printpdf` or `wkhtmltopdf` bridge (invoices/packing slips), `mjml-rust` or external MJML renderer, `webpush`/`web-push` (WebPush VAPID), `rusqlite` N/A, `async-channel`/`crossbeam` (event bus), `redis`/`deadpool-redis` (queue / cache / rate limiter for distributed multi-instance).
 
@@ -175,30 +175,30 @@ Engines: `node >=24.14.1`. Lockfile: `pnpm-lock.yaml`. Workspace file exists but
 
 **Runtime deps (excerpt):**
 
-| Package | Pinned | Notes |
-|---|---|---|
-| `svelte` | ^5.55.3 | Current (5.x). Runes available. |
-| `@sveltejs/kit` | ^2.57.1 | Current. |
-| `@sveltejs/vite-plugin-svelte` | ^7 | Current. |
-| `@sveltejs/adapter-vercel` | ^6.3.3 | Active adapter. |
-| `@sveltejs/adapter-netlify` | ^6.0.4 | Unused — prune candidate. |
-| `@sveltejs/adapter-auto` | ^7.0.1 | Unused — prune candidate. |
-| `vite` | ^8.0.8 | Current. |
-| `vitest` | ^4.1.4 | Current. |
-| `@vitest/browser-playwright` / `vitest-browser-svelte` | 4.1.x / 2.1.x | Current. |
-| `typescript` | ^6.0.2 | **TS 6.x — current**. `tsconfig` is strict. |
-| `typescript-eslint` | ^8.58.1 | Current. |
-| `eslint` | ^10.2.0 | Current. |
-| `@playwright/test` / `playwright` | ^1.59.1 | Current. |
-| `prettier` | ^3.8.2 | Current. |
-| `stripe` | ^22.0.1 | Client-side SDK. |
-| `phosphor-svelte` | ^3.1.0 | **Phosphor present — compliant**. No `lucide-*` detected. |
-| `@tiptap/*` | ^3.22.3 | Full TipTap 3 stack for `PostEditor`. |
-| `@threlte/core` / `@threlte/extras` | 8.5 / 9.14 | 3D (unused by audit target domains). |
-| `apexcharts`, `d3`, `gsap`, `three` | — | Presentation-only. |
-| `date-fns` + `@date-fns/tz` | 4.x / 1.4 | Current. |
-| `@vercel/speed-insights` | 2.0.0 | Current. |
-| `@types/three`, `@types/d3` | — | fine. |
+| Package                                                | Pinned        | Notes                                                     |
+| ------------------------------------------------------ | ------------- | --------------------------------------------------------- |
+| `svelte`                                               | ^5.55.3       | Current (5.x). Runes available.                           |
+| `@sveltejs/kit`                                        | ^2.57.1       | Current.                                                  |
+| `@sveltejs/vite-plugin-svelte`                         | ^7            | Current.                                                  |
+| `@sveltejs/adapter-vercel`                             | ^6.3.3        | Active adapter.                                           |
+| `@sveltejs/adapter-netlify`                            | ^6.0.4        | Unused — prune candidate.                                 |
+| `@sveltejs/adapter-auto`                               | ^7.0.1        | Unused — prune candidate.                                 |
+| `vite`                                                 | ^8.0.8        | Current.                                                  |
+| `vitest`                                               | ^4.1.4        | Current.                                                  |
+| `@vitest/browser-playwright` / `vitest-browser-svelte` | 4.1.x / 2.1.x | Current.                                                  |
+| `typescript`                                           | ^6.0.2        | **TS 6.x — current**. `tsconfig` is strict.               |
+| `typescript-eslint`                                    | ^8.58.1       | Current.                                                  |
+| `eslint`                                               | ^10.2.0       | Current.                                                  |
+| `@playwright/test` / `playwright`                      | ^1.59.1       | Current.                                                  |
+| `prettier`                                             | ^3.8.2        | Current.                                                  |
+| `stripe`                                               | ^22.0.1       | Client-side SDK.                                          |
+| `phosphor-svelte`                                      | ^3.1.0        | **Phosphor present — compliant**. No `lucide-*` detected. |
+| `@tiptap/*`                                            | ^3.22.3       | Full TipTap 3 stack for `PostEditor`.                     |
+| `@threlte/core` / `@threlte/extras`                    | 8.5 / 9.14    | 3D (unused by audit target domains).                      |
+| `apexcharts`, `d3`, `gsap`, `three`                    | —             | Presentation-only.                                        |
+| `date-fns` + `@date-fns/tz`                            | 4.x / 1.4     | Current.                                                  |
+| `@vercel/speed-insights`                               | 2.0.0         | Current.                                                  |
+| `@types/three`, `@types/d3`                            | —             | fine.                                                     |
 
 **Legacy/unexpected:** `adapter-auto` + `adapter-netlify` shipped alongside `adapter-vercel`; two unused.
 
@@ -221,24 +221,24 @@ Applied at runtime via `sqlx::migrate!("./migrations")` in `main.rs`. Enum types
 
 **Tables today (by migration origin):**
 
-| Table | Migration | Purpose |
-|---|---|---|
-| `users` | 001 (+005 profile, +010 normalize) | auth identity, role, author profile |
-| `refresh_tokens` | 001 (+018 families/used) | JWT refresh rotation with family-based reuse detection |
-| `subscriptions` | 001 | Stripe-backed member subscriptions, enum plan/status |
-| `watchlists`, `watchlist_alerts` | 001 | weekly trade setups |
-| `course_enrollments` | 001 (+011 last_lesson) | high-level enrollment tracker |
-| `media` | 002 (+004 title, +008 focal) | image/file library, R2 or local |
-| `blog_categories` / `blog_tags` / `blog_posts` / `blog_post_categories` / `blog_post_tags` / `blog_revisions` | 002 (+006 format, +016 trash) | full blog CMS |
-| `password_reset_tokens` | 003 | 1-hour reset tokens |
-| `post_meta` | 007 | WP-style key/value meta |
-| `analytics_sessions`, `analytics_events` | 009 | page_view / impression / click events |
-| `courses`, `course_modules`, `course_lessons`, `lesson_progress` | 011 | LMS |
-| `pricing_plans`, `pricing_change_log` | 012 | admin-editable plans + audit log |
-| `coupons`, `coupon_usages` | 013 | discount codes + per-user usage |
-| `sales_events`, `monthly_revenue_snapshots` | 014 | revenue analytics (model present, **unused** — `#[allow(dead_code)]` on struct) |
-| `popups`, `popup_submissions`, `popup_events` | 015 | basic popup builder |
-| `processed_webhook_events` | 017 | Stripe webhook idempotency (event_id unique) |
+| Table                                                                                                         | Migration                          | Purpose                                                                         |
+| ------------------------------------------------------------------------------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------- |
+| `users`                                                                                                       | 001 (+005 profile, +010 normalize) | auth identity, role, author profile                                             |
+| `refresh_tokens`                                                                                              | 001 (+018 families/used)           | JWT refresh rotation with family-based reuse detection                          |
+| `subscriptions`                                                                                               | 001                                | Stripe-backed member subscriptions, enum plan/status                            |
+| `watchlists`, `watchlist_alerts`                                                                              | 001                                | weekly trade setups                                                             |
+| `course_enrollments`                                                                                          | 001 (+011 last_lesson)             | high-level enrollment tracker                                                   |
+| `media`                                                                                                       | 002 (+004 title, +008 focal)       | image/file library, R2 or local                                                 |
+| `blog_categories` / `blog_tags` / `blog_posts` / `blog_post_categories` / `blog_post_tags` / `blog_revisions` | 002 (+006 format, +016 trash)      | full blog CMS                                                                   |
+| `password_reset_tokens`                                                                                       | 003                                | 1-hour reset tokens                                                             |
+| `post_meta`                                                                                                   | 007                                | WP-style key/value meta                                                         |
+| `analytics_sessions`, `analytics_events`                                                                      | 009                                | page_view / impression / click events                                           |
+| `courses`, `course_modules`, `course_lessons`, `lesson_progress`                                              | 011                                | LMS                                                                             |
+| `pricing_plans`, `pricing_change_log`                                                                         | 012                                | admin-editable plans + audit log                                                |
+| `coupons`, `coupon_usages`                                                                                    | 013                                | discount codes + per-user usage                                                 |
+| `sales_events`, `monthly_revenue_snapshots`                                                                   | 014                                | revenue analytics (model present, **unused** — `#[allow(dead_code)]` on struct) |
+| `popups`, `popup_submissions`, `popup_events`                                                                 | 015                                | basic popup builder                                                             |
+| `processed_webhook_events`                                                                                    | 017                                | Stripe webhook idempotency (event_id unique)                                    |
 
 ### 2.5 Auth / Session / Middleware
 
@@ -283,6 +283,7 @@ Applied at runtime via `sqlx::migrate!("./migrations")` in `main.rs`. Enum types
 `package.json`, `pnpm-workspace.yaml`, `svelte.config.js`, `vite.config.ts`, `tsconfig.json`, `.env.example`, `docker-compose.yml`, `vercel.json`, `render.yaml`, `backend/Cargo.toml`, `.github/workflows/ci.yml`.
 
 **Notable findings:**
+
 - `svelte.config.js` adapter: Vercel `nodejs22.x`. Prerender entries: `/`, `/about`, `/courses`, `/blog`, `/pricing`, `/pricing/monthly`, `/pricing/annual`.
 - `vite.config.ts` dev proxy `/api` → `http://127.0.0.1:3001`.
 - `vercel.json` production rewrite `/api/*` → `https://swings-production.up.railway.app/api/*` (Railway is the prod API host; Render config is stale).
@@ -300,7 +301,7 @@ Applied at runtime via `sqlx::migrate!("./migrations")` in `main.rs`. Enum types
   3. No nine-tier breakpoints (xs 320 → xl5 3840) — tokens file ends with container sizes only (visible to line 120; full file not scanned).
   4. `clamp()` fluid type not evidenced in tokens.
   5. Logical properties not enforced (not grep-verified; flagged for Phase 2).
-  6. Comment in tokens explicitly says *"1:1 mapping from Tailwind theme"* — suggests prior Tailwind origin; verify no `tailwind.config.*` or `@tailwind` directives remain (Glob pass showed none in top level; deep scan in Phase 2).
+  6. Comment in tokens explicitly says _"1:1 mapping from Tailwind theme"_ — suggests prior Tailwind origin; verify no `tailwind.config.*` or `@tailwind` directives remain (Glob pass showed none in top level; deep scan in Phase 2).
 - **Icons:** `phosphor-svelte` present. No `lucide-*` package in `package.json` — **compliant**.
 - **pnpm / TS strict / Svelte 5:** compliant.
 - **Rust hygiene:** **NOT compliant with mandate** — `#![deny(warnings)]` and `#![forbid(unsafe_code)]` are **not** declared in `main.rs`. `#[allow(dead_code)]` present on `SalesEvent`, `MonthlyRevenueSnapshot`, `RevenueAnalytics`, etc. (unused revenue types). Several `.unwrap()` / `.expect()` in prod paths (pool config expects, `panic!` in config assert, `expect("non-zero quota")` in rate-limit layer builders).

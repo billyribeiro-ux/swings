@@ -91,11 +91,7 @@
 
 	<label class="nf-field">
 		<span class="nf-label">Description</span>
-		<textarea
-			class="nf-input nf-input--multi"
-			rows="3"
-			bind:value={description}
-			maxlength="500"
+		<textarea class="nf-input nf-input--multi" rows="3" bind:value={description} maxlength="500"
 		></textarea>
 	</label>
 

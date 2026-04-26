@@ -46,7 +46,10 @@ export class DashboardPage {
 		if (!(await link.isVisible().catch(() => false))) return false;
 		await link.click();
 		await this.page.waitForLoadState('domcontentloaded');
-		const notFound = await this.page.getByText(/404|not found/i).isVisible().catch(() => false);
+		const notFound = await this.page
+			.getByText(/404|not found/i)
+			.isVisible()
+			.catch(() => false);
 		return !notFound;
 	}
 

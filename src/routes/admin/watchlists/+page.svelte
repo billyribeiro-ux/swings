@@ -91,7 +91,8 @@
 			<span class="wl-admin__eyebrow">Publishing</span>
 			<h1 class="wl-admin__title">Watchlists</h1>
 			<p class="wl-admin__subtitle">
-				{total.toLocaleString()} total {total === 1 ? 'watchlist' : 'watchlists'} — schedule, publish, and manage weekly issues.
+				{total.toLocaleString()} total {total === 1 ? 'watchlist' : 'watchlists'} — schedule,
+				publish, and manage weekly issues.
 			</p>
 		</div>
 		<a href="/admin/watchlists/new" class="wl-admin__create">
@@ -111,7 +112,8 @@
 			<ListChecksIcon size={48} weight="duotone" color="var(--color-grey-500)" />
 			<p class="wl-admin__empty-title">No watchlists yet</p>
 			<p class="wl-admin__empty-body">
-				Watchlists drive your weekly subscriber alerts. Publish your first one to get started.
+				Watchlists drive your weekly subscriber alerts. Publish your first one to get
+				started.
 			</p>
 			<a href="/admin/watchlists/new" class="wl-admin__create wl-admin__create--empty">
 				<PlusIcon size={16} weight="bold" />
@@ -144,7 +146,11 @@
 						<span class="wl-card__value">{formatDate(wl.published_at)}</span>
 					</div>
 					<div class="wl-card__actions">
-						<a href="/admin/watchlists/{wl.id}" class="wl-card__btn wl-card__btn--edit" title="Edit">
+						<a
+							href="/admin/watchlists/{wl.id}"
+							class="wl-card__btn wl-card__btn--edit"
+							title="Edit"
+						>
 							<PencilSimpleIcon size={16} weight="bold" />
 							<span>Edit</span>
 						</a>
@@ -194,7 +200,9 @@
 								<span
 									class={[
 										'wl-table__status',
-										wl.published ? 'wl-table__status--live' : 'wl-table__status--draft'
+										wl.published
+											? 'wl-table__status--live'
+											: 'wl-table__status--draft'
 									]}
 								>
 									<span class="wl-table__status-dot"></span>
@@ -596,7 +604,6 @@
 			margin-bottom: 1.5rem;
 		}
 
-
 		.wl-admin__create {
 			align-self: flex-end;
 		}
@@ -609,8 +616,8 @@
 			display: block;
 			overflow-x: auto;
 			background: rgba(19, 43, 80, 0.35);
-		backdrop-filter: blur(24px);
-		-webkit-backdrop-filter: blur(24px);
+			backdrop-filter: blur(24px);
+			-webkit-backdrop-filter: blur(24px);
 			border: 1px solid rgba(255, 255, 255, 0.06);
 			border-radius: var(--radius-2xl);
 			box-shadow:

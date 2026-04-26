@@ -143,7 +143,8 @@
 		<p class="settings-page__hint">
 			Looking for runtime kill-switches like <code>system.maintenance_mode</code> or encrypted
 			secrets? Use the
-			<a href="/admin/settings/system" class="settings-page__link">typed system catalogue →</a>
+			<a href="/admin/settings/system" class="settings-page__link">typed system catalogue →</a
+			>
 		</p>
 	</header>
 
@@ -375,7 +376,8 @@
 					<p>
 						Stripe API keys are configured via environment variables (<code
 							>STRIPE_SECRET_KEY</code
-						>, <code>STRIPE_PUBLIC_KEY</code>, <code>STRIPE_WEBHOOK_SECRET</code>) in your
+						>, <code>STRIPE_PUBLIC_KEY</code>, <code>STRIPE_WEBHOOK_SECRET</code>) in
+						your
 						<code>.env</code> file. Changes require a server restart.
 					</p>
 				</div>
@@ -451,7 +453,9 @@
 				<div class="toggle-row">
 					<div class="toggle-row__info">
 						<span class="toggle-row__label">Email on new signup</span>
-						<span class="toggle-row__desc">Receive an email when a new user registers.</span>
+						<span class="toggle-row__desc"
+							>Receive an email when a new user registers.</span
+						>
 					</div>
 					<button
 						type="button"
@@ -473,7 +477,9 @@
 				<div class="toggle-row">
 					<div class="toggle-row__info">
 						<span class="toggle-row__label">Email on new subscription</span>
-						<span class="toggle-row__desc">Get notified when someone subscribes to a plan.</span>
+						<span class="toggle-row__desc"
+							>Get notified when someone subscribes to a plan.</span
+						>
 					</div>
 					<button
 						type="button"
@@ -495,7 +501,9 @@
 				<div class="toggle-row">
 					<div class="toggle-row__info">
 						<span class="toggle-row__label">Email on subscription cancelled</span>
-						<span class="toggle-row__desc">Get notified when a subscription is cancelled.</span>
+						<span class="toggle-row__desc"
+							>Get notified when a subscription is cancelled.</span
+						>
 					</div>
 					<button
 						type="button"
@@ -521,7 +529,10 @@
 	<div class="save-bar">
 		<div class="save-bar__note">
 			<InfoIcon size={14} weight="fill" />
-			<span>Settings are stored in localStorage. Connect to a backend settings API for production.</span>
+			<span
+				>Settings are stored in localStorage. Connect to a backend settings API for
+				production.</span
+			>
 		</div>
 		<button class="btn btn--primary" type="button" onclick={saveSettings}>
 			<FloppyDiskIcon size={16} weight="bold" />

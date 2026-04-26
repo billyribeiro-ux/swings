@@ -52,7 +52,11 @@
 	}
 
 	function pushInfoToast() {
-		toasts.push({ kind: 'info', title: 'Heads up', description: 'This is an informational toast.' });
+		toasts.push({
+			kind: 'info',
+			title: 'Heads up',
+			description: 'This is an informational toast.'
+		});
 	}
 	function pushSuccessToast() {
 		toasts.push({ kind: 'success', title: 'Saved', description: 'Your changes were saved.' });
@@ -85,8 +89,8 @@
 	<header class="kit-header">
 		<h1>PE7 shared UI primitives</h1>
 		<p class="lede">
-			Canonical component library under <code>$lib/components/shared</code>. Every variant rendered
-			below is WCAG 2.2 AA baseline.
+			Canonical component library under <code>$lib/components/shared</code>. Every variant
+			rendered below is WCAG 2.2 AA baseline.
 		</p>
 	</header>
 
@@ -141,7 +145,9 @@
 				<h3>As link</h3>
 				<div class="cluster">
 					<Button href="/admin">Go to admin</Button>
-					<Button href="https://svelte.dev" target="_blank" variant="link">External</Button>
+					<Button href="https://svelte.dev" target="_blank" variant="link"
+						>External</Button
+					>
 				</div>
 			</article>
 		</div>
@@ -190,7 +196,11 @@
 				</Button>
 			{/each}
 		</div>
-		<Drawer bind:open={drawerOpen} title="Drawer from {drawerPosition}" position={drawerPosition}>
+		<Drawer
+			bind:open={drawerOpen}
+			title="Drawer from {drawerPosition}"
+			position={drawerPosition}
+		>
 			<p>Drawers are useful for detail panels, filter pickers, and settings.</p>
 			{#snippet footer()}
 				<Button onclick={() => (drawerOpen = false)}>Close</Button>
@@ -296,8 +306,14 @@
 		flex-direction: column;
 		gap: var(--space-2);
 	}
-	.lede { margin: 0; color: var(--surface-fg-muted); }
-	code { font-family: var(--font-mono); font-size: 0.95em; }
+	.lede {
+		margin: 0;
+		color: var(--surface-fg-muted);
+	}
+	code {
+		font-family: var(--font-mono);
+		font-size: 0.95em;
+	}
 	.tile {
 		background-color: var(--surface-bg-subtle);
 		border: 1px solid var(--surface-border-subtle);
@@ -307,8 +323,17 @@
 		flex-direction: column;
 		gap: var(--space-4);
 	}
-	.tile h2 { margin: 0; font-size: var(--fs-lg); }
-	.tile h3 { margin: 0; font-size: var(--fs-sm); color: var(--surface-fg-muted); text-transform: uppercase; letter-spacing: var(--ls-wide); }
+	.tile h2 {
+		margin: 0;
+		font-size: var(--fs-lg);
+	}
+	.tile h3 {
+		margin: 0;
+		font-size: var(--fs-sm);
+		color: var(--surface-fg-muted);
+		text-transform: uppercase;
+		letter-spacing: var(--ls-wide);
+	}
 	.grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
@@ -323,8 +348,19 @@
 		flex-direction: column;
 		gap: var(--space-3);
 	}
-	.cluster { display: flex; flex-wrap: wrap; gap: var(--space-3); }
-	.cluster.align-center { align-items: center; }
-	.cluster.align-start { align-items: flex-start; }
-	input[type='email'] { inline-size: 100%; max-inline-size: 24rem; }
+	.cluster {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-3);
+	}
+	.cluster.align-center {
+		align-items: center;
+	}
+	.cluster.align-start {
+		align-items: flex-start;
+	}
+	input[type='email'] {
+		inline-size: 100%;
+		max-inline-size: 24rem;
+	}
 </style>

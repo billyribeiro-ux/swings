@@ -29,7 +29,9 @@
 	// Bulk selection
 	let selectedIds: string[] = $state([]);
 	let bulkActionValue = $state('');
-	const allSelected = $derived(posts.length > 0 && posts.every((p) => selectedIds.includes(p.id)));
+	const allSelected = $derived(
+		posts.length > 0 && posts.every((p) => selectedIds.includes(p.id))
+	);
 
 	function toggleSelect(id: string) {
 		if (selectedIds.includes(id)) {
@@ -56,14 +58,14 @@
 		if (action === 'delete') {
 			if (statusFilter !== 'trash') {
 				toast.warning('Permanent deletion only applies to posts in the Trash', {
-					description:
-						'Open the Trash tab, select posts, then choose Delete permanently.'
+					description: 'Open the Trash tab, select posts, then choose Delete permanently.'
 				});
 				return;
 			}
 			const ok = await confirmDialog({
 				title: `Permanently delete ${count} post${count === 1 ? '' : 's'}?`,
-				message: 'This action cannot be undone. The posts and their revision history will be removed.',
+				message:
+					'This action cannot be undone. The posts and their revision history will be removed.',
 				confirmLabel: 'Delete permanently',
 				variant: 'danger'
 			});
@@ -73,18 +75,31 @@
 			);
 			const failed = results.filter((r) => r.status === 'rejected').length;
 			if (failed === 0) toast.success(`Deleted ${count} post${count === 1 ? '' : 's'}`);
-			else if (failed === count) toast.error(`Failed to delete ${count} post${count === 1 ? '' : 's'}`);
-			else toast.warning(`Deleted ${count - failed} of ${count}`, { description: `${failed} failed` });
+			else if (failed === count)
+				toast.error(`Failed to delete ${count} post${count === 1 ? '' : 's'}`);
+			else
+				toast.warning(`Deleted ${count - failed} of ${count}`, {
+					description: `${failed} failed`
+				});
 		} else {
-			const status = action === 'trash' ? 'trash' : action === 'publish' ? 'published' : 'draft';
+			const status =
+				action === 'trash' ? 'trash' : action === 'publish' ? 'published' : 'draft';
 			const results = await Promise.allSettled(
 				selectedIds.map((id) => api.put(`/api/admin/blog/posts/${id}/status`, { status }))
 			);
 			const failed = results.filter((r) => r.status === 'rejected').length;
-			const verb = status === 'trash' ? 'Moved to trash' : status === 'published' ? 'Published' : 'Saved as draft';
+			const verb =
+				status === 'trash'
+					? 'Moved to trash'
+					: status === 'published'
+						? 'Published'
+						: 'Saved as draft';
 			if (failed === 0) toast.success(`${verb} · ${count} post${count === 1 ? '' : 's'}`);
 			else if (failed === count) toast.error(`Bulk ${action} failed`);
-			else toast.warning(`${verb} ${count - failed} of ${count}`, { description: `${failed} failed` });
+			else
+				toast.warning(`${verb} ${count - failed} of ${count}`, {
+					description: `${failed} failed`
+				});
 		}
 		selectedIds = [];
 		loadPosts();
@@ -325,11 +340,7 @@
 	{#if selectedIds.length > 0}
 		<div class="bulk-bar">
 			<span class="bulk-bar__count">{selectedIds.length} selected</span>
-			<select
-				class="bulk-bar__select"
-				bind:value={bulkActionValue}
-				aria-label="Bulk action"
-			>
+			<select class="bulk-bar__select" bind:value={bulkActionValue} aria-label="Bulk action">
 				<option value="">Bulk actions…</option>
 				<option value="publish">Publish</option>
 				<option value="draft">Set to Draft</option>
@@ -378,7 +389,9 @@
 			{#each posts as post (post.id)}
 				<div class="post-card">
 					<div class="post-card__header">
-						<a href={resolve(`/admin/blog/${post.id}`)} class="post-card__title">{post.title}</a>
+						<a href={resolve(`/admin/blog/${post.id}`)} class="post-card__title"
+							>{post.title}</a
+						>
 						<span class="badge {statusBadge(post.status)}">
 							{statusLabel(post.status)}
 						</span>
@@ -414,12 +427,18 @@
 						{post.word_count} words · {post.reading_time_minutes} min read
 					</div>
 					<div class="post-card__actions">
-						<a href={resolve(`/admin/blog/${post.id}`)} class="post-card__btn post-card__btn--edit">
+						<a
+							href={resolve(`/admin/blog/${post.id}`)}
+							class="post-card__btn post-card__btn--edit"
+						>
 							<PencilSimpleIcon size={14} weight="bold" />
 							<span>Edit</span>
 						</a>
 						{#if post.status === 'trash'}
-							<button class="post-card__btn post-card__btn--edit" onclick={() => restorePost(post.id)}>
+							<button
+								class="post-card__btn post-card__btn--edit"
+								onclick={() => restorePost(post.id)}
+							>
 								<span>Restore</span>
 							</button>
 							<button
@@ -500,16 +519,23 @@
 								{/if}
 							</td>
 							<td class="td-actions">
-								<a href={resolve(`/admin/blog/${post.id}`)} class="action-link">Edit</a>
+								<a href={resolve(`/admin/blog/${post.id}`)} class="action-link"
+									>Edit</a
+								>
 								<button
 									class="action-btn"
 									class:action-btn--active={qePostId === post.id}
-									onclick={() => (qePostId === post.id ? closeQuickEdit() : openQuickEdit(post))}
+									onclick={() =>
+										qePostId === post.id
+											? closeQuickEdit()
+											: openQuickEdit(post)}
 								>
 									Quick Edit
 								</button>
 								{#if post.status === 'trash'}
-									<button class="action-btn" onclick={() => restorePost(post.id)}>Restore</button>
+									<button class="action-btn" onclick={() => restorePost(post.id)}
+										>Restore</button
+									>
 									<button
 										class="action-btn action-btn--danger"
 										onclick={() => hardDelete(post.id)}
@@ -550,14 +576,19 @@
 													bind:value={qeStatus}
 												>
 													<option value="draft">Draft</option>
-													<option value="pending_review">Pending Review</option>
+													<option value="pending_review"
+														>Pending Review</option
+													>
 													<option value="published">Published</option>
 													<option value="private">Private</option>
 													<option value="scheduled">Scheduled</option>
 												</select>
 											</label>
 											{#if admins.length > 0}
-												<label class="qe-label" for={`qe-author-${post.id}`}>
+												<label
+													class="qe-label"
+													for={`qe-author-${post.id}`}
+												>
 													<span class="qe-label__text">Author</span>
 													<select
 														id={`qe-author-${post.id}`}
@@ -566,17 +597,25 @@
 														bind:value={qeAuthorId}
 													>
 														{#each admins as a (a.id)}
-															<option value={a.id}>{a.name || a.email}</option>
+															<option value={a.id}
+																>{a.name || a.email}</option
+															>
 														{/each}
 													</select>
 												</label>
 											{/if}
 										</div>
 										<div class="qe-form__actions">
-											<button class="qe-save" onclick={saveQuickEdit} disabled={qeSaving}>
+											<button
+												class="qe-save"
+												onclick={saveQuickEdit}
+												disabled={qeSaving}
+											>
 												{qeSaving ? 'Saving…' : 'Update'}
 											</button>
-											<button class="qe-cancel" onclick={closeQuickEdit}>Cancel</button>
+											<button class="qe-cancel" onclick={closeQuickEdit}
+												>Cancel</button
+											>
 										</div>
 									</div>
 								</td>
@@ -1070,7 +1109,6 @@
 			margin-bottom: 1.5rem;
 		}
 
-
 		.blog-admin__cta {
 			align-self: flex-end;
 		}
@@ -1096,8 +1134,8 @@
 			display: block;
 			overflow-x: auto;
 			background: rgba(19, 43, 80, 0.35);
-		backdrop-filter: blur(24px);
-		-webkit-backdrop-filter: blur(24px);
+			backdrop-filter: blur(24px);
+			-webkit-backdrop-filter: blur(24px);
 			border: 1px solid rgba(255, 255, 255, 0.06);
 			border-radius: var(--radius-2xl);
 			box-shadow:

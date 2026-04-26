@@ -22,7 +22,13 @@
 			<div class="who-its-for__grid">
 				{#each audience as item, i (item)}
 					<div class="reveal-item who-its-for__item" style="--i: {i};">
-						<CaretRightIcon size={20} weight="bold" color="#0FA4AF" class="who-its-for__icon" />
+						<CaretRightIcon
+							size={20}
+							weight="bold"
+							color="#0FA4AF"
+							class="who-its-for__icon"
+						/>
+						<!-- eslint-disable-next-line svelte/no-at-html-tags -- static, hard-coded marketing copy with intentional <strong> emphasis -->
 						<p class="who-its-for__text">{@html item}</p>
 					</div>
 				{/each}

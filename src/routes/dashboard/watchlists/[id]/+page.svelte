@@ -49,7 +49,12 @@
 
 		{#if watchlist.video_url}
 			<div class="wl-detail__video">
-				<a href={watchlist.video_url} target="_blank" rel="noopener" class="wl-detail__video-link">
+				<a
+					href={watchlist.video_url}
+					target="_blank"
+					rel="noopener"
+					class="wl-detail__video-link"
+				>
 					Watch Video Walkthrough →
 				</a>
 			</div>
@@ -68,9 +73,17 @@
 							<div class="alert-card__header">
 								<div class="alert-card__ticker-wrap">
 									{#if alert.direction === 'bullish'}
-										<TrendUpIcon size={18} weight="bold" class="alert-card__icon--bull" />
+										<TrendUpIcon
+											size={18}
+											weight="bold"
+											class="alert-card__icon--bull"
+										/>
 									{:else}
-										<TrendDownIcon size={18} weight="bold" class="alert-card__icon--bear" />
+										<TrendDownIcon
+											size={18}
+											weight="bold"
+											class="alert-card__icon--bear"
+										/>
 									{/if}
 									<h3 class="alert-card__ticker">{alert.ticker}</h3>
 								</div>
@@ -93,13 +106,17 @@
 								</div>
 								<div class="alert-card__level">
 									<span class="alert-card__level-label">Invalidation</span>
-									<span class="alert-card__level-value alert-card__level-value--red">
+									<span
+										class="alert-card__level-value alert-card__level-value--red"
+									>
 										{alert.invalidation}
 									</span>
 								</div>
 								<div class="alert-card__level">
 									<span class="alert-card__level-label">Profit Targets</span>
-									<span class="alert-card__level-value alert-card__level-value--green">
+									<span
+										class="alert-card__level-value alert-card__level-value--green"
+									>
 										{alert.profit_zones.join(' / ')}
 									</span>
 								</div>

@@ -46,9 +46,10 @@
 	<section id="introduction">
 		<h2>Introduction</h2>
 		<p>
-			Precision Options Signals ("we," "us," or "our") respects your privacy and is committed to
-			protecting your personal data. This Privacy Policy explains how we collect, use, disclose, and
-			safeguard your information when you visit our website and use our services.
+			Precision Options Signals ("we," "us," or "our") respects your privacy and is committed
+			to protecting your personal data. This Privacy Policy explains how we collect, use,
+			disclose, and safeguard your information when you visit our website and use our
+			services.
 		</p>
 		<aside class="legal-callout legal-callout--info" role="note">
 			<span class="legal-callout__icon" aria-hidden="true">
@@ -57,8 +58,8 @@
 			<div class="legal-callout__body">
 				<strong class="legal-callout__title">At a glance</strong>
 				<p>
-					We never sell your data, we process payments through Stripe (no card details touch our
-					servers), and you can request deletion of your account at any time.
+					We never sell your data, we process payments through Stripe (no card details
+					touch our servers), and you can request deletion of your account at any time.
 				</p>
 			</div>
 		</aside>
@@ -79,10 +80,10 @@
 			<li>Cookies and similar tracking technologies</li>
 		</ul>
 		<p>
-			We also use first-party usage analytics (page views and optional CTA impressions/clicks) to
-			improve the site. You can turn this off anytime by setting
-			<code>localStorage.setItem('swings_analytics_opt_out', '1')</code> in your browser console, or
-			by enabling "Do Not Track" where supported.
+			We also use first-party usage analytics (page views and optional CTA impressions/clicks)
+			to improve the site. You can turn this off anytime by setting
+			<code>localStorage.setItem('swings_analytics_opt_out', '1')</code> in your browser console,
+			or by enabling "Do Not Track" where supported.
 		</p>
 	</section>
 
@@ -102,8 +103,8 @@
 		<h2>Payment processing</h2>
 		<p>
 			All payment transactions are processed through Stripe. We do not store your credit card
-			information on our servers. Stripe's privacy policy governs the collection and use of your
-			payment information. Visit
+			information on our servers. Stripe's privacy policy governs the collection and use of
+			your payment information. Visit
 			<a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer"
 				>stripe.com/privacy</a
 			>
@@ -122,8 +123,8 @@
 				<strong>Legal requirements</strong> — when required by law, regulation, or legal process
 			</li>
 			<li>
-				<strong>Business transfers</strong> — in connection with a merger, acquisition, or sale of
-				assets
+				<strong>Business transfers</strong> — in connection with a merger, acquisition, or sale
+				of assets
 			</li>
 		</ul>
 	</section>
@@ -131,9 +132,9 @@
 	<section id="cookies">
 		<h2>Cookies</h2>
 		<p>
-			We use cookies and similar technologies to maintain your session, remember your preferences,
-			and analyze site usage. You can control cookies through your browser settings, but disabling
-			them may affect your experience.
+			We use cookies and similar technologies to maintain your session, remember your
+			preferences, and analyze site usage. You can control cookies through your browser
+			settings, but disabling them may affect your experience.
 		</p>
 	</section>
 
@@ -141,16 +142,18 @@
 		<h2>Data security</h2>
 		<p>
 			We implement industry-standard security measures including encryption, secure password
-			hashing, and access controls to protect your personal data. However, no method of electronic
-			transmission or storage is 100% secure, and we cannot guarantee absolute security.
+			hashing, and access controls to protect your personal data. However, no method of
+			electronic transmission or storage is 100% secure, and we cannot guarantee absolute
+			security.
 		</p>
 	</section>
 
 	<section id="retention">
 		<h2>Data retention</h2>
 		<p>
-			We retain your personal data for as long as your account is active or as needed to provide
-			our services. You may request deletion of your account and associated data by contacting us.
+			We retain your personal data for as long as your account is active or as needed to
+			provide our services. You may request deletion of your account and associated data by
+			contacting us.
 		</p>
 	</section>
 
@@ -165,24 +168,26 @@
 		</ul>
 		<p>
 			To exercise these rights, contact us at
-			<a href="mailto:support@precisionoptionsignals.com">support@precisionoptionsignals.com</a>.
+			<a href="mailto:support@precisionoptionsignals.com"
+				>support@precisionoptionsignals.com</a
+			>.
 		</p>
 	</section>
 
 	<section id="children">
 		<h2>Children's privacy</h2>
 		<p>
-			Our Service is not intended for individuals under the age of 18. We do not knowingly collect
-			personal data from children.
+			Our Service is not intended for individuals under the age of 18. We do not knowingly
+			collect personal data from children.
 		</p>
 	</section>
 
 	<section id="changes">
 		<h2>Changes to this policy</h2>
 		<p>
-			We may update this Privacy Policy from time to time. We will notify you of material changes
-			by posting the updated policy on this page with a new date. Your continued use of the Service
-			constitutes acceptance of the revised policy.
+			We may update this Privacy Policy from time to time. We will notify you of material
+			changes by posting the updated policy on this page with a new date. Your continued use
+			of the Service constitutes acceptance of the revised policy.
 		</p>
 	</section>
 
@@ -190,7 +195,9 @@
 		<h2>Contact</h2>
 		<p>
 			If you have questions about this Privacy Policy, please contact us at
-			<a href="mailto:support@precisionoptionsignals.com">support@precisionoptionsignals.com</a>.
+			<a href="mailto:support@precisionoptionsignals.com"
+				>support@precisionoptionsignals.com</a
+			>.
 		</p>
 	</section>
 </LegalPage>

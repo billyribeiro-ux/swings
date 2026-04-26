@@ -3,9 +3,7 @@ import { validate, type FieldSchema, type AsyncRuleRunner } from './validate';
 
 describe('forms/validate', () => {
 	it('flags missing required values', async () => {
-		const schema: FieldSchema[] = [
-			{ type: 'text', key: 'name', required: true }
-		];
+		const schema: FieldSchema[] = [{ type: 'text', key: 'name', required: true }];
 		const errs = await validate(schema, {});
 		expect(errs).toHaveLength(1);
 		expect(errs[0].code).toBe('required');
@@ -13,17 +11,13 @@ describe('forms/validate', () => {
 	});
 
 	it('treats whitespace-only strings as empty', async () => {
-		const schema: FieldSchema[] = [
-			{ type: 'text', key: 'name', required: true }
-		];
+		const schema: FieldSchema[] = [{ type: 'text', key: 'name', required: true }];
 		const errs = await validate(schema, { name: '   ' });
 		expect(errs[0].code).toBe('required');
 	});
 
 	it('emits min_length / max_length codes', async () => {
-		const schema: FieldSchema[] = [
-			{ type: 'text', key: 'name', min_length: 3, max_length: 5 }
-		];
+		const schema: FieldSchema[] = [{ type: 'text', key: 'name', min_length: 3, max_length: 5 }];
 		const short = await validate(schema, { name: 'ab' });
 		expect(short.some((e) => e.code === 'min_length')).toBe(true);
 		const long = await validate(schema, { name: 'abcdefg' });
@@ -33,9 +27,7 @@ describe('forms/validate', () => {
 	});
 
 	it('emits numeric min/max codes', async () => {
-		const schema: FieldSchema[] = [
-			{ type: 'number', key: 'age', min: 18, max: 65 }
-		];
+		const schema: FieldSchema[] = [{ type: 'number', key: 'age', min: 18, max: 65 }];
 		const lo = await validate(schema, { age: 10 });
 		expect(lo.some((e) => e.code === 'min')).toBe(true);
 		const hi = await validate(schema, { age: 80 });
@@ -43,9 +35,7 @@ describe('forms/validate', () => {
 	});
 
 	it('rejects unmatched regex pattern', async () => {
-		const schema: FieldSchema[] = [
-			{ type: 'text', key: 'code', pattern: '^[A-Z]{3}$' }
-		];
+		const schema: FieldSchema[] = [{ type: 'text', key: 'code', pattern: '^[A-Z]{3}$' }];
 		const bad = await validate(schema, { code: 'abc' });
 		expect(bad.some((e) => e.code === 'pattern')).toBe(true);
 		const ok = await validate(schema, { code: 'ABC' });
@@ -146,9 +136,7 @@ describe('forms/validate', () => {
 	});
 
 	it('invokes the async rule runner for email.async_rule', async () => {
-		const schema: FieldSchema[] = [
-			{ type: 'email', key: 'email', async_rule: 'unique_email' }
-		];
+		const schema: FieldSchema[] = [{ type: 'email', key: 'email', async_rule: 'unique_email' }];
 		const runner: AsyncRuleRunner = {
 			async run(fieldKey) {
 				return {

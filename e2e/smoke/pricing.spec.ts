@@ -28,18 +28,46 @@ for (const { path, heading } of ROUTES) {
 	});
 }
 
-test('pricing CTAs lead to /register or /login', async ({ page }) => {
+test('pricing CTAs trigger checkout flow', async ({ page }) => {
 	await page.goto('/pricing');
+	// The CTA is now a `<button>` (see `Pricing.svelte`) that calls
+	// `createCheckoutSession(planSlug)` which proxies to the SvelteKit
+	// remote command in `routes/api/checkout.remote.ts`. The remote either
+	// (a) returns `{ url }` and the SPA does `window.location.href = url`
+	//     (Stripe Checkout — only works with `STRIPE_SECRET_KEY` set), or
+	// (b) errors (no Stripe key, no plans seeded), surfacing as an `alert`
+	//     and leaving the page on `/pricing`.
+	// We assert the network call fires; the destination depends on the env.
 	const cta = page
-		.getByRole('link', { name: /get started|start now|sign up|subscribe/i })
+		.getByRole('button', { name: /get started|start now|sign up|subscribe|select|choose/i })
 		.first();
-	// We don't hard-fail when no CTA is visible — the plans list is
-	// backend-driven, and under preview without seeded plans the cards don't
-	// render at all. In that case the hero copy is still exercised above.
 	if (!(await cta.isVisible().catch(() => false))) {
 		test.skip(true, 'No pricing CTA visible (plans not seeded).');
 		return;
 	}
+	// Watch for the remote command — the SvelteKit RPC convention is
+	// `POST /<route>/<command>` against the page that owns the remote.
+	const checkoutCall = page
+		.waitForRequest((req) => /checkout/i.test(req.url()) && req.method() === 'POST', {
+			timeout: 5_000
+		})
+		.catch(() => null);
+
+	// Stripe Checkout would full-page-redirect; suppress so the test can
+	// finish even when keys are wired up. We also trap `window.alert`
+	// raised by the failure path so the spec doesn't dialog-stall.
+	await page.addInitScript(() => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(window as any).alert = () => {};
+	});
+
 	await cta.click();
-	await expect(page).toHaveURL(/\/(login|register)/);
+	const req = await checkoutCall;
+	// Either the network call fired (preferred), or the page navigated to
+	// Stripe / a sign-in route. Both prove the CTA wired through.
+	const navigatedAway = !page.url().endsWith('/pricing');
+	expect(
+		req !== null || navigatedAway,
+		`expected checkout request or navigation; current url: ${page.url()}`
+	).toBe(true);
 });

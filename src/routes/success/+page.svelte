@@ -115,8 +115,8 @@
 
 		<!-- Subtitle -->
 		<p class="success-subtitle success-page__subtitle">
-			Your subscription is confirmed. Check your email for access details and your first Sunday
-			night watchlist.
+			Your subscription is confirmed. Check your email for access details and your first
+			Sunday night watchlist.
 		</p>
 
 		<!-- Steps -->

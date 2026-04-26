@@ -51,7 +51,8 @@ export function buildPostPayload(
 		category_ids: input.selectedCategoryIds.length > 0 ? input.selectedCategoryIds : undefined,
 		tag_ids: input.selectedTagIds.length > 0 ? input.selectedTagIds : undefined,
 		scheduled_at: input.status === 'scheduled' ? input.scheduledAt || undefined : undefined,
-		post_password: input.visibility === 'password' ? input.postPassword || undefined : undefined,
+		post_password:
+			input.visibility === 'password' ? input.postPassword || undefined : undefined,
 		author_id: input.authorId || undefined,
 		format: input.postFormat
 	};

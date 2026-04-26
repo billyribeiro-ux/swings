@@ -111,18 +111,22 @@
 				<!-- Eyebrow Badge -->
 				<div class="hero-badge hero__badge">
 					<span class="hero__badge-dot animate-pulse"></span>
-					<span class="hero__badge-text"> Weekly watchlist delivered every Sunday 6:00 PM ET </span>
+					<span class="hero__badge-text">
+						Weekly watchlist delivered every Sunday 6:00 PM ET
+					</span>
 				</div>
 
 				<!-- Title -->
 				<h1 class="hero-title hero__title">
-					Simple, Early Stock Alerts <span class="hero__title-accent">You Can Actually Use</span>
+					Simple, Early Stock Alerts <span class="hero__title-accent"
+						>You Can Actually Use</span
+					>
 				</h1>
 
 				<!-- Subtitle -->
 				<p class="hero-subtitle hero__subtitle">
-					Every Sunday night, get a detailed watchlist of 5–7 top stock picks with defined entries,
-					targets, exits, and stops -- so you're ready before the market opens.
+					Every Sunday night, get a detailed watchlist of 5–7 top stock picks with defined
+					entries, targets, exits, and stops -- so you're ready before the market opens.
 				</p>
 
 				<!-- Actions -->
@@ -138,15 +142,17 @@
 							<ArrowRightIcon size={20} weight="bold" />
 						</Button>
 					</div>
-					<Button variant="ghost" onclick={scrollToHowItWorks} magnetic>See How It Works</Button>
+					<Button variant="ghost" onclick={scrollToHowItWorks} magnetic
+						>See How It Works</Button
+					>
 				</div>
 
 				<!-- Trust Line -->
 				<div class="hero-trust hero__trust">
 					<div class="hero__trust-avatar">BR</div>
 					<p class="hero__trust-text">
-						Created by <span class="hero__trust-name">Billy Ribeiro</span> - former lead trader at Simpler
-						Trading, mentored by Goldman Sachs' Mark McGoldrick
+						Created by <span class="hero__trust-name">Billy Ribeiro</span> - former lead trader
+						at Simpler Trading, mentored by Goldman Sachs' Mark McGoldrick
 					</p>
 				</div>
 			</div>

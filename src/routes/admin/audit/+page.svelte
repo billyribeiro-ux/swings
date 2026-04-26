@@ -46,7 +46,8 @@
 		if (filters.action?.trim()) q.action = filters.action.trim();
 		if (filters.target_kind?.trim()) q.target_kind = filters.target_kind.trim();
 		if (filters.target_id?.trim()) q.target_id = filters.target_id.trim();
-		if (filters.metadata_contains?.trim()) q.metadata_contains = filters.metadata_contains.trim();
+		if (filters.metadata_contains?.trim())
+			q.metadata_contains = filters.metadata_contains.trim();
 		if (filters.from) q.from = new Date(filters.from).toISOString();
 		if (filters.to) q.to = new Date(filters.to).toISOString();
 		return q;
@@ -106,7 +107,9 @@
 			// BFF (Phase 1.3): cookie-based auth — no Bearer header needed.
 			const res = await fetch(url, { credentials: 'include' });
 			if (!res.ok) {
-				toast.error('Audit export failed', { description: `Server returned ${res.status}` });
+				toast.error('Audit export failed', {
+					description: `Server returned ${res.status}`
+				});
 				return;
 			}
 			const blob = await res.blob();
@@ -155,8 +158,9 @@
 			<div class="page__copy">
 				<h1 class="page__title">Audit log</h1>
 				<p class="page__subtitle">
-					Searchable record of every privileged action. Free-text query runs over the indexed
-					tsvector; <code>metadata_contains</code> accepts a JSON object and probes
+					Searchable record of every privileged action. Free-text query runs over the
+					indexed tsvector; <code>metadata_contains</code> accepts a JSON object and
+					probes
 					<code>metadata @&gt; &#123;...&#125;</code>.
 				</p>
 			</div>
@@ -183,7 +187,7 @@
 						id="audit-q"
 						name="audit-q"
 						class="field__input field__input--search"
-						placeholder='e.g. "ban" OR "fraud"'
+						placeholder="e.g. &quot;ban&quot; OR &quot;fraud&quot;"
 						bind:value={filters.q}
 						data-testid="audit-q-input"
 					/>

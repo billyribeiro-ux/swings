@@ -125,7 +125,8 @@
 	async function deletePopup(popup: Popup) {
 		const ok = await confirmDialog({
 			title: `Delete "${popup.name}"?`,
-			message: 'The popup, its targeting rules, and its analytics history will be permanently removed.',
+			message:
+				'The popup, its targeting rules, and its analytics history will be permanently removed.',
 			confirmLabel: 'Delete',
 			variant: 'danger'
 		});
@@ -169,7 +170,9 @@
 			<div class="popups-page__copy">
 				<h1 class="popups-page__title">Popups</h1>
 				<p class="popups-page__subtitle">
-					Configure modals, banners, and slide-ins. {total} total popup{total === 1 ? '' : 's'}.
+					Configure modals, banners, and slide-ins. {total} total popup{total === 1
+						? ''
+						: 's'}.
 				</p>
 			</div>
 		</div>
@@ -251,7 +254,9 @@
 									{formatType(popup.popup_type)}
 								</span>
 							</div>
-							<Tooltip label={popup.is_active ? 'Deactivate popup' : 'Activate popup'}>
+							<Tooltip
+								label={popup.is_active ? 'Deactivate popup' : 'Activate popup'}
+							>
 								<button
 									class="toggle"
 									class:toggle--on={popup.is_active}
@@ -265,7 +270,8 @@
 							</Tooltip>
 						</div>
 						<div class="popup-card__meta">
-							<span class="popup-card__trigger">{formatType(popup.trigger_type)}</span>
+							<span class="popup-card__trigger">{formatType(popup.trigger_type)}</span
+							>
 							<span class="popup-card__divider" aria-hidden="true">·</span>
 							<span>{stats?.total_impressions.toLocaleString() ?? 0} views</span>
 							<span class="popup-card__divider" aria-hidden="true">·</span>
@@ -319,12 +325,18 @@
 									</td>
 									<td class="table__trigger">{formatType(popup.trigger_type)}</td>
 									<td>
-										<Tooltip label={popup.is_active ? 'Deactivate popup' : 'Activate popup'}>
+										<Tooltip
+											label={popup.is_active
+												? 'Deactivate popup'
+												: 'Activate popup'}
+										>
 											<button
 												class="toggle"
 												class:toggle--on={popup.is_active}
 												onclick={() => toggleActive(popup)}
-												aria-label={popup.is_active ? 'Deactivate' : 'Activate'}
+												aria-label={popup.is_active
+													? 'Deactivate'
+													: 'Activate'}
 											>
 												<span class="toggle__track">
 													<span class="toggle__thumb"></span>
@@ -332,8 +344,12 @@
 											</button>
 										</Tooltip>
 									</td>
-									<td class="table__num">{stats?.total_impressions.toLocaleString() ?? '0'}</td>
-									<td class="table__num">{stats?.total_submissions.toLocaleString() ?? '0'}</td>
+									<td class="table__num"
+										>{stats?.total_impressions.toLocaleString() ?? '0'}</td
+									>
+									<td class="table__num"
+										>{stats?.total_submissions.toLocaleString() ?? '0'}</td
+									>
 									<td>
 										<div class="row-actions">
 											<Tooltip label="Edit popup">

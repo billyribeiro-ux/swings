@@ -23,12 +23,16 @@
 			<div class="courses-section__grid">
 				{#each courses as course, i (course.id)}
 					{@const Icon = iconMap[course.icon]}
-					<a href="/courses/{course.slug}" class="reveal-item course-card" style="--i: {i};">
+					<a
+						href="/courses/{course.slug}"
+						class="reveal-item course-card"
+						style="--i: {i};"
+					>
 						<!-- Visual Header -->
 						<div
 							class="course-card__header"
-							style="background: linear-gradient(145deg, {course.gradient.from} 0%, {course.gradient
-								.to} 100%);"
+							style="background: linear-gradient(145deg, {course.gradient
+								.from} 0%, {course.gradient.to} 100%);"
 						>
 							<div class="course-card__grid-pattern"></div>
 
@@ -53,11 +57,19 @@
 							<div class="course-card__footer">
 								<div class="course-card__meta">
 									<span class="course-card__meta-item">
-										<ClockIcon size={13} weight="bold" class="course-card__meta-icon" />
+										<ClockIcon
+											size={13}
+											weight="bold"
+											class="course-card__meta-icon"
+										/>
 										{course.duration}
 									</span>
 									<span class="course-card__meta-item">
-										<GraduationCapIcon size={13} weight="bold" class="course-card__meta-icon" />
+										<GraduationCapIcon
+											size={13}
+											weight="bold"
+											class="course-card__meta-icon"
+										/>
 										{course.level}
 									</span>
 								</div>

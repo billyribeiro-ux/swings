@@ -21,9 +21,7 @@
 		"zh-Hant",
 		"ar"
 	],
-	"modules": [
-		"https://cdn.jsdelivr.net/npm/@inlang/message-format/dist/v1/index.js"
-	],
+	"modules": ["https://cdn.jsdelivr.net/npm/@inlang/message-format/dist/v1/index.js"],
 	"plugin.inlang.messageFormat": {
 		"pathPattern": "./messages/{locale}.json"
 	}

@@ -13,15 +13,13 @@
 
 	$effect(() => {
 		// Seed with server-supplied default on first render only (value is empty).
-		if ((value === undefined || value === null || value === '') && hidden.default_value !== undefined) {
+		if (
+			(value === undefined || value === null || value === '') &&
+			hidden.default_value !== undefined
+		) {
 			onChange(field.key, hidden.default_value);
 		}
 	});
 </script>
 
-<input
-	type="hidden"
-	name={field.key}
-	value={current}
-	aria-hidden="true"
-/>
+<input type="hidden" name={field.key} value={current} aria-hidden="true" />

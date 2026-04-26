@@ -87,7 +87,10 @@
 	}
 
 	function addManualItem() {
-		manualItems = [...manualItems, { product_id: '', quantity: 1, unit_price_cents: 0, name: '' }];
+		manualItems = [
+			...manualItems,
+			{ product_id: '', quantity: 1, unit_price_cents: 0, name: '' }
+		];
 	}
 
 	function removeManualItem(i: number) {
@@ -159,7 +162,8 @@
 		if (!selected) return;
 		const ok = await confirmDialog({
 			title: `Void order ${selected.order.number}?`,
-			message: 'Voiding cancels the order and releases any reserved inventory. This cannot be undone.',
+			message:
+				'Voiding cancels the order and releases any reserved inventory. This cannot be undone.',
 			confirmLabel: 'Void order',
 			variant: 'danger'
 		});
@@ -187,7 +191,9 @@
 			// BFF (Phase 1.3): cookie-based auth — no Bearer header needed.
 			const res = await fetch(url, { credentials: 'include' });
 			if (!res.ok) {
-				toast.error('Orders export failed', { description: `Server returned ${res.status}` });
+				toast.error('Orders export failed', {
+					description: `Server returned ${res.status}`
+				});
 				return;
 			}
 			const blob = await res.blob();
@@ -285,7 +291,12 @@
 				<ArrowsClockwiseIcon size={16} weight="bold" />
 				<span class="filter-card__actions-label">Refresh</span>
 			</button>
-			<button class="btn btn--secondary" type="button" onclick={downloadCsv} title="Export CSV">
+			<button
+				class="btn btn--secondary"
+				type="button"
+				onclick={downloadCsv}
+				title="Export CSV"
+			>
 				<DownloadSimpleIcon size={16} weight="bold" />
 				<span class="filter-card__actions-label">Export</span>
 			</button>
@@ -389,7 +400,11 @@
 							</Tooltip>
 						</div>
 					{/each}
-					<button type="button" class="btn btn--secondary btn--small" onclick={addManualItem}>
+					<button
+						type="button"
+						class="btn btn--secondary btn--small"
+						onclick={addManualItem}
+					>
 						<PlusIcon size={14} weight="bold" />
 						<span>Add line</span>
 					</button>
@@ -405,7 +420,11 @@
 					></textarea>
 				</div>
 				<div class="form-actions">
-					<button class="btn btn--secondary" type="button" onclick={() => (showCreate = false)}>
+					<button
+						class="btn btn--secondary"
+						type="button"
+						onclick={() => (showCreate = false)}
+					>
 						Cancel
 					</button>
 					<button class="btn btn--primary" type="submit" disabled={createBusy}>
@@ -531,7 +550,9 @@
 				<dt>Customer</dt>
 				<dd>{selected.order.email}</dd>
 				<dt>Total</dt>
-				<dd class="num">{formatMoney(selected.order.total_cents, selected.order.currency)}</dd>
+				<dd class="num">
+					{formatMoney(selected.order.total_cents, selected.order.currency)}
+				</dd>
 				<dt>Refunded</dt>
 				<dd class="num">{formatMoney(selected.refunded_cents, selected.order.currency)}</dd>
 				<dt>Remaining refundable</dt>
@@ -547,15 +568,23 @@
 			<h3 class="drawer__section">Items</h3>
 			<table class="mini-table">
 				<thead>
-					<tr><th>Name</th><th class="mini-table__num">Qty</th><th class="mini-table__num">Unit</th><th class="mini-table__num">Line</th></tr>
+					<tr
+						><th>Name</th><th class="mini-table__num">Qty</th><th
+							class="mini-table__num">Unit</th
+						><th class="mini-table__num">Line</th></tr
+					>
 				</thead>
 				<tbody>
 					{#each selected.items as it (it.id)}
 						<tr>
 							<td>{it.name}</td>
 							<td class="mini-table__num">{it.quantity}</td>
-							<td class="mini-table__num">{formatMoney(it.unit_price_cents, selected.order.currency)}</td>
-							<td class="mini-table__num">{formatMoney(it.line_total_cents, selected.order.currency)}</td>
+							<td class="mini-table__num"
+								>{formatMoney(it.unit_price_cents, selected.order.currency)}</td
+							>
+							<td class="mini-table__num"
+								>{formatMoney(it.line_total_cents, selected.order.currency)}</td
+							>
 						</tr>
 					{/each}
 				</tbody>
@@ -570,7 +599,9 @@
 					<tbody>
 						{#each selected.refunds as r (r.id)}
 							<tr>
-								<td class="mini-table__num">{formatMoney(r.amount_cents, selected.order.currency)}</td>
+								<td class="mini-table__num"
+									>{formatMoney(r.amount_cents, selected.order.currency)}</td
+								>
 								<td>{r.reason ?? '—'}</td>
 								<td>{new Date(r.created_at).toLocaleString()}</td>
 							</tr>
@@ -1351,7 +1382,6 @@
 		.page {
 			gap: 1.5rem;
 		}
-
 
 		.filter-card {
 			flex-direction: row;

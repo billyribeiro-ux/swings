@@ -207,10 +207,8 @@ export const m = {
 	consent_preferences_required_tag: (): string =>
 		lookup('consent_preferences_required_tag') ?? 'consent_preferences_required_tag',
 	dsar_form_title: (): string => lookup('dsar_form_title') ?? 'dsar_form_title',
-	dsar_form_description: (): string =>
-		lookup('dsar_form_description') ?? 'dsar_form_description',
-	dsar_form_email_label: (): string =>
-		lookup('dsar_form_email_label') ?? 'dsar_form_email_label',
+	dsar_form_description: (): string => lookup('dsar_form_description') ?? 'dsar_form_description',
+	dsar_form_email_label: (): string => lookup('dsar_form_email_label') ?? 'dsar_form_email_label',
 	dsar_form_request_type_label: (): string =>
 		lookup('dsar_form_request_type_label') ?? 'dsar_form_request_type_label',
 	dsar_form_request_type_access: (): string =>
@@ -227,8 +225,7 @@ export const m = {
 	unsubscribe_body: (vars?: { listName: string }): string =>
 		interpolate(lookup('unsubscribe_body') ?? 'unsubscribe_body', vars),
 	unsubscribe_confirm: (): string => lookup('unsubscribe_confirm') ?? 'unsubscribe_confirm',
-	unsubscribe_confirmed: (): string =>
-		lookup('unsubscribe_confirmed') ?? 'unsubscribe_confirmed'
+	unsubscribe_confirmed: (): string => lookup('unsubscribe_confirmed') ?? 'unsubscribe_confirmed'
 } as const;
 
 /**
@@ -237,10 +234,7 @@ export const m = {
  * (the banner / preferences components) use this to decide whether to show
  * the translation or the server-provided copy.
  */
-export function translateOrFallback(
-	key: string,
-	fallback: string
-): string {
+export function translateOrFallback(key: string, fallback: string): string {
 	const v = lookup(key);
 	return v && v.length > 0 ? v : fallback;
 }

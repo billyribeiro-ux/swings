@@ -116,14 +116,7 @@
 {/snippet}
 
 {#if isVisible && effectiveLayout === 'popup'}
-	<Dialog
-		open
-		title={title}
-		description={body}
-		size="md"
-		closeOnBackdrop={false}
-		closeOnEscape={false}
-	>
+	<Dialog open {title} description={body} size="md" closeOnBackdrop={false} closeOnEscape={false}>
 		<div class="popup-inner" role="region" aria-label="Cookie consent">
 			<div class="actions" role="group" aria-label="Consent actions">
 				<Button variant="tertiary" size="md" fullWidth onclick={handleCustomize}>
@@ -148,6 +141,7 @@
 {:else if isVisible}
 	<section
 		class="banner"
+		data-testid="consent-banner"
 		data-layout={effectiveLayout}
 		data-position={effectivePosition}
 		aria-labelledby="consent-banner-title"

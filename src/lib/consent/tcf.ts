@@ -32,9 +32,7 @@ const TCF_PURPOSE_MAP: Readonly<Record<string, readonly number[]>> = {
 };
 
 /** Aggregate a category map into the set of purposes the subject has granted. */
-function derivePurposesGranted(
-	categories: Readonly<Record<string, boolean>>
-): ReadonlySet<number> {
+function derivePurposesGranted(categories: Readonly<Record<string, boolean>>): ReadonlySet<number> {
 	const granted = new Set<number>();
 	for (const [key, enabled] of Object.entries(categories)) {
 		if (!enabled) continue;

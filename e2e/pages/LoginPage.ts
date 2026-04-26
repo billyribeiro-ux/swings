@@ -16,7 +16,9 @@ export class LoginPage {
 
 	async open(): Promise<void> {
 		await this.page.goto('/login');
-		await expect(this.page.getByRole('heading', { level: 1, name: /welcome back/i })).toBeVisible();
+		await expect(
+			this.page.getByRole('heading', { level: 1, name: /welcome back/i })
+		).toBeVisible();
 	}
 
 	async enterCredentials(email: string, password: string): Promise<void> {

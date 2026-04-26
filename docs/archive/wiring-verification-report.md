@@ -12,11 +12,11 @@ Generated: 2026-04-15T19:57:11Z
 
 ## Section 1: Secrets Rotation
 
-| Check | Status | Notes |
-|-------|--------|--------|
-| `railway variables get JWT_SECRET` | ⚠️ WARN | Railway CLI v4.37.x has no `variable get` / `variables get` subcommand (`unrecognized subcommand 'get'`). Verification used `railway variable list -s swings -k` instead (see Section 3). |
-| `JWT_SECRET` present and non-empty | ✅ PASS | Confirmed present; value not reproduced here. |
-| `ADMIN_PASSWORD` present and non-empty | ✅ PASS | Confirmed present; value not reproduced here. |
+| Check                                  | Status  | Notes                                                                                                                                                                                     |
+| -------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `railway variables get JWT_SECRET`     | ⚠️ WARN | Railway CLI v4.37.x has no `variable get` / `variables get` subcommand (`unrecognized subcommand 'get'`). Verification used `railway variable list -s swings -k` instead (see Section 3). |
+| `JWT_SECRET` present and non-empty     | ✅ PASS | Confirmed present; value not reproduced here.                                                                                                                                             |
+| `ADMIN_PASSWORD` present and non-empty | ✅ PASS | Confirmed present; value not reproduced here.                                                                                                                                             |
 
 **Report:** Secrets exist and are set (non-empty).
 
@@ -26,10 +26,10 @@ Generated: 2026-04-15T19:57:11Z
 
 ## Section 2: Railway Upload Volume
 
-| Check | Status | Notes |
-|-------|--------|--------|
+| Check                     | Status  | Notes                                                                                                 |
+| ------------------------- | ------- | ----------------------------------------------------------------------------------------------------- |
 | Volume for `/app/uploads` | ✅ PASS | `railway volume list --json` shows one volume on service `swings` with `"mountPath": "/app/uploads"`. |
-| Mount path exact | ✅ PASS | `/app/uploads` |
+| Mount path exact          | ✅ PASS | `/app/uploads`                                                                                        |
 
 ---
 
@@ -37,40 +37,40 @@ Generated: 2026-04-15T19:57:11Z
 
 Source: `railway variable list -s swings -k` (names and values were inspected for this report; **secret values are not copied below**).
 
-| Variable | Expected | Status | Notes |
-|----------|----------|--------|--------|
-| `DATABASE_URL` | Exists, non-empty | ✅ PASS | Present; not printed (contains credentials). |
-| `JWT_SECRET` | Exists, non-empty | ✅ PASS | Present; not printed. |
-| `APP_ENV` | `development` or `production` | ✅ PASS | **`development`** |
-| `ADMIN_EMAIL` | Non-empty | ✅ PASS | Present; not printed. |
-| `ADMIN_PASSWORD` | Non-empty | ✅ PASS | Present; not printed. |
-| `ADMIN_NAME` | Exists | ✅ PASS | Present; not printed. |
-| `PORT` | Exists | ✅ PASS | **`3001`** |
-| `API_URL` | `https://swings-production.up.railway.app` | ✅ PASS | **`https://swings-production.up.railway.app`** |
-| `FRONTEND_URL` | `https://precisionoptionsignals.com` (not localhost) | ✅ PASS | **`https://precisionoptionsignals.com`** |
-| `CORS_ALLOWED_ORIGINS` | Contains `https://precisionoptionsignals.com` | ✅ PASS | **`https://precisionoptionsignals.com,https://www.precisionoptionsignals.com`** |
-| `UPLOAD_DIR` | `/app/uploads` | ✅ PASS | **`/app/uploads`** |
+| Variable               | Expected                                             | Status  | Notes                                                                           |
+| ---------------------- | ---------------------------------------------------- | ------- | ------------------------------------------------------------------------------- |
+| `DATABASE_URL`         | Exists, non-empty                                    | ✅ PASS | Present; not printed (contains credentials).                                    |
+| `JWT_SECRET`           | Exists, non-empty                                    | ✅ PASS | Present; not printed.                                                           |
+| `APP_ENV`              | `development` or `production`                        | ✅ PASS | **`development`**                                                               |
+| `ADMIN_EMAIL`          | Non-empty                                            | ✅ PASS | Present; not printed.                                                           |
+| `ADMIN_PASSWORD`       | Non-empty                                            | ✅ PASS | Present; not printed.                                                           |
+| `ADMIN_NAME`           | Exists                                               | ✅ PASS | Present; not printed.                                                           |
+| `PORT`                 | Exists                                               | ✅ PASS | **`3001`**                                                                      |
+| `API_URL`              | `https://swings-production.up.railway.app`           | ✅ PASS | **`https://swings-production.up.railway.app`**                                  |
+| `FRONTEND_URL`         | `https://precisionoptionsignals.com` (not localhost) | ✅ PASS | **`https://precisionoptionsignals.com`**                                        |
+| `CORS_ALLOWED_ORIGINS` | Contains `https://precisionoptionsignals.com`        | ✅ PASS | **`https://precisionoptionsignals.com,https://www.precisionoptionsignals.com`** |
+| `UPLOAD_DIR`           | `/app/uploads`                                       | ✅ PASS | **`/app/uploads`**                                                              |
 
 **Optional / expected gaps**
 
-| Variable | Status | Notes |
-|----------|--------|--------|
-| `STRIPE_SECRET_KEY` | ⚠️ WARN | Not set — expected for now. |
-| `STRIPE_WEBHOOK_SECRET` | ⚠️ WARN | Not set — expected for now. |
-| `R2_*` | ✅ PASS (as intended) | Not set; using local uploads per app logs. |
-| `SMTP_*` | ⚠️ WARN | Not set; email disabled until provider (e.g. Postmark) is configured. |
+| Variable                | Status                | Notes                                                                 |
+| ----------------------- | --------------------- | --------------------------------------------------------------------- |
+| `STRIPE_SECRET_KEY`     | ⚠️ WARN               | Not set — expected for now.                                           |
+| `STRIPE_WEBHOOK_SECRET` | ⚠️ WARN               | Not set — expected for now.                                           |
+| `R2_*`                  | ✅ PASS (as intended) | Not set; using local uploads per app logs.                            |
+| `SMTP_*`                | ⚠️ WARN               | Not set; email disabled until provider (e.g. Postmark) is configured. |
 
 ---
 
 ## Section 4: Railway API Health Check
 
-| Endpoint | HTTP code | Status |
-|----------|-----------|--------|
-| `GET /api/blog/posts` | 200 | ✅ PASS |
-| Body shape | JSON with `data`, `total`, `page`, `per_page`, `total_pages` | ✅ PASS |
-| `GET /api/blog/categories` | 200 | ✅ PASS |
-| `GET /api/pricing/plans` | 200 | ✅ PASS |
-| `GET /api/courses/courses` | 200 | ✅ PASS |
+| Endpoint                   | HTTP code                                                    | Status  |
+| -------------------------- | ------------------------------------------------------------ | ------- |
+| `GET /api/blog/posts`      | 200                                                          | ✅ PASS |
+| Body shape                 | JSON with `data`, `total`, `page`, `per_page`, `total_pages` | ✅ PASS |
+| `GET /api/blog/categories` | 200                                                          | ✅ PASS |
+| `GET /api/pricing/plans`   | 200                                                          | ✅ PASS |
+| `GET /api/courses/courses` | 200                                                          | ✅ PASS |
 
 Sample `GET /api/blog/posts` body (truncated): `{"data":[],"total":0,"page":1,"per_page":20,"total_pages":0}`
 
@@ -80,14 +80,14 @@ Sample `GET /api/blog/posts` body (truncated): `{"data":[],"total":0,"page":1,"p
 
 Command: `railway logs -s swings --deployment --lines 20 --latest`
 
-| Criterion | Status |
-|-----------|--------|
-| No panic messages | ✅ PASS |
-| No `ERROR` level lines | ✅ PASS |
+| Criterion                      | Status  |
+| ------------------------------ | ------- | ------------------------------------------ |
+| No panic messages              | ✅ PASS |
+| No `ERROR` level lines         | ✅ PASS |
 | `Swings API listening on port` | ✅ PASS |
-| `Admin user seeded` | ✅ PASS |
-| `SMTP_USER not configured` | ⚠️ WARN | Expected until SMTP is configured. |
-| `R2 not configured` | ⚠️ WARN | Expected while using local `/app/uploads`. |
+| `Admin user seeded`            | ✅ PASS |
+| `SMTP_USER not configured`     | ⚠️ WARN | Expected until SMTP is configured.         |
+| `R2 not configured`            | ⚠️ WARN | Expected while using local `/app/uploads`. |
 
 **Last 20 lines (as captured):**
 
@@ -111,10 +111,10 @@ Starting Container
 
 ## Section 6: vercel.json
 
-| Check | Status |
-|-------|--------|
-| Rewrite destination | ✅ PASS | `https://swings-production.up.railway.app/api/:path*` |
-| No `/uploads/:path*` rewrite | ✅ PASS | Only `/api/:path*` present. |
+| Check                        | Status  |
+| ---------------------------- | ------- | ----------------------------------------------------- |
+| Rewrite destination          | ✅ PASS | `https://swings-production.up.railway.app/api/:path*` |
+| No `/uploads/:path*` rewrite | ✅ PASS | Only `/api/:path*` present.                           |
 
 **Full file contents:**
 
@@ -135,21 +135,21 @@ Starting Container
 
 Source: `vercel env ls` + `vercel env pull --environment production` (temporary file removed after inspection).
 
-| Variable | Expected | Status | Verified value |
-|----------|----------|--------|----------------|
-| `VITE_API_URL` | `https://swings-production.up.railway.app` | ✅ PASS | `https://swings-production.up.railway.app` |
-| `PUBLIC_APP_URL` | `https://precisionoptionsignals.com` | ✅ PASS | `https://precisionoptionsignals.com` |
-| `STRIPE_SECRET_KEY` | Not set yet | ⚠️ WARN | Not listed in `vercel env ls` — expected. |
+| Variable            | Expected                                   | Status  | Verified value                             |
+| ------------------- | ------------------------------------------ | ------- | ------------------------------------------ |
+| `VITE_API_URL`      | `https://swings-production.up.railway.app` | ✅ PASS | `https://swings-production.up.railway.app` |
+| `PUBLIC_APP_URL`    | `https://precisionoptionsignals.com`       | ✅ PASS | `https://precisionoptionsignals.com`       |
+| `STRIPE_SECRET_KEY` | Not set yet                                | ⚠️ WARN | Not listed in `vercel env ls` — expected.  |
 
 ---
 
 ## Section 8: Frontend → API Connectivity
 
-| Check | Status | Notes |
-|-------|--------|--------|
+| Check                      | Status  | Notes                                                                                                            |
+| -------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------- |
 | `curl` status without `-L` | ⚠️ WARN | **`307`** to `https://precisionoptionsignals.com/api/blog/posts` — follow redirects for a true end-to-end check. |
-| `curl -sSL` status | ✅ PASS | **200** after redirects. |
-| JSON body vs Railway | ✅ PASS | Same empty-list shape: `{"data":[],"total":0,"page":1,"per_page":20,"total_pages":0}` |
+| `curl -sSL` status         | ✅ PASS | **200** after redirects.                                                                                         |
+| JSON body vs Railway       | ✅ PASS | Same empty-list shape: `{"data":[],"total":0,"page":1,"per_page":20,"total_pages":0}`                            |
 
 ---
 
@@ -157,20 +157,20 @@ Source: `vercel env ls` + `vercel env pull --environment production` (temporary 
 
 Command: `curl -s -D - -o /dev/null -H "Origin: https://precisionoptionsignals.com" -H "Access-Control-Request-Method: GET" -X OPTIONS https://swings-production.up.railway.app/api/blog/posts`
 
-| Criterion | Status | Actual |
-|-----------|--------|--------|
-| Status code | ✅ PASS | **200** |
-| `access-control-allow-origin` | ✅ PASS | `https://precisionoptionsignals.com` |
+| Criterion                      | Status  | Actual                                                                          |
+| ------------------------------ | ------- | ------------------------------------------------------------------------------- |
+| Status code                    | ✅ PASS | **200**                                                                         |
+| `access-control-allow-origin`  | ✅ PASS | `https://precisionoptionsignals.com`                                            |
 | `access-control-allow-methods` | ✅ PASS | `GET,POST,PUT,DELETE,OPTIONS` (includes **GET, POST, PUT, DELETE** as required) |
 
 ---
 
 ## Section 10: Auth Endpoint Smoke Test
 
-| Request | HTTP code | Expected | Status |
-|---------|-----------|----------|--------|
-| `POST /api/auth/login` (invalid body) | 401 | 401 | ✅ PASS |
-| `GET /api/auth/me` (no token) | 401 | 401 | ✅ PASS |
+| Request                               | HTTP code | Expected | Status  |
+| ------------------------------------- | --------- | -------- | ------- |
+| `POST /api/auth/login` (invalid body) | 401       | 401      | ✅ PASS |
+| `GET /api/auth/me` (no token)         | 401       | 401      | ✅ PASS |
 
 ---
 

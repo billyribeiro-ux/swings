@@ -6,7 +6,6 @@
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 
 	let watchlists = $state<Watchlist[]>([]);
-	let _total = $state(0);
 	let page = $state(1);
 	let totalPages = $state(1);
 	let loading = $state(true);
@@ -18,7 +17,6 @@
 				`/api/member/watchlists?page=${page}&per_page=10`
 			);
 			watchlists = res.data;
-			_total = res.total;
 			totalPages = res.total_pages;
 		} catch {
 			// handle error

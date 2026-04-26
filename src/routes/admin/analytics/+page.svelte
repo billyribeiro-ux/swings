@@ -183,7 +183,9 @@
 		if (!summary) return;
 		const rows: string[][] = [['metric', 'value']];
 		for (const c of kpiCards) rows.push([c.label, c.value]);
-		const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+		const csv = rows
+			.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))
+			.join('\n');
 		const blob = new Blob([csv], { type: 'text/csv' });
 		const a = document.createElement('a');
 		a.href = URL.createObjectURL(blob);
@@ -253,7 +255,12 @@
 				/>
 			</div>
 			<div class="ap-actions">
-				<button type="button" class="ap-btn ap-btn--ghost" onclick={() => load()} aria-label="Refresh">
+				<button
+					type="button"
+					class="ap-btn ap-btn--ghost"
+					onclick={() => load()}
+					aria-label="Refresh"
+				>
 					<ArrowsClockwiseIcon size={14} weight="bold" />
 					<span>Refresh</span>
 				</button>
@@ -391,7 +398,9 @@
 								{#each ctrByCta as row (row.cta_id)}
 									<tr>
 										<td class="ap-table__path">{row.cta_id}</td>
-										<td class="ap-table__num">{formatNumber(row.impressions)}</td>
+										<td class="ap-table__num"
+											>{formatNumber(row.impressions)}</td
+										>
 										<td class="ap-table__num">{formatNumber(row.clicks)}</td>
 										<td class="ap-table__num">{formatPct(row.ctr)}</td>
 									</tr>
@@ -424,7 +433,9 @@
 							<div class="ap-activity__dot" aria-hidden="true"></div>
 							<div class="ap-activity__body">
 								<span class="ap-activity__action">
-									{item.event_type.replace(/_/g, ' ')} — {formatCents(item.amount_cents)}
+									{item.event_type.replace(/_/g, ' ')} — {formatCents(
+										item.amount_cents
+									)}
 								</span>
 								<span class="ap-activity__meta">
 									{item.user_email} · {formatSaleTime(item.created_at)}

@@ -52,8 +52,8 @@
 	<div class="final-cta-content final-cta__container">
 		<h2 class="final-cta__heading">Trade with Clarity. Trade with Confidence.</h2>
 		<p class="final-cta__desc">
-			Get your weekly watchlist every Sunday night - detailed entries, targets, exits, and stops so
-			you're prepared before the market opens.
+			Get your weekly watchlist every Sunday night - detailed entries, targets, exits, and
+			stops so you're prepared before the market opens.
 		</p>
 		<div {@attach ctaImpression({ ctaId: FINAL_CTA_ID })}>
 			<Button

@@ -124,7 +124,10 @@
 		try {
 			await api.del(`/api/admin/alerts/${alertId}`);
 			if (watchlist) {
-				watchlist = { ...watchlist, alerts: watchlist.alerts.filter((a) => a.id !== alertId) };
+				watchlist = {
+					...watchlist,
+					alerts: watchlist.alerts.filter((a) => a.id !== alertId)
+				};
 			}
 		} catch {
 			alert('Failed to delete alert');
@@ -161,12 +164,24 @@
 			<div class="edit-wl__grid">
 				<div class="edit-wl__field">
 					<label for="title" class="edit-wl__label">Title</label>
-					<input id="title" type="text" bind:value={title} required class="edit-wl__input" />
+					<input
+						id="title"
+						type="text"
+						bind:value={title}
+						required
+						class="edit-wl__input"
+					/>
 				</div>
 
 				<div class="edit-wl__field">
 					<label for="weekOf" class="edit-wl__label">Week Of</label>
-					<input id="weekOf" type="date" bind:value={weekOf} required class="edit-wl__input" />
+					<input
+						id="weekOf"
+						type="date"
+						bind:value={weekOf}
+						required
+						class="edit-wl__input"
+					/>
 				</div>
 
 				<div class="edit-wl__field edit-wl__field--full">
@@ -182,7 +197,8 @@
 
 				<div class="edit-wl__field edit-wl__field--full">
 					<label for="notes" class="edit-wl__label">Notes</label>
-					<textarea id="notes" bind:value={notes} class="edit-wl__textarea" rows="3"></textarea>
+					<textarea id="notes" bind:value={notes} class="edit-wl__textarea" rows="3"
+					></textarea>
 				</div>
 			</div>
 
@@ -230,7 +246,11 @@
 						</div>
 						<div class="alert-form__field">
 							<label for="alertDirection" class="alert-form__label">Direction</label>
-							<select id="alertDirection" bind:value={alertDirection} class="alert-form__input">
+							<select
+								id="alertDirection"
+								bind:value={alertDirection}
+								class="alert-form__input"
+							>
 								<option value="bullish">Bullish</option>
 								<option value="bearish">Bearish</option>
 							</select>
@@ -247,7 +267,9 @@
 							/>
 						</div>
 						<div class="alert-form__field">
-							<label for="alertInvalidation" class="alert-form__label">Invalidation</label>
+							<label for="alertInvalidation" class="alert-form__label"
+								>Invalidation</label
+							>
 							<input
 								id="alertInvalidation"
 								type="text"
@@ -271,7 +293,9 @@
 							/>
 						</div>
 						<div class="alert-form__field alert-form__field--full">
-							<label for="alertNotes" class="alert-form__label">Notes (optional)</label>
+							<label for="alertNotes" class="alert-form__label"
+								>Notes (optional)</label
+							>
 							<input
 								id="alertNotes"
 								type="text"
@@ -281,7 +305,9 @@
 							/>
 						</div>
 						<div class="alert-form__field alert-form__field--full">
-							<label for="alertChartUrl" class="alert-form__label">Chart URL (optional)</label>
+							<label for="alertChartUrl" class="alert-form__label"
+								>Chart URL (optional)</label
+							>
 							<input
 								id="alertChartUrl"
 								type="url"
@@ -307,7 +333,9 @@
 								<span
 									class={[
 										'alert-row__dir',
-										alert.direction === 'bullish' ? 'alert-row__dir--bull' : 'alert-row__dir--bear'
+										alert.direction === 'bullish'
+											? 'alert-row__dir--bull'
+											: 'alert-row__dir--bear'
 									]}
 								>
 									{alert.direction === 'bullish' ? '▲' : '▼'}
@@ -315,7 +343,9 @@
 								<h4 class="alert-row__ticker">{alert.ticker}</h4>
 								<span class="alert-row__entry">Entry: {alert.entry_zone}</span>
 								<span class="alert-row__inv">Inv: {alert.invalidation}</span>
-								<span class="alert-row__targets">TP: {alert.profit_zones.join(', ')}</span>
+								<span class="alert-row__targets"
+									>TP: {alert.profit_zones.join(', ')}</span
+								>
 							</div>
 							<button
 								onclick={() => deleteAlert(alert.id)}

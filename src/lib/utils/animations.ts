@@ -1,8 +1,6 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import type { TransitionConfig } from 'svelte/transition';
 import type { Attachment } from 'svelte/attachments';
-import { cubicOut, quintOut, expoOut } from 'svelte/easing';
 import { prefersReducedMotion } from 'svelte/motion';
 
 // ---------------------------------------------------------------------------
@@ -62,7 +60,7 @@ export interface CascadeItem {
 }
 
 export function createCinematicCascade(
-	scope: HTMLElement,
+	_scope: HTMLElement,
 	items: CascadeItem[],
 	opts?: { delay?: number }
 ): gsap.core.Timeline {
@@ -186,201 +184,17 @@ export function createGlowBreathing(
 }
 
 // ---------------------------------------------------------------------------
-// Custom Svelte transitions -- cinematic quality
-// ---------------------------------------------------------------------------
-
-/** Cinematic blur-fade: opacity + blur + y-translate + scale */
-export function cinematicFade(
-	_node: Element,
-	{
-		delay = 0,
-		duration = 600,
-		y = 30,
-		blur: blurAmt = 8,
-		scaleFrom = 0.97,
-		easing = quintOut
-	}: {
-		delay?: number;
-		duration?: number;
-		y?: number;
-		blur?: number;
-		scaleFrom?: number;
-		easing?: (t: number) => number;
-	} = {}
-): TransitionConfig {
-	if (isReducedMotion()) {
-		return { delay, duration: 150, easing: cubicOut, css: (t) => `opacity: ${t}` };
-	}
-
-	return {
-		delay,
-		duration,
-		easing,
-		css: (t) => {
-			const currentBlur = blurAmt * (1 - t);
-			const currentY = y * (1 - t);
-			const currentScale = scaleFrom + (1 - scaleFrom) * t;
-			return `
-				opacity: ${t};
-				transform: translateY(${currentY}px) scale(${currentScale});
-				filter: blur(${currentBlur}px);
-			`;
-		}
-	};
-}
-
-/** Clip-path wipe reveal -- slides a rectangular mask to reveal content */
-export function clipReveal(
-	_node: Element,
-	{
-		delay = 0,
-		duration = 800,
-		direction = 'up',
-		easing = expoOut
-	}: {
-		delay?: number;
-		duration?: number;
-		direction?: 'up' | 'down' | 'left' | 'right';
-		easing?: (t: number) => number;
-	} = {}
-): TransitionConfig {
-	if (isReducedMotion()) {
-		return { delay, duration: 150, easing: cubicOut, css: (t) => `opacity: ${t}` };
-	}
-
-	return {
-		delay,
-		duration,
-		easing,
-		css: (t) => {
-			const u = 1 - t;
-			let clip: string;
-			switch (direction) {
-				case 'up':
-					clip = `inset(${u * 100}% 0 0 0)`;
-					break;
-				case 'down':
-					clip = `inset(0 0 ${u * 100}% 0)`;
-					break;
-				case 'left':
-					clip = `inset(0 ${u * 100}% 0 0)`;
-					break;
-				case 'right':
-					clip = `inset(0 0 0 ${u * 100}%)`;
-					break;
-			}
-			return `clip-path: ${clip}; opacity: ${Math.min(t * 1.5, 1)};`;
-		}
-	};
-}
-
-// ---------------------------------------------------------------------------
-// Svelte 5.29+ attachment factories — modern replacement for Svelte actions.
-// Use as `<div {@attach cinematicReveal({ y: 40, blur: 6 })}>...</div>`. The
-// attachment runs once when the element is mounted, has access to the node,
-// and the returned cleanup is called automatically on unmount.
-// ---------------------------------------------------------------------------
-
-export interface CinematicRevealAttachOpts {
-	y?: number;
-	blur?: number;
-	scale?: number;
-	duration?: number;
-	stagger?: number;
-	ease?: string;
-	start?: string;
-	/** Optional CSS selector to animate within the host node; defaults to direct children */
-	selector?: string;
-}
-
-/** Attachment factory: wraps `createCinematicReveal` so any element can opt into the cinematic GSAP reveal without `bind:this` + `onMount` boilerplate. */
-export function cinematicReveal(opts: CinematicRevealAttachOpts = {}): Attachment<HTMLElement> {
-	return (node) => {
-		const targets = opts.selector ? node.querySelectorAll(opts.selector) : node.children;
-		if (!targets.length) return;
-
-		const ctx = gsap.context(() => {
-			createCinematicReveal({
-				targets,
-				trigger: node,
-				y: opts.y,
-				blur: opts.blur,
-				scale: opts.scale,
-				duration: opts.duration,
-				stagger: opts.stagger,
-				ease: opts.ease,
-				start: opts.start
-			});
-		}, node);
-
-		return () => {
-			ctx.revert();
-			if (!isReducedMotion()) gsap.set(targets, { clearProps: 'all' });
-		};
-	};
-}
-
-/** Attachment factory: wraps `createGlowBreathing` for ambient glow orbs. */
-export function glowBreathing(opts?: {
-	scale?: number;
-	opacity?: number;
-	duration?: number;
-}): Attachment<HTMLElement> {
-	return (node) => {
-		const tween = createGlowBreathing(node, opts);
-		return () => tween.kill();
-	};
-}
-
-/** Scale + blur pop -- great for icons, badges, avatars */
-export function popIn(
-	_node: Element,
-	{
-		delay = 0,
-		duration = 500,
-		scaleFrom = 0.7,
-		blur: blurAmt = 10,
-		easing = quintOut
-	}: {
-		delay?: number;
-		duration?: number;
-		scaleFrom?: number;
-		blur?: number;
-		easing?: (t: number) => number;
-	} = {}
-): TransitionConfig {
-	if (isReducedMotion()) {
-		return { delay, duration: 150, easing: cubicOut, css: (t) => `opacity: ${t}` };
-	}
-
-	return {
-		delay,
-		duration,
-		easing,
-		css: (t) => {
-			const currentScale = scaleFrom + (1 - scaleFrom) * t;
-			const currentBlur = blurAmt * (1 - t);
-			return `
-				opacity: ${t};
-				transform: scale(${currentScale});
-				filter: blur(${currentBlur}px);
-			`;
-		}
-	};
-}
-
-// ---------------------------------------------------------------------------
-// Cinematic hover micro-interactions
+// Cinematic hover micro-interactions (Svelte 5.29+ attachment factory)
 // ---------------------------------------------------------------------------
 
 export interface HoverTiltOpts {
-	maxTilt?: number;     // Maximum rotation in degrees (e.g., 10)
-	scale?: number;       // Max scale on hover (e.g., 1.02)
-	duration?: number;    // Tween duration to follow cursor
+	maxTilt?: number; // Maximum rotation in degrees (e.g., 10)
+	scale?: number; // Max scale on hover (e.g., 1.02)
+	duration?: number; // Tween duration to follow cursor
 	perspective?: number; // CSS perspective distance
 }
 
-/** 
+/**
  * Attachment factory: Applies an Apple TV / Netflix style 3D hover tilt.
  * Uses GSAP quickTo for zero-latency, buttery smooth cursor tracking.
  */
@@ -408,8 +222,8 @@ export function hoverTilt(opts: HoverTiltOpts = {}): Attachment<HTMLElement> {
 		const onMouseMove = (e: MouseEvent) => {
 			const rect = node.getBoundingClientRect();
 			// Normalize coordinates to -1 ... 1
-			const x = (e.clientX - rect.left) / rect.width * 2 - 1;
-			const y = (e.clientY - rect.top) / rect.height * 2 - 1;
+			const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+			const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
 
 			// Invert Y rotation for natural physically-based tilt
 			xTo(x * maxTilt);

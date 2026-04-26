@@ -12,7 +12,7 @@
 > the post-purchase event family (`invoice.payment_failed`, `invoice.paid`,
 > `charge.refunded`, `payment_intent.payment_failed`,
 > `charge.dispute.created`, `customer.subscription.{trial_will_end,paused,
-> resumed}`) and we have not yet driven a single live TEST charge through
+resumed}`) and we have not yet driven a single live TEST charge through
 > the full pipe.
 >
 > **Goal:** at the end of this checklist, every webhook arm has been
@@ -24,19 +24,19 @@
 
 ## TL;DR — what works today, what is blocked
 
-| Area | Status (audited 2026-04-25) | Notes |
-|---|---|---|
-| Webhook handler dispatch (12 event types) | ready | `backend/src/handlers/webhooks.rs:128-156` |
-| Migration 078 tables present | confirmed | `subscription_invoices`, `payment_failures`, `payment_refunds`, `payment_disputes`, `subscription_trial_events`, `stripe_webhook_audit` — all exist |
-| Notification templates seeded | confirmed | `subscription.payment_failed` / `payment_recovered` / `trial_ending` (078) + `subscription.confirmed` / `cancelled` (020) |
-| `pricing_plans` seeded | partial | 2 rows present (`Monthly $49 / Annual $399`) but `stripe_price_id IS NULL` on both — checkout will run via `price_data` mode (correct, supported path) |
-| `backend/.env` `STRIPE_SECRET_KEY` | **placeholder** (`sk_test_xxx`) | Operator must paste a real `sk_test_*` from the Stripe Dashboard |
-| `backend/.env` `STRIPE_WEBHOOK_SECRET` | **placeholder** (`whsec_xxx`) | Set per-session from `pnpm stripe:listen` output |
-| Root `.env` `STRIPE_SECRET_KEY` | **MISSING** | SvelteKit `createCheckoutSession` will `error(500, 'Stripe is not configured')` until present (`src/routes/api/checkout.remote.ts:22-24`) |
-| Stripe CLI installed | confirmed | `stripe 1.40.6` |
-| Local services running | confirmed | API on :3001, web on :5177, Postgres `swings-db-1` healthy on :5434 |
-| Existing webhook integration tests | confirmed | `backend/tests/stripe_webhooks.rs` covers every new arm offline |
-| Live E2E (real Stripe TEST API) | **not yet executed** | This runbook is what closes that gap |
+| Area                                      | Status (audited 2026-04-25)     | Notes                                                                                                                                                  |
+| ----------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Webhook handler dispatch (12 event types) | ready                           | `backend/src/handlers/webhooks.rs:128-156`                                                                                                             |
+| Migration 078 tables present              | confirmed                       | `subscription_invoices`, `payment_failures`, `payment_refunds`, `payment_disputes`, `subscription_trial_events`, `stripe_webhook_audit` — all exist    |
+| Notification templates seeded             | confirmed                       | `subscription.payment_failed` / `payment_recovered` / `trial_ending` (078) + `subscription.confirmed` / `cancelled` (020)                              |
+| `pricing_plans` seeded                    | partial                         | 2 rows present (`Monthly $49 / Annual $399`) but `stripe_price_id IS NULL` on both — checkout will run via `price_data` mode (correct, supported path) |
+| `backend/.env` `STRIPE_SECRET_KEY`        | **placeholder** (`sk_test_xxx`) | Operator must paste a real `sk_test_*` from the Stripe Dashboard                                                                                       |
+| `backend/.env` `STRIPE_WEBHOOK_SECRET`    | **placeholder** (`whsec_xxx`)   | Set per-session from `pnpm stripe:listen` output                                                                                                       |
+| Root `.env` `STRIPE_SECRET_KEY`           | **MISSING**                     | SvelteKit `createCheckoutSession` will `error(500, 'Stripe is not configured')` until present (`src/routes/api/checkout.remote.ts:22-24`)              |
+| Stripe CLI installed                      | confirmed                       | `stripe 1.40.6`                                                                                                                                        |
+| Local services running                    | confirmed                       | API on :3001, web on :5177, Postgres `swings-db-1` healthy on :5434                                                                                    |
+| Existing webhook integration tests        | confirmed                       | `backend/tests/stripe_webhooks.rs` covers every new arm offline                                                                                        |
+| Live E2E (real Stripe TEST API)           | **not yet executed**            | This runbook is what closes that gap                                                                                                                   |
 
 ---
 
@@ -44,11 +44,11 @@
 
 ### 1.1 What lives where
 
-| Process | Reads | Variables it needs | File |
-|---|---|---|---|
-| **SvelteKit** (`/api/checkout.remote.ts`) | `env.STRIPE_SECRET_KEY` (private), `publicEnv.PUBLIC_APP_URL` (public) | `STRIPE_SECRET_KEY=sk_test_…`, `PUBLIC_APP_URL=http://localhost:5177` | repo root `.env` |
-| **Rust API** (`webhooks.rs`, `member.rs::post_billing_portal`) | `Config::stripe_secret_key`, `Config::stripe_webhook_secret` | `STRIPE_SECRET_KEY=sk_test_…` (same value), `STRIPE_WEBHOOK_SECRET=whsec_…` (rotates per `stripe listen` session) | `backend/.env` |
-| **Stripe CLI** (`pnpm stripe:listen`) | `~/.config/stripe/config.toml` | TEST-mode API key from `stripe login` | host config |
+| Process                                                        | Reads                                                                  | Variables it needs                                                                                                | File             |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------- |
+| **SvelteKit** (`/api/checkout.remote.ts`)                      | `env.STRIPE_SECRET_KEY` (private), `publicEnv.PUBLIC_APP_URL` (public) | `STRIPE_SECRET_KEY=sk_test_…`, `PUBLIC_APP_URL=http://localhost:5177`                                             | repo root `.env` |
+| **Rust API** (`webhooks.rs`, `member.rs::post_billing_portal`) | `Config::stripe_secret_key`, `Config::stripe_webhook_secret`           | `STRIPE_SECRET_KEY=sk_test_…` (same value), `STRIPE_WEBHOOK_SECRET=whsec_…` (rotates per `stripe listen` session) | `backend/.env`   |
+| **Stripe CLI** (`pnpm stripe:listen`)                          | `~/.config/stripe/config.toml`                                         | TEST-mode API key from `stripe login`                                                                             | host config      |
 
 ### 1.2 Audit checklist — copy/paste each command
 
@@ -258,26 +258,27 @@ canonical Stripe TEST PAN with the webhook → DB → admin UI → email
 fan-out you should observe.
 
 > **Conventions:**
+>
 > - Expiry: any **future** month/year (e.g. `12/34`).
 > - CVC: any 3 digits (`123`).
 > - ZIP: any (`12345`).
 > - "Webhooks fired" lists the **events the operator should see in the
 >   `stripe listen` terminal**, in order.
 
-| # | Card | Scenario | Webhooks fired (in order) | Tables touched | Admin UI shows | Email queued |
-|---|------|----------|---------------------------|----------------|----------------|--------------|
-| 1 | `4242 4242 4242 4242` | Happy path, no 3DS | `checkout.session.completed` → `customer.subscription.created` → `invoice.paid` | `subscriptions` (active), `users.stripe_customer_id` set, `subscription_invoices` (paid), `stripe_webhook_audit` ×3, `outbox_events` (1) | `/admin/subscriptions`: row `status=active`, plan, MRR ticks up | `subscription.confirmed` |
-| 2 | `4000 0027 6000 3184` | 3DS required, success after challenge | (Stripe pauses for 3DS) → `checkout.session.completed` → `customer.subscription.created` → `invoice.paid` | same as #1 | same as #1 | `subscription.confirmed` |
-| 3 | `4000 0000 0000 9995` | Insufficient funds — declines at checkout | `checkout.session.completed` does **not** fire if Stripe rejects card on the hosted page; user stays on Checkout. If card is attached then first invoice fails: `invoice.payment_failed`, `payment_intent.payment_failed` | `payment_failures` row (final=true if no retry) | No new sub row; if checkout was abandoned, nothing new | None (the Checkout-page error is rendered inline; no template fires) |
-| 4 | `4000 0000 0000 0341` | Attaches successfully but **first charge fails** — used to simulate post-checkout dunning | `checkout.session.completed` → `customer.subscription.created` (status=`incomplete`/`past_due`) → `invoice.payment_failed` | `subscriptions` (status flips to `past_due`), `subscription_invoices` (status=open), `payment_failures` row, audit row | `/admin/subscriptions`: row with `Past due` badge | `subscription.payment_failed` |
-| 5 | `4000 0000 0000 0259` | Always declines on auth (generic decline) | No `checkout.session.completed`. Stripe Checkout shows decline inline | None (no row created) | Nothing new | None |
-| 6 | `4000 0000 0000 0069` | Expired card | Same as #5 — declined inline | None | Nothing new | None |
-| 7 | `4000 0000 0000 0127` | CVC fails | Same as #5 — declined inline | None | Nothing new | None |
-| 8 | `4242…` then **refund from Stripe Dashboard** | Refund flow | `charge.refunded` (and `charge.refund.updated` if available) | `payment_refunds` row, `stripe_webhook_audit` row. If the original charge was an `orders.payment_intent_id` → `orders.status='refunded'` and `disputed_at` untouched | (no admin orders surface for sub-only refunds today; refund visible via psql) | None today (no `subscription.refunded` template; this is a Phase 1.1 follow-up — note in your QA report) |
-| 9 | trigger via `stripe trigger charge.dispute.created` | Dispute / chargeback | `charge.dispute.created` | `payment_disputes` row, `orders.disputed_at = now()` (when an order is linked), `outbox_events` row with `event_type='ops.dispute_opened'` | If linked to an order, the order shows `disputed_at` (no UI badge yet) | None for end-customer; outbox event fires `ops.dispute_opened` for ops alerting |
-| 10 | `stripe subscriptions cancel sub_xxx` (CLI) **or** Stripe Dashboard | Subscription cancellation | `customer.subscription.deleted` | `subscriptions.status='canceled'`, audit row | `/admin/subscriptions`: badge flips to `Canceled` | `subscription.cancelled` |
-| 11 | `stripe trigger customer.subscription.trial_will_end` | Trial about to end | `customer.subscription.trial_will_end` | `subscription_trial_events` row (PK on `(subscription_id, trial_end)`), audit row | (no surfacing in UI; verify via psql) | `subscription.trial_ending` |
-| 12 | `stripe trigger customer.subscription.paused` then `…resumed` | Pause / resume | `customer.subscription.paused` then `customer.subscription.resumed` | `subscriptions.status='paused'` then back to `active`, `paused_at` set then nulled | Status badge flips through `Paused` (rendered as default chip) → `Active` | None |
+| #   | Card                                                                | Scenario                                                                                  | Webhooks fired (in order)                                                                                                                                                                                                 | Tables touched                                                                                                                                                       | Admin UI shows                                                                | Email queued                                                                                             |
+| --- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| 1   | `4242 4242 4242 4242`                                               | Happy path, no 3DS                                                                        | `checkout.session.completed` → `customer.subscription.created` → `invoice.paid`                                                                                                                                           | `subscriptions` (active), `users.stripe_customer_id` set, `subscription_invoices` (paid), `stripe_webhook_audit` ×3, `outbox_events` (1)                             | `/admin/subscriptions`: row `status=active`, plan, MRR ticks up               | `subscription.confirmed`                                                                                 |
+| 2   | `4000 0027 6000 3184`                                               | 3DS required, success after challenge                                                     | (Stripe pauses for 3DS) → `checkout.session.completed` → `customer.subscription.created` → `invoice.paid`                                                                                                                 | same as #1                                                                                                                                                           | same as #1                                                                    | `subscription.confirmed`                                                                                 |
+| 3   | `4000 0000 0000 9995`                                               | Insufficient funds — declines at checkout                                                 | `checkout.session.completed` does **not** fire if Stripe rejects card on the hosted page; user stays on Checkout. If card is attached then first invoice fails: `invoice.payment_failed`, `payment_intent.payment_failed` | `payment_failures` row (final=true if no retry)                                                                                                                      | No new sub row; if checkout was abandoned, nothing new                        | None (the Checkout-page error is rendered inline; no template fires)                                     |
+| 4   | `4000 0000 0000 0341`                                               | Attaches successfully but **first charge fails** — used to simulate post-checkout dunning | `checkout.session.completed` → `customer.subscription.created` (status=`incomplete`/`past_due`) → `invoice.payment_failed`                                                                                                | `subscriptions` (status flips to `past_due`), `subscription_invoices` (status=open), `payment_failures` row, audit row                                               | `/admin/subscriptions`: row with `Past due` badge                             | `subscription.payment_failed`                                                                            |
+| 5   | `4000 0000 0000 0259`                                               | Always declines on auth (generic decline)                                                 | No `checkout.session.completed`. Stripe Checkout shows decline inline                                                                                                                                                     | None (no row created)                                                                                                                                                | Nothing new                                                                   | None                                                                                                     |
+| 6   | `4000 0000 0000 0069`                                               | Expired card                                                                              | Same as #5 — declined inline                                                                                                                                                                                              | None                                                                                                                                                                 | Nothing new                                                                   | None                                                                                                     |
+| 7   | `4000 0000 0000 0127`                                               | CVC fails                                                                                 | Same as #5 — declined inline                                                                                                                                                                                              | None                                                                                                                                                                 | Nothing new                                                                   | None                                                                                                     |
+| 8   | `4242…` then **refund from Stripe Dashboard**                       | Refund flow                                                                               | `charge.refunded` (and `charge.refund.updated` if available)                                                                                                                                                              | `payment_refunds` row, `stripe_webhook_audit` row. If the original charge was an `orders.payment_intent_id` → `orders.status='refunded'` and `disputed_at` untouched | (no admin orders surface for sub-only refunds today; refund visible via psql) | None today (no `subscription.refunded` template; this is a Phase 1.1 follow-up — note in your QA report) |
+| 9   | trigger via `stripe trigger charge.dispute.created`                 | Dispute / chargeback                                                                      | `charge.dispute.created`                                                                                                                                                                                                  | `payment_disputes` row, `orders.disputed_at = now()` (when an order is linked), `outbox_events` row with `event_type='ops.dispute_opened'`                           | If linked to an order, the order shows `disputed_at` (no UI badge yet)        | None for end-customer; outbox event fires `ops.dispute_opened` for ops alerting                          |
+| 10  | `stripe subscriptions cancel sub_xxx` (CLI) **or** Stripe Dashboard | Subscription cancellation                                                                 | `customer.subscription.deleted`                                                                                                                                                                                           | `subscriptions.status='canceled'`, audit row                                                                                                                         | `/admin/subscriptions`: badge flips to `Canceled`                             | `subscription.cancelled`                                                                                 |
+| 11  | `stripe trigger customer.subscription.trial_will_end`               | Trial about to end                                                                        | `customer.subscription.trial_will_end`                                                                                                                                                                                    | `subscription_trial_events` row (PK on `(subscription_id, trial_end)`), audit row                                                                                    | (no surfacing in UI; verify via psql)                                         | `subscription.trial_ending`                                                                              |
+| 12  | `stripe trigger customer.subscription.paused` then `…resumed`       | Pause / resume                                                                            | `customer.subscription.paused` then `customer.subscription.resumed`                                                                                                                                                       | `subscriptions.status='paused'` then back to `active`, `paused_at` set then nulled                                                                                   | Status badge flips through `Paused` (rendered as default chip) → `Active`     | None                                                                                                     |
 
 ### Notes on cards 3, 5–7
 
@@ -719,11 +720,11 @@ The `try_claim_stripe_webhook_event` call at `webhooks.rs:98` returns
 
 Per Phase 4d of the spec, three options were considered:
 
-| Option | Pros | Cons | Verdict |
-|---|---|---|---|
-| (A) Extend `backend/tests/stripe_webhooks.rs` with multi-event flows | Already exists (`backend/tests/stripe_webhooks.rs`); zero CI cost; deterministic; uses real `verify_stripe_signature` + `try_claim_stripe_webhook_event` paths; no live Stripe dependency | Cannot validate the SvelteKit-side `createCheckoutSession` Node code path; cannot prove Stripe accepts our params | **Recommended primary** — extends what we already have, ships in CI tomorrow |
-| (B) New Playwright `e2e/stripe-checkout.spec.ts` driving the live Stripe TEST hosted Checkout | Validates the full pipe (UI click → Stripe → webhook → admin UI); catches Stripe API drift | 30-90 s per test; flaky against external service; requires CI secret; 3DS challenge requires special Stripe cards/iframe-sandbox dance | **Recommended nightly** — too slow for every PR but valuable as a daily smoke |
-| (C) Bash script `scripts/stripe-e2e.sh` orchestrating `stripe trigger` + DB polling | Minimal infra; great for ad-hoc local QA | Duplicates option (A) without the type/contract guarantees; no CI integration story | Not recommended |
+| Option                                                                                        | Pros                                                                                                                                                                                      | Cons                                                                                                                                   | Verdict                                                                       |
+| --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| (A) Extend `backend/tests/stripe_webhooks.rs` with multi-event flows                          | Already exists (`backend/tests/stripe_webhooks.rs`); zero CI cost; deterministic; uses real `verify_stripe_signature` + `try_claim_stripe_webhook_event` paths; no live Stripe dependency | Cannot validate the SvelteKit-side `createCheckoutSession` Node code path; cannot prove Stripe accepts our params                      | **Recommended primary** — extends what we already have, ships in CI tomorrow  |
+| (B) New Playwright `e2e/stripe-checkout.spec.ts` driving the live Stripe TEST hosted Checkout | Validates the full pipe (UI click → Stripe → webhook → admin UI); catches Stripe API drift                                                                                                | 30-90 s per test; flaky against external service; requires CI secret; 3DS challenge requires special Stripe cards/iframe-sandbox dance | **Recommended nightly** — too slow for every PR but valuable as a daily smoke |
+| (C) Bash script `scripts/stripe-e2e.sh` orchestrating `stripe trigger` + DB polling           | Minimal infra; great for ad-hoc local QA                                                                                                                                                  | Duplicates option (A) without the type/contract guarantees; no CI integration story                                                    | Not recommended                                                               |
 
 ### Recommended path
 
@@ -751,10 +752,10 @@ Per Phase 4d of the spec, three options were considered:
 
 The local DB already has 2 active rows (audit confirmed):
 
-| name | slug | amount_cents | currency | interval | stripe_price_id | is_active |
-|---|---|---|---|---|---|---|
-| Monthly | monthly | 4900 | usd | month | NULL | true |
-| Annual | annual | 39900 | usd | year | NULL | true |
+| name    | slug    | amount_cents | currency | interval | stripe_price_id | is_active |
+| ------- | ------- | ------------ | -------- | -------- | --------------- | --------- |
+| Monthly | monthly | 4900         | usd      | month    | NULL            | true      |
+| Annual  | annual  | 39900        | usd      | year     | NULL            | true      |
 
 `stripe_price_id` is NULL on both — checkout uses the `price_data`
 inline-amount path (`src/routes/api/checkout.remote.ts:48-69`). This is
@@ -771,6 +772,7 @@ each plan to a Stripe-hosted Price object. Steps:
    - Copy the `price_…` id.
 2. Repeat for `Annual` ($399/yr).
 3. Update the local DB:
+
    ```sql
    swings-psql <<'EOF'
    UPDATE pricing_plans
@@ -931,39 +933,39 @@ stripe logs tail
 
 ## Appendix B — Files audited (citations)
 
-| Concern | File | Lines |
-|---|---|---|
-| Webhook entry + dispatch table | `backend/src/handlers/webhooks.rs` | 56-164 |
-| `checkout.session.completed` handler | `backend/src/handlers/webhooks.rs` | 374-449 |
-| `customer.subscription.{created,updated}` | `backend/src/handlers/webhooks.rs` | 247-310 |
-| `customer.subscription.deleted` | `backend/src/handlers/webhooks.rs` | 312-372 |
-| `customer.subscription.{paused,resumed}` | `backend/src/handlers/webhooks.rs` | 1039-1123 |
-| `customer.subscription.trial_will_end` | `backend/src/handlers/webhooks.rs` | 952-1034 |
-| `invoice.payment_failed` | `backend/src/handlers/webhooks.rs` | 456-586 |
-| `invoice.paid` | `backend/src/handlers/webhooks.rs` | 590-671 |
-| `charge.refunded` | `backend/src/handlers/webhooks.rs` | 676-762 |
-| `payment_intent.payment_failed` | `backend/src/handlers/webhooks.rs` | 769-859 |
-| `charge.dispute.created` | `backend/src/handlers/webhooks.rs` | 864-946 |
-| Stripe HMAC verify | `backend/src/handlers/webhooks.rs` | 166-210 |
-| Idempotency claim | `backend/src/handlers/webhooks.rs` | 98-117 |
-| Invoice persistence | `backend/src/commerce/billing.rs` | 1-285 |
-| Refund persistence | `backend/src/commerce/refunds.rs` | 1-182 |
-| Dispute persistence | `backend/src/commerce/disputes.rs` | 1-185 |
-| Webhook audit best-effort writer | `backend/src/commerce/webhook_audit.rs` | (whole file) |
-| SvelteKit checkout session creator | `src/routes/api/checkout.remote.ts` | 1-208 |
-| Browser-side checkout helper | `src/lib/utils/checkout.ts` | (whole file) |
-| Pricing page (entry) | `src/routes/pricing/+page.svelte` | 1-275 |
-| Monthly checkout page | `src/routes/pricing/monthly/+page.svelte` | 108-117 |
-| Success page | `src/routes/success/+page.svelte` | 14-19 |
-| Public pricing endpoint | `backend/src/handlers/pricing.rs` | 690-706 |
-| Admin subscriptions list | `src/routes/admin/subscriptions/+page.svelte` | (whole file) |
-| Migration — pricing plans schema | `backend/migrations/012_pricing_plans.sql` | 1-52 |
-| Migration — webhook expansion | `backend/migrations/078_stripe_webhook_expansion.sql` | 1-282 |
-| Existing webhook integration tests | `backend/tests/stripe_webhooks.rs` | 1-80 (header) |
-| `pnpm stripe:listen` script | `package.json` | 28 |
-| Local-testing tutorial (companion doc) | `docs/stripe-local-testing.md` | 1-85 |
-| Spec — Phase 4 | `docs/REMAINING-WORK.md` | 421-559 |
+| Concern                                   | File                                                  | Lines         |
+| ----------------------------------------- | ----------------------------------------------------- | ------------- |
+| Webhook entry + dispatch table            | `backend/src/handlers/webhooks.rs`                    | 56-164        |
+| `checkout.session.completed` handler      | `backend/src/handlers/webhooks.rs`                    | 374-449       |
+| `customer.subscription.{created,updated}` | `backend/src/handlers/webhooks.rs`                    | 247-310       |
+| `customer.subscription.deleted`           | `backend/src/handlers/webhooks.rs`                    | 312-372       |
+| `customer.subscription.{paused,resumed}`  | `backend/src/handlers/webhooks.rs`                    | 1039-1123     |
+| `customer.subscription.trial_will_end`    | `backend/src/handlers/webhooks.rs`                    | 952-1034      |
+| `invoice.payment_failed`                  | `backend/src/handlers/webhooks.rs`                    | 456-586       |
+| `invoice.paid`                            | `backend/src/handlers/webhooks.rs`                    | 590-671       |
+| `charge.refunded`                         | `backend/src/handlers/webhooks.rs`                    | 676-762       |
+| `payment_intent.payment_failed`           | `backend/src/handlers/webhooks.rs`                    | 769-859       |
+| `charge.dispute.created`                  | `backend/src/handlers/webhooks.rs`                    | 864-946       |
+| Stripe HMAC verify                        | `backend/src/handlers/webhooks.rs`                    | 166-210       |
+| Idempotency claim                         | `backend/src/handlers/webhooks.rs`                    | 98-117        |
+| Invoice persistence                       | `backend/src/commerce/billing.rs`                     | 1-285         |
+| Refund persistence                        | `backend/src/commerce/refunds.rs`                     | 1-182         |
+| Dispute persistence                       | `backend/src/commerce/disputes.rs`                    | 1-185         |
+| Webhook audit best-effort writer          | `backend/src/commerce/webhook_audit.rs`               | (whole file)  |
+| SvelteKit checkout session creator        | `src/routes/api/checkout.remote.ts`                   | 1-208         |
+| Browser-side checkout helper              | `src/lib/utils/checkout.ts`                           | (whole file)  |
+| Pricing page (entry)                      | `src/routes/pricing/+page.svelte`                     | 1-275         |
+| Monthly checkout page                     | `src/routes/pricing/monthly/+page.svelte`             | 108-117       |
+| Success page                              | `src/routes/success/+page.svelte`                     | 14-19         |
+| Public pricing endpoint                   | `backend/src/handlers/pricing.rs`                     | 690-706       |
+| Admin subscriptions list                  | `src/routes/admin/subscriptions/+page.svelte`         | (whole file)  |
+| Migration — pricing plans schema          | `backend/migrations/012_pricing_plans.sql`            | 1-52          |
+| Migration — webhook expansion             | `backend/migrations/078_stripe_webhook_expansion.sql` | 1-282         |
+| Existing webhook integration tests        | `backend/tests/stripe_webhooks.rs`                    | 1-80 (header) |
+| `pnpm stripe:listen` script               | `package.json`                                        | 28            |
+| Local-testing tutorial (companion doc)    | `docs/stripe-local-testing.md`                        | 1-85          |
+| Spec — Phase 4                            | `docs/REMAINING-WORK.md`                              | 421-559       |
 
 ---
 
-*End of QA runbook.*
+_End of QA runbook._

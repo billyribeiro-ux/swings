@@ -38,7 +38,10 @@ type Fixtures = AppFixtures & AdminFixtures;
 /* ------------------------------------------------------------------ */
 
 test.describe('admin · audit log viewer', () => {
-	test('renders filter form, table, and opens the inspect drawer', async ({ app, page }: Fixtures) => {
+	test('renders filter form, table, and opens the inspect drawer', async ({
+		app,
+		page
+	}: Fixtures) => {
 		await app.goto('/admin/audit');
 		await expect(page.getByTestId('admin-audit-page')).toBeVisible();
 		await expect(page.getByRole('heading', { name: /Audit log/i })).toBeVisible();
@@ -87,7 +90,10 @@ test.describe('admin · audit log viewer', () => {
 /* ------------------------------------------------------------------ */
 
 test.describe('admin · DSAR', () => {
-	test('export form exposes the async checkbox + reason field', async ({ app, page }: Fixtures) => {
+	test('export form exposes the async checkbox + reason field', async ({
+		app,
+		page
+	}: Fixtures) => {
 		await app.goto('/admin/dsar');
 		await expect(page.getByTestId('admin-dsar-page')).toBeVisible();
 
@@ -196,7 +202,10 @@ test.describe('admin · members management', () => {
 /* ------------------------------------------------------------------ */
 
 test.describe('admin · settings · system', () => {
-	test('renders the maintenance toggle and key/value editor inputs', async ({ app, page }: Fixtures) => {
+	test('renders the maintenance toggle and key/value editor inputs', async ({
+		app,
+		page
+	}: Fixtures) => {
 		await app.goto('/admin/settings/system');
 		await expect(page.getByTestId('admin-settings-system-page')).toBeVisible();
 		await expect(page.getByTestId('maintenance-toggle')).toBeVisible();

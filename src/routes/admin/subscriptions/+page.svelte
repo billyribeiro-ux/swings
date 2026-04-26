@@ -154,7 +154,8 @@
 			<span class="subs-page__eyebrow">Commerce</span>
 			<h1 class="subs-page__title">Subscriptions</h1>
 			<p class="subs-page__subtitle">
-				Recurring revenue at a glance: active customers, MRR, plan mix, and per-member status.
+				Recurring revenue at a glance: active customers, MRR, plan mix, and per-member
+				status.
 				{total} total.
 			</p>
 		</div>
@@ -338,7 +339,9 @@
 							</td>
 							<td><span class="plan-chip">{sub.plan_name}</span></td>
 							<td>
-								<span class="badge badge--{sub.status}">{statusLabel(sub.status)}</span>
+								<span class="badge badge--{sub.status}"
+									>{statusLabel(sub.status)}</span
+								>
 							</td>
 							<td class="s-table__num">
 								{formatMoney(sub.amount_cents)}<span class="s-table__interval">
@@ -1011,7 +1014,6 @@
 			gap: 1.5rem;
 		}
 
-
 		.subs-page__kpis {
 			grid-template-columns: repeat(4, 1fr);
 			gap: 1rem;
@@ -1020,7 +1022,6 @@
 		.kpi {
 			padding: 1.5rem;
 		}
-
 
 		.filter-card {
 			padding: 1.5rem;
@@ -1034,8 +1035,8 @@
 			display: block;
 			overflow-x: auto;
 			background: rgba(19, 43, 80, 0.35);
-		backdrop-filter: blur(24px);
-		-webkit-backdrop-filter: blur(24px);
+			backdrop-filter: blur(24px);
+			-webkit-backdrop-filter: blur(24px);
 			border: 1px solid rgba(255, 255, 255, 0.06);
 			border-radius: var(--radius-2xl);
 			box-shadow:

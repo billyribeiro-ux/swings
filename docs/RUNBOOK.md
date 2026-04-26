@@ -90,7 +90,7 @@ single slow job, or the compose path is genuinely overloaded.
    ```
    The next worker tick will requeue any rows whose `started_at` is
    older than the visibility timeout (handled in `dsar_worker.rs`).
-3. If it's a recurring pattern with the *same* target user — that
+3. If it's a recurring pattern with the _same_ target user — that
    user has unusually large data; consider sharding the export or
    bumping the worker's per-job timeout.
 
@@ -104,7 +104,7 @@ leaking.
    ```bash
    kubectl logs -l app=swings-api --tail=500 | rg dsar_artifact_sweep
    ```
-2. If the worker thread panicked, the *whole binary* may have
+2. If the worker thread panicked, the _whole binary_ may have
    restarted but only the sweep loop is wedged. Restart the pod:
    ```bash
    kubectl rollout restart deploy/swings-api
@@ -221,7 +221,7 @@ credentials.
    or a UI button that doesn't disable on click. Track the
    originating user/integration and ping the owner.
 3. **Do not** raise the rate limit or shorten the in-flight TTL as
-   a mitigation — the 409 is the *correct* response.
+   a mitigation — the 409 is the _correct_ response.
 
 ### `IdempotencyMismatchSpike`
 
@@ -398,28 +398,28 @@ SQL
 #### B. PostgreSQL `unsafe use of new value "<x>" of enum type`
 
 `ALTER TYPE … ADD VALUE` cannot be combined with statements that
-*reference* the new value in the same transaction. sqlx's
+_reference_ the new value in the same transaction. sqlx's
 `-- no-transaction` marker only suppresses sqlx's wrapping
 transaction; the simple-query protocol still wraps a multi-statement
 Query in an implicit transaction.
 
 Fix in the migration itself: add an explicit `COMMIT;` after the
-`ALTER TYPE` block, *before* the statements that reference the new
+`ALTER TYPE` block, _before_ the statements that reference the new
 values. See `backend/migrations/021_rbac.sql` for the canonical
 shape.
 
 #### C. `relation "<x>" does not exist` (ordering bug)
 
-A migration references a table that is created in a *later*
+A migration references a table that is created in a _later_
 migration. sqlx applies in numeric order, so this means the file
 numbers are wrong. Fixes:
 
-1. Confirm the broken migration has *never* successfully applied
+1. Confirm the broken migration has _never_ successfully applied
    anywhere (`SELECT version FROM _sqlx_migrations` on every
    environment). If it never applied, `git mv` the dependency to a
    lower free version number — no checksum drift, no destructive
    change.
-2. If the broken migration *did* apply somewhere via manual
+2. If the broken migration _did_ apply somewhere via manual
    surgery, the dependency table needs a small forward migration in
    the next free slot rather than renumbering.
 3. Verify locally with a fresh DB before pushing:

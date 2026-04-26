@@ -12,7 +12,12 @@ function slugifyIdentifier(value: string): string {
 		.replace(/(^-|-$)/g, '');
 }
 
-function buildAuthorIdentity(authorName?: string): { '@type': 'Person'; '@id': string; name: string; url?: string } {
+function buildAuthorIdentity(authorName?: string): {
+	'@type': 'Person';
+	'@id': string;
+	name: string;
+	url?: string;
+} {
 	const resolvedName = authorName?.trim() || FOUNDERS.billy.name;
 	const normalizedName = resolvedName.toLowerCase();
 
@@ -211,7 +216,9 @@ export function productSchema(opts: {
 				}
 			},
 			availability: 'https://schema.org/InStock',
-			priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+			priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+				.toISOString()
+				.split('T')[0],
 			url: `${SITE.url}${opts.path}`
 		}
 	};

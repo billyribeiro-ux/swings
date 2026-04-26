@@ -317,7 +317,7 @@
 			var(--shadow-lg),
 			0 4px 14px rgba(11, 29, 58, 0.15);
 	}
-	
+
 	.btn--outline::before {
 		background: radial-gradient(
 			circle 3.5rem at var(--mouse-x) var(--mouse-y),

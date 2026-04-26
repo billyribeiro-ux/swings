@@ -20,14 +20,7 @@
 <script lang="ts">
 	import type { FormFieldProps as Props } from './FormField.types';
 
-	const {
-		for: forId,
-		label,
-		description,
-		error,
-		required = false,
-		children
-	}: Props = $props();
+	const { for: forId, label, description, error, required = false, children }: Props = $props();
 
 	const descriptionId = $derived(description ? `${forId}-desc` : undefined);
 	const errorId = $derived(error ? `${forId}-err` : undefined);
@@ -58,16 +51,51 @@
 </div>
 
 <style>
-	.form-field { display: flex; flex-direction: column; gap: var(--space-1-5); }
-	.label { font-size: var(--fs-sm); font-weight: var(--w-medium); color: var(--surface-fg-default); line-height: var(--lh-snug); }
-	.required-mark { color: var(--status-danger-500); margin-inline-start: var(--space-0-5); }
-	.description { margin: 0; font-size: var(--fs-xs); color: var(--surface-fg-muted); line-height: var(--lh-normal); }
-	.control { display: flex; flex-direction: column; }
+	.form-field {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-1-5);
+	}
+	.label {
+		font-size: var(--fs-sm);
+		font-weight: var(--w-medium);
+		color: var(--surface-fg-default);
+		line-height: var(--lh-snug);
+	}
+	.required-mark {
+		color: var(--status-danger-500);
+		margin-inline-start: var(--space-0-5);
+	}
+	.description {
+		margin: 0;
+		font-size: var(--fs-xs);
+		color: var(--surface-fg-muted);
+		line-height: var(--lh-normal);
+	}
+	.control {
+		display: flex;
+		flex-direction: column;
+	}
 	.form-field.invalid :global(input),
 	.form-field.invalid :global(textarea),
 	.form-field.invalid :global(select) {
 		border-color: var(--status-danger-500);
 	}
-	.error { margin: 0; font-size: var(--fs-xs); color: var(--status-danger-700); line-height: var(--lh-normal); }
-	.visually-hidden { position: absolute; inline-size: 1px; block-size: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+	.error {
+		margin: 0;
+		font-size: var(--fs-xs);
+		color: var(--status-danger-700);
+		line-height: var(--lh-normal);
+	}
+	.visually-hidden {
+		position: absolute;
+		inline-size: 1px;
+		block-size: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+		border: 0;
+	}
 </style>

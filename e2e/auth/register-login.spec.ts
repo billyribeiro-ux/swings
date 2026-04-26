@@ -13,6 +13,23 @@ import { LoginPage } from '../pages/LoginPage';
 import { DashboardPage } from '../pages/DashboardPage';
 
 test.describe('account lifecycle', () => {
+	// Phase 8.5: the cookie-consent banner stacks above the dashboard chrome
+	// (z-40) and intercepts pointer events on the "Sign Out" button. Dismiss
+	// it once at the start so subsequent logout clicks land on the button.
+	test.beforeEach(async ({ page }) => {
+		await page.goto('/');
+		const banner = page.getByTestId('consent-banner');
+		// `isVisible` resolves quickly when the element is missing (server
+		// render w/o consent state); short timeout to keep the cold start fast.
+		const visible = await banner.isVisible().catch(() => false);
+		if (visible) {
+			const accept = page.getByRole('button', { name: /accept all|reject all/i }).first();
+			if (await accept.isVisible().catch(() => false)) {
+				await accept.click();
+			}
+		}
+	});
+
 	test('register then re-login then logout purges tokens', async ({ page, api }) => {
 		if (!(await api.isReachable())) {
 			test.skip(true, 'Backend unreachable.');
@@ -48,11 +65,14 @@ test.describe('account lifecycle', () => {
 
 		// 4. Final logout clears localStorage.
 		await dashboard.logout();
-		const stored = await page.evaluate((keys) => ({
-			access: localStorage.getItem(keys.access),
-			refresh: localStorage.getItem(keys.refresh),
-			user: localStorage.getItem(keys.user)
-		}), STORAGE_KEYS);
+		const stored = await page.evaluate(
+			(keys) => ({
+				access: localStorage.getItem(keys.access),
+				refresh: localStorage.getItem(keys.refresh),
+				user: localStorage.getItem(keys.user)
+			}),
+			STORAGE_KEYS
+		);
 		expect(stored.access).toBeNull();
 		expect(stored.refresh).toBeNull();
 		expect(stored.user).toBeNull();

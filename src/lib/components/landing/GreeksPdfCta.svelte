@@ -88,8 +88,9 @@
 					</h2>
 
 					<p class="greeks-desc greeks-section__desc">
-						Master Delta, Gamma, Theta, and Vega with our comprehensive 20-page PDF guide. Learn how
-						to use Greeks to make smarter trading decisions and manage risk like a pro.
+						Master Delta, Gamma, Theta, and Vega with our comprehensive 20-page PDF
+						guide. Learn how to use Greeks to make smarter trading decisions and manage
+						risk like a pro.
 					</p>
 
 					{#if isSuccess}
@@ -104,8 +105,8 @@
 								<div>
 									<h3 class="greeks-section__success-title">Check Your Inbox!</h3>
 									<p class="greeks-section__success-text">
-										We've sent the Greeks PDF guide to your email. Check your spam folder if you
-										don't see it within a few minutes.
+										We've sent the Greeks PDF guide to your email. Check your
+										spam folder if you don't see it within a few minutes.
 									</p>
 								</div>
 							</div>
@@ -114,7 +115,11 @@
 						<form onsubmit={handleSubmit} class="greeks-form">
 							<div class="greeks-section__form-row">
 								<div class="greeks-section__input-wrap">
-									<EnvelopeSimpleIcon size={18} weight="bold" class="greeks-section__input-icon" />
+									<EnvelopeSimpleIcon
+										size={18}
+										weight="bold"
+										class="greeks-section__input-icon"
+									/>
 									<input
 										id="greeks-email"
 										name="email"
@@ -127,7 +132,11 @@
 										class="greeks-section__input"
 									/>
 								</div>
-								<button type="submit" disabled={isSubmitting} class="greeks-section__submit">
+								<button
+									type="submit"
+									disabled={isSubmitting}
+									class="greeks-section__submit"
+								>
 									{#if isSubmitting}
 										Sending...
 									{:else}

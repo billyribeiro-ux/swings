@@ -51,7 +51,7 @@
 
 	let lastAccessedCourse = $derived(
 		lastAccessedEnrollment
-			? allCourses.find((c) => c.id === lastAccessedEnrollment.course_id) ?? null
+			? (allCourses.find((c) => c.id === lastAccessedEnrollment.course_id) ?? null)
 			: null
 	);
 
@@ -106,7 +106,8 @@
 					<div class="continue-card__info">
 						<h4 class="continue-card__title">{lastAccessedCourse.title}</h4>
 						<p class="continue-card__meta">
-							{lastAccessedCourse.difficulty} &middot; {lastAccessedCourse.total_lessons} lessons
+							{lastAccessedCourse.difficulty} &middot; {lastAccessedCourse.total_lessons}
+							lessons
 						</p>
 						<div class="continue-card__progress">
 							<div class="continue-card__bar">
@@ -115,7 +116,9 @@
 									style="width: {lastAccessedEnrollment.progress}%"
 								></div>
 							</div>
-							<span class="continue-card__pct">{lastAccessedEnrollment.progress}%</span>
+							<span class="continue-card__pct"
+								>{lastAccessedEnrollment.progress}%</span
+							>
 						</div>
 						<a
 							href="/dashboard/courses/{lastAccessedCourse.slug}"
@@ -159,7 +162,9 @@
 								{/if}
 							</div>
 							<div class="course-card__body">
-								<h4 class="course-card__title">{course?.title ?? enrollment.course_id}</h4>
+								<h4 class="course-card__title">
+									{course?.title ?? enrollment.course_id}
+								</h4>
 								<div class="course-card__circle-wrap">
 									<svg class="course-card__circle" viewBox="0 0 36 36">
 										<path
@@ -172,7 +177,9 @@
 											d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
 										/>
 									</svg>
-									<span class="course-card__circle-text">{enrollment.progress}%</span>
+									<span class="course-card__circle-text"
+										>{enrollment.progress}%</span
+									>
 								</div>
 								<a
 									href="/dashboard/courses/{course?.slug ?? enrollment.course_id}"
