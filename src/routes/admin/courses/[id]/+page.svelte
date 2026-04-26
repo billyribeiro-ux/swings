@@ -197,7 +197,7 @@
 						<div class="ce__mc">
 							<button type="button" class="ce__mtog" onclick={() => toggleModule(mod.id)}>
 								<span class="ce__mnum">{mi + 1}</span>
-								<input type="text" value={mod.title} oninput={(e) => updateModuleTitle(mi, (e.target as HTMLInputElement).value)} onclick={(e) => e.stopPropagation()} class="ce__minp" placeholder="Module title..." />
+								<input id={`ce-mod-${mod.id}-title`} name="module-title" type="text" aria-label={`Module ${mi + 1} title`} value={mod.title} oninput={(e) => updateModuleTitle(mi, (e.target as HTMLInputElement).value)} onclick={(e) => e.stopPropagation()} class="ce__minp" placeholder="Module title..." />
 								<div class="ce__mmeta">
 									<span class="ce__lcnt">{mod.lessons.length} lessons</span>
 									{#if expandedModules.has(mod.id)}<CaretUpIcon size={16} />{:else}<CaretDownIcon size={16} />{/if}
@@ -210,8 +210,8 @@
 										<div class="ce__lr">
 											<span class="ce__lnum">{mi + 1}.{li + 1}</span>
 											<div class="ce__lf">
-												<input type="text" value={lesson.title} oninput={(e) => updateLesson(mi, li, 'title', (e.target as HTMLInputElement).value)} class="ce__inp ce__inp--sm" placeholder="Lesson title" />
-												<div class="ce__lurl"><VideoCameraIcon size={14} /><input type="url" value={lesson.video_url} oninput={(e) => updateLesson(mi, li, 'video_url', (e.target as HTMLInputElement).value)} class="ce__inp ce__inp--sm" placeholder="Video URL" /></div>
+												<input id={`ce-lesson-${lesson.id}-title`} name="lesson-title" type="text" aria-label={`Lesson ${mi + 1}.${li + 1} title`} value={lesson.title} oninput={(e) => updateLesson(mi, li, 'title', (e.target as HTMLInputElement).value)} class="ce__inp ce__inp--sm" placeholder="Lesson title" />
+												<div class="ce__lurl"><VideoCameraIcon size={14} /><input id={`ce-lesson-${lesson.id}-video`} name="lesson-video-url" type="url" aria-label={`Lesson ${mi + 1}.${li + 1} video URL`} value={lesson.video_url} oninput={(e) => updateLesson(mi, li, 'video_url', (e.target as HTMLInputElement).value)} class="ce__inp ce__inp--sm" placeholder="Video URL" /></div>
 											</div>
 											<div class="ce__la">
 												<button type="button" class="ce__ib" title={lesson.is_preview ? 'Disable preview' : 'Enable preview'} onclick={() => updateLesson(mi, li, 'is_preview', !lesson.is_preview)}>

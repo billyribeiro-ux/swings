@@ -147,8 +147,22 @@
 	{:else}
 		<div class="popup-edit__header">
 			<a href="/admin/popups" class="popup-edit__back"><ArrowLeftIcon size={18} /> Back</a>
-			<input type="text" bind:value={name} placeholder="Popup name" class="popup-edit__name" />
-			<select bind:value={popupType} class="popup-edit__select">
+			<input
+				id="popup-name"
+				name="popup-name"
+				type="text"
+				aria-label="Popup name"
+				bind:value={name}
+				placeholder="Popup name"
+				class="popup-edit__name"
+			/>
+			<select
+				id="popup-type"
+				name="popup-type"
+				aria-label="Popup type"
+				bind:value={popupType}
+				class="popup-edit__select"
+			>
 				<option value="modal">Modal</option>
 				<option value="slide_in">Slide In</option>
 				<option value="banner">Banner</option>
@@ -199,7 +213,7 @@
 			{:else if activeTab === 'targeting'}
 				<div class="field"><span>Pages</span>
 					{#each pages_ as p}<span class="chip">{p} <button onclick={() => removePage(p)}>&times;</button></span>{/each}
-					<div class="field__row"><input type="text" bind:value={newPage} placeholder="/blog/*" class="field__input" /><button class="field__btn" onclick={addPage}><PlusIcon size={14} /></button></div>
+					<div class="field__row"><input id="targeting-new-page" name="targeting-new-page" type="text" aria-label="Add page pattern" bind:value={newPage} placeholder="/blog/*" class="field__input" /><button class="field__btn" onclick={addPage} aria-label="Add page"><PlusIcon size={14} /></button></div>
 				</div>
 				<div class="field"><span>Devices</span>
 					{#each (['desktop','mobile','tablet'] as const) as d}<label class="checkbox"><input type="checkbox" checked={devices.includes(d)} onchange={() => toggleDevice(d)} /> {d}</label>{/each}

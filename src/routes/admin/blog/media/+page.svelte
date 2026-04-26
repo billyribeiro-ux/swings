@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import type { MediaItem, PaginatedResponse } from '$lib/api/types';
 	import { confirmDialog } from '$lib/stores/confirm.svelte';
@@ -28,9 +29,7 @@
 			: items
 	);
 
-	$effect(() => {
-		loadMedia();
-	});
+	onMount(loadMedia);
 
 	async function loadMedia() {
 		loading = true;

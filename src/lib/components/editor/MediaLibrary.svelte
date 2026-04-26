@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { api } from '$lib/api/client';
 	import type { MediaItem, PaginatedResponse } from '$lib/api/types';
 	import { confirmDialog } from '$lib/stores/confirm.svelte';
@@ -23,9 +24,14 @@
 	let editAlt = $state('');
 	let editCaption = $state('');
 
+	// `loadMedia()` mutates several `$state` cells (items, _total, totalPages,
+	// loading) that are read elsewhere. Without `untrack`, the $effect would
+	// re-fire reactively on each mutation and crash with
+	// `effect_update_depth_exceeded`. We only want the load to happen when
+	// `open` flips to true.
 	$effect(() => {
 		if (open) {
-			loadMedia();
+			untrack(loadMedia);
 		}
 	});
 

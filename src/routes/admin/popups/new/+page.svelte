@@ -263,15 +263,15 @@
 					<div class="pb__grid2">
 						<div class="pb__field">
 							<label class="pb__label" for="style-bg-color">Background</label>
-							<div class="pb__color-row"><input id="style-bg-color" name="style-bg-color" type="color" bind:value={bg} class="pb__color" /><input id="style-bg-hex" name="style-bg-hex" type="text" bind:value={bg} class="pb__input pb__input--sm" /></div>
+							<div class="pb__color-row"><input id="style-bg-color" name="style-bg-color" type="color" bind:value={bg} class="pb__color" /><input id="style-bg-hex" name="style-bg-hex" type="text" aria-label="Background hex value" bind:value={bg} class="pb__input pb__input--sm" /></div>
 						</div>
 						<div class="pb__field">
 							<label class="pb__label" for="style-text-color">Text Color</label>
-							<div class="pb__color-row"><input id="style-text-color" name="style-text-color" type="color" bind:value={textColor} class="pb__color" /><input id="style-text-hex" name="style-text-hex" type="text" bind:value={textColor} class="pb__input pb__input--sm" /></div>
+							<div class="pb__color-row"><input id="style-text-color" name="style-text-color" type="color" bind:value={textColor} class="pb__color" /><input id="style-text-hex" name="style-text-hex" type="text" aria-label="Text color hex value" bind:value={textColor} class="pb__input pb__input--sm" /></div>
 						</div>
 						<div class="pb__field">
 							<label class="pb__label" for="style-accent-color">Accent Color</label>
-							<div class="pb__color-row"><input id="style-accent-color" name="style-accent-color" type="color" bind:value={accentColor} class="pb__color" /><input id="style-accent-hex" name="style-accent-hex" type="text" bind:value={accentColor} class="pb__input pb__input--sm" /></div>
+							<div class="pb__color-row"><input id="style-accent-color" name="style-accent-color" type="color" bind:value={accentColor} class="pb__color" /><input id="style-accent-hex" name="style-accent-hex" type="text" aria-label="Accent color hex value" bind:value={accentColor} class="pb__input pb__input--sm" /></div>
 						</div>
 						<div class="pb__field">
 							<label class="pb__label" for="style-border-radius">Border Radius</label>

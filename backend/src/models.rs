@@ -1466,18 +1466,43 @@ pub struct BulkCouponRequest {
 /// buckets (e.g. an inactive expired one); each metric is computed from its
 /// own predicate against the `coupons` / `coupon_usages` tables, so the sum
 /// of `active + expired + scheduled` is not guaranteed to equal `total`.
+///
+/// The struct carries both the audit-plan canonical names
+/// (`total_coupons`, `active_coupons`, `expired_coupons`,
+/// `redemptions_total`, `redemptions_today`) and the legacy aliases
+/// (`total`, `active`, `expired`, `redemption_count`, `active_count`,
+/// `total_usages`) so the frontend page that already binds against the
+/// legacy names keeps rendering after the Phase 4.5 rollout.
 #[derive(Debug, Serialize, ToSchema)]
 pub struct CouponStats {
-    /// Count of all rows in `coupons`.
+    // ── Audit-plan spec field names ──
+    /// Phase 4.5 spec — count of all rows in `coupons`.
+    pub total_coupons: i64,
+    /// Phase 4.5 spec — `is_active = TRUE AND (expires_at IS NULL OR expires_at > NOW())`.
+    pub active_coupons: i64,
+    /// Phase 4.5 spec — `expires_at` is non-null and in the past.
+    pub expired_coupons: i64,
+    /// Phase 4.5 spec — total redemptions across `coupon_usages` (lifetime).
+    pub redemptions_total: i64,
+    /// Phase 4.5 spec — redemptions whose `used_at >= today (UTC midnight)`.
+    pub redemptions_today: i64,
+
+    // ── Legacy aliases (kept so the existing admin page does not crash) ──
+    /// Legacy alias for `total_coupons`.
     pub total: i64,
-    /// `is_active` AND now within `[starts_at, expires_at)`.
+    /// Legacy alias for `active_coupons`.
     pub active: i64,
-    /// `expires_at` is non-null and in the past.
+    /// Legacy alias for `active_coupons` — frontend reads this name.
+    pub active_count: i64,
+    /// Legacy alias for `expired_coupons`.
     pub expired: i64,
-    /// `starts_at` is non-null and in the future.
+    /// `starts_at` is non-null and in the future. Carried for the legacy
+    /// renderer; not required by the audit-plan spec.
     pub scheduled: i64,
-    /// Count of all rows in `coupon_usages`.
+    /// Legacy alias for `redemptions_total`.
     pub redemption_count: i64,
+    /// Legacy alias for `redemptions_total` — frontend reads this name.
+    pub total_usages: i64,
     /// Sum of `coupon_usages.discount_applied_cents` across every redemption.
     pub total_discount_cents: i64,
 }

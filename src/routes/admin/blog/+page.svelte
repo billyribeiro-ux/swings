@@ -315,6 +315,7 @@
 				type="search"
 				class="blog-admin__search-input"
 				placeholder="Search posts…"
+				aria-label="Search posts"
 				oninput={handleSearch}
 			/>
 		</div>
@@ -530,13 +531,24 @@
 								<td colspan="7" class="qe-cell">
 									<div class="qe-form">
 										<div class="qe-form__fields">
-											<label class="qe-label">
+											<label class="qe-label" for={`qe-title-${post.id}`}>
 												<span class="qe-label__text">Title</span>
-												<input class="qe-input" type="text" bind:value={qeTitle} />
+												<input
+													id={`qe-title-${post.id}`}
+													name="qe-title"
+													class="qe-input"
+													type="text"
+													bind:value={qeTitle}
+												/>
 											</label>
-											<label class="qe-label">
+											<label class="qe-label" for={`qe-status-${post.id}`}>
 												<span class="qe-label__text">Status</span>
-												<select class="qe-select" bind:value={qeStatus}>
+												<select
+													id={`qe-status-${post.id}`}
+													name="qe-status"
+													class="qe-select"
+													bind:value={qeStatus}
+												>
 													<option value="draft">Draft</option>
 													<option value="pending_review">Pending Review</option>
 													<option value="published">Published</option>
@@ -545,9 +557,14 @@
 												</select>
 											</label>
 											{#if admins.length > 0}
-												<label class="qe-label">
+												<label class="qe-label" for={`qe-author-${post.id}`}>
 													<span class="qe-label__text">Author</span>
-													<select class="qe-select" bind:value={qeAuthorId}>
+													<select
+														id={`qe-author-${post.id}`}
+														name="qe-author"
+														class="qe-select"
+														bind:value={qeAuthorId}
+													>
 														{#each admins as a (a.id)}
 															<option value={a.id}>{a.name || a.email}</option>
 														{/each}

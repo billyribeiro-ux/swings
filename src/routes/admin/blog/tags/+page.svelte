@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import type { BlogTag } from '$lib/api/types';
 	import { confirmDialog } from '$lib/stores/confirm.svelte';
@@ -7,9 +8,7 @@
 	let loading = $state(true);
 	let newName = $state('');
 
-	$effect(() => {
-		loadTags();
-	});
+	onMount(loadTags);
 
 	async function loadTags() {
 		loading = true;

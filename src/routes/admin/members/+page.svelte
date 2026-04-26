@@ -965,11 +965,11 @@
 
 	.member-card__btn {
 		flex: 1;
-		min-width: 2.4rem;
+		min-width: 2.75rem;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		min-height: 2.25rem;
+		min-height: 2.75rem;
 		padding: 0.5rem;
 		border-radius: var(--radius-lg);
 		border: 1px solid transparent;

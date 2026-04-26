@@ -12,6 +12,7 @@
 	import XIcon from 'phosphor-svelte/lib/XIcon';
 	import { ApiError } from '$lib/api/client';
 	import { toast } from '$lib/stores/toast.svelte';
+	import { Drawer } from '$lib/components/shared';
 	import {
 		dsarAdmin,
 		type DsarJob,
@@ -671,23 +672,14 @@
 		</div>
 	{/if}
 
-	{#if selected}
-		<div
-			class="drawer-backdrop"
-			role="button"
-			tabindex="-1"
-			aria-label="Close inspector"
-			onclick={() => (selected = null)}
-			onkeydown={(e) => e.key === 'Escape' && (selected = null)}
-		></div>
-		<aside class="drawer" data-testid="dsar-drawer" aria-label="DSAR job detail">
-			<header class="drawer__header">
-				<h2 class="drawer__title">DSAR job</h2>
-				<button class="btn btn--secondary btn--small" onclick={() => (selected = null)}>
-					<XIcon size={14} weight="bold" />
-					<span>Close</span>
-				</button>
-			</header>
+	<Drawer
+		open={selected !== null}
+		onclose={() => (selected = null)}
+		title="DSAR job"
+		size="lg"
+	>
+		{#if selected}
+			<div data-testid="dsar-drawer">
 			<dl class="drawer__meta">
 				<dt>Id</dt><dd><code>{selected.id}</code></dd>
 				<dt>Kind</dt><dd>{selected.kind}</dd>
@@ -738,8 +730,15 @@
 					<pre class="json">{formatJson(selected.erasure_summary)}</pre>
 				</details>
 			{/if}
-		</aside>
-	{/if}
+			</div>
+		{/if}
+		{#snippet footer()}
+			<button class="btn btn--secondary" type="button" onclick={() => (selected = null)}>
+				<XIcon size={14} weight="bold" />
+				<span>Close</span>
+			</button>
+		{/snippet}
+	</Drawer>
 </div>
 
 <style>

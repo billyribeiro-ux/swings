@@ -806,10 +806,7 @@ async fn issue_email_verification(state: &AppState, user: &User) -> AppResult<()
     Ok(())
 }
 
-pub(crate) async fn generate_tokens(
-    state: &AppState,
-    user: &User,
-) -> AppResult<(String, String)> {
+pub(crate) async fn generate_tokens(state: &AppState, user: &User) -> AppResult<(String, String)> {
     let now = Utc::now();
 
     let claims = Claims {

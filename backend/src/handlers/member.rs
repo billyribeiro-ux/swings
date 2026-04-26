@@ -437,8 +437,7 @@ pub(crate) async fn delete_account(
         .await?
         .filter(|s| !s.stripe_subscription_id.is_empty())
     {
-        match stripe_api::cancel_subscription_immediately(&state, &sub.stripe_subscription_id)
-            .await
+        match stripe_api::cancel_subscription_immediately(&state, &sub.stripe_subscription_id).await
         {
             Ok(()) => true,
             Err(e) => {
@@ -491,11 +490,25 @@ pub struct ApplyCouponRequest {
     pub code: String,
 }
 
+/// Response returned by [`post_apply_coupon`].
+///
+/// Carries both the audit-plan canonical fields (`ok`, `coupon_id`,
+/// `applied_at`) and the legacy [`CouponValidationResponse`] aliases
+/// (`valid`, `message`) so the existing dashboard page at
+/// `routes/dashboard/account/+page.svelte` keeps rendering after the
+/// Phase 4.6 rollout. `valid` mirrors `ok` because every 200 response
+/// represents a successful redemption — failure paths land on 4xx with
+/// an `AppError` body instead.
 #[derive(Debug, serde::Serialize, ToSchema)]
 pub struct ApplyCouponResponse {
     pub ok: bool,
     pub coupon_id: Uuid,
     pub applied_at: chrono::DateTime<Utc>,
+    /// Legacy alias for `ok` — frontend compatibility with the
+    /// pre-existing `CouponValidationResponse` shape.
+    pub valid: bool,
+    /// Human-readable success message; surfaced verbatim by the SPA.
+    pub message: String,
 }
 
 #[utoipa::path(
@@ -631,9 +644,17 @@ pub(crate) async fn post_apply_coupon(
     )
     .await;
 
+    let message = if stripe_applied {
+        format!("Coupon {} applied to your subscription.", coupon.code)
+    } else {
+        format!("Coupon {} redeemed.", coupon.code)
+    };
+
     Ok(Json(ApplyCouponResponse {
         ok: true,
         coupon_id: coupon.id,
         applied_at: usage.used_at,
+        valid: true,
+        message,
     }))
 }

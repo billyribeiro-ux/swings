@@ -221,35 +221,35 @@
 		<div class="plan-card plan-card--form">
 			<h3 class="plan-card__form-title">New Plan</h3>
 			<div class="plan-card__fields">
-				<label class="field">
+				<label class="field" for="new-plan-name">
 					<span class="field__label">Name</span>
-					<input type="text" class="field__input" bind:value={newPlan.name} placeholder="e.g. Pro Monthly" />
+					<input id="new-plan-name" name="plan-name" type="text" class="field__input" bind:value={newPlan.name} placeholder="e.g. Pro Monthly" />
 				</label>
 				<div class="field-row">
-					<label class="field field--half">
+					<label class="field field--half" for="new-plan-amount">
 						<span class="field__label">Price ($)</span>
-						<input type="text" class="field__input" bind:value={newPlan.amount_dollars} placeholder="49.00" />
+						<input id="new-plan-amount" name="plan-amount" type="text" class="field__input" bind:value={newPlan.amount_dollars} placeholder="49.00" />
 					</label>
-					<label class="field field--half">
+					<label class="field field--half" for="new-plan-interval">
 						<span class="field__label">Interval</span>
-						<select class="field__input" bind:value={newPlan.interval}>
+						<select id="new-plan-interval" name="plan-interval" class="field__input" bind:value={newPlan.interval}>
 							<option value="month">Monthly</option>
 							<option value="year">Yearly</option>
 						</select>
 					</label>
 				</div>
-				<label class="field">
+				<label class="field" for="new-plan-features">
 					<span class="field__label">Features (one per line)</span>
-					<textarea class="field__textarea" bind:value={newPlan.features} rows="4" placeholder="Feature one&#10;Feature two"></textarea>
+					<textarea id="new-plan-features" name="plan-features" class="field__textarea" bind:value={newPlan.features} rows="4" placeholder="Feature one&#10;Feature two"></textarea>
 				</label>
 				<div class="field-row">
-					<label class="field field--half">
+					<label class="field field--half" for="new-plan-trial-days">
 						<span class="field__label">Trial Days</span>
-						<input type="number" class="field__input" bind:value={newPlan.trial_days} />
+						<input id="new-plan-trial-days" name="plan-trial-days" type="number" class="field__input" bind:value={newPlan.trial_days} />
 					</label>
-					<label class="field field--half">
+					<label class="field field--half" for="new-plan-stripe-price">
 						<span class="field__label">Stripe Price ID</span>
-						<input type="text" class="field__input" bind:value={newPlan.stripe_price_id} placeholder="price_..." />
+						<input id="new-plan-stripe-price" name="plan-stripe-price-id" type="text" class="field__input" bind:value={newPlan.stripe_price_id} placeholder="price_..." />
 					</label>
 				</div>
 			</div>
@@ -282,40 +282,40 @@
 				<div class="plan-card" class:plan-card--popular={plan.is_popular} class:plan-card--inactive={!plan.is_active}>
 					{#if editingId === plan.id}
 						<div class="plan-card__fields">
-							<label class="field">
+							<label class="field" for={`edit-plan-name-${plan.id}`}>
 								<span class="field__label">Name</span>
-								<input type="text" class="field__input" bind:value={editDraft.name} />
+								<input id={`edit-plan-name-${plan.id}`} name="plan-name" type="text" class="field__input" bind:value={editDraft.name} />
 							</label>
 							<div class="field-row">
-								<label class="field field--half">
+								<label class="field field--half" for={`edit-plan-amount-${plan.id}`}>
 									<span class="field__label">Price ($)</span>
-									<input type="text" class="field__input" bind:value={editDraft.amount_dollars} />
+									<input id={`edit-plan-amount-${plan.id}`} name="plan-amount" type="text" class="field__input" bind:value={editDraft.amount_dollars} />
 								</label>
-								<label class="field field--half">
+								<label class="field field--half" for={`edit-plan-interval-${plan.id}`}>
 									<span class="field__label">Interval</span>
-									<select class="field__input" bind:value={editDraft.interval}>
+									<select id={`edit-plan-interval-${plan.id}`} name="plan-interval" class="field__input" bind:value={editDraft.interval}>
 										<option value="month">Monthly</option>
 										<option value="year">Yearly</option>
 									</select>
 								</label>
 							</div>
-							<label class="field">
+							<label class="field" for={`edit-plan-features-${plan.id}`}>
 								<span class="field__label">Features (one per line)</span>
-								<textarea class="field__textarea" bind:value={editDraft.features} rows="4"></textarea>
+								<textarea id={`edit-plan-features-${plan.id}`} name="plan-features" class="field__textarea" bind:value={editDraft.features} rows="4"></textarea>
 							</label>
 							<div class="field-row">
-								<label class="field field--half">
+								<label class="field field--half" for={`edit-plan-trial-days-${plan.id}`}>
 									<span class="field__label">Trial Days</span>
-									<input type="number" class="field__input" bind:value={editDraft.trial_days} />
+									<input id={`edit-plan-trial-days-${plan.id}`} name="plan-trial-days" type="number" class="field__input" bind:value={editDraft.trial_days} />
 								</label>
-								<label class="field field--half">
+								<label class="field field--half" for={`edit-plan-stripe-price-${plan.id}`}>
 									<span class="field__label">Stripe Price ID</span>
-									<input type="text" class="field__input" bind:value={editDraft.stripe_price_id} />
+									<input id={`edit-plan-stripe-price-${plan.id}`} name="plan-stripe-price-id" type="text" class="field__input" bind:value={editDraft.stripe_price_id} />
 								</label>
 							</div>
 							<div class="rollout-panel">
-								<label class="rollout-panel__toggle">
-									<input type="checkbox" bind:checked={editDraft.push_to_stripe_subscribers} />
+								<label class="rollout-panel__toggle" for={`edit-plan-push-stripe-${plan.id}`}>
+									<input id={`edit-plan-push-stripe-${plan.id}`} name="plan-push-stripe" type="checkbox" bind:checked={editDraft.push_to_stripe_subscribers} />
 									<span>Also update existing Stripe subscriptions after save</span>
 								</label>
 								<p class="rollout-panel__hint">

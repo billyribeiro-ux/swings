@@ -1307,6 +1307,37 @@
         ]
       }
     },
+    "/api/admin/coupons/stats": {
+      "get": {
+        "tags": [
+          "coupons"
+        ],
+        "operationId": "admin_coupon_stats",
+        "responses": {
+          "200": {
+            "description": "Coupon dashboard aggregates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouponStats"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/admin/coupons/{id}": {
       "put": {
         "tags": [
@@ -7377,6 +7408,27 @@
         }
       }
     },
+    "/api/member/account": {
+      "delete": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "delete_account",
+        "responses": {
+          "200": {
+            "description": "Account deleted; auth cookies cleared. Cancels any active Stripe subscription before deletion."
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/member/billing-portal": {
       "post": {
         "tags": [
@@ -7409,6 +7461,53 @@
           },
           "401": {
             "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/coupons/apply": {
+      "post": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "post_apply_coupon",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyCouponRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Coupon applied to the member's active subscription",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplyCouponResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Coupon is inactive, expired, exhausted, or no active subscription"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Coupon code not found"
+          },
+          "409": {
+            "description": "Coupon already redeemed by this user"
           }
         },
         "security": [
@@ -7621,6 +7720,47 @@
           },
           "401": {
             "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/password": {
+      "post": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "post_change_password",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed and a fresh access+refresh pair issued as cookies",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangePasswordResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "New password too short or current_password missing"
+          },
+          "401": {
+            "description": "Unauthorized or current_password mismatch"
           }
         },
         "security": [
@@ -8086,6 +8226,39 @@
             "items": {
               "$ref": "#/components/schemas/AnalyticsIngestEvent"
             }
+          }
+        }
+      },
+      "ApplyCouponRequest": {
+        "type": "object",
+        "description": "Phase 4.6: apply-coupon request body for\n`POST /api/member/coupons/apply`.",
+        "required": [
+          "code"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "ApplyCouponResponse": {
+        "type": "object",
+        "required": [
+          "ok",
+          "coupon_id",
+          "applied_at"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "coupon_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "applied_at": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -9272,6 +9445,33 @@
           }
         }
       },
+      "ChangePasswordRequest": {
+        "type": "object",
+        "description": "Phase 4.6: change-password request body for `POST /api/member/password`.",
+        "required": [
+          "current_password",
+          "new_password"
+        ],
+        "properties": {
+          "current_password": {
+            "type": "string"
+          },
+          "new_password": {
+            "type": "string"
+          }
+        }
+      },
+      "ChangePasswordResponse": {
+        "type": "object",
+        "required": [
+          "ok"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          }
+        }
+      },
       "CompGrantRequest": {
         "type": "object",
         "required": [
@@ -9723,6 +9923,92 @@
           "category",
           "subscription"
         ]
+      },
+      "CouponStats": {
+        "type": "object",
+        "description": "Aggregate counters for the admin coupons dashboard\n(`GET /api/admin/coupons/stats`).\n\nCounts are non-overlapping in spirit but a coupon can satisfy multiple\nbuckets (e.g. an inactive expired one); each metric is computed from its\nown predicate against the `coupons` / `coupon_usages` tables, so the sum\nof `active + expired + scheduled` is not guaranteed to equal `total`.\n\nThe struct carries both the audit-plan canonical names\n(`total_coupons`, `active_coupons`, `expired_coupons`,\n`redemptions_total`, `redemptions_today`) and the legacy aliases\n(`total`, `active`, `expired`, `redemption_count`, `active_count`,\n`total_usages`) so the frontend page that already binds against the\nlegacy names keeps rendering after the Phase 4.5 rollout.",
+        "required": [
+          "total_coupons",
+          "active_coupons",
+          "expired_coupons",
+          "redemptions_total",
+          "redemptions_today",
+          "total",
+          "active",
+          "active_count",
+          "expired",
+          "scheduled",
+          "redemption_count",
+          "total_usages",
+          "total_discount_cents"
+        ],
+        "properties": {
+          "total_coupons": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Phase 4.5 spec — count of all rows in `coupons`."
+          },
+          "active_coupons": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Phase 4.5 spec — `is_active = TRUE AND (expires_at IS NULL OR expires_at > NOW())`."
+          },
+          "expired_coupons": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Phase 4.5 spec — `expires_at` is non-null and in the past."
+          },
+          "redemptions_total": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Phase 4.5 spec — total redemptions across `coupon_usages` (lifetime)."
+          },
+          "redemptions_today": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Phase 4.5 spec — redemptions whose `used_at >= today (UTC midnight)`."
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Legacy alias for `total_coupons`."
+          },
+          "active": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Legacy alias for `active_coupons`."
+          },
+          "active_count": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Legacy alias for `active_coupons` — frontend reads this name."
+          },
+          "expired": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Legacy alias for `expired_coupons`."
+          },
+          "scheduled": {
+            "type": "integer",
+            "format": "int64",
+            "description": "`starts_at` is non-null and in the future. Carried for the legacy\nrenderer; not required by the audit-plan spec."
+          },
+          "redemption_count": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Legacy alias for `redemptions_total`."
+          },
+          "total_usages": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Legacy alias for `redemptions_total` — frontend reads this name."
+          },
+          "total_discount_cents": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Sum of `coupon_usages.discount_applied_cents` across every redemption."
+          }
+        }
       },
       "CouponValidationResponse": {
         "type": "object",

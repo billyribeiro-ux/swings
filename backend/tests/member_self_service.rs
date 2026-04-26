@@ -158,7 +158,9 @@ async fn password_change_succeeds_with_correct_current_password() {
         "expected swings_access Set-Cookie, got {cookie_lines:?}"
     );
     assert!(
-        cookie_lines.iter().any(|l| l.starts_with("swings_refresh=")),
+        cookie_lines
+            .iter()
+            .any(|l| l.starts_with("swings_refresh=")),
         "expected swings_refresh Set-Cookie, got {cookie_lines:?}"
     );
 
@@ -444,17 +446,7 @@ async fn coupon_apply_400s_for_inactive_coupon() {
     let user = app.seed_user().await.expect("seed");
     seed_local_subscription(app.db(), user.id).await;
 
-    seed_coupon(
-        app.db(),
-        "INACTIVE10",
-        false,
-        None,
-        None,
-        1,
-        None,
-        user.id,
-    )
-    .await;
+    seed_coupon(app.db(), "INACTIVE10", false, None, None, 1, None, user.id).await;
 
     let resp = app
         .post_json(
@@ -474,8 +466,7 @@ async fn coupon_apply_succeeds_for_valid_coupon() {
     let user = app.seed_user().await.expect("seed");
     seed_local_subscription(app.db(), user.id).await;
 
-    let coupon_id =
-        seed_coupon(app.db(), "WELCOME10", true, None, None, 1, None, user.id).await;
+    let coupon_id = seed_coupon(app.db(), "WELCOME10", true, None, None, 1, None, user.id).await;
 
     let resp = app
         .post_json(
@@ -500,12 +491,11 @@ async fn coupon_apply_succeeds_for_valid_coupon() {
     .await
     .expect("count usages");
     assert_eq!(usages, 1);
-    let count_on_coupon: i32 =
-        sqlx::query_scalar("SELECT usage_count FROM coupons WHERE id = $1")
-            .bind(coupon_id)
-            .fetch_one(app.db())
-            .await
-            .expect("read usage_count");
+    let count_on_coupon: i32 = sqlx::query_scalar("SELECT usage_count FROM coupons WHERE id = $1")
+        .bind(coupon_id)
+        .fetch_one(app.db())
+        .await
+        .expect("read usage_count");
     assert_eq!(count_on_coupon, 1);
 }
 
@@ -544,11 +534,7 @@ async fn coupon_apply_anonymous_returns_401() {
         return;
     };
     let resp = app
-        .post_json(
-            "/api/member/coupons/apply",
-            &json!({ "code": "ANY" }),
-            None,
-        )
+        .post_json("/api/member/coupons/apply", &json!({ "code": "ANY" }), None)
         .await;
     resp.assert_status(StatusCode::UNAUTHORIZED);
 }

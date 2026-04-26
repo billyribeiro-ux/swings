@@ -362,6 +362,22 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/coupons/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["admin_coupon_stats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/coupons/{id}": {
         parameters: {
             query?: never;
@@ -2252,6 +2268,22 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/member/account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["delete_account"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/member/billing-portal": {
         parameters: {
             query?: never;
@@ -2262,6 +2294,22 @@ export type paths = {
         get?: never;
         put?: never;
         post: operations["post_billing_portal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/member/coupons/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["post_apply_coupon"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2326,6 +2374,22 @@ export type paths = {
         get: operations["get_member_preferences"];
         put: operations["update_member_preferences"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/member/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["post_change_password"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2535,6 +2599,20 @@ export type components = {
             /** Format: uuid */
             session_id: string;
             events: components["schemas"]["AnalyticsIngestEvent"][];
+        };
+        /**
+         * @description Phase 4.6: apply-coupon request body for
+         *     `POST /api/member/coupons/apply`.
+         */
+        ApplyCouponRequest: {
+            code: string;
+        };
+        ApplyCouponResponse: {
+            ok: boolean;
+            /** Format: uuid */
+            coupon_id: string;
+            /** Format: date-time */
+            applied_at: string;
         };
         AuditListEnvelope: {
             data: components["schemas"]["AuditRow"][];
@@ -2889,6 +2967,14 @@ export type components = {
         CancelBody: {
             reason?: string | null;
         };
+        /** @description Phase 4.6: change-password request body for `POST /api/member/password`. */
+        ChangePasswordRequest: {
+            current_password: string;
+            new_password: string;
+        };
+        ChangePasswordResponse: {
+            ok: boolean;
+        };
         CompGrantRequest: {
             /**
              * Format: uuid
@@ -3071,6 +3157,90 @@ export type components = {
          * @enum {string}
          */
         CouponScope: "cart" | "product" | "category" | "subscription";
+        /**
+         * @description Aggregate counters for the admin coupons dashboard
+         *     (`GET /api/admin/coupons/stats`).
+         *
+         *     Counts are non-overlapping in spirit but a coupon can satisfy multiple
+         *     buckets (e.g. an inactive expired one); each metric is computed from its
+         *     own predicate against the `coupons` / `coupon_usages` tables, so the sum
+         *     of `active + expired + scheduled` is not guaranteed to equal `total`.
+         *
+         *     The struct carries both the audit-plan canonical names
+         *     (`total_coupons`, `active_coupons`, `expired_coupons`,
+         *     `redemptions_total`, `redemptions_today`) and the legacy aliases
+         *     (`total`, `active`, `expired`, `redemption_count`, `active_count`,
+         *     `total_usages`) so the frontend page that already binds against the
+         *     legacy names keeps rendering after the Phase 4.5 rollout.
+         */
+        CouponStats: {
+            /**
+             * Format: int64
+             * @description Phase 4.5 spec — count of all rows in `coupons`.
+             */
+            total_coupons: number;
+            /**
+             * Format: int64
+             * @description Phase 4.5 spec — `is_active = TRUE AND (expires_at IS NULL OR expires_at > NOW())`.
+             */
+            active_coupons: number;
+            /**
+             * Format: int64
+             * @description Phase 4.5 spec — `expires_at` is non-null and in the past.
+             */
+            expired_coupons: number;
+            /**
+             * Format: int64
+             * @description Phase 4.5 spec — total redemptions across `coupon_usages` (lifetime).
+             */
+            redemptions_total: number;
+            /**
+             * Format: int64
+             * @description Phase 4.5 spec — redemptions whose `used_at >= today (UTC midnight)`.
+             */
+            redemptions_today: number;
+            /**
+             * Format: int64
+             * @description Legacy alias for `total_coupons`.
+             */
+            total: number;
+            /**
+             * Format: int64
+             * @description Legacy alias for `active_coupons`.
+             */
+            active: number;
+            /**
+             * Format: int64
+             * @description Legacy alias for `active_coupons` — frontend reads this name.
+             */
+            active_count: number;
+            /**
+             * Format: int64
+             * @description Legacy alias for `expired_coupons`.
+             */
+            expired: number;
+            /**
+             * Format: int64
+             * @description `starts_at` is non-null and in the future. Carried for the legacy
+             *     renderer; not required by the audit-plan spec.
+             */
+            scheduled: number;
+            /**
+             * Format: int64
+             * @description Legacy alias for `redemptions_total`.
+             */
+            redemption_count: number;
+            /**
+             * Format: int64
+             * @description Legacy alias for `redemptions_total` — frontend reads this name.
+             */
+            total_usages: number;
+            /**
+             * Format: int64
+             * @description Sum of `coupon_usages.discount_applied_cents` across every redemption.
+             */
+            total_discount_cents: number;
+        };
         CouponValidationResponse: {
             valid: boolean;
             coupon?: null | components["schemas"]["Coupon"];
@@ -6526,6 +6696,40 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Coupon"][];
                 };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    admin_coupon_stats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Coupon dashboard aggregates */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CouponStats"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Forbidden */
             403: {
@@ -11748,6 +11952,31 @@ export interface operations {
             };
         };
     };
+    delete_account: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Account deleted; auth cookies cleared. Cancels any active Stripe subscription before deletion. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     post_billing_portal: {
         parameters: {
             query?: never;
@@ -11779,6 +12008,58 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    post_apply_coupon: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplyCouponRequest"];
+            };
+        };
+        responses: {
+            /** @description Coupon applied to the member's active subscription */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplyCouponResponse"];
+                };
+            };
+            /** @description Coupon is inactive, expired, exhausted, or no active subscription */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Coupon code not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Coupon already redeemed by this user */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -11955,6 +12236,44 @@ export interface operations {
                 content?: never;
             };
             /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    post_change_password: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangePasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Password changed and a fresh access+refresh pair issued as cookies */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangePasswordResponse"];
+                };
+            };
+            /** @description New password too short or current_password missing */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized or current_password mismatch */
             401: {
                 headers: {
                     [name: string]: unknown;

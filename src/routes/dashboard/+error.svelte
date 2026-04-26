@@ -9,7 +9,18 @@
 	import SignInIcon from 'phosphor-svelte/lib/SignInIcon';
 
 	const status = $derived(page.status);
-	const message = $derived(page.error?.message ?? 'Something went wrong.');
+	// Strip multi-line stack traces / leaked file paths so the visible message
+	// stays a single sanitised sentence. Server-side errors sometimes carry
+	// `Error: foo\n    at fn (file:line:col)` shaped strings — only the first
+	// non-empty line is user-friendly.
+	function sanitizeMessage(raw: string | undefined): string {
+		if (!raw) return 'Something went wrong.';
+		const firstLine = raw.split(/\r?\n/).find((line) => line.trim().length > 0)?.trim();
+		if (!firstLine) return 'Something went wrong.';
+		// Trim a trailing stack-frame fragment like " (at fn (...))" if present.
+		return firstLine.replace(/\s+at\s+.*$/i, '').slice(0, 240);
+	}
+	const message = $derived(sanitizeMessage(page.error?.message));
 
 	const title = $derived(
 		status === 404

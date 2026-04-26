@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { api } from '$lib/api/client';
 	import type { BlogPostResponse, CreatePostPayload, UpdatePostPayload } from '$lib/api/types';
@@ -10,9 +11,7 @@
 
 	const postId = $derived(page.params.id);
 
-	$effect(() => {
-		loadPost();
-	});
+	onMount(loadPost);
 
 	async function loadPost() {
 		loading = true;

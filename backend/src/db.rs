@@ -2626,8 +2626,13 @@ pub async fn analytics_totals(
 /// and sums `coupon_usages` for the global redemption + dollar-value totals.
 /// Returns zeros when no rows exist so the handler never has to special-case
 /// an empty database.
+///
+/// Phase 4.5 (audit plan §4.5) added `redemptions_today` — the count of
+/// `coupon_usages` rows whose `used_at >= today (UTC midnight)`. The query
+/// uses `date_trunc('day', NOW() AT TIME ZONE 'UTC')` cast back to UTC so
+/// the day boundary is always 00:00 UTC regardless of the server's zone.
 pub async fn coupon_stats(pool: &PgPool) -> Result<CouponStats, sqlx::Error> {
-    let row: (i64, i64, i64, i64, i64, i64) = sqlx::query_as(
+    let row: (i64, i64, i64, i64, i64, i64, i64) = sqlx::query_as(
         r#"
         SELECT
             (SELECT COUNT(*) FROM coupons)::bigint                      AS total,
@@ -2640,6 +2645,9 @@ pub async fn coupon_stats(pool: &PgPool) -> Result<CouponStats, sqlx::Error> {
             (SELECT COUNT(*) FROM coupons
                 WHERE starts_at IS NOT NULL AND starts_at > NOW())::bigint AS scheduled,
             (SELECT COUNT(*) FROM coupon_usages)::bigint                AS redemption_count,
+            (SELECT COUNT(*) FROM coupon_usages
+                WHERE used_at >= date_trunc('day', (NOW() AT TIME ZONE 'UTC'))
+                                AT TIME ZONE 'UTC')::bigint              AS redemptions_today,
             (SELECT COALESCE(SUM(discount_applied_cents), 0)
                 FROM coupon_usages)::bigint                              AS total_discount_cents
         "#,
@@ -2647,13 +2655,30 @@ pub async fn coupon_stats(pool: &PgPool) -> Result<CouponStats, sqlx::Error> {
     .fetch_one(pool)
     .await?;
 
+    let total = row.0;
+    let active = row.1;
+    let expired = row.2;
+    let scheduled = row.3;
+    let redemptions_total = row.4;
+    let redemptions_today = row.5;
+    let total_discount_cents = row.6;
+
     Ok(CouponStats {
-        total: row.0,
-        active: row.1,
-        expired: row.2,
-        scheduled: row.3,
-        redemption_count: row.4,
-        total_discount_cents: row.5,
+        // Spec field names (audit plan §4.5).
+        total_coupons: total,
+        active_coupons: active,
+        expired_coupons: expired,
+        redemptions_total,
+        redemptions_today,
+        // Legacy aliases — kept so the existing admin page does not crash.
+        total,
+        active,
+        active_count: active,
+        expired,
+        scheduled,
+        redemption_count: redemptions_total,
+        total_usages: redemptions_total,
+        total_discount_cents,
     })
 }
 

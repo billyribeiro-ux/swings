@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import type { BlogCategory } from '$lib/api/types';
 	import { confirmDialog } from '$lib/stores/confirm.svelte';
@@ -11,9 +12,7 @@
 	let editName = $state('');
 	let editDescription = $state('');
 
-	$effect(() => {
-		loadCategories();
-	});
+	onMount(loadCategories);
 
 	async function loadCategories() {
 		loading = true;

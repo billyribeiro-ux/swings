@@ -10,6 +10,7 @@
 	import XIcon from 'phosphor-svelte/lib/XIcon';
 	import { ApiError } from '$lib/api/client';
 	import { toast } from '$lib/stores/toast.svelte';
+	import { Drawer } from '$lib/components/shared';
 	import {
 		auditLog,
 		type AuditListEnvelope,
@@ -371,57 +372,51 @@
 		</div>
 	{/if}
 
-	{#if selected}
-		<div
-			class="drawer-backdrop"
-			role="button"
-			tabindex="-1"
-			aria-label="Close inspector"
-			onclick={() => (selected = null)}
-			onkeydown={(e) => e.key === 'Escape' && (selected = null)}
-		></div>
-		<aside class="drawer" data-testid="audit-drawer" aria-label="Audit row detail">
-			<header class="drawer__header">
-				<h2 class="drawer__title">Audit entry</h2>
-				<button
-					class="btn btn--secondary btn--small"
-					onclick={() => (selected = null)}
-					aria-label="Close"
-				>
-					<XIcon size={14} weight="bold" />
-					<span>Close</span>
-				</button>
-			</header>
-			<dl class="drawer__meta">
-				<dt>Action</dt>
-				<dd><code>{selected.action}</code></dd>
-				<dt>When</dt>
-				<dd>{new Date(selected.created_at).toLocaleString()}</dd>
-				<dt>Actor</dt>
-				<dd>
-					<code>{selected.actor_id}</code>
-					<span class="pill pill--neutral">{selected.actor_role}</span>
-				</dd>
-				<dt>Target</dt>
-				<dd>
-					<code>{selected.target_kind}</code>
-					{#if selected.target_id}
-						· <code>{selected.target_id}</code>
-					{/if}
-				</dd>
-				<dt>IP</dt>
-				<dd><code>{selected.ip_address ?? '—'}</code></dd>
-				<dt>User agent</dt>
-				<dd>{selected.user_agent ?? '—'}</dd>
-				<dt>Entry id</dt>
-				<dd><code>{selected.id}</code></dd>
-			</dl>
-			<details open>
-				<summary>Metadata</summary>
-				<pre class="drawer__json">{formatJson(selected.metadata)}</pre>
-			</details>
-		</aside>
-	{/if}
+	<Drawer
+		open={selected !== null}
+		onclose={() => (selected = null)}
+		title="Audit entry"
+		size="lg"
+	>
+		{#if selected}
+			<div data-testid="audit-drawer">
+				<dl class="drawer__meta">
+					<dt>Action</dt>
+					<dd><code>{selected.action}</code></dd>
+					<dt>When</dt>
+					<dd>{new Date(selected.created_at).toLocaleString()}</dd>
+					<dt>Actor</dt>
+					<dd>
+						<code>{selected.actor_id}</code>
+						<span class="pill pill--neutral">{selected.actor_role}</span>
+					</dd>
+					<dt>Target</dt>
+					<dd>
+						<code>{selected.target_kind}</code>
+						{#if selected.target_id}
+							· <code>{selected.target_id}</code>
+						{/if}
+					</dd>
+					<dt>IP</dt>
+					<dd><code>{selected.ip_address ?? '—'}</code></dd>
+					<dt>User agent</dt>
+					<dd>{selected.user_agent ?? '—'}</dd>
+					<dt>Entry id</dt>
+					<dd><code>{selected.id}</code></dd>
+				</dl>
+				<details open>
+					<summary>Metadata</summary>
+					<pre class="drawer__json">{formatJson(selected.metadata)}</pre>
+				</details>
+			</div>
+		{/if}
+		{#snippet footer()}
+			<button class="btn btn--secondary" type="button" onclick={() => (selected = null)}>
+				<XIcon size={14} weight="bold" />
+				<span>Close</span>
+			</button>
+		{/snippet}
+	</Drawer>
 </div>
 
 <style>
@@ -763,39 +758,6 @@
 		font-variant-numeric: tabular-nums;
 	}
 
-	.drawer-backdrop {
-		position: fixed;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.55);
-		z-index: 60;
-	}
-	.drawer {
-		position: fixed;
-		top: 0;
-		right: 0;
-		bottom: 0;
-		width: min(560px, 92vw);
-		background: var(--color-navy);
-		border-left: 1px solid rgba(255, 255, 255, 0.08);
-		padding: 1.5rem;
-		overflow-y: auto;
-		z-index: 70;
-		box-shadow: -8px 0 24px rgba(0, 0, 0, 0.3);
-	}
-	.drawer__header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 1rem;
-	}
-	.drawer__title {
-		font-family: var(--font-heading);
-		font-size: 1rem;
-		font-weight: 600;
-		color: var(--color-white);
-		margin: 0;
-		letter-spacing: -0.01em;
-	}
 	.drawer__meta {
 		display: grid;
 		grid-template-columns: 7rem 1fr;

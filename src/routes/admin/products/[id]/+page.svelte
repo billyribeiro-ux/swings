@@ -5,6 +5,7 @@
   PE7 primitives only (Button, FormField); no Tailwind, no Lucide.
 -->
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { Button, FormField } from '$lib/components/shared';
@@ -91,11 +92,11 @@
 		}
 	}
 
-	$effect(() => {
-		if (productId) {
-			load();
-		}
-	});
+	// One-shot load on mount. `productId` is a route param resolved at mount,
+	// so we don't need a reactive `$effect` (which previously risked
+	// `effect_update_depth_exceeded` because `load()` mutates `detail`,
+	// which is read elsewhere in the component).
+	onMount(load);
 
 	async function save(e: SubmitEvent) {
 		e.preventDefault();
@@ -470,13 +471,30 @@
 
 			<h3>Add variant</h3>
 			<div class="pr-sub-form">
-				<input type="text" placeholder="SKU" bind:value={vSku} />
-				<input type="text" placeholder="Name" bind:value={vName} />
 				<input
+					id="v-sku"
+					name="variant-sku"
+					type="text"
+					placeholder="SKU"
+					aria-label="Variant SKU"
+					bind:value={vSku}
+				/>
+				<input
+					id="v-name"
+					name="variant-name"
+					type="text"
+					placeholder="Name"
+					aria-label="Variant name"
+					bind:value={vName}
+				/>
+				<input
+					id="v-price"
+					name="variant-price"
 					type="number"
 					step="0.01"
 					min="0"
 					placeholder="Price override"
+					aria-label="Variant price override"
 					bind:value={vPriceDollars}
 				/>
 				<Button variant="secondary" onclick={addVariant}>Add</Button>
@@ -531,12 +549,53 @@
 				metadata.
 			</p>
 			<div class="pr-sub-form pr-sub-form--asset">
-				<input type="text" placeholder="R2 storage key" bind:value={aStorageKey} />
-				<input type="text" placeholder="Filename" bind:value={aFilename} />
-				<input type="text" placeholder="MIME type" bind:value={aMime} />
-				<input type="number" min="0" placeholder="Size (bytes)" bind:value={aSize} />
-				<input type="text" placeholder="SHA-256" bind:value={aSha256} />
-				<select bind:value={aAccess}>
+				<input
+					id="a-storage-key"
+					name="asset-storage-key"
+					type="text"
+					placeholder="R2 storage key"
+					aria-label="Asset R2 storage key"
+					bind:value={aStorageKey}
+				/>
+				<input
+					id="a-filename"
+					name="asset-filename"
+					type="text"
+					placeholder="Filename"
+					aria-label="Asset filename"
+					bind:value={aFilename}
+				/>
+				<input
+					id="a-mime"
+					name="asset-mime-type"
+					type="text"
+					placeholder="MIME type"
+					aria-label="Asset MIME type"
+					bind:value={aMime}
+				/>
+				<input
+					id="a-size"
+					name="asset-size-bytes"
+					type="number"
+					min="0"
+					placeholder="Size (bytes)"
+					aria-label="Asset size in bytes"
+					bind:value={aSize}
+				/>
+				<input
+					id="a-sha256"
+					name="asset-sha256"
+					type="text"
+					placeholder="SHA-256"
+					aria-label="Asset SHA-256 checksum"
+					bind:value={aSha256}
+				/>
+				<select
+					id="a-access"
+					name="asset-access-policy"
+					aria-label="Asset access policy"
+					bind:value={aAccess}
+				>
 					<option value="purchase_required">Purchase required</option>
 					<option value="member_tier">Member tier</option>
 					<option value="public">Public</option>
@@ -568,6 +627,7 @@
 										<input
 											type="text"
 											class="pr-sub-input"
+											aria-label={`Row ${idx + 1} child product id`}
 											bind:value={item.child_product_id}
 										/>
 									</td>
@@ -575,6 +635,7 @@
 										<input
 											type="text"
 											class="pr-sub-input"
+											aria-label={`Row ${idx + 1} child variant id`}
 											value={item.child_variant_id ?? ''}
 											oninput={(e) => {
 												const v = (e.target as HTMLInputElement).value.trim();
@@ -587,6 +648,7 @@
 											type="number"
 											class="pr-sub-input pr-sub-input--num"
 											min="1"
+											aria-label={`Row ${idx + 1} quantity`}
 											bind:value={item.quantity}
 										/>
 									</td>
@@ -595,6 +657,7 @@
 											type="number"
 											class="pr-sub-input pr-sub-input--num"
 											min="0"
+											aria-label={`Row ${idx + 1} position`}
 											bind:value={item.position}
 										/>
 									</td>
