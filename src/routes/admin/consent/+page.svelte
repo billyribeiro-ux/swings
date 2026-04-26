@@ -173,7 +173,7 @@
 		margin: 0;
 		font-family: var(--font-heading);
 		font-size: 1rem;
-		font-weight: 700;
+		font-weight: 600;
 		color: var(--color-white);
 	}
 	.consent-card__desc {

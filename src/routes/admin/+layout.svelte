@@ -799,7 +799,7 @@
 		background: linear-gradient(135deg, var(--color-teal), var(--color-teal-dark));
 		color: var(--color-white);
 		font-size: 0.75rem;
-		font-weight: var(--w-bold);
+		font-weight: 700;
 		letter-spacing: -0.02em;
 		box-shadow:
 			0 1px 0 rgba(255, 255, 255, 0.12) inset,
@@ -811,7 +811,7 @@
 		flex-direction: column;
 		min-width: 0;
 		font-size: 0.875rem;
-		font-weight: var(--w-bold);
+		font-weight: 700;
 		line-height: 1.1;
 		letter-spacing: -0.01em;
 	}
@@ -832,7 +832,7 @@
 
 	.admin__logo .admin__logo-accent {
 		font-size: 0.625rem;
-		font-weight: var(--w-bold);
+		font-weight: 700;
 		color: var(--color-teal-light);
 		text-transform: uppercase;
 		letter-spacing: 0.1em;
@@ -844,7 +844,7 @@
 
 	.admin__badge {
 		font-size: 0.625rem;
-		font-weight: var(--w-bold);
+		font-weight: 700;
 		color: #f59e0b;
 		background-color: rgba(245, 158, 11, 0.12);
 		padding: 0.125rem 0.4rem;

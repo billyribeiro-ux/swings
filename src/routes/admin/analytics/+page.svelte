@@ -816,7 +816,7 @@
 	}
 	.ap-table__path {
 		color: var(--color-teal);
-		font-weight: var(--w-medium);
+		font-weight: 500;
 		word-break: break-all;
 	}
 	.ap-table__num {

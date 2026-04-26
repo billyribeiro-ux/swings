@@ -534,7 +534,7 @@
 
 	.kpi__unit {
 		font-size: 0.55em;
-		font-weight: var(--w-semibold);
+		font-weight: 600;
 		color: var(--color-grey-400);
 		margin-left: 0.15em;
 		letter-spacing: 0;
@@ -544,7 +544,7 @@
 		display: inline-block;
 		margin: 0 0.25rem;
 		color: var(--color-grey-600);
-		font-weight: var(--w-medium);
+		font-weight: 500;
 	}
 
 	.kpi__hint {
