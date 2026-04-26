@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import type {
@@ -7,6 +8,13 @@
 		PostStatus,
 		UserResponse
 	} from '$lib/api/types';
+	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
+	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
+	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
+	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
+	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
+	import ArticleIcon from 'phosphor-svelte/lib/ArticleIcon';
+	import XIcon from 'phosphor-svelte/lib/XIcon';
 
 	let posts: BlogPostListItem[] = $state([]);
 	let total = $state(0);
@@ -62,9 +70,7 @@
 	}
 	let searchTimeout: ReturnType<typeof setTimeout>;
 
-	$effect(() => {
-		loadPosts();
-	});
+	onMount(loadPosts);
 
 	async function loadPosts() {
 		loading = true;
@@ -161,6 +167,15 @@
 		});
 	}
 
+	const STATUS_TABS: { value: PostStatus | ''; label: string }[] = [
+		{ value: '', label: 'All' },
+		{ value: 'published', label: 'Published' },
+		{ value: 'draft', label: 'Drafts' },
+		{ value: 'pending_review', label: 'Pending' },
+		{ value: 'scheduled', label: 'Scheduled' },
+		{ value: 'trash', label: 'Trash' }
+	];
+
 	// Quick Edit
 	let qePostId: string | null = $state(null);
 	let qeTitle = $state('');
@@ -215,49 +230,59 @@
 </svelte:head>
 
 <div class="blog-admin">
-	<div class="blog-admin__header">
-		<h1>Blog Posts</h1>
-		<a href={resolve('/admin/blog/new')} class="btn-primary">+ New Post</a>
-	</div>
+	<header class="blog-admin__page-header">
+		<div class="blog-admin__heading">
+			<span class="blog-admin__eyebrow">Content</span>
+			<h1 class="blog-admin__title">Blog Posts</h1>
+			<p class="blog-admin__subtitle">
+				Author, schedule, and manage every post that appears on the public blog.
+			</p>
+		</div>
+		<a href={resolve('/admin/blog/new')} class="blog-admin__cta">
+			<PlusIcon size={16} weight="bold" />
+			<span>New post</span>
+		</a>
+	</header>
 
 	<!-- Filters -->
-	<div class="blog-admin__filters">
-		<div class="blog-admin__status-tabs">
-			<button class:active={statusFilter === ''} onclick={() => changeStatus('')}>All</button>
-			<button class:active={statusFilter === 'published'} onclick={() => changeStatus('published')}
-				>Published</button
-			>
-			<button class:active={statusFilter === 'draft'} onclick={() => changeStatus('draft')}
-				>Drafts</button
-			>
-			<button
-				class:active={statusFilter === 'pending_review'}
-				onclick={() => changeStatus('pending_review')}>Pending</button
-			>
-			<button class:active={statusFilter === 'scheduled'} onclick={() => changeStatus('scheduled')}
-				>Scheduled</button
-			>
-			<button class:active={statusFilter === 'trash'} onclick={() => changeStatus('trash')}
-				>Trash</button
-			>
+	<div class="blog-admin__toolbar">
+		<div class="blog-admin__tabs" role="tablist" aria-label="Filter by status">
+			{#each STATUS_TABS as tab (tab.value)}
+				<button
+					class="blog-admin__tab"
+					class:blog-admin__tab--active={statusFilter === tab.value}
+					onclick={() => changeStatus(tab.value)}
+					role="tab"
+					aria-selected={statusFilter === tab.value}
+				>
+					{tab.label}
+				</button>
+			{/each}
 		</div>
 
-		<input
-			id="post-search"
-			name="search"
-			type="search"
-			class="blog-admin__search"
-			placeholder="Search posts..."
-			oninput={handleSearch}
-		/>
+		<div class="blog-admin__search">
+			<MagnifyingGlassIcon size={16} weight="bold" class="blog-admin__search-icon" />
+			<input
+				id="post-search"
+				name="search"
+				type="search"
+				class="blog-admin__search-input"
+				placeholder="Search posts…"
+				oninput={handleSearch}
+			/>
+		</div>
 	</div>
 
 	<!-- Bulk action bar -->
 	{#if selectedIds.length > 0}
 		<div class="bulk-bar">
 			<span class="bulk-bar__count">{selectedIds.length} selected</span>
-			<select class="bulk-bar__select" bind:value={bulkActionValue}>
-				<option value="">Bulk Actions…</option>
+			<select
+				class="bulk-bar__select"
+				bind:value={bulkActionValue}
+				aria-label="Bulk action"
+			>
+				<option value="">Bulk actions…</option>
 				<option value="publish">Publish</option>
 				<option value="draft">Set to Draft</option>
 				<option value="trash">Move to Trash</option>
@@ -266,15 +291,39 @@
 			<button class="bulk-bar__apply" onclick={executeBulkAction} disabled={!bulkActionValue}>
 				Apply
 			</button>
-			<button class="bulk-bar__clear" onclick={() => (selectedIds = [])}>✕</button>
+			<button
+				class="bulk-bar__clear"
+				onclick={() => (selectedIds = [])}
+				aria-label="Clear selection"
+			>
+				<XIcon size={14} weight="bold" />
+			</button>
 		</div>
 	{/if}
 
 	<!-- Posts table -->
 	{#if loading}
-		<div class="blog-admin__loading">Loading...</div>
+		<div class="blog-admin__skeleton" aria-hidden="true">
+			{#each Array(5) as _, i (i)}
+				<div class="blog-admin__skeleton-row"></div>
+			{/each}
+		</div>
 	{:else if posts.length === 0}
-		<div class="blog-admin__empty">No posts found.</div>
+		<div class="blog-admin__empty">
+			<ArticleIcon size={48} weight="duotone" color="var(--color-grey-500)" />
+			<p class="blog-admin__empty-title">No posts found</p>
+			<p class="blog-admin__empty-body">
+				{search || statusFilter
+					? 'Try adjusting your search or filters.'
+					: 'Get started by creating your first post.'}
+			</p>
+			{#if !search && !statusFilter}
+				<a href={resolve('/admin/blog/new')} class="blog-admin__cta blog-admin__cta--empty">
+					<PlusIcon size={16} weight="bold" />
+					<span>New post</span>
+				</a>
+			{/if}
+		</div>
 	{:else}
 		<!-- Mobile: Card view -->
 		<div class="blog-admin__cards">
@@ -317,20 +366,27 @@
 						{post.word_count} words · {post.reading_time_minutes} min read
 					</div>
 					<div class="post-card__actions">
-						<a href={resolve(`/admin/blog/${post.id}`)} class="post-card__btn post-card__btn--edit">Edit</a>
+						<a href={resolve(`/admin/blog/${post.id}`)} class="post-card__btn post-card__btn--edit">
+							<PencilSimpleIcon size={14} weight="bold" />
+							<span>Edit</span>
+						</a>
 						{#if post.status === 'trash'}
-							<button class="post-card__btn post-card__btn--edit" onclick={() => restorePost(post.id)}
-								>Restore</button
-							>
+							<button class="post-card__btn post-card__btn--edit" onclick={() => restorePost(post.id)}>
+								<span>Restore</span>
+							</button>
 							<button
 								class="post-card__btn post-card__btn--delete"
-								onclick={() => hardDelete(post.id)}>Delete permanently</button
+								onclick={() => hardDelete(post.id)}
 							>
+								<span>Delete</span>
+							</button>
 						{:else}
 							<button
 								class="post-card__btn post-card__btn--delete"
-								onclick={() => deletePost(post.id)}>Move to trash</button
+								onclick={() => deletePost(post.id)}
 							>
+								<span>Trash</span>
+							</button>
 						{/if}
 					</div>
 				</div>
@@ -342,14 +398,19 @@
 				<thead>
 					<tr>
 						<th class="th-check">
-							<input type="checkbox" checked={allSelected} onchange={toggleSelectAll} />
+							<input
+								type="checkbox"
+								checked={allSelected}
+								onchange={toggleSelectAll}
+								aria-label="Select all posts"
+							/>
 						</th>
 						<th>Title</th>
 						<th>Author</th>
 						<th>Categories</th>
 						<th>Status</th>
 						<th>Date</th>
-						<th>Actions</th>
+						<th class="th-actions">Actions</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -360,6 +421,7 @@
 									type="checkbox"
 									checked={selectedIds.includes(post.id)}
 									onchange={() => toggleSelect(post.id)}
+									aria-label="Select post"
 								/>
 							</td>
 							<td>
@@ -395,18 +457,24 @@
 									class="action-btn"
 									class:action-btn--active={qePostId === post.id}
 									onclick={() => (qePostId === post.id ? closeQuickEdit() : openQuickEdit(post))}
-									>Quick Edit</button
 								>
+									Quick Edit
+								</button>
 								{#if post.status === 'trash'}
 									<button class="action-btn" onclick={() => restorePost(post.id)}>Restore</button>
 									<button
 										class="action-btn action-btn--danger"
-										onclick={() => hardDelete(post.id)}>Delete permanently</button
+										onclick={() => hardDelete(post.id)}
 									>
+										Delete permanently
+									</button>
 								{:else}
-									<button class="action-btn action-btn--danger" onclick={() => deletePost(post.id)}
-										>Trash</button
+									<button
+										class="action-btn action-btn--danger"
+										onclick={() => deletePost(post.id)}
 									>
+										Trash
+									</button>
 								{/if}
 							</td>
 						</tr>
@@ -416,11 +484,11 @@
 									<div class="qe-form">
 										<div class="qe-form__fields">
 											<label class="qe-label">
-												Title
+												<span class="qe-label__text">Title</span>
 												<input class="qe-input" type="text" bind:value={qeTitle} />
 											</label>
 											<label class="qe-label">
-												Status
+												<span class="qe-label__text">Status</span>
 												<select class="qe-select" bind:value={qeStatus}>
 													<option value="draft">Draft</option>
 													<option value="pending_review">Pending Review</option>
@@ -431,7 +499,7 @@
 											</label>
 											{#if admins.length > 0}
 												<label class="qe-label">
-													Author
+													<span class="qe-label__text">Author</span>
 													<select class="qe-select" bind:value={qeAuthorId}>
 														{#each admins as a (a.id)}
 															<option value={a.id}>{a.name || a.email}</option>
@@ -463,116 +531,247 @@
 					onclick={() => {
 						page--;
 						loadPosts();
-					}}>← Prev</button
+					}}
+					class="blog-admin__page-btn"
+					aria-label="Previous page"
 				>
-				<span>Page {page} of {totalPages} ({total} posts)</span>
+					<CaretLeftIcon size={16} weight="bold" />
+					<span>Prev</span>
+				</button>
+				<span class="blog-admin__page-info"
+					>Page {page} of {totalPages} · {total} {total === 1 ? 'post' : 'posts'}</span
+				>
 				<button
 					disabled={page >= totalPages}
 					onclick={() => {
 						page++;
 						loadPosts();
-					}}>Next →</button
+					}}
+					class="blog-admin__page-btn"
+					aria-label="Next page"
 				>
+					<span>Next</span>
+					<CaretRightIcon size={16} weight="bold" />
+				</button>
 			</div>
 		{/if}
 	{/if}
 </div>
 
 <style>
-	/* Mobile-first base styles */
+	@keyframes shimmer {
+		0% {
+			background-position: -200% 0;
+		}
+		100% {
+			background-position: 200% 0;
+		}
+	}
+
+	/* ====================================================================
+	   PAGE HEADER
+	   ==================================================================== */
 	.blog-admin {
 		max-width: 100%;
 	}
 
-	.blog-admin__header {
-		margin-bottom: 1rem;
+	.blog-admin__page-header {
+		display: flex;
+		flex-direction: column;
+		gap: 0.875rem;
+		margin-bottom: 1.25rem;
 	}
 
-	.blog-admin__header h1 {
-		font-size: var(--fs-xl, 1.25rem);
-		font-weight: var(--w-bold, 700);
-		color: var(--color-white, #fff);
-		margin: 0 0 0.75rem 0;
+	.blog-admin__eyebrow {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: var(--color-grey-500);
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
 	}
 
-	.btn-primary {
+	.blog-admin__title {
+		font-family: var(--font-heading);
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: var(--color-white);
+		line-height: 1.15;
+		letter-spacing: -0.01em;
+		margin: 0.25rem 0 0.4rem;
+	}
+
+	.blog-admin__subtitle {
+		font-size: 0.875rem;
+		color: var(--color-grey-400);
+		max-width: 60ch;
+		line-height: 1.55;
+		margin: 0;
+	}
+
+	.blog-admin__cta {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.35rem;
-		padding: 0.55rem 1rem;
-		border-radius: var(--radius-lg, 0.5rem);
-		background: var(--color-teal, #0fa4af);
-		color: #fff;
-		font-weight: var(--w-semibold, 600);
-		font-size: var(--fs-xs, 0.75rem);
+		gap: 0.5rem;
+		min-height: 2.5rem;
+		padding: 0.65rem 1rem;
+		border-radius: var(--radius-lg);
+		background: linear-gradient(135deg, var(--color-teal), var(--color-teal-dark));
+		color: var(--color-white);
+		font-weight: 600;
+		font-size: 0.875rem;
 		text-decoration: none;
 		border: none;
 		cursor: pointer;
-		transition: opacity 0.15s;
+		align-self: flex-start;
+		box-shadow: 0 6px 16px -4px rgba(15, 164, 175, 0.45);
+		transition: all 200ms var(--ease-out);
 	}
 
-	.btn-primary:hover {
-		opacity: 0.9;
+	.blog-admin__cta:hover {
+		background: linear-gradient(135deg, var(--color-teal-light), var(--color-teal));
+		transform: translateY(-1px);
+		box-shadow: 0 8px 20px -4px rgba(15, 164, 175, 0.55);
 	}
 
-	.blog-admin__filters {
+	.blog-admin__cta--empty {
+		margin-top: 0.75rem;
+	}
+
+	/* ====================================================================
+	   TOOLBAR — tabs + search
+	   ==================================================================== */
+	.blog-admin__toolbar {
+		display: flex;
 		flex-direction: column;
-		gap: 0.75rem;
+		gap: 0.625rem;
 		margin-bottom: 1rem;
 	}
 
-	.blog-admin__status-tabs {
-		display: flex;
+	.blog-admin__tabs {
+		display: inline-flex;
 		flex-wrap: wrap;
 		gap: 0.25rem;
+		padding: 0.25rem;
+		background-color: rgba(255, 255, 255, 0.03);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: var(--radius-lg);
 	}
 
-	.blog-admin__status-tabs button {
-		padding: 0.35rem 0.6rem;
+	.blog-admin__tab {
+		padding: 0.45rem 0.75rem;
 		border: none;
-		border-radius: var(--radius-md, 0.25rem);
+		border-radius: var(--radius-md);
 		background: transparent;
-		color: var(--color-grey-400, #64748b);
-		font-size: var(--fs-xs, 0.7rem);
+		color: var(--color-grey-400);
+		font-size: 0.75rem;
+		font-weight: 600;
 		cursor: pointer;
+		transition: all 150ms var(--ease-out);
 	}
 
-	.blog-admin__status-tabs button:hover {
-		color: #fff;
+	.blog-admin__tab:hover {
+		color: var(--color-white);
 	}
 
-	.blog-admin__status-tabs button.active {
-		background: rgba(15, 164, 175, 0.15);
-		color: var(--color-teal-light, #15c5d1);
+	.blog-admin__tab--active {
+		background-color: rgba(15, 164, 175, 0.15);
+		color: var(--color-teal-light);
 	}
 
 	.blog-admin__search {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.blog-admin__search :global(.blog-admin__search-icon) {
+		position: absolute;
+		left: 0.875rem;
+		top: 50%;
+		transform: translateY(-50%);
+		color: var(--color-grey-500);
+		pointer-events: none;
+	}
+
+	.blog-admin__search-input {
 		width: 100%;
-		padding: 0.5rem 0.75rem;
-		border: 1px solid rgba(255, 255, 255, 0.12);
-		border-radius: var(--radius-lg, 0.375rem);
-		background: rgba(0, 0, 0, 0.2);
-		color: #fff;
-		font-size: var(--fs-sm, 0.8rem);
+		min-height: 2.5rem;
+		padding: 0.65rem 0.875rem 0.65rem 2.4rem;
+		background-color: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-lg);
+		color: var(--color-white);
+		font-size: 0.875rem;
 		outline: none;
+		transition:
+			border-color 150ms,
+			box-shadow 150ms;
 	}
 
-	.blog-admin__search:focus {
-		border-color: var(--color-teal, #0fa4af);
+	.blog-admin__search-input::placeholder {
+		color: var(--color-grey-500);
 	}
 
-	.blog-admin__loading,
-	.blog-admin__empty {
-		text-align: center;
-		padding: 2rem;
-		color: var(--color-grey-400, #64748b);
+	.blog-admin__search-input:focus {
+		border-color: var(--color-teal);
+		box-shadow: 0 0 0 3px rgba(15, 164, 175, 0.15);
 	}
 
-	/* Mobile: Card view */
-	.blog-admin__cards {
+	/* ====================================================================
+	   SKELETON / EMPTY STATE
+	   ==================================================================== */
+	.blog-admin__skeleton {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
+	}
+
+	.blog-admin__skeleton-row {
+		height: 80px;
+		border-radius: var(--radius-xl);
+		background: linear-gradient(
+			90deg,
+			rgba(255, 255, 255, 0.03) 0%,
+			rgba(255, 255, 255, 0.06) 50%,
+			rgba(255, 255, 255, 0.03) 100%
+		);
+		background-size: 200% 100%;
+		animation: shimmer 1.6s ease-in-out infinite;
+	}
+
+	.blog-admin__empty {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 3rem 1rem;
+		background-color: var(--color-navy-mid);
+		border: 1px dashed rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-xl);
+		text-align: center;
+	}
+
+	.blog-admin__empty-title {
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--color-white);
+		margin: 0.5rem 0 0;
+	}
+
+	.blog-admin__empty-body {
+		font-size: 0.875rem;
+		color: var(--color-grey-400);
+		margin: 0;
+		max-width: 36ch;
+	}
+
+	/* ====================================================================
+	   MOBILE — card view
+	   ==================================================================== */
+	.blog-admin__cards {
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
 	}
 
 	.blog-admin__table-wrap {
@@ -583,10 +782,16 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
-		padding: 0.75rem 1rem;
-		background-color: var(--color-navy-mid, #0f172a);
+		padding: 1rem;
+		background-color: var(--color-navy-mid);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-lg, 0.5rem);
+		border-radius: var(--radius-xl);
+		transition: all 200ms var(--ease-out);
+	}
+
+	.post-card:hover {
+		border-color: rgba(255, 255, 255, 0.1);
+		transform: translateY(-1px);
 	}
 
 	.post-card__header {
@@ -597,15 +802,16 @@
 	}
 
 	.post-card__title {
-		color: var(--color-white, #fff);
-		font-weight: var(--w-semibold, 600);
-		font-size: var(--fs-base, 0.9rem);
+		color: var(--color-white);
+		font-weight: 600;
+		font-size: 1rem;
 		text-decoration: none;
 		flex: 1;
+		line-height: 1.3;
 	}
 
 	.post-card__title:hover {
-		color: var(--color-teal-light, #15c5d1);
+		color: var(--color-teal-light);
 	}
 
 	.post-card__row {
@@ -616,64 +822,66 @@
 	}
 
 	.post-card__label {
-		font-size: var(--fs-xs, 0.7rem);
-		color: var(--color-grey-400, #64748b);
+		font-size: 0.75rem;
+		color: var(--color-grey-500);
+		font-weight: 500;
 	}
 
 	.post-card__value {
-		font-size: var(--fs-sm, 0.8rem);
-		color: var(--color-grey-300, #cbd5e1);
+		font-size: 0.875rem;
+		color: var(--color-grey-300);
 		text-align: right;
 	}
 
 	.post-card__cats {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.15rem;
+		gap: 0.25rem;
 		justify-content: flex-end;
 	}
 
 	.post-card__meta {
-		font-size: var(--fs-xs, 0.7rem);
-		color: var(--color-grey-400, #64748b);
+		font-size: 0.75rem;
+		color: var(--color-grey-400);
 	}
 
 	.post-card__actions {
 		display: flex;
 		gap: 0.5rem;
 		margin-top: 0.5rem;
-		padding-top: 0.5rem;
+		padding-top: 0.625rem;
 		border-top: 1px solid rgba(255, 255, 255, 0.06);
 	}
 
 	.post-card__btn {
 		flex: 1;
-		display: flex;
+		display: inline-flex;
 		align-items: center;
 		justify-content: center;
+		gap: 0.4rem;
+		min-height: 2.25rem;
 		padding: 0.5rem 0.75rem;
-		border-radius: var(--radius-lg, 0.5rem);
-		font-size: var(--fs-xs, 0.75rem);
-		font-weight: var(--w-medium, 500);
+		border-radius: var(--radius-lg);
+		font-size: 0.75rem;
+		font-weight: 600;
 		text-decoration: none;
 		cursor: pointer;
-		transition: background-color 200ms var(--ease-out, ease-out);
+		border: 1px solid transparent;
+		transition: all 150ms var(--ease-out);
 	}
 
 	.post-card__btn--edit {
 		background-color: rgba(15, 164, 175, 0.1);
-		color: var(--color-teal, #0fa4af);
-		border: none;
+		color: var(--color-teal);
 	}
 
 	.post-card__btn--edit:hover {
-		background-color: rgba(15, 164, 175, 0.25);
+		background-color: rgba(15, 164, 175, 0.22);
 	}
 
 	.post-card__btn--delete {
 		background-color: rgba(239, 68, 68, 0.08);
 		color: #ef4444;
-		border: none;
 	}
 
 	.post-card__btn--delete:hover {
@@ -683,29 +891,34 @@
 	.sticky-badge--card {
 		display: inline-block;
 		padding: 0.15rem 0.5rem;
-		border-radius: var(--radius-md, 0.2rem);
+		border-radius: var(--radius-md);
 		background: rgba(234, 179, 8, 0.15);
 		color: #eab308;
-		font-size: var(--fs-xs, 0.65rem);
-		font-weight: var(--w-semibold, 600);
+		font-size: 0.75rem;
+		font-weight: 600;
 		margin-top: 0.25rem;
+		align-self: flex-start;
 	}
 
 	.cat-pill {
 		display: inline-block;
-		padding: 0.15rem 0.4rem;
-		border-radius: var(--radius-md, 0.2rem);
+		padding: 0.15rem 0.5rem;
+		border-radius: var(--radius-full);
 		background: rgba(255, 255, 255, 0.06);
-		font-size: var(--fs-xs, 0.65rem);
+		color: var(--color-grey-300);
+		font-size: 0.75rem;
+		font-weight: 500;
 	}
 
 	.badge {
 		display: inline-block;
-		padding: 0.2rem 0.5rem;
-		border-radius: var(--radius-md, 0.25rem);
-		font-size: var(--fs-xs, 0.65rem);
-		font-weight: var(--w-semibold, 600);
+		padding: 0.2rem 0.6rem;
+		border-radius: var(--radius-full);
+		font-size: 0.75rem;
+		font-weight: 600;
 		white-space: nowrap;
+		text-transform: capitalize;
+		letter-spacing: 0.01em;
 	}
 
 	.badge--draft {
@@ -733,66 +946,81 @@
 		color: #ef4444;
 	}
 
+	/* ====================================================================
+	   PAGINATION
+	   ==================================================================== */
 	.blog-admin__pagination {
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		gap: 0.75rem;
-		margin-top: 1rem;
+		margin-top: 1.25rem;
+		flex-wrap: wrap;
 	}
 
-	.blog-admin__pagination button {
-		padding: 0.4rem 0.75rem;
-		border: 1px solid rgba(255, 255, 255, 0.12);
-		border-radius: var(--radius-md, 0.25rem);
-		background: transparent;
-		color: var(--color-grey-300, #94a3b8);
-		font-size: var(--fs-xs, 0.75rem);
+	.blog-admin__page-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		min-height: 2.25rem;
+		padding: 0.5rem 0.875rem;
+		background-color: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-lg);
+		color: var(--color-white);
+		font-size: 0.75rem;
+		font-weight: 500;
 		cursor: pointer;
+		transition: all 150ms var(--ease-out);
 	}
 
-	.blog-admin__pagination button:disabled {
-		opacity: 0.3;
+	.blog-admin__page-btn:hover:not(:disabled) {
+		background-color: rgba(255, 255, 255, 0.08);
+		border-color: rgba(15, 164, 175, 0.4);
+	}
+
+	.blog-admin__page-btn:disabled {
+		opacity: 0.4;
 		cursor: not-allowed;
 	}
 
-	.blog-admin__pagination span {
-		font-size: var(--fs-xs, 0.75rem);
-		color: var(--color-grey-400, #64748b);
+	.blog-admin__page-info {
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--color-grey-400);
 	}
 
-	/* Tablet+: Show table, hide cards */
+	/* ====================================================================
+	   TABLET+ (>=768px) — table view
+	   ==================================================================== */
 	@media (min-width: 768px) {
-		.blog-admin__header {
-			display: flex;
-			align-items: center;
+		.blog-admin__page-header {
+			flex-direction: row;
+			align-items: flex-end;
 			justify-content: space-between;
+			gap: 1.5rem;
 			margin-bottom: 1.5rem;
 		}
 
-		.blog-admin__header h1 {
-			font-size: var(--fs-2xl, 1.5rem);
-			margin: 0;
+		.blog-admin__title {
+			font-size: 1.5rem;
 		}
 
-		.btn-primary {
-			padding: 0.6rem 1.25rem;
-			font-size: var(--fs-sm, 0.875rem);
+		.blog-admin__cta {
+			align-self: flex-end;
 		}
 
-		.blog-admin__filters {
+		.blog-admin__toolbar {
 			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
 			gap: 1rem;
-			margin-bottom: 1rem;
-		}
-
-		.blog-admin__status-tabs button {
-			padding: 0.35rem 0.75rem;
-			font-size: var(--fs-xs, 0.8rem);
+			margin-bottom: 1.25rem;
 		}
 
 		.blog-admin__search {
-			width: 14rem;
+			max-width: 22rem;
+			flex: 1;
 		}
 
 		.blog-admin__cards {
@@ -802,6 +1030,12 @@
 		.blog-admin__table-wrap {
 			display: block;
 			overflow-x: auto;
+			background-color: var(--color-navy-mid);
+			border: 1px solid rgba(255, 255, 255, 0.06);
+			border-radius: var(--radius-2xl);
+			box-shadow:
+				0 1px 0 rgba(255, 255, 255, 0.03) inset,
+				0 12px 32px rgba(0, 0, 0, 0.18);
 		}
 
 		.blog-admin__table {
@@ -809,83 +1043,126 @@
 			border-collapse: collapse;
 		}
 
+		.blog-admin__table thead {
+			background-color: rgba(255, 255, 255, 0.02);
+		}
+
 		.blog-admin__table th {
 			text-align: left;
-			padding: 0.6rem 0.75rem;
-			font-size: var(--fs-xs, 0.75rem);
-			font-weight: var(--w-semibold, 600);
+			padding: 0.875rem 1rem;
+			font-size: 0.6875rem;
+			font-weight: 600;
 			text-transform: uppercase;
 			letter-spacing: 0.05em;
-			color: var(--color-grey-400, #64748b);
-			border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+			color: var(--color-grey-500);
+			border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+		}
+
+		.th-actions {
+			text-align: right;
 		}
 
 		.blog-admin__table td {
-			padding: 0.75rem;
+			padding: 0.875rem 1rem;
 			border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-			font-size: var(--fs-sm, 0.875rem);
-			color: var(--color-grey-200, #e2e8f0);
+			font-size: 0.875rem;
+			color: var(--color-grey-300);
 			vertical-align: top;
 		}
 
+		.blog-admin__table tbody tr {
+			transition: background-color 150ms var(--ease-out);
+		}
+
+		.blog-admin__table tbody tr:hover {
+			background-color: rgba(255, 255, 255, 0.02);
+		}
+
+		.blog-admin__table tbody tr:last-child td {
+			border-bottom: none;
+		}
+
 		.post-title-link {
-			color: #fff;
-			font-weight: var(--w-semibold, 600);
+			color: var(--color-white);
+			font-weight: 600;
 			text-decoration: none;
 		}
 
 		.post-title-link:hover {
-			color: var(--color-teal-light, #15c5d1);
+			color: var(--color-teal-light);
 		}
 
 		.post-meta-row {
-			font-size: var(--fs-xs, 0.75rem);
-			color: var(--color-grey-400, #64748b);
-			margin-top: 0.15rem;
+			font-size: 0.75rem;
+			color: var(--color-grey-500);
+			margin-top: 0.25rem;
 		}
 
 		.sticky-badge {
 			display: inline-block;
-			padding: 0.1rem 0.4rem;
-			border-radius: var(--radius-md, 0.2rem);
+			padding: 0.1rem 0.5rem;
+			border-radius: var(--radius-full);
 			background: rgba(234, 179, 8, 0.15);
 			color: #eab308;
-			font-size: var(--fs-xs, 0.65rem);
-			font-weight: var(--w-semibold, 600);
+			font-size: 0.75rem;
+			font-weight: 600;
 			margin-left: 0.5rem;
 			vertical-align: middle;
 		}
 
 		.td-author {
 			white-space: nowrap;
+			color: var(--color-grey-400);
 		}
 
 		.td-date {
 			white-space: nowrap;
-			font-size: var(--fs-xs, 0.8rem);
+			color: var(--color-grey-400);
+		}
+
+		.td-cats {
+			max-width: 14rem;
+		}
+
+		.td-cats .cat-pill + .cat-pill {
+			margin-left: 0.25rem;
 		}
 
 		.td-actions {
 			white-space: nowrap;
+			text-align: right;
 		}
 
 		.action-link {
-			color: var(--color-teal-light, #15c5d1);
+			color: var(--color-teal-light);
 			text-decoration: none;
-			font-size: var(--fs-xs, 0.8rem);
+			font-size: 0.75rem;
+			font-weight: 600;
 			margin-right: 0.75rem;
+			transition: color 150ms var(--ease-out);
 		}
 
 		.action-link:hover {
+			color: var(--color-teal);
 			text-decoration: underline;
 		}
 
 		.action-btn {
 			border: none;
 			background: none;
-			font-size: var(--fs-xs, 0.8rem);
+			font-size: 0.75rem;
+			font-weight: 600;
+			color: var(--color-grey-300);
 			cursor: pointer;
-			padding: 0;
+			padding: 0.2rem 0.4rem;
+			border-radius: var(--radius-sm);
+			margin-right: 0.5rem;
+			transition: all 150ms var(--ease-out);
+		}
+
+		.action-btn:hover {
+			color: var(--color-white);
+			background: rgba(255, 255, 255, 0.05);
 		}
 
 		.action-btn--danger {
@@ -893,7 +1170,13 @@
 		}
 
 		.action-btn--danger:hover {
-			text-decoration: underline;
+			color: #fca5a5;
+			background: rgba(239, 68, 68, 0.1);
+		}
+
+		.action-btn--active {
+			background: rgba(15, 164, 175, 0.18);
+			color: var(--color-teal-light);
 		}
 
 		.blog-admin__pagination {
@@ -901,53 +1184,64 @@
 			margin-top: 1.5rem;
 		}
 
-		.blog-admin__pagination button {
-			font-size: var(--fs-xs, 0.8rem);
+		.blog-admin__page-btn {
+			padding: 0.55rem 1rem;
+			font-size: 0.875rem;
 		}
 
-		.blog-admin__pagination span {
-			font-size: var(--fs-xs, 0.8rem);
+		.blog-admin__page-info {
+			font-size: 0.875rem;
 		}
 	}
 
-	/* Bulk action bar */
+	/* ====================================================================
+	   BULK ACTION BAR
+	   ==================================================================== */
 	.bulk-bar {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.5rem;
-		padding: 0.6rem 1rem;
+		padding: 0.6rem 0.875rem;
 		background: rgba(15, 164, 175, 0.08);
 		border: 1px solid rgba(15, 164, 175, 0.25);
-		border-radius: 0.5rem;
+		border-radius: var(--radius-lg);
 		margin-bottom: 0.75rem;
 	}
 
 	.bulk-bar__count {
-		font-size: 0.8rem;
+		font-size: 0.75rem;
 		font-weight: 600;
-		color: var(--color-teal-light, #15c5d1);
+		color: var(--color-teal-light);
 		white-space: nowrap;
 	}
 
 	.bulk-bar__select {
-		padding: 0.3rem 0.5rem;
+		min-height: 2rem;
+		padding: 0.35rem 0.6rem;
 		background: rgba(255, 255, 255, 0.06);
 		border: 1px solid rgba(255, 255, 255, 0.12);
-		border-radius: 0.3rem;
-		color: var(--color-grey-200, #e2e8f0);
-		font-size: 0.8rem;
+		border-radius: var(--radius-md);
+		color: var(--color-grey-200);
+		font-size: 0.75rem;
 		cursor: pointer;
 	}
 
 	.bulk-bar__apply {
-		padding: 0.3rem 0.75rem;
+		min-height: 2rem;
+		padding: 0.35rem 0.875rem;
 		background: rgba(15, 164, 175, 0.2);
 		border: 1px solid rgba(15, 164, 175, 0.4);
-		border-radius: 0.3rem;
-		color: var(--color-teal-light, #15c5d1);
-		font-size: 0.8rem;
+		border-radius: var(--radius-md);
+		color: var(--color-teal-light);
+		font-size: 0.75rem;
 		font-weight: 600;
 		cursor: pointer;
+		transition: background 150ms var(--ease-out);
+	}
+
+	.bulk-bar__apply:hover:not(:disabled) {
+		background: rgba(15, 164, 175, 0.3);
 	}
 
 	.bulk-bar__apply:disabled {
@@ -957,11 +1251,22 @@
 
 	.bulk-bar__clear {
 		margin-left: auto;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.75rem;
+		height: 1.75rem;
 		background: transparent;
 		border: none;
-		color: var(--color-grey-500, #475569);
+		border-radius: var(--radius-md);
+		color: var(--color-grey-400);
 		cursor: pointer;
-		font-size: 0.9rem;
+		transition: all 150ms var(--ease-out);
+	}
+
+	.bulk-bar__clear:hover {
+		background: rgba(255, 255, 255, 0.06);
+		color: var(--color-white);
 	}
 
 	/* Checkbox columns */
@@ -972,16 +1277,12 @@
 	}
 
 	.tr--selected {
-		background: rgba(15, 164, 175, 0.05);
+		background: rgba(15, 164, 175, 0.05) !important;
 	}
 
-	/* Quick Edit */
-	.action-btn--active {
-		background: rgba(15, 164, 175, 0.2);
-		border-color: var(--color-teal, #0fa4af);
-		color: var(--color-teal-light, #15c5d1);
-	}
-
+	/* ====================================================================
+	   QUICK EDIT
+	   ==================================================================== */
 	.qe-row td {
 		padding: 0;
 	}
@@ -996,35 +1297,52 @@
 		display: flex;
 		flex-wrap: wrap;
 		align-items: flex-end;
-		gap: 0.75rem;
-		padding: 0.75rem 1rem;
+		gap: 0.875rem;
+		padding: 0.875rem 1rem;
 	}
 
 	.qe-form__fields {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.75rem;
+		gap: 0.875rem;
 		flex: 1;
 	}
 
 	.qe-label {
 		display: flex;
 		flex-direction: column;
-		gap: 0.2rem;
-		font-size: 0.7rem;
-		color: var(--color-grey-400, #64748b);
+		gap: 0.3rem;
 		min-width: 10rem;
 		flex: 1;
 	}
 
+	.qe-label__text {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: var(--color-grey-500);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
 	.qe-input,
 	.qe-select {
-		padding: 0.3rem 0.5rem;
+		min-height: 2.25rem;
+		padding: 0.45rem 0.6rem;
 		background: rgba(255, 255, 255, 0.06);
 		border: 1px solid rgba(255, 255, 255, 0.12);
-		border-radius: 0.3rem;
-		color: var(--color-grey-200, #e2e8f0);
-		font-size: 0.8rem;
+		border-radius: var(--radius-md);
+		color: var(--color-grey-200);
+		font-size: 0.875rem;
+		outline: none;
+		transition:
+			border-color 150ms,
+			box-shadow 150ms;
+	}
+
+	.qe-input:focus,
+	.qe-select:focus {
+		border-color: var(--color-teal);
+		box-shadow: 0 0 0 3px rgba(15, 164, 175, 0.15);
 	}
 
 	.qe-form__actions {
@@ -1033,14 +1351,20 @@
 	}
 
 	.qe-save {
-		padding: 0.35rem 0.9rem;
-		background: var(--color-teal, #0fa4af);
+		min-height: 2.25rem;
+		padding: 0.45rem 1rem;
+		background: var(--color-teal);
 		border: none;
-		border-radius: 0.3rem;
-		color: #fff;
-		font-size: 0.8rem;
+		border-radius: var(--radius-md);
+		color: var(--color-white);
+		font-size: 0.75rem;
 		font-weight: 600;
 		cursor: pointer;
+		transition: background 150ms var(--ease-out);
+	}
+
+	.qe-save:hover:not(:disabled) {
+		background: var(--color-teal-light);
 	}
 
 	.qe-save:disabled {
@@ -1049,12 +1373,26 @@
 	}
 
 	.qe-cancel {
-		padding: 0.35rem 0.75rem;
+		min-height: 2.25rem;
+		padding: 0.45rem 0.875rem;
 		background: transparent;
 		border: 1px solid rgba(255, 255, 255, 0.12);
-		border-radius: 0.3rem;
-		color: var(--color-grey-400, #64748b);
-		font-size: 0.8rem;
+		border-radius: var(--radius-md);
+		color: var(--color-grey-400);
+		font-size: 0.75rem;
+		font-weight: 600;
 		cursor: pointer;
+		transition: all 150ms var(--ease-out);
+	}
+
+	.qe-cancel:hover {
+		color: var(--color-white);
+		border-color: rgba(255, 255, 255, 0.22);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.blog-admin__skeleton-row {
+			animation: none;
+		}
 	}
 </style>

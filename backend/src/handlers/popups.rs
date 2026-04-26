@@ -26,17 +26,17 @@ use crate::{
 
 pub fn admin_router() -> Router<AppState> {
     Router::new()
-        .route("/popups", get(admin_list_popups))
-        .route("/popups", post(admin_create_popup))
-        .route("/popups/{id}", get(admin_get_popup))
-        .route("/popups/{id}", put(admin_update_popup))
-        .route("/popups/{id}", delete(admin_delete_popup))
-        .route("/popups/{id}/toggle", post(admin_toggle_popup))
-        .route("/popups/{id}/duplicate", post(admin_duplicate_popup))
-        .route("/popups/{id}/submissions", get(admin_list_submissions))
-        .route("/popups/{id}/analytics", get(admin_get_analytics))
+        .route("/", get(admin_list_popups))
+        .route("/", post(admin_create_popup))
+        .route("/{id}", get(admin_get_popup))
+        .route("/{id}", put(admin_update_popup))
+        .route("/{id}", delete(admin_delete_popup))
+        .route("/{id}/toggle", post(admin_toggle_popup))
+        .route("/{id}/duplicate", post(admin_duplicate_popup))
+        .route("/{id}/submissions", get(admin_list_submissions))
+        .route("/{id}/analytics", get(admin_get_analytics))
         // POP-02 significance test across all variants.
-        .route("/popups/{id}/significance", get(admin_variant_significance))
+        .route("/{id}/significance", get(admin_variant_significance))
 }
 
 pub fn public_router() -> Router<AppState> {
@@ -45,17 +45,17 @@ pub fn public_router() -> Router<AppState> {
     // impression/close event beacons. The `active-popups` listing is
     // served cache-friendly and relies on the global governor only.
     Router::new()
-        .route("/popups/active", get(public_active_popups))
+        .route("/active", get(public_active_popups))
         // POP-02: sticky per-visitor variant assignment + cookie bake.
-        .route("/popups/{id}/variant", get(public_variant_for_popup))
+        .route("/{id}/variant", get(public_variant_for_popup))
         .merge(
             Router::new()
-                .route("/popups/event", post(public_track_event))
+                .route("/event", post(public_track_event))
                 .layer(crate::middleware::rate_limit::popup_event_layer()),
         )
         .merge(
             Router::new()
-                .route("/popups/submit", post(public_submit_form))
+                .route("/submit", post(public_submit_form))
                 .layer(crate::middleware::rate_limit::popup_submit_layer()),
         )
 }

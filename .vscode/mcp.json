@@ -5,5 +5,10 @@
 			"url": "https://mcp.svelte.dev/mcp",
 			"tools": ["*"]
 		}
+	},
+	"servers": {
+		"svelte": {
+			"url": "https://mcp.svelte.dev/mcp"
+		}
 	}
 }

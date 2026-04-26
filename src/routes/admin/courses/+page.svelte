@@ -1,10 +1,15 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { api } from '$lib/api/client';
 	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
 	import ClockIcon from 'phosphor-svelte/lib/ClockIcon';
 	import GraduationCapIcon from 'phosphor-svelte/lib/GraduationCapIcon';
+	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
+	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
+	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
+	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
 
 	interface Course {
 		id: string;
@@ -46,9 +51,13 @@
 	const publishedCount = $derived(courses.filter((c) => c.is_published).length);
 	const draftCount = $derived(courses.filter((c) => !c.is_published).length);
 
-	$effect(() => {
-		loadCourses();
-	});
+	// One-shot initial load. The previous `$effect(() => loadCourses())` would
+	// also fire whenever the *captured* read of `page`/`statusFilter`/`search`
+	// inside `loadCourses` changed — combined with the explicit `loadCourses()`
+	// call inside `handleSearch`/`changeStatus` that meant every keystroke
+	// fired the API twice and the loop interacted with `loading=true` writes.
+	// `onMount` runs exactly once; subsequent loads are user-triggered.
+	onMount(loadCourses);
 
 	async function loadCourses() {
 		loading = true;
@@ -78,8 +87,8 @@
 		}, 300);
 	}
 
-	function changeStatus(s: 'all' | 'published' | 'draft') {
-		statusFilter = s;
+	function changeStatus(value: string) {
+		statusFilter = value as 'all' | 'published' | 'draft';
 		page = 1;
 		loadCourses();
 	}
@@ -94,7 +103,7 @@
 	}
 
 	function formatDate(d: string | null): string {
-		if (!d) return '--';
+		if (!d) return '—';
 		return new Date(d).toLocaleDateString('en-US', {
 			month: 'short',
 			day: 'numeric',
@@ -108,21 +117,24 @@
 </script>
 
 <svelte:head>
-	<title>Courses -- Admin</title>
+	<title>Courses - Admin</title>
 </svelte:head>
 
 <div class="courses-admin">
 	<!-- Header -->
-	<div class="courses-admin__header">
-		<div>
+	<header class="courses-admin__header">
+		<div class="courses-admin__heading">
+			<span class="courses-admin__eyebrow">Education</span>
 			<h1 class="courses-admin__title">Courses</h1>
-			<p class="courses-admin__subtitle">Manage your course catalog</p>
+			<p class="courses-admin__subtitle">
+				Manage your course catalog: drafts, published lessons, and learner progression.
+			</p>
 		</div>
 		<a href="/admin/courses/new" class="btn-primary">
-			<PlusIcon size={18} weight="bold" />
-			New Course
+			<PlusIcon size={16} weight="bold" />
+			<span>New course</span>
 		</a>
-	</div>
+	</header>
 
 	<!-- Stats bar -->
 	{#if !loading}
@@ -132,8 +144,8 @@
 					<BookOpenIcon size={20} weight="duotone" />
 				</div>
 				<div class="stat-card__content">
+					<span class="stat-card__label">Total courses</span>
 					<span class="stat-card__value">{total}</span>
-					<span class="stat-card__label">Total Courses</span>
 				</div>
 			</div>
 			<div class="stat-card">
@@ -141,8 +153,8 @@
 					<GraduationCapIcon size={20} weight="duotone" />
 				</div>
 				<div class="stat-card__content">
-					<span class="stat-card__value">{publishedCount}</span>
 					<span class="stat-card__label">Published</span>
+					<span class="stat-card__value">{publishedCount}</span>
 				</div>
 			</div>
 			<div class="stat-card">
@@ -150,40 +162,45 @@
 					<ClockIcon size={20} weight="duotone" />
 				</div>
 				<div class="stat-card__content">
+					<span class="stat-card__label">Drafts</span>
 					<span class="stat-card__value">{draftCount}</span>
-					<span class="stat-card__label">Draft</span>
 				</div>
 			</div>
 		</div>
 	{/if}
 
-	<!-- Filters -->
-	<div class="courses-admin__filters">
-		<div class="courses-admin__status-tabs">
-			<button class:active={statusFilter === 'all'} onclick={() => changeStatus('all')}>
-				All
-			</button>
-			<button
-				class:active={statusFilter === 'published'}
-				onclick={() => changeStatus('published')}
-			>
-				Published
-			</button>
-			<button class:active={statusFilter === 'draft'} onclick={() => changeStatus('draft')}>
-				Drafts
-			</button>
+	<!-- Filters card -->
+	<div class="filter-card">
+		<div class="filter-field filter-field--search">
+			<label class="filter-field__label" for="course-search">Search</label>
+			<div class="search-wrap">
+				<MagnifyingGlassIcon size={16} weight="bold" class="search-icon" />
+				<input
+					id="course-search"
+					name="course-search"
+					type="search"
+					class="filter-input filter-input--search"
+					placeholder="Search by title…"
+					oninput={handleSearch}
+				/>
+			</div>
 		</div>
-
-		<div class="courses-admin__search-wrap">
-			<MagnifyingGlassIcon size={16} weight="bold" class="search-icon" />
-			<input
-				id="course-search"
-				name="search"
-				type="search"
-				class="courses-admin__search"
-				placeholder="Search courses..."
-				oninput={handleSearch}
-			/>
+		<div class="filter-field">
+			<label class="filter-field__label" for="course-status">Status</label>
+			<div class="select-wrap">
+				<select
+					id="course-status"
+					name="course-status"
+					class="filter-input filter-input--select"
+					value={statusFilter}
+					onchange={(e) => changeStatus(e.currentTarget.value)}
+				>
+					<option value="all">All statuses</option>
+					<option value="published">Published</option>
+					<option value="draft">Drafts</option>
+				</select>
+				<CaretDownIcon size={14} weight="bold" class="select-caret" />
+			</div>
 		</div>
 	</div>
 
@@ -204,21 +221,19 @@
 	{:else if courses.length === 0}
 		<!-- Empty state -->
 		<div class="empty-state">
-			<div class="empty-state__icon">
-				<BookOpenIcon size={48} weight="duotone" />
-			</div>
+			<BookOpenIcon size={48} weight="duotone" />
 			<h2 class="empty-state__title">No courses found</h2>
 			<p class="empty-state__desc">
 				{#if search || statusFilter !== 'all'}
-					Try adjusting your search or filters.
+					Try adjusting your search or filters to see more courses.
 				{:else}
 					Get started by creating your first course.
 				{/if}
 			</p>
 			{#if !search && statusFilter === 'all'}
 				<a href="/admin/courses/new" class="btn-primary">
-					<PlusIcon size={18} weight="bold" />
-					Create Course
+					<PlusIcon size={16} weight="bold" />
+					<span>Create course</span>
 				</a>
 			{/if}
 		</div>
@@ -247,9 +262,7 @@
 					<div class="course-card__body">
 						<div class="course-card__top">
 							<h3 class="course-card__title">{course.title}</h3>
-							<span
-								class="badge {course.is_published ? 'badge--published' : 'badge--draft'}"
-							>
+							<span class="badge {course.is_published ? 'badge--published' : 'badge--draft'}">
 								{course.is_published ? 'Published' : 'Draft'}
 							</span>
 						</div>
@@ -288,10 +301,11 @@
 						<th class="th-thumb"></th>
 						<th>Title</th>
 						<th>Difficulty</th>
-						<th>Lessons</th>
+						<th class="th-num">Lessons</th>
 						<th>Duration</th>
 						<th>Status</th>
 						<th>Date</th>
+						<th class="th-actions" aria-label="Actions"></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -300,11 +314,7 @@
 							<td class="td-thumb">
 								<a href="/admin/courses/{course.id}" class="thumb-link">
 									{#if course.thumbnail_url}
-										<img
-											src={course.thumbnail_url}
-											alt={course.title}
-											class="table-thumb"
-										/>
+										<img src={course.thumbnail_url} alt={course.title} class="table-thumb" />
 									{:else}
 										<div class="table-thumb-placeholder">
 											<BookOpenIcon size={18} weight="duotone" />
@@ -331,13 +341,11 @@
 							</td>
 							<td class="td-num">
 								<span class="num-main">{course.lessons_count}</span>
-								<span class="num-sub">{course.modules_count} modules</span>
+								<span class="num-sub">{course.modules_count} mods</span>
 							</td>
-							<td class="td-duration">{course.estimated_duration || '--'}</td>
+							<td class="td-duration">{course.estimated_duration || '—'}</td>
 							<td>
-								<span
-									class="badge {course.is_published ? 'badge--published' : 'badge--draft'}"
-								>
+								<span class="badge {course.is_published ? 'badge--published' : 'badge--draft'}">
 									{course.is_published ? 'Published' : 'Draft'}
 								</span>
 							</td>
@@ -345,6 +353,16 @@
 								{course.is_published
 									? formatDate(course.published_at)
 									: formatDate(course.created_at)}
+							</td>
+							<td class="td-actions">
+								<a
+									href="/admin/courses/{course.id}"
+									class="icon-btn"
+									title="Edit {course.title}"
+									aria-label="Edit {course.title}"
+								>
+									<PencilSimpleIcon size={16} weight="bold" />
+								</a>
 							</td>
 						</tr>
 					{/each}
@@ -354,29 +372,42 @@
 
 		<!-- Pagination -->
 		{#if totalPages > 1}
-			<div class="courses-admin__pagination">
+			<nav class="courses-admin__pagination" aria-label="Pagination">
 				<button
+					type="button"
+					class="page-btn"
 					disabled={page <= 1}
 					onclick={() => {
 						page--;
 						loadCourses();
-					}}>Prev</button
+					}}
 				>
-				<span>Page {page} of {totalPages} ({total} courses)</span>
+					<CaretLeftIcon size={14} weight="bold" />
+					<span>Previous</span>
+				</button>
+				<span class="page-info">Page {page} of {totalPages}</span>
 				<button
+					type="button"
+					class="page-btn"
 					disabled={page >= totalPages}
 					onclick={() => {
 						page++;
 						loadCourses();
-					}}>Next</button
+					}}
 				>
-			</div>
+					<span>Next</span>
+					<CaretRightIcon size={14} weight="bold" />
+				</button>
+			</nav>
 		{/if}
 	{/if}
 </div>
 
 <style>
 	.courses-admin {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
 		max-width: 100%;
 	}
 
@@ -385,45 +416,72 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
-		margin-bottom: 1.5rem;
+		align-items: flex-start;
+	}
+
+	.courses-admin__heading {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		min-width: 0;
+	}
+
+	.courses-admin__eyebrow {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: var(--color-grey-500);
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
 	}
 
 	.courses-admin__title {
-		font-size: var(--fs-xl);
-		font-weight: var(--w-bold);
+		font-size: 1.5rem;
+		font-weight: 700;
 		font-family: var(--font-heading);
 		color: var(--color-white);
+		line-height: 1.15;
+		letter-spacing: -0.01em;
 		margin: 0;
 	}
 
 	.courses-admin__subtitle {
-		font-size: var(--fs-sm);
+		font-size: 0.875rem;
 		color: var(--color-grey-400);
-		margin: 0.25rem 0 0 0;
+		max-width: 60ch;
+		line-height: 1.55;
+		margin: 0;
 	}
 
 	.btn-primary {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.4rem;
-		padding: 0.65rem 1.15rem;
+		gap: 0.5rem;
+		min-height: 2.5rem;
+		padding: 0.55rem 1rem;
 		border-radius: var(--radius-lg);
-		background: var(--color-teal);
-		color: #fff;
-		font-weight: var(--w-semibold);
-		font-size: var(--fs-sm);
+		background: linear-gradient(135deg, var(--color-teal), var(--color-teal-dark));
+		color: var(--color-white);
+		font-weight: 600;
+		font-size: 0.875rem;
+		font-family: var(--font-ui);
 		text-decoration: none;
 		border: none;
 		cursor: pointer;
-		transition:
-			opacity var(--duration-150) var(--ease-out),
-			transform var(--duration-150) var(--ease-out);
 		white-space: nowrap;
+		box-shadow: 0 6px 16px -4px rgba(15, 164, 175, 0.45);
+		transition:
+			transform 150ms var(--ease-out),
+			box-shadow 150ms var(--ease-out),
+			opacity 150ms var(--ease-out);
 	}
 
 	.btn-primary:hover {
-		opacity: 0.9;
 		transform: translateY(-1px);
+		box-shadow: 0 10px 22px -4px rgba(15, 164, 175, 0.55);
+	}
+
+	.btn-primary:active {
+		transform: translateY(0);
 	}
 
 	/* ── Stats bar ──────────────────────── */
@@ -431,18 +489,19 @@
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
 		gap: 0.75rem;
-		margin-bottom: 1.5rem;
 	}
 
 	.stat-card {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 1rem;
-		background: rgba(255, 255, 255, 0.03);
+		gap: 0.85rem;
+		padding: 1.25rem;
+		background-color: var(--color-navy-mid);
 		border: 1px solid rgba(255, 255, 255, 0.06);
 		border-radius: var(--radius-xl);
-		backdrop-filter: blur(12px);
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.03) inset,
+			0 12px 32px rgba(0, 0, 0, 0.18);
 	}
 
 	.stat-card__icon {
@@ -470,56 +529,58 @@
 	.stat-card__content {
 		display: flex;
 		flex-direction: column;
+		gap: 0.1rem;
 		min-width: 0;
 	}
 
-	.stat-card__value {
-		font-size: var(--fs-xl);
-		font-weight: var(--w-bold);
-		color: var(--color-white);
-		line-height: 1.2;
-	}
-
 	.stat-card__label {
-		font-size: var(--fs-2xs);
-		color: var(--color-grey-400);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: var(--color-grey-500);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
 		white-space: nowrap;
 	}
 
-	/* ── Filters ────────────────────────── */
-	.courses-admin__filters {
+	.stat-card__value {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: var(--color-white);
+		line-height: 1.15;
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* ── Filters card ───────────────────── */
+	.filter-card {
 		display: flex;
 		flex-direction: column;
 		gap: 0.75rem;
-		margin-bottom: 1.25rem;
+		padding: 1.25rem;
+		background-color: var(--color-navy-mid);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: var(--radius-xl);
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.03) inset,
+			0 12px 32px rgba(0, 0, 0, 0.18);
 	}
 
-	.courses-admin__status-tabs {
+	.filter-field {
 		display: flex;
-		gap: 0.25rem;
+		flex-direction: column;
+		gap: 0.35rem;
+		min-width: 0;
 	}
 
-	.courses-admin__status-tabs button {
-		padding: 0.4rem 0.75rem;
-		border: none;
-		border-radius: var(--radius-md);
-		background: transparent;
+	.filter-field__label {
+		font-size: 0.6875rem;
+		font-weight: 600;
 		color: var(--color-grey-400);
-		font-size: var(--fs-xs);
-		cursor: pointer;
-		transition: all var(--duration-150) var(--ease-out);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
 	}
 
-	.courses-admin__status-tabs button:hover {
-		color: var(--color-white);
-	}
-
-	.courses-admin__status-tabs button.active {
-		background: rgba(15, 164, 175, 0.15);
-		color: var(--color-teal-light);
-	}
-
-	.courses-admin__search-wrap {
+	.search-wrap,
+	.select-wrap {
 		position: relative;
 	}
 
@@ -528,28 +589,59 @@
 		left: 0.75rem;
 		top: 50%;
 		transform: translateY(-50%);
-		color: var(--color-grey-500) !important;
+		color: var(--color-grey-500);
 		pointer-events: none;
 	}
 
-	.courses-admin__search {
+	:global(.select-caret) {
+		position: absolute;
+		right: 0.75rem;
+		top: 50%;
+		transform: translateY(-50%);
+		color: var(--color-grey-500);
+		pointer-events: none;
+	}
+
+	.filter-input {
 		width: 100%;
-		padding: 0.55rem 0.75rem 0.55rem 2.25rem;
+		min-height: 2.5rem;
+		padding: 0.65rem 0.875rem;
+		background-color: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		border-radius: var(--radius-lg);
-		background: rgba(0, 0, 0, 0.2);
 		color: var(--color-white);
-		font-size: var(--fs-sm);
+		font-size: 0.875rem;
+		font-family: var(--font-ui);
 		outline: none;
-		transition: border-color var(--duration-200) var(--ease-out);
+		transition:
+			border-color 150ms var(--ease-out),
+			box-shadow 150ms var(--ease-out);
 	}
 
-	.courses-admin__search:focus {
+	.filter-input:focus {
 		border-color: var(--color-teal);
+		box-shadow: 0 0 0 3px rgba(15, 164, 175, 0.15);
 	}
 
-	.courses-admin__search::placeholder {
+	.filter-input::placeholder {
 		color: var(--color-grey-500);
+	}
+
+	.filter-input--search {
+		padding-left: 2.25rem;
+	}
+
+	.filter-input--select {
+		appearance: none;
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		padding-right: 2.25rem;
+		cursor: pointer;
+	}
+
+	.filter-input--select option {
+		background-color: var(--color-navy-mid);
+		color: var(--color-white);
 	}
 
 	/* ── Skeleton loading ───────────────── */
@@ -563,7 +655,7 @@
 		display: flex;
 		gap: 1rem;
 		padding: 1rem;
-		background: rgba(255, 255, 255, 0.03);
+		background-color: var(--color-navy-mid);
 		border: 1px solid rgba(255, 255, 255, 0.06);
 		border-radius: var(--radius-xl);
 		animation: pulse 1.5s ease-in-out infinite;
@@ -620,33 +712,31 @@
 		align-items: center;
 		justify-content: center;
 		text-align: center;
-		padding: 4rem 2rem;
+		gap: 0.85rem;
+		padding: 3.5rem 2rem;
+		background-color: var(--color-navy-mid);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: var(--radius-xl);
+		color: var(--color-grey-500);
 	}
 
-	.empty-state__icon {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 5rem;
-		height: 5rem;
-		border-radius: var(--radius-2xl);
-		background: rgba(255, 255, 255, 0.04);
+	.empty-state :global(svg) {
 		color: var(--color-grey-500);
-		margin-bottom: 1.5rem;
 	}
 
 	.empty-state__title {
-		font-size: var(--fs-lg);
-		font-weight: var(--w-semibold);
+		font-size: 1rem;
+		font-weight: 600;
 		color: var(--color-white);
-		margin: 0 0 0.5rem 0;
+		margin: 0;
 	}
 
 	.empty-state__desc {
-		font-size: var(--fs-sm);
+		font-size: 0.875rem;
 		color: var(--color-grey-400);
-		margin: 0 0 1.5rem 0;
-		max-width: 24rem;
+		max-width: 36ch;
+		line-height: 1.55;
+		margin: 0;
 	}
 
 	/* ── Mobile Cards ───────────────────── */
@@ -664,16 +754,18 @@
 		display: flex;
 		gap: 1rem;
 		padding: 1rem;
-		background: rgba(255, 255, 255, 0.03);
+		background-color: var(--color-navy-mid);
 		border: 1px solid rgba(255, 255, 255, 0.06);
 		border-radius: var(--radius-xl);
 		text-decoration: none;
-		transition: all var(--duration-200) var(--ease-out);
+		transition:
+			background-color 200ms var(--ease-out),
+			border-color 200ms var(--ease-out);
 	}
 
 	.course-card:hover {
-		background: rgba(255, 255, 255, 0.05);
-		border-color: rgba(15, 164, 175, 0.2);
+		background-color: rgba(255, 255, 255, 0.04);
+		border-color: rgba(15, 164, 175, 0.25);
 	}
 
 	.course-card__thumb {
@@ -705,7 +797,7 @@
 		min-width: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 0.35rem;
+		gap: 0.4rem;
 	}
 
 	.course-card__top {
@@ -716,8 +808,8 @@
 	}
 
 	.course-card__title {
-		font-size: var(--fs-sm);
-		font-weight: var(--w-semibold);
+		font-size: 0.875rem;
+		font-weight: 600;
 		color: var(--color-white);
 		margin: 0;
 		line-height: var(--lh-snug);
@@ -731,16 +823,17 @@
 	}
 
 	.course-card__price {
-		font-size: var(--fs-xs);
-		font-weight: var(--w-semibold);
+		font-size: 0.75rem;
+		font-weight: 600;
 		color: var(--color-grey-300);
+		font-variant-numeric: tabular-nums;
 	}
 
 	.course-card__meta {
 		display: flex;
 		align-items: center;
-		gap: 0.35rem;
-		font-size: var(--fs-2xs);
+		gap: 0.4rem;
+		font-size: 0.6875rem;
 		color: var(--color-grey-400);
 	}
 
@@ -752,28 +845,32 @@
 	}
 
 	.course-card__date {
-		font-size: var(--fs-2xs);
+		font-size: 0.6875rem;
 		color: var(--color-grey-500);
+		font-variant-numeric: tabular-nums;
 	}
 
 	/* ── Badges ─────────────────────────── */
 	.badge {
-		display: inline-block;
+		display: inline-flex;
+		align-items: center;
 		padding: 0.15rem 0.5rem;
-		border-radius: var(--radius-md);
-		font-size: var(--fs-2xs);
-		font-weight: var(--w-semibold);
+		border-radius: var(--radius-full);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
 		white-space: nowrap;
 	}
 
 	.badge--published {
-		background: rgba(34, 181, 115, 0.15);
-		color: var(--color-green);
+		background: rgba(15, 164, 175, 0.12);
+		color: #5eead4;
 	}
 
 	.badge--draft {
-		background: rgba(148, 163, 184, 0.15);
-		color: #94a3b8;
+		background: rgba(255, 255, 255, 0.06);
+		color: var(--color-grey-300);
 	}
 
 	.badge--beginner {
@@ -782,18 +879,18 @@
 	}
 
 	.badge--intermediate {
-		background: rgba(234, 179, 8, 0.15);
-		color: #eab308;
+		background: rgba(245, 158, 11, 0.12);
+		color: #fcd34d;
 	}
 
 	.badge--advanced {
-		background: rgba(239, 68, 68, 0.15);
-		color: #f87171;
+		background: rgba(239, 68, 68, 0.12);
+		color: #fca5a5;
 	}
 
 	.badge--free {
-		background: rgba(15, 164, 175, 0.15);
-		color: var(--color-teal-light);
+		background: rgba(15, 164, 175, 0.12);
+		color: #5eead4;
 	}
 
 	/* ── Pagination ─────────────────────── */
@@ -802,78 +899,92 @@
 		align-items: center;
 		justify-content: center;
 		gap: 0.75rem;
-		margin-top: 1.5rem;
+		margin-top: 0.5rem;
 	}
 
-	.courses-admin__pagination button {
-		padding: 0.4rem 0.85rem;
+	.page-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		min-height: 2.25rem;
+		padding: 0.45rem 0.75rem;
+		background-color: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-md);
-		background: transparent;
-		color: var(--color-grey-300);
-		font-size: var(--fs-xs);
+		border-radius: var(--radius-lg);
+		color: var(--color-white);
+		font-size: 0.875rem;
+		font-weight: 600;
+		font-family: var(--font-ui);
 		cursor: pointer;
-		transition: all var(--duration-150) var(--ease-out);
+		transition:
+			background-color 150ms var(--ease-out),
+			border-color 150ms var(--ease-out);
 	}
 
-	.courses-admin__pagination button:hover:not(:disabled) {
-		background: rgba(255, 255, 255, 0.05);
-		border-color: rgba(255, 255, 255, 0.15);
+	.page-btn:hover:not(:disabled) {
+		background-color: rgba(255, 255, 255, 0.1);
+		border-color: rgba(255, 255, 255, 0.18);
 	}
 
-	.courses-admin__pagination button:disabled {
-		opacity: 0.3;
+	.page-btn:disabled {
+		opacity: 0.4;
 		cursor: not-allowed;
 	}
 
-	.courses-admin__pagination span {
-		font-size: var(--fs-xs);
+	.page-info {
+		font-size: 0.75rem;
+		font-weight: 500;
 		color: var(--color-grey-400);
+		font-variant-numeric: tabular-nums;
 	}
 
-	/* ── Tablet+ ────────────────────────── */
+	/* ── Tablet 480px+ ──────────────────── */
+	@media (min-width: 480px) {
+		.filter-card {
+			flex-direction: row;
+			align-items: flex-end;
+		}
+
+		.filter-field--search {
+			flex: 1 1 18rem;
+		}
+
+		.filter-field {
+			flex: 0 0 12rem;
+		}
+	}
+
+	/* ── Tablet+ 768px+ ─────────────────── */
 	@media (min-width: 768px) {
+		.courses-admin {
+			gap: 1.5rem;
+		}
+
 		.courses-admin__header {
 			flex-direction: row;
-			align-items: center;
+			align-items: flex-end;
 			justify-content: space-between;
-			margin-bottom: 2rem;
+			gap: 1.5rem;
 		}
 
 		.courses-admin__title {
-			font-size: var(--fs-2xl);
-		}
-
-		.btn-primary {
-			padding: 0.7rem 1.35rem;
+			font-size: 1.5rem;
 		}
 
 		.stats-bar {
 			gap: 1rem;
-			margin-bottom: 2rem;
 		}
 
 		.stat-card {
-			padding: 1.25rem;
+			padding: 1.5rem;
 		}
 
 		.stat-card__value {
-			font-size: var(--fs-2xl);
+			font-size: 1.5rem;
 		}
 
-		.stat-card__label {
-			font-size: var(--fs-xs);
-		}
-
-		.courses-admin__filters {
-			flex-direction: row;
-			align-items: center;
-			justify-content: space-between;
-			margin-bottom: 1.5rem;
-		}
-
-		.courses-admin__search-wrap {
-			width: 16rem;
+		.filter-card {
+			padding: 1.5rem;
 		}
 
 		.courses-admin__cards {
@@ -883,49 +994,73 @@
 		.courses-admin__table-wrap {
 			display: block;
 			overflow-x: auto;
-			background: rgba(255, 255, 255, 0.02);
+			background-color: var(--color-navy-mid);
 			border: 1px solid rgba(255, 255, 255, 0.06);
 			border-radius: var(--radius-xl);
+			box-shadow:
+				0 1px 0 rgba(255, 255, 255, 0.03) inset,
+				0 12px 32px rgba(0, 0, 0, 0.18);
 		}
 
 		.courses-admin__table {
 			width: 100%;
 			border-collapse: collapse;
+			min-width: 720px;
+		}
+
+		.courses-admin__table thead {
+			background-color: rgba(255, 255, 255, 0.02);
 		}
 
 		.courses-admin__table th {
 			text-align: left;
-			padding: 0.75rem 1rem;
-			font-size: var(--fs-xs);
-			font-weight: var(--w-semibold);
+			padding: 0.875rem 1rem;
+			font-size: 0.6875rem;
+			font-weight: 600;
 			text-transform: uppercase;
 			letter-spacing: 0.05em;
-			color: var(--color-grey-400);
+			color: var(--color-grey-500);
 			border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+			white-space: nowrap;
 		}
 
 		.courses-admin__table td {
-			padding: 0.85rem 1rem;
+			padding: 0.875rem 1rem;
 			border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-			font-size: var(--fs-sm);
-			color: var(--color-grey-200);
+			font-size: 0.875rem;
+			color: var(--color-grey-300);
 			vertical-align: middle;
+			line-height: 1.45;
 		}
 
 		.courses-admin__table tbody tr {
-			transition: background var(--duration-150) var(--ease-out);
+			transition: background-color 150ms var(--ease-out);
 		}
 
 		.courses-admin__table tbody tr:hover {
-			background: rgba(255, 255, 255, 0.02);
+			background-color: rgba(255, 255, 255, 0.02);
 		}
 
-		.th-thumb {
-			width: 4rem;
+		.courses-admin__table tbody tr:last-child td {
+			border-bottom: none;
 		}
 
+		.th-thumb,
 		.td-thumb {
 			width: 4rem;
+		}
+
+		.th-num,
+		.td-num {
+			text-align: right;
+			white-space: nowrap;
+			font-variant-numeric: tabular-nums;
+		}
+
+		.th-actions,
+		.td-actions {
+			width: 3rem;
+			text-align: right;
 		}
 
 		.thumb-link {
@@ -952,9 +1087,9 @@
 
 		.title-link {
 			color: var(--color-white);
-			font-weight: var(--w-semibold);
+			font-weight: 600;
 			text-decoration: none;
-			transition: color var(--duration-150) var(--ease-out);
+			transition: color 150ms var(--ease-out);
 		}
 
 		.title-link:hover {
@@ -962,22 +1097,19 @@
 		}
 
 		.title-sub {
-			font-size: var(--fs-xs);
+			font-size: 0.75rem;
 			color: var(--color-grey-400);
 			margin-top: 0.15rem;
-		}
-
-		.td-num {
-			white-space: nowrap;
+			font-variant-numeric: tabular-nums;
 		}
 
 		.num-main {
-			font-weight: var(--w-semibold);
+			font-weight: 600;
 			color: var(--color-white);
 		}
 
 		.num-sub {
-			font-size: var(--fs-xs);
+			font-size: 0.75rem;
 			color: var(--color-grey-500);
 			margin-left: 0.35rem;
 		}
@@ -989,8 +1121,33 @@
 
 		.td-date {
 			white-space: nowrap;
-			font-size: var(--fs-xs);
+			font-size: 0.75rem;
 			color: var(--color-grey-400);
+			font-variant-numeric: tabular-nums;
+		}
+
+		.icon-btn {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 2rem;
+			height: 2rem;
+			background-color: rgba(255, 255, 255, 0.05);
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			border-radius: var(--radius-md);
+			color: var(--color-grey-300);
+			text-decoration: none;
+			cursor: pointer;
+			transition:
+				background-color 150ms var(--ease-out),
+				border-color 150ms var(--ease-out),
+				color 150ms var(--ease-out);
+		}
+
+		.icon-btn:hover {
+			background-color: rgba(15, 164, 175, 0.12);
+			border-color: rgba(15, 164, 175, 0.3);
+			color: var(--color-teal-light);
 		}
 
 		.skeleton-grid {
@@ -998,10 +1155,10 @@
 		}
 	}
 
-	/* ── Desktop ────────────────────────── */
+	/* ── Desktop 1024px+ ────────────────── */
 	@media (min-width: 1024px) {
 		.stat-card {
-			padding: 1.5rem;
+			padding: 1.75rem;
 		}
 
 		.stat-card__icon {

@@ -3,10 +3,15 @@
 	import ReceiptIcon from 'phosphor-svelte/lib/ReceiptIcon';
 	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
 	import DownloadSimpleIcon from 'phosphor-svelte/lib/DownloadSimpleIcon';
-	import ArrowClockwiseIcon from 'phosphor-svelte/lib/ArrowClockwiseIcon';
+	import ArrowsClockwiseIcon from 'phosphor-svelte/lib/ArrowsClockwiseIcon';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import XCircleIcon from 'phosphor-svelte/lib/XCircleIcon';
 	import MoneyIcon from 'phosphor-svelte/lib/MoneyIcon';
+	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
+	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
+	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
+	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
+	import XIcon from 'phosphor-svelte/lib/XIcon';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { ApiError } from '$lib/api/client';
 	import {
@@ -86,10 +91,7 @@
 	}
 
 	function addManualItem() {
-		manualItems = [
-			...manualItems,
-			{ product_id: '', quantity: 1, unit_price_cents: 0, name: '' }
-		];
+		manualItems = [...manualItems, { product_id: '', quantity: 1, unit_price_cents: 0, name: '' }];
 	}
 
 	function removeManualItem(i: number) {
@@ -221,61 +223,73 @@
 
 <div class="page" data-testid="admin-orders-page">
 	<header class="page__header">
-		<div class="page__title-row">
-			<ReceiptIcon size={28} weight="duotone" />
+		<div class="page__heading">
+			<span class="page__eyebrow">Commerce</span>
 			<h1 class="page__title">Orders</h1>
+			<p class="page__subtitle">
+				Search, inspect, void, and partially refund any digital-goods order. Manual order
+				creation supports comp pricing and FSM-aware bulk completion.
+			</p>
 		</div>
-		<p class="page__subtitle">
-			Search, inspect, void, and partially refund any digital-goods order. Manual order
-			creation supports comp pricing, off-band Stripe refund ids, and FSM-aware bulk completion.
-		</p>
 	</header>
 
-	{#if toast}<div class="toast">{toast}</div>{/if}
+	{#if toast}<div class="toast" role="status">{toast}</div>{/if}
 	{#if error}<div class="error" role="alert">{error}</div>{/if}
 
-	<form class="filters" onsubmit={applyFilters}>
-		<div class="filters__grid">
-			<div class="field field--wide">
-				<label class="field__label" for="ord-q">Search</label>
-				<div class="search-input">
-					<MagnifyingGlassIcon size={16} />
-					<input
-						id="ord-q"
-						class="field__input"
-						placeholder="email or order number"
-						bind:value={filters.q}
-					/>
-				</div>
+	<form class="filter-card" onsubmit={applyFilters}>
+		<div class="filter-card__field filter-card__field--search">
+			<label class="filter-card__label" for="ord-q">Search</label>
+			<div class="search-wrap">
+				<MagnifyingGlassIcon size={16} weight="bold" class="search-icon" />
+				<input
+					id="ord-q"
+					name="ord-q"
+					type="search"
+					class="filter-input filter-input--search"
+					placeholder="Email or order number"
+					bind:value={filters.q}
+				/>
 			</div>
-			<div class="field">
-				<label class="field__label" for="ord-status">Status</label>
-				<select id="ord-status" class="field__input" bind:value={filters.status}>
-					<option value="">Any</option>
-					<option value="pending">pending</option>
-					<option value="completed">completed</option>
-					<option value="refunded">refunded</option>
-					<option value="cancelled">cancelled</option>
-				</select>
-			</div>
-			<div class="field field--actions">
-				<button class="btn btn--primary" type="submit">Apply</button>
-				<button class="btn btn--ghost" type="button" onclick={refresh}>
-					<ArrowClockwiseIcon size={16} weight="bold" />
-				</button>
-				<button class="btn btn--ghost" type="button" onclick={downloadCsv}>
-					<DownloadSimpleIcon size={16} weight="bold" />
-					CSV
-				</button>
-				<button
-					class="btn btn--primary"
-					type="button"
-					onclick={() => (showCreate = !showCreate)}
+		</div>
+		<div class="filter-card__field">
+			<label class="filter-card__label" for="ord-status">Status</label>
+			<div class="select-wrap">
+				<select
+					id="ord-status"
+					name="ord-status"
+					class="filter-input filter-input--select"
+					bind:value={filters.status}
 				>
-					<PlusIcon size={16} weight="bold" />
-					Manual order
-				</button>
+					<option value="">Any</option>
+					<option value="pending">Pending</option>
+					<option value="completed">Completed</option>
+					<option value="refunded">Refunded</option>
+					<option value="cancelled">Cancelled</option>
+				</select>
+				<CaretDownIcon size={14} weight="bold" class="select-caret" />
 			</div>
+		</div>
+		<div class="filter-card__actions">
+			<button class="btn btn--primary" type="submit">
+				<MagnifyingGlassIcon size={16} weight="bold" />
+				<span>Apply</span>
+			</button>
+			<button class="btn btn--secondary" type="button" onclick={refresh} title="Refresh">
+				<ArrowsClockwiseIcon size={16} weight="bold" />
+				<span class="filter-card__actions-label">Refresh</span>
+			</button>
+			<button class="btn btn--secondary" type="button" onclick={downloadCsv} title="Export CSV">
+				<DownloadSimpleIcon size={16} weight="bold" />
+				<span class="filter-card__actions-label">Export</span>
+			</button>
+			<button
+				class="btn btn--primary"
+				type="button"
+				onclick={() => (showCreate = !showCreate)}
+			>
+				<PlusIcon size={16} weight="bold" />
+				<span>Manual order</span>
+			</button>
 		</div>
 	</form>
 
@@ -284,27 +298,34 @@
 			<h2 class="card__title">Manual order</h2>
 			<form class="create-form" onsubmit={createManual}>
 				<div class="row-fields">
-					<div class="field">
-						<label class="field__label" for="m-email">Customer email</label>
+					<div class="cf-field">
+						<label class="cf-label" for="m-email">Customer email</label>
 						<input
 							id="m-email"
-							class="field__input"
+							name="m-email"
+							class="cf-input"
 							type="email"
 							bind:value={manualEmail}
 							required
 						/>
 					</div>
-					<div class="field field--narrow">
-						<label class="field__label" for="m-curr">Currency</label>
+					<div class="cf-field cf-field--narrow">
+						<label class="cf-label" for="m-curr">Currency</label>
 						<input
 							id="m-curr"
-							class="field__input"
+							name="m-curr"
+							class="cf-input"
 							maxlength="3"
 							bind:value={manualCurrency}
 						/>
 					</div>
-					<label class="field field--checkbox">
-						<input type="checkbox" bind:checked={manualMarkCompleted} />
+					<label class="cf-checkbox">
+						<input
+							id="m-completed"
+							name="m-completed"
+							type="checkbox"
+							bind:checked={manualMarkCompleted}
+						/>
 						<span>Mark completed</span>
 					</label>
 				</div>
@@ -312,64 +333,70 @@
 					{#each manualItems as _item, i (i)}
 						<div class="item-row">
 							<input
-								class="field__input"
+								class="cf-input"
 								placeholder="Product UUID"
 								bind:value={manualItems[i].product_id}
+								aria-label="Product UUID"
 								required
 							/>
 							<input
-								class="field__input"
+								class="cf-input"
 								placeholder="Display name"
 								bind:value={manualItems[i].name}
+								aria-label="Display name"
 								required
 							/>
 							<input
-								class="field__input"
+								class="cf-input"
 								placeholder="SKU (opt)"
 								bind:value={manualItems[i].sku}
+								aria-label="SKU"
 							/>
 							<input
-								class="field__input"
+								class="cf-input"
 								type="number"
 								min="1"
-								placeholder="qty"
+								placeholder="Qty"
 								bind:value={manualItems[i].quantity}
+								aria-label="Quantity"
 								required
 							/>
 							<input
-								class="field__input"
+								class="cf-input"
 								type="number"
 								min="0"
-								placeholder="unit cents"
+								placeholder="Unit cents"
 								bind:value={manualItems[i].unit_price_cents}
+								aria-label="Unit price (cents)"
 								required
 							/>
 							<button
 								type="button"
-								class="btn btn--ghost btn--small"
+								class="icon-btn icon-btn--danger"
 								onclick={() => removeManualItem(i)}
 								aria-label="Remove item"
 							>
-								<XCircleIcon size={14} />
+								<XCircleIcon size={16} weight="bold" />
 							</button>
 						</div>
 					{/each}
-					<button type="button" class="btn btn--ghost btn--small" onclick={addManualItem}>
-						<PlusIcon size={14} />
-						Add line
+					<button type="button" class="btn btn--secondary btn--small" onclick={addManualItem}>
+						<PlusIcon size={14} weight="bold" />
+						<span>Add line</span>
 					</button>
 				</div>
-				<div class="field">
-					<label class="field__label" for="m-notes">Notes</label>
+				<div class="cf-field">
+					<label class="cf-label" for="m-notes">Notes</label>
 					<textarea
 						id="m-notes"
-						class="field__input"
+						name="m-notes"
+						class="cf-input"
 						rows="2"
 						bind:value={manualNotes}
 					></textarea>
 				</div>
 				<div class="form-actions">
-					<button class="btn btn--ghost" type="button" onclick={() => (showCreate = false)}>
+					<button class="btn btn--secondary" type="button" onclick={() => (showCreate = false)}>
 						Cancel
 					</button>
 					<button class="btn btn--primary" type="submit" disabled={createBusy}>
@@ -381,9 +408,15 @@
 	{/if}
 
 	{#if loading}
-		<p class="muted">Loading…</p>
+		<div class="muted card card--center">Loading…</div>
 	{:else if !envelope || envelope.data.length === 0}
-		<p class="muted">No orders match.</p>
+		<div class="empty-state">
+			<ReceiptIcon size={48} weight="duotone" />
+			<h2 class="empty-state__title">No orders match</h2>
+			<p class="empty-state__desc">
+				Try widening your search, clearing the status filter, or creating a manual order.
+			</p>
+		</div>
 	{:else}
 		<div class="card table-wrap">
 			<table class="table">
@@ -392,26 +425,32 @@
 						<th>Number</th>
 						<th>Email</th>
 						<th>Status</th>
-						<th>Total</th>
+						<th class="table__num">Total</th>
 						<th>Placed</th>
-						<th aria-label="Inspect"></th>
+						<th class="table__actions-h" aria-label="Actions"></th>
 					</tr>
 				</thead>
 				<tbody>
 					{#each envelope.data as o (o.id)}
 						<tr>
-							<td><code>{o.number}</code></td>
-							<td>{o.email}</td>
+							<td><code class="mono">{o.number}</code></td>
+							<td class="table__email">{o.email}</td>
 							<td><span class="badge {statusClass(o.status)}">{o.status}</span></td>
-							<td>{formatMoney(o.total_cents, o.currency)}</td>
-							<td>
+							<td class="table__num">{formatMoney(o.total_cents, o.currency)}</td>
+							<td class="table__date">
 								{o.placed_at
 									? new Date(o.placed_at).toLocaleString()
 									: new Date(o.created_at).toLocaleString()}
 							</td>
-							<td>
-								<button class="btn btn--ghost btn--small" onclick={() => inspect(o)}>
-									Inspect
+							<td class="table__actions">
+								<button
+									type="button"
+									class="icon-btn"
+									onclick={() => inspect(o)}
+									title="Inspect order {o.number}"
+									aria-label="Inspect order {o.number}"
+								>
+									<EyeIcon size={16} weight="bold" />
 								</button>
 							</td>
 						</tr>
@@ -419,31 +458,35 @@
 				</tbody>
 			</table>
 		</div>
-		<div class="pager">
+		<nav class="pager" aria-label="Pagination">
 			<button
-				class="btn btn--ghost"
+				type="button"
+				class="page-btn"
 				disabled={(envelope.page ?? 1) <= 1}
 				onclick={() => {
 					filters.offset = Math.max(0, (filters.offset ?? 0) - (filters.limit ?? 25));
 					void refresh();
 				}}
 			>
-				Prev
+				<CaretLeftIcon size={14} weight="bold" />
+				<span>Previous</span>
 			</button>
-			<span class="pager__info">
-				Page {envelope.page} / {envelope.total_pages || 1} · {envelope.total} orders
+			<span class="page-info">
+				Page {envelope.page} of {envelope.total_pages || 1} · {envelope.total} orders
 			</span>
 			<button
-				class="btn btn--ghost"
+				type="button"
+				class="page-btn"
 				disabled={(envelope.page ?? 1) >= (envelope.total_pages ?? 1)}
 				onclick={() => {
 					filters.offset = (filters.offset ?? 0) + (filters.limit ?? 25);
 					void refresh();
 				}}
 			>
-				Next
+				<span>Next</span>
+				<CaretRightIcon size={14} weight="bold" />
 			</button>
-		</div>
+		</nav>
 	{/if}
 
 	{#if selected}
@@ -455,7 +498,7 @@
 			onclick={() => (selected = null)}
 			onkeydown={(e) => e.key === 'Escape' && (selected = null)}
 		></div>
-		<aside class="drawer">
+		<aside class="drawer" aria-label="Order details">
 			<header class="drawer__header">
 				<h2 class="drawer__title">
 					{selected.order.number}
@@ -463,39 +506,45 @@
 						{selected.order.status}
 					</span>
 				</h2>
-				<button class="btn btn--ghost btn--small" onclick={() => (selected = null)}>
-					Close
+				<button
+					type="button"
+					class="icon-btn"
+					onclick={() => (selected = null)}
+					title="Close"
+					aria-label="Close drawer"
+				>
+					<XIcon size={16} weight="bold" />
 				</button>
 			</header>
 			<dl class="drawer__meta">
 				<dt>Customer</dt>
 				<dd>{selected.order.email}</dd>
 				<dt>Total</dt>
-				<dd>{formatMoney(selected.order.total_cents, selected.order.currency)}</dd>
+				<dd class="num">{formatMoney(selected.order.total_cents, selected.order.currency)}</dd>
 				<dt>Refunded</dt>
-				<dd>{formatMoney(selected.refunded_cents, selected.order.currency)}</dd>
+				<dd class="num">{formatMoney(selected.refunded_cents, selected.order.currency)}</dd>
 				<dt>Remaining refundable</dt>
-				<dd>
+				<dd class="num">
 					{formatMoney(selected.remaining_refundable_cents, selected.order.currency)}
 				</dd>
 				{#if selected.order.stripe_payment_intent_id}
 					<dt>Stripe PI</dt>
-					<dd><code>{selected.order.stripe_payment_intent_id}</code></dd>
+					<dd><code class="mono">{selected.order.stripe_payment_intent_id}</code></dd>
 				{/if}
 			</dl>
 
 			<h3 class="drawer__section">Items</h3>
 			<table class="mini-table">
 				<thead>
-					<tr><th>Name</th><th>Qty</th><th>Unit</th><th>Line</th></tr>
+					<tr><th>Name</th><th class="mini-table__num">Qty</th><th class="mini-table__num">Unit</th><th class="mini-table__num">Line</th></tr>
 				</thead>
 				<tbody>
 					{#each selected.items as it (it.id)}
 						<tr>
 							<td>{it.name}</td>
-							<td>{it.quantity}</td>
-							<td>{formatMoney(it.unit_price_cents, selected.order.currency)}</td>
-							<td>{formatMoney(it.line_total_cents, selected.order.currency)}</td>
+							<td class="mini-table__num">{it.quantity}</td>
+							<td class="mini-table__num">{formatMoney(it.unit_price_cents, selected.order.currency)}</td>
+							<td class="mini-table__num">{formatMoney(it.line_total_cents, selected.order.currency)}</td>
 						</tr>
 					{/each}
 				</tbody>
@@ -505,12 +554,12 @@
 				<h3 class="drawer__section">Refunds</h3>
 				<table class="mini-table">
 					<thead>
-						<tr><th>Amount</th><th>Reason</th><th>When</th></tr>
+						<tr><th class="mini-table__num">Amount</th><th>Reason</th><th>When</th></tr>
 					</thead>
 					<tbody>
 						{#each selected.refunds as r (r.id)}
 							<tr>
-								<td>{formatMoney(r.amount_cents, selected.order.currency)}</td>
+								<td class="mini-table__num">{formatMoney(r.amount_cents, selected.order.currency)}</td>
 								<td>{r.reason ?? '—'}</td>
 								<td>{new Date(r.created_at).toLocaleString()}</td>
 							</tr>
@@ -527,19 +576,22 @@
 					</h3>
 					<div class="row-fields">
 						<input
-							class="field__input"
+							class="cf-input"
 							type="number"
 							min="1"
 							max={selected.remaining_refundable_cents}
-							placeholder="amount cents"
+							placeholder="Amount cents"
 							bind:value={refundAmount}
+							aria-label="Refund amount in cents"
 						/>
 						<input
-							class="field__input"
-							placeholder="reason (optional)"
+							class="cf-input"
+							placeholder="Reason (optional)"
 							bind:value={refundReason}
+							aria-label="Refund reason"
 						/>
 						<button
+							type="button"
 							class="btn btn--primary"
 							onclick={refund}
 							disabled={refundBusy}
@@ -558,11 +610,17 @@
 					</h3>
 					<div class="row-fields">
 						<input
-							class="field__input"
-							placeholder="reason (optional)"
+							class="cf-input"
+							placeholder="Reason (optional)"
 							bind:value={voidReason}
+							aria-label="Void reason"
 						/>
-						<button class="btn btn--danger" onclick={voidOrder} disabled={voidBusy}>
+						<button
+							type="button"
+							class="btn btn--danger"
+							onclick={voidOrder}
+							disabled={voidBusy}
+						>
 							{voidBusy ? 'Voiding…' : 'Void order'}
 						</button>
 					</div>
@@ -574,267 +632,592 @@
 
 <style>
 	.page {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
 		max-width: 1280px;
 	}
+
+	/* ── Header ─────────────────────────── */
 	.page__header {
-		margin-bottom: var(--space-5);
-	}
-	.page__title-row {
 		display: flex;
-		align-items: center;
-		gap: var(--space-3);
-		color: var(--color-white);
+		flex-direction: column;
+		gap: 1rem;
 	}
+
+	.page__heading {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		min-width: 0;
+	}
+
+	.page__eyebrow {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: var(--color-grey-500);
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
+
 	.page__title {
-		font-size: var(--fs-xl);
-		font-weight: var(--w-bold);
+		font-size: 1.5rem;
+		font-weight: 700;
 		font-family: var(--font-heading);
+		color: var(--color-white);
+		line-height: 1.15;
+		letter-spacing: -0.01em;
 		margin: 0;
 	}
+
 	.page__subtitle {
-		margin-top: var(--space-2);
-		font-size: var(--fs-sm);
+		font-size: 0.875rem;
 		color: var(--color-grey-400);
-		max-width: 75ch;
+		max-width: 60ch;
+		line-height: 1.55;
+		margin: 0;
 	}
+
+	/* ── Status messages ────────────────── */
 	.toast {
-		padding: var(--space-3) var(--space-4);
-		background: rgba(34, 181, 115, 0.12);
-		border: 1px solid rgba(34, 181, 115, 0.25);
-		color: var(--color-green);
+		padding: 0.75rem 1rem;
+		background: rgba(15, 164, 175, 0.12);
+		border: 1px solid rgba(15, 164, 175, 0.3);
+		color: #5eead4;
 		border-radius: var(--radius-lg);
-		font-size: var(--fs-sm);
-		margin-bottom: var(--space-4);
+		font-size: 0.875rem;
 	}
+
 	.error {
-		padding: var(--space-3) var(--space-4);
+		padding: 0.75rem 1rem;
 		background: rgba(239, 68, 68, 0.1);
 		border: 1px solid rgba(239, 68, 68, 0.3);
 		color: #fca5a5;
 		border-radius: var(--radius-lg);
-		font-size: var(--fs-sm);
-		margin-bottom: var(--space-4);
+		font-size: 0.875rem;
 	}
+
 	.muted {
 		color: var(--color-grey-400);
-		font-size: var(--fs-sm);
+		font-size: 0.875rem;
 	}
-	.filters {
-		background: var(--color-navy-mid);
-		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-xl);
-		padding: var(--space-4);
-		margin-bottom: var(--space-4);
-	}
-	.filters__grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-		gap: var(--space-3);
-		align-items: end;
-	}
-	.field {
+
+	/* ── Filter card ────────────────────── */
+	.filter-card {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-1-5);
+		gap: 0.75rem;
+		padding: 1.25rem;
+		background-color: var(--color-navy-mid);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: var(--radius-xl);
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.03) inset,
+			0 12px 32px rgba(0, 0, 0, 0.18);
 	}
-	.field--wide {
-		grid-column: span 2;
+
+	.filter-card__field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		min-width: 0;
 	}
-	.field--narrow {
-		max-width: 8rem;
+
+	.filter-card__label {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: var(--color-grey-400);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
 	}
-	.field--actions {
-		flex-direction: row;
-		gap: var(--space-2);
-		align-items: end;
+
+	.filter-card__actions {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
 	}
-	.field--checkbox {
-		flex-direction: row;
-		align-items: center;
-		gap: var(--space-2);
-		font-size: var(--fs-sm);
-		color: var(--color-grey-300);
+
+	.filter-card__actions-label {
+		display: none;
 	}
-	.field__label {
-		font-size: var(--fs-xs);
-		color: var(--color-grey-300);
-	}
-	.field__input {
-		padding: var(--space-2-5) var(--space-3);
-		background: rgba(255, 255, 255, 0.05);
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		color: var(--color-white);
-		border-radius: var(--radius-lg);
-		font-size: var(--fs-sm);
-		width: 100%;
-	}
-	.field__input:focus {
-		outline: none;
-		border-color: var(--color-teal);
-	}
-	.search-input {
+
+	.search-wrap,
+	.select-wrap {
 		position: relative;
 	}
-	.search-input :global(svg) {
+
+	:global(.search-icon) {
 		position: absolute;
-		left: 0.7rem;
+		left: 0.75rem;
 		top: 50%;
 		transform: translateY(-50%);
-		color: var(--color-grey-400);
+		color: var(--color-grey-500);
 		pointer-events: none;
 	}
-	.search-input .field__input {
-		padding-left: 2rem;
+
+	:global(.select-caret) {
+		position: absolute;
+		right: 0.75rem;
+		top: 50%;
+		transform: translateY(-50%);
+		color: var(--color-grey-500);
+		pointer-events: none;
 	}
+
+	.filter-input {
+		width: 100%;
+		min-height: 2.5rem;
+		padding: 0.65rem 0.875rem;
+		background-color: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-lg);
+		color: var(--color-white);
+		font-size: 0.875rem;
+		font-family: var(--font-ui);
+		outline: none;
+		transition:
+			border-color 150ms var(--ease-out),
+			box-shadow 150ms var(--ease-out);
+	}
+
+	.filter-input::placeholder {
+		color: var(--color-grey-500);
+	}
+
+	.filter-input:focus {
+		border-color: var(--color-teal);
+		box-shadow: 0 0 0 3px rgba(15, 164, 175, 0.15);
+	}
+
+	.filter-input--search {
+		padding-left: 2.25rem;
+	}
+
+	.filter-input--select {
+		appearance: none;
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		padding-right: 2.25rem;
+		cursor: pointer;
+	}
+
+	.filter-input--select option {
+		background-color: var(--color-navy-mid);
+		color: var(--color-white);
+	}
+
+	/* ── Buttons ────────────────────────── */
 	.btn {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--space-2);
-		padding: var(--space-2) var(--space-3);
+		gap: 0.5rem;
+		min-height: 2.5rem;
+		padding: 0.55rem 1rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		font-family: var(--font-ui);
 		border-radius: var(--radius-lg);
-		font-size: var(--fs-sm);
-		font-weight: var(--w-semibold);
 		border: 1px solid transparent;
-		background: transparent;
-		color: var(--color-grey-300);
 		cursor: pointer;
+		text-decoration: none;
+		transition:
+			background-color 150ms var(--ease-out),
+			border-color 150ms var(--ease-out),
+			transform 150ms var(--ease-out),
+			box-shadow 150ms var(--ease-out),
+			color 150ms var(--ease-out);
 	}
+
 	.btn:disabled {
-		opacity: 0.4;
+		opacity: 0.5;
 		cursor: not-allowed;
 	}
+
 	.btn--primary {
-		background: var(--color-teal);
 		color: var(--color-white);
+		background: linear-gradient(135deg, var(--color-teal), var(--color-teal-dark));
+		box-shadow: 0 6px 16px -4px rgba(15, 164, 175, 0.45);
 	}
-	.btn--ghost {
+
+	.btn--primary:hover:not(:disabled) {
+		transform: translateY(-1px);
+		box-shadow: 0 10px 22px -4px rgba(15, 164, 175, 0.55);
+	}
+
+	.btn--secondary {
+		color: var(--color-white);
+		background-color: rgba(255, 255, 255, 0.05);
 		border-color: rgba(255, 255, 255, 0.1);
-		background: rgba(255, 255, 255, 0.03);
 	}
-	.btn--ghost:hover:not(:disabled) {
-		background: rgba(255, 255, 255, 0.08);
-		color: var(--color-white);
+
+	.btn--secondary:hover:not(:disabled) {
+		background-color: rgba(255, 255, 255, 0.1);
+		border-color: rgba(255, 255, 255, 0.18);
 	}
+
 	.btn--danger {
-		background: rgba(239, 68, 68, 0.12);
 		color: #fca5a5;
-		border-color: rgba(239, 68, 68, 0.25);
+		background-color: rgba(239, 68, 68, 0.1);
+		border-color: rgba(239, 68, 68, 0.3);
 	}
+
+	.btn--danger:hover:not(:disabled) {
+		background-color: rgba(239, 68, 68, 0.18);
+	}
+
 	.btn--small {
-		padding: 0.25rem 0.6rem;
-		font-size: var(--fs-xs);
+		min-height: 2rem;
+		padding: 0.4rem 0.75rem;
+		font-size: 0.75rem;
 	}
+
+	.icon-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		background-color: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-md);
+		color: var(--color-grey-300);
+		cursor: pointer;
+		transition:
+			background-color 150ms var(--ease-out),
+			border-color 150ms var(--ease-out),
+			color 150ms var(--ease-out);
+	}
+
+	.icon-btn:hover {
+		background-color: rgba(15, 164, 175, 0.12);
+		border-color: rgba(15, 164, 175, 0.3);
+		color: var(--color-teal-light);
+	}
+
+	.icon-btn--danger:hover {
+		background-color: rgba(239, 68, 68, 0.12);
+		border-color: rgba(239, 68, 68, 0.3);
+		color: #fca5a5;
+	}
+
+	/* ── Card / create form ─────────────── */
 	.card {
-		background: var(--color-navy-mid);
+		padding: 1.25rem;
+		background-color: var(--color-navy-mid);
 		border: 1px solid rgba(255, 255, 255, 0.06);
 		border-radius: var(--radius-xl);
-		padding: var(--space-5);
-		margin-bottom: var(--space-4);
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.03) inset,
+			0 12px 32px rgba(0, 0, 0, 0.18);
 	}
+
+	.card--center {
+		text-align: center;
+		padding: 2rem 1rem;
+	}
+
 	.card__title {
-		font-size: var(--fs-md);
-		font-weight: var(--w-bold);
+		font-size: 1rem;
+		font-weight: 600;
 		font-family: var(--font-heading);
 		color: var(--color-white);
-		margin: 0 0 var(--space-3) 0;
+		margin: 0 0 1rem 0;
 	}
+
 	.create-form {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-3);
+		gap: 1rem;
 	}
+
 	.row-fields {
 		display: flex;
-		gap: var(--space-2);
+		gap: 0.75rem;
 		flex-wrap: wrap;
-		align-items: end;
+		align-items: flex-end;
 	}
-	.row-fields > .field {
+
+	.row-fields > .cf-field {
 		flex: 1 1 200px;
 	}
+
+	.cf-field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+	}
+
+	.cf-field--narrow {
+		max-width: 8rem;
+	}
+
+	.cf-label {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: var(--color-grey-400);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.cf-input {
+		width: 100%;
+		min-height: 2.5rem;
+		padding: 0.65rem 0.875rem;
+		background-color: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-lg);
+		color: var(--color-white);
+		font-size: 0.875rem;
+		font-family: var(--font-ui);
+		outline: none;
+		transition:
+			border-color 150ms var(--ease-out),
+			box-shadow 150ms var(--ease-out);
+	}
+
+	.cf-input::placeholder {
+		color: var(--color-grey-500);
+	}
+
+	.cf-input:focus {
+		border-color: var(--color-teal);
+		box-shadow: 0 0 0 3px rgba(15, 164, 175, 0.15);
+	}
+
+	.cf-checkbox {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.875rem;
+		color: var(--color-grey-300);
+		cursor: pointer;
+		min-height: 2.5rem;
+	}
+
 	.items {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-2);
-		padding: var(--space-3);
+		gap: 0.5rem;
+		padding: 0.75rem;
 		background: rgba(0, 0, 0, 0.15);
 		border-radius: var(--radius-lg);
 	}
+
 	.item-row {
 		display: grid;
-		grid-template-columns: 1.4fr 1.2fr 0.8fr 0.5fr 0.7fr auto;
-		gap: var(--space-2);
+		grid-template-columns: 1fr;
+		gap: 0.5rem;
 		align-items: center;
 	}
+
 	.form-actions {
 		display: flex;
-		gap: var(--space-2);
+		gap: 0.5rem;
 		justify-content: flex-end;
 	}
+
+	/* ── Empty state ────────────────────── */
+	.empty-state {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		gap: 0.85rem;
+		padding: 3.5rem 2rem;
+		background-color: var(--color-navy-mid);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: var(--radius-xl);
+		color: var(--color-grey-500);
+	}
+
+	.empty-state :global(svg) {
+		color: var(--color-grey-500);
+	}
+
+	.empty-state__title {
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--color-white);
+		margin: 0;
+	}
+
+	.empty-state__desc {
+		font-size: 0.875rem;
+		color: var(--color-grey-400);
+		max-width: 36ch;
+		line-height: 1.55;
+		margin: 0;
+	}
+
+	/* ── Table ──────────────────────────── */
 	.table-wrap {
 		overflow-x: auto;
-		padding: var(--space-3);
+		padding: 0;
 	}
+
 	.table {
 		width: 100%;
 		border-collapse: collapse;
-		font-size: var(--fs-sm);
+		min-width: 720px;
+		font-size: 0.875rem;
 	}
+
+	.table thead {
+		background-color: rgba(255, 255, 255, 0.02);
+	}
+
 	.table th {
 		text-align: left;
-		font-weight: var(--w-medium);
-		color: var(--color-grey-400);
-		padding: var(--space-2);
-		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: var(--color-grey-500);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		padding: 0.875rem 1rem;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 		white-space: nowrap;
 	}
+
 	.table td {
-		padding: var(--space-3) var(--space-2);
+		padding: 0.875rem 1rem;
 		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-		color: var(--color-grey-200);
+		color: var(--color-grey-300);
+		line-height: 1.45;
 	}
+
+	.table tbody tr {
+		transition: background-color 150ms var(--ease-out);
+	}
+
+	.table tbody tr:hover {
+		background-color: rgba(255, 255, 255, 0.02);
+	}
+
+	.table tbody tr:last-child td {
+		border-bottom: none;
+	}
+
+	.mono {
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		color: var(--color-white);
+	}
+
+	.table__email {
+		color: var(--color-grey-300);
+		max-width: 18rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.table__num {
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+		font-weight: 500;
+		color: var(--color-white);
+		white-space: nowrap;
+	}
+
+	.table__date {
+		font-size: 0.75rem;
+		color: var(--color-grey-400);
+		white-space: nowrap;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.table__actions-h,
+	.table__actions {
+		width: 3rem;
+		text-align: right;
+	}
+
+	/* ── Badges ─────────────────────────── */
 	.badge {
-		display: inline-block;
-		padding: 0.1rem 0.5rem;
+		display: inline-flex;
+		align-items: center;
+		padding: 0.15rem 0.5rem;
 		border-radius: var(--radius-full);
-		font-size: var(--fs-xs);
-		font-weight: var(--w-bold);
+		font-size: 0.6875rem;
+		font-weight: 600;
 		text-transform: uppercase;
-		letter-spacing: 0.04em;
+		letter-spacing: 0.05em;
+		white-space: nowrap;
 	}
+
 	.badge--ok {
-		background: rgba(34, 181, 115, 0.15);
-		color: var(--color-green);
+		background: rgba(15, 164, 175, 0.12);
+		color: #5eead4;
 	}
+
 	.badge--warn {
-		background: rgba(245, 158, 11, 0.15);
-		color: #fbbf24;
+		background: rgba(245, 158, 11, 0.12);
+		color: #fcd34d;
 	}
+
 	.badge--off {
 		background: rgba(255, 255, 255, 0.06);
-		color: var(--color-grey-400);
+		color: var(--color-grey-300);
 	}
+
 	.badge--err {
-		background: rgba(239, 68, 68, 0.15);
+		background: rgba(239, 68, 68, 0.12);
 		color: #fca5a5;
 	}
+
+	/* ── Pagination ─────────────────────── */
 	.pager {
 		display: flex;
-		gap: var(--space-3);
+		gap: 0.75rem;
 		justify-content: center;
 		align-items: center;
-		margin-top: var(--space-4);
 	}
-	.pager__info {
-		font-size: var(--fs-xs);
+
+	.page-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		min-height: 2.25rem;
+		padding: 0.45rem 0.75rem;
+		background-color: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-lg);
+		color: var(--color-white);
+		font-size: 0.875rem;
+		font-weight: 600;
+		font-family: var(--font-ui);
+		cursor: pointer;
+		transition:
+			background-color 150ms var(--ease-out),
+			border-color 150ms var(--ease-out);
+	}
+
+	.page-btn:hover:not(:disabled) {
+		background-color: rgba(255, 255, 255, 0.1);
+		border-color: rgba(255, 255, 255, 0.18);
+	}
+
+	.page-btn:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	.page-info {
+		font-size: 0.75rem;
+		font-weight: 500;
 		color: var(--color-grey-400);
+		font-variant-numeric: tabular-nums;
 	}
+
+	/* ── Drawer ─────────────────────────── */
 	.drawer-backdrop {
 		position: fixed;
 		inset: 0;
 		background: rgba(0, 0, 0, 0.55);
 		z-index: 60;
 	}
+
 	.drawer {
 		position: fixed;
 		top: 0;
@@ -843,76 +1226,151 @@
 		width: min(640px, 96vw);
 		background: var(--color-navy);
 		border-left: 1px solid rgba(255, 255, 255, 0.08);
-		padding: var(--space-5);
+		padding: 1.5rem;
 		overflow-y: auto;
 		z-index: 70;
 		box-shadow: -8px 0 24px rgba(0, 0, 0, 0.3);
 	}
+
 	.drawer__header {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		margin-bottom: var(--space-3);
+		margin-bottom: 1rem;
 	}
+
 	.drawer__title {
-		font-size: var(--fs-lg);
+		font-size: 1rem;
+		font-weight: 600;
 		font-family: var(--font-heading);
 		color: var(--color-white);
 		margin: 0;
 		display: flex;
-		gap: var(--space-2);
+		gap: 0.5rem;
 		align-items: center;
+		letter-spacing: -0.01em;
 	}
+
 	.drawer__meta {
 		display: grid;
 		grid-template-columns: 9rem 1fr;
-		gap: var(--space-2) var(--space-3);
-		font-size: var(--fs-sm);
-		color: var(--color-grey-200);
-		margin-bottom: var(--space-4);
+		gap: 0.5rem 0.75rem;
+		font-size: 0.875rem;
+		color: var(--color-grey-300);
+		margin-bottom: 1rem;
 	}
+
 	.drawer__meta dt {
-		color: var(--color-grey-400);
-		font-size: var(--fs-xs);
+		color: var(--color-grey-500);
+		font-size: 0.6875rem;
+		font-weight: 600;
 		text-transform: uppercase;
-		letter-spacing: 0.04em;
+		letter-spacing: 0.05em;
 	}
+
 	.drawer__meta dd {
 		margin: 0;
 		word-break: break-all;
+		color: var(--color-grey-200);
 	}
-	.drawer__section {
-		font-size: var(--fs-sm);
+
+	.drawer__meta dd.num {
+		font-variant-numeric: tabular-nums;
 		color: var(--color-white);
-		margin: var(--space-4) 0 var(--space-2);
+		font-weight: 500;
+	}
+
+	.drawer__section {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--color-white);
+		margin: 1rem 0 0.5rem;
 		display: flex;
 		align-items: center;
-		gap: var(--space-2);
+		gap: 0.5rem;
 	}
+
 	.mini-table {
 		width: 100%;
 		border-collapse: collapse;
-		font-size: var(--fs-xs);
+		font-size: 0.75rem;
 	}
+
 	.mini-table th {
 		text-align: left;
-		color: var(--color-grey-400);
-		padding: 0.4rem;
+		color: var(--color-grey-500);
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		padding: 0.5rem 0.4rem;
 		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 	}
+
 	.mini-table td {
 		padding: 0.5rem 0.4rem;
 		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 		color: var(--color-grey-200);
 	}
+
+	.mini-table__num {
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+	}
+
 	.action-card {
-		margin-top: var(--space-4);
-		padding: var(--space-4);
+		margin-top: 1rem;
+		padding: 1rem;
 		background: rgba(255, 255, 255, 0.03);
 		border-radius: var(--radius-lg);
 		border: 1px solid rgba(255, 255, 255, 0.06);
 	}
+
 	.action-card--danger {
 		border-color: rgba(239, 68, 68, 0.2);
+	}
+
+	/* ── Tablet 480px+ ──────────────────── */
+	@media (min-width: 480px) {
+		.item-row {
+			grid-template-columns: 1.4fr 1.2fr 0.8fr 0.5fr 0.7fr auto;
+		}
+	}
+
+	/* ── Tablet 768px+ ──────────────────── */
+	@media (min-width: 768px) {
+		.page {
+			gap: 1.5rem;
+		}
+
+		.page__title {
+			font-size: 1.5rem;
+		}
+
+		.filter-card {
+			flex-direction: row;
+			flex-wrap: wrap;
+			align-items: flex-end;
+			padding: 1.5rem;
+		}
+
+		.filter-card__field--search {
+			flex: 1 1 18rem;
+		}
+
+		.filter-card__field {
+			flex: 0 0 11rem;
+		}
+
+		.filter-card__actions {
+			margin-left: auto;
+		}
+
+		.filter-card__actions-label {
+			display: inline;
+		}
+
+		.card {
+			padding: 1.75rem;
+		}
 	}
 </style>

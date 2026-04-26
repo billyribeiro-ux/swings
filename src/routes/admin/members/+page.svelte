@@ -6,19 +6,27 @@
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
 	import ShieldCheckIcon from 'phosphor-svelte/lib/ShieldCheckIcon';
+	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
+	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
+	import UsersIcon from 'phosphor-svelte/lib/UsersIcon';
+	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
 
 	let members = $state<UserResponse[]>([]);
 	let total = $state(0);
 	let page = $state(1);
 	let totalPages = $state(1);
 	let loading = $state(true);
+	let search = $state('');
+	let roleFilter = $state<'' | 'admin' | 'member'>('');
+	let searchTimeout: ReturnType<typeof setTimeout>;
 
 	async function loadMembers() {
 		loading = true;
 		try {
-			const res = await api.get<PaginatedResponse<UserResponse>>(
-				`/api/admin/members?page=${page}&per_page=15`
-			);
+			let url = `/api/admin/members?page=${page}&per_page=15`;
+			if (search) url += `&search=${encodeURIComponent(search)}`;
+			if (roleFilter) url += `&role=${roleFilter}`;
+			const res = await api.get<PaginatedResponse<UserResponse>>(url);
 			members = res.data;
 			total = res.total;
 			totalPages = res.total_pages;
@@ -30,6 +38,22 @@
 	}
 
 	onMount(loadMembers);
+
+	function handleSearchInput(e: Event) {
+		const val = (e.target as HTMLInputElement).value;
+		clearTimeout(searchTimeout);
+		searchTimeout = setTimeout(() => {
+			search = val;
+			page = 1;
+			loadMembers();
+		}, 300);
+	}
+
+	function changeRole(r: '' | 'admin' | 'member') {
+		roleFilter = r;
+		page = 1;
+		loadMembers();
+	}
 
 	async function toggleRole(member: UserResponse) {
 		const newRole = member.role === 'admin' ? 'member' : 'admin';
@@ -68,25 +92,96 @@
 </svelte:head>
 
 <div class="members-page">
-	<div class="members-page__header">
-		<div>
+	<header class="members-page__page-header">
+		<div class="members-page__heading">
+			<span class="members-page__eyebrow">Directory</span>
 			<h1 class="members-page__title">Members</h1>
-			<p class="members-page__count">{total} total members</p>
+			<p class="members-page__subtitle">
+				{total.toLocaleString()} total {total === 1 ? 'member' : 'members'} — manage roles and access.
+			</p>
 		</div>
 		<a class="members-page__cta" href="/admin/members/manage">
-			Search &amp; manual create →
+			<MagnifyingGlassIcon size={16} weight="bold" />
+			<span>Search &amp; create</span>
+			<ArrowRightIcon size={14} weight="bold" />
 		</a>
+	</header>
+
+	<!-- Filter / search bar -->
+	<div class="members-page__toolbar">
+		<div class="members-page__search">
+			<MagnifyingGlassIcon size={16} weight="bold" class="members-page__search-icon" />
+			<input
+				id="member-search"
+				name="search"
+				type="search"
+				class="members-page__search-input"
+				placeholder="Search by name or email…"
+				oninput={handleSearchInput}
+			/>
+		</div>
+		<div class="members-page__tabs" role="tablist" aria-label="Filter by role">
+			<button
+				class="members-page__tab"
+				class:members-page__tab--active={roleFilter === ''}
+				onclick={() => changeRole('')}
+				role="tab"
+				aria-selected={roleFilter === ''}
+			>
+				All
+			</button>
+			<button
+				class="members-page__tab"
+				class:members-page__tab--active={roleFilter === 'admin'}
+				onclick={() => changeRole('admin')}
+				role="tab"
+				aria-selected={roleFilter === 'admin'}
+			>
+				Admins
+			</button>
+			<button
+				class="members-page__tab"
+				class:members-page__tab--active={roleFilter === 'member'}
+				onclick={() => changeRole('member')}
+				role="tab"
+				aria-selected={roleFilter === 'member'}
+			>
+				Members
+			</button>
+		</div>
 	</div>
 
 	{#if loading}
-		<p class="members-page__loading">Loading members...</p>
+		<div class="members-page__skeleton" aria-hidden="true">
+			{#each Array(5) as _, i (i)}
+				<div class="members-page__skeleton-row"></div>
+			{/each}
+		</div>
+	{:else if members.length === 0}
+		<div class="members-page__empty">
+			<UsersIcon size={48} weight="duotone" color="var(--color-grey-500)" />
+			<p class="members-page__empty-title">No members found</p>
+			<p class="members-page__empty-body">
+				{search || roleFilter
+					? 'Try adjusting your search or filters.'
+					: 'New sign-ups will appear here automatically.'}
+			</p>
+		</div>
 	{:else}
 		<!-- Mobile: Card view -->
 		<div class="members-page__cards">
 			{#each members as member (member.id)}
 				<div class="member-card">
 					<div class="member-card__header">
-						<span class="member-card__name">{member.name}</span>
+						<div class="member-card__identity">
+							<span class="member-card__avatar" aria-hidden="true">
+								{member.name?.[0]?.toUpperCase() || '?'}
+							</span>
+							<div class="member-card__name-block">
+								<span class="member-card__name">{member.name}</span>
+								<span class="member-card__email">{member.email}</span>
+							</div>
+						</div>
 						<span
 							class={[
 								'member-card__role',
@@ -97,29 +192,28 @@
 						</span>
 					</div>
 					<div class="member-card__row">
-						<span class="member-card__label">Email</span>
-						<span class="member-card__value">{member.email}</span>
-					</div>
-					<div class="member-card__row">
 						<span class="member-card__label">Joined</span>
 						<span class="member-card__value">{formatDate(member.created_at)}</span>
 					</div>
-					<div class="member-card__row">
-						<a href="/admin/members/{member.id}" class="member-card__profile">View subscription</a>
-					</div>
+					<a href="/admin/members/{member.id}" class="member-card__profile">
+						<EyeIcon size={14} weight="bold" />
+						<span>View subscription</span>
+					</a>
 					<div class="member-card__actions">
 						<button
 							onclick={() => toggleRole(member)}
 							class="member-card__btn member-card__btn--role"
+							title="Toggle role"
 						>
-							<ShieldCheckIcon size={18} weight="bold" />
+							<ShieldCheckIcon size={16} weight="bold" />
 							<span>{member.role === 'admin' ? 'Make Member' : 'Make Admin'}</span>
 						</button>
 						<button
 							onclick={() => deleteMember(member)}
 							class="member-card__btn member-card__btn--delete"
+							title="Delete member"
 						>
-							<TrashIcon size={18} weight="bold" />
+							<TrashIcon size={16} weight="bold" />
 							<span>Delete</span>
 						</button>
 					</div>
@@ -136,14 +230,21 @@
 						<th>Role</th>
 						<th>Joined</th>
 						<th>Profile</th>
-						<th>Actions</th>
+						<th class="m-table__th-actions">Actions</th>
 					</tr>
 				</thead>
 				<tbody>
 					{#each members as member (member.id)}
 						<tr>
-							<td class="m-table__name">{member.name}</td>
-							<td>{member.email}</td>
+							<td>
+								<div class="m-table__identity">
+									<span class="m-table__avatar" aria-hidden="true">
+										{member.name?.[0]?.toUpperCase() || '?'}
+									</span>
+									<span class="m-table__name">{member.name}</span>
+								</div>
+							</td>
+							<td class="m-table__muted">{member.email}</td>
 							<td>
 								<span
 									class={[
@@ -154,7 +255,7 @@
 									{member.role}
 								</span>
 							</td>
-							<td>{formatDate(member.created_at)}</td>
+							<td class="m-table__muted">{formatDate(member.created_at)}</td>
 							<td>
 								<a href="/admin/members/{member.id}" class="m-table__link">View</a>
 							</td>
@@ -163,7 +264,8 @@
 									<button
 										onclick={() => toggleRole(member)}
 										class="m-table__btn m-table__btn--role"
-										title="Toggle role"
+										title={member.role === 'admin' ? 'Demote to member' : 'Promote to admin'}
+										aria-label={member.role === 'admin' ? 'Demote to member' : 'Promote to admin'}
 									>
 										<ShieldCheckIcon size={16} weight="bold" />
 									</button>
@@ -171,6 +273,7 @@
 										onclick={() => deleteMember(member)}
 										class="m-table__btn m-table__btn--delete"
 										title="Delete member"
+										aria-label="Delete member"
 									>
 										<TrashIcon size={16} weight="bold" />
 									</button>
@@ -191,8 +294,10 @@
 					}}
 					disabled={page <= 1}
 					class="members-page__page-btn"
+					aria-label="Previous page"
 				>
-					<CaretLeftIcon size={16} weight="bold" /> Prev
+					<CaretLeftIcon size={16} weight="bold" />
+					<span>Prev</span>
 				</button>
 				<span class="members-page__page-info">Page {page} of {totalPages}</span>
 				<button
@@ -202,8 +307,10 @@
 					}}
 					disabled={page >= totalPages}
 					class="members-page__page-btn"
+					aria-label="Next page"
 				>
-					Next <CaretRightIcon size={16} weight="bold" />
+					<span>Next</span>
+					<CaretRightIcon size={16} weight="bold" />
 				</button>
 			</div>
 		{/if}
@@ -211,42 +318,216 @@
 </div>
 
 <style>
-	/* Mobile-first base styles */
-	.members-page__header {
-		margin-bottom: 1rem;
+	@keyframes shimmer {
+		0% {
+			background-position: -200% 0;
+		}
+		100% {
+			background-position: 200% 0;
+		}
+	}
+
+	/* ====================================================================
+	   PAGE HEADER
+	   ==================================================================== */
+	.members-page__page-header {
+		display: flex;
+		flex-direction: column;
+		gap: 0.875rem;
+		margin-bottom: 1.25rem;
+	}
+
+	.members-page__eyebrow {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: var(--color-grey-500);
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		line-height: 1;
 	}
 
 	.members-page__title {
-		font-size: var(--fs-xl);
-		font-weight: var(--w-bold);
-		color: var(--color-white);
 		font-family: var(--font-heading);
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: var(--color-white);
+		line-height: 1.2;
+		letter-spacing: -0.01em;
+		margin: 0.25rem 0 0.5rem;
 	}
 
-	.members-page__count {
-		font-size: var(--fs-xs);
+	.members-page__subtitle {
+		font-size: 0.875rem;
+		font-weight: 400;
 		color: var(--color-grey-400);
-		margin-top: 0.15rem;
+		max-width: 42rem;
+		line-height: 1.5;
+		margin: 0;
+		hyphens: none;
 	}
 
 	.members-page__cta {
-		font-size: var(--fs-sm);
-		color: var(--color-teal-light);
-		text-decoration: underline;
-		text-underline-offset: 2px;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		min-height: 2.5rem;
+		padding: 0.65rem 0.875rem;
+		background-color: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-lg);
+		color: var(--color-white);
+		font-size: 0.8125rem;
+		font-weight: 600;
+		text-decoration: none;
+		align-self: flex-start;
+		transition: all 200ms var(--ease-out);
 	}
 
-	.members-page__loading {
+	.members-page__cta:hover {
+		background-color: rgba(255, 255, 255, 0.08);
+		border-color: rgba(255, 255, 255, 0.16);
+		transform: translateY(-1px);
+	}
+
+	/* ====================================================================
+	   TOOLBAR — search + tabs
+	   ==================================================================== */
+	.members-page__toolbar {
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+		margin-bottom: 1rem;
+	}
+
+	.members-page__search {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.members-page__search :global(.members-page__search-icon) {
+		position: absolute;
+		left: 0.875rem;
+		top: 50%;
+		transform: translateY(-50%);
+		color: var(--color-grey-500);
+		pointer-events: none;
+	}
+
+	.members-page__search-input {
+		width: 100%;
+		min-height: 2.5rem;
+		padding: 0.65rem 0.875rem 0.65rem 2.4rem;
+		background-color: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-lg);
+		color: var(--color-white);
+		font-size: 0.875rem;
+		font-weight: 400;
+		outline: none;
+		transition:
+			border-color 150ms,
+			box-shadow 150ms;
+	}
+
+	.members-page__search-input::placeholder {
+		color: var(--color-grey-500);
+	}
+
+	.members-page__search-input:focus {
+		border-color: var(--color-teal);
+		box-shadow: 0 0 0 3px rgba(15, 164, 175, 0.15);
+	}
+
+	.members-page__tabs {
+		display: inline-flex;
+		gap: 0.25rem;
+		padding: 0.25rem;
+		background-color: rgba(255, 255, 255, 0.03);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: var(--radius-lg);
+		align-self: flex-start;
+	}
+
+	.members-page__tab {
+		padding: 0.45rem 0.875rem;
+		border: none;
+		border-radius: var(--radius-md);
+		background: transparent;
 		color: var(--color-grey-400);
-		text-align: center;
-		padding: 2rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 150ms var(--ease-out);
 	}
 
-	/* Mobile: Card view */
-	.members-page__cards {
+	.members-page__tab:hover {
+		color: var(--color-white);
+	}
+
+	.members-page__tab--active {
+		background-color: rgba(15, 164, 175, 0.15);
+		color: var(--color-teal-light);
+	}
+
+	/* ====================================================================
+	   SKELETON / EMPTY
+	   ==================================================================== */
+	.members-page__skeleton {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
+	}
+
+	.members-page__skeleton-row {
+		height: 80px;
+		border-radius: var(--radius-xl);
+		background: linear-gradient(
+			90deg,
+			rgba(255, 255, 255, 0.03) 0%,
+			rgba(255, 255, 255, 0.06) 50%,
+			rgba(255, 255, 255, 0.03) 100%
+		);
+		background-size: 200% 100%;
+		animation: shimmer 1.6s ease-in-out infinite;
+	}
+
+	.members-page__empty {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 3rem 1rem;
+		background-color: var(--color-navy-mid);
+		border: 1px dashed rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-xl);
+		text-align: center;
+	}
+
+	.members-page__empty-title {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--color-white);
+		line-height: 1.35;
+		margin: 0.5rem 0 0;
+	}
+
+	.members-page__empty-body {
+		font-size: 0.75rem;
+		font-weight: 400;
+		color: var(--color-grey-500);
+		line-height: 1.4;
+		margin: 0;
+		max-width: 36ch;
+	}
+
+	/* ====================================================================
+	   MOBILE — card view
+	   ==================================================================== */
+	.members-page__cards {
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
 	}
 
 	.members-page__table-wrap {
@@ -256,24 +537,67 @@
 	.member-card {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
-		padding: 0.75rem 1rem;
+		gap: 0.625rem;
+		padding: 1rem;
 		background-color: var(--color-navy-mid);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-xl);
+		transition: all 200ms var(--ease-out);
+	}
+
+	.member-card:hover {
+		border-color: rgba(255, 255, 255, 0.1);
+		transform: translateY(-1px);
 	}
 
 	.member-card__header {
 		display: flex;
 		justify-content: space-between;
-		align-items: center;
+		align-items: flex-start;
 		gap: 0.5rem;
 	}
 
-	.member-card__name {
-		font-weight: var(--w-semibold);
+	.member-card__identity {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		min-width: 0;
+	}
+
+	.member-card__avatar {
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: var(--radius-full);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		background: linear-gradient(135deg, var(--color-teal-dark), var(--color-deep-blue));
 		color: var(--color-white);
-		font-size: var(--fs-base);
+		font-size: 0.75rem;
+		font-weight: 700;
+		flex-shrink: 0;
+		text-transform: uppercase;
+	}
+
+	.member-card__name-block {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+
+	.member-card__name {
+		font-weight: 600;
+		color: var(--color-white);
+		font-size: 0.875rem;
+		line-height: 1.35;
+	}
+
+	.member-card__email {
+		font-size: 0.75rem;
+		font-weight: 400;
+		color: var(--color-grey-400);
+		line-height: 1.4;
+		word-break: break-all;
 	}
 
 	.member-card__row {
@@ -284,34 +608,47 @@
 	}
 
 	.member-card__label {
-		font-size: var(--fs-xs);
-		color: var(--color-grey-400);
+		font-size: 0.6875rem;
+		color: var(--color-grey-500);
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
 	}
 
 	.member-card__value {
-		font-size: var(--fs-sm);
+		font-size: 0.875rem;
+		font-weight: 400;
 		color: var(--color-grey-300);
 		text-align: right;
-		word-break: break-all;
 	}
 
 	.member-card__profile {
-		font-size: var(--fs-sm);
-		font-weight: var(--w-semibold);
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.75rem;
+		font-weight: 600;
 		color: var(--color-teal-light);
 		text-decoration: none;
+		padding: 0.4rem 0.6rem;
+		border-radius: var(--radius-md);
+		background: rgba(15, 164, 175, 0.08);
+		align-self: flex-start;
+		transition: background 150ms var(--ease-out);
 	}
 
 	.member-card__profile:hover {
-		text-decoration: underline;
+		background: rgba(15, 164, 175, 0.18);
 	}
 
 	.member-card__role {
-		font-size: var(--fs-xs);
-		font-weight: var(--w-semibold);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
 		padding: 0.2rem 0.6rem;
 		border-radius: var(--radius-full);
 		text-transform: capitalize;
+		flex-shrink: 0;
 	}
 
 	.member-card__role--admin {
@@ -327,24 +664,25 @@
 	.member-card__actions {
 		display: flex;
 		gap: 0.5rem;
-		margin-top: 0.5rem;
-		padding-top: 0.5rem;
+		margin-top: 0.25rem;
+		padding-top: 0.625rem;
 		border-top: 1px solid rgba(255, 255, 255, 0.06);
 	}
 
 	.member-card__btn {
 		flex: 1;
-		display: flex;
+		display: inline-flex;
 		align-items: center;
 		justify-content: center;
 		gap: 0.4rem;
-		padding: 0.6rem 0.75rem;
+		min-height: 2.25rem;
+		padding: 0.5rem 0.75rem;
 		border-radius: var(--radius-lg);
-		border: none;
+		border: 1px solid transparent;
 		cursor: pointer;
-		font-size: var(--fs-xs);
-		font-weight: var(--w-medium);
-		transition: background-color 200ms var(--ease-out);
+		font-size: 0.75rem;
+		font-weight: 600;
+		transition: all 150ms var(--ease-out);
 	}
 
 	.member-card__btn--role {
@@ -353,7 +691,7 @@
 	}
 
 	.member-card__btn--role:hover {
-		background-color: rgba(15, 164, 175, 0.25);
+		background-color: rgba(15, 164, 175, 0.22);
 	}
 
 	.member-card__btn--delete {
@@ -365,30 +703,36 @@
 		background-color: rgba(239, 68, 68, 0.2);
 	}
 
+	/* ====================================================================
+	   PAGINATION
+	   ==================================================================== */
 	.members-page__pagination {
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		gap: 0.75rem;
-		margin-top: 1rem;
+		margin-top: 1.25rem;
 	}
 
 	.members-page__page-btn {
-		display: flex;
+		display: inline-flex;
 		align-items: center;
-		gap: 0.25rem;
-		padding: 0.5rem 0.75rem;
-		background-color: var(--color-navy-mid);
+		gap: 0.375rem;
+		min-height: 2.25rem;
+		padding: 0.5rem 0.875rem;
+		background-color: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		border-radius: var(--radius-lg);
 		color: var(--color-white);
-		font-size: var(--fs-xs);
+		font-size: 0.75rem;
+		font-weight: 600;
 		cursor: pointer;
-		transition: border-color 200ms var(--ease-out);
+		transition: all 150ms var(--ease-out);
 	}
 
 	.members-page__page-btn:hover:not(:disabled) {
-		border-color: var(--color-teal);
+		background-color: rgba(255, 255, 255, 0.08);
+		border-color: rgba(15, 164, 175, 0.4);
 	}
 
 	.members-page__page-btn:disabled {
@@ -397,23 +741,38 @@
 	}
 
 	.members-page__page-info {
-		font-size: var(--fs-xs);
+		font-size: 0.75rem;
+		font-weight: 500;
 		color: var(--color-grey-400);
 	}
 
-	/* Tablet+: Show table, hide cards */
+	/* ====================================================================
+	   TABLET+ (>=768px) — show table, polish header
+	   ==================================================================== */
 	@media (min-width: 768px) {
-		.members-page__header {
+		.members-page__page-header {
+			flex-direction: row;
+			align-items: flex-end;
+			justify-content: space-between;
+			gap: 1.5rem;
 			margin-bottom: 1.5rem;
 		}
 
-		.members-page__title {
-			font-size: var(--fs-2xl);
+		.members-page__cta {
+			align-self: flex-end;
 		}
 
-		.members-page__count {
-			font-size: var(--fs-sm);
-			margin-top: 0.25rem;
+		.members-page__toolbar {
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+			gap: 1rem;
+			margin-bottom: 1.25rem;
+		}
+
+		.members-page__search {
+			flex: 1;
+			max-width: 28rem;
 		}
 
 		.members-page__cards {
@@ -425,7 +784,10 @@
 			overflow-x: auto;
 			background-color: var(--color-navy-mid);
 			border: 1px solid rgba(255, 255, 255, 0.06);
-			border-radius: var(--radius-xl);
+			border-radius: var(--radius-2xl);
+			box-shadow:
+				0 1px 0 rgba(255, 255, 255, 0.03) inset,
+				0 12px 32px rgba(0, 0, 0, 0.18);
 		}
 
 		.m-table {
@@ -433,47 +795,98 @@
 			border-collapse: collapse;
 		}
 
+		.m-table thead {
+			background-color: rgba(255, 255, 255, 0.02);
+		}
+
 		.m-table th {
 			text-align: left;
-			font-size: var(--fs-xs);
-			font-weight: var(--w-semibold);
-			color: var(--color-grey-400);
+			font-size: 0.6875rem;
+			font-weight: 700;
+			color: var(--color-grey-500);
 			text-transform: uppercase;
 			letter-spacing: 0.05em;
-			padding: 0.85rem 1rem;
+			padding: 0.875rem 1rem;
 			border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 		}
 
+		.m-table__th-actions {
+			text-align: right;
+		}
+
 		.m-table td {
-			padding: 0.85rem 1rem;
-			font-size: var(--fs-sm);
+			padding: 0.875rem 1rem;
+			font-size: 0.875rem;
+			font-weight: 400;
 			color: var(--color-grey-300);
 			border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+			vertical-align: middle;
+		}
+
+		.m-table tbody tr {
+			transition: background-color 150ms var(--ease-out);
 		}
 
 		.m-table tbody tr:hover {
 			background-color: rgba(255, 255, 255, 0.02);
 		}
 
+		.m-table tbody tr:last-child td {
+			border-bottom: none;
+		}
+
+		.m-table__identity {
+			display: flex;
+			align-items: center;
+			gap: 0.625rem;
+		}
+
+		.m-table__avatar {
+			width: 1.875rem;
+			height: 1.875rem;
+			border-radius: var(--radius-full);
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			background: linear-gradient(135deg, var(--color-teal-dark), var(--color-deep-blue));
+			color: var(--color-white);
+			font-size: 0.6875rem;
+			font-weight: 700;
+			flex-shrink: 0;
+			text-transform: uppercase;
+		}
+
 		.m-table__name {
-			font-weight: var(--w-semibold);
+			font-weight: 600;
 			color: var(--color-white);
 		}
 
+		.m-table__muted {
+			color: var(--color-grey-400);
+		}
+
 		.m-table__link {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.3rem;
 			color: var(--color-teal-light);
-			font-weight: var(--w-semibold);
+			font-weight: 600;
 			text-decoration: none;
+			padding: 0.3rem 0.55rem;
+			border-radius: var(--radius-md);
+			transition: background 150ms var(--ease-out);
 		}
 
 		.m-table__link:hover {
-			text-decoration: underline;
+			background: rgba(15, 164, 175, 0.1);
 		}
 
 		.m-table__role {
-			font-size: var(--fs-xs);
-			font-weight: var(--w-semibold);
-			padding: 0.15rem 0.55rem;
+			display: inline-block;
+			font-size: 0.6875rem;
+			font-weight: 600;
+			letter-spacing: 0.04em;
+			padding: 0.2rem 0.6rem;
 			border-radius: var(--radius-full);
 			text-transform: capitalize;
 		}
@@ -490,19 +903,20 @@
 
 		.m-table__actions {
 			display: flex;
-			gap: 0.5rem;
+			justify-content: flex-end;
+			gap: 0.4rem;
 		}
 
 		.m-table__btn {
 			width: 2rem;
 			height: 2rem;
-			display: flex;
+			display: inline-flex;
 			align-items: center;
 			justify-content: center;
-			border-radius: var(--radius-lg);
-			border: none;
+			border-radius: var(--radius-md);
+			border: 1px solid transparent;
 			cursor: pointer;
-			transition: background-color 200ms var(--ease-out);
+			transition: all 150ms var(--ease-out);
 		}
 
 		.m-table__btn--role {
@@ -511,7 +925,7 @@
 		}
 
 		.m-table__btn--role:hover {
-			background-color: rgba(15, 164, 175, 0.25);
+			background-color: rgba(15, 164, 175, 0.22);
 		}
 
 		.m-table__btn--delete {
@@ -529,13 +943,13 @@
 		}
 
 		.members-page__page-btn {
-			gap: 0.35rem;
-			padding: 0.5rem 1rem;
-			font-size: var(--fs-sm);
+			padding: 0.55rem 1rem;
 		}
+	}
 
-		.members-page__page-info {
-			font-size: var(--fs-sm);
+	@media (prefers-reduced-motion: reduce) {
+		.members-page__skeleton-row {
+			animation: none;
 		}
 	}
 </style>

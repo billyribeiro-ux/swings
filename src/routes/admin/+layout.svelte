@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { onMount, untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api, ApiError } from '$lib/api/client';
@@ -26,6 +27,9 @@
 	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
 	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
 	import ReceiptIcon from 'phosphor-svelte/lib/ReceiptIcon';
+	import ArrowSquareOutIcon from 'phosphor-svelte/lib/ArrowSquareOutIcon';
+	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
+	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import CommandPalette from '$lib/components/admin/CommandPalette.svelte';
 	import { SITE } from '$lib/seo/config';
 	import {
@@ -51,11 +55,15 @@
 		}
 	}
 
-	$effect(() => {
-		window.addEventListener('keydown', handleGlobalKey);
+	// One-shot mount work (keybindings + initial sidebar persistence). Using
+	// `onMount` instead of `$effect` keeps this OUT of the reactive graph so a
+	// later `sidebarCollapsed` read by another effect cannot retrigger this
+	// branch. Cleanup is handled by the returned teardown.
+	onMount(() => {
 		if (browser) {
 			sidebarCollapsed = localStorage.getItem(SIDEBAR_COLLAPSE_KEY) === '1';
 		}
+		window.addEventListener('keydown', handleGlobalKey);
 		return () => window.removeEventListener('keydown', handleGlobalKey);
 	});
 
@@ -80,35 +88,40 @@
 		}
 	}
 
-	$effect(() => {
-		if (sidebarCollapsed) {
-			blogSubmenuOpen = false;
-			courseSubmenuOpen = false;
-			subscriptionSubmenuOpen = false;
-			couponSubmenuOpen = false;
-			popupSubmenuOpen = false;
-		}
-	});
+	// NOTE: a previous version had a `$effect(() => { if (sidebarCollapsed) { ...resets } })`
+	// here that mirrored the body of `toggleSidebarCollapsed`. That effect read
+	// `sidebarCollapsed` and wrote five `$state` flags every time the layout
+	// re-rendered — redundant with the imperative path inside the toggle, and a
+	// classic "writes inside an effect that the effect (chain) reads" anti-pattern.
+	// All call sites that mutate `sidebarCollapsed` now do the resets inline.
 
 	const isPublicRoute = $derived(publicAdminRoutes.some((r) => page.url.pathname.startsWith(r)));
 
 	/** True only after /api/auth/me succeeds — avoids child pages firing admin APIs with stale localStorage JWTs. */
 	let adminSessionReady = $state(false);
-	let adminSessionCheckInFlight = $state(false);
+	let adminSessionCheckInFlight = false; // plain ref, NOT $state — guards a fetch lifecycle, not UI
 
-	$effect(() => {
-		if (isPublicRoute) {
-			adminSessionReady = true;
-			return;
-		}
+	// Why not `$effect`?
+	//   The previous version was an `$effect` that read `auth.isAuthenticated`,
+	//   `auth.isAdmin` (both `$derived` from `auth.user`) AND wrote `adminSessionReady`
+	//   plus called `auth.setUser(me)` from an async IIFE. The `setUser` write
+	//   replaced the `auth.user` reference, which invalidated `isAdmin`/`isAuthenticated`,
+	//   which retriggered the effect, which wrote `adminSessionReady = true`,
+	//   which retriggered the effect, which wrote `adminSessionCheckInFlight = false`,
+	//   which retriggered the effect again. Even though each iteration was an
+	//   early-return, Svelte 5 counts the rapid scheduled re-runs against the
+	//   `effect_update_depth_exceeded` budget and tears the runtime down.
+	//
+	//   The session-validation handshake is genuinely a one-shot per mount —
+	//   `onMount` is the right tool. We watch `auth.user` via `$effect` separately
+	//   (read-only, no writes) so a logout from another tab still flips the
+	//   sentinel back to `false`.
+	function validateAdminSession() {
+		if (adminSessionCheckInFlight) return;
 		if (!auth.isAuthenticated || !auth.isAdmin) {
 			adminSessionReady = false;
-			adminSessionCheckInFlight = false;
 			return;
 		}
-		if (adminSessionReady) return;
-		if (adminSessionCheckInFlight) return;
-
 		adminSessionCheckInFlight = true;
 		void (async () => {
 			try {
@@ -122,6 +135,34 @@
 				adminSessionCheckInFlight = false;
 			}
 		})();
+	}
+
+	onMount(() => {
+		// Public admin routes (forgot-password, reset-password) don't need a session.
+		if (untrack(() => isPublicRoute)) {
+			adminSessionReady = true;
+			return;
+		}
+		validateAdminSession();
+	});
+
+	// Read-only watcher: when `auth.user` becomes null (logout in this tab or
+	// another), invalidate the readiness flag. CRITICAL: this effect must read
+	// only `auth`-derived state and `isPublicRoute` — never `adminSessionReady`
+	// — so the writes below cannot retrigger it.
+	$effect(() => {
+		const publicRoute = isPublicRoute;
+		const authed = auth.isAuthenticated;
+		const admin = auth.isAdmin;
+		untrack(() => {
+			if (publicRoute) {
+				adminSessionReady = true;
+			} else if (!authed || !admin) {
+				adminSessionReady = false;
+			}
+			// If publicRoute=false and authed+admin=true, do nothing here —
+			// onMount/validateAdminSession owns the transition to ready=true.
+		});
 	});
 
 	let email = $state('');
@@ -171,6 +212,26 @@
 		{ href: '/admin/watchlists', label: 'Watchlists', icon: ListChecksIcon },
 		{ href: '/admin/author', label: 'Author Profile', icon: UserCircleIcon }
 	];
+
+	function prettifySegment(seg: string) {
+		const decoded = decodeURIComponent(seg).replace(/-/g, ' ');
+		return decoded.charAt(0).toUpperCase() + decoded.slice(1);
+	}
+
+	const breadcrumbs = $derived.by(() => {
+		const segments = page.url.pathname.split('/').filter(Boolean);
+		// Always start at /admin
+		const crumbs: { href: string; label: string }[] = [
+			{ href: '/admin', label: 'Admin' }
+		];
+		let path = '';
+		for (const seg of segments) {
+			path += `/${seg}`;
+			if (path === '/admin') continue;
+			crumbs.push({ href: path, label: prettifySegment(seg) });
+		}
+		return crumbs;
+	});
 
 </script>
 
@@ -228,7 +289,10 @@
 			</form>
 
 			<a href="/admin/forgot-password" class="admin-login__forgot">Forgot password?</a>
-			<a href="/" class="admin-login__back">← Back to site</a>
+			<a href="/" class="admin-login__back">
+				<ArrowLeftIcon size={14} weight="bold" />
+				<span>Back to site</span>
+			</a>
 		</div>
 	</div>
 {:else if !adminSessionReady}
@@ -273,9 +337,12 @@
 			class:admin__sidebar--collapsed={sidebarCollapsed}
 		>
 			<div class="admin__sidebar-top">
-				<a href="/" class="admin__logo" title={SITE.name}>
-					<span class="admin__logo-brand">{SITE.logoBrandPrimary}</span>
-					<span class="admin__logo-accent">{SITE.logoBrandAccent}</span>
+				<a href="/" class="admin__logo" title={SITE.name} aria-label={SITE.name}>
+					<span class="admin__logo-mark" aria-hidden="true">P</span>
+					<span class="admin__logo-wordmark">
+						<span class="admin__logo-brand">{SITE.logoBrandPrimary}</span>
+						<span class="admin__logo-accent">{SITE.logoBrandAccent}</span>
+					</span>
 				</a>
 				<div class="admin__sidebar-top-actions">
 					<span class="admin__badge">Admin</span>
@@ -288,15 +355,16 @@
 						title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
 					>
 						{#if sidebarCollapsed}
-							<CaretDoubleRightIcon size={18} weight="bold" />
+							<CaretDoubleRightIcon size={14} weight="bold" />
 						{:else}
-							<CaretDoubleLeftIcon size={18} weight="bold" />
+							<CaretDoubleLeftIcon size={14} weight="bold" />
 						{/if}
 					</button>
 				</div>
 			</div>
 
 			<nav class="admin__nav">
+				<span class="admin__nav-eyebrow">Overview</span>
 				{#each navItems as item (item.href)}
 					<a
 						href={item.href}
@@ -309,6 +377,7 @@
 					</a>
 				{/each}
 
+				<span class="admin__nav-eyebrow">Content</span>
 				<div class="admin__nav-section">
 					<button
 						class="admin__nav-link admin__nav-link--header"
@@ -459,6 +528,19 @@
 					{/if}
 				</div>
 
+				<span class="admin__nav-eyebrow">Operations</span>
+				<a
+					href="/admin/orders"
+					class="admin__nav-link"
+					class:admin__nav-link--active={page.url.pathname.startsWith('/admin/orders')}
+					onclick={() => (mobileMenuOpen = false)}
+					data-testid="nav-orders"
+				>
+					<ReceiptIcon size={20} weight="duotone" />
+					<span>Orders</span>
+				</a>
+
+				<span class="admin__nav-eyebrow">Governance</span>
 				<a
 					href="/admin/security"
 					class="admin__nav-link"
@@ -493,17 +575,6 @@
 				</a>
 
 				<a
-					href="/admin/orders"
-					class="admin__nav-link"
-					class:admin__nav-link--active={page.url.pathname.startsWith('/admin/orders')}
-					onclick={() => (mobileMenuOpen = false)}
-					data-testid="nav-orders"
-				>
-					<ReceiptIcon size={20} weight="duotone" />
-					<span>Orders</span>
-				</a>
-
-				<a
 					href="/admin/settings"
 					class="admin__nav-link"
 					class:admin__nav-link--active={page.url.pathname === '/admin/settings'}
@@ -532,7 +603,36 @@
 
 		<div class="admin__main">
 			<header class="admin__main-topbar">
-				<a href="/" class="admin__view-site">View site</a>
+				<nav class="admin__breadcrumbs" aria-label="Breadcrumb">
+					<ol class="admin__breadcrumbs-list">
+						{#each breadcrumbs as crumb, i (crumb.href)}
+							<li class="admin__breadcrumbs-item">
+								{#if i === breadcrumbs.length - 1}
+									<span class="admin__breadcrumbs-current" aria-current="page">{crumb.label}</span>
+								{:else}
+									<a href={crumb.href} class="admin__breadcrumbs-link">{crumb.label}</a>
+									<CaretRightIcon size={12} weight="bold" class="admin__breadcrumbs-sep" />
+								{/if}
+							</li>
+						{/each}
+					</ol>
+				</nav>
+				<div class="admin__main-topbar-actions">
+					<button
+						type="button"
+						class="admin__search-pill"
+						onclick={() => (paletteOpen = true)}
+						aria-label="Open command palette"
+					>
+						<MagnifyingGlassIcon size={16} weight="bold" />
+						<span>Search</span>
+						<kbd class="admin__search-pill-kbd">⌘K</kbd>
+					</button>
+					<a href="/" class="admin__view-site">
+						<ArrowSquareOutIcon size={16} weight="bold" />
+						<span>View site</span>
+					</a>
+				</div>
 			</header>
 			<div class="admin__content">
 				{@render children()}
@@ -592,8 +692,8 @@
 	.admin__mobile-logo {
 		display: flex;
 		gap: 0.3rem;
-		font-size: var(--fs-lg);
-		font-weight: var(--w-bold);
+		font-size: 1rem;
+		font-weight: 700;
 		font-family: var(--font-heading);
 		text-decoration: none;
 	}
@@ -633,8 +733,8 @@
 		display: flex;
 		flex-direction: column;
 		align-items: stretch;
-		gap: 0.65rem;
-		margin-bottom: 2rem;
+		gap: 0.5rem;
+		margin-bottom: 1.5rem;
 		padding: 0 0.25rem;
 		min-width: 0;
 	}
@@ -642,32 +742,35 @@
 	.admin__sidebar-top-actions {
 		display: flex;
 		align-items: center;
-		justify-content: flex-end;
+		justify-content: space-between;
 		gap: 0.5rem;
 		flex-wrap: nowrap;
 		min-width: 0;
+		padding-left: 0.125rem;
 	}
 
 	.admin__sidebar-pin {
 		display: none;
 		align-items: center;
 		justify-content: center;
-		width: 2rem;
-		height: 2rem;
+		width: 1.5rem;
+		height: 1.5rem;
 		padding: 0;
-		border: 1px solid rgba(255, 255, 255, 0.1);
+		border: 1px solid rgba(255, 255, 255, 0.08);
 		border-radius: var(--radius-md);
-		background: rgba(255, 255, 255, 0.05);
-		color: var(--color-grey-400);
+		background: rgba(255, 255, 255, 0.03);
+		color: var(--color-grey-500);
 		cursor: pointer;
 		flex-shrink: 0;
 		transition:
-			background-color 200ms var(--ease-out),
-			color 200ms var(--ease-out);
+			background-color 150ms var(--ease-out),
+			color 150ms var(--ease-out),
+			border-color 150ms var(--ease-out);
 	}
 
 	.admin__sidebar-pin:hover {
-		background: rgba(255, 255, 255, 0.1);
+		background: rgba(255, 255, 255, 0.08);
+		border-color: rgba(255, 255, 255, 0.16);
 		color: var(--color-white);
 	}
 
@@ -677,14 +780,40 @@
 
 	.admin__logo {
 		display: flex;
-		flex-wrap: wrap;
-		gap: 0.3rem;
-		font-size: var(--fs-lg);
-		font-weight: var(--w-bold);
+		align-items: center;
+		gap: 0.5rem;
 		font-family: var(--font-heading);
 		text-decoration: none;
 		min-width: 0;
-		line-height: 1.2;
+		line-height: 1.1;
+	}
+
+	.admin__logo-mark {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		width: 1.5rem;
+		height: 1.5rem;
+		border-radius: var(--radius-md);
+		background: linear-gradient(135deg, var(--color-teal), var(--color-teal-dark));
+		color: var(--color-white);
+		font-size: 0.75rem;
+		font-weight: var(--w-bold);
+		letter-spacing: -0.02em;
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.12) inset,
+			0 4px 10px -4px rgba(15, 164, 175, 0.55);
+	}
+
+	.admin__logo-wordmark {
+		display: inline-flex;
+		flex-direction: column;
+		min-width: 0;
+		font-size: 0.875rem;
+		font-weight: var(--w-bold);
+		line-height: 1.1;
+		letter-spacing: -0.01em;
 	}
 
 	.admin__logo-brand {
@@ -695,12 +824,30 @@
 		color: var(--color-teal);
 	}
 
+	.admin__logo .admin__logo-brand {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.admin__logo .admin__logo-accent {
+		font-size: 0.625rem;
+		font-weight: var(--w-bold);
+		color: var(--color-teal-light);
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		margin-top: 0.125rem;
+	}
+
 	.admin__badge {
-		font-size: var(--fs-xs);
+		font-size: 0.625rem;
 		font-weight: var(--w-bold);
 		color: #f59e0b;
 		background-color: rgba(245, 158, 11, 0.12);
-		padding: 0.25rem 0.6rem;
+		padding: 0.125rem 0.4rem;
 		border-radius: var(--radius-full);
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
@@ -717,6 +864,22 @@
 		flex-direction: column;
 		gap: 0.25rem;
 		flex: 1;
+		min-width: 0;
+	}
+
+	.admin__nav-eyebrow {
+		display: block;
+		padding: 0.875rem 0.75rem 0.35rem;
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: var(--color-grey-500);
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		line-height: 1;
+	}
+
+	.admin__nav-eyebrow:first-child {
+		padding-top: 0.25rem;
 	}
 
 	.admin__nav-link {
@@ -725,9 +888,9 @@
 		gap: 0.75rem;
 		padding: 0.75rem;
 		border-radius: var(--radius-lg);
-		color: var(--color-grey-400);
-		font-size: var(--fs-sm);
-		font-weight: var(--w-medium);
+		color: var(--color-grey-300);
+		font-size: 0.8125rem;
+		font-weight: 500;
 		text-decoration: none;
 		cursor: pointer;
 		background: none;
@@ -743,7 +906,8 @@
 	}
 
 	.admin__nav-link--active {
-		color: var(--color-teal);
+		color: var(--color-white);
+		font-weight: 600;
 		background-color: rgba(15, 164, 175, 0.1);
 	}
 
@@ -778,8 +942,8 @@
 		display: block;
 		padding: 0.5rem 0.75rem 0.5rem 2.75rem;
 		color: var(--color-grey-400);
-		font-size: var(--fs-xs);
-		font-weight: var(--w-medium);
+		font-size: 0.8125rem;
+		font-weight: 500;
 		text-decoration: none;
 		border-radius: var(--radius-md);
 		transition: all 200ms var(--ease-out);
@@ -802,9 +966,9 @@
 		width: 100%;
 		padding: 0.75rem;
 		border-radius: var(--radius-lg);
-		color: var(--color-grey-400);
-		font-size: var(--fs-sm);
-		font-weight: var(--w-medium);
+		color: var(--color-grey-300);
+		font-size: 0.8125rem;
+		font-weight: 500;
 		background: none;
 		border: none;
 		cursor: pointer;
@@ -874,19 +1038,22 @@
 			width: 100%;
 		}
 
-		.admin__sidebar--collapsed .admin__logo-accent,
+		.admin__sidebar--collapsed .admin__logo-wordmark,
 		.admin__sidebar--collapsed .admin__badge {
 			display: none;
 		}
 
-		.admin__sidebar--collapsed .admin__logo-brand {
-			font-size: 0.65rem;
-			line-height: 1.15;
+		.admin__sidebar--collapsed .admin__logo {
+			justify-content: center;
 		}
 
 		.admin__sidebar--collapsed .admin__nav-link span,
 		.admin__sidebar--collapsed .admin__logout span,
 		.admin__sidebar--collapsed .admin__nav-link--back span {
+			display: none;
+		}
+
+		.admin__sidebar--collapsed .admin__nav-eyebrow {
 			display: none;
 		}
 
@@ -909,22 +1076,135 @@
 
 		.admin__main-topbar {
 			display: flex;
-			justify-content: flex-end;
+			justify-content: space-between;
 			align-items: center;
-			padding: 0.65rem 1.25rem;
+			gap: 1rem;
+			padding: 0.65rem 1.5rem;
 			border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 			background: rgba(0, 0, 0, 0.2);
+			backdrop-filter: blur(12px);
+			min-height: 3.25rem;
+			box-sizing: border-box;
+		}
+
+		.admin__main-topbar-actions {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.5rem;
+			min-width: 0;
+		}
+
+		.admin__breadcrumbs {
+			min-width: 0;
+			overflow: hidden;
+		}
+
+		.admin__breadcrumbs-list {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.35rem;
+			list-style: none;
+			padding: 0;
+			margin: 0;
+			min-width: 0;
+		}
+
+		.admin__breadcrumbs-item {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.35rem;
+			font-size: 0.875rem;
+			font-weight: 500;
+			color: var(--color-grey-300);
+			min-width: 0;
+		}
+
+		.admin__breadcrumbs-link {
+			color: var(--color-grey-300);
+			font-weight: 500;
+			text-decoration: none;
+			transition: color 150ms var(--ease-out);
+			white-space: nowrap;
+		}
+
+		.admin__breadcrumbs-link:hover {
+			color: var(--color-white);
+		}
+
+		.admin__breadcrumbs-current {
+			color: var(--color-white);
+			font-weight: 600;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		:global(.admin__breadcrumbs-sep) {
+			color: var(--color-grey-700);
+			flex-shrink: 0;
+		}
+
+		.admin__search-pill {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.5rem;
+			min-height: 2.5rem;
+			padding: 0 0.75rem;
+			background-color: rgba(255, 255, 255, 0.05);
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			border-radius: var(--radius-lg);
+			color: var(--color-grey-300);
+			font-size: 0.8125rem;
+			font-weight: 500;
+			cursor: pointer;
+			transition:
+				background-color 150ms var(--ease-out),
+				border-color 150ms var(--ease-out),
+				color 150ms var(--ease-out);
+		}
+
+		.admin__search-pill:hover {
+			background-color: rgba(255, 255, 255, 0.1);
+			border-color: rgba(255, 255, 255, 0.18);
+			color: var(--color-white);
+		}
+
+		.admin__search-pill-kbd {
+			display: inline-flex;
+			align-items: center;
+			padding: 0.05rem 0.4rem;
+			margin-left: 0.15rem;
+			font-family: var(--font-ui);
+			font-size: 0.6875rem;
+			font-weight: 600;
+			color: var(--color-grey-400);
+			background: rgba(255, 255, 255, 0.06);
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			border-radius: var(--radius-md);
+			line-height: 1.4;
 		}
 
 		.admin__view-site {
-			font-size: var(--fs-sm);
-			font-weight: var(--w-semibold);
-			color: var(--color-teal-light);
+			display: inline-flex;
+			align-items: center;
+			gap: 0.5rem;
+			min-height: 2.5rem;
+			padding: 0 0.875rem;
+			background-color: rgba(255, 255, 255, 0.05);
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			border-radius: var(--radius-lg);
+			color: var(--color-white);
+			font-size: 0.8125rem;
+			font-weight: 600;
 			text-decoration: none;
+			transition:
+				background-color 150ms var(--ease-out),
+				border-color 150ms var(--ease-out);
 		}
 
 		.admin__view-site:hover {
-			text-decoration: underline;
+			background-color: rgba(255, 255, 255, 0.1);
+			border-color: rgba(255, 255, 255, 0.18);
 		}
 
 		.admin__content {
@@ -937,6 +1217,10 @@
 		.admin__content {
 			padding: 2rem;
 			max-width: 1400px;
+		}
+
+		.admin__main-topbar {
+			padding: 0.65rem 2rem;
 		}
 	}
 
@@ -967,8 +1251,8 @@
 	.admin-login__logo {
 		display: inline-flex;
 		gap: 0.35rem;
-		font-size: var(--fs-xl);
-		font-weight: var(--w-bold);
+		font-size: 1.25rem;
+		font-weight: 700;
 		font-family: var(--font-heading);
 		text-decoration: none;
 		margin-bottom: 0.75rem;
@@ -984,28 +1268,31 @@
 
 	.admin-login__badge {
 		display: inline-block;
-		font-size: var(--fs-xs);
-		font-weight: var(--w-bold);
+		font-size: 0.6875rem;
+		font-weight: 700;
 		color: #f59e0b;
 		background-color: rgba(245, 158, 11, 0.12);
 		padding: 0.15rem 0.5rem;
 		border-radius: var(--radius-full);
 		text-transform: uppercase;
-		letter-spacing: 0.05em;
+		letter-spacing: 0.06em;
 		margin-bottom: 1rem;
 	}
 
 	.admin-login__title {
-		font-size: var(--fs-xl);
-		font-weight: var(--w-bold);
+		font-size: 1.5rem;
+		font-weight: 700;
 		color: var(--color-white);
 		font-family: var(--font-heading);
+		letter-spacing: -0.01em;
+		line-height: 1.2;
 		margin-bottom: 0.5rem;
 	}
 
 	.admin-login__subtitle {
 		color: var(--color-grey-400);
-		font-size: var(--fs-sm);
+		font-size: 0.875rem;
+		line-height: 1.5;
 	}
 
 	.admin-login__error {
@@ -1014,7 +1301,8 @@
 		color: #fca5a5;
 		padding: 0.75rem 1rem;
 		border-radius: var(--radius-lg);
-		font-size: var(--fs-sm);
+		font-size: 0.875rem;
+		line-height: 1.5;
 		margin-bottom: 1.5rem;
 		text-align: center;
 	}
@@ -1032,9 +1320,9 @@
 	}
 
 	.admin-login__label {
-		font-size: var(--fs-sm);
-		font-weight: var(--w-medium);
-		color: var(--color-grey-300);
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: var(--color-white);
 	}
 
 	.admin-login__input {
@@ -1044,7 +1332,8 @@
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		border-radius: var(--radius-lg);
 		color: var(--color-white);
-		font-size: var(--fs-base);
+		font-size: 0.875rem;
+		font-weight: 400;
 		transition: border-color 200ms var(--ease-out);
 	}
 
@@ -1062,8 +1351,8 @@
 		padding: 0.85rem;
 		background: linear-gradient(135deg, var(--color-teal), var(--color-teal-dark, #0d8a94));
 		color: var(--color-white);
-		font-weight: var(--w-semibold);
-		font-size: var(--fs-base);
+		font-weight: 600;
+		font-size: 0.8125rem;
 		border-radius: var(--radius-lg);
 		border: none;
 		cursor: pointer;
@@ -1087,9 +1376,9 @@
 		text-align: center;
 		margin-top: 1rem;
 		color: var(--color-teal);
-		font-size: var(--fs-sm);
+		font-size: 0.875rem;
 		text-decoration: none;
-		font-weight: var(--w-medium);
+		font-weight: 500;
 		transition: opacity 200ms;
 	}
 
@@ -1098,11 +1387,15 @@
 	}
 
 	.admin-login__back {
-		display: block;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.4rem;
+		width: 100%;
 		text-align: center;
 		margin-top: 0.75rem;
 		color: var(--color-grey-400);
-		font-size: var(--fs-sm);
+		font-size: 0.75rem;
 		text-decoration: none;
 		transition: color 200ms;
 	}
@@ -1114,10 +1407,6 @@
 	@media (min-width: 480px) {
 		.admin-login__card {
 			padding: 2rem;
-		}
-
-		.admin-login__title {
-			font-size: var(--fs-2xl);
 		}
 
 		.admin-login__form {

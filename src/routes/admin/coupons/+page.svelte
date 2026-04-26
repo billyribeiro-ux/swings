@@ -4,6 +4,7 @@
 	import type { Coupon, BulkCouponPayload, PaginatedResponse } from '$lib/api/types';
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
+	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
 	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
 	import TicketIcon from 'phosphor-svelte/lib/TicketIcon';
 	import ChartBarIcon from 'phosphor-svelte/lib/ChartBarIcon';
@@ -12,13 +13,17 @@
 	import ToggleLeftIcon from 'phosphor-svelte/lib/ToggleLeftIcon';
 	import ToggleRightIcon from 'phosphor-svelte/lib/ToggleRightIcon';
 	import LightningIcon from 'phosphor-svelte/lib/LightningIcon';
+	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
 
-	interface CouponStats { active_count: number; total_usages: number; total_discount_cents: number; }
+	interface CouponStats {
+		active_count: number;
+		total_usages: number;
+		total_discount_cents: number;
+	}
 	type FilterTab = 'all' | 'active' | 'expired' | 'inactive';
 
 	let coupons = $state<Coupon[]>([]);
 	let stats = $state<CouponStats | null>(null);
-	let total = $state(0);
 	let page = $state(1);
 	let totalPages = $state(1);
 	let loading = $state(true);
@@ -36,23 +41,30 @@
 	let bulkExpiresAt = $state('');
 	let searchTimeout: ReturnType<typeof setTimeout>;
 
-	const filters: { label: string; value: FilterTab }[] = [
-		{ label: 'All', value: 'all' }, { label: 'Active', value: 'active' },
-		{ label: 'Expired', value: 'expired' }, { label: 'Inactive', value: 'inactive' }
-	];
-
 	function handleSearchInput(value: string) {
 		search = value;
 		clearTimeout(searchTimeout);
-		searchTimeout = setTimeout(() => { page = 1; loadCoupons(); }, 300);
+		searchTimeout = setTimeout(() => {
+			page = 1;
+			loadCoupons();
+		}, 300);
 	}
 
-	function setFilter(tab: FilterTab) { filter = tab; page = 1; loadCoupons(); }
+	function setFilter(value: string) {
+		filter = value as FilterTab;
+		page = 1;
+		loadCoupons();
+	}
 
 	async function loadStats() {
 		statsLoading = true;
-		try { stats = await api.get<CouponStats>('/api/admin/coupons/stats'); }
-		catch { /* silent */ } finally { statsLoading = false; }
+		try {
+			stats = await api.get<CouponStats>('/api/admin/coupons/stats');
+		} catch {
+			/* silent */
+		} finally {
+			statsLoading = false;
+		}
 	}
 
 	async function loadCoupons() {
@@ -68,8 +80,13 @@
 				.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
 				.join('&');
 			const res = await api.get<PaginatedResponse<Coupon>>(`/api/admin/coupons?${query}`);
-			coupons = res.data; total = res.total; totalPages = res.total_pages;
-		} catch { /* silent */ } finally { loading = false; }
+			coupons = res.data;
+			totalPages = res.total_pages;
+		} catch {
+			/* silent */
+		} finally {
+			loading = false;
+		}
 	}
 
 	async function toggleActive(coupon: Coupon) {
@@ -78,225 +95,1216 @@
 			await api.put(`/api/admin/coupons/${coupon.id}`, { is_active: !coupon.is_active });
 			coupon.is_active = !coupon.is_active;
 			await loadStats();
-		} catch { alert('Failed to update coupon'); } finally { togglingId = null; }
+		} catch {
+			alert('Failed to update coupon');
+		} finally {
+			togglingId = null;
+		}
 	}
 
 	async function submitBulk() {
 		bulkLoading = true;
 		try {
 			const payload: BulkCouponPayload = {
-				count: bulkCount, prefix: bulkPrefix || undefined, discount_type: bulkDiscountType,
-				discount_value: bulkDiscountValue, usage_limit: bulkUsageLimit, expires_at: bulkExpiresAt || undefined
+				count: bulkCount,
+				prefix: bulkPrefix || undefined,
+				discount_type: bulkDiscountType,
+				discount_value: bulkDiscountValue,
+				usage_limit: bulkUsageLimit,
+				expires_at: bulkExpiresAt || undefined
 			};
 			await api.post('/api/admin/coupons/bulk', payload);
 			showBulkForm = false;
-			bulkCount = 10; bulkPrefix = ''; bulkDiscountValue = 10; bulkUsageLimit = undefined; bulkExpiresAt = '';
+			bulkCount = 10;
+			bulkPrefix = '';
+			bulkDiscountValue = 10;
+			bulkUsageLimit = undefined;
+			bulkExpiresAt = '';
 			await Promise.all([loadCoupons(), loadStats()]);
-		} catch { alert('Failed to generate coupons'); } finally { bulkLoading = false; }
+		} catch {
+			alert('Failed to generate coupons');
+		} finally {
+			bulkLoading = false;
+		}
 	}
 
-	onMount(() => { loadStats(); loadCoupons(); });
+	onMount(() => {
+		loadStats();
+		loadCoupons();
+	});
 
 	function formatDiscount(c: Coupon): string {
 		if (c.discount_type === 'percentage') return `${c.discount_value}% off`;
 		if (c.discount_type === 'fixed_amount') return `$${(c.discount_value / 100).toFixed(0)} off`;
 		return `${c.discount_value}-day trial`;
 	}
+
 	function formatUsage(c: Coupon): string {
 		return c.usage_limit ? `${c.usage_count}/${c.usage_limit}` : `${c.usage_count}`;
 	}
+
 	function couponStatus(c: Coupon): 'active' | 'expired' | 'inactive' {
 		if (!c.is_active) return 'inactive';
 		if (c.expires_at && new Date(c.expires_at) < new Date()) return 'expired';
 		return 'active';
 	}
-	function statusLabel(s: string): string { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+	function statusLabel(s: string): string {
+		return s.charAt(0).toUpperCase() + s.slice(1);
+	}
+
 	function formatMoney(cents: number): string {
-		return '$' + (cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+		return (
+			'$' +
+			(cents / 100).toLocaleString('en-US', {
+				minimumFractionDigits: 2,
+				maximumFractionDigits: 2
+			})
+		);
 	}
 </script>
 
-<svelte:head><title>Coupons - Admin - Precision Options Signals</title></svelte:head>
+<svelte:head>
+	<title>Coupons - Admin - Precision Options Signals</title>
+</svelte:head>
 
 <div class="cp">
-	<div class="cp__header">
-		<div>
+	<header class="cp__header">
+		<div class="cp__heading">
+			<span class="cp__eyebrow">Promotions</span>
 			<h1 class="cp__title">Coupons</h1>
-			<p class="cp__count">{total} total coupons</p>
+			<p class="cp__subtitle">
+				Create and manage discount codes. Issue percent-off, fixed-amount, or trial coupons in bulk.
+			</p>
 		</div>
 		<div class="cp__actions">
-			<button class="cp__bulk-btn" onclick={() => (showBulkForm = !showBulkForm)}>
-				<LightningIcon size={16} weight="bold" /> Bulk Generate
+			<button type="button" class="btn btn--secondary" onclick={() => (showBulkForm = !showBulkForm)}>
+				<LightningIcon size={16} weight="bold" />
+				<span>Bulk generate</span>
 			</button>
-			<a href="/admin/coupons/new" class="cp__cta"><PlusIcon size={16} weight="bold" /> Create Coupon</a>
+			<a href="/admin/coupons/new" class="btn btn--primary">
+				<PlusIcon size={16} weight="bold" />
+				<span>Create coupon</span>
+			</a>
 		</div>
-	</div>
+	</header>
 
 	{#if showBulkForm}
-		<form class="bf" onsubmit={(e) => { e.preventDefault(); submitBulk(); }}>
-			<h3 class="bf__title">Bulk Generate Coupons</h3>
-			<div class="bf__grid">
-				<label class="bf__field"><span class="bf__lbl">Count</span>
-					<input type="number" min="1" max="500" bind:value={bulkCount} class="bf__inp" required /></label>
-				<label class="bf__field"><span class="bf__lbl">Code Prefix</span>
-					<input type="text" placeholder="e.g. SUMMER" bind:value={bulkPrefix} class="bf__inp" /></label>
-				<label class="bf__field"><span class="bf__lbl">Discount Type</span>
-					<select bind:value={bulkDiscountType} class="bf__inp">
-						<option value="percentage">Percentage</option><option value="fixed_amount">Fixed Amount</option>
-					</select></label>
-				<label class="bf__field"><span class="bf__lbl">Value {bulkDiscountType === 'percentage' ? '(%)' : '(cents)'}</span>
-					<input type="number" min="1" bind:value={bulkDiscountValue} class="bf__inp" required /></label>
-				<label class="bf__field"><span class="bf__lbl">Usage Limit</span>
-					<input type="number" min="1" placeholder="Unlimited" bind:value={bulkUsageLimit} class="bf__inp" /></label>
-				<label class="bf__field"><span class="bf__lbl">Expires At</span>
-					<input type="date" bind:value={bulkExpiresAt} class="bf__inp" /></label>
+		<form
+			class="bulk-form"
+			onsubmit={(e) => {
+				e.preventDefault();
+				submitBulk();
+			}}
+		>
+			<div class="bulk-form__head">
+				<LightningIcon size={18} weight="duotone" />
+				<h2 class="bulk-form__title">Bulk generate coupons</h2>
 			</div>
-			<div class="bf__foot">
-				<button type="button" class="bf__cancel" onclick={() => (showBulkForm = false)}>Cancel</button>
-				<button type="submit" class="bf__submit" disabled={bulkLoading}>{bulkLoading ? 'Generating...' : `Generate ${bulkCount} Coupons`}</button>
+			<div class="bulk-form__grid">
+				<div class="bf-field">
+					<label class="bf-label" for="bf-count">Count</label>
+					<input
+						id="bf-count"
+						name="bf-count"
+						type="number"
+						min="1"
+						max="500"
+						bind:value={bulkCount}
+						class="bf-input"
+						required
+					/>
+				</div>
+				<div class="bf-field">
+					<label class="bf-label" for="bf-prefix">Code prefix</label>
+					<input
+						id="bf-prefix"
+						name="bf-prefix"
+						type="text"
+						placeholder="e.g. SUMMER"
+						bind:value={bulkPrefix}
+						class="bf-input"
+					/>
+				</div>
+				<div class="bf-field">
+					<label class="bf-label" for="bf-type">Discount type</label>
+					<div class="select-wrap">
+						<select id="bf-type" name="bf-type" bind:value={bulkDiscountType} class="bf-input bf-input--select">
+							<option value="percentage">Percentage</option>
+							<option value="fixed_amount">Fixed amount</option>
+						</select>
+						<CaretDownIcon size={14} weight="bold" class="select-caret" />
+					</div>
+				</div>
+				<div class="bf-field">
+					<label class="bf-label" for="bf-value">
+						Value {bulkDiscountType === 'percentage' ? '(%)' : '(cents)'}
+					</label>
+					<input
+						id="bf-value"
+						name="bf-value"
+						type="number"
+						min="1"
+						bind:value={bulkDiscountValue}
+						class="bf-input"
+						required
+					/>
+				</div>
+				<div class="bf-field">
+					<label class="bf-label" for="bf-limit">Usage limit</label>
+					<input
+						id="bf-limit"
+						name="bf-limit"
+						type="number"
+						min="1"
+						placeholder="Unlimited"
+						bind:value={bulkUsageLimit}
+						class="bf-input"
+					/>
+				</div>
+				<div class="bf-field">
+					<label class="bf-label" for="bf-expires">Expires at</label>
+					<input
+						id="bf-expires"
+						name="bf-expires"
+						type="date"
+						bind:value={bulkExpiresAt}
+						class="bf-input"
+					/>
+				</div>
+			</div>
+			<div class="bulk-form__foot">
+				<button type="button" class="btn btn--secondary" onclick={() => (showBulkForm = false)}>
+					Cancel
+				</button>
+				<button type="submit" class="btn btn--primary" disabled={bulkLoading}>
+					{bulkLoading ? 'Generating…' : `Generate ${bulkCount} coupons`}
+				</button>
 			</div>
 		</form>
 	{/if}
 
 	{#if statsLoading}
-		<div class="cp__kpis">{#each Array(3) as _, i (i)}<div class="kpi kpi--skel"><div class="kpi__iskel"></div><div class="kpi__tskel"><div class="skel skel--s"></div><div class="skel skel--l"></div></div></div>{/each}</div>
+		<div class="kpi-grid">
+			{#each Array(3) as _, i (i)}
+				<div class="kpi kpi--skeleton">
+					<div class="kpi__icon-skel"></div>
+					<div class="kpi__text-skel">
+						<div class="skel skel--short"></div>
+						<div class="skel skel--long"></div>
+					</div>
+				</div>
+			{/each}
+		</div>
 	{:else if stats}
-		<div class="cp__kpis">
-			<div class="kpi"><div class="kpi__ic kpi__ic--green"><TicketIcon size={22} weight="fill" /></div><div><p class="kpi__lbl">Active Coupons</p><p class="kpi__val">{stats.active_count.toLocaleString()}</p></div></div>
-			<div class="kpi"><div class="kpi__ic kpi__ic--blue"><ChartBarIcon size={22} weight="fill" /></div><div><p class="kpi__lbl">Total Usages</p><p class="kpi__val">{stats.total_usages.toLocaleString()}</p></div></div>
-			<div class="kpi"><div class="kpi__ic kpi__ic--teal"><CurrencyDollarIcon size={22} weight="fill" /></div><div><p class="kpi__lbl">Total Discount</p><p class="kpi__val">{formatMoney(stats.total_discount_cents)}</p></div></div>
+		<div class="kpi-grid">
+			<div class="kpi">
+				<div class="kpi__icon kpi__icon--green">
+					<TicketIcon size={22} weight="duotone" />
+				</div>
+				<div class="kpi__content">
+					<span class="kpi__label">Active coupons</span>
+					<span class="kpi__value">{stats.active_count.toLocaleString()}</span>
+				</div>
+			</div>
+			<div class="kpi">
+				<div class="kpi__icon kpi__icon--blue">
+					<ChartBarIcon size={22} weight="duotone" />
+				</div>
+				<div class="kpi__content">
+					<span class="kpi__label">Total usages</span>
+					<span class="kpi__value">{stats.total_usages.toLocaleString()}</span>
+				</div>
+			</div>
+			<div class="kpi">
+				<div class="kpi__icon kpi__icon--teal">
+					<CurrencyDollarIcon size={22} weight="duotone" />
+				</div>
+				<div class="kpi__content">
+					<span class="kpi__label">Total discount</span>
+					<span class="kpi__value">{formatMoney(stats.total_discount_cents)}</span>
+				</div>
+			</div>
 		</div>
 	{/if}
 
-	<div class="cp__toolbar">
-		<div class="cp__tabs">{#each filters as tab (tab.value)}<button class="cp__tab" class:cp__tab--on={filter === tab.value} onclick={() => setFilter(tab.value)}>{tab.label}</button>{/each}</div>
-		<div class="cp__search"><MagnifyingGlassIcon size={18} weight="bold" /><input type="text" placeholder="Search by code..." value={search} oninput={(e) => handleSearchInput(e.currentTarget.value)} class="cp__sinput" /></div>
+	<div class="filter-card">
+		<div class="filter-card__field filter-card__field--search">
+			<label class="filter-card__label" for="cp-search">Search</label>
+			<div class="search-wrap">
+				<MagnifyingGlassIcon size={16} weight="bold" class="search-icon" />
+				<input
+					id="cp-search"
+					name="cp-search"
+					type="search"
+					class="filter-input filter-input--search"
+					placeholder="Search by code…"
+					value={search}
+					oninput={(e) => handleSearchInput(e.currentTarget.value)}
+				/>
+			</div>
+		</div>
+		<div class="filter-card__field">
+			<label class="filter-card__label" for="cp-status">Status</label>
+			<div class="select-wrap">
+				<select
+					id="cp-status"
+					name="cp-status"
+					class="filter-input filter-input--select"
+					value={filter}
+					onchange={(e) => setFilter(e.currentTarget.value)}
+				>
+					<option value="all">All</option>
+					<option value="active">Active</option>
+					<option value="expired">Expired</option>
+					<option value="inactive">Inactive</option>
+				</select>
+				<CaretDownIcon size={14} weight="bold" class="select-caret" />
+			</div>
+		</div>
 	</div>
 
 	{#if loading}
-		<div class="cp__skel">{#each Array(6) as _, i (i)}<div class="skelrow"><div class="skel skel--f"></div></div>{/each}</div>
-	{:else if coupons.length === 0}
-		<div class="cp__empty"><p>No coupons found.</p></div>
-	{:else}
-		<div class="cp__cards">{#each coupons as coupon (coupon.id)}{@const st = couponStatus(coupon)}
-			<div class="cc">
-				<div class="cc__top"><a href="/admin/coupons/{coupon.id}" class="cc__code">{coupon.code}</a><span class="badge badge--{st}">{statusLabel(st)}</span></div>
-				<div class="cc__row"><span class="cc__lbl">Discount</span><span class="cc__val">{formatDiscount(coupon)}</span></div>
-				<div class="cc__row"><span class="cc__lbl">Usage</span><span class="cc__val">{formatUsage(coupon)}</span></div>
-				<div class="cc__foot">
-					<button class="tgl" onclick={() => toggleActive(coupon)} disabled={togglingId === coupon.id} title={coupon.is_active ? 'Deactivate' : 'Activate'}>{#if coupon.is_active}<ToggleRightIcon size={24} weight="fill" />{:else}<ToggleLeftIcon size={24} weight="bold" />{/if}</button>
-					<a href="/admin/coupons/{coupon.id}" class="cc__edit">Edit</a>
+		<div class="cp__skel">
+			{#each Array(6) as _, i (i)}
+				<div class="skelrow">
+					<div class="skel skel--full"></div>
 				</div>
-			</div>{/each}</div>
+			{/each}
+		</div>
+	{:else if coupons.length === 0}
+		<div class="empty-state">
+			<TicketIcon size={48} weight="duotone" />
+			<h2 class="empty-state__title">No coupons found</h2>
+			<p class="empty-state__desc">
+				Try adjusting your search or status filter, or create a new coupon to start offering discounts.
+			</p>
+		</div>
+	{:else}
+		<!-- Mobile: cards -->
+		<div class="cp__cards">
+			{#each coupons as coupon (coupon.id)}
+				{@const st = couponStatus(coupon)}
+				<div class="ccard">
+					<div class="ccard__top">
+						<a href="/admin/coupons/{coupon.id}" class="ccard__code">{coupon.code}</a>
+						<span class="badge badge--{st}">{statusLabel(st)}</span>
+					</div>
+					<div class="ccard__row">
+						<span class="ccard__label">Discount</span>
+						<span class="ccard__value">{formatDiscount(coupon)}</span>
+					</div>
+					<div class="ccard__row">
+						<span class="ccard__label">Usage</span>
+						<span class="ccard__value">{formatUsage(coupon)}</span>
+					</div>
+					<div class="ccard__foot">
+						<button
+							type="button"
+							class="toggle-btn"
+							onclick={() => toggleActive(coupon)}
+							disabled={togglingId === coupon.id}
+							title={coupon.is_active ? 'Deactivate' : 'Activate'}
+							aria-label={coupon.is_active ? 'Deactivate coupon' : 'Activate coupon'}
+						>
+							{#if coupon.is_active}
+								<ToggleRightIcon size={24} weight="fill" />
+							{:else}
+								<ToggleLeftIcon size={24} weight="bold" />
+							{/if}
+						</button>
+						<a
+							href="/admin/coupons/{coupon.id}"
+							class="icon-btn"
+							title="Edit {coupon.code}"
+							aria-label="Edit {coupon.code}"
+						>
+							<PencilSimpleIcon size={16} weight="bold" />
+						</a>
+					</div>
+				</div>
+			{/each}
+		</div>
+
+		<!-- Desktop: table -->
 		<div class="cp__twrap">
-			<table class="ct"><thead><tr><th>Code</th><th>Discount</th><th>Usage</th><th>Status</th><th>Active</th><th>Actions</th></tr></thead>
-				<tbody>{#each coupons as coupon (coupon.id)}{@const st = couponStatus(coupon)}
+			<table class="ctable">
+				<thead>
 					<tr>
-						<td><a href="/admin/coupons/{coupon.id}" class="ct__code">{coupon.code}</a></td>
-						<td>{formatDiscount(coupon)}</td><td>{formatUsage(coupon)}</td>
-						<td><span class="badge badge--{st}">{statusLabel(st)}</span></td>
-						<td><button class="tgl" onclick={() => toggleActive(coupon)} disabled={togglingId === coupon.id} title={coupon.is_active ? 'Deactivate' : 'Activate'}>{#if coupon.is_active}<ToggleRightIcon size={22} weight="fill" />{:else}<ToggleLeftIcon size={22} weight="bold" />{/if}</button></td>
-						<td><a href="/admin/coupons/{coupon.id}" class="ct__link">Edit</a></td>
-					</tr>{/each}</tbody></table></div>
+						<th>Code</th>
+						<th>Discount</th>
+						<th class="ctable__num">Usage</th>
+						<th>Status</th>
+						<th>Active</th>
+						<th class="ctable__actions-h" aria-label="Actions"></th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each coupons as coupon (coupon.id)}
+						{@const st = couponStatus(coupon)}
+						<tr>
+							<td>
+								<a href="/admin/coupons/{coupon.id}" class="ctable__code">{coupon.code}</a>
+							</td>
+							<td>{formatDiscount(coupon)}</td>
+							<td class="ctable__num">{formatUsage(coupon)}</td>
+							<td><span class="badge badge--{st}">{statusLabel(st)}</span></td>
+							<td>
+								<button
+									type="button"
+									class="toggle-btn"
+									onclick={() => toggleActive(coupon)}
+									disabled={togglingId === coupon.id}
+									title={coupon.is_active ? 'Deactivate' : 'Activate'}
+									aria-label={coupon.is_active ? 'Deactivate coupon' : 'Activate coupon'}
+								>
+									{#if coupon.is_active}
+										<ToggleRightIcon size={22} weight="fill" />
+									{:else}
+										<ToggleLeftIcon size={22} weight="bold" />
+									{/if}
+								</button>
+							</td>
+							<td class="ctable__actions">
+								<a
+									href="/admin/coupons/{coupon.id}"
+									class="icon-btn"
+									title="Edit {coupon.code}"
+									aria-label="Edit {coupon.code}"
+								>
+									<PencilSimpleIcon size={16} weight="bold" />
+								</a>
+							</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
 	{/if}
 
 	{#if totalPages > 1}
-		<div class="cp__pag">
-			<button onclick={() => { page--; loadCoupons(); }} disabled={page <= 1} class="cp__pbtn"><CaretLeftIcon size={16} weight="bold" /> Prev</button>
-			<span class="cp__pinfo">Page {page} of {totalPages}</span>
-			<button onclick={() => { page++; loadCoupons(); }} disabled={page >= totalPages} class="cp__pbtn">Next <CaretRightIcon size={16} weight="bold" /></button>
-		</div>
+		<nav class="cp__pag" aria-label="Pagination">
+			<button
+				type="button"
+				class="page-btn"
+				onclick={() => {
+					page--;
+					loadCoupons();
+				}}
+				disabled={page <= 1}
+			>
+				<CaretLeftIcon size={14} weight="bold" />
+				<span>Previous</span>
+			</button>
+			<span class="page-info">Page {page} of {totalPages}</span>
+			<button
+				type="button"
+				class="page-btn"
+				onclick={() => {
+					page++;
+					loadCoupons();
+				}}
+				disabled={page >= totalPages}
+			>
+				<span>Next</span>
+				<CaretRightIcon size={14} weight="bold" />
+			</button>
+		</nav>
 	{/if}
 </div>
 
 <style>
-	.cp__header { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem; }
-	.cp__title { font-size: var(--fs-xl); font-weight: var(--w-bold); color: var(--color-white); font-family: var(--font-heading); }
-	.cp__count { font-size: var(--fs-xs); color: var(--color-grey-400); margin-top: 0.15rem; }
-	.cp__actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-	.cp__cta, .cp__bulk-btn { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.55rem 1rem; font-size: var(--fs-xs); font-weight: var(--w-semibold); border-radius: var(--radius-lg); cursor: pointer; }
-	.cp__cta { color: var(--color-white); background: linear-gradient(135deg, var(--color-teal), #0d8a94); text-decoration: none; border: none; transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out); }
-	.cp__cta:hover { opacity: 0.9; transform: translateY(-1px); }
-	.cp__bulk-btn { color: var(--color-gold); background: rgba(212,168,67,0.1); border: 1px solid rgba(212,168,67,0.25); transition: background-color 200ms var(--ease-out), border-color 200ms var(--ease-out); }
-	.cp__bulk-btn:hover { background: rgba(212,168,67,0.2); border-color: rgba(212,168,67,0.4); }
-	.bf { padding: 1rem; margin-bottom: 1.25rem; background-color: var(--color-navy-mid); border: 1px solid rgba(212,168,67,0.2); border-radius: var(--radius-xl); }
-	.bf__title { font-size: var(--fs-sm); font-weight: var(--w-semibold); color: var(--color-gold); margin-bottom: 0.75rem; }
-	.bf__grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
-	.bf__field { display: flex; flex-direction: column; gap: 0.25rem; }
-	.bf__lbl { font-size: var(--fs-xs); color: var(--color-grey-400); }
-	.bf__inp { padding: 0.55rem 0.75rem; background-color: var(--color-navy); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-md); color: var(--color-white); font-size: var(--fs-sm); font-family: var(--font-ui); }
-	.bf__inp:focus { outline: none; border-color: var(--color-teal); }
-	.bf__foot { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }
-	.bf__cancel { padding: 0.5rem 1rem; font-size: var(--fs-xs); color: var(--color-grey-400); background: none; border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-lg); cursor: pointer; }
-	.bf__cancel:hover { border-color: rgba(255,255,255,0.2); color: var(--color-white); }
-	.bf__submit { padding: 0.5rem 1.25rem; font-size: var(--fs-xs); font-weight: var(--w-semibold); color: var(--color-white); background: linear-gradient(135deg, var(--color-gold), #b8912e); border: none; border-radius: var(--radius-lg); cursor: pointer; transition: opacity 200ms var(--ease-out); }
-	.bf__submit:hover { opacity: 0.9; } .bf__submit:disabled { opacity: 0.5; cursor: not-allowed; }
-	.cp__kpis { display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 1.25rem; }
-	.kpi { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background-color: var(--color-navy-mid); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-xl); }
-	.kpi--skel { min-height: 4rem; }
-	.kpi__iskel { width: 2.5rem; height: 2.5rem; border-radius: var(--radius-lg); background: rgba(255,255,255,0.06); animation: shimmer 1.5s infinite; flex-shrink: 0; }
-	.kpi__tskel { display: flex; flex-direction: column; gap: 0.4rem; flex: 1; }
-	.skel { height: 0.75rem; border-radius: var(--radius-sm); background: rgba(255,255,255,0.06); animation: shimmer 1.5s infinite; }
-	.skel--s { width: 40%; } .skel--l { width: 65%; height: 1rem; } .skel--f { width: 100%; height: 2.5rem; }
-	@keyframes shimmer { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
-	.kpi__ic { width: 2.5rem; height: 2.5rem; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-	.kpi__ic--green { background-color: rgba(34,197,94,0.15); color: #22c55e; }
-	.kpi__ic--blue { background-color: rgba(59,130,246,0.15); color: #3b82f6; }
-	.kpi__ic--teal { background-color: rgba(15,164,175,0.15); color: var(--color-teal); }
-	.kpi__lbl { font-size: var(--fs-xs); color: var(--color-grey-400); margin-bottom: 0.1rem; }
-	.kpi__val { font-size: var(--fs-md); font-weight: var(--w-bold); color: var(--color-white); }
-	.cp__toolbar { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem; }
-	.cp__tabs { display: flex; gap: 0.25rem; overflow-x: auto; }
-	.cp__tab { padding: 0.5rem 0.85rem; font-size: var(--fs-xs); font-weight: var(--w-medium); color: var(--color-grey-400); background: none; border: 1px solid transparent; border-radius: var(--radius-lg); cursor: pointer; white-space: nowrap; transition: color 200ms var(--ease-out), background-color 200ms var(--ease-out), border-color 200ms var(--ease-out); }
-	.cp__tab:hover { color: var(--color-white); background-color: rgba(255,255,255,0.04); }
-	.cp__tab--on { color: var(--color-teal-light); background-color: var(--color-teal-glow); border-color: rgba(15,164,175,0.3); }
-	.cp__search { display: flex; align-items: center; gap: 0.5rem; padding: 0.65rem 0.85rem; background-color: var(--color-navy-mid); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-lg); color: var(--color-grey-400); transition: border-color 200ms var(--ease-out); }
-	.cp__search:focus-within { border-color: var(--color-teal); }
-	.cp__sinput { flex: 1; background: none; border: none; outline: none; color: var(--color-white); font-size: var(--fs-sm); font-family: var(--font-ui); }
-	.cp__sinput::placeholder { color: var(--color-grey-500); }
-	.cp__skel { display: flex; flex-direction: column; gap: 0.5rem; }
-	.skelrow { padding: 1rem; background-color: var(--color-navy-mid); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-lg); }
-	.cp__empty { text-align: center; padding: 3rem 1rem; color: var(--color-grey-400); font-size: var(--fs-sm); background-color: var(--color-navy-mid); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-xl); }
-	.badge { display: inline-block; font-size: var(--fs-xs); font-weight: var(--w-semibold); padding: 0.15rem 0.55rem; border-radius: var(--radius-full); }
-	.badge--active { background-color: rgba(34,181,115,0.12); color: var(--color-green); }
-	.badge--expired { background-color: rgba(224,72,72,0.12); color: var(--color-red); }
-	.badge--inactive { background-color: rgba(255,255,255,0.06); color: var(--color-grey-400); }
-	.tgl { background: none; border: none; cursor: pointer; padding: 0.15rem; display: flex; align-items: center; transition: opacity 200ms var(--ease-out); }
-	.tgl:disabled { opacity: 0.4; cursor: not-allowed; } .tgl :global(svg) { color: var(--color-teal); }
-	.cp__cards { display: flex; flex-direction: column; gap: 0.5rem; }
-	.cp__twrap { display: none; }
-	.cc { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.85rem 1rem; background-color: var(--color-navy-mid); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-lg); }
-	.cc__top { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
-	.cc__code, .ct__code { font-family: 'Courier New', Courier, monospace; font-weight: var(--w-semibold); color: var(--color-white); text-decoration: none; letter-spacing: 0.04em; }
-	.cc__code { font-size: var(--fs-sm); } .cc__code:hover, .ct__code:hover { color: var(--color-teal-light); }
-	.cc__row { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
-	.cc__lbl { font-size: var(--fs-xs); color: var(--color-grey-400); }
-	.cc__val { font-size: var(--fs-sm); color: var(--color-grey-300); }
-	.cc__foot { display: flex; justify-content: space-between; align-items: center; padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.06); }
-	.cc__edit, .ct__link { font-size: var(--fs-sm); font-weight: var(--w-semibold); color: var(--color-teal-light); text-decoration: none; }
-	.cc__edit:hover, .ct__link:hover { text-decoration: underline; }
-	.cp__pag { display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-top: 1rem; }
-	.cp__pbtn { display: flex; align-items: center; gap: 0.25rem; padding: 0.5rem 0.75rem; background-color: var(--color-navy-mid); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-lg); color: var(--color-white); font-size: var(--fs-xs); cursor: pointer; transition: border-color 200ms var(--ease-out); }
-	.cp__pbtn:hover:not(:disabled) { border-color: var(--color-teal); }
-	.cp__pbtn:disabled { opacity: 0.4; cursor: not-allowed; }
-	.cp__pinfo { font-size: var(--fs-xs); color: var(--color-grey-400); }
-	@media (min-width: 480px) { .cp__kpis { grid-template-columns: repeat(3, 1fr); } .bf__grid { grid-template-columns: 1fr 1fr; } }
+	.cp {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	/* ── Header ─────────────────────────── */
+	.cp__header {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		align-items: flex-start;
+	}
+
+	.cp__heading {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		min-width: 0;
+	}
+
+	.cp__eyebrow {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: var(--color-grey-500);
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
+
+	.cp__title {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: var(--color-white);
+		font-family: var(--font-heading);
+		line-height: 1.15;
+		letter-spacing: -0.01em;
+		margin: 0;
+	}
+
+	.cp__subtitle {
+		font-size: 0.875rem;
+		color: var(--color-grey-400);
+		max-width: 60ch;
+		line-height: 1.55;
+		margin: 0;
+	}
+
+	.cp__actions {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	/* ── Buttons ────────────────────────── */
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		min-height: 2.5rem;
+		padding: 0.55rem 1rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		font-family: var(--font-ui);
+		border-radius: var(--radius-lg);
+		text-decoration: none;
+		cursor: pointer;
+		border: 1px solid transparent;
+		transition:
+			background-color 150ms var(--ease-out),
+			border-color 150ms var(--ease-out),
+			transform 150ms var(--ease-out),
+			box-shadow 150ms var(--ease-out),
+			color 150ms var(--ease-out);
+	}
+
+	.btn--primary {
+		color: var(--color-white);
+		background: linear-gradient(135deg, var(--color-teal), var(--color-teal-dark));
+		box-shadow: 0 6px 16px -4px rgba(15, 164, 175, 0.45);
+	}
+
+	.btn--primary:hover:not(:disabled) {
+		transform: translateY(-1px);
+		box-shadow: 0 10px 22px -4px rgba(15, 164, 175, 0.55);
+	}
+
+	.btn--secondary {
+		color: var(--color-white);
+		background-color: rgba(255, 255, 255, 0.05);
+		border-color: rgba(255, 255, 255, 0.1);
+	}
+
+	.btn--secondary:hover:not(:disabled) {
+		background-color: rgba(255, 255, 255, 0.1);
+		border-color: rgba(255, 255, 255, 0.18);
+	}
+
+	.btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	/* ── Bulk form ──────────────────────── */
+	.bulk-form {
+		padding: 1.25rem;
+		background-color: var(--color-navy-mid);
+		border: 1px solid rgba(212, 168, 67, 0.25);
+		border-radius: var(--radius-xl);
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.03) inset,
+			0 12px 32px rgba(0, 0, 0, 0.18);
+	}
+
+	.bulk-form__head {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 1rem;
+		color: var(--color-gold);
+	}
+
+	.bulk-form__title {
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--color-white);
+		margin: 0;
+		font-family: var(--font-heading);
+	}
+
+	.bulk-form__grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 0.75rem;
+	}
+
+	.bf-field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+	}
+
+	.bf-label {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: var(--color-grey-400);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.bf-input {
+		min-height: 2.5rem;
+		padding: 0.65rem 0.875rem;
+		background-color: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-lg);
+		color: var(--color-white);
+		font-size: 0.875rem;
+		font-family: var(--font-ui);
+		outline: none;
+		transition:
+			border-color 150ms var(--ease-out),
+			box-shadow 150ms var(--ease-out);
+	}
+
+	.bf-input::placeholder {
+		color: var(--color-grey-500);
+	}
+
+	.bf-input:focus {
+		border-color: var(--color-teal);
+		box-shadow: 0 0 0 3px rgba(15, 164, 175, 0.15);
+	}
+
+	.bf-input--select {
+		appearance: none;
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		padding-right: 2.25rem;
+		cursor: pointer;
+		width: 100%;
+	}
+
+	.bf-input--select option {
+		background-color: var(--color-navy-mid);
+		color: var(--color-white);
+	}
+
+	.bulk-form__foot {
+		display: flex;
+		gap: 0.5rem;
+		justify-content: flex-end;
+		margin-top: 1rem;
+	}
+
+	/* ── KPIs ───────────────────────────── */
+	.kpi-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 0.75rem;
+	}
+
+	.kpi {
+		display: flex;
+		align-items: center;
+		gap: 0.85rem;
+		padding: 1.25rem;
+		background-color: var(--color-navy-mid);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: var(--radius-xl);
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.03) inset,
+			0 12px 32px rgba(0, 0, 0, 0.18);
+	}
+
+	.kpi--skeleton {
+		min-height: 4.25rem;
+	}
+
+	.kpi__icon-skel {
+		width: 2.75rem;
+		height: 2.75rem;
+		border-radius: var(--radius-lg);
+		background: rgba(255, 255, 255, 0.06);
+		animation: shimmer 1.5s infinite;
+		flex-shrink: 0;
+	}
+
+	.kpi__text-skel {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		flex: 1;
+	}
+
+	.skel {
+		height: 0.75rem;
+		border-radius: var(--radius-sm);
+		background: rgba(255, 255, 255, 0.06);
+		animation: shimmer 1.5s infinite;
+	}
+
+	.skel--short {
+		width: 40%;
+	}
+
+	.skel--long {
+		width: 65%;
+		height: 1rem;
+	}
+
+	.skel--full {
+		width: 100%;
+		height: 2.5rem;
+	}
+
+	@keyframes shimmer {
+		0%,
+		100% {
+			opacity: 0.4;
+		}
+		50% {
+			opacity: 0.8;
+		}
+	}
+
+	.kpi__icon {
+		width: 2.75rem;
+		height: 2.75rem;
+		border-radius: var(--radius-lg);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.kpi__icon--green {
+		background-color: rgba(34, 181, 115, 0.15);
+		color: var(--color-green);
+	}
+
+	.kpi__icon--blue {
+		background-color: rgba(59, 130, 246, 0.15);
+		color: #60a5fa;
+	}
+
+	.kpi__icon--teal {
+		background-color: rgba(15, 164, 175, 0.15);
+		color: var(--color-teal-light);
+	}
+
+	.kpi__content {
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+		min-width: 0;
+	}
+
+	.kpi__label {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: var(--color-grey-500);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.kpi__value {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: var(--color-white);
+		line-height: 1.15;
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* ── Filter card ────────────────────── */
+	.filter-card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		padding: 1.25rem;
+		background-color: var(--color-navy-mid);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: var(--radius-xl);
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.03) inset,
+			0 12px 32px rgba(0, 0, 0, 0.18);
+	}
+
+	.filter-card__field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		min-width: 0;
+	}
+
+	.filter-card__label {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: var(--color-grey-400);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.search-wrap,
+	.select-wrap {
+		position: relative;
+	}
+
+	:global(.search-icon) {
+		position: absolute;
+		left: 0.75rem;
+		top: 50%;
+		transform: translateY(-50%);
+		color: var(--color-grey-500);
+		pointer-events: none;
+	}
+
+	:global(.select-caret) {
+		position: absolute;
+		right: 0.75rem;
+		top: 50%;
+		transform: translateY(-50%);
+		color: var(--color-grey-500);
+		pointer-events: none;
+	}
+
+	.filter-input {
+		width: 100%;
+		min-height: 2.5rem;
+		padding: 0.65rem 0.875rem;
+		background-color: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-lg);
+		color: var(--color-white);
+		font-size: 0.875rem;
+		font-family: var(--font-ui);
+		outline: none;
+		transition:
+			border-color 150ms var(--ease-out),
+			box-shadow 150ms var(--ease-out);
+	}
+
+	.filter-input::placeholder {
+		color: var(--color-grey-500);
+	}
+
+	.filter-input:focus {
+		border-color: var(--color-teal);
+		box-shadow: 0 0 0 3px rgba(15, 164, 175, 0.15);
+	}
+
+	.filter-input--search {
+		padding-left: 2.25rem;
+	}
+
+	.filter-input--select {
+		appearance: none;
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		padding-right: 2.25rem;
+		cursor: pointer;
+	}
+
+	.filter-input--select option {
+		background-color: var(--color-navy-mid);
+		color: var(--color-white);
+	}
+
+	/* ── Skel row / empty ───────────────── */
+	.cp__skel {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.skelrow {
+		padding: 1rem;
+		background-color: var(--color-navy-mid);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: var(--radius-lg);
+	}
+
+	.empty-state {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		gap: 0.85rem;
+		padding: 3.5rem 2rem;
+		background-color: var(--color-navy-mid);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: var(--radius-xl);
+		color: var(--color-grey-500);
+	}
+
+	.empty-state :global(svg) {
+		color: var(--color-grey-500);
+	}
+
+	.empty-state__title {
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--color-white);
+		margin: 0;
+	}
+
+	.empty-state__desc {
+		font-size: 0.875rem;
+		color: var(--color-grey-400);
+		max-width: 36ch;
+		line-height: 1.55;
+		margin: 0;
+	}
+
+	/* ── Badges ─────────────────────────── */
+	.badge {
+		display: inline-flex;
+		align-items: center;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		padding: 0.15rem 0.5rem;
+		border-radius: var(--radius-full);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		white-space: nowrap;
+	}
+
+	.badge--active {
+		background-color: rgba(15, 164, 175, 0.12);
+		color: #5eead4;
+	}
+
+	.badge--expired {
+		background-color: rgba(239, 68, 68, 0.12);
+		color: #fca5a5;
+	}
+
+	.badge--inactive {
+		background-color: rgba(255, 255, 255, 0.06);
+		color: var(--color-grey-300);
+	}
+
+	/* ── Toggle / icon-btn ──────────────── */
+	.toggle-btn {
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 0.25rem;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--color-teal-light);
+		border-radius: var(--radius-md);
+		transition:
+			background-color 150ms var(--ease-out),
+			opacity 150ms var(--ease-out);
+	}
+
+	.toggle-btn:hover:not(:disabled) {
+		background-color: rgba(255, 255, 255, 0.05);
+	}
+
+	.toggle-btn:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	.icon-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		background-color: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-md);
+		color: var(--color-grey-300);
+		text-decoration: none;
+		cursor: pointer;
+		transition:
+			background-color 150ms var(--ease-out),
+			border-color 150ms var(--ease-out),
+			color 150ms var(--ease-out);
+	}
+
+	.icon-btn:hover {
+		background-color: rgba(15, 164, 175, 0.12);
+		border-color: rgba(15, 164, 175, 0.3);
+		color: var(--color-teal-light);
+	}
+
+	/* ── Mobile cards ───────────────────── */
+	.cp__cards {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.cp__twrap {
+		display: none;
+	}
+
+	.ccard {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: 1rem;
+		background-color: var(--color-navy-mid);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: var(--radius-xl);
+	}
+
+	.ccard__top {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.ccard__code {
+		font-family: var(--font-mono);
+		font-weight: 600;
+		font-size: 0.875rem;
+		color: var(--color-white);
+		text-decoration: none;
+		letter-spacing: 0.04em;
+	}
+
+	.ccard__code:hover {
+		color: var(--color-teal-light);
+	}
+
+	.ccard__row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.ccard__label {
+		font-size: 0.75rem;
+		color: var(--color-grey-500);
+	}
+
+	.ccard__value {
+		font-size: 0.875rem;
+		color: var(--color-grey-300);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.ccard__foot {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding-top: 0.5rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.06);
+	}
+
+	/* ── Pagination ─────────────────────── */
+	.cp__pag {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		margin-top: 0.5rem;
+	}
+
+	.page-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		min-height: 2.25rem;
+		padding: 0.45rem 0.75rem;
+		background-color: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-lg);
+		color: var(--color-white);
+		font-size: 0.875rem;
+		font-weight: 600;
+		font-family: var(--font-ui);
+		cursor: pointer;
+		transition:
+			background-color 150ms var(--ease-out),
+			border-color 150ms var(--ease-out);
+	}
+
+	.page-btn:hover:not(:disabled) {
+		background-color: rgba(255, 255, 255, 0.1);
+		border-color: rgba(255, 255, 255, 0.18);
+	}
+
+	.page-btn:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	.page-info {
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--color-grey-400);
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* ── Tablet 480px+ ──────────────────── */
+	@media (min-width: 480px) {
+		.kpi-grid {
+			grid-template-columns: repeat(3, 1fr);
+		}
+
+		.bulk-form__grid {
+			grid-template-columns: 1fr 1fr;
+		}
+
+		.filter-card {
+			flex-direction: row;
+			align-items: flex-end;
+		}
+
+		.filter-card__field--search {
+			flex: 1 1 18rem;
+		}
+
+		.filter-card__field {
+			flex: 0 0 12rem;
+		}
+	}
+
+	/* ── Tablet 768px+ ──────────────────── */
 	@media (min-width: 768px) {
-		.cp__header { flex-direction: row; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
-		.cp__title { font-size: var(--fs-2xl); } .cp__count { font-size: var(--fs-sm); margin-top: 0.25rem; }
-		.cp__cta, .cp__bulk-btn { padding: 0.6rem 1.25rem; font-size: var(--fs-sm); }
-		.cp__kpis { gap: 1rem; margin-bottom: 2rem; } .kpi { padding: 1.15rem; gap: 1rem; }
-		.kpi__ic { width: 2.75rem; height: 2.75rem; } .kpi__val { font-size: var(--fs-lg); }
-		.cp__toolbar { flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-		.cp__search { min-width: 14rem; } .bf { padding: 1.25rem; }
-		.bf__grid { grid-template-columns: repeat(3, 1fr); } .bf__title { font-size: var(--fs-md); }
-		.cp__cards { display: none; }
-		.cp__twrap { display: block; overflow-x: auto; background-color: var(--color-navy-mid); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-xl); }
-		.ct { width: 100%; border-collapse: collapse; }
-		.ct th { text-align: left; font-size: var(--fs-xs); font-weight: var(--w-semibold); color: var(--color-grey-400); text-transform: uppercase; letter-spacing: 0.05em; padding: 0.85rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
-		.ct td { padding: 0.85rem 1rem; font-size: var(--fs-sm); color: var(--color-grey-300); border-bottom: 1px solid rgba(255,255,255,0.04); }
-		.ct tbody tr:hover { background-color: rgba(255,255,255,0.02); }
-		.cp__pag { gap: 1rem; margin-top: 1.5rem; }
-		.cp__pbtn { gap: 0.35rem; padding: 0.5rem 1rem; font-size: var(--fs-sm); } .cp__pinfo { font-size: var(--fs-sm); }
+		.cp {
+			gap: 1.5rem;
+		}
+
+		.cp__header {
+			flex-direction: row;
+			align-items: flex-end;
+			justify-content: space-between;
+			gap: 1.5rem;
+		}
+
+		.cp__title {
+			font-size: 1.5rem;
+		}
+
+		.kpi-grid {
+			gap: 1rem;
+		}
+
+		.kpi {
+			padding: 1.5rem;
+		}
+
+		.kpi__value {
+			font-size: 1.5rem;
+		}
+
+		.bulk-form {
+			padding: 1.5rem;
+		}
+
+		.bulk-form__grid {
+			grid-template-columns: repeat(3, 1fr);
+		}
+
+		.filter-card {
+			padding: 1.5rem;
+		}
+
+		.cp__cards {
+			display: none;
+		}
+
+		.cp__twrap {
+			display: block;
+			overflow-x: auto;
+			background-color: var(--color-navy-mid);
+			border: 1px solid rgba(255, 255, 255, 0.06);
+			border-radius: var(--radius-xl);
+			box-shadow:
+				0 1px 0 rgba(255, 255, 255, 0.03) inset,
+				0 12px 32px rgba(0, 0, 0, 0.18);
+		}
+
+		.ctable {
+			width: 100%;
+			border-collapse: collapse;
+			min-width: 640px;
+		}
+
+		.ctable thead {
+			background-color: rgba(255, 255, 255, 0.02);
+		}
+
+		.ctable th {
+			text-align: left;
+			font-size: 0.6875rem;
+			font-weight: 600;
+			color: var(--color-grey-500);
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			padding: 0.875rem 1rem;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+			white-space: nowrap;
+		}
+
+		.ctable td {
+			padding: 0.875rem 1rem;
+			font-size: 0.875rem;
+			color: var(--color-grey-300);
+			border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+			line-height: 1.45;
+		}
+
+		.ctable tbody tr {
+			transition: background-color 150ms var(--ease-out);
+		}
+
+		.ctable tbody tr:hover {
+			background-color: rgba(255, 255, 255, 0.02);
+		}
+
+		.ctable tbody tr:last-child td {
+			border-bottom: none;
+		}
+
+		.ctable__code {
+			font-family: var(--font-mono);
+			font-weight: 600;
+			color: var(--color-white);
+			text-decoration: none;
+			letter-spacing: 0.04em;
+		}
+
+		.ctable__code:hover {
+			color: var(--color-teal-light);
+		}
+
+		.ctable__num {
+			text-align: right;
+			font-variant-numeric: tabular-nums;
+			white-space: nowrap;
+		}
+
+		.ctable__actions-h,
+		.ctable__actions {
+			width: 3rem;
+			text-align: right;
+		}
+
+		.cp__pag {
+			gap: 1rem;
+		}
 	}
 </style>

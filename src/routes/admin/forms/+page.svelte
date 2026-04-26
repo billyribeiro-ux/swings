@@ -4,13 +4,10 @@
   Row actions:
   - Edit           → /admin/forms/{id}         (builder)
   - Submissions    → /admin/forms/{id}/submissions
-  - ArchiveIcon        → PATCH /admin/forms/{id} { is_active: false } (soft)
+  - Archive        → PATCH /admin/forms/{id} { is_active: false } (soft)
   - Unarchive      → PATCH /admin/forms/{id} { is_active: true }
   - Preview        → /admin/forms/{id}/preview
   - Versions       → /admin/forms/{id}/versions
-
-  A11y: the table uses `<th scope="col">`; the action column's buttons
-  carry `aria-label` so SR users know what they target.
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
@@ -23,6 +20,8 @@
 	import ArrowCounterClockwiseIcon from 'phosphor-svelte/lib/ArrowCounterClockwiseIcon';
 	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
 	import ClockCounterClockwiseIcon from 'phosphor-svelte/lib/ClockCounterClockwiseIcon';
+	import StackIcon from 'phosphor-svelte/lib/StackIcon';
+	import WarningIcon from 'phosphor-svelte/lib/WarningIcon';
 
 	interface FormRow {
 		readonly id: string;
@@ -67,292 +66,418 @@
 
 <svelte:head><title>Forms · Admin</title></svelte:head>
 
-<header class="af-header">
-	<div>
-		<h1 class="af-title">Forms</h1>
-		<p class="af-subtitle">Build, preview, and manage collection forms.</p>
-	</div>
-	<button class="af-btn af-btn--primary" type="button" onclick={() => goto('/admin/forms/new')}>
-		<PlusIcon size={16} weight="bold" />
-		<span>New form</span>
-	</button>
-</header>
-
-{#if loading}
-	<p class="af-status">Loading…</p>
-{:else if err}
-	<p class="af-status af-status--error" role="alert">{err}</p>
-{:else if forms.length === 0}
-	<div class="af-empty">
-		<p>No forms yet — create one to start collecting submissions.</p>
-		<button class="af-btn af-btn--primary" type="button" onclick={() => goto('/admin/forms/new')}>
+<div class="forms-page">
+	<header class="forms-page__header">
+		<div class="forms-page__title-row">
+			<StackIcon size={28} weight="duotone" />
+			<div class="forms-page__copy">
+				<h1 class="forms-page__title">Forms</h1>
+				<p class="forms-page__subtitle">Build, preview, and manage collection forms.</p>
+			</div>
+		</div>
+		<button class="btn btn--primary" type="button" onclick={() => goto('/admin/forms/new')}>
 			<PlusIcon size={16} weight="bold" />
-			<span>Create your first form</span>
+			<span>New form</span>
 		</button>
-	</div>
-{:else}
-	<div class="af-table-wrap">
-		<table class="af-table">
-			<thead>
-				<tr>
-					<th scope="col">Name</th>
-					<th scope="col">Slug</th>
-					<th scope="col">Status</th>
-					<th scope="col">Updated</th>
-					<th scope="col" class="af-table__actions-head">Actions</th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each forms as f (f.id)}
-					<tr>
-						<td>
-							<a class="af-table__name" href={`/admin/forms/${f.id}`}>{f.name}</a>
-							{#if f.description}<div class="af-table__desc">{f.description}</div>{/if}
-						</td>
-						<td><code class="af-table__slug">{f.slug}</code></td>
-						<td>
-							<span class="af-status-pill" class:af-status-pill--active={f.is_active}>
-								{f.is_active ? 'Active' : 'Archived'}
-							</span>
-						</td>
-						<td class="af-table__ts">{new Date(f.updated_at).toLocaleString()}</td>
-						<td>
-							<div class="af-actions">
-								<a class="af-action" href={`/admin/forms/${f.id}`} aria-label={`Edit ${f.name}`}>
-									<PencilSimpleIcon size={14} />
-									<span>Edit</span>
-								</a>
-								<a class="af-action" href={`/admin/forms/${f.id}/preview`} aria-label={`Preview ${f.name}`}>
-									<EyeIcon size={14} />
-									<span>Preview</span>
-								</a>
-								<a class="af-action" href={`/admin/forms/${f.id}/submissions`} aria-label={`Submissions for ${f.name}`}>
-									<ListBulletsIcon size={14} />
-									<span>Submissions</span>
-								</a>
-								<a class="af-action" href={`/admin/forms/${f.id}/versions`} aria-label={`Versions of ${f.name}`}>
-									<ClockCounterClockwiseIcon size={14} />
-									<span>Versions</span>
-								</a>
-								<button
-									type="button"
-									class="af-action af-action--destructive"
-									onclick={() => toggleArchive(f)}
-									disabled={acting === f.id}
-									aria-label={f.is_active ? `ArchiveIcon ${f.name}` : `Restore ${f.name}`}
-								>
-									{#if f.is_active}
-										<ArchiveIcon size={14} />
-										<span>ArchiveIcon</span>
-									{:else}
-										<ArrowCounterClockwiseIcon size={14} />
-										<span>Restore</span>
-									{/if}
-								</button>
-							</div>
-						</td>
-					</tr>
-				{/each}
-			</tbody>
-		</table>
-	</div>
-{/if}
+	</header>
+
+	{#if err}
+		<div class="error" role="alert">
+			<WarningIcon size={16} weight="fill" />
+			<span>{err}</span>
+		</div>
+	{/if}
+
+	{#if loading}
+		<div class="state state--loading">
+			<div class="state__spinner" aria-hidden="true"></div>
+			<span>Loading forms…</span>
+		</div>
+	{:else if forms.length === 0}
+		<div class="empty">
+			<StackIcon size={48} weight="duotone" />
+			<p class="empty__title">No forms yet</p>
+			<p class="empty__sub">Create one to start collecting submissions.</p>
+			<button class="btn btn--primary" type="button" onclick={() => goto('/admin/forms/new')}>
+				<PlusIcon size={16} weight="bold" />
+				<span>Create your first form</span>
+			</button>
+		</div>
+	{:else}
+		<section class="card table-card">
+			<div class="table-wrap">
+				<table class="table">
+					<thead>
+						<tr>
+							<th scope="col">Name</th>
+							<th scope="col">Slug</th>
+							<th scope="col">Status</th>
+							<th scope="col">Updated</th>
+							<th scope="col" class="table__actions-th">Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each forms as f (f.id)}
+							<tr>
+								<td>
+									<a class="table__name" href={`/admin/forms/${f.id}`}>{f.name}</a>
+									{#if f.description}<div class="table__desc">{f.description}</div>{/if}
+								</td>
+								<td><code class="table__slug">{f.slug}</code></td>
+								<td>
+									<span class="pill {f.is_active ? 'pill--success' : 'pill--neutral'}">
+										{f.is_active ? 'Active' : 'Archived'}
+									</span>
+								</td>
+								<td class="table__ts">{new Date(f.updated_at).toLocaleString()}</td>
+								<td>
+									<div class="actions">
+										<a
+											class="action-btn"
+											href={`/admin/forms/${f.id}`}
+											aria-label={`Edit ${f.name}`}
+											title="Edit"
+										>
+											<PencilSimpleIcon size={14} weight="bold" />
+											<span>Edit</span>
+										</a>
+										<a
+											class="action-btn"
+											href={`/admin/forms/${f.id}/preview`}
+											aria-label={`Preview ${f.name}`}
+											title="Preview"
+										>
+											<EyeIcon size={14} weight="bold" />
+											<span>Preview</span>
+										</a>
+										<a
+											class="action-btn"
+											href={`/admin/forms/${f.id}/submissions`}
+											aria-label={`Submissions for ${f.name}`}
+											title="Submissions"
+										>
+											<ListBulletsIcon size={14} weight="bold" />
+											<span>Submissions</span>
+										</a>
+										<a
+											class="action-btn"
+											href={`/admin/forms/${f.id}/versions`}
+											aria-label={`Versions of ${f.name}`}
+											title="Versions"
+										>
+											<ClockCounterClockwiseIcon size={14} weight="bold" />
+											<span>Versions</span>
+										</a>
+										<button
+											type="button"
+											class="action-btn action-btn--destructive"
+											onclick={() => toggleArchive(f)}
+											disabled={acting === f.id}
+											aria-label={f.is_active ? `Archive ${f.name}` : `Restore ${f.name}`}
+											title={f.is_active ? 'Archive' : 'Restore'}
+										>
+											{#if f.is_active}
+												<ArchiveIcon size={14} weight="bold" />
+												<span>Archive</span>
+											{:else}
+												<ArrowCounterClockwiseIcon size={14} weight="bold" />
+												<span>Restore</span>
+											{/if}
+										</button>
+									</div>
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		</section>
+	{/if}
+</div>
 
 <style>
-	.af-header {
+	.forms-page {
+		max-width: 80rem;
+		padding: 0 0 3rem;
+	}
+	.forms-page__header {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-3);
-		margin-block-end: var(--space-5);
+		gap: 1rem;
+		margin-bottom: 1.5rem;
 	}
-
-	.af-title {
+	.forms-page__title-row {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.85rem;
+		color: var(--color-white);
+	}
+	.forms-page__copy {
+		min-width: 0;
+	}
+	.forms-page__title {
 		margin: 0;
 		font-family: var(--font-heading);
-		font-size: var(--fs-2xl);
-		font-weight: var(--w-semibold);
-		color: var(--surface-fg-default);
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: var(--color-white);
+		letter-spacing: -0.01em;
+		line-height: 1.15;
+	}
+	.forms-page__subtitle {
+		margin: 0.35rem 0 0;
+		font-size: 0.875rem;
+		color: var(--color-grey-400);
+		max-width: 60ch;
+		line-height: 1.55;
 	}
 
-	.af-subtitle {
-		margin: var(--space-1) 0 0;
-		color: var(--surface-fg-muted);
-		font-size: var(--fs-sm);
-	}
-
-	.af-btn {
+	.btn {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--space-2);
-		padding-block: var(--space-2);
-		padding-inline: var(--space-4);
-		border: 1px solid transparent;
-		border-radius: var(--radius-md);
-		background-color: var(--brand-teal-500);
-		color: var(--neutral-0);
+		gap: 0.5rem;
+		min-height: 2.5rem;
+		padding: 0 0.875rem;
+		border-radius: var(--radius-lg);
+		font-size: 0.875rem;
+		font-weight: 600;
 		font-family: inherit;
-		font-size: var(--fs-sm);
-		font-weight: var(--w-semibold);
+		border: 1px solid transparent;
+		background: transparent;
+		color: var(--color-grey-300);
 		cursor: pointer;
-		align-self: flex-start;
 		text-decoration: none;
+		align-self: flex-start;
+		transition:
+			background-color 150ms,
+			border-color 150ms,
+			color 150ms,
+			box-shadow 150ms,
+			transform 150ms;
+	}
+	.btn--primary {
+		background: linear-gradient(135deg, var(--color-teal), var(--color-teal-dark, #0d8a94));
+		color: var(--color-white);
+		box-shadow: 0 6px 16px -4px rgba(15, 164, 175, 0.45);
+	}
+	.btn--primary:hover:not(:disabled) {
+		transform: translateY(-1px);
+		box-shadow: 0 8px 18px -4px rgba(15, 164, 175, 0.55);
+	}
+	.btn:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 3px rgba(15, 164, 175, 0.35);
 	}
 
-	.af-btn:hover {
-		background-color: var(--brand-teal-600);
+	.error {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.75rem 1rem;
+		border-radius: var(--radius-lg);
+		font-size: 0.875rem;
+		margin-bottom: 1rem;
+		background: rgba(239, 68, 68, 0.1);
+		border: 1px solid rgba(239, 68, 68, 0.3);
+		color: #fca5a5;
 	}
 
-	.af-btn:focus-visible {
-		outline: 2px solid var(--brand-teal-500);
-		outline-offset: 2px;
+	.state {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		padding: 4rem 0;
+		color: var(--color-grey-400);
+		font-size: 0.875rem;
+	}
+	.state__spinner {
+		width: 1.25rem;
+		height: 1.25rem;
+		border: 2px solid rgba(255, 255, 255, 0.1);
+		border-top-color: var(--color-teal);
+		border-radius: 50%;
+		animation: spin 0.7s linear infinite;
+	}
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
 	}
 
-	.af-status {
-		padding: var(--space-6);
-		text-align: center;
-		color: var(--surface-fg-muted);
-	}
-
-	.af-status--error {
-		color: var(--status-danger-700);
-	}
-
-	.af-empty {
-		padding: var(--space-8);
-		text-align: center;
+	.empty {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: var(--space-3);
-		background-color: var(--surface-bg-subtle);
-		border: 1px dashed var(--surface-border-default);
-		border-radius: var(--radius-md);
+		gap: 0.5rem;
+		padding: 3rem 1rem;
+		background: var(--color-navy-mid);
+		border: 1px dashed rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-xl);
+		color: var(--color-grey-500);
+		text-align: center;
+	}
+	.empty__title {
+		margin: 0.5rem 0 0;
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--color-white);
+	}
+	.empty__sub {
+		margin: 0 0 0.5rem;
+		font-size: 0.875rem;
+		color: var(--color-grey-400);
 	}
 
-	.af-table-wrap {
+	.card {
+		background: var(--color-navy-mid);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: var(--radius-xl);
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.03) inset,
+			0 12px 32px rgba(0, 0, 0, 0.18);
+	}
+	.table-card {
+		overflow: hidden;
+	}
+	.table-wrap {
 		overflow-x: auto;
-		border: 1px solid var(--surface-border-subtle);
-		border-radius: var(--radius-md);
-		background-color: var(--surface-bg-canvas);
 	}
-
-	.af-table {
+	.table {
 		inline-size: 100%;
 		border-collapse: collapse;
-		font-size: var(--fs-sm);
+		font-size: 0.875rem;
 	}
-
-	.af-table th,
-	.af-table td {
-		padding-block: var(--space-3);
-		padding-inline: var(--space-3);
-		text-align: start;
-		border-block-end: 1px solid var(--surface-border-subtle);
+	.table th,
+	.table td {
+		padding: 0.875rem 1rem;
+		text-align: left;
 		vertical-align: top;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 	}
-
-	.af-table thead th {
-		font-size: var(--fs-xs);
+	.table th {
+		font-size: 0.6875rem;
+		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
-		color: var(--surface-fg-muted);
-		font-weight: var(--w-semibold);
-		background-color: var(--surface-bg-subtle);
+		color: var(--color-grey-500);
+		background: rgba(255, 255, 255, 0.02);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+		white-space: nowrap;
 	}
-
-	.af-table__name {
-		color: var(--surface-fg-default);
+	.table__actions-th {
+		text-align: right;
+	}
+	.table tbody tr:hover td {
+		background: rgba(255, 255, 255, 0.02);
+	}
+	.table tbody tr:last-child td {
+		border-bottom: none;
+	}
+	.table__name {
+		color: var(--color-white);
+		font-weight: 600;
 		text-decoration: none;
-		font-weight: var(--w-semibold);
+		transition: color 150ms;
 	}
-
-	.af-table__name:hover {
-		color: var(--brand-teal-600);
+	.table__name:hover {
+		color: var(--color-teal-light);
 	}
-
-	.af-table__desc {
-		margin-block-start: var(--space-1);
-		font-size: var(--fs-xs);
-		color: var(--surface-fg-muted);
+	.table__desc {
+		margin-top: 0.25rem;
+		font-size: 0.75rem;
+		color: var(--color-grey-400);
+		line-height: 1.45;
 	}
-
-	.af-table__slug {
+	.table__slug {
 		font-family: var(--font-mono);
-		font-size: var(--fs-xs);
-		background-color: var(--surface-bg-muted);
-		padding-block: 2px;
-		padding-inline: var(--space-1-5);
+		font-size: 0.75rem;
+		background: rgba(255, 255, 255, 0.06);
+		padding: 0.125rem 0.4rem;
 		border-radius: var(--radius-sm);
+		color: var(--color-grey-200);
 	}
-
-	.af-table__ts {
-		color: var(--surface-fg-muted);
+	.table__ts {
+		color: var(--color-grey-400);
 		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
 	}
 
-	.af-status-pill {
+	.pill {
 		display: inline-flex;
-		padding-block: 2px;
-		padding-inline: var(--space-2-5);
+		padding: 0.15rem 0.5rem;
 		border-radius: var(--radius-full);
-		font-size: var(--fs-xs);
-		font-weight: var(--w-semibold);
+		font-size: 0.6875rem;
+		font-weight: 600;
 		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		background-color: var(--surface-bg-muted);
-		color: var(--surface-fg-muted);
+		letter-spacing: 0.05em;
+	}
+	.pill--success {
+		background: rgba(15, 164, 175, 0.12);
+		color: #5eead4;
+	}
+	.pill--neutral {
+		background: rgba(255, 255, 255, 0.06);
+		color: var(--color-grey-300);
 	}
 
-	.af-status-pill--active {
-		background-color: var(--status-success-50);
-		color: var(--status-success-700);
-	}
-
-	.af-actions {
+	.actions {
 		display: inline-flex;
-		gap: var(--space-1);
+		gap: 0.4rem;
 		flex-wrap: wrap;
+		justify-content: flex-end;
 	}
-
-	.af-action {
+	.action-btn {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--space-1);
-		padding-block: var(--space-1);
-		padding-inline: var(--space-2);
-		font-size: var(--fs-xs);
-		border: 1px solid var(--surface-border-subtle);
-		border-radius: var(--radius-sm);
-		color: var(--surface-fg-default);
-		background-color: var(--surface-bg-canvas);
+		gap: 0.35rem;
+		min-height: 2rem;
+		padding: 0 0.65rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		background: rgba(255, 255, 255, 0.05);
+		color: var(--color-grey-200);
+		border-radius: var(--radius-lg);
 		text-decoration: none;
 		cursor: pointer;
+		font-family: inherit;
+		transition:
+			background-color 150ms,
+			border-color 150ms,
+			color 150ms;
 	}
-
-	.af-action:hover {
-		background-color: var(--surface-bg-muted);
+	.action-btn:hover:not(:disabled) {
+		background: rgba(255, 255, 255, 0.1);
+		border-color: rgba(255, 255, 255, 0.18);
+		color: var(--color-white);
 	}
-
-	.af-action:focus-visible {
-		outline: 2px solid var(--brand-teal-500);
-		outline-offset: 1px;
+	.action-btn:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 3px rgba(15, 164, 175, 0.35);
 	}
-
-	.af-action:disabled {
+	.action-btn:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}
-
-	.af-action--destructive:hover {
-		color: var(--status-danger-700);
-		border-color: var(--status-danger-500);
+	.action-btn--destructive {
+		background: rgba(239, 68, 68, 0.1);
+		border-color: rgba(239, 68, 68, 0.3);
+		color: #fca5a5;
+	}
+	.action-btn--destructive:hover:not(:disabled) {
+		background: rgba(239, 68, 68, 0.18);
+		border-color: rgba(239, 68, 68, 0.4);
 	}
 
 	@media (min-width: 768px) {
-		.af-header {
+		.forms-page__header {
 			flex-direction: row;
 			justify-content: space-between;
-			align-items: flex-end;
+			align-items: flex-start;
+		}
+		.forms-page__title {
+			font-size: 1.5rem;
 		}
 	}
 </style>

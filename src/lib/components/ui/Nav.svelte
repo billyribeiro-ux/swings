@@ -11,7 +11,9 @@
 	import BookOpenIcon from 'phosphor-svelte/lib/BookOpenIcon';
 	import PulseIcon from 'phosphor-svelte/lib/PulseIcon';
 	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
+	import GaugeIcon from 'phosphor-svelte/lib/GaugeIcon';
 	import { SITE } from '$lib/seo/config';
+	import { auth } from '$lib/stores/auth.svelte';
 
 	const iconMap: Record<string, typeof BookOpenIcon> = { BookOpenIcon, PulseIcon };
 
@@ -25,6 +27,12 @@
 	const motion = $derived(!prefersReducedMotion.current);
 	const tDur = (ms: number) => (motion ? ms : 1);
 	const tDelay = (ms: number) => (motion ? ms : 0);
+
+	// Auth-aware CTA: signed-in users see a Dashboard/Admin button instead of
+	// the anonymous "Get Instant Access" + "Sign in" pair.
+	const showAuthedCta = $derived(auth.isAuthenticated);
+	const dashHref = $derived(auth.isAdmin ? '/admin' : '/dashboard');
+	const dashLabel = $derived(auth.isAdmin ? 'Admin' : 'Dashboard');
 
 	function toggleCourses() {
 		isCoursesOpen = !isCoursesOpen;
@@ -170,13 +178,24 @@
 		<div class="nav__right">
 			<div class="nav__cta-desktop">
 				<div class="nav__cta-row">
-					<Button variant="primary" href="/register">Get Instant Access</Button>
-					<div class="nav__signin">
-						<p class="nav__cta-signin-label">Already a member?</p>
-						<a href="/login" class="nav__cta-signin-button" data-sveltekit-preload-data="hover">
-							Sign in
+					{#if showAuthedCta}
+						<a
+							href={dashHref}
+							class="nav__cta-dashboard"
+							data-sveltekit-preload-data="hover"
+						>
+							<GaugeIcon size={18} weight="bold" />
+							<span>{dashLabel}</span>
 						</a>
-					</div>
+					{:else}
+						<Button variant="primary" href="/register">Get Instant Access</Button>
+						<div class="nav__signin">
+							<p class="nav__cta-signin-label">Already a member?</p>
+							<a href="/login" class="nav__cta-signin-button" data-sveltekit-preload-data="hover">
+								Sign in
+							</a>
+						</div>
+					{/if}
 				</div>
 			</div>
 
@@ -250,14 +269,21 @@
 					class="mobile-menu__cta"
 					in:fly={{ y: 16, duration: tDur(400), delay: tDelay(130), easing: expoOut }}
 				>
-					<a href="/register" class="mobile-menu__cta-btn" onclick={closeAll}>
-						Get Instant Access
-						<ArrowRightIcon size={16} weight="bold" />
-					</a>
-					<p class="mobile-menu__cta-sub">
-						Already a member?
-						<a href="/login" class="mobile-menu__cta-sub-link" onclick={closeAll}>Sign in</a>
-					</p>
+					{#if showAuthedCta}
+						<a href={dashHref} class="mobile-menu__cta-btn" onclick={closeAll}>
+							<GaugeIcon size={18} weight="bold" />
+							{dashLabel}
+						</a>
+					{:else}
+						<a href="/register" class="mobile-menu__cta-btn" onclick={closeAll}>
+							Get Instant Access
+							<ArrowRightIcon size={16} weight="bold" />
+						</a>
+						<p class="mobile-menu__cta-sub">
+							Already a member?
+							<a href="/login" class="mobile-menu__cta-sub-link" onclick={closeAll}>Sign in</a>
+						</p>
+					{/if}
 				</div>
 			</div>
 		</div>
@@ -789,6 +815,55 @@
 		}
 
 		.nav__cta-row :global(a.btn.btn--primary) {
+			font-size: var(--fs-xs);
+		}
+	}
+
+	.nav__cta-dashboard {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		box-sizing: border-box;
+		height: var(--nav-cta-h, 2.75rem);
+		min-height: var(--nav-cta-h, 2.75rem);
+		max-height: var(--nav-cta-h, 2.75rem);
+		padding-block: 0;
+		padding-inline: var(--nav-cta-pad-x, 1.25rem);
+		line-height: 1;
+		font-size: 1rem;
+		font-weight: var(--w-semibold);
+		color: var(--color-navy);
+		text-decoration: none;
+		border-radius: var(--radius-full);
+		background: linear-gradient(135deg, var(--color-teal) 0%, var(--color-teal-light) 100%);
+		box-shadow:
+			0 10px 22px -14px rgba(15, 164, 175, 0.75),
+			inset 0 1px 0 rgba(255, 255, 255, 0.25);
+		transition:
+			transform 0.2s ease,
+			box-shadow 0.2s ease,
+			filter 0.2s ease;
+		white-space: nowrap;
+		flex: 0 0 auto;
+		align-self: flex-end;
+	}
+
+	.nav__cta-dashboard:hover {
+		transform: translateY(-1px);
+		filter: brightness(1.06);
+		box-shadow:
+			0 14px 28px -14px rgba(15, 164, 175, 0.85),
+			inset 0 1px 0 rgba(255, 255, 255, 0.3);
+	}
+
+	.nav__cta-dashboard:focus-visible {
+		outline: 2px solid var(--color-teal);
+		outline-offset: 3px;
+	}
+
+	@media (min-width: 768px) and (max-width: 1023px) {
+		.nav__cta-dashboard {
 			font-size: var(--fs-xs);
 		}
 	}

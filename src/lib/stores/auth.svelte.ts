@@ -21,8 +21,8 @@ class AuthState {
 	loading = $state(true);
 
 	isAuthenticated = $derived(!!this.user && !!this.accessToken);
-	isAdmin = $derived(this.user?.role === 'admin');
-	isMember = $derived(this.user?.role === 'member');
+	isAdmin = $derived(this.user?.role?.toLowerCase() === 'admin');
+	isMember = $derived(this.user?.role?.toLowerCase() === 'member');
 
 	constructor() {
 		if (browser) {

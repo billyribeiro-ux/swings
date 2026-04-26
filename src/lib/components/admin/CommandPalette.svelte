@@ -1,24 +1,22 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { goto } from '$app/navigation';
-	import {
-		MagnifyingGlass,
-		ChartBar,
-		PresentationChart,
-		Users,
-		Article,
-		PlusCircle,
-		Tag,
-		FolderOpen,
-		Image,
-		ListChecks,
-		UserCircle
-	} from 'phosphor-svelte';
+	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
+	import ChartBarIcon from 'phosphor-svelte/lib/ChartBarIcon';
+	import PresentationChartIcon from 'phosphor-svelte/lib/PresentationChartIcon';
+	import UsersIcon from 'phosphor-svelte/lib/UsersIcon';
+	import ArticleIcon from 'phosphor-svelte/lib/ArticleIcon';
+	import PlusCircleIcon from 'phosphor-svelte/lib/PlusCircleIcon';
+	import TagIcon from 'phosphor-svelte/lib/TagIcon';
+	import FolderOpenIcon from 'phosphor-svelte/lib/FolderOpenIcon';
+	import ImageIcon from 'phosphor-svelte/lib/ImageIcon';
+	import ListChecksIcon from 'phosphor-svelte/lib/ListChecksIcon';
+	import UserCircleIcon from 'phosphor-svelte/lib/UserCircleIcon';
 
 	interface PaletteItem {
 		label: string;
 		description?: string;
-		icon: typeof MagnifyingGlass;
+		icon: typeof MagnifyingGlassIcon;
 		action: () => void;
 		keywords: string[];
 	}
@@ -34,70 +32,70 @@
 		{
 			label: 'Dashboard',
 			description: 'Admin overview',
-			icon: ChartBar,
+			icon: ChartBarIcon,
 			action: () => goto('/admin'),
 			keywords: ['home', 'dash', 'overview', 'stats']
 		},
 		{
 			label: 'Analytics',
 			description: 'Traffic, pages, CTR',
-			icon: PresentationChart,
+			icon: PresentationChartIcon,
 			action: () => goto('/admin/analytics'),
 			keywords: ['analytics', 'traffic', 'views', 'ctr', 'charts', 'three']
 		},
 		{
 			label: 'Posts',
 			description: 'Manage blog posts',
-			icon: Article,
+			icon: ArticleIcon,
 			action: () => goto('/admin/blog'),
 			keywords: ['post', 'blog', 'articles']
 		},
 		{
 			label: 'New Post',
 			description: 'Create a new blog post',
-			icon: PlusCircle,
+			icon: PlusCircleIcon,
 			action: () => goto('/admin/blog/new'),
 			keywords: ['new', 'create', 'write', 'post']
 		},
 		{
 			label: 'Categories',
 			description: 'Manage blog categories',
-			icon: FolderOpen,
+			icon: FolderOpenIcon,
 			action: () => goto('/admin/blog/categories'),
 			keywords: ['category', 'categories', 'folder']
 		},
 		{
 			label: 'Tags',
 			description: 'Manage post tags',
-			icon: Tag,
+			icon: TagIcon,
 			action: () => goto('/admin/blog/tags'),
 			keywords: ['tag', 'tags', 'label']
 		},
 		{
 			label: 'Media',
 			description: 'Media library',
-			icon: Image,
+			icon: ImageIcon,
 			action: () => goto('/admin/blog/media'),
 			keywords: ['media', 'image', 'upload', 'library']
 		},
 		{
 			label: 'Members',
 			description: 'Manage members',
-			icon: Users,
+			icon: UsersIcon,
 			action: () => goto('/admin/members'),
 			keywords: ['member', 'user', 'people']
 		},
 		{
 			label: 'Watchlists',
 			description: 'Manage watchlists',
-			icon: ListChecks,
+			icon: ListChecksIcon,
 			action: () => goto('/admin/watchlists'),
 			keywords: ['watchlist', 'watch', 'list']
 		},
 		{
 			label: 'Author Profile',
 			description: 'Edit your author profile',
-			icon: UserCircle,
+			icon: UserCircleIcon,
 			action: () => goto('/admin/author'),
 			keywords: ['author', 'profile', 'bio']
 		}
@@ -175,10 +173,12 @@
 			role="presentation"
 		>
 			<div class="palette-search">
-				<MagnifyingGlass size={18} weight="bold" class="palette-search__icon" />
+				<MagnifyingGlassIcon size={18} weight="bold" class="palette-search__icon" />
 				<input
 					bind:this={inputEl}
 					bind:value={query}
+					id="admin-command-palette-input"
+					name="admin-command-palette"
 					type="text"
 					class="palette-search__input"
 					placeholder="Type a command or search..."
@@ -226,37 +226,47 @@
 		inset: 0;
 		z-index: 10000;
 		background: rgba(0, 0, 0, 0.6);
+		backdrop-filter: blur(4px);
+		-webkit-backdrop-filter: blur(4px);
 		display: flex;
 		align-items: flex-start;
 		justify-content: center;
-		padding-top: 15vh;
+		padding: 12vh 1rem 1rem;
+		box-sizing: border-box;
 	}
 
 	.palette-modal {
 		background: var(--color-navy-deep, #0a0e1a);
 		border: 1px solid rgba(255, 255, 255, 0.12);
-		border-radius: 0.75rem;
-		width: 100%;
-		max-width: 520px;
+		border-radius: var(--radius-xl);
+		width: clamp(320px, 92vw, 560px);
 		overflow: hidden;
-		box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+		box-shadow:
+			0 24px 64px rgba(0, 0, 0, 0.5),
+			0 1px 0 rgba(255, 255, 255, 0.08) inset;
 	}
 
 	.palette-search {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 1rem 1.25rem;
+		gap: 0.65rem;
+		padding: 0.75rem 1rem;
 		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+	}
+
+	:global(.palette-search__icon) {
+		color: var(--color-grey-500);
+		flex-shrink: 0;
 	}
 
 	.palette-search__input {
 		flex: 1;
+		min-width: 0;
 		background: transparent;
 		border: none;
 		outline: none;
 		color: var(--color-white, #fff);
-		font-size: 1rem;
+		font-size: var(--fs-sm);
 	}
 
 	.palette-search__input::placeholder {
@@ -264,19 +274,20 @@
 	}
 
 	.palette-esc {
-		padding: 0.2rem 0.45rem;
+		padding: 0.15rem 0.45rem;
 		background: rgba(255, 255, 255, 0.07);
 		border: 1px solid rgba(255, 255, 255, 0.12);
-		border-radius: 0.3rem;
-		font-size: 0.7rem;
+		border-radius: var(--radius-md);
+		font-size: var(--fs-2xs);
 		color: var(--color-grey-400, #94a3b8);
+		flex-shrink: 0;
 	}
 
 	.palette-list {
 		list-style: none;
 		padding: 0.35rem;
 		margin: 0;
-		max-height: 340px;
+		max-height: min(340px, 60vh);
 		overflow-y: auto;
 	}
 
@@ -284,11 +295,11 @@
 		padding: 1.5rem;
 		text-align: center;
 		color: var(--color-grey-500, #475569);
-		font-size: 0.85rem;
+		font-size: var(--fs-sm);
 	}
 
 	.palette-item {
-		border-radius: 0.4rem;
+		border-radius: var(--radius-md);
 	}
 	.palette-item--active {
 		background: rgba(15, 164, 175, 0.12);
@@ -302,7 +313,7 @@
 		padding: 0.6rem 0.75rem;
 		background: transparent;
 		border: none;
-		border-radius: 0.4rem;
+		border-radius: var(--radius-md);
 		cursor: pointer;
 		text-align: left;
 		color: var(--color-grey-200, #e2e8f0);
@@ -318,24 +329,25 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.05rem;
+		min-width: 0;
 	}
 
 	.palette-item__label {
-		font-size: 0.875rem;
-		font-weight: 600;
+		font-size: var(--fs-sm);
+		font-weight: var(--w-semibold);
 	}
 
 	.palette-item__desc {
-		font-size: 0.7rem;
+		font-size: var(--fs-xs);
 		color: var(--color-grey-500, #475569);
 	}
 
 	.palette-hint {
-		display: flex;
+		display: none;
 		gap: 1rem;
-		padding: 0.5rem 1.25rem;
+		padding: 0.55rem 1.25rem;
 		border-top: 1px solid rgba(255, 255, 255, 0.06);
-		font-size: 0.7rem;
+		font-size: var(--fs-2xs);
 		color: var(--color-grey-500, #475569);
 	}
 
@@ -343,7 +355,18 @@
 		padding: 0.1rem 0.35rem;
 		background: rgba(255, 255, 255, 0.07);
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: 0.2rem;
-		font-size: 0.65rem;
+		border-radius: var(--radius-sm);
+		font-size: var(--fs-2xs);
+	}
+
+	/* Show footer hint and roomier search padding from sm (>=480px) */
+	@media (min-width: 480px) {
+		.palette-search {
+			padding: 1rem 1.25rem;
+		}
+
+		.palette-hint {
+			display: flex;
+		}
 	}
 </style>

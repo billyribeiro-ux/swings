@@ -109,6 +109,14 @@ pub fn jwt_validation() -> Validation {
     let mut v = Validation::new(Algorithm::HS256);
     v.leeway = 30;
     v.validate_exp = true;
+    // jsonwebtoken 10 defaults to `validate_aud = true` with `aud = None`,
+    // which rejects ANY token carrying an `aud` claim with `InvalidAudience`.
+    // Mint always sets ours (see handlers/auth.rs::generate_tokens), so we
+    // must pin the expected audience here for decode to succeed. Issuer is
+    // pinned for symmetry; `verify_claim_binding` remains as a defense in
+    // depth for the rollout window when legacy tokens (no iss/aud) still exist.
+    v.set_audience(&[JWT_AUDIENCE]);
+    v.set_issuer(&[JWT_ISSUER]);
     v
 }
 

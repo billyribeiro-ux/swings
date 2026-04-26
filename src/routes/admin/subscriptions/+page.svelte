@@ -4,12 +4,15 @@
 	import { goto } from '$app/navigation';
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
+	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
 	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
 	import CurrencyDollarIcon from 'phosphor-svelte/lib/CurrencyDollarIcon';
 	import UsersIcon from 'phosphor-svelte/lib/UsersIcon';
 	import CalendarCheckIcon from 'phosphor-svelte/lib/CalendarCheckIcon';
 	import RepeatIcon from 'phosphor-svelte/lib/RepeatIcon';
-	import FunnelIcon from 'phosphor-svelte/lib/FunnelIcon';
+	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
+
+	type SubscriptionStatus = 'active' | 'canceled' | 'past_due' | 'trialing' | 'unpaid';
 
 	interface Subscription {
 		id: string;
@@ -17,7 +20,7 @@
 		member_name: string;
 		member_email: string;
 		plan_name: string;
-		status: 'active' | 'canceled' | 'past_due';
+		status: SubscriptionStatus;
 		interval: 'month' | 'year';
 		amount_cents: number;
 		start_date: string;
@@ -46,7 +49,7 @@
 	let loading = $state(true);
 	let statsLoading = $state(true);
 	let search = $state('');
-	let statusFilter = $state<'all' | 'active' | 'canceled' | 'past_due'>('all');
+	let statusFilter = $state<'all' | SubscriptionStatus>('all');
 
 	let searchTimeout: ReturnType<typeof setTimeout>;
 
@@ -60,7 +63,7 @@
 	}
 
 	function handleFilterChange(value: string) {
-		statusFilter = value as typeof statusFilter;
+		statusFilter = value as 'all' | SubscriptionStatus;
 		page = 1;
 		loadSubscriptions();
 	}
@@ -89,9 +92,7 @@
 				.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
 				.join('&');
 
-			const res = await api.get<PaginatedSubscriptions>(
-				`/api/admin/subscriptions?${query}`
-			);
+			const res = await api.get<PaginatedSubscriptions>(`/api/admin/subscriptions?${query}`);
 			subscriptions = res.data;
 			total = res.total;
 			totalPages = res.total_pages;
@@ -108,7 +109,13 @@
 	});
 
 	function formatMoney(cents: number): string {
-		return '$' + (cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+		return (
+			'$' +
+			(cents / 100).toLocaleString('en-US', {
+				minimumFractionDigits: 2,
+				maximumFractionDigits: 2
+			})
+		);
 	}
 
 	function formatDate(dateStr: string): string {
@@ -120,7 +127,7 @@
 	}
 
 	function statusLabel(status: string): string {
-		if (status === 'past_due') return 'Past Due';
+		if (status === 'past_due') return 'Past due';
 		return status.charAt(0).toUpperCase() + status.slice(1);
 	}
 
@@ -134,13 +141,20 @@
 </svelte:head>
 
 <div class="subs-page">
-	<div class="subs-page__header">
-		<div>
+	<header class="subs-page__header">
+		<div class="subs-page__heading">
+			<span class="subs-page__eyebrow">Commerce</span>
 			<h1 class="subs-page__title">Subscriptions</h1>
-			<p class="subs-page__count">{total} total subscriptions</p>
+			<p class="subs-page__subtitle">
+				Recurring revenue at a glance: active customers, MRR, plan mix, and per-member status.
+				{total} total.
+			</p>
 		</div>
-		<a href="/admin/subscriptions/plans" class="subs-page__plans-link">Manage Plans</a>
-	</div>
+		<a href="/admin/subscriptions/plans" class="btn btn--primary">
+			<RepeatIcon size={16} weight="bold" />
+			<span>Manage plans</span>
+		</a>
+	</header>
 
 	{#if statsLoading}
 		<div class="subs-page__kpis">
@@ -158,66 +172,78 @@
 		<div class="subs-page__kpis">
 			<div class="kpi">
 				<div class="kpi__icon kpi__icon--green">
-					<UsersIcon size={22} weight="fill" />
+					<UsersIcon size={22} weight="duotone" />
 				</div>
-				<div>
-					<p class="kpi__label">Total Active</p>
-					<p class="kpi__value">{stats.total_active.toLocaleString()}</p>
+				<div class="kpi__content">
+					<span class="kpi__label">Total active</span>
+					<span class="kpi__value">{stats.total_active.toLocaleString()}</span>
 				</div>
 			</div>
 			<div class="kpi">
 				<div class="kpi__icon kpi__icon--blue">
-					<CalendarCheckIcon size={22} weight="fill" />
+					<CalendarCheckIcon size={22} weight="duotone" />
 				</div>
-				<div>
-					<p class="kpi__label">Monthly</p>
-					<p class="kpi__value">{stats.monthly_count.toLocaleString()}</p>
+				<div class="kpi__content">
+					<span class="kpi__label">Monthly</span>
+					<span class="kpi__value">{stats.monthly_count.toLocaleString()}</span>
 				</div>
 			</div>
 			<div class="kpi">
 				<div class="kpi__icon kpi__icon--purple">
-					<RepeatIcon size={22} weight="fill" />
+					<RepeatIcon size={22} weight="duotone" />
 				</div>
-				<div>
-					<p class="kpi__label">Annual</p>
-					<p class="kpi__value">{stats.annual_count.toLocaleString()}</p>
+				<div class="kpi__content">
+					<span class="kpi__label">Annual</span>
+					<span class="kpi__value">{stats.annual_count.toLocaleString()}</span>
 				</div>
 			</div>
 			<div class="kpi">
 				<div class="kpi__icon kpi__icon--teal">
-					<CurrencyDollarIcon size={22} weight="fill" />
+					<CurrencyDollarIcon size={22} weight="duotone" />
 				</div>
-				<div>
-					<p class="kpi__label">MRR</p>
-					<p class="kpi__value">{formatMoney(stats.mrr_cents)}</p>
+				<div class="kpi__content">
+					<span class="kpi__label">MRR</span>
+					<span class="kpi__value">{formatMoney(stats.mrr_cents)}</span>
 				</div>
 			</div>
 		</div>
 	{/if}
 
-	<div class="subs-page__filters">
-		<div class="subs-page__search">
-			<MagnifyingGlassIcon size={18} weight="bold" />
-			<input
-				type="text"
-				placeholder="Search by name or email..."
-				value={search}
-				oninput={(e) => handleSearchInput(e.currentTarget.value)}
-				class="subs-page__search-input"
-			/>
+	<div class="filter-card">
+		<div class="filter-card__field filter-card__field--search">
+			<label class="filter-card__label" for="sub-search">Search</label>
+			<div class="search-wrap">
+				<MagnifyingGlassIcon size={16} weight="bold" class="search-icon" />
+				<input
+					id="sub-search"
+					name="sub-search"
+					type="search"
+					class="filter-input filter-input--search"
+					placeholder="Search by name or email…"
+					value={search}
+					oninput={(e) => handleSearchInput(e.currentTarget.value)}
+				/>
+			</div>
 		</div>
-		<div class="subs-page__filter-group">
-			<FunnelIcon size={16} weight="bold" />
-			<select
-				value={statusFilter}
-				onchange={(e) => handleFilterChange(e.currentTarget.value)}
-				class="subs-page__select"
-			>
-				<option value="all">All Statuses</option>
-				<option value="active">Active</option>
-				<option value="canceled">Canceled</option>
-				<option value="past_due">Past Due</option>
-			</select>
+		<div class="filter-card__field">
+			<label class="filter-card__label" for="sub-status">Status</label>
+			<div class="select-wrap">
+				<select
+					id="sub-status"
+					name="sub-status"
+					class="filter-input filter-input--select"
+					value={statusFilter}
+					onchange={(e) => handleFilterChange(e.currentTarget.value)}
+				>
+					<option value="all">All statuses</option>
+					<option value="active">Active</option>
+					<option value="trialing">Trialing</option>
+					<option value="past_due">Past due</option>
+					<option value="unpaid">Unpaid</option>
+					<option value="canceled">Canceled</option>
+				</select>
+				<CaretDownIcon size={14} weight="bold" class="select-caret" />
+			</div>
 		</div>
 	</div>
 
@@ -230,30 +256,40 @@
 			{/each}
 		</div>
 	{:else if subscriptions.length === 0}
-		<div class="subs-page__empty">
-			<p>No subscriptions found.</p>
+		<div class="empty-state">
+			<UsersIcon size={48} weight="duotone" />
+			<h2 class="empty-state__title">No subscriptions found</h2>
+			<p class="empty-state__desc">
+				Try adjusting your search or status filter to find subscriptions.
+			</p>
 		</div>
 	{:else}
 		<div class="subs-page__cards">
 			{#each subscriptions as sub (sub.id)}
-				<button type="button" class="sub-card" onclick={() => navigateToMember(sub.member_id)}>
+				<button
+					type="button"
+					class="sub-card"
+					onclick={() => navigateToMember(sub.member_id)}
+				>
 					<div class="sub-card__header">
 						<div class="sub-card__member">
 							<span class="sub-card__name">{sub.member_name}</span>
 							<span class="sub-card__email">{sub.member_email}</span>
 						</div>
-						<span class="sub-card__status sub-card__status--{sub.status}">
-							{statusLabel(sub.status)}
-						</span>
+						<span class="badge badge--{sub.status}">{statusLabel(sub.status)}</span>
 					</div>
 					<div class="sub-card__details">
 						<div class="sub-card__row">
 							<span class="sub-card__label">Plan</span>
-							<span class="sub-card__plan-badge">{sub.plan_name}</span>
+							<span class="plan-chip">{sub.plan_name}</span>
 						</div>
 						<div class="sub-card__row">
 							<span class="sub-card__label">Amount</span>
-							<span class="sub-card__value">{formatMoney(sub.amount_cents)}/{sub.interval === 'month' ? 'mo' : 'yr'}</span>
+							<span class="sub-card__value sub-card__value--num">
+								{formatMoney(sub.amount_cents)}<span class="sub-card__interval">
+									/{sub.interval === 'month' ? 'mo' : 'yr'}
+								</span>
+							</span>
 						</div>
 						<div class="sub-card__row">
 							<span class="sub-card__label">Started</span>
@@ -277,31 +313,45 @@
 						<th>Member</th>
 						<th>Plan</th>
 						<th>Status</th>
-						<th>Amount</th>
-						<th>Start Date</th>
-						<th>Next Renewal</th>
+						<th class="s-table__num">Amount</th>
+						<th>Started</th>
+						<th>Next renewal</th>
+						<th class="s-table__actions-h" aria-label="Actions"></th>
 					</tr>
 				</thead>
 				<tbody>
 					{#each subscriptions as sub (sub.id)}
-						<tr class="s-table__row--clickable" onclick={() => navigateToMember(sub.member_id)}>
+						<tr>
 							<td>
 								<div class="s-table__member">
 									<span class="s-table__name">{sub.member_name}</span>
 									<span class="s-table__email">{sub.member_email}</span>
 								</div>
 							</td>
-							<td><span class="s-table__plan-badge">{sub.plan_name}</span></td>
+							<td><span class="plan-chip">{sub.plan_name}</span></td>
 							<td>
-								<span class="s-table__status s-table__status--{sub.status}">
-									{statusLabel(sub.status)}
+								<span class="badge badge--{sub.status}">{statusLabel(sub.status)}</span>
+							</td>
+							<td class="s-table__num">
+								{formatMoney(sub.amount_cents)}<span class="s-table__interval">
+									/{sub.interval === 'month' ? 'mo' : 'yr'}
 								</span>
 							</td>
-							<td class="s-table__amount">
-								{formatMoney(sub.amount_cents)}<span class="s-table__interval">/{sub.interval === 'month' ? 'mo' : 'yr'}</span>
+							<td class="s-table__date">{formatDate(sub.start_date)}</td>
+							<td class="s-table__date">
+								{sub.next_renewal ? formatDate(sub.next_renewal) : '—'}
 							</td>
-							<td>{formatDate(sub.start_date)}</td>
-							<td>{sub.next_renewal ? formatDate(sub.next_renewal) : '\u2014'}</td>
+							<td class="s-table__actions">
+								<button
+									type="button"
+									class="icon-btn"
+									onclick={() => navigateToMember(sub.member_id)}
+									title="View member"
+									aria-label="View member {sub.member_name}"
+								>
+									<EyeIcon size={16} weight="bold" />
+								</button>
+							</td>
 						</tr>
 					{/each}
 				</tbody>
@@ -310,267 +360,759 @@
 	{/if}
 
 	{#if totalPages > 1}
-		<div class="subs-page__pagination">
+		<nav class="subs-page__pagination" aria-label="Pagination">
 			<button
-				onclick={() => { page--; loadSubscriptions(); }}
+				type="button"
+				class="page-btn"
+				onclick={() => {
+					page--;
+					loadSubscriptions();
+				}}
 				disabled={page <= 1}
-				class="subs-page__page-btn"
 			>
-				<CaretLeftIcon size={16} weight="bold" /> Prev
+				<CaretLeftIcon size={14} weight="bold" />
+				<span>Previous</span>
 			</button>
-			<span class="subs-page__page-info">Page {page} of {totalPages}</span>
+			<span class="page-info">Page {page} of {totalPages}</span>
 			<button
-				onclick={() => { page++; loadSubscriptions(); }}
+				type="button"
+				class="page-btn"
+				onclick={() => {
+					page++;
+					loadSubscriptions();
+				}}
 				disabled={page >= totalPages}
-				class="subs-page__page-btn"
 			>
-				Next <CaretRightIcon size={16} weight="bold" />
+				<span>Next</span>
+				<CaretRightIcon size={14} weight="bold" />
 			</button>
-		</div>
+		</nav>
 	{/if}
 </div>
 
 <style>
+	.subs-page {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	/* ── Header ─────────────────────────── */
 	.subs-page__header {
 		display: flex;
 		flex-direction: column;
-		gap: 0.75rem;
-		margin-bottom: 1.25rem;
+		gap: 1rem;
+		align-items: flex-start;
 	}
+
+	.subs-page__heading {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		min-width: 0;
+	}
+
+	.subs-page__eyebrow {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: var(--color-grey-500);
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
+
 	.subs-page__title {
-		font-size: var(--fs-xl);
-		font-weight: var(--w-bold);
+		font-size: 1.5rem;
+		font-weight: 700;
 		color: var(--color-white);
 		font-family: var(--font-heading);
+		line-height: 1.15;
+		letter-spacing: -0.01em;
+		margin: 0;
 	}
-	.subs-page__count {
-		font-size: var(--fs-xs);
+
+	.subs-page__subtitle {
+		font-size: 0.875rem;
 		color: var(--color-grey-400);
-		margin-top: 0.15rem;
+		max-width: 60ch;
+		line-height: 1.55;
+		margin: 0;
 	}
-	.subs-page__plans-link {
+
+	/* ── Buttons ────────────────────────── */
+	.btn {
 		display: inline-flex;
 		align-items: center;
-		align-self: flex-start;
+		gap: 0.5rem;
+		min-height: 2.5rem;
 		padding: 0.55rem 1rem;
-		font-size: var(--fs-xs);
-		font-weight: var(--w-semibold);
-		color: var(--color-white);
-		background: linear-gradient(135deg, var(--color-teal), #0d8a94);
+		font-size: 0.875rem;
+		font-weight: 600;
+		font-family: var(--font-ui);
 		border-radius: var(--radius-lg);
+		border: 1px solid transparent;
 		text-decoration: none;
-		transition: opacity var(--duration-200) var(--ease-out), transform var(--duration-200) var(--ease-out);
+		cursor: pointer;
+		transition:
+			background-color 150ms var(--ease-out),
+			border-color 150ms var(--ease-out),
+			transform 150ms var(--ease-out),
+			box-shadow 150ms var(--ease-out);
 	}
-	.subs-page__plans-link:hover { opacity: 0.9; transform: translateY(-1px); }
 
-	/* KPI */
+	.btn--primary {
+		color: var(--color-white);
+		background: linear-gradient(135deg, var(--color-teal), var(--color-teal-dark));
+		box-shadow: 0 6px 16px -4px rgba(15, 164, 175, 0.45);
+	}
+
+	.btn--primary:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 10px 22px -4px rgba(15, 164, 175, 0.55);
+	}
+
+	/* ── KPIs ───────────────────────────── */
 	.subs-page__kpis {
 		display: grid;
 		grid-template-columns: 1fr;
 		gap: 0.75rem;
-		margin-bottom: 1.5rem;
 	}
+
 	.kpi {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 1rem;
+		gap: 0.85rem;
+		padding: 1.25rem;
 		background-color: var(--color-navy-mid);
 		border: 1px solid rgba(255, 255, 255, 0.06);
 		border-radius: var(--radius-xl);
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.03) inset,
+			0 12px 32px rgba(0, 0, 0, 0.18);
 	}
-	.kpi--skeleton { min-height: 4rem; }
+
+	.kpi--skeleton {
+		min-height: 4.25rem;
+	}
+
 	.kpi__icon-skeleton {
-		width: 2.5rem; height: 2.5rem;
+		width: 2.75rem;
+		height: 2.75rem;
 		border-radius: var(--radius-lg);
 		background: rgba(255, 255, 255, 0.06);
 		animation: shimmer 1.5s infinite;
 		flex-shrink: 0;
 	}
-	.kpi__text-skeleton { display: flex; flex-direction: column; gap: 0.4rem; flex: 1; }
+
+	.kpi__text-skeleton {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		flex: 1;
+	}
+
 	.skeleton-line {
 		height: 0.75rem;
 		border-radius: var(--radius-sm);
 		background: rgba(255, 255, 255, 0.06);
 		animation: shimmer 1.5s infinite;
 	}
-	.skeleton-line--short { width: 40%; }
-	.skeleton-line--long { width: 65%; height: 1rem; }
-	.skeleton-line--full { width: 100%; height: 2.5rem; }
-	@keyframes shimmer { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
+
+	.skeleton-line--short {
+		width: 40%;
+	}
+
+	.skeleton-line--long {
+		width: 65%;
+		height: 1rem;
+	}
+
+	.skeleton-line--full {
+		width: 100%;
+		height: 2.5rem;
+	}
+
+	@keyframes shimmer {
+		0%,
+		100% {
+			opacity: 0.4;
+		}
+		50% {
+			opacity: 0.8;
+		}
+	}
+
 	.kpi__icon {
-		width: 2.5rem; height: 2.5rem;
+		width: 2.75rem;
+		height: 2.75rem;
 		border-radius: var(--radius-lg);
-		display: flex; align-items: center; justify-content: center;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		flex-shrink: 0;
 	}
-	.kpi__icon--green { background-color: rgba(34, 197, 94, 0.15); color: #22c55e; }
-	.kpi__icon--blue { background-color: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-	.kpi__icon--purple { background-color: rgba(168, 85, 247, 0.15); color: #a855f7; }
-	.kpi__icon--teal { background-color: rgba(15, 164, 175, 0.15); color: var(--color-teal); }
-	.kpi__label { font-size: var(--fs-xs); color: var(--color-grey-400); margin-bottom: 0.1rem; }
-	.kpi__value { font-size: var(--fs-md); font-weight: var(--w-bold); color: var(--color-white); }
 
-	/* Filters */
-	.subs-page__filters { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem; }
-	.subs-page__search {
-		display: flex; align-items: center; gap: 0.5rem;
-		padding: 0.65rem 0.85rem;
+	.kpi__icon--green {
+		background-color: rgba(34, 181, 115, 0.15);
+		color: var(--color-green);
+	}
+
+	.kpi__icon--blue {
+		background-color: rgba(59, 130, 246, 0.15);
+		color: #60a5fa;
+	}
+
+	.kpi__icon--purple {
+		background-color: rgba(168, 85, 247, 0.15);
+		color: #c084fc;
+	}
+
+	.kpi__icon--teal {
+		background-color: rgba(15, 164, 175, 0.15);
+		color: var(--color-teal-light);
+	}
+
+	.kpi__content {
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+		min-width: 0;
+	}
+
+	.kpi__label {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: var(--color-grey-500);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.kpi__value {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: var(--color-white);
+		line-height: 1.15;
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* ── Filter card ────────────────────── */
+	.filter-card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		padding: 1.25rem;
 		background-color: var(--color-navy-mid);
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: var(--radius-lg);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: var(--radius-xl);
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.03) inset,
+			0 12px 32px rgba(0, 0, 0, 0.18);
+	}
+
+	.filter-card__field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		min-width: 0;
+	}
+
+	.filter-card__label {
+		font-size: 0.6875rem;
+		font-weight: 600;
 		color: var(--color-grey-400);
-		transition: border-color var(--duration-200) var(--ease-out);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
 	}
-	.subs-page__search:focus-within { border-color: var(--color-teal); }
-	.subs-page__search-input {
-		flex: 1; background: none; border: none; outline: none;
-		color: var(--color-white); font-size: var(--fs-sm); font-family: var(--font-ui);
+
+	.search-wrap,
+	.select-wrap {
+		position: relative;
 	}
-	.subs-page__search-input::placeholder { color: var(--color-grey-500); }
-	.subs-page__filter-group { display: flex; align-items: center; gap: 0.5rem; color: var(--color-grey-400); }
-	.subs-page__select {
-		flex: 1; padding: 0.65rem 0.85rem;
-		background-color: var(--color-navy-mid);
+
+	:global(.search-icon) {
+		position: absolute;
+		left: 0.75rem;
+		top: 50%;
+		transform: translateY(-50%);
+		color: var(--color-grey-500);
+		pointer-events: none;
+	}
+
+	:global(.select-caret) {
+		position: absolute;
+		right: 0.75rem;
+		top: 50%;
+		transform: translateY(-50%);
+		color: var(--color-grey-500);
+		pointer-events: none;
+	}
+
+	.filter-input {
+		width: 100%;
+		min-height: 2.5rem;
+		padding: 0.65rem 0.875rem;
+		background-color: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		border-radius: var(--radius-lg);
-		color: var(--color-white); font-size: var(--fs-sm); font-family: var(--font-ui);
-		cursor: pointer; appearance: auto;
+		color: var(--color-white);
+		font-size: 0.875rem;
+		font-family: var(--font-ui);
+		outline: none;
+		transition:
+			border-color 150ms var(--ease-out),
+			box-shadow 150ms var(--ease-out);
 	}
-	.subs-page__select option { background-color: var(--color-navy-mid); color: var(--color-white); }
 
-	/* Skeleton/Empty */
-	.subs-page__skeleton-list { display: flex; flex-direction: column; gap: 0.5rem; }
+	.filter-input::placeholder {
+		color: var(--color-grey-500);
+	}
+
+	.filter-input:focus {
+		border-color: var(--color-teal);
+		box-shadow: 0 0 0 3px rgba(15, 164, 175, 0.15);
+	}
+
+	.filter-input--search {
+		padding-left: 2.25rem;
+	}
+
+	.filter-input--select {
+		appearance: none;
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		padding-right: 2.25rem;
+		cursor: pointer;
+	}
+
+	.filter-input--select option {
+		background-color: var(--color-navy-mid);
+		color: var(--color-white);
+	}
+
+	/* ── Skeleton/Empty ─────────────────── */
+	.subs-page__skeleton-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
 	.skeleton-row {
 		padding: 1rem;
 		background-color: var(--color-navy-mid);
 		border: 1px solid rgba(255, 255, 255, 0.06);
 		border-radius: var(--radius-lg);
 	}
-	.subs-page__empty {
-		text-align: center; padding: 3rem 1rem;
-		color: var(--color-grey-400); font-size: var(--fs-sm);
+
+	.empty-state {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		gap: 0.85rem;
+		padding: 3.5rem 2rem;
 		background-color: var(--color-navy-mid);
 		border: 1px solid rgba(255, 255, 255, 0.06);
 		border-radius: var(--radius-xl);
+		color: var(--color-grey-500);
 	}
 
-	/* Mobile Card View */
-	.subs-page__cards { display: flex; flex-direction: column; gap: 0.5rem; }
-	.subs-page__table-wrap { display: none; }
+	.empty-state :global(svg) {
+		color: var(--color-grey-500);
+	}
+
+	.empty-state__title {
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--color-white);
+		margin: 0;
+	}
+
+	.empty-state__desc {
+		font-size: 0.875rem;
+		color: var(--color-grey-400);
+		max-width: 36ch;
+		line-height: 1.55;
+		margin: 0;
+	}
+
+	/* ── Badges ─────────────────────────── */
+	.badge {
+		display: inline-flex;
+		align-items: center;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		padding: 0.15rem 0.5rem;
+		border-radius: var(--radius-full);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		white-space: nowrap;
+		flex-shrink: 0;
+	}
+
+	.badge--active {
+		background-color: rgba(15, 164, 175, 0.12);
+		color: #5eead4;
+	}
+
+	.badge--trialing {
+		background-color: rgba(168, 85, 247, 0.15);
+		color: #c084fc;
+	}
+
+	.badge--canceled {
+		background-color: rgba(255, 255, 255, 0.06);
+		color: var(--color-grey-300);
+	}
+
+	.badge--past_due {
+		background-color: rgba(245, 158, 11, 0.12);
+		color: #fcd34d;
+	}
+
+	.badge--unpaid {
+		background-color: rgba(239, 68, 68, 0.12);
+		color: #fca5a5;
+	}
+
+	/* ── Plan chip ──────────────────────── */
+	.plan-chip {
+		display: inline-flex;
+		align-items: center;
+		font-size: 0.75rem;
+		font-weight: 600;
+		padding: 0.15rem 0.55rem;
+		border-radius: var(--radius-full);
+		background-color: rgba(15, 164, 175, 0.12);
+		color: #5eead4;
+		white-space: nowrap;
+	}
+
+	/* ── Mobile cards ───────────────────── */
+	.subs-page__cards {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.subs-page__table-wrap {
+		display: none;
+	}
+
 	.sub-card {
-		display: flex; flex-direction: column; gap: 0.65rem;
-		padding: 0.85rem 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.65rem;
+		padding: 1rem;
 		background-color: var(--color-navy-mid);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-lg);
-		cursor: pointer; text-align: left; width: 100%;
+		border-radius: var(--radius-xl);
+		cursor: pointer;
+		text-align: left;
+		width: 100%;
 		font-family: var(--font-ui);
-		transition: border-color var(--duration-200) var(--ease-out);
-	}
-	.sub-card:hover { border-color: rgba(15, 164, 175, 0.25); }
-	.sub-card__header { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
-	.sub-card__member { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
-	.sub-card__name { font-weight: var(--w-semibold); color: var(--color-white); font-size: var(--fs-sm); }
-	.sub-card__email { font-size: var(--fs-xs); color: var(--color-grey-400); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-	.sub-card__status {
-		font-size: var(--fs-xs); font-weight: var(--w-semibold);
-		padding: 0.2rem 0.6rem; border-radius: var(--radius-full);
-		white-space: nowrap; flex-shrink: 0;
-	}
-	.sub-card__status--active { background-color: rgba(34, 181, 115, 0.12); color: var(--color-green); }
-	.sub-card__status--canceled { background-color: rgba(255, 255, 255, 0.06); color: var(--color-grey-400); }
-	.sub-card__status--past_due { background-color: rgba(224, 72, 72, 0.12); color: var(--color-red); }
-	.sub-card__details { display: flex; flex-direction: column; gap: 0.35rem; }
-	.sub-card__row { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
-	.sub-card__label { font-size: var(--fs-xs); color: var(--color-grey-400); }
-	.sub-card__value { font-size: var(--fs-sm); color: var(--color-grey-300); text-align: right; }
-	.sub-card__plan-badge {
-		font-size: var(--fs-xs); font-weight: var(--w-semibold);
-		padding: 0.15rem 0.5rem; border-radius: var(--radius-full);
-		background-color: rgba(15, 164, 175, 0.12); color: var(--color-teal);
+		color: inherit;
+		transition:
+			border-color 200ms var(--ease-out),
+			background-color 200ms var(--ease-out);
 	}
 
-	/* Pagination */
-	.subs-page__pagination { display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-top: 1rem; }
-	.subs-page__page-btn {
-		display: flex; align-items: center; gap: 0.25rem;
-		padding: 0.5rem 0.75rem;
-		background-color: var(--color-navy-mid);
+	.sub-card:hover {
+		border-color: rgba(15, 164, 175, 0.3);
+		background-color: rgba(255, 255, 255, 0.03);
+	}
+
+	.sub-card__header {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 0.5rem;
+	}
+
+	.sub-card__member {
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+		min-width: 0;
+	}
+
+	.sub-card__name {
+		font-weight: 600;
+		color: var(--color-white);
+		font-size: 0.875rem;
+	}
+
+	.sub-card__email {
+		font-size: 0.75rem;
+		color: var(--color-grey-400);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.sub-card__details {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
+
+	.sub-card__row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.sub-card__label {
+		font-size: 0.6875rem;
+		color: var(--color-grey-500);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		font-weight: 600;
+	}
+
+	.sub-card__value {
+		font-size: 0.875rem;
+		color: var(--color-grey-200);
+		text-align: right;
+	}
+
+	.sub-card__value--num {
+		color: var(--color-white);
+		font-weight: 500;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.sub-card__interval {
+		color: var(--color-grey-500);
+		font-weight: var(--w-regular);
+		font-size: 0.75rem;
+	}
+
+	/* ── Pagination ─────────────────────── */
+	.subs-page__pagination {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		margin-top: 0.5rem;
+	}
+
+	.page-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		min-height: 2.25rem;
+		padding: 0.45rem 0.75rem;
+		background-color: rgba(255, 255, 255, 0.05);
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		border-radius: var(--radius-lg);
-		color: var(--color-white); font-size: var(--fs-xs);
-		cursor: pointer; transition: border-color var(--duration-200) var(--ease-out);
+		color: var(--color-white);
+		font-size: 0.875rem;
+		font-weight: 600;
+		font-family: var(--font-ui);
+		cursor: pointer;
+		transition:
+			background-color 150ms var(--ease-out),
+			border-color 150ms var(--ease-out);
 	}
-	.subs-page__page-btn:hover:not(:disabled) { border-color: var(--color-teal); }
-	.subs-page__page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-	.subs-page__page-info { font-size: var(--fs-xs); color: var(--color-grey-400); }
 
-	/* Tablet 480px+ */
+	.page-btn:hover:not(:disabled) {
+		background-color: rgba(255, 255, 255, 0.1);
+		border-color: rgba(255, 255, 255, 0.18);
+	}
+
+	.page-btn:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	.page-info {
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--color-grey-400);
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* ── Icon button (table) ────────────── */
+	.icon-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		background-color: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-md);
+		color: var(--color-grey-300);
+		cursor: pointer;
+		transition:
+			background-color 150ms var(--ease-out),
+			border-color 150ms var(--ease-out),
+			color 150ms var(--ease-out);
+	}
+
+	.icon-btn:hover {
+		background-color: rgba(15, 164, 175, 0.12);
+		border-color: rgba(15, 164, 175, 0.3);
+		color: var(--color-teal-light);
+	}
+
+	/* ── Tablet 480px+ ──────────────────── */
 	@media (min-width: 480px) {
-		.subs-page__kpis { grid-template-columns: repeat(2, 1fr); }
-		.subs-page__filters { flex-direction: row; }
-		.subs-page__search { flex: 1; }
-		.subs-page__filter-group { flex: 0 0 auto; }
-		.subs-page__select { min-width: 10rem; }
+		.subs-page__kpis {
+			grid-template-columns: repeat(2, 1fr);
+		}
+
+		.filter-card {
+			flex-direction: row;
+			align-items: flex-end;
+		}
+
+		.filter-card__field--search {
+			flex: 1 1 18rem;
+		}
+
+		.filter-card__field {
+			flex: 0 0 12rem;
+		}
 	}
 
-	/* Tablet+ 768px+ */
+	/* ── Tablet 768px+ ──────────────────── */
 	@media (min-width: 768px) {
-		.subs-page__header { flex-direction: row; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
-		.subs-page__title { font-size: var(--fs-2xl); }
-		.subs-page__count { font-size: var(--fs-sm); margin-top: 0.25rem; }
-		.subs-page__plans-link { align-self: auto; padding: 0.6rem 1.25rem; font-size: var(--fs-sm); }
-		.subs-page__kpis { grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
-		.kpi { padding: 1.15rem; gap: 1rem; }
-		.kpi__icon { width: 2.75rem; height: 2.75rem; }
-		.kpi__value { font-size: var(--fs-lg); }
-		.subs-page__filters { margin-bottom: 1.5rem; }
-		.subs-page__cards { display: none; }
+		.subs-page {
+			gap: 1.5rem;
+		}
+
+		.subs-page__header {
+			flex-direction: row;
+			align-items: flex-end;
+			justify-content: space-between;
+			gap: 1.5rem;
+		}
+
+		.subs-page__title {
+			font-size: 1.5rem;
+		}
+
+		.subs-page__kpis {
+			grid-template-columns: repeat(4, 1fr);
+			gap: 1rem;
+		}
+
+		.kpi {
+			padding: 1.5rem;
+		}
+
+		.kpi__value {
+			font-size: 1.5rem;
+		}
+
+		.filter-card {
+			padding: 1.5rem;
+		}
+
+		.subs-page__cards {
+			display: none;
+		}
+
 		.subs-page__table-wrap {
-			display: block; overflow-x: auto;
+			display: block;
+			overflow-x: auto;
 			background-color: var(--color-navy-mid);
 			border: 1px solid rgba(255, 255, 255, 0.06);
 			border-radius: var(--radius-xl);
+			box-shadow:
+				0 1px 0 rgba(255, 255, 255, 0.03) inset,
+				0 12px 32px rgba(0, 0, 0, 0.18);
 		}
-		.s-table { width: 100%; border-collapse: collapse; }
-		.s-table th {
-			text-align: left; font-size: var(--fs-xs); font-weight: var(--w-semibold);
-			color: var(--color-grey-400); text-transform: uppercase; letter-spacing: 0.05em;
-			padding: 0.85rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-		}
-		.s-table td {
-			padding: 0.85rem 1rem; font-size: var(--fs-sm);
-			color: var(--color-grey-300); border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-		}
-		.s-table__row--clickable { cursor: pointer; transition: background-color var(--duration-200) var(--ease-out); }
-		.s-table__row--clickable:hover { background-color: rgba(255, 255, 255, 0.02); }
-		.s-table__member { display: flex; flex-direction: column; gap: 0.1rem; }
-		.s-table__name { font-weight: var(--w-semibold); color: var(--color-white); }
-		.s-table__email { font-size: var(--fs-xs); color: var(--color-grey-500); }
-		.s-table__plan-badge {
-			font-size: var(--fs-xs); font-weight: var(--w-semibold);
-			padding: 0.15rem 0.5rem; border-radius: var(--radius-full);
-			background-color: rgba(15, 164, 175, 0.12); color: var(--color-teal);
-		}
-		.s-table__status {
-			display: inline-block; font-size: var(--fs-xs); font-weight: var(--w-semibold);
-			padding: 0.15rem 0.55rem; border-radius: var(--radius-full);
-		}
-		.s-table__status--active { background-color: rgba(34, 181, 115, 0.12); color: var(--color-green); }
-		.s-table__status--canceled { background-color: rgba(255, 255, 255, 0.06); color: var(--color-grey-400); }
-		.s-table__status--past_due { background-color: rgba(224, 72, 72, 0.12); color: var(--color-red); }
-		.s-table__amount { font-weight: var(--w-semibold); color: var(--color-white); }
-		.s-table__interval { font-weight: var(--w-regular); color: var(--color-grey-500); font-size: var(--fs-xs); }
-		.subs-page__pagination { gap: 1rem; margin-top: 1.5rem; }
-		.subs-page__page-btn { gap: 0.35rem; padding: 0.5rem 1rem; font-size: var(--fs-sm); }
-		.subs-page__page-info { font-size: var(--fs-sm); }
-	}
 
-	/* Desktop 1024px+ */
-	@media (min-width: 1024px) {
-		.subs-page__kpis { grid-template-columns: repeat(4, 1fr); }
-		.kpi { flex-direction: column; text-align: center; gap: 0.5rem; }
-		.kpi__icon { width: 3rem; height: 3rem; }
+		.s-table {
+			width: 100%;
+			border-collapse: collapse;
+			min-width: 720px;
+		}
+
+		.s-table thead {
+			background-color: rgba(255, 255, 255, 0.02);
+		}
+
+		.s-table th {
+			text-align: left;
+			font-size: 0.6875rem;
+			font-weight: 600;
+			color: var(--color-grey-500);
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			padding: 0.875rem 1rem;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+			white-space: nowrap;
+		}
+
+		.s-table td {
+			padding: 0.875rem 1rem;
+			font-size: 0.875rem;
+			color: var(--color-grey-300);
+			border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+			line-height: 1.45;
+		}
+
+		.s-table tbody tr {
+			transition: background-color 150ms var(--ease-out);
+		}
+
+		.s-table tbody tr:hover {
+			background-color: rgba(255, 255, 255, 0.02);
+		}
+
+		.s-table tbody tr:last-child td {
+			border-bottom: none;
+		}
+
+		.s-table__member {
+			display: flex;
+			flex-direction: column;
+			gap: 0.1rem;
+		}
+
+		.s-table__name {
+			font-weight: 600;
+			color: var(--color-white);
+		}
+
+		.s-table__email {
+			font-size: 0.75rem;
+			color: var(--color-grey-500);
+		}
+
+		.s-table__num {
+			text-align: right;
+			font-variant-numeric: tabular-nums;
+			font-weight: 500;
+			color: var(--color-white);
+			white-space: nowrap;
+		}
+
+		.s-table__interval {
+			color: var(--color-grey-500);
+			font-weight: var(--w-regular);
+			font-size: 0.75rem;
+		}
+
+		.s-table__date {
+			white-space: nowrap;
+			font-size: 0.75rem;
+			color: var(--color-grey-400);
+			font-variant-numeric: tabular-nums;
+		}
+
+		.s-table__actions-h,
+		.s-table__actions {
+			width: 3rem;
+			text-align: right;
+		}
+
+		.subs-page__pagination {
+			gap: 1rem;
+		}
 	}
 </style>
