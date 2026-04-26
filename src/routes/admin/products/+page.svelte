@@ -445,7 +445,7 @@
 		font-weight: 700;
 		color: var(--color-white);
 		font-family: var(--font-heading);
-		line-height: 1.15;
+		line-height: 1.2;
 		letter-spacing: -0.01em;
 		margin: 0;
 	}
@@ -453,8 +453,8 @@
 	.pr-admin__subtitle {
 		font-size: 0.875rem;
 		color: var(--color-grey-400);
-		max-width: 60ch;
-		line-height: 1.55;
+		max-width: 42rem;
+		line-height: 1.5;
 		margin: 0;
 	}
 

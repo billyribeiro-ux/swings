@@ -11,10 +11,7 @@ use crate::{
     error::{AppError, AppResult},
     extractors::{AdminUser, ClientInfo},
     models::*,
-    services::{
-        audit::audit_admin,
-        pricing_rollout::rollout_after_plan_save,
-    },
+    services::{audit::audit_admin, pricing_rollout::rollout_after_plan_save},
     AppState,
 };
 
@@ -98,6 +95,7 @@ pub(crate) async fn admin_create_plan(
     client: ClientInfo,
     Json(req): Json<CreatePricingPlanRequest>,
 ) -> AppResult<Json<PricingPlan>> {
+    admin.require(&state.policy, "subscription.plan.manage")?;
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
 
@@ -224,6 +222,7 @@ pub(crate) async fn admin_update_plan(
     Path(id): Path<Uuid>,
     Json(req): Json<UpdatePricingPlanRequest>,
 ) -> AppResult<Json<AdminUpdatePricingPlanResponse>> {
+    admin.require(&state.policy, "subscription.plan.manage")?;
     let existing = sqlx::query_as::<_, PricingPlan>(
         r#"
         SELECT id, name, slug, description, stripe_price_id, stripe_product_id,
@@ -439,11 +438,7 @@ pub(crate) async fn admin_update_plan(
     let price_touching_change = changes.iter().any(|(f, _, _)| {
         matches!(
             *f,
-            "amount_cents"
-                | "stripe_price_id"
-                | "currency"
-                | "interval"
-                | "interval_count"
+            "amount_cents" | "stripe_price_id" | "currency" | "interval" | "interval_count"
         )
     });
 
@@ -566,6 +561,7 @@ pub(crate) async fn admin_delete_plan(
     client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "subscription.plan.manage")?;
     let snapshot: Option<(String,)> =
         sqlx::query_as("SELECT slug FROM pricing_plans WHERE id = $1")
             .bind(id)
@@ -624,6 +620,7 @@ pub(crate) async fn admin_toggle_plan(
     client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<PricingPlan>> {
+    admin.require(&state.policy, "subscription.plan.manage")?;
     let plan = sqlx::query_as::<_, PricingPlan>(
         r#"
         UPDATE pricing_plans

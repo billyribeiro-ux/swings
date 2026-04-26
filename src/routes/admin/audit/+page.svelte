@@ -448,14 +448,14 @@
 		font-weight: 700;
 		color: var(--color-white);
 		letter-spacing: -0.01em;
-		line-height: 1.15;
+		line-height: 1.2;
 	}
 	.page__subtitle {
 		margin: 0.35rem 0 0;
 		font-size: 0.875rem;
 		color: var(--color-grey-400);
-		max-width: 60ch;
-		line-height: 1.55;
+		max-width: 42rem;
+		line-height: 1.5;
 	}
 	.page__subtitle code {
 		font-size: 0.85em;

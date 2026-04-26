@@ -134,6 +134,7 @@ pub(crate) async fn create_course(
     client: ClientInfo,
     Json(mut req): Json<CreateCourseRequest>,
 ) -> AppResult<Json<Course>> {
+    admin.require(&state.policy, "course.manage")?;
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
 
@@ -311,6 +312,7 @@ pub(crate) async fn update_course(
     Path(id): Path<Uuid>,
     Json(mut req): Json<UpdateCourseRequest>,
 ) -> AppResult<Json<Course>> {
+    admin.require(&state.policy, "course.manage")?;
     // SECURITY (XSS): sanitize at the write boundary — see `create_course`.
     if let Some(d) = req.description.as_deref() {
         req.description = Some(crate::common::html::sanitize_rich_text(d));
@@ -405,6 +407,7 @@ pub(crate) async fn delete_course(
     client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "course.manage")?;
     let snapshot: Option<(String,)> = sqlx::query_as("SELECT slug FROM courses WHERE id = $1")
         .bind(id)
         .fetch_optional(&state.db)
@@ -455,6 +458,7 @@ pub(crate) async fn toggle_publish(
     client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Course>> {
+    admin.require(&state.policy, "course.manage")?;
     let course = sqlx::query_as::<_, Course>(
         r#"
         UPDATE courses SET
@@ -516,6 +520,7 @@ pub(crate) async fn create_module(
     Path(course_id): Path<Uuid>,
     Json(req): Json<CreateModuleRequest>,
 ) -> AppResult<Json<CourseModule>> {
+    admin.require(&state.policy, "course.manage")?;
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
 
@@ -582,6 +587,7 @@ pub(crate) async fn update_module(
     Path((course_id, module_id)): Path<(Uuid, Uuid)>,
     Json(req): Json<UpdateModuleRequest>,
 ) -> AppResult<Json<CourseModule>> {
+    admin.require(&state.policy, "course.manage")?;
     let module = sqlx::query_as::<_, CourseModule>(
         r#"
         UPDATE course_modules SET
@@ -640,6 +646,7 @@ pub(crate) async fn delete_module(
     client: ClientInfo,
     Path((course_id, module_id)): Path<(Uuid, Uuid)>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "course.manage")?;
     let rows = sqlx::query("DELETE FROM course_modules WHERE id = $1 AND course_id = $2")
         .bind(module_id)
         .bind(course_id)
@@ -691,6 +698,7 @@ pub(crate) async fn create_lesson(
     Path((course_id, module_id)): Path<(Uuid, Uuid)>,
     Json(mut req): Json<CreateLessonRequest>,
 ) -> AppResult<Json<CourseLesson>> {
+    admin.require(&state.policy, "course.manage")?;
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
 
@@ -782,6 +790,7 @@ pub(crate) async fn update_lesson(
     Path(lesson_id): Path<Uuid>,
     Json(mut req): Json<UpdateLessonRequest>,
 ) -> AppResult<Json<CourseLesson>> {
+    admin.require(&state.policy, "course.manage")?;
     // SECURITY (XSS): see `create_lesson` — sanitize at the write boundary.
     if let Some(c) = req.content.as_deref() {
         req.content = Some(crate::common::html::sanitize_rich_text(c));
@@ -860,6 +869,7 @@ pub(crate) async fn delete_lesson(
     client: ClientInfo,
     Path(lesson_id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "course.manage")?;
     let rows = sqlx::query("DELETE FROM course_lessons WHERE id = $1")
         .bind(lesson_id)
         .execute(&state.db)

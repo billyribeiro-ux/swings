@@ -7,6 +7,11 @@ edition = "2021"
 # Web framework
 axum = { version = "0.8", features = ["macros", "multipart"] }
 axum-extra = { version = "0.12", features = ["typed-header", "cookie"] }
+# `time` is a transitive of the `cookie` crate (via `axum-extra`), promoted to a
+# direct dependency so the BFF auth-cookie helpers can construct `Max-Age`
+# values typed as `time::Duration` without piggy-backing on the unstable
+# `cookie::time` re-export path.
+time = { version = "0.3", default-features = false, features = ["std"] }
 tokio = { version = "1", features = ["full"] }
 tower = "0.5"
 tower-http = { version = "0.6", features = ["cors", "trace", "fs"] }

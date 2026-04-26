@@ -201,6 +201,7 @@ pub(crate) async fn admin_create_product(
     client: ClientInfo,
     Json(req): Json<CreateProductRequest>,
 ) -> AppResult<Json<Product>> {
+    admin.require(&state.policy, "product.manage")?;
     // Slug uniqueness is also enforced at the DB via the UNIQUE constraint;
     // we check up-front for a human-friendly 409.
     let existing: Option<(Uuid,)> = sqlx::query_as("SELECT id FROM products WHERE slug = $1")
@@ -287,6 +288,7 @@ pub(crate) async fn admin_update_product(
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateProductRequest>,
 ) -> AppResult<Json<Product>> {
+    admin.require(&state.policy, "product.manage")?;
     let mut tx = state.db.begin().await?;
 
     // Double-Option pattern: caller distinguishes "leave alone" (None) vs
@@ -352,6 +354,7 @@ pub(crate) async fn admin_set_status(
     Path(id): Path<Uuid>,
     Json(req): Json<SetStatusRequest>,
 ) -> AppResult<Json<Product>> {
+    admin.require(&state.policy, "product.manage")?;
     let mut tx = state.db.begin().await?;
     let product = repo::set_status(&mut tx, id, req.status.as_str()).await?;
     publish_event(&mut tx, "commerce.product.status_changed", &product).await?;
@@ -392,6 +395,7 @@ pub(crate) async fn admin_delete_product(
     client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "product.manage")?;
     // Snapshot for audit metadata before the hard delete.
     let snapshot: Option<(String, String)> =
         sqlx::query_as("SELECT slug, product_type FROM products WHERE id = $1")
@@ -456,6 +460,7 @@ pub(crate) async fn admin_add_variant(
     Path(id): Path<Uuid>,
     Json(req): Json<CreateVariantRequest>,
 ) -> AppResult<Json<ProductVariant>> {
+    admin.require(&state.policy, "product.manage")?;
     let mut tx = state.db.begin().await?;
     let product = repo::get_product(&state.db, repo::ProductLookup::Id(id)).await?;
     let attributes = req
@@ -518,6 +523,7 @@ pub(crate) async fn admin_update_variant(
     Path((id, variant_id)): Path<(Uuid, Uuid)>,
     Json(req): Json<UpdateVariantRequest>,
 ) -> AppResult<Json<ProductVariant>> {
+    admin.require(&state.policy, "product.manage")?;
     let mut tx = state.db.begin().await?;
     let product = repo::get_product(&state.db, repo::ProductLookup::Id(id)).await?;
     let variant = repo::update_variant(
@@ -574,6 +580,7 @@ pub(crate) async fn admin_delete_variant(
     client: ClientInfo,
     Path((id, variant_id)): Path<(Uuid, Uuid)>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "product.manage")?;
     let mut tx = state.db.begin().await?;
     let product = repo::get_product(&state.db, repo::ProductLookup::Id(id)).await?;
     repo::delete_variant(&mut tx, variant_id).await?;
@@ -621,6 +628,7 @@ pub(crate) async fn admin_add_asset(
     Path(id): Path<Uuid>,
     Json(req): Json<CreateAssetRequest>,
 ) -> AppResult<Json<DownloadableAsset>> {
+    admin.require(&state.policy, "product.manage")?;
     let access_policy = req.access_policy.as_deref().unwrap_or("purchase_required");
     let mut tx = state.db.begin().await?;
     let product = repo::get_product(&state.db, repo::ProductLookup::Id(id)).await?;
@@ -681,6 +689,7 @@ pub(crate) async fn admin_delete_asset(
     client: ClientInfo,
     Path((id, asset_id)): Path<(Uuid, Uuid)>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "product.manage")?;
     let mut tx = state.db.begin().await?;
     let product = repo::get_product(&state.db, repo::ProductLookup::Id(id)).await?;
     repo::delete_asset(&mut tx, asset_id).await?;
@@ -732,6 +741,7 @@ pub(crate) async fn admin_set_bundle_items(
     Path(id): Path<Uuid>,
     Json(req): Json<SetBundleItemsRequest>,
 ) -> AppResult<Json<Vec<BundleItem>>> {
+    admin.require(&state.policy, "product.manage")?;
     let mut tx = state.db.begin().await?;
     let product = repo::get_product(&state.db, repo::ProductLookup::Id(id)).await?;
     if product.product_type != ProductType::Bundle.as_str() {

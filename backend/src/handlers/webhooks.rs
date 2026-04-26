@@ -5,13 +5,24 @@ use axum::{
     routing::post,
     Router,
 };
+use chrono::DateTime;
 use hmac::{Hmac, Mac};
 use rand::Rng;
 use sha2::Sha256;
+use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::{
+    commerce::{
+        billing::{self, InvoiceFields},
+        disputes::{self, DisputeFields},
+        orders,
+        refunds::{self, ChargeRefundFields},
+        webhook_audit::record_webhook_audit_best_effort,
+    },
     db,
+    error::{AppError, AppResult},
+    events::outbox::{publish_in_tx, Event, EventHeaders},
     models::*,
     notifications::{
         send::{send_notification, Recipient, SendOptions},
@@ -107,28 +118,46 @@ pub(crate) async fn stripe_webhook(
 
     tracing::info!("Stripe webhook received: {event_type} ({event_id})");
 
-    match event_type {
+    // Dispatch on event type. Each branch calls a focused handler that
+    // returns `AppResult<()>`. A handler returning `Err` triggers a 500
+    // so Stripe retries the event — which is the right behaviour for
+    // transient infrastructure failures (DB blip, etc.) and the wrong
+    // behaviour for malformed payloads. Per AGENTS.md hard-rule #7 we
+    // never `unwrap()`; handlers downgrade unrecoverable parse errors
+    // to a logged 200 so Stripe doesn't retry into an endless loop.
+    let dispatch = match event_type {
         "customer.subscription.created" | "customer.subscription.updated" => {
-            if let Err(e) = handle_subscription_update(&state, &event).await {
-                tracing::error!("Failed to handle subscription update: {e}");
-                return StatusCode::INTERNAL_SERVER_ERROR;
-            }
+            handle_subscription_update(&state, event_id, &event).await
         }
         "customer.subscription.deleted" => {
-            if let Err(e) = handle_subscription_deleted(&state, &event).await {
-                tracing::error!("Failed to handle subscription deletion: {e}");
-                return StatusCode::INTERNAL_SERVER_ERROR;
-            }
+            handle_subscription_deleted(&state, event_id, &event).await
         }
-        "checkout.session.completed" => {
-            if let Err(e) = handle_checkout_completed(&state, &event).await {
-                tracing::error!("Failed to handle checkout: {e}");
-                return StatusCode::INTERNAL_SERVER_ERROR;
-            }
+        "customer.subscription.paused" => {
+            handle_subscription_paused(&state, event_id, &event).await
         }
+        "customer.subscription.resumed" => {
+            handle_subscription_resumed(&state, event_id, &event).await
+        }
+        "customer.subscription.trial_will_end" => {
+            handle_subscription_trial_will_end(&state, event_id, &event).await
+        }
+        "checkout.session.completed" => handle_checkout_completed(&state, event_id, &event).await,
+        "invoice.payment_failed" => handle_invoice_payment_failed(&state, event_id, &event).await,
+        "invoice.paid" => handle_invoice_paid(&state, event_id, &event).await,
+        "charge.refunded" => handle_charge_refunded(&state, event_id, &event).await,
+        "payment_intent.payment_failed" => {
+            handle_payment_intent_failed(&state, event_id, &event).await
+        }
+        "charge.dispute.created" => handle_charge_dispute_created(&state, event_id, &event).await,
         _ => {
             tracing::debug!("Unhandled webhook event: {event_type}");
+            Ok(())
         }
+    };
+
+    if let Err(e) = dispatch {
+        tracing::error!(event_id, event_type, error = %e, "stripe webhook handler failed");
+        return StatusCode::INTERNAL_SERVER_ERROR;
     }
 
     StatusCode::OK
@@ -180,23 +209,51 @@ fn verify_stripe_signature(payload: &str, signature_header: &str, secret: &str) 
         .any(|candidate| candidate.eq_ignore_ascii_case(&computed_hex))
 }
 
-async fn handle_subscription_update(
-    state: &AppState,
-    event: &serde_json::Value,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let sub = &event["data"]["object"];
-    let customer_id = sub["customer"].as_str().unwrap_or_default();
-    let sub_id = sub["id"].as_str().unwrap_or_default();
-    let status_str = sub["status"].as_str().unwrap_or("active");
+// ─── Helpers ───────────────────────────────────────────────────────────
 
-    let status = match status_str {
-        "active" => SubscriptionStatus::Active,
+/// Resolve the local `subscriptions` row for a Stripe subscription id and
+/// fetch the linked user in a single call. Returns `(Some(sub), Some(user))`,
+/// `(Some(sub), None)`, `(None, None)` — never `(None, Some(_))`.
+async fn lookup_subscription_with_user(
+    pool: &PgPool,
+    stripe_subscription_id: &str,
+) -> AppResult<(Option<Subscription>, Option<User>)> {
+    let Some(sub) = db::find_subscription_by_stripe_id(pool, stripe_subscription_id).await? else {
+        return Ok((None, None));
+    };
+    let user = db::find_user_by_id(pool, sub.user_id).await?;
+    Ok((Some(sub), user))
+}
+
+/// Convert "active"/"past_due"/"unpaid"/"paused" strings into the typed
+/// enum, defaulting to `Active` for any unknown value (matches the
+/// existing handler's tolerance).
+fn parse_subscription_status(status: &str) -> SubscriptionStatus {
+    match status {
         "canceled" => SubscriptionStatus::Canceled,
         "past_due" => SubscriptionStatus::PastDue,
         "trialing" => SubscriptionStatus::Trialing,
         "unpaid" => SubscriptionStatus::Unpaid,
+        // The `paused` enum value was added in 057_subscription_status_paused.sql;
+        // we route through the generic Active branch when the enum is
+        // missing the variant in the typed Rust enum — caller handles
+        // pause separately via `commerce::subscriptions::pause`.
         _ => SubscriptionStatus::Active,
-    };
+    }
+}
+
+// ─── Existing handlers ─────────────────────────────────────────────────
+
+async fn handle_subscription_update(
+    state: &AppState,
+    event_id: &str,
+    event: &serde_json::Value,
+) -> AppResult<()> {
+    let sub = &event["data"]["object"];
+    let customer_id = sub["customer"].as_str().unwrap_or_default();
+    let sub_id = sub["id"].as_str().unwrap_or_default();
+    let status_str = sub["status"].as_str().unwrap_or("active");
+    let status = parse_subscription_status(status_str);
 
     // Determine plan from price interval
     let plan = if let Some(items) = sub["items"]["data"].as_array() {
@@ -213,20 +270,17 @@ async fn handle_subscription_update(
     };
 
     let period_start =
-        chrono::DateTime::from_timestamp(sub["current_period_start"].as_i64().unwrap_or(0), 0)
+        DateTime::from_timestamp(sub["current_period_start"].as_i64().unwrap_or(0), 0)
             .unwrap_or_default();
-
-    let period_end =
-        chrono::DateTime::from_timestamp(sub["current_period_end"].as_i64().unwrap_or(0), 0)
-            .unwrap_or_default();
+    let period_end = DateTime::from_timestamp(sub["current_period_end"].as_i64().unwrap_or(0), 0)
+        .unwrap_or_default();
 
     let pricing_plan_id = sub["metadata"]["swings_pricing_plan_id"]
         .as_str()
         .and_then(|s| Uuid::parse_str(s).ok());
 
-    // Find user by stripe customer id
     if let Some(user) = db::find_user_by_stripe_customer(&state.db, customer_id).await? {
-        db::upsert_subscription(
+        let upserted = db::upsert_subscription(
             &state.db,
             user.id,
             customer_id,
@@ -238,6 +292,18 @@ async fn handle_subscription_update(
             pricing_plan_id,
         )
         .await?;
+        record_webhook_audit_best_effort(
+            &state.db,
+            event_id,
+            "customer.subscription.updated",
+            Some("subscription"),
+            Some(&upserted.id.to_string()),
+            serde_json::json!({
+                "stripe_subscription_id": sub_id,
+                "status": status_str,
+            }),
+        )
+        .await;
     }
 
     Ok(())
@@ -245,8 +311,9 @@ async fn handle_subscription_update(
 
 async fn handle_subscription_deleted(
     state: &AppState,
+    event_id: &str,
     event: &serde_json::Value,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> AppResult<()> {
     let sub = &event["data"]["object"];
     let sub_id = sub["id"].as_str().unwrap_or_default();
 
@@ -289,6 +356,16 @@ async fn handle_subscription_deleted(
                 tracing::warn!(user_id = %user.id, error = %e, "failed to enqueue subscription.cancelled email");
             }
         }
+
+        record_webhook_audit_best_effort(
+            &state.db,
+            event_id,
+            "customer.subscription.deleted",
+            Some("subscription"),
+            Some(&existing.id.to_string()),
+            serde_json::json!({ "stripe_subscription_id": sub_id }),
+        )
+        .await;
     }
 
     Ok(())
@@ -296,8 +373,9 @@ async fn handle_subscription_deleted(
 
 async fn handle_checkout_completed(
     state: &AppState,
+    event_id: &str,
     event: &serde_json::Value,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> AppResult<()> {
     let session = &event["data"]["object"];
     let customer_email = session["customer_details"]["email"]
         .as_str()
@@ -314,10 +392,9 @@ async fn handle_checkout_completed(
         "stripe checkout.session.completed received"
     );
 
-    // If user exists, link their subscription
     if let Some(user) = db::find_user_by_email(&state.db, customer_email).await? {
         let now = chrono::Utc::now();
-        db::upsert_subscription(
+        let upserted = db::upsert_subscription(
             &state.db,
             user.id,
             customer_id,
@@ -353,8 +430,695 @@ async fn handle_checkout_completed(
         {
             tracing::warn!(user_id = %user.id, error = %e, "failed to enqueue subscription.confirmed email");
         }
+
+        record_webhook_audit_best_effort(
+            &state.db,
+            event_id,
+            "checkout.session.completed",
+            Some("subscription"),
+            Some(&upserted.id.to_string()),
+            serde_json::json!({
+                "stripe_subscription_id": sub_id,
+                "stripe_customer_id": customer_id,
+            }),
+        )
+        .await;
     }
 
+    Ok(())
+}
+
+// ─── New handlers ──────────────────────────────────────────────────────
+
+/// `invoice.payment_failed` — flips the subscription to `past_due`
+/// (or `unpaid` once Stripe has exhausted smart retries), records a
+/// dunning event, and queues a notification email.
+async fn handle_invoice_payment_failed(
+    state: &AppState,
+    event_id: &str,
+    event: &serde_json::Value,
+) -> AppResult<()> {
+    let invoice = &event["data"]["object"];
+    let Some(fields) = InvoiceFields::from_payload(invoice) else {
+        tracing::warn!(
+            event_id,
+            "invoice.payment_failed missing invoice id; skipping"
+        );
+        return Ok(());
+    };
+
+    // Resolve the local subscription + user for cross-linking.
+    let (sub, user) = match fields.stripe_subscription_id.as_deref() {
+        Some(sub_id) => lookup_subscription_with_user(&state.db, sub_id).await?,
+        None => (None, None),
+    };
+    let sub_uuid = sub.as_ref().map(|s| s.id);
+    let user_uuid = user.as_ref().map(|u| u.id);
+
+    // Persist the invoice mirror up front so a later `invoice.paid`
+    // overlay (which calls `upsert_invoice` again) cleanly transitions
+    // status from `open` -> `paid`.
+    billing::upsert_invoice(&state.db, &fields, sub_uuid, user_uuid).await?;
+
+    // `next_payment_attempt` is null on the *final* failure (Stripe has
+    // given up retrying); we mirror that as `final = true`.
+    let next_payment_attempt = invoice
+        .get("next_payment_attempt")
+        .and_then(|v| v.as_i64())
+        .and_then(|ts| DateTime::from_timestamp(ts, 0));
+    let final_attempt = next_payment_attempt.is_none() && fields.attempt_count >= 1;
+
+    let new_status = if final_attempt { "unpaid" } else { "past_due" };
+    if let Some(sub_id) = fields.stripe_subscription_id.as_deref() {
+        billing::set_subscription_status_by_stripe_id(&state.db, sub_id, new_status).await?;
+    }
+
+    // Failure code/message live on the embedded `last_payment_error` or
+    // (in the older payload shape) at the invoice top level.
+    let failure_code = invoice
+        .get("last_finalization_error")
+        .and_then(|v| v.get("code"))
+        .and_then(|v| v.as_str())
+        .or_else(|| {
+            invoice
+                .get("charge")
+                .and_then(|v| v.get("failure_code"))
+                .and_then(|v| v.as_str())
+        });
+    let failure_message = invoice
+        .get("last_finalization_error")
+        .and_then(|v| v.get("message"))
+        .and_then(|v| v.as_str())
+        .or_else(|| {
+            invoice
+                .get("charge")
+                .and_then(|v| v.get("failure_message"))
+                .and_then(|v| v.as_str())
+        });
+
+    billing::record_payment_failure(
+        &state.db,
+        event_id,
+        Some(&fields.stripe_invoice_id),
+        invoice.get("payment_intent").and_then(|v| v.as_str()),
+        fields.stripe_customer_id.as_deref(),
+        sub_uuid,
+        user_uuid,
+        Some(fields.amount_due_cents),
+        Some(&fields.currency),
+        failure_code,
+        failure_message,
+        fields.attempt_count.max(1),
+        next_payment_attempt,
+        final_attempt,
+    )
+    .await?;
+
+    // Email the member. Best-effort — never fail the webhook on a
+    // missing template.
+    if let Some(ref user) = user {
+        let next_attempt_pretty = next_payment_attempt
+            .map(|t| t.format("%B %-d, %Y").to_string())
+            .unwrap_or_else(|| "shortly".to_string());
+        let ctx = serde_json::json!({
+            "name": user.name,
+            "next_attempt": next_attempt_pretty,
+            "billing_portal_url": format!("{}/account/billing", state.config.app_url),
+            "app_url": state.config.app_url,
+            "year": chrono::Utc::now().format("%Y").to_string(),
+        });
+        if let Err(e) = send_notification(
+            &state.db,
+            "subscription.payment_failed",
+            &Recipient::User {
+                user_id: user.id,
+                email: user.email.clone(),
+            },
+            ctx,
+            SendOptions::default(),
+        )
+        .await
+        {
+            tracing::warn!(user_id = %user.id, error = %e,
+                "failed to enqueue subscription.payment_failed email");
+        }
+    }
+
+    record_webhook_audit_best_effort(
+        &state.db,
+        event_id,
+        "invoice.payment_failed",
+        Some("subscription"),
+        sub_uuid.map(|u| u.to_string()).as_deref(),
+        serde_json::json!({
+            "stripe_invoice_id": fields.stripe_invoice_id,
+            "stripe_subscription_id": fields.stripe_subscription_id,
+            "attempt_count": fields.attempt_count,
+            "amount_due_cents": fields.amount_due_cents,
+            "currency": fields.currency,
+            "new_status": new_status,
+            "final": final_attempt,
+        }),
+    )
+    .await;
+
+    Ok(())
+}
+
+/// `invoice.paid` — invoice cleared. Restores the subscription to
+/// `active` if it was previously dunning, and records the invoice mirror.
+async fn handle_invoice_paid(
+    state: &AppState,
+    event_id: &str,
+    event: &serde_json::Value,
+) -> AppResult<()> {
+    let invoice = &event["data"]["object"];
+    let Some(fields) = InvoiceFields::from_payload(invoice) else {
+        tracing::warn!(event_id, "invoice.paid missing invoice id; skipping");
+        return Ok(());
+    };
+
+    let (sub, user) = match fields.stripe_subscription_id.as_deref() {
+        Some(sub_id) => lookup_subscription_with_user(&state.db, sub_id).await?,
+        None => (None, None),
+    };
+    let sub_uuid = sub.as_ref().map(|s| s.id);
+    let user_uuid = user.as_ref().map(|u| u.id);
+
+    billing::upsert_invoice(&state.db, &fields, sub_uuid, user_uuid).await?;
+
+    // If the subscription was previously past_due / unpaid, flip it back
+    // to active. We only do this when the local DB shows a recovering
+    // state to avoid trampling a concurrent admin cancel.
+    let mut recovered = false;
+    if let Some(ref existing) = sub {
+        if matches!(
+            existing.status,
+            SubscriptionStatus::PastDue | SubscriptionStatus::Unpaid
+        ) {
+            if let Some(sub_id) = fields.stripe_subscription_id.as_deref() {
+                billing::set_subscription_status_by_stripe_id(&state.db, sub_id, "active").await?;
+                recovered = true;
+            }
+        }
+    }
+
+    // Send a recovery email only on the recovery transition; a fresh
+    // monthly renewal already gets `subscription.confirmed` via
+    // checkout/subscription.updated, so duplicating here would spam.
+    if recovered {
+        if let Some(ref user) = user {
+            let ctx = serde_json::json!({
+                "name": user.name,
+                "app_url": state.config.app_url,
+                "year": chrono::Utc::now().format("%Y").to_string(),
+            });
+            if let Err(e) = send_notification(
+                &state.db,
+                "subscription.payment_recovered",
+                &Recipient::User {
+                    user_id: user.id,
+                    email: user.email.clone(),
+                },
+                ctx,
+                SendOptions::default(),
+            )
+            .await
+            {
+                tracing::warn!(user_id = %user.id, error = %e,
+                    "failed to enqueue subscription.payment_recovered email");
+            }
+        }
+    }
+
+    record_webhook_audit_best_effort(
+        &state.db,
+        event_id,
+        "invoice.paid",
+        Some("subscription"),
+        sub_uuid.map(|u| u.to_string()).as_deref(),
+        serde_json::json!({
+            "stripe_invoice_id": fields.stripe_invoice_id,
+            "stripe_subscription_id": fields.stripe_subscription_id,
+            "amount_paid_cents": fields.amount_paid_cents,
+            "currency": fields.currency,
+            "recovered_from_dunning": recovered,
+        }),
+    )
+    .await;
+
+    Ok(())
+}
+
+/// `charge.refunded` — record the refund mirror, cross-link to the order
+/// when there is one, and decrement reportable revenue (the refund row
+/// is the source-of-truth for that calculation).
+async fn handle_charge_refunded(
+    state: &AppState,
+    event_id: &str,
+    event: &serde_json::Value,
+) -> AppResult<()> {
+    let charge = &event["data"]["object"];
+    let Some(fields) = ChargeRefundFields::latest_from_charge(charge) else {
+        tracing::warn!(event_id, "charge.refunded missing refunds.data[]; skipping");
+        return Ok(());
+    };
+
+    // Cross-link to a local order, subscription, and user where possible.
+    let order = match fields.stripe_payment_intent_id.as_deref() {
+        Some(pi) => orders::get_order_by_payment_intent(&state.db, pi).await?,
+        None => None,
+    };
+    let order_id = order.as_ref().map(|o| o.id);
+    let user_uuid = match (order.as_ref(), fields.stripe_customer_id.as_deref()) {
+        (Some(o), _) => o.user_id,
+        (None, Some(cid)) => db::find_user_by_stripe_customer(&state.db, cid)
+            .await?
+            .map(|u| u.id),
+        _ => None,
+    };
+    let subscription_id = if let Some(invoice_id) = fields.stripe_invoice_id.as_deref() {
+        let row: Option<(Option<Uuid>,)> = sqlx::query_as(
+            r#"
+            SELECT subscription_id
+              FROM subscription_invoices
+             WHERE stripe_invoice_id = $1
+            "#,
+        )
+        .bind(invoice_id)
+        .fetch_optional(&state.db)
+        .await?;
+        row.and_then(|(opt,)| opt)
+    } else {
+        None
+    };
+
+    let inserted =
+        refunds::record_charge_refund(&state.db, &fields, order_id, subscription_id, user_uuid)
+            .await?;
+
+    // If there's an order linked, transition it to `refunded` (only
+    // valid from `processing` or `completed`). We deliberately swallow
+    // an illegal-transition error rather than fail the webhook — the
+    // admin may have already moved the order to refunded.
+    if let Some(order) = order {
+        if let Some(parsed) = orders::OrderStatus::parse(&order.status) {
+            if parsed == orders::OrderStatus::Processing || parsed == orders::OrderStatus::Completed
+            {
+                if let Err(e) = orders::transition(
+                    &state.db,
+                    order.id,
+                    orders::OrderStatus::Refunded,
+                    None,
+                    Some("stripe charge.refunded webhook"),
+                )
+                .await
+                {
+                    tracing::warn!(order_id = %order.id, error = %e,
+                        "could not transition order to refunded; admin may need to reconcile");
+                }
+            }
+        }
+    }
+
+    record_webhook_audit_best_effort(
+        &state.db,
+        event_id,
+        "charge.refunded",
+        Some("refund"),
+        inserted.map(|u| u.to_string()).as_deref(),
+        serde_json::json!({
+            "stripe_refund_id": fields.stripe_refund_id,
+            "stripe_charge_id": fields.stripe_charge_id,
+            "stripe_invoice_id": fields.stripe_invoice_id,
+            "amount_cents": fields.amount_cents,
+            "currency": fields.currency,
+            "order_id": order_id,
+        }),
+    )
+    .await;
+
+    Ok(())
+}
+
+/// `payment_intent.payment_failed` — typically fires for one-shot
+/// PaymentIntents (cart checkout / form payments) that aren't backed by
+/// a subscription invoice. We mark the linked order as `failed` and log
+/// the dunning row. Subscription invoice failures are de-duplicated via
+/// the unique `stripe_event_id` constraint on `payment_failures`.
+async fn handle_payment_intent_failed(
+    state: &AppState,
+    event_id: &str,
+    event: &serde_json::Value,
+) -> AppResult<()> {
+    let pi = &event["data"]["object"];
+    let pi_id = pi.get("id").and_then(|v| v.as_str());
+    let customer_id = pi.get("customer").and_then(|v| v.as_str());
+    let amount = pi.get("amount").and_then(|v| v.as_i64());
+    let currency = pi.get("currency").and_then(|v| v.as_str());
+    let failure_code = pi
+        .get("last_payment_error")
+        .and_then(|v| v.get("code"))
+        .and_then(|v| v.as_str());
+    let failure_message = pi
+        .get("last_payment_error")
+        .and_then(|v| v.get("message"))
+        .and_then(|v| v.as_str());
+
+    // Find the order this PI relates to (if any). PI-driven subscription
+    // renewals don't surface here — those come through `invoice.payment_failed`.
+    let order = match pi_id {
+        Some(id) => orders::get_order_by_payment_intent(&state.db, id).await?,
+        None => None,
+    };
+    let user_uuid = match (order.as_ref(), customer_id) {
+        (Some(o), _) => o.user_id,
+        (None, Some(cid)) => db::find_user_by_stripe_customer(&state.db, cid)
+            .await?
+            .map(|u| u.id),
+        _ => None,
+    };
+
+    billing::record_payment_failure(
+        &state.db,
+        event_id,
+        None,
+        pi_id,
+        customer_id,
+        None,
+        user_uuid,
+        amount,
+        currency,
+        failure_code,
+        failure_message,
+        1,
+        None,
+        true,
+    )
+    .await?;
+
+    if let Some(order) = order {
+        if let Some(parsed) = orders::OrderStatus::parse(&order.status) {
+            // `Pending → Failed` and `Processing → Failed` are both legal.
+            if matches!(
+                parsed,
+                orders::OrderStatus::Pending | orders::OrderStatus::Processing
+            ) {
+                if let Err(e) = orders::transition(
+                    &state.db,
+                    order.id,
+                    orders::OrderStatus::Failed,
+                    None,
+                    Some("stripe payment_intent.payment_failed webhook"),
+                )
+                .await
+                {
+                    tracing::warn!(order_id = %order.id, error = %e,
+                        "could not transition order to failed; admin reconcile required");
+                }
+            }
+        }
+    }
+
+    record_webhook_audit_best_effort(
+        &state.db,
+        event_id,
+        "payment_intent.payment_failed",
+        Some("payment_intent"),
+        pi_id,
+        serde_json::json!({
+            "stripe_customer_id": customer_id,
+            "amount_cents": amount,
+            "currency": currency,
+            "failure_code": failure_code,
+        }),
+    )
+    .await;
+
+    Ok(())
+}
+
+/// `charge.dispute.created` — chargeback opened. Records the dispute,
+/// flags the related order, and emits an outbox event for ops alerting.
+/// **No automatic refund**; resolution is manual.
+async fn handle_charge_dispute_created(
+    state: &AppState,
+    event_id: &str,
+    event: &serde_json::Value,
+) -> AppResult<()> {
+    let dispute_obj = &event["data"]["object"];
+    let Some(fields) = DisputeFields::from_payload(dispute_obj) else {
+        tracing::warn!(
+            event_id,
+            "charge.dispute.created missing dispute id; skipping"
+        );
+        return Ok(());
+    };
+
+    // Cross-link to a local order / sub / user when we can.
+    let order = match fields.stripe_payment_intent_id.as_deref() {
+        Some(pi) => orders::get_order_by_payment_intent(&state.db, pi).await?,
+        None => None,
+    };
+    let order_id = order.as_ref().map(|o| o.id);
+    let user_uuid = match (order.as_ref(), fields.stripe_customer_id.as_deref()) {
+        (Some(o), _) => o.user_id,
+        (None, Some(cid)) => db::find_user_by_stripe_customer(&state.db, cid)
+            .await?
+            .map(|u| u.id),
+        _ => None,
+    };
+
+    let inserted = disputes::record_dispute(&state.db, &fields, order_id, None, user_uuid).await?;
+
+    if let Some(order_id) = order_id {
+        disputes::flag_order_disputed(&state.db, order_id).await?;
+    }
+
+    // Ops alert on the outbox so the dispatcher routes it to whichever
+    // channel the operator has wired up (email + Slack via webhook_out).
+    let mut tx = state.db.begin().await?;
+    let evt = Event {
+        aggregate_type: "dispute".into(),
+        aggregate_id: fields.stripe_dispute_id.clone(),
+        event_type: "ops.dispute_opened".into(),
+        payload: serde_json::json!({
+            "stripe_dispute_id": fields.stripe_dispute_id,
+            "stripe_charge_id": fields.stripe_charge_id,
+            "amount_cents": fields.amount_cents,
+            "currency": fields.currency,
+            "reason": fields.reason,
+            "status": fields.status,
+            "evidence_due_by": fields.evidence_due_by,
+            "order_id": order_id,
+            "user_id": user_uuid,
+        }),
+        headers: EventHeaders {
+            idempotency_key: Some(format!("dispute:{}", fields.stripe_dispute_id)),
+            correlation_id: Some(event_id.to_string()),
+            tenant: None,
+        },
+    };
+    publish_in_tx(&mut tx, &evt)
+        .await
+        .map_err(|e| AppError::Internal(anyhow::anyhow!("ops outbox publish failed: {e}")))?;
+    tx.commit().await?;
+
+    record_webhook_audit_best_effort(
+        &state.db,
+        event_id,
+        "charge.dispute.created",
+        Some("dispute"),
+        inserted.map(|u| u.to_string()).as_deref(),
+        serde_json::json!({
+            "stripe_dispute_id": fields.stripe_dispute_id,
+            "stripe_charge_id": fields.stripe_charge_id,
+            "amount_cents": fields.amount_cents,
+            "currency": fields.currency,
+            "reason": fields.reason,
+            "status": fields.status,
+            "order_id": order_id,
+        }),
+    )
+    .await;
+
+    Ok(())
+}
+
+/// `customer.subscription.trial_will_end` — fires 3 days before a trial
+/// expires (configurable in Stripe). We send the trial-ending email and
+/// dedupe on `(subscription_id, trial_end)` so a Stripe re-delivery
+/// doesn't double-email.
+async fn handle_subscription_trial_will_end(
+    state: &AppState,
+    event_id: &str,
+    event: &serde_json::Value,
+) -> AppResult<()> {
+    let sub = &event["data"]["object"];
+    let stripe_sub_id = sub["id"].as_str().unwrap_or_default();
+    let trial_end = sub
+        .get("trial_end")
+        .and_then(|v| v.as_i64())
+        .and_then(|ts| DateTime::from_timestamp(ts, 0));
+    let Some(trial_end) = trial_end else {
+        tracing::warn!(event_id, "trial_will_end missing trial_end; skipping");
+        return Ok(());
+    };
+
+    let (existing, user) = lookup_subscription_with_user(&state.db, stripe_sub_id).await?;
+    let Some(existing) = existing else {
+        tracing::debug!(
+            stripe_sub_id,
+            "trial_will_end for unknown subscription; skipping"
+        );
+        return Ok(());
+    };
+
+    // Per-trial-end dedupe row. The (subscription_id, trial_end) PK
+    // means a Stripe redelivery is a no-op.
+    let inserted: Option<(Uuid,)> = sqlx::query_as(
+        r#"
+        INSERT INTO subscription_trial_events (subscription_id, trial_end)
+        VALUES ($1, $2)
+        ON CONFLICT (subscription_id, trial_end) DO NOTHING
+        RETURNING subscription_id
+        "#,
+    )
+    .bind(existing.id)
+    .bind(trial_end)
+    .fetch_optional(&state.db)
+    .await?;
+
+    if inserted.is_some() {
+        if let Some(user) = user {
+            let ctx = serde_json::json!({
+                "name": user.name,
+                "trial_end_date": trial_end.format("%B %-d, %Y").to_string(),
+                "billing_portal_url": format!("{}/account/billing", state.config.app_url),
+                "app_url": state.config.app_url,
+                "year": chrono::Utc::now().format("%Y").to_string(),
+            });
+            if let Err(e) = send_notification(
+                &state.db,
+                "subscription.trial_ending",
+                &Recipient::User {
+                    user_id: user.id,
+                    email: user.email.clone(),
+                },
+                ctx,
+                SendOptions::default(),
+            )
+            .await
+            {
+                tracing::warn!(user_id = %user.id, error = %e,
+                    "failed to enqueue subscription.trial_ending email");
+            }
+        }
+    }
+
+    record_webhook_audit_best_effort(
+        &state.db,
+        event_id,
+        "customer.subscription.trial_will_end",
+        Some("subscription"),
+        Some(&existing.id.to_string()),
+        serde_json::json!({
+            "stripe_subscription_id": stripe_sub_id,
+            "trial_will_end_at": trial_end,
+            "notified": inserted.is_some(),
+        }),
+    )
+    .await;
+
+    Ok(())
+}
+
+/// `customer.subscription.paused` — Stripe pause_collection enabled.
+/// We flip the local row to `paused` so member-side guards see the
+/// inactive state.
+async fn handle_subscription_paused(
+    state: &AppState,
+    event_id: &str,
+    event: &serde_json::Value,
+) -> AppResult<()> {
+    let sub = &event["data"]["object"];
+    let stripe_sub_id = sub["id"].as_str().unwrap_or_default();
+    let Some(existing) = db::find_subscription_by_stripe_id(&state.db, stripe_sub_id).await? else {
+        tracing::debug!(
+            stripe_sub_id,
+            "paused event for unknown subscription; skipping"
+        );
+        return Ok(());
+    };
+
+    // The `paused` enum value was added in 057_subscription_status_paused.sql.
+    // The typed `SubscriptionStatus` enum doesn't carry it; we go through
+    // the raw enum cast here.
+    sqlx::query(
+        r#"
+        UPDATE subscriptions
+           SET status = 'paused'::subscription_status,
+               paused_at = COALESCE(paused_at, NOW()),
+               updated_at = NOW()
+         WHERE id = $1
+        "#,
+    )
+    .bind(existing.id)
+    .execute(&state.db)
+    .await?;
+
+    record_webhook_audit_best_effort(
+        &state.db,
+        event_id,
+        "customer.subscription.paused",
+        Some("subscription"),
+        Some(&existing.id.to_string()),
+        serde_json::json!({ "stripe_subscription_id": stripe_sub_id }),
+    )
+    .await;
+    Ok(())
+}
+
+/// `customer.subscription.resumed` — pause_collection cleared. We flip
+/// the local row back to `active`.
+async fn handle_subscription_resumed(
+    state: &AppState,
+    event_id: &str,
+    event: &serde_json::Value,
+) -> AppResult<()> {
+    let sub = &event["data"]["object"];
+    let stripe_sub_id = sub["id"].as_str().unwrap_or_default();
+    let Some(existing) = db::find_subscription_by_stripe_id(&state.db, stripe_sub_id).await? else {
+        tracing::debug!(
+            stripe_sub_id,
+            "resumed event for unknown subscription; skipping"
+        );
+        return Ok(());
+    };
+
+    sqlx::query(
+        r#"
+        UPDATE subscriptions
+           SET status = 'active'::subscription_status,
+               paused_at = NULL,
+               pause_resumes_at = NULL,
+               updated_at = NOW()
+         WHERE id = $1
+        "#,
+    )
+    .bind(existing.id)
+    .execute(&state.db)
+    .await?;
+
+    record_webhook_audit_best_effort(
+        &state.db,
+        event_id,
+        "customer.subscription.resumed",
+        Some("subscription"),
+        Some(&existing.id.to_string()),
+        serde_json::json!({ "stripe_subscription_id": stripe_sub_id }),
+    )
+    .await;
     Ok(())
 }
 

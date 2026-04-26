@@ -127,9 +127,10 @@ pub struct OutboxRetryResponse {
 )]
 pub async fn list_outbox(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
     Query(q): Query<OutboxListQuery>,
 ) -> AppResult<Json<PaginatedResponse<OutboxRowDto>>> {
+    admin.require(&state.policy, "admin.outbox.read")?;
     let per_page = q.per_page();
     let offset = q.offset();
     let page = q.page();
@@ -222,9 +223,10 @@ pub async fn list_outbox(
 )]
 pub async fn get_outbox(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<OutboxRowDto>> {
+    admin.require(&state.policy, "admin.outbox.read")?;
     let row = sqlx::query_as::<_, OutboxRecord>(
         r#"
         SELECT id, aggregate_type, aggregate_id, event_type, payload, headers,
@@ -261,6 +263,7 @@ pub async fn retry_outbox(
     client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<OutboxRetryResponse>> {
+    admin.require(&state.policy, "admin.outbox.retry")?;
     // Delivered rows are final — surfacing a conflict here avoids silently
     // re-firing an event that may have already been consumed.
     let row = sqlx::query_as::<_, OutboxRecord>(

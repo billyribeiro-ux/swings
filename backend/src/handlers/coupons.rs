@@ -535,6 +535,7 @@ pub(crate) async fn admin_create_coupon(
     client: ClientInfo,
     Json(req): Json<CreateCouponRequest>,
 ) -> AppResult<Json<Coupon>> {
+    admin.require(&state.policy, "coupon.manage")?;
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
 
@@ -665,6 +666,7 @@ pub(crate) async fn admin_update_coupon(
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateCouponRequest>,
 ) -> AppResult<Json<Coupon>> {
+    admin.require(&state.policy, "coupon.manage")?;
     let existing: Coupon = sqlx::query_as("SELECT * FROM coupons WHERE id = $1")
         .bind(id)
         .fetch_optional(&state.db)
@@ -773,6 +775,7 @@ pub(crate) async fn admin_delete_coupon(
     client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "coupon.manage")?;
     let snapshot: Option<(String, String)> =
         sqlx::query_as("SELECT code, discount_type::text FROM coupons WHERE id = $1")
             .bind(id)
@@ -825,6 +828,7 @@ pub(crate) async fn admin_toggle_coupon(
     client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Coupon>> {
+    admin.require(&state.policy, "coupon.manage")?;
     let coupon: Coupon = sqlx::query_as(
         r#"
         UPDATE coupons
@@ -872,6 +876,7 @@ pub(crate) async fn admin_bulk_create_coupons(
     client: ClientInfo,
     Json(req): Json<BulkCouponRequest>,
 ) -> AppResult<Json<Vec<Coupon>>> {
+    admin.require(&state.policy, "coupon.manage")?;
     if req.count < 1 || req.count > 1000 {
         return Err(AppError::BadRequest(
             "Count must be between 1 and 1000".to_string(),
@@ -1219,6 +1224,7 @@ pub(crate) async fn admin_update_coupon_engine(
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateCouponEngineRequest>,
 ) -> AppResult<Json<CouponEngineView>> {
+    admin.require(&state.policy, "coupon.manage")?;
     // COALESCE pattern via per-field `is_some()` flags — mirrors the
     // commerce::repo::update_product approach.
     let row = sqlx::query_as::<_, CouponEngineView>(

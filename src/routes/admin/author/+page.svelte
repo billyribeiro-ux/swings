@@ -329,7 +329,7 @@
 		font-weight: 700;
 		font-family: var(--font-heading);
 		color: var(--color-white);
-		line-height: 1.15;
+		line-height: 1.2;
 		letter-spacing: -0.01em;
 		margin: 0 0 0.35rem;
 	}
@@ -337,7 +337,7 @@
 	.author-profile__subtitle {
 		color: var(--color-grey-400);
 		font-size: 0.875rem;
-		line-height: 1.55;
+		line-height: 1.5;
 		margin: 0;
 	}
 

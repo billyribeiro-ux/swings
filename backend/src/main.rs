@@ -10,7 +10,7 @@ use axum::http::HeaderValue;
 use axum::http::Method;
 use axum::Router;
 use sqlx::postgres::PgPoolOptions;
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::CorsLayer;
 use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -440,17 +440,33 @@ async fn main() -> Result<()> {
         bail!("CORS_ALLOWED_ORIGINS (or FRONTEND_URL) must contain at least one valid origin");
     }
 
+    // BFF (Phase 1.3): the frontend now ships requests with
+    // `credentials: 'include'` so the httpOnly `swings_access` cookie travels
+    // on every authenticated call. The CORS spec FORBIDS the wildcard
+    // origin / wildcard headers combo with credentials enabled, so we:
+    //   * keep the per-origin allowlist (already enumerated by
+    //     `CORS_ALLOWED_ORIGINS`); browsers reject `*` when
+    //     `Access-Control-Allow-Credentials: true`;
+    //   * narrow the allowed-headers set to the ones the SPA actually sends
+    //     (`Content-Type`, `Authorization` for the bearer rollout fallback,
+    //     and `Idempotency-Key` for admin POSTs).
     let cors = CorsLayer::new()
         .allow_origin(allowed_origins)
+        .allow_credentials(true)
         .allow_methods([
             Method::GET,
             Method::POST,
             Method::PUT,
+            Method::PATCH,
             Method::DELETE,
             Method::OPTIONS,
         ])
-        // Avoid preflight failures when browsers/extensions send non-standard request headers.
-        .allow_headers(Any);
+        .allow_headers([
+            axum::http::header::CONTENT_TYPE,
+            axum::http::header::AUTHORIZATION,
+            axum::http::header::ACCEPT,
+            axum::http::HeaderName::from_static("idempotency-key"),
+        ]);
     tokio::fs::create_dir_all(&upload_dir)
         .await
         .with_context(|| format!("failed to create upload directory at {upload_dir}"))?;
@@ -534,23 +550,87 @@ async fn main() -> Result<()> {
                 // ADM-14: audit log viewer (FTS over admin_actions).
                 .nest("/audit", handlers::admin_audit::router()),
         )
-        .nest("/api/admin/blog", handlers::blog::admin_router())
-        .nest("/api/admin/courses", handlers::courses::admin_router())
-        .nest("/api/admin/pricing", handlers::pricing::admin_router())
-        .nest("/api/admin/coupons", handlers::coupons::admin_router())
-        .nest("/api/admin/popups", handlers::popups::admin_router())
-        .nest("/api/admin/products", handlers::products::admin_router())
-        .nest("/api/admin/outbox", handlers::outbox::router())
+        // Phase 5.3: every legacy admin tree below gets the same
+        // ADM-15 idempotency middleware that already protects
+        // /subscriptions, /orders, /dsar above. The layer is a no-op
+        // for non-POST verbs and for requests without an
+        // `Idempotency-Key` header, so GET-only nests (audit, etc.)
+        // and read-paths within mixed routers pay zero cost. POSTs
+        // become safely retryable per AGENTS.md hard rule #6.
+        .nest(
+            "/api/admin/blog",
+            handlers::blog::admin_router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
+        .nest(
+            "/api/admin/courses",
+            handlers::courses::admin_router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
+        .nest(
+            "/api/admin/pricing",
+            handlers::pricing::admin_router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
+        .nest(
+            "/api/admin/coupons",
+            handlers::coupons::admin_router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
+        .nest(
+            "/api/admin/popups",
+            handlers::popups::admin_router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
+        .nest(
+            "/api/admin/products",
+            handlers::products::admin_router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
+        .nest(
+            "/api/admin/outbox",
+            handlers::outbox::router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
         .nest(
             "/api/admin/notifications",
-            handlers::notifications::admin_router(),
+            handlers::notifications::admin_router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
         )
         // CONSENT-07 admin CRUD (banners / categories / services / policies
         // + log view + integrity anchor list).
-        .nest("/api/admin/consent", handlers::admin_consent::router())
+        .nest(
+            "/api/admin/consent",
+            handlers::admin_consent::router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
         // CONSENT-03: admin DSAR fulfilment (separate sub-router from
         // CONSENT-07 so both can mount under /api/admin/consent).
-        .nest("/api/admin/consent", handlers::consent::admin_router())
+        .nest(
+            "/api/admin/consent",
+            handlers::consent::admin_router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
         // ADM-18: per-actor token-bucket rate-limit on every admin
         // mutation (`POST` / `PUT` / `PATCH` / `DELETE`). GETs pass
         // through. Sits above the IP allowlist so a credential whose

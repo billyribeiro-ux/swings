@@ -20,18 +20,22 @@
 //! `sqlx::FromRow` can decode transparently; the [`common::money::Money`]
 //! newtype is applied in the service + handler layers, never in the row layer.
 
+pub mod billing;
 pub mod cart;
 pub mod catalog;
 pub mod checkout;
 pub mod coupons;
+pub mod disputes;
 pub mod downloads;
 pub mod memberships;
 pub mod orders;
 pub mod products;
+pub mod refunds;
 pub mod repo;
 pub mod reports;
 pub mod subscriptions;
 pub mod tax;
+pub mod webhook_audit;
 
 pub use reports::{
     churn_rate, cohort_ltv, coupon_performance, lifetime_value_for_user, mrr_arr, revenue_summary,

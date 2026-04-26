@@ -2,10 +2,17 @@ use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
-use axum::{extract::State, routing::post, Json, Router};
+use axum::{
+    extract::State,
+    http::{header, HeaderMap, HeaderValue},
+    routing::post,
+    Json, Router,
+};
+use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use sha2::{Digest, Sha256};
+use time::Duration as CookieDuration;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -17,6 +24,122 @@ use crate::{
     notifications::send::{send_notification, Recipient, SendOptions},
     AppState,
 };
+
+/// SECURITY: cookie name for the access token half of the BFF session.
+///
+/// HttpOnly + Secure (in production) + SameSite=Lax. JS cannot read it, so an
+/// XSS sink can no longer exfiltrate the bearer token. The browser attaches it
+/// automatically on every same-origin request to `/api/*`.
+pub(crate) const COOKIE_ACCESS: &str = "swings_access";
+
+/// SECURITY: cookie name for the refresh token half of the BFF session.
+///
+/// Same hardening as [`COOKIE_ACCESS`]. Read by [`refresh`] when no JSON
+/// `refresh_token` body is present so the SPA never has to handle the value.
+pub(crate) const COOKIE_REFRESH: &str = "swings_refresh";
+
+/// Build a hardened auth cookie carrying `value` for `name`.
+///
+/// Attributes:
+/// * `HttpOnly` — opaque to JS, defeats XSS exfiltration.
+/// * `Secure` — only when `Config::is_production` is true; the dev path
+///   must work over plaintext `http://localhost`.
+/// * `SameSite=Lax` — sent on top-level same-site navigations (e.g. the
+///   Stripe-checkout redirect back to `/dashboard?...`) while blocking the
+///   worst CSRF vectors. We do NOT use `Strict` because the Stripe
+///   success-URL return is a top-level navigation cross-site → same-site
+///   that `Strict` would strip.
+/// * `Path=/` — every API + page route gets the cookie.
+/// * `Domain` unset — defaults to the request host. Works for localhost,
+///   Vercel preview URLs, and the apex domain without re-deploying for
+///   each environment.
+/// * `Max-Age` — caller-supplied lifetime; matches the JWT expiration.
+fn build_session_cookie(
+    name: &'static str,
+    value: String,
+    max_age_secs: i64,
+    is_production: bool,
+) -> Cookie<'static> {
+    let mut cookie = Cookie::new(name, value);
+    cookie.set_http_only(true);
+    cookie.set_secure(is_production);
+    cookie.set_same_site(SameSite::Lax);
+    cookie.set_path("/");
+    cookie.set_max_age(CookieDuration::seconds(max_age_secs));
+    cookie
+}
+
+/// Build a deletion cookie for `name` — empty value, `Max-Age=0`, same path
+/// the original was set on. Browsers honour the deletion immediately.
+fn clear_session_cookie(name: &'static str, is_production: bool) -> Cookie<'static> {
+    let mut cookie = Cookie::new(name, "");
+    cookie.set_http_only(true);
+    cookie.set_secure(is_production);
+    cookie.set_same_site(SameSite::Lax);
+    cookie.set_path("/");
+    cookie.set_max_age(CookieDuration::ZERO);
+    cookie
+}
+
+/// Append `Set-Cookie: ...` headers for the access + refresh pair.
+///
+/// Returns a populated [`HeaderMap`] that handler responses can chain into
+/// the axum response tuple. We append (rather than insert) because a single
+/// HTTP response may carry multiple `Set-Cookie` lines and `insert` would
+/// silently replace.
+fn auth_cookie_headers(
+    state: &AppState,
+    access_token: &str,
+    refresh_token: &str,
+) -> AppResult<HeaderMap> {
+    let prod = state.config.is_production();
+    let access = build_session_cookie(
+        COOKIE_ACCESS,
+        access_token.to_string(),
+        state.config.jwt_expiration_hours.saturating_mul(3600),
+        prod,
+    );
+    let refresh = build_session_cookie(
+        COOKIE_REFRESH,
+        refresh_token.to_string(),
+        state
+            .config
+            .refresh_token_expiration_days
+            .saturating_mul(86_400),
+        prod,
+    );
+    let mut headers = HeaderMap::new();
+    headers.append(
+        header::SET_COOKIE,
+        HeaderValue::from_str(&access.to_string())
+            .map_err(|e| AppError::BadRequest(format!("set-cookie encode: {e}")))?,
+    );
+    headers.append(
+        header::SET_COOKIE,
+        HeaderValue::from_str(&refresh.to_string())
+            .map_err(|e| AppError::BadRequest(format!("set-cookie encode: {e}")))?,
+    );
+    Ok(headers)
+}
+
+/// Build deletion `Set-Cookie` headers for both halves of the session.
+fn clear_auth_cookie_headers(state: &AppState) -> AppResult<HeaderMap> {
+    let prod = state.config.is_production();
+    let access = clear_session_cookie(COOKIE_ACCESS, prod);
+    let refresh = clear_session_cookie(COOKIE_REFRESH, prod);
+    let mut headers = HeaderMap::new();
+    headers.append(
+        header::SET_COOKIE,
+        HeaderValue::from_str(&access.to_string())
+            .map_err(|e| AppError::BadRequest(format!("set-cookie encode: {e}")))?,
+    );
+    headers.append(
+        header::SET_COOKIE,
+        HeaderValue::from_str(&refresh.to_string())
+            .map_err(|e| AppError::BadRequest(format!("set-cookie encode: {e}")))?,
+    );
+    Ok(headers)
+}
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -57,7 +180,7 @@ pub fn router() -> Router<AppState> {
 pub(crate) async fn register(
     State(state): State<AppState>,
     Json(req): Json<RegisterRequest>,
-) -> AppResult<Json<AuthResponse>> {
+) -> AppResult<(HeaderMap, Json<AuthResponse>)> {
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
 
@@ -105,11 +228,15 @@ pub(crate) async fn register(
         tracing::warn!(user_id = %user.id, error = %e, "failed to enqueue verification email");
     }
 
-    Ok(Json(AuthResponse {
-        user: user.into(),
-        access_token,
-        refresh_token,
-    }))
+    let cookies = auth_cookie_headers(&state, &access_token, &refresh_token)?;
+    Ok((
+        cookies,
+        Json(AuthResponse {
+            user: user.into(),
+            access_token,
+            refresh_token,
+        }),
+    ))
 }
 
 #[utoipa::path(
@@ -127,7 +254,7 @@ pub(crate) async fn login(
     State(state): State<AppState>,
     client: ClientInfo,
     Json(req): Json<LoginRequest>,
-) -> AppResult<Json<AuthResponse>> {
+) -> AppResult<(HeaderMap, Json<AuthResponse>)> {
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
 
@@ -178,11 +305,15 @@ pub(crate) async fn login(
 
     let (access_token, refresh_token) = generate_tokens(&state, &user).await?;
 
-    Ok(Json(AuthResponse {
-        user: user.into(),
-        access_token,
-        refresh_token,
-    }))
+    let cookies = auth_cookie_headers(&state, &access_token, &refresh_token)?;
+    Ok((
+        cookies,
+        Json(AuthResponse {
+            user: user.into(),
+            access_token,
+            refresh_token,
+        }),
+    ))
 }
 
 /// SECURITY: burn an Argon2 verification budget against a fixed dummy hash
@@ -243,8 +374,9 @@ async fn log_failed_login(state: &AppState, email: &str, client: &ClientInfo, re
 pub(crate) async fn refresh(
     State(state): State<AppState>,
     headers: axum::http::HeaderMap,
-    Json(req): Json<RefreshRequest>,
-) -> AppResult<Json<TokenResponse>> {
+    jar: CookieJar,
+    body: Option<Json<RefreshRequest>>,
+) -> AppResult<(HeaderMap, Json<TokenResponse>)> {
     // ADM-07-α: refuse refresh attempts whose Authorization header
     // carries an active impersonation token. Impersonation JWTs are
     // intentionally not paired with a refresh token (see
@@ -258,7 +390,17 @@ pub(crate) async fn refresh(
         return Err(AppError::Forbidden);
     }
 
-    let token_hash = hash_token(&req.refresh_token);
+    // BFF: prefer the httpOnly cookie that the SPA never sees. Fall back to
+    // the legacy JSON body for the rollout window — once every live client
+    // round-trips through cookie-based login the body branch can go away
+    // (see `docs/REMAINING-WORK.md` Phase 1.3 → Phase B).
+    let supplied_token = jar
+        .get(COOKIE_REFRESH)
+        .map(|c| c.value().to_string())
+        .or_else(|| body.map(|Json(req)| req.refresh_token));
+    let raw_refresh = supplied_token.ok_or(AppError::Unauthorized)?;
+
+    let token_hash = hash_token(&raw_refresh);
 
     let stored = db::find_refresh_token(&state.db, &token_hash)
         .await?
@@ -316,10 +458,14 @@ pub(crate) async fn refresh(
     )
     .await?;
 
-    Ok(Json(TokenResponse {
-        access_token,
-        refresh_token: new_refresh,
-    }))
+    let cookies = auth_cookie_headers(&state, &access_token, &new_refresh)?;
+    Ok((
+        cookies,
+        Json(TokenResponse {
+            access_token,
+            refresh_token: new_refresh,
+        }),
+    ))
 }
 
 async fn me(State(state): State<AppState>, auth: AuthUser) -> AppResult<Json<UserResponse>> {
@@ -346,7 +492,7 @@ pub(crate) async fn logout(
     State(state): State<AppState>,
     auth: AuthUser,
     client: ClientInfo,
-) -> AppResult<Json<serde_json::Value>> {
+) -> AppResult<(HeaderMap, Json<serde_json::Value>)> {
     // ADM-07-α: when the caller's session is an impersonation token,
     // a naive `delete_user_refresh_tokens(auth.user_id)` would punt
     // every refresh token of the *target* user — i.e. the admin would
@@ -391,14 +537,22 @@ pub(crate) async fn logout(
         )
         .await;
 
-        return Ok(Json(serde_json::json!({
-            "message": "Impersonation ended",
-            "impersonation_ended": true
-        })));
+        // BFF: deliberately do NOT clear the auth cookies on the
+        // impersonation-end branch — the admin's own session lives on the
+        // same browser and must keep its cookies. Only the impersonation row
+        // is revoked above.
+        return Ok((
+            HeaderMap::new(),
+            Json(serde_json::json!({
+                "message": "Impersonation ended",
+                "impersonation_ended": true
+            })),
+        ));
     }
 
     db::delete_user_refresh_tokens(&state.db, auth.user_id).await?;
-    Ok(Json(serde_json::json!({ "message": "Logged out" })))
+    let cookies = clear_auth_cookie_headers(&state)?;
+    Ok((cookies, Json(serde_json::json!({ "message": "Logged out" }))))
 }
 
 // ── Forgot / Reset Password ─────────────────────────────────────────────
@@ -747,5 +901,39 @@ mod tests {
     fn bearer_is_impersonation_false_without_header() {
         let headers = HeaderMap::new();
         assert!(!bearer_is_impersonation(&headers));
+    }
+
+    // ── Cookie attribute coverage ──────────────────────────────────────────
+
+    #[test]
+    fn session_cookie_carries_secure_flag_in_production() {
+        let cookie = build_session_cookie(COOKIE_ACCESS, "tok".into(), 3600, /*prod*/ true);
+        assert!(cookie.secure().unwrap_or(false));
+        assert!(cookie.http_only().unwrap_or(false));
+        assert_eq!(cookie.path(), Some("/"));
+    }
+
+    #[test]
+    fn session_cookie_omits_secure_flag_outside_production() {
+        let cookie = build_session_cookie(COOKIE_ACCESS, "tok".into(), 3600, /*prod*/ false);
+        assert!(!cookie.secure().unwrap_or(false));
+        assert!(cookie.http_only().unwrap_or(false));
+    }
+
+    #[test]
+    fn session_cookie_uses_samesite_lax() {
+        // SameSite=Lax — required so the Stripe-checkout return navigation
+        // still ships the cookie. Strict would strip it on the cross-site →
+        // same-site top-level navigation back to `/dashboard?...`.
+        let cookie = build_session_cookie(COOKIE_ACCESS, "tok".into(), 3600, true);
+        assert_eq!(cookie.same_site(), Some(SameSite::Lax));
+    }
+
+    #[test]
+    fn clear_cookie_uses_zero_max_age() {
+        let cookie = clear_session_cookie(COOKIE_ACCESS, true);
+        assert_eq!(cookie.max_age(), Some(CookieDuration::ZERO));
+        assert_eq!(cookie.value(), "");
+        assert!(cookie.http_only().unwrap_or(false));
     }
 }

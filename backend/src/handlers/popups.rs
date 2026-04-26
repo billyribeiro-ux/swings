@@ -176,6 +176,7 @@ pub(crate) async fn admin_create_popup(
     client: ClientInfo,
     Json(req): Json<CreatePopupRequest>,
 ) -> AppResult<Json<Popup>> {
+    admin.require(&state.policy, "popup.manage")?;
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
     validate_redirect_url(req.redirect_url.as_deref(), &state.config.app_url)?;
@@ -307,6 +308,7 @@ pub(crate) async fn admin_update_popup(
     Path(id): Path<Uuid>,
     Json(req): Json<UpdatePopupRequest>,
 ) -> AppResult<Json<Popup>> {
+    admin.require(&state.policy, "popup.manage")?;
     validate_redirect_url(req.redirect_url.as_deref(), &state.config.app_url)?;
 
     let existing = sqlx::query_as::<_, Popup>("SELECT * FROM popups WHERE id = $1")
@@ -445,6 +447,7 @@ pub(crate) async fn admin_delete_popup(
     client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "popup.manage")?;
     let snapshot: Option<(String, String)> =
         sqlx::query_as("SELECT name, popup_type FROM popups WHERE id = $1")
             .bind(id)
@@ -496,6 +499,7 @@ pub(crate) async fn admin_toggle_popup(
     client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Popup>> {
+    admin.require(&state.policy, "popup.manage")?;
     let popup = sqlx::query_as::<_, Popup>(
         r#"
         UPDATE popups SET
@@ -548,6 +552,7 @@ pub(crate) async fn admin_duplicate_popup(
     client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Popup>> {
+    admin.require(&state.policy, "popup.manage")?;
     let source = sqlx::query_as::<_, Popup>("SELECT * FROM popups WHERE id = $1")
         .bind(id)
         .fetch_optional(&state.db)
@@ -661,10 +666,11 @@ async fn admin_list_submissions(
 
 async fn admin_get_analytics(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
     Path(id): Path<Uuid>,
     Query(query): Query<AnalyticsQuery>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "popup.read_analytics")?;
     // Verify popup exists
     let popup = sqlx::query_as::<_, Popup>("SELECT * FROM popups WHERE id = $1")
         .bind(id)
@@ -1133,9 +1139,10 @@ pub(crate) async fn public_variant_for_popup(
 )]
 pub(crate) async fn admin_variant_significance(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "popup.read_analytics")?;
     let popup_exists: bool =
         sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM popups WHERE id = $1)")
             .bind(id)

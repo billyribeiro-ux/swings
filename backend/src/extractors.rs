@@ -120,6 +120,40 @@ pub fn jwt_validation() -> Validation {
     v
 }
 
+/// BFF (Phase 1.3): pull the JWT out of either the `swings_access` httpOnly
+/// cookie (preferred) or the legacy `Authorization: Bearer …` header
+/// (fallback during the rollout).
+///
+/// Cookie wins when both are present so the browser-side migration is
+/// monotonic — the moment `/api/auth/login` lands a fresh `Set-Cookie`, every
+/// subsequent request resolves through the cookie even if the SPA happens to
+/// keep attaching the old header during the same page load.
+///
+/// Returns `None` when neither carrier yields a non-empty token.
+pub(crate) fn extract_access_token(headers: &HeaderMap) -> Option<String> {
+    if let Some(cookie_header) = headers.get(axum::http::header::COOKIE).and_then(|v| v.to_str().ok())
+    {
+        // RFC 6265: the request `Cookie` header is one or more
+        // `name=value` pairs separated by `; `. We hand-parse rather than
+        // pulling in the full `cookie` crate jar machinery here — the
+        // header is a hot path on every authenticated request and we want
+        // a zero-allocation pass when the target cookie is missing.
+        for pair in cookie_header.split(';') {
+            let pair = pair.trim();
+            if let Some(value) = pair.strip_prefix("swings_access=") {
+                if !value.is_empty() {
+                    return Some(value.to_string());
+                }
+            }
+        }
+    }
+    headers
+        .get(axum::http::header::AUTHORIZATION)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|h| h.strip_prefix("Bearer "))
+        .map(str::to_owned)
+}
+
 /// Rollout-safe `iss` / `aud` check.
 ///
 /// Returns `Ok(())` when:
@@ -157,18 +191,16 @@ impl FromRequestParts<AppState> for AuthUser {
         parts: &mut Parts,
         state: &AppState,
     ) -> Result<Self, Self::Rejection> {
-        let auth_header = parts
-            .headers
-            .get("Authorization")
-            .and_then(|v| v.to_str().ok())
-            .ok_or(AppError::Unauthorized)?;
-
-        let token = auth_header
-            .strip_prefix("Bearer ")
-            .ok_or(AppError::Unauthorized)?;
+        // BFF rollout (Phase 1.3): the access token now lives in the
+        // `swings_access` httpOnly cookie. We still accept the legacy
+        // `Authorization: Bearer …` header so live sessions minted from the
+        // pre-cookie SPA — and the integration-test harness, which mints a
+        // bearer token directly without round-tripping `/login` — keep
+        // working through the rollout. Phase B drops the bearer fallback.
+        let token = extract_access_token(&parts.headers).ok_or(AppError::Unauthorized)?;
 
         let token_data = decode::<Claims>(
-            token,
+            &token,
             &DecodingKey::from_secret(state.config.jwt_secret.as_bytes()),
             &jwt_validation(),
         )
@@ -371,24 +403,22 @@ impl FromRequestParts<AppState> for OptionalAuthUser {
         parts: &mut Parts,
         state: &AppState,
     ) -> Result<Self, Self::Rejection> {
-        let user_id = parts
-            .headers
-            .get("Authorization")
-            .and_then(|v| v.to_str().ok())
-            .and_then(|h| h.strip_prefix("Bearer "))
-            .and_then(|token| {
-                let data = decode::<Claims>(
-                    token,
-                    &DecodingKey::from_secret(state.config.jwt_secret.as_bytes()),
-                    &jwt_validation(),
-                )
-                .ok()?;
-                // SECURITY: same iss/aud check as AuthUser; failure
-                // downgrades the request to anonymous rather than 401
-                // because this extractor is infallible by contract.
-                verify_claim_binding(&data.claims).ok()?;
-                Some(data.claims.sub)
-            });
+        // BFF: same dual-carrier resolution as `AuthUser`. Anonymous on
+        // any failure (this extractor is infallible by contract — public
+        // endpoints fall back to a guest view rather than 401).
+        let user_id = extract_access_token(&parts.headers).and_then(|token| {
+            let data = decode::<Claims>(
+                &token,
+                &DecodingKey::from_secret(state.config.jwt_secret.as_bytes()),
+                &jwt_validation(),
+            )
+            .ok()?;
+            // SECURITY: same iss/aud check as AuthUser; failure
+            // downgrades the request to anonymous rather than 401
+            // because this extractor is infallible by contract.
+            verify_claim_binding(&data.claims).ok()?;
+            Some(data.claims.sub)
+        });
 
         Ok(OptionalAuthUser { user_id })
     }
@@ -580,5 +610,74 @@ mod tests {
         let headers = HeaderMap::new();
         let ip = extract_ip(&headers, None);
         assert!(ip.is_none());
+    }
+
+    // ── BFF cookie / bearer dual extraction ────────────────────────────────
+
+    #[test]
+    fn extract_access_token_prefers_cookie() {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            axum::http::header::COOKIE,
+            axum::http::HeaderValue::from_static(
+                "other=foo; swings_access=COOKIE_TOKEN; trailing=bar",
+            ),
+        );
+        headers.insert(
+            axum::http::header::AUTHORIZATION,
+            axum::http::HeaderValue::from_static("Bearer BEARER_TOKEN"),
+        );
+        assert_eq!(
+            extract_access_token(&headers),
+            Some("COOKIE_TOKEN".to_string())
+        );
+    }
+
+    #[test]
+    fn extract_access_token_falls_back_to_bearer_when_cookie_absent() {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            axum::http::header::AUTHORIZATION,
+            axum::http::HeaderValue::from_static("Bearer BEARER_TOKEN"),
+        );
+        assert_eq!(
+            extract_access_token(&headers),
+            Some("BEARER_TOKEN".to_string())
+        );
+    }
+
+    #[test]
+    fn extract_access_token_falls_back_when_only_unrelated_cookies_present() {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            axum::http::header::COOKIE,
+            axum::http::HeaderValue::from_static("session=abc; theme=dark"),
+        );
+        headers.insert(
+            axum::http::header::AUTHORIZATION,
+            axum::http::HeaderValue::from_static("Bearer BEARER_TOKEN"),
+        );
+        assert_eq!(
+            extract_access_token(&headers),
+            Some("BEARER_TOKEN".to_string())
+        );
+    }
+
+    #[test]
+    fn extract_access_token_returns_none_without_any_carrier() {
+        let headers = HeaderMap::new();
+        assert!(extract_access_token(&headers).is_none());
+    }
+
+    #[test]
+    fn extract_access_token_ignores_empty_cookie_value() {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            axum::http::header::COOKIE,
+            axum::http::HeaderValue::from_static("swings_access=; other=x"),
+        );
+        // Empty cookie should be treated as absent, falling back to bearer
+        // (also absent here, so None).
+        assert!(extract_access_token(&headers).is_none());
     }
 }

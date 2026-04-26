@@ -225,6 +225,7 @@ pub async fn create_template(
     client: ClientInfo,
     Json(req): Json<CreateTemplateRequest>,
 ) -> AppResult<Json<Template>> {
+    admin.require(&state.policy, "notification.template.manage")?;
     if req.key.trim().is_empty() {
         return Err(AppError::BadRequest("key is required".into()));
     }
@@ -335,6 +336,7 @@ pub async fn update_template(
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateTemplateRequest>,
 ) -> AppResult<Json<Template>> {
+    admin.require(&state.policy, "notification.template.manage")?;
     let base = sqlx::query_as::<_, Template>(
         r#"
         SELECT id, key, channel, locale, subject, body_source, body_compiled,
@@ -413,10 +415,11 @@ pub async fn update_template(
 )]
 pub async fn preview_template(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
     Path(id): Path<Uuid>,
     Json(req): Json<PreviewRequest>,
 ) -> AppResult<Json<RenderedTemplate>> {
+    admin.require(&state.policy, "notification.template.manage")?;
     let row = sqlx::query_as::<_, Template>(
         r#"
         SELECT id, key, channel, locale, subject, body_source, body_compiled,
@@ -456,6 +459,7 @@ pub async fn test_send_template(
     Path(id): Path<Uuid>,
     Json(req): Json<TestSendRequest>,
 ) -> AppResult<Json<TestSendResponse>> {
+    admin.require(&state.policy, "notification.broadcast.create")?;
     if req.to.trim().is_empty() {
         return Err(AppError::BadRequest("`to` is required".into()));
     }
@@ -725,6 +729,7 @@ pub async fn add_suppression(
     client: ClientInfo,
     Json(req): Json<AddSuppressionRequest>,
 ) -> AppResult<Json<Suppression>> {
+    admin.require(&state.policy, "notification.template.manage")?;
     if req.email.trim().is_empty() {
         return Err(AppError::BadRequest("email is required".into()));
     }
@@ -767,6 +772,7 @@ pub async fn remove_suppression(
     client: ClientInfo,
     Json(req): Json<RemoveSuppressionRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "notification.template.manage")?;
     let removed = suppression::unsuppress(&state.db, &req.email).await?;
 
     audit_admin(

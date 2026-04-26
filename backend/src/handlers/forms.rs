@@ -626,10 +626,17 @@ pub async fn public_load_partial(
 
 pub async fn admin_list_submissions(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
     Path(form_id): Path<Uuid>,
     Query(q): Query<SubmissionListQuery>,
 ) -> AppResult<Response> {
+    // CSV exports are gated by a tighter perm; the JSON list is the
+    // helpdesk-grade read so support can triage submissions.
+    if q.format.as_deref() == Some("csv") {
+        admin.require(&state.policy, "form.submission.export")?;
+    } else {
+        admin.require(&state.policy, "form.submission.read_any")?;
+    }
     let per_page = q.per_page.unwrap_or(25).clamp(1, 500);
     let page = q.page.unwrap_or(1).max(1);
     let offset = (page - 1) * per_page;
@@ -702,6 +709,15 @@ pub async fn admin_bulk_update_submissions(
             )));
         }
     };
+    // `delete` is the only destructive arm and demands the harder perm —
+    // mark_spam / restore stay on `form.manage` because they can be
+    // reversed via another bulk call.
+    let required_perm = if req.action == "delete" {
+        "form.submission.delete_any"
+    } else {
+        "form.manage"
+    };
+    admin.require(&state.policy, required_perm)?;
     let updated = repo::bulk_update_submission_status(&state.db, form_id, &req.ids, status).await?;
 
     audit_admin(

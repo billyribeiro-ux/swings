@@ -41,8 +41,8 @@ use swings_api::{
     handlers::{
         admin, admin_audit, admin_consent, admin_dsar, admin_impersonation, admin_ip_allowlist,
         admin_members, admin_orders, admin_roles, admin_security, admin_settings,
-        admin_subscriptions, analytics, auth, blog, coupons, courses, csp_report, member,
-        notifications, outbox, popups, pricing, webhooks,
+        admin_subscriptions, analytics, auth, blog, coupons, courses, csp_report, forms, member,
+        notifications, outbox, popups, pricing, products, webhooks,
     },
     middleware::{
         admin_ip_allowlist as admin_ip_allowlist_mw,
@@ -83,6 +83,11 @@ pub struct TestApp {
     /// `Cache::insert_for_tests` to hit specific code paths
     /// deterministically.
     settings: swings_api::settings::Cache,
+    /// Live handle on the per-test `AppState.policy` cache. Tests that
+    /// want to verify per-action `policy.require(...)` gates fire
+    /// independently of the role string can rebuild the snapshot here
+    /// to revoke specific perms from the `admin` role.
+    policy: Arc<PolicyHandle>,
     /// Bearer token default; overridden per request via the `auth` arg.
     _marker: (),
 }
@@ -183,6 +188,7 @@ impl TestApp {
         let router = build_router(&state);
         let client_ip = allocate_client_ip();
         let settings = state.settings.clone();
+        let policy = state.policy.clone();
 
         Ok(Self {
             router,
@@ -190,8 +196,18 @@ impl TestApp {
             db,
             client_ip,
             settings,
+            policy,
             _marker: (),
         })
+    }
+
+    /// Atomically swap the policy snapshot the in-process handlers see.
+    /// Used by RBAC tests to verify that per-action `policy.require(...)`
+    /// gates fire independently of the extractor's role-string check —
+    /// e.g. mint an "admin"-role JWT, revoke `blog.post.create` from the
+    /// admin role here, hit the handler, assert 403.
+    pub fn replace_policy_for_tests(&self, policy: swings_api::authz::Policy) {
+        self.policy.replace(policy);
     }
 
     /// Borrow the live settings cache attached to this app's
@@ -380,6 +396,104 @@ impl TestApp {
         self.request(Method::DELETE, path, None::<&()>, auth).await
     }
 
+    /// BFF (Phase 1.3): drive a request whose ONLY auth carrier is a
+    /// `Cookie: <name>=<value>` header. No `Authorization: Bearer …`.
+    ///
+    /// Used by the auth-cookie integration tests to prove the cookie path
+    /// resolves end-to-end without falling back to the bearer header.
+    pub async fn request_with_cookie(
+        &self,
+        method: &str,
+        path: &str,
+        cookie_name: &str,
+        cookie_value: &str,
+    ) -> TestResponse {
+        let m = parse_method(method);
+        let cookie_header = format!("{cookie_name}={cookie_value}");
+        let result = self
+            .request_inner_with_cookie(m, path, None::<&()>, None, Some(&cookie_header))
+            .await;
+        match result {
+            Ok(resp) => resp,
+            Err(e) => panic!("TestApp dispatch failed: {e}"),
+        }
+    }
+
+    /// BFF (Phase 1.3): drive a request that carries BOTH a `Cookie:` header
+    /// and an `Authorization: Bearer …` header. Asserts the
+    /// cookie-takes-precedence behaviour during the rollout window when
+    /// stale clients might present both carriers.
+    pub async fn request_with_cookie_and_bearer(
+        &self,
+        method: &str,
+        path: &str,
+        cookie_name: &str,
+        cookie_value: &str,
+        bearer: &str,
+    ) -> TestResponse {
+        let m = parse_method(method);
+        let cookie_header = format!("{cookie_name}={cookie_value}");
+        let result = self
+            .request_inner_with_cookie(m, path, None::<&()>, Some(bearer), Some(&cookie_header))
+            .await;
+        match result {
+            Ok(resp) => resp,
+            Err(e) => panic!("TestApp dispatch failed: {e}"),
+        }
+    }
+
+    async fn request_inner_with_cookie<B: Serialize + ?Sized>(
+        &self,
+        method: Method,
+        path: &str,
+        body: Option<&B>,
+        auth: Option<&str>,
+        cookie: Option<&str>,
+    ) -> TestResult<TestResponse> {
+        let mut builder = Request::builder()
+            .method(method)
+            .uri(path)
+            .header("X-Forwarded-For", self.client_ip.as_str());
+
+        if let Some(token) = auth {
+            builder = builder.header(
+                header::AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {token}"))
+                    .map_err(|e| TestAppError::Http(format!("build auth header: {e}")))?,
+            );
+        }
+
+        if let Some(cookie_value) = cookie {
+            builder = builder.header(
+                header::COOKIE,
+                HeaderValue::from_str(cookie_value)
+                    .map_err(|e| TestAppError::Http(format!("build cookie header: {e}")))?,
+            );
+        }
+
+        let req = if let Some(body) = body {
+            let bytes = serde_json::to_vec(body)
+                .map_err(|e| TestAppError::Http(format!("serialize body: {e}")))?;
+            builder
+                .header(header::CONTENT_TYPE, "application/json")
+                .body(Body::from(bytes))
+                .map_err(|e| TestAppError::Http(format!("build request: {e}")))?
+        } else {
+            builder
+                .body(Body::empty())
+                .map_err(|e| TestAppError::Http(format!("build request: {e}")))?
+        };
+
+        let resp: Response = self
+            .router
+            .clone()
+            .oneshot(req)
+            .await
+            .map_err(|e| TestAppError::Http(format!("dispatch: {e}")))?;
+
+        TestResponse::from_response(resp).await
+    }
+
     /// Core request dispatch. Serializes `body` as JSON when present and
     /// always injects the per-`TestApp` rate-limit IP.
     ///
@@ -505,14 +619,81 @@ fn build_router(state: &AppState) -> Router<()> {
                 .nest("/audit", admin_audit::router())
                 .merge(axum::Router::new().nest("/members", admin_members::router())),
         )
-        .nest("/api/admin/blog", blog::admin_router())
-        .nest("/api/admin/courses", courses::admin_router())
-        .nest("/api/admin/pricing", pricing::admin_router())
-        .nest("/api/admin/coupons", coupons::admin_router())
-        .nest("/api/admin/popups", popups::admin_router())
-        .nest("/api/admin/outbox", outbox::router())
-        .nest("/api/admin/notifications", notifications::admin_router())
-        .nest("/api/admin/consent", admin_consent::router())
+        // Phase 5.3: mirror the production wiring in `main.rs` —
+        // every legacy admin tree below gets the ADM-15 idempotency
+        // middleware so integration tests exercise the same retry
+        // semantics as production. The middleware is a no-op for
+        // non-POST verbs and for requests without `Idempotency-Key`.
+        .nest(
+            "/api/admin/blog",
+            blog::admin_router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
+        .nest(
+            "/api/admin/courses",
+            courses::admin_router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
+        .nest(
+            "/api/admin/pricing",
+            pricing::admin_router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
+        .nest(
+            "/api/admin/coupons",
+            coupons::admin_router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
+        .nest(
+            "/api/admin/popups",
+            popups::admin_router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
+        .nest(
+            "/api/admin/products",
+            products::admin_router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
+        .nest(
+            "/api/admin/outbox",
+            outbox::router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
+        .nest(
+            "/api/admin/forms",
+            forms::admin_router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
+        .nest(
+            "/api/admin/notifications",
+            notifications::admin_router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
+        .nest(
+            "/api/admin/consent",
+            admin_consent::router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             swings_api::middleware::rate_limit::admin_mutation_rate_limit,
@@ -634,6 +815,21 @@ fn allocate_client_ip() -> String {
     let b = ((id >> 8) & 0xFF) as u8;
     let c = (id & 0xFF) as u8;
     format!("10.{a}.{b}.{c}")
+}
+
+/// Tiny string → `Method` parser for the cookie-test ergonomics — keeps
+/// `request_with_cookie("GET", …)` readable while staying defensive: an
+/// unknown verb panics so tests fail loudly rather than silently routing
+/// through `GET`.
+fn parse_method(s: &str) -> Method {
+    match s.to_ascii_uppercase().as_str() {
+        "GET" => Method::GET,
+        "POST" => Method::POST,
+        "PUT" => Method::PUT,
+        "PATCH" => Method::PATCH,
+        "DELETE" => Method::DELETE,
+        other => panic!("unsupported test method: {other}"),
+    }
 }
 
 /// Convenience constants for asserting expected statuses. Tests are free to

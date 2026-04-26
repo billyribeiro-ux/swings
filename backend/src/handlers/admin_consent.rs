@@ -155,6 +155,7 @@ async fn create_banner(
     client: ClientInfo,
     Json(req): Json<BannerUpsertRequest>,
 ) -> AppResult<Json<repo::BannerConfigRow>> {
+    admin.require(&state.policy, "consent.config.manage")?;
     let row = sqlx::query_as::<_, repo::BannerConfigRow>(
         r#"
         INSERT INTO consent_banner_configs
@@ -210,6 +211,7 @@ async fn update_banner(
     Path(id): Path<Uuid>,
     Json(req): Json<BannerUpsertRequest>,
 ) -> AppResult<Json<repo::BannerConfigRow>> {
+    admin.require(&state.policy, "consent.config.manage")?;
     let row = sqlx::query_as::<_, repo::BannerConfigRow>(
         r#"
         UPDATE consent_banner_configs
@@ -295,6 +297,7 @@ async fn create_category(
     client: ClientInfo,
     Json(req): Json<CategoryUpsertRequest>,
 ) -> AppResult<Json<repo::CategoryRow>> {
+    admin.require(&state.policy, "consent.config.manage")?;
     if req.key == "necessary" {
         return Err(AppError::BadRequest(
             "the `necessary` category is protected and cannot be mutated via the admin API"
@@ -351,6 +354,7 @@ async fn update_category(
     Path(key): Path<String>,
     Json(req): Json<CategoryUpsertRequest>,
 ) -> AppResult<Json<repo::CategoryRow>> {
+    admin.require(&state.policy, "consent.config.manage")?;
     if key == "necessary" {
         return Err(AppError::BadRequest(
             "the `necessary` category is protected and cannot be mutated via the admin API"
@@ -452,6 +456,7 @@ async fn create_service(
     client: ClientInfo,
     Json(req): Json<ServiceUpsertRequest>,
 ) -> AppResult<Json<repo::ServiceRow>> {
+    admin.require(&state.policy, "consent.config.manage")?;
     let row = sqlx::query_as::<_, repo::ServiceRow>(
         r#"
         INSERT INTO consent_services
@@ -510,6 +515,7 @@ async fn update_service(
     Path(id): Path<Uuid>,
     Json(req): Json<ServiceUpsertRequest>,
 ) -> AppResult<Json<repo::ServiceRow>> {
+    admin.require(&state.policy, "consent.config.manage")?;
     let row = sqlx::query_as::<_, repo::ServiceRow>(
         r#"
         UPDATE consent_services
@@ -616,6 +622,7 @@ async fn create_policy(
     client: ClientInfo,
     Json(req): Json<PolicyCreateRequest>,
 ) -> AppResult<Json<PolicyDetail>> {
+    admin.require(&state.policy, "consent.config.manage")?;
     // Next version = max(existing) + 1 for this locale. Default `en` catches
     // the common case where an admin doesn't specify a locale.
     let next_version: i32 = sqlx::query(
@@ -696,9 +703,10 @@ pub struct ConsentLogResponse {
 
 async fn list_log(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
     Query(q): Query<LogQuery>,
 ) -> AppResult<Json<ConsentLogResponse>> {
+    admin.require(&state.policy, "consent.log.read_any")?;
     // Table may not exist yet in the current DB (CONSENT-03 landed in a
     // sibling worktree). We return `table_present: false` + an empty rows
     // list so the admin UI can show a friendly "run the migration" notice
@@ -801,8 +809,9 @@ impl From<integrity::IntegrityAnchor> for IntegrityAnchorDto {
 
 async fn list_integrity(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
 ) -> AppResult<Json<Vec<IntegrityAnchorDto>>> {
+    admin.require(&state.policy, "consent.log.read_any")?;
     let rows = integrity::list_anchors(&state.db, 100).await?;
     Ok(Json(
         rows.into_iter().map(IntegrityAnchorDto::from).collect(),

@@ -226,6 +226,7 @@ pub(crate) async fn admin_create_post(
     client: ClientInfo,
     Json(mut req): Json<CreatePostRequest>,
 ) -> AppResult<Json<BlogPostResponse>> {
+    admin.require(&state.policy, "blog.post.create")?;
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
 
@@ -319,6 +320,7 @@ pub(crate) async fn admin_update_post(
     Path(id): Path<Uuid>,
     Json(mut req): Json<UpdatePostRequest>,
 ) -> AppResult<Json<BlogPostResponse>> {
+    admin.require(&state.policy, "blog.post.update_any")?;
     // SECURITY (XSS): sanitize author-supplied HTML at the write boundary —
     // see `admin_create_post` for the full rationale.
     if let Some(c) = req.content.as_deref() {
@@ -428,6 +430,7 @@ pub(crate) async fn admin_delete_post(
     client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "blog.post.delete_any")?;
     let existing = db::get_blog_post(&state.db, id)
         .await?
         .ok_or(AppError::NotFound("Post not found".to_string()))?;
@@ -475,6 +478,7 @@ pub(crate) async fn admin_restore_post_from_trash(
     client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<BlogPostResponse>> {
+    admin.require(&state.policy, "blog.post.update_any")?;
     let post = db::restore_post_from_trash(&state.db, id).await?;
     let response = build_post_response(&state.db, post).await?;
 
@@ -516,6 +520,7 @@ pub(crate) async fn admin_update_post_status(
     Path(id): Path<Uuid>,
     Json(req): Json<UpdatePostStatusRequest>,
 ) -> AppResult<Json<BlogPostResponse>> {
+    admin.require(&state.policy, "blog.post.publish")?;
     let existing = db::get_blog_post(&state.db, id)
         .await?
         .ok_or(AppError::NotFound("Post not found".to_string()))?;
@@ -564,10 +569,11 @@ pub(crate) async fn admin_update_post_status(
 )]
 pub(crate) async fn admin_autosave_post(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
     Path(id): Path<Uuid>,
     Json(req): Json<AutosaveRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "blog.post.update_any")?;
     db::autosave_blog_post(&state.db, id, &req).await?;
     Ok(Json(serde_json::json!({ "message": "Autosaved" })))
 }
@@ -624,6 +630,7 @@ pub(crate) async fn admin_restore_revision(
     client: ClientInfo,
     Path(path): Path<RevisionRestorePath>,
 ) -> AppResult<Json<BlogPostResponse>> {
+    admin.require(&state.policy, "blog.post.update_any")?;
     let existing = db::get_blog_post(&state.db, path.id)
         .await?
         .ok_or(AppError::NotFound("Post not found".to_string()))?;
@@ -718,6 +725,7 @@ pub(crate) async fn admin_create_category(
     client: ClientInfo,
     Json(req): Json<CreateCategoryRequest>,
 ) -> AppResult<Json<BlogCategory>> {
+    admin.require(&state.policy, "blog.category.manage")?;
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
     let cat = db::create_blog_category(&state.db, &req).await?;
@@ -755,6 +763,7 @@ pub(crate) async fn admin_update_category(
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateCategoryRequest>,
 ) -> AppResult<Json<BlogCategory>> {
+    admin.require(&state.policy, "blog.category.manage")?;
     let cat = db::update_blog_category(&state.db, id, &req).await?;
 
     audit_admin(
@@ -788,6 +797,7 @@ pub(crate) async fn admin_delete_category(
     client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "blog.category.manage")?;
     db::delete_blog_category(&state.db, id).await?;
 
     audit_admin(
@@ -834,6 +844,7 @@ pub(crate) async fn admin_create_tag(
     client: ClientInfo,
     Json(req): Json<CreateTagRequest>,
 ) -> AppResult<Json<BlogTag>> {
+    admin.require(&state.policy, "blog.category.manage")?;
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
     let tag = db::create_blog_tag(&state.db, &req).await?;
@@ -869,6 +880,7 @@ pub(crate) async fn admin_delete_tag(
     client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "blog.category.manage")?;
     db::delete_blog_tag(&state.db, id).await?;
 
     audit_admin(
@@ -929,6 +941,7 @@ pub(crate) async fn admin_upload_media(
     client: ClientInfo,
     mut multipart: Multipart,
 ) -> AppResult<Json<Media>> {
+    admin.require(&state.policy, "blog.media.upload")?;
     let api_url = &state.config.api_url;
 
     let mut file_data: Option<Vec<u8>> = None;
@@ -1084,6 +1097,7 @@ pub(crate) async fn admin_update_media(
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateMediaRequest>,
 ) -> AppResult<Json<Media>> {
+    admin.require(&state.policy, "blog.media.upload")?;
     let media = db::update_media(&state.db, id, &req).await?;
 
     audit_admin(
@@ -1119,6 +1133,7 @@ pub(crate) async fn admin_delete_media(
     client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "blog.media.delete_any")?;
     let media = db::delete_media(&state.db, id).await?;
 
     if let Some(m) = &media {
@@ -1343,6 +1358,7 @@ pub(crate) async fn admin_upsert_post_meta(
     Path(id): Path<Uuid>,
     Json(req): Json<UpsertPostMetaRequest>,
 ) -> AppResult<Json<PostMeta>> {
+    admin.require(&state.policy, "blog.post.update_any")?;
     let item = db::upsert_post_meta(&state.db, id, &req.meta_key, &req.meta_value).await?;
 
     audit_admin(
@@ -1382,6 +1398,7 @@ pub(crate) async fn admin_delete_post_meta(
     client: ClientInfo,
     Path((id, key)): Path<(Uuid, String)>,
 ) -> AppResult<axum::http::StatusCode> {
+    admin.require(&state.policy, "blog.post.update_any")?;
     db::delete_post_meta(&state.db, id, &key).await?;
 
     audit_admin(

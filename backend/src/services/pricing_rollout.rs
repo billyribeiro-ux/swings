@@ -13,8 +13,7 @@ use crate::{
         AdminStripeRolloutFailure, AdminStripeRolloutSummary, PricingPlan,
         PricingStripeRolloutAudience, Subscription, SubscriptionPlan,
     },
-    stripe_api,
-    AppState,
+    stripe_api, AppState,
 };
 
 pub(crate) fn subscription_cadence_for_plan(plan: &PricingPlan) -> AppResult<SubscriptionPlan> {
@@ -153,8 +152,7 @@ pub async fn rollout_after_plan_save(
 
     for (idx, row) in targets.iter().enumerate() {
         let key = format!("{}-rollout-{}-{}", admin_idempotency_key, catalog.id, idx);
-        match update_one_stripe_subscription(state, catalog, row, &key).await
-        {
+        match update_one_stripe_subscription(state, catalog, row, &key).await {
             Ok(()) => succeeded += 1,
             Err(e) => failed.push(AdminStripeRolloutFailure {
                 stripe_subscription_id: row.stripe_subscription_id.clone(),
