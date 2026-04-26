@@ -10,20 +10,13 @@
     meaning.
 -->
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
-
-	export interface EmptyStateProps {
-		title: string;
-		description?: string;
-		icon?: Snippet;
-		action?: Snippet;
-		/** Element used as the title tag. Defaults to h2. */
-		titleTag?: 'h1' | 'h2' | 'h3' | 'h4';
-	}
+	export type { EmptyStateProps } from './EmptyState.types';
 </script>
 
 <script lang="ts">
-	const { title, description, icon, action, titleTag = 'h2' }: EmptyStateProps = $props();
+	import type { EmptyStateProps as Props } from './EmptyState.types';
+
+	const { title, description, icon, action, titleTag = 'h2' }: Props = $props();
 </script>
 
 <div class="empty-state" role="status">

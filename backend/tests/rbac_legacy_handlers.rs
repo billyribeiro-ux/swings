@@ -166,6 +166,53 @@ async fn rbac_coupons_bulk_create_forbidden_for_support() {
     resp.assert_status(StatusCode::FORBIDDEN);
 }
 
+// ── coupons stats (Phase 4.5) ───────────────────────────────────────────
+//
+// The stats endpoint sits behind the strict `AdminUser` extractor + an
+// explicit `coupon.read_any` policy gate. Support is rejected at the
+// extractor (matches the rest of this file's pattern); admin is accepted
+// and the body shape is validated against the empty-database baseline so
+// regressions in the SQL aggregate surface here rather than as a runtime
+// 500 in the dashboard.
+
+#[tokio::test]
+async fn rbac_coupons_stats_forbidden_for_support() {
+    let Some(app) = TestApp::try_new().await else {
+        return;
+    };
+    let support = app.seed_support().await.expect("seed support");
+    let resp = app
+        .get("/api/admin/coupons/stats", Some(&support.access_token))
+        .await;
+    resp.assert_status(StatusCode::FORBIDDEN);
+}
+
+#[tokio::test]
+async fn admin_coupons_stats_happy_path() {
+    let Some(app) = TestApp::try_new().await else {
+        return;
+    };
+    let admin = app.seed_admin().await.expect("seed admin");
+    let resp = app
+        .get("/api/admin/coupons/stats", Some(&admin.access_token))
+        .await;
+    resp.assert_status(StatusCode::OK);
+    let body: serde_json::Value = resp.json().expect("decode stats body");
+    for key in [
+        "total",
+        "active",
+        "expired",
+        "scheduled",
+        "redemption_count",
+        "total_discount_cents",
+    ] {
+        assert!(
+            body.get(key).and_then(|v| v.as_i64()).is_some(),
+            "stats body missing i64 field {key}: {body}"
+        );
+    }
+}
+
 // ── popups ──────────────────────────────────────────────────────────────
 
 #[tokio::test]

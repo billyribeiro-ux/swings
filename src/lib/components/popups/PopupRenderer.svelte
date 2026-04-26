@@ -78,13 +78,14 @@
 	class:popup-floating--top={popup.popup_type === 'floating_bar' && popup.trigger_config?.position !== 'bottom'}
 >
 	{#if style.backdrop && (popup.popup_type === 'modal' || popup.popup_type === 'fullscreen')}
-		<button
+		<!-- The explicit `.popup-close` button + Escape key already provide
+		     keyboard dismissal; this backdrop is purely a click target. -->
+		<div
 			class="popup-backdrop"
 			style="background: {style.backdropColor || 'rgba(0,0,0,0.6)'}"
 			onclick={() => onclose?.()}
-			aria-label="Close popup"
-			tabindex="-1"
-		></button>
+			aria-hidden="true"
+		></div>
 	{/if}
 
 	<div

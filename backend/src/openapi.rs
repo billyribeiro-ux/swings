@@ -216,6 +216,7 @@ impl Modify for SecurityAddon {
         consent::admin_list_dsar,
         consent::admin_fulfill_dsar,
         // Coupons
+        coupons::admin_coupon_stats,
         coupons::admin_create_coupon,
         coupons::admin_update_coupon,
         coupons::admin_delete_coupon,
@@ -230,6 +231,10 @@ impl Modify for SecurityAddon {
         member::post_subscription_cancel,
         member::post_subscription_resume,
         member::update_progress,
+        // Member self-service (Phase 4.6)
+        member::post_change_password,
+        member::delete_account,
+        member::post_apply_coupon,
         // Outbox (FDN-04 admin ops)
         outbox::list_outbox,
         outbox::get_outbox,
@@ -447,6 +452,7 @@ impl Modify for SecurityAddon {
             crate::models::ValidateCouponRequest,
             crate::models::CouponValidationResponse,
             crate::models::BulkCouponRequest,
+            crate::models::CouponStats,
             // EC-11 coupon-engine DTOs
             coupons::UpdateCouponEngineRequest,
             coupons::CouponEngineView,
@@ -517,6 +523,11 @@ impl Modify for SecurityAddon {
             crate::models::MemberPaymentFailure,
             crate::models::MemberDetailResponse,
             member::UpdateProfileRequest,
+            // Member self-service DTOs (Phase 4.6)
+            member::ChangePasswordRequest,
+            member::ChangePasswordResponse,
+            member::ApplyCouponRequest,
+            member::ApplyCouponResponse,
             // Outbox DTOs (FDN-04)
             outbox::OutboxRowDto,
             outbox::OutboxRetryResponse,

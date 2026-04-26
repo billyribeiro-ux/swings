@@ -1459,6 +1459,29 @@ pub struct BulkCouponRequest {
     pub expires_at: Option<DateTime<Utc>>,
 }
 
+/// Aggregate counters for the admin coupons dashboard
+/// (`GET /api/admin/coupons/stats`).
+///
+/// Counts are non-overlapping in spirit but a coupon can satisfy multiple
+/// buckets (e.g. an inactive expired one); each metric is computed from its
+/// own predicate against the `coupons` / `coupon_usages` tables, so the sum
+/// of `active + expired + scheduled` is not guaranteed to equal `total`.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct CouponStats {
+    /// Count of all rows in `coupons`.
+    pub total: i64,
+    /// `is_active` AND now within `[starts_at, expires_at)`.
+    pub active: i64,
+    /// `expires_at` is non-null and in the past.
+    pub expired: i64,
+    /// `starts_at` is non-null and in the future.
+    pub scheduled: i64,
+    /// Count of all rows in `coupon_usages`.
+    pub redemption_count: i64,
+    /// Sum of `coupon_usages.discount_applied_cents` across every redemption.
+    pub total_discount_cents: i64,
+}
+
 // ── Popups ─────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]

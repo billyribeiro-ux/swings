@@ -13,24 +13,12 @@
     a fade-out transform.
 -->
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
-
-	export type ToastKind = 'info' | 'success' | 'warning' | 'danger';
-
-	export interface ToastProps {
-		id?: string;
-		kind?: ToastKind;
-		title: string;
-		description?: string;
-		/** Auto-dismiss after this many ms. `0` = persistent. Default 5000. */
-		duration?: number;
-		onclose?: (id?: string) => void;
-		icon?: Snippet;
-	}
+	export type { ToastKind, ToastProps } from './Toast.types';
 </script>
 
 <script lang="ts">
 	import type { Attachment } from 'svelte/attachments';
+	import type { ToastProps as Props } from './Toast.types';
 	import XIcon from 'phosphor-svelte/lib/XIcon';
 	import InfoIcon from 'phosphor-svelte/lib/InfoIcon';
 	import CheckCircleIcon from 'phosphor-svelte/lib/CheckCircleIcon';
@@ -45,7 +33,7 @@
 		duration = 5000,
 		onclose,
 		icon
-	}: ToastProps = $props();
+	}: Props = $props();
 
 	const liveRole = $derived(kind === 'danger' ? 'alert' : 'status');
 	const livePoliteness = $derived(kind === 'danger' ? 'assertive' : 'polite');

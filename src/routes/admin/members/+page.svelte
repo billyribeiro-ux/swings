@@ -995,6 +995,13 @@
 		background-color: rgba(239, 68, 68, 0.2);
 	}
 
+	@media (max-width: 767px) {
+		.member-card__btn {
+			min-height: 2.75rem;
+			min-width: 2.75rem;
+		}
+	}
+
 	.members-page__pagination {
 		display: flex;
 		align-items: center;

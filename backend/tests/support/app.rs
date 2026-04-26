@@ -810,8 +810,14 @@ fn build_router(state: &AppState) -> Router<()> {
         .nest("/api/pricing", pricing::public_router())
         .nest("/api/coupons", coupons::public_router())
         .nest("/api/popups", popups::public_router())
-        // Member routes
-        .nest("/api/member", member::router())
+        // Member routes — Phase 4.6 idempotency layer mirrors `main.rs`.
+        .nest(
+            "/api/member",
+            member::router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
         .nest("/api/member", courses::member_router())
         .nest("/api/member", notifications::member_router())
         // Webhooks

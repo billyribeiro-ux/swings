@@ -10,27 +10,15 @@
     `bottom-end` in RTL == bottom-left.
 -->
 <script lang="ts" module>
-	export type ToastRegionPosition =
-		| 'top-start'
-		| 'top-end'
-		| 'top-center'
-		| 'bottom-start'
-		| 'bottom-end'
-		| 'bottom-center';
-
-	export interface ToastRegionProps {
-		position?: ToastRegionPosition;
-		/** Optional custom store — defaults to the shared `toasts` instance. */
-		store?: ToastStore;
-		label?: string;
-	}
+	export type { ToastRegionPosition, ToastRegionProps } from './ToastRegion.types';
 </script>
 
 <script lang="ts">
 	import Toast from './Toast.svelte';
-	import { toasts as defaultStore, ToastStore } from '$lib/stores/toasts.svelte';
+	import { toasts as defaultStore } from '$lib/stores/toasts.svelte';
+	import type { ToastRegionProps as Props } from './ToastRegion.types';
 
-	const { position = 'bottom-end', store = defaultStore, label = 'Notifications' }: ToastRegionProps =
+	const { position = 'bottom-end', store = defaultStore, label = 'Notifications' }: Props =
 		$props();
 </script>
 

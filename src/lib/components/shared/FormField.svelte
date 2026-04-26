@@ -14,25 +14,12 @@
   callers spread / pass through to the underlying control.
 -->
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
-
-	export interface FormFieldChildContext {
-		describedBy: string | undefined;
-		invalid: boolean;
-		required: boolean;
-	}
-
-	export interface FormFieldProps {
-		for: string;
-		label: string;
-		description?: string;
-		error?: string;
-		required?: boolean;
-		children: Snippet<[FormFieldChildContext]>;
-	}
+	export type { FormFieldChildContext, FormFieldProps } from './FormField.types';
 </script>
 
 <script lang="ts">
+	import type { FormFieldProps as Props } from './FormField.types';
+
 	const {
 		for: forId,
 		label,
@@ -40,7 +27,7 @@
 		error,
 		required = false,
 		children
-	}: FormFieldProps = $props();
+	}: Props = $props();
 
 	const descriptionId = $derived(description ? `${forId}-desc` : undefined);
 	const errorId = $derived(error ? `${forId}-err` : undefined);

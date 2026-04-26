@@ -1,9 +1,10 @@
 //! Stripe API helpers (billing portal, subscription updates).
 
 use stripe_rust::{
-    Address, BillingPortalSession, CancelSubscription, Client, CreateBillingPortalSession,
-    CreatePaymentIntent, CreatePaymentIntentAutomaticPaymentMethods, Currency, Customer,
-    CustomerId, PaymentIntent, Subscription, SubscriptionId, UpdateCustomer, UpdateSubscription,
+    Address, BillingPortalSession, CancelSubscription, Client, CouponId,
+    CreateBillingPortalSession, CreatePaymentIntent, CreatePaymentIntentAutomaticPaymentMethods,
+    Currency, Customer, CustomerId, PaymentIntent, Subscription, SubscriptionId, UpdateCustomer,
+    UpdateSubscription,
 };
 
 use crate::{
@@ -156,6 +157,38 @@ pub async fn update_customer_address(
     params.phone = phone;
 
     Customer::update(&c, &customer, params)
+        .await
+        .map_err(map_stripe)?;
+
+    Ok(())
+}
+
+/// Phase 4.6: attach a Stripe coupon to an existing subscription so the
+/// next invoice picks the discount up automatically.
+///
+/// `stripe_coupon_id` is the value stored on `coupons.stripe_coupon_id`
+/// when an admin authored the coupon — locally-only coupons (no Stripe
+/// twin) cannot be applied to a Stripe subscription, and the caller is
+/// expected to short-circuit before reaching this helper. Stripe accepts
+/// arbitrary user-defined ids for coupons (see `CouponId`'s docstring),
+/// so we forward the string verbatim.
+pub async fn apply_coupon_to_subscription(
+    state: &AppState,
+    stripe_subscription_id: &str,
+    stripe_coupon_id: &str,
+) -> AppResult<()> {
+    let c = client(state)?;
+    let sid: SubscriptionId = stripe_subscription_id
+        .parse()
+        .map_err(|_| AppError::BadRequest("Invalid Stripe subscription id".to_string()))?;
+    let coupon: CouponId = stripe_coupon_id
+        .parse()
+        .map_err(|_| AppError::BadRequest("Invalid Stripe coupon id".to_string()))?;
+
+    let mut params = UpdateSubscription::new();
+    params.coupon = Some(coupon);
+
+    Subscription::update(&c, &sid, params)
         .await
         .map_err(map_stripe)?;
 

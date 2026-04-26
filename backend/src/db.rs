@@ -2619,6 +2619,44 @@ pub async fn analytics_totals(
     Ok(row)
 }
 
+// ── Coupons (admin dashboard aggregate) ───────────────────────────────────
+
+/// Single round-trip aggregation for the admin coupons dashboard. Counts the
+/// `coupons` table by lifecycle bucket (`active`, `expired`, `scheduled`)
+/// and sums `coupon_usages` for the global redemption + dollar-value totals.
+/// Returns zeros when no rows exist so the handler never has to special-case
+/// an empty database.
+pub async fn coupon_stats(pool: &PgPool) -> Result<CouponStats, sqlx::Error> {
+    let row: (i64, i64, i64, i64, i64, i64) = sqlx::query_as(
+        r#"
+        SELECT
+            (SELECT COUNT(*) FROM coupons)::bigint                      AS total,
+            (SELECT COUNT(*) FROM coupons
+                WHERE is_active = TRUE
+                  AND (starts_at IS NULL OR starts_at <= NOW())
+                  AND (expires_at IS NULL OR expires_at >  NOW()))::bigint AS active,
+            (SELECT COUNT(*) FROM coupons
+                WHERE expires_at IS NOT NULL AND expires_at < NOW())::bigint AS expired,
+            (SELECT COUNT(*) FROM coupons
+                WHERE starts_at IS NOT NULL AND starts_at > NOW())::bigint AS scheduled,
+            (SELECT COUNT(*) FROM coupon_usages)::bigint                AS redemption_count,
+            (SELECT COALESCE(SUM(discount_applied_cents), 0)
+                FROM coupon_usages)::bigint                              AS total_discount_cents
+        "#,
+    )
+    .fetch_one(pool)
+    .await?;
+
+    Ok(CouponStats {
+        total: row.0,
+        active: row.1,
+        expired: row.2,
+        scheduled: row.3,
+        redemption_count: row.4,
+        total_discount_cents: row.5,
+    })
+}
+
 // ── Popups (collection-level analytics) ───────────────────────────────────
 
 /// Per-popup roll-up of impression / close / submit counts and the

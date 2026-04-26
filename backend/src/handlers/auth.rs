@@ -87,7 +87,7 @@ fn clear_session_cookie(name: &'static str, is_production: bool) -> Cookie<'stat
 /// the axum response tuple. We append (rather than insert) because a single
 /// HTTP response may carry multiple `Set-Cookie` lines and `insert` would
 /// silently replace.
-fn auth_cookie_headers(
+pub(crate) fn auth_cookie_headers(
     state: &AppState,
     access_token: &str,
     refresh_token: &str,
@@ -123,7 +123,7 @@ fn auth_cookie_headers(
 }
 
 /// Build deletion `Set-Cookie` headers for both halves of the session.
-fn clear_auth_cookie_headers(state: &AppState) -> AppResult<HeaderMap> {
+pub(crate) fn clear_auth_cookie_headers(state: &AppState) -> AppResult<HeaderMap> {
     let prod = state.config.is_production();
     let access = clear_session_cookie(COOKIE_ACCESS, prod);
     let refresh = clear_session_cookie(COOKIE_REFRESH, prod);
@@ -806,7 +806,10 @@ async fn issue_email_verification(state: &AppState, user: &User) -> AppResult<()
     Ok(())
 }
 
-async fn generate_tokens(state: &AppState, user: &User) -> AppResult<(String, String)> {
+pub(crate) async fn generate_tokens(
+    state: &AppState,
+    user: &User,
+) -> AppResult<(String, String)> {
     let now = Utc::now();
 
     let claims = Claims {

@@ -30,6 +30,9 @@ pub fn admin_router() -> Router<AppState> {
         .route("/", get(admin_list_coupons))
         .route("/", post(admin_create_coupon))
         .route("/bulk", post(admin_bulk_create_coupons))
+        // Literal `/stats` MUST be registered before `/{id}` so axum matches
+        // it before treating "stats" as a UUID path parameter.
+        .route("/stats", get(admin_coupon_stats))
         .route("/{id}", get(admin_get_coupon))
         .route("/{id}", put(admin_update_coupon))
         .route("/{id}", delete(admin_delete_coupon))
@@ -615,6 +618,26 @@ pub(crate) async fn admin_create_coupon(
     .await;
 
     Ok(Json(coupon))
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/admin/coupons/stats",
+    tag = "coupons",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Coupon dashboard aggregates", body = CouponStats),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub(crate) async fn admin_coupon_stats(
+    State(state): State<AppState>,
+    admin: AdminUser,
+) -> AppResult<Json<CouponStats>> {
+    admin.require(&state.policy, "coupon.read_any")?;
+    let stats = crate::db::coupon_stats(&state.db).await?;
+    Ok(Json(stats))
 }
 
 async fn admin_get_coupon(

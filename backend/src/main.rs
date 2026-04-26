@@ -685,7 +685,19 @@ async fn main() -> Result<()> {
         .nest("/api/consent", handlers::consent::public_router())
         .nest("/api/dsar", handlers::consent::public_dsar_router())
         // Member routes
-        .nest("/api/member", handlers::member::router())
+        // Phase 4.6: gate the member surface with the ADM-15 idempotency
+        // middleware so the new self-service POST/DELETE endpoints
+        // (password / account / coupon-apply) get the same retry
+        // semantics as the admin tree. The middleware is a no-op for
+        // requests without `Idempotency-Key`, so the existing GET-only
+        // routes still pass through unchanged.
+        .nest(
+            "/api/member",
+            handlers::member::router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
         .nest("/api/member", handlers::courses::member_router())
         .nest("/api/member", handlers::notifications::member_router())
         // Webhooks

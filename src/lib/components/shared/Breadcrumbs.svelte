@@ -12,21 +12,13 @@
     points in the reading direction.
 -->
 <script lang="ts" module>
-	export interface BreadcrumbItem {
-		label: string;
-		href?: string;
-	}
-
-	export interface BreadcrumbsProps {
-		items: BreadcrumbItem[];
-		'aria-label'?: string;
-	}
+	export type { BreadcrumbItem, BreadcrumbsProps } from './Breadcrumbs.types';
 </script>
 
 <script lang="ts">
-	// svelte/no-unused-props mis-reports aliased destructuring; the alias IS used below.
-	// eslint-disable-next-line svelte/no-unused-props
-	const { items, 'aria-label': ariaLabel = 'Breadcrumb' }: BreadcrumbsProps = $props();
+	import type { BreadcrumbsProps as Props } from './Breadcrumbs.types';
+
+	const { items, 'aria-label': ariaLabel = 'Breadcrumb' }: Props = $props();
 </script>
 
 {#if items.length > 0}

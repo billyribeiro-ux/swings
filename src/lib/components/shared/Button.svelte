@@ -12,34 +12,12 @@
     container so the visible label remains the accessible name.
 -->
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
-	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements';
-
-	export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'danger' | 'ghost' | 'link';
-	export type ButtonSize = 'sm' | 'md' | 'lg';
-
-	export interface ButtonProps {
-		variant?: ButtonVariant;
-		size?: ButtonSize;
-		/** Render as `<a>` when set. Otherwise `<button>`. */
-		href?: string;
-		type?: HTMLButtonAttributes['type'];
-		target?: HTMLAnchorAttributes['target'];
-		rel?: HTMLAnchorAttributes['rel'];
-		disabled?: boolean;
-		loading?: boolean;
-		fullWidth?: boolean;
-		onclick?: (e: MouseEvent) => void;
-		iconLeading?: Snippet;
-		iconTrailing?: Snippet;
-		children: Snippet;
-		/** Accessible label when the button has no visible text (icon-only). */
-		'aria-label'?: string;
-	}
+	export type { ButtonProps, ButtonSize, ButtonVariant } from './Button.types';
 </script>
 
 <script lang="ts">
 	import Spinner from './Spinner.svelte';
+	import type { ButtonProps as Props } from './Button.types';
 
 	const {
 		variant = 'primary',
@@ -56,7 +34,7 @@
 		iconTrailing,
 		children,
 		'aria-label': ariaLabel
-	}: ButtonProps = $props();
+	}: Props = $props();
 
 	const isInactive = $derived(disabled || loading);
 	// Auto-assign `rel="noopener noreferrer"` for _blank anchors if unset.

@@ -829,6 +829,13 @@
 		border-color: rgba(239, 68, 68, 0.4);
 	}
 
+	@media (max-width: 767px) {
+		.icon-btn {
+			min-width: 2.75rem;
+			min-height: 2.75rem;
+		}
+	}
+
 	.action-btn {
 		display: inline-flex;
 		align-items: center;

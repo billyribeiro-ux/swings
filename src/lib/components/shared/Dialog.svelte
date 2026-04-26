@@ -12,24 +12,7 @@
   - Backdrop click closes by default (`closeOnBackdrop = true`).
 -->
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
-
-	export type DialogSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
-
-	export interface DialogProps {
-		open: boolean;
-		onclose?: () => void;
-		title: string;
-		description?: string;
-		size?: DialogSize;
-		/** Close when the backdrop is clicked. Default `true`. */
-		closeOnBackdrop?: boolean;
-		/** Close when Escape is pressed. Default `true`. */
-		closeOnEscape?: boolean;
-		children: Snippet;
-		/** Optional footer snippet (rendered in a flex footer row). */
-		footer?: Snippet;
-	}
+	export type { DialogProps, DialogSize } from './Dialog.types';
 
 	const FOCUSABLE_SELECTOR = [
 		'a[href]',
@@ -50,6 +33,7 @@
 
 <script lang="ts">
 	import type { Attachment } from 'svelte/attachments';
+	import type { DialogProps as Props } from './Dialog.types';
 
 	let {
 		open = $bindable(false),
@@ -61,7 +45,7 @@
 		closeOnEscape = true,
 		children,
 		footer
-	}: DialogProps = $props();
+	}: Props = $props();
 
 	const titleId = nextId('dialog-title');
 	const descId = nextId('dialog-desc');

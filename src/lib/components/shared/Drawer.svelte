@@ -9,23 +9,7 @@
   ESC close, inert background, aria-labelledby/describedby).
 -->
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
-
-	export type DrawerPosition = 'start' | 'end' | 'top' | 'bottom';
-	export type DrawerSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
-
-	export interface DrawerProps {
-		open: boolean;
-		onclose?: () => void;
-		title: string;
-		description?: string;
-		size?: DrawerSize;
-		position?: DrawerPosition;
-		closeOnBackdrop?: boolean;
-		closeOnEscape?: boolean;
-		children: Snippet;
-		footer?: Snippet;
-	}
+	export type { DrawerPosition, DrawerProps, DrawerSize } from './Drawer.types';
 
 	const FOCUSABLE_SELECTOR = [
 		'a[href]',
@@ -46,6 +30,7 @@
 
 <script lang="ts">
 	import type { Attachment } from 'svelte/attachments';
+	import type { DrawerProps as Props } from './Drawer.types';
 
 	let {
 		open = $bindable(false),
@@ -58,7 +43,7 @@
 		closeOnEscape = true,
 		children,
 		footer
-	}: DrawerProps = $props();
+	}: Props = $props();
 
 	const titleId = nextId('drawer-title');
 	const descId = nextId('drawer-desc');

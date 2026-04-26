@@ -13,31 +13,13 @@
     suffix "Completed" so AT users know the state.
 -->
 <script lang="ts" module>
-	export interface StepperStep {
-		id: string;
-		label: string;
-		description?: string;
-	}
-
-	export interface StepperProps {
-		steps: StepperStep[];
-		/** Id of the current (active) step. */
-		current: string;
-		/** Ids that have been completed (supports out-of-order flows). */
-		completed?: string[];
-		orientation?: 'horizontal' | 'vertical';
-		/** When true, renders each step as a focusable button and fires `onselect`. */
-		interactive?: boolean;
-		onselect?: (id: string) => void;
-		'aria-label'?: string;
-	}
+	export type { StepperProps, StepperStep } from './Stepper.types';
 </script>
 
 <script lang="ts">
 	import CheckIcon from 'phosphor-svelte/lib/CheckIcon';
+	import type { StepperProps as Props } from './Stepper.types';
 
-	// svelte/no-unused-props mis-reports aliased destructuring; `ariaLabel` IS used below.
-	// eslint-disable-next-line svelte/no-unused-props
 	const {
 		steps,
 		current,
@@ -46,7 +28,7 @@
 		interactive = false,
 		onselect,
 		'aria-label': ariaLabel = 'Progress'
-	}: StepperProps = $props();
+	}: Props = $props();
 
 	const completedSet = $derived(new Set(completed));
 	const currentIndex = $derived(steps.findIndex((s) => s.id === current));
