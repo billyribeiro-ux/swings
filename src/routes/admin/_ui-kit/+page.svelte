@@ -5,11 +5,17 @@
   The leading underscore in the route segment is a convention signalling
   "internal" — this page is NOT part of the public nav.
 
-  TODO (FDN-07 authz gate): when the authz middleware lands, gate this
-  route behind `requires: ['admin']` so it cannot reach production.
+  Authz: gated by the admin shell in `src/routes/admin/+layout.svelte` —
+  the layout's `{:else}` branch only renders children when
+  `auth.isAuthenticated && auth.isAdmin && adminSessionReady`, so non-admin
+  visitors see the admin login form instead of this preview surface. The
+  in-page `$effect` below adds a defense-in-depth redirect in case the
+  layout gate is ever lifted.
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { auth } from '$lib/stores/auth.svelte';
 	import PackageIcon from 'phosphor-svelte/lib/PackageIcon';
 	import ArrowRightIcon from 'phosphor-svelte/lib/ArrowRightIcon';
 	import DownloadIcon from 'phosphor-svelte/lib/DownloadIcon';
@@ -29,6 +35,14 @@
 		VisuallyHidden
 	} from '$lib/components/shared';
 	import { toasts } from '$lib/stores/toasts.svelte';
+
+	// Defense-in-depth: if a future refactor lifts the admin-shell gate,
+	// this redirect still keeps the dev preview off the public surface.
+	$effect(() => {
+		if (!auth.loading && !auth.isAdmin) {
+			void goto('/admin', { replaceState: true });
+		}
+	});
 
 	let dialogOpen = $state(false);
 	let drawerOpen = $state(false);

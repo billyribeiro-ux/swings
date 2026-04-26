@@ -257,7 +257,10 @@ mod tests {
         assert!(segments[2].chars().all(|c| c.is_ascii_digit()));
         // Filename half: 8-char id + dash + sanitized name.
         let tail = segments[3];
-        assert!(tail.contains("-photo.jpg"), "tail without sanitized name: {tail}");
+        assert!(
+            tail.contains("-photo.jpg"),
+            "tail without sanitized name: {tail}"
+        );
         let id_part = tail.split('-').next().expect("split before dash");
         assert_eq!(id_part.len(), 8);
     }
@@ -307,7 +310,10 @@ mod tests {
             "ak",
             "sk",
         );
-        assert_eq!(s.public_url_for_key("foo.png"), "https://cdn.example.test/foo.png");
+        assert_eq!(
+            s.public_url_for_key("foo.png"),
+            "https://cdn.example.test/foo.png"
+        );
     }
 
     #[test]

@@ -4,15 +4,29 @@
   Intended for development use only. Reachable at `/admin/_consent-preview`.
   Matches the pattern set by `/admin/_ui-kit`.
 
-  TODO (FDN-07 authz gate): gate this route behind `requires: ['admin']`
-  once CONSENT-07 admin RBAC is live so it cannot reach production.
+  Authz: gated by the admin shell in `src/routes/admin/+layout.svelte` —
+  the layout's `{:else}` branch only renders children when
+  `auth.isAuthenticated && auth.isAdmin && adminSessionReady`, so non-admin
+  visitors see the admin login form instead of this preview surface. The
+  in-page `$effect` below adds a defense-in-depth redirect in case the
+  layout gate is ever lifted.
 -->
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { auth } from '$lib/stores/auth.svelte';
 	import { consent } from '$lib/stores/consent.svelte';
 	import ConsentBanner from '$lib/components/consent/ConsentBanner.svelte';
 	import ConsentGate from '$lib/components/consent/ConsentGate.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
 	import { STUB_BANNER_CONFIG, type BannerConfig } from '$lib/api/consent';
+
+	// Defense-in-depth: if a future refactor lifts the admin-shell gate,
+	// this redirect still keeps the dev preview off the public surface.
+	$effect(() => {
+		if (!auth.loading && !auth.isAdmin) {
+			void goto('/admin', { replaceState: true });
+		}
+	});
 
 	// One config per layout variant so all three render at once.
 	const barConfig = $derived<BannerConfig>({ ...STUB_BANNER_CONFIG, layout: 'bar' });
