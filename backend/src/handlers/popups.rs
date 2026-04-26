@@ -28,6 +28,11 @@ pub fn admin_router() -> Router<AppState> {
     Router::new()
         .route("/", get(admin_list_popups))
         .route("/", post(admin_create_popup))
+        // CRITICAL: literal `/analytics` MUST be registered before
+        // `/{id}/analytics` so axum's path-matcher prefers the literal
+        // route. Otherwise it tries to parse the string "analytics" as a
+        // UUID and the request fails with 400.
+        .route("/analytics", get(admin_list_analytics))
         .route("/{id}", get(admin_get_popup))
         .route("/{id}", put(admin_update_popup))
         .route("/{id}", delete(admin_delete_popup))
@@ -662,6 +667,25 @@ async fn admin_list_submissions(
         per_page,
         total_pages,
     }))
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/admin/popups/analytics",
+    tag = "popups",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Per-popup analytics roll-up", body = Vec<PopupAnalyticsSummary>),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub(crate) async fn admin_list_analytics(
+    State(state): State<AppState>,
+    admin: AdminUser,
+) -> AppResult<Json<Vec<PopupAnalyticsSummary>>> {
+    admin.require(&state.policy, "popup.read_analytics")?;
+    let rows = crate::db::list_popup_analytics_summaries(&state.db).await?;
+    Ok(Json(rows))
 }
 
 async fn admin_get_analytics(

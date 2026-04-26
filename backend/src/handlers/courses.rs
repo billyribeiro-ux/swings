@@ -19,21 +19,21 @@ use crate::{
 
 pub fn admin_router() -> Router<AppState> {
     Router::new()
-        .route("/courses", get(admin_list_courses).post(create_course))
+        .route("/", get(admin_list_courses).post(create_course))
         .route(
-            "/courses/{id}",
+            "/{id}",
             get(admin_get_course)
                 .put(update_course)
                 .delete(delete_course),
         )
-        .route("/courses/{id}/publish", post(toggle_publish))
-        .route("/courses/{id}/modules", post(create_module))
+        .route("/{id}/publish", post(toggle_publish))
+        .route("/{id}/modules", post(create_module))
         .route(
-            "/courses/{course_id}/modules/{module_id}",
+            "/{course_id}/modules/{module_id}",
             put(update_module).delete(delete_module),
         )
         .route(
-            "/courses/{course_id}/modules/{module_id}/lessons",
+            "/{course_id}/modules/{module_id}/lessons",
             post(create_lesson),
         )
         .route(
@@ -44,8 +44,8 @@ pub fn admin_router() -> Router<AppState> {
 
 pub fn public_router() -> Router<AppState> {
     Router::new()
-        .route("/courses", get(public_list_courses))
-        .route("/courses/{slug}", get(public_get_course))
+        .route("/", get(public_list_courses))
+        .route("/{slug}", get(public_get_course))
 }
 
 pub fn member_router() -> Router<AppState> {

@@ -127,7 +127,7 @@ async fn idempotency_courses_create_replay_returns_cached_row() {
     let body = json!({ "title": "Idempotent course", "slug": slug });
     post_twice_assert_cached(
         &app,
-        "/api/admin/courses/courses",
+        "/api/admin/courses",
         &body,
         &admin.access_token,
         "idem-courses-key-1",
@@ -157,7 +157,7 @@ async fn idempotency_coupons_create_replay_returns_cached_row() {
     });
     post_twice_assert_cached(
         &app,
-        "/api/admin/coupons/coupons",
+        "/api/admin/coupons",
         &body,
         &admin.access_token,
         "idem-coupons-key-1",
@@ -214,7 +214,7 @@ async fn idempotency_products_create_replay_returns_cached_row() {
     });
     post_twice_assert_cached(
         &app,
-        "/api/admin/products/products",
+        "/api/admin/products",
         &body,
         &admin.access_token,
         "idem-products-key-1",

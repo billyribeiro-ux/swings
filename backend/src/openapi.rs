@@ -150,6 +150,8 @@ impl Modify for SecurityAddon {
         admin_members::search,
         admin_members::create,
         // Admin subscriptions (ADM-11)
+        admin_subscriptions::list,
+        admin_subscriptions::stats,
         admin_subscriptions::by_user,
         admin_subscriptions::comp_grant,
         admin_subscriptions::extend_period,
@@ -259,6 +261,7 @@ impl Modify for SecurityAddon {
         popups::admin_delete_popup,
         popups::admin_toggle_popup,
         popups::admin_duplicate_popup,
+        popups::admin_list_analytics,
         popups::public_track_event,
         popups::public_submit_form,
         // Pricing
@@ -366,6 +369,9 @@ impl Modify for SecurityAddon {
             admin_subscriptions::CycleOverrideResponse,
             admin_subscriptions::MembershipRow,
             admin_subscriptions::UserSubscriptionView,
+            admin_subscriptions::SubscriptionRow,
+            admin_subscriptions::SubscriptionStats,
+            admin_subscriptions::PaginatedSubscriptionsResponse,
             // Admin orders (ADM-12)
             admin_orders::OrderListEnvelope,
             admin_orders::OrderDetail,
@@ -495,6 +501,7 @@ impl Modify for SecurityAddon {
             crate::models::PopupSubmission,
             crate::models::PopupSubmitRequest,
             crate::models::PopupAnalytics,
+            crate::models::PopupAnalyticsSummary,
             popups::TrackEventRequest,
             // Pagination + analytics
             crate::models::PaginationParams,

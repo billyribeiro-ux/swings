@@ -4372,6 +4372,37 @@
         ]
       }
     },
+    "/api/admin/popups/analytics": {
+      "get": {
+        "tags": [
+          "popups"
+        ],
+        "operationId": "admin_list_analytics",
+        "responses": {
+          "200": {
+            "description": "Per-popup analytics roll-up",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PopupAnalyticsSummary"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/admin/popups/{id}": {
       "put": {
         "tags": [
@@ -6014,6 +6045,104 @@
         ]
       }
     },
+    "/api/admin/subscriptions": {
+      "get": {
+        "tags": [
+          "admin-subscriptions"
+        ],
+        "operationId": "admin_subscriptions_list",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "1-based page number. Defaults to 1.",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "Page size. Capped to 100 to keep the join + count cheap.",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Case-insensitive substring against `users.email`.",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "One of `active|past_due|canceled|trialing|unpaid|paused`.",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "plan",
+            "in": "query",
+            "description": "One of `monthly|annual`.",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated subscriptions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedSubscriptionsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid filter value"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/admin/subscriptions/by-user/{user_id}": {
       "get": {
         "tags": [
@@ -6098,6 +6227,37 @@
           },
           "404": {
             "description": "Member or plan not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/subscriptions/stats": {
+      "get": {
+        "tags": [
+          "admin-subscriptions"
+        ],
+        "operationId": "admin_subscriptions_stats",
+        "responses": {
+          "200": {
+            "description": "Subscription KPIs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionStats"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
           }
         },
         "security": [
@@ -13380,6 +13540,41 @@
           }
         }
       },
+      "PaginatedSubscriptionsResponse": {
+        "type": "object",
+        "description": "OpenAPI wrapper carrying the concrete `PaginatedResponse<SubscriptionRow>`\nshape so the snapshot doesn't leak the generic into `ApiDoc`.",
+        "required": [
+          "data",
+          "total",
+          "page",
+          "per_page",
+          "total_pages"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionRow"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "per_page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total_pages": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "PaginatedSuppressionResponse": {
         "type": "object",
         "required": [
@@ -13815,6 +14010,51 @@
             "format": "int64"
           },
           "total_submissions": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "conversion_rate": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PopupAnalyticsSummary": {
+        "type": "object",
+        "description": "Per-popup summary row returned by `GET /api/admin/popups/analytics`.\n\nDistinct from [`PopupAnalytics`] (the single-popup detail view) because\nthe collection endpoint also exposes `popup_type` / `is_active` so the\nadmin index can render a roster without a second round-trip.",
+        "required": [
+          "popup_id",
+          "popup_name",
+          "popup_type",
+          "is_active",
+          "impressions",
+          "closes",
+          "submits",
+          "conversion_rate"
+        ],
+        "properties": {
+          "popup_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "popup_name": {
+            "type": "string"
+          },
+          "popup_type": {
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "impressions": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "closes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "submits": {
             "type": "integer",
             "format": "int64"
           },
@@ -15098,6 +15338,152 @@
           "Monthly",
           "Annual"
         ]
+      },
+      "SubscriptionRow": {
+        "type": "object",
+        "description": "One subscription row in the admin list response.\n\nField naming intentionally tracks the SvelteKit consumer at\n`src/routes/admin/subscriptions/+page.svelte` (which binds to\n`member_id` / `member_name` / `member_email` / `plan_name` /\n`interval` / `amount_cents` / `start_date` / `next_renewal`) so the\nexisting page renders without any frontend changes.",
+        "required": [
+          "id",
+          "member_id",
+          "member_name",
+          "member_email",
+          "stripe_subscription_id",
+          "stripe_customer_id",
+          "plan",
+          "plan_name",
+          "interval",
+          "status",
+          "amount_cents",
+          "start_date",
+          "cancel_at_period_end"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Subscription primary key."
+          },
+          "member_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Member id — frontend route key for `/admin/members/{id}`."
+          },
+          "member_name": {
+            "type": "string"
+          },
+          "member_email": {
+            "type": "string"
+          },
+          "stripe_subscription_id": {
+            "type": "string"
+          },
+          "stripe_customer_id": {
+            "type": "string"
+          },
+          "plan": {
+            "type": "string",
+            "description": "Plan cadence (`monthly` / `annual`) — what `subscriptions.plan` stores."
+          },
+          "plan_name": {
+            "type": "string",
+            "description": "Human plan name from `pricing_plans.name`, or the cadence label\nwhen no `pricing_plans` row is linked."
+          },
+          "interval": {
+            "type": "string",
+            "description": "`month` for monthly subscriptions, `year` for annual — matches\nthe `pricing_plans.interval` vocabulary the frontend expects."
+          },
+          "status": {
+            "type": "string",
+            "description": "Lowercase enum label (`active|past_due|canceled|trialing|unpaid|paused`)."
+          },
+          "amount_cents": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Per-row price in cents. Falls back to the public catalog default\nwhen the subscription has no `pricing_plan_id`."
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "`subscriptions.created_at` — when the subscription was first recorded."
+          },
+          "next_renewal": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "`subscriptions.current_period_end` while live; `null` once\ncanceled (no further renewal expected)."
+          },
+          "cancel_at_period_end": {
+            "type": "boolean",
+            "description": "`true` when `subscriptions.cancel_at` is set — the subscription\nwill end at `current_period_end` without further renewal."
+          },
+          "canceled_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "SubscriptionStats": {
+        "type": "object",
+        "description": "Aggregate counters for the subscriptions overview KPIs.\n\n`monthly_count` / `annual_count` mirror what the frontend page binds\nto today; the additional status counts and `arr_cents` are surfaced\nfor upstream tooling and future KPI cards.",
+        "required": [
+          "total_active",
+          "monthly_count",
+          "annual_count",
+          "trialing",
+          "past_due",
+          "canceled",
+          "unpaid",
+          "paused",
+          "mrr_cents",
+          "arr_cents"
+        ],
+        "properties": {
+          "total_active": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "monthly_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "annual_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "trialing": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "past_due": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "canceled": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "unpaid": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "paused": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "mrr_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "arr_cents": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
       },
       "SubscriptionStatus": {
         "type": "string",

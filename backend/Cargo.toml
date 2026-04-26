@@ -68,7 +68,7 @@ regex = "1"
 url = "2"
 
 # R2 (S3 API)
-aws-sdk-s3 = { version = "1", default-features = false, features = ["rt-tokio", "rustls"] }
+aws-sdk-s3 = { version = "1.120", default-features = false, features = ["rt-tokio", "default-https-client"] }
 bytes = "1"
 
 # FORM-05: magic-number MIME sniffing on the first 512 B of an upload.

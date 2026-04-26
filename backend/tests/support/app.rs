@@ -419,6 +419,98 @@ impl TestApp {
         }
     }
 
+    /// BFF (Phase 1.4): POST a JSON body whose ONLY auth carrier is the
+    /// `swings_access` cookie, plus an `Idempotency-Key` header. Used by
+    /// the cookie-carry coverage for the ADM-15 idempotency middleware to
+    /// prove the cookie path mints a stable cache key (the bug that
+    /// motivated the fix made the middleware silently bypass caching for
+    /// every cookie-only SPA request).
+    pub async fn post_json_with_cookie_and_idempotency_key<B: Serialize + ?Sized>(
+        &self,
+        path: &str,
+        body: &B,
+        cookie_name: &str,
+        cookie_value: &str,
+        key: &str,
+    ) -> TestResponse {
+        let cookie_header = format!("{cookie_name}={cookie_value}");
+        let result = self
+            .request_inner_with_cookie_and_extra(
+                Method::POST,
+                path,
+                Some(body),
+                None,
+                Some(&cookie_header),
+                Some(("idempotency-key", key)),
+            )
+            .await;
+        match result {
+            Ok(resp) => resp,
+            Err(e) => panic!("TestApp dispatch failed: {e}"),
+        }
+    }
+
+    async fn request_inner_with_cookie_and_extra<B: Serialize + ?Sized>(
+        &self,
+        method: Method,
+        path: &str,
+        body: Option<&B>,
+        auth: Option<&str>,
+        cookie: Option<&str>,
+        extra: Option<(&str, &str)>,
+    ) -> TestResult<TestResponse> {
+        let mut builder = Request::builder()
+            .method(method)
+            .uri(path)
+            .header("X-Forwarded-For", self.client_ip.as_str());
+
+        if let Some(token) = auth {
+            builder = builder.header(
+                header::AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {token}"))
+                    .map_err(|e| TestAppError::Http(format!("build auth header: {e}")))?,
+            );
+        }
+
+        if let Some(cookie_value) = cookie {
+            builder = builder.header(
+                header::COOKIE,
+                HeaderValue::from_str(cookie_value)
+                    .map_err(|e| TestAppError::Http(format!("build cookie header: {e}")))?,
+            );
+        }
+
+        if let Some((name, value)) = extra {
+            builder = builder.header(
+                name,
+                HeaderValue::from_str(value)
+                    .map_err(|e| TestAppError::Http(format!("build extra header: {e}")))?,
+            );
+        }
+
+        let req = if let Some(body) = body {
+            let bytes = serde_json::to_vec(body)
+                .map_err(|e| TestAppError::Http(format!("serialize body: {e}")))?;
+            builder
+                .header(header::CONTENT_TYPE, "application/json")
+                .body(Body::from(bytes))
+                .map_err(|e| TestAppError::Http(format!("build request: {e}")))?
+        } else {
+            builder
+                .body(Body::empty())
+                .map_err(|e| TestAppError::Http(format!("build request: {e}")))?
+        };
+
+        let resp: Response = self
+            .router
+            .clone()
+            .oneshot(req)
+            .await
+            .map_err(|e| TestAppError::Http(format!("dispatch: {e}")))?;
+
+        TestResponse::from_response(resp).await
+    }
+
     /// BFF (Phase 1.3): drive a request that carries BOTH a `Cookie:` header
     /// and an `Authorization: Bearer …` header. Asserts the
     /// cookie-takes-precedence behaviour during the rollout window when

@@ -607,6 +607,13 @@ async fn main() -> Result<()> {
             )),
         )
         .nest(
+            "/api/admin/forms",
+            handlers::forms::admin_router().layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                swings_api::middleware::idempotency::enforce,
+            )),
+        )
+        .nest(
             "/api/admin/notifications",
             handlers::notifications::admin_router().layer(axum::middleware::from_fn_with_state(
                 state.clone(),
@@ -669,6 +676,7 @@ async fn main() -> Result<()> {
         .nest("/api/coupons", handlers::coupons::public_router())
         .nest("/api/popups", handlers::popups::public_router())
         .nest("/api/products", handlers::products::public_router())
+        .nest("/api/forms", handlers::forms::public_router())
         // EC-02: public catalog search + facets + nested categories.
         .nest("/api/catalog", handlers::catalog::public_router())
         // EC-03: persistent cart — guest + authed; OptionalAuthUser extractor.

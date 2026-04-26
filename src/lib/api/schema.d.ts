@@ -1187,6 +1187,22 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/popups/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["admin_list_analytics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/popups/{id}": {
         parameters: {
             query?: never;
@@ -1683,6 +1699,22 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["admin_subscriptions_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/subscriptions/by-user/{user_id}": {
         parameters: {
             query?: never;
@@ -1709,6 +1741,22 @@ export type paths = {
         get?: never;
         put?: never;
         post: operations["admin_subscriptions_comp_grant"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/subscriptions/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["admin_subscriptions_stats"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4245,6 +4293,21 @@ export type components = {
             /** Format: int64 */
             total_pages: number;
         };
+        /**
+         * @description OpenAPI wrapper carrying the concrete `PaginatedResponse<SubscriptionRow>`
+         *     shape so the snapshot doesn't leak the generic into `ApiDoc`.
+         */
+        PaginatedSubscriptionsResponse: {
+            data: components["schemas"]["SubscriptionRow"][];
+            /** Format: int64 */
+            total: number;
+            /** Format: int64 */
+            page: number;
+            /** Format: int64 */
+            per_page: number;
+            /** Format: int64 */
+            total_pages: number;
+        };
         PaginatedSuppressionResponse: {
             data: components["schemas"]["Suppression"][];
             /** Format: int64 */
@@ -4407,6 +4470,28 @@ export type components = {
             total_closes: number;
             /** Format: int64 */
             total_submissions: number;
+            /** Format: double */
+            conversion_rate: number;
+        };
+        /**
+         * @description Per-popup summary row returned by `GET /api/admin/popups/analytics`.
+         *
+         *     Distinct from [`PopupAnalytics`] (the single-popup detail view) because
+         *     the collection endpoint also exposes `popup_type` / `is_active` so the
+         *     admin index can render a roster without a second round-trip.
+         */
+        PopupAnalyticsSummary: {
+            /** Format: uuid */
+            popup_id: string;
+            popup_name: string;
+            popup_type: string;
+            is_active: boolean;
+            /** Format: int64 */
+            impressions: number;
+            /** Format: int64 */
+            closes: number;
+            /** Format: int64 */
+            submits: number;
             /** Format: double */
             conversion_rate: number;
         };
@@ -4861,6 +4946,98 @@ export type components = {
         };
         /** @enum {string} */
         SubscriptionPlan: "Monthly" | "Annual";
+        /**
+         * @description One subscription row in the admin list response.
+         *
+         *     Field naming intentionally tracks the SvelteKit consumer at
+         *     `src/routes/admin/subscriptions/+page.svelte` (which binds to
+         *     `member_id` / `member_name` / `member_email` / `plan_name` /
+         *     `interval` / `amount_cents` / `start_date` / `next_renewal`) so the
+         *     existing page renders without any frontend changes.
+         */
+        SubscriptionRow: {
+            /**
+             * Format: uuid
+             * @description Subscription primary key.
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description Member id — frontend route key for `/admin/members/{id}`.
+             */
+            member_id: string;
+            member_name: string;
+            member_email: string;
+            stripe_subscription_id: string;
+            stripe_customer_id: string;
+            /** @description Plan cadence (`monthly` / `annual`) — what `subscriptions.plan` stores. */
+            plan: string;
+            /**
+             * @description Human plan name from `pricing_plans.name`, or the cadence label
+             *     when no `pricing_plans` row is linked.
+             */
+            plan_name: string;
+            /**
+             * @description `month` for monthly subscriptions, `year` for annual — matches
+             *     the `pricing_plans.interval` vocabulary the frontend expects.
+             */
+            interval: string;
+            /** @description Lowercase enum label (`active|past_due|canceled|trialing|unpaid|paused`). */
+            status: string;
+            /**
+             * Format: int64
+             * @description Per-row price in cents. Falls back to the public catalog default
+             *     when the subscription has no `pricing_plan_id`.
+             */
+            amount_cents: number;
+            /**
+             * Format: date-time
+             * @description `subscriptions.created_at` — when the subscription was first recorded.
+             */
+            start_date: string;
+            /**
+             * Format: date-time
+             * @description `subscriptions.current_period_end` while live; `null` once
+             *     canceled (no further renewal expected).
+             */
+            next_renewal?: string | null;
+            /**
+             * @description `true` when `subscriptions.cancel_at` is set — the subscription
+             *     will end at `current_period_end` without further renewal.
+             */
+            cancel_at_period_end: boolean;
+            /** Format: date-time */
+            canceled_at?: string | null;
+        };
+        /**
+         * @description Aggregate counters for the subscriptions overview KPIs.
+         *
+         *     `monthly_count` / `annual_count` mirror what the frontend page binds
+         *     to today; the additional status counts and `arr_cents` are surfaced
+         *     for upstream tooling and future KPI cards.
+         */
+        SubscriptionStats: {
+            /** Format: int64 */
+            total_active: number;
+            /** Format: int64 */
+            monthly_count: number;
+            /** Format: int64 */
+            annual_count: number;
+            /** Format: int64 */
+            trialing: number;
+            /** Format: int64 */
+            past_due: number;
+            /** Format: int64 */
+            canceled: number;
+            /** Format: int64 */
+            unpaid: number;
+            /** Format: int64 */
+            paused: number;
+            /** Format: int64 */
+            mrr_cents: number;
+            /** Format: int64 */
+            arr_cents: number;
+        };
         /** @enum {string} */
         SubscriptionStatus: "Active" | "Canceled" | "PastDue" | "Trialing" | "Unpaid";
         SubscriptionStatusResponse: {
@@ -8903,6 +9080,33 @@ export interface operations {
             };
         };
     };
+    admin_list_analytics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Per-popup analytics roll-up */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PopupAnalyticsSummary"][];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     admin_update_popup: {
         parameters: {
             query?: never;
@@ -10324,6 +10528,58 @@ export interface operations {
             };
         };
     };
+    admin_subscriptions_list: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. Defaults to 1. */
+                page?: number | null;
+                /** @description Page size. Capped to 100 to keep the join + count cheap. */
+                per_page?: number | null;
+                /** @description Case-insensitive substring against `users.email`. */
+                search?: string | null;
+                /** @description One of `active|past_due|canceled|trialing|unpaid|paused`. */
+                status?: string | null;
+                /** @description One of `monthly|annual`. */
+                plan?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated subscriptions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedSubscriptionsResponse"];
+                };
+            };
+            /** @description Invalid filter value */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     admin_subscriptions_by_user: {
         parameters: {
             query?: never;
@@ -10413,6 +10669,40 @@ export interface operations {
             };
             /** @description Member or plan not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    admin_subscriptions_stats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Subscription KPIs */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionStats"];
+                };
+            };
+            /** @description Unauthenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -1068,6 +1068,124 @@ pub async fn count_subscriptions_by_plan(
     Ok(row.0)
 }
 
+/// Count subscriptions in a given status (literal — accepts the enum
+/// label as stored in Postgres so callers can ask about `paused` without
+/// extending the Rust [`SubscriptionStatus`] enum).
+pub async fn count_subscriptions_by_status(
+    pool: &PgPool,
+    status: &str,
+) -> Result<i64, sqlx::Error> {
+    let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM subscriptions WHERE status::text = $1")
+        .bind(status)
+        .fetch_one(pool)
+        .await?;
+    Ok(row.0)
+}
+
+/// One row in the admin subscriptions list. Joins `subscriptions` to
+/// `users` (for the member display fields) and `pricing_plans` (for
+/// the per-row amount when the subscription was bought from a specific
+/// catalog row); when no catalog row is linked we fall back to the
+/// public default for the plan cadence in the handler.
+#[derive(Debug, sqlx::FromRow)]
+pub struct AdminSubscriptionRow {
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub user_email: String,
+    pub user_name: String,
+    pub stripe_subscription_id: String,
+    pub stripe_customer_id: String,
+    pub plan: SubscriptionPlan,
+    /// Read as text so the row tolerates the `paused` label that the
+    /// Postgres `subscription_status` enum gained in
+    /// `057_subscription_status_paused.sql` but the Rust
+    /// [`SubscriptionStatus`] enum does not yet enumerate.
+    pub status: String,
+    pub plan_amount_cents: Option<i32>,
+    pub plan_name: Option<String>,
+    pub current_period_start: DateTime<Utc>,
+    pub current_period_end: DateTime<Utc>,
+    pub cancel_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+    pub canceled_at: Option<DateTime<Utc>>,
+}
+
+/// List subscriptions for the admin dashboard with pagination and
+/// optional `search` (matched against `users.email`) / `status` /
+/// `plan` filters. Returns the page rows plus a total count for the
+/// same filter set so the caller can render pagination.
+///
+/// `search` is matched as a case-insensitive substring (`ILIKE %q%`).
+/// `status` and `plan` accept the lowercase enum labels as stored in
+/// Postgres (`active|past_due|canceled|trialing|unpaid|paused` and
+/// `monthly|annual`); invalid labels degrade to the unfiltered set
+/// rather than raising — the handler should validate before calling.
+pub async fn list_subscriptions_admin(
+    pool: &PgPool,
+    page: i64,
+    per_page: i64,
+    search: Option<&str>,
+    status: Option<&str>,
+    plan: Option<&str>,
+) -> Result<(Vec<AdminSubscriptionRow>, i64), sqlx::Error> {
+    let offset = (page - 1).max(0) * per_page;
+    let search_pat = search.map(|s| format!("%{}%", s.replace(['%', '_'], "")));
+
+    let rows = sqlx::query_as::<_, AdminSubscriptionRow>(
+        r#"
+        SELECT
+            s.id,
+            s.user_id,
+            u.email                  AS user_email,
+            u.name                   AS user_name,
+            s.stripe_subscription_id,
+            s.stripe_customer_id,
+            s.plan,
+            s.status::text           AS status,
+            pp.amount_cents          AS plan_amount_cents,
+            pp.name                  AS plan_name,
+            s.current_period_start,
+            s.current_period_end,
+            s.cancel_at,
+            s.created_at,
+            s.canceled_at
+        FROM subscriptions s
+        JOIN users u           ON u.id = s.user_id
+        LEFT JOIN pricing_plans pp ON pp.id = s.pricing_plan_id
+        WHERE ($1::text IS NULL OR u.email ILIKE $1)
+          AND ($2::text IS NULL OR s.status::text = $2)
+          AND ($3::text IS NULL OR s.plan::text   = $3)
+        ORDER BY s.created_at DESC
+        LIMIT $4 OFFSET $5
+        "#,
+    )
+    .bind(search_pat.as_deref())
+    .bind(status)
+    .bind(plan)
+    .bind(per_page)
+    .bind(offset)
+    .fetch_all(pool)
+    .await?;
+
+    let total: (i64,) = sqlx::query_as(
+        r#"
+        SELECT COUNT(*)
+        FROM subscriptions s
+        JOIN users u ON u.id = s.user_id
+        WHERE ($1::text IS NULL OR u.email ILIKE $1)
+          AND ($2::text IS NULL OR s.status::text = $2)
+          AND ($3::text IS NULL OR s.plan::text   = $3)
+        "#,
+    )
+    .bind(search_pat.as_deref())
+    .bind(status)
+    .bind(plan)
+    .fetch_one(pool)
+    .await?;
+
+    Ok((rows, total.0))
+}
+
 // ── Watchlists ──────────────────────────────────────────────────────────
 
 pub async fn create_watchlist(
@@ -2499,4 +2617,41 @@ pub async fn analytics_totals(
     .fetch_one(pool)
     .await?;
     Ok(row)
+}
+
+// ── Popups (collection-level analytics) ───────────────────────────────────
+
+/// Per-popup roll-up of impression / close / submit counts and the
+/// derived conversion rate (`submits / impressions`, 0 when no impressions).
+///
+/// Single GROUP BY query so the admin index can render the whole list in
+/// one round-trip; ordered by `submits DESC, impressions DESC` so the
+/// best-performing popups float to the top.
+pub async fn list_popup_analytics_summaries(
+    pool: &PgPool,
+) -> Result<Vec<PopupAnalyticsSummary>, sqlx::Error> {
+    sqlx::query_as::<_, PopupAnalyticsSummary>(
+        r#"
+        SELECT
+            p.id              AS popup_id,
+            p.name            AS popup_name,
+            p.popup_type      AS popup_type,
+            p.is_active       AS is_active,
+            COALESCE(SUM(CASE WHEN e.event_type = 'impression' THEN 1 ELSE 0 END), 0)::bigint AS impressions,
+            COALESCE(SUM(CASE WHEN e.event_type = 'close'      THEN 1 ELSE 0 END), 0)::bigint AS closes,
+            COALESCE(SUM(CASE WHEN e.event_type = 'submit'     THEN 1 ELSE 0 END), 0)::bigint AS submits,
+            CASE
+                WHEN COALESCE(SUM(CASE WHEN e.event_type = 'impression' THEN 1 ELSE 0 END), 0) > 0
+                THEN COALESCE(SUM(CASE WHEN e.event_type = 'submit' THEN 1 ELSE 0 END), 0)::float8
+                     / NULLIF(SUM(CASE WHEN e.event_type = 'impression' THEN 1 ELSE 0 END), 0)::float8
+                ELSE 0.0
+            END AS conversion_rate
+        FROM popups p
+        LEFT JOIN popup_events e ON e.popup_id = p.id
+        GROUP BY p.id, p.name, p.popup_type, p.is_active
+        ORDER BY submits DESC, impressions DESC
+        "#,
+    )
+    .fetch_all(pool)
+    .await
 }

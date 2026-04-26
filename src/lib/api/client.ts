@@ -42,6 +42,23 @@ class ApiClient {
 			headers.set('Content-Type', 'application/json');
 		}
 
+		// AUTO IDEMPOTENCY-KEY (Phase 4.7): every mutating admin call must
+		// be safe to retry. The backend mounts the idempotency middleware on
+		// every `/api/admin/*` nest; without an `Idempotency-Key` header it
+		// passes through and the call becomes retry-unsafe. We auto-attach
+		// a per-request UUID for any non-GET request the caller didn't
+		// already key. Callers that need cross-attempt deduplication can
+		// still pass `Idempotency-Key` via `options.headers` to override.
+		const method = (fetchOptions.method ?? 'GET').toUpperCase();
+		if (
+			method !== 'GET' &&
+			method !== 'HEAD' &&
+			endpoint.startsWith('/api/admin/') &&
+			!headers.has('Idempotency-Key')
+		) {
+			headers.set('Idempotency-Key', cryptoRandomId());
+		}
+
 		// `credentials: 'include'` is the BFF contract: the browser
 		// attaches `Cookie: swings_access=...` to every request. Same-
 		// origin in production (Vercel rewrites `/api/*` → Railway) so
@@ -62,8 +79,7 @@ class ApiClient {
 					headers
 				});
 				if (!retry.ok) {
-					const err = await retry.json().catch(() => ({ error: 'Request failed' }));
-					throw new ApiError(retry.status, err.error || 'Request failed');
+					throw await parseApiError(retry);
 				}
 				return retry.json();
 			} else {
@@ -76,8 +92,7 @@ class ApiClient {
 		}
 
 		if (!response.ok) {
-			const err = await response.json().catch(() => ({ error: 'Request failed' }));
-			throw new ApiError(response.status, err.error || 'Request failed');
+			throw await parseApiError(response);
 		}
 
 		return response.json();
@@ -202,8 +217,7 @@ class ApiClient {
 		if (!response.ok) {
 			// Best-effort error JSON parse; falls back to a status-only
 			// message if the body isn't JSON (likely for artefact streams).
-			const err = await response.json().catch(() => ({ error: 'Download failed' }));
-			throw new ApiError(response.status, err.error || 'Download failed');
+			throw await parseApiError(response, 'Download failed');
 		}
 		const blob = await response.blob();
 		const disposition = response.headers.get('Content-Disposition') ?? '';
@@ -216,11 +230,55 @@ class ApiClient {
 
 export class ApiError extends Error {
 	status: number;
+	/** RFC 7807 fields when present (e.g. `errors` for validation failures). */
+	details?: Record<string, unknown>;
 
-	constructor(status: number, message: string) {
+	constructor(status: number, message: string, details?: Record<string, unknown>) {
 		super(message);
 		this.status = status;
+		this.details = details;
 	}
+}
+
+/**
+ * Parse a non-OK `Response` into an `ApiError`.
+ *
+ * The Rust backend emits RFC 7807 `application/problem+json` with shape
+ * `{ type, title, status, detail, errors? }` for every `AppError`. We prefer
+ * `detail` (human-readable), fall back to `title`, then to a legacy `error`
+ * field (some older endpoints), then to a generic message.
+ *
+ * Validation failures additionally carry `errors: { field: [msg, ...] }`,
+ * surfaced via `ApiError.details.errors` so form UIs can render per-field
+ * messages without a second parse.
+ */
+async function parseApiError(response: Response, fallback = 'Request failed'): Promise<ApiError> {
+	const body = await response.json().catch(() => null);
+	if (!body || typeof body !== 'object') {
+		return new ApiError(response.status, fallback);
+	}
+	const b = body as Record<string, unknown>;
+	const message =
+		(typeof b.detail === 'string' && b.detail) ||
+		(typeof b.title === 'string' && b.title) ||
+		(typeof b.error === 'string' && b.error) ||
+		(typeof b.message === 'string' && b.message) ||
+		fallback;
+	return new ApiError(response.status, message, b);
+}
+
+/**
+ * UUIDv4 with a `Math.random` fallback for the rare browser without
+ * `crypto.randomUUID` (older Safari + non-secure contexts). Idempotency
+ * keys only need to be unique per-tab per-mutation, not cryptographically
+ * strong, so the fallback is acceptable.
+ */
+function cryptoRandomId(): string {
+	if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+		return crypto.randomUUID();
+	}
+	const r = () => Math.random().toString(16).slice(2);
+	return `${r()}${r()}-${r().slice(0, 4)}-${r().slice(0, 4)}-${r().slice(0, 4)}-${r()}${r().slice(0, 4)}`;
 }
 
 export const api = new ApiClient(API_BASE);

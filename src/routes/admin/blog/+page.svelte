@@ -231,7 +231,7 @@
 	async function loadAdmins() {
 		if (admins.length > 0) return;
 		try {
-			const res = await api.get<UserResponse[]>('/api/admin/users?role=admin&per_page=50');
+			const res = await api.get<UserResponse[]>('/api/admin/members?role=admin&per_page=50');
 			admins = Array.isArray(res) ? res : [];
 		} catch {
 			admins = [];

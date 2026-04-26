@@ -885,6 +885,23 @@ export interface PopupAnalytics {
 	conversion_rate: number;
 }
 
+/**
+ * Per-popup summary returned by `GET /api/admin/popups/analytics`.
+ * Distinct from `PopupAnalytics` (single-popup detail view) — the
+ * collection endpoint uses shorter field names and includes
+ * `popup_type` / `is_active` for the admin index roster.
+ */
+export interface PopupAnalyticsSummary {
+	popup_id: string;
+	popup_name: string;
+	popup_type: string;
+	is_active: boolean;
+	impressions: number;
+	closes: number;
+	submits: number;
+	conversion_rate: number;
+}
+
 // ── Revenue Analytics ─────────────────────────────────────────────────
 
 export interface SalesEvent {

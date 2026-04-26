@@ -178,8 +178,10 @@
 
 	<div class="pb__top">
 		<div class="pb__top-left">
-			<input type="text" bind:value={name} class="pb__name" placeholder="Popup name..." />
-			<select bind:value={popupType} class="pb__select">
+			<label class="pb__visually-hidden" for="popup-name">Popup name</label>
+			<input id="popup-name" name="popup-name" type="text" bind:value={name} class="pb__name" placeholder="Popup name..." />
+			<label class="pb__visually-hidden" for="popup-type">Popup type</label>
+			<select id="popup-type" name="popup-type" bind:value={popupType} class="pb__select">
 				{#each popupTypes as pt}
 					<option value={pt.value}>{pt.label}</option>
 				{/each}
@@ -209,8 +211,8 @@
 			<div class="pb__panel">
 				{#if activeTab === 'trigger'}
 					<div class="pb__field">
-						<span class="pb__label">Trigger Type</span>
-						<select bind:value={triggerType} class="pb__input">
+						<label class="pb__label" for="trigger-type">Trigger Type</label>
+						<select id="trigger-type" name="trigger-type" bind:value={triggerType} class="pb__input">
 							{#each triggerTypes as tt}
 								<option value={tt.value}>{tt.label}</option>
 							{/each}
@@ -218,26 +220,26 @@
 					</div>
 					{#if triggerType === 'time_delay'}
 						<div class="pb__field">
-							<span class="pb__label">Delay (ms)</span>
-							<input type="number" min="0" step="100" bind:value={triggerDelayMs} class="pb__input" />
+							<label class="pb__label" for="trigger-delay-ms">Delay (ms)</label>
+							<input id="trigger-delay-ms" name="trigger-delay-ms" type="number" min="0" step="100" bind:value={triggerDelayMs} class="pb__input" />
 						</div>
 					{/if}
 					{#if triggerType === 'scroll_percentage'}
 						<div class="pb__field">
-							<span class="pb__label">Scroll Percentage</span>
-							<input type="number" min="0" max="100" bind:value={triggerScrollPct} class="pb__input" />
+							<label class="pb__label" for="trigger-scroll-pct">Scroll Percentage</label>
+							<input id="trigger-scroll-pct" name="trigger-scroll-pct" type="number" min="0" max="100" bind:value={triggerScrollPct} class="pb__input" />
 						</div>
 					{/if}
 				{:else if activeTab === 'targeting'}
 					<div class="pb__field">
-						<span class="pb__label">Page Patterns</span>
+						<label class="pb__label" for="targeting-new-page">Page Patterns</label>
 						<div class="pb__tag-list">
 							{#each pages as p}
 								<span class="pb__tag">{p} <button class="pb__tag-x" onclick={() => removePage(p)}>x</button></span>
 							{/each}
 						</div>
 						<div class="pb__row">
-							<input type="text" bind:value={newPage} class="pb__input" placeholder="/pricing, /blog/*" onkeydown={(e) => e.key === 'Enter' && (e.preventDefault(), addPage())} />
+							<input id="targeting-new-page" name="targeting-new-page" type="text" bind:value={newPage} class="pb__input" placeholder="/pricing, /blog/*" onkeydown={(e) => e.key === 'Enter' && (e.preventDefault(), addPage())} />
 							<button class="pb__btn-sm" onclick={addPage}><PlusIcon size={14} /></button>
 						</div>
 					</div>
@@ -245,7 +247,7 @@
 						<span class="pb__label">Devices</span>
 						<div class="pb__checks">
 							{#each ['desktop', 'mobile', 'tablet'] as d}
-								<label class="pb__check"><input type="checkbox" checked={devices.includes(d as 'desktop')} onchange={() => toggleDevice(d as 'desktop')} />{formatType(d)}</label>
+								<label class="pb__check" for={`targeting-device-${d}`}><input id={`targeting-device-${d}`} name={`targeting-device-${d}`} type="checkbox" checked={devices.includes(d as 'desktop')} onchange={() => toggleDevice(d as 'desktop')} />{formatType(d)}</label>
 							{/each}
 						</div>
 					</div>
@@ -253,54 +255,54 @@
 						<span class="pb__label">User Status</span>
 						<div class="pb__checks">
 							{#each ['all', 'logged_in', 'logged_out', 'member', 'non_member'] as s}
-								<label class="pb__check"><input type="checkbox" checked={userStatus.includes(s as 'all')} onchange={() => toggleUserStatus(s as 'all')} />{formatType(s)}</label>
+								<label class="pb__check" for={`targeting-user-${s}`}><input id={`targeting-user-${s}`} name={`targeting-user-${s}`} type="checkbox" checked={userStatus.includes(s as 'all')} onchange={() => toggleUserStatus(s as 'all')} />{formatType(s)}</label>
 							{/each}
 						</div>
 					</div>
 				{:else if activeTab === 'style'}
 					<div class="pb__grid2">
 						<div class="pb__field">
-							<span class="pb__label">Background</span>
-							<div class="pb__color-row"><input type="color" bind:value={bg} class="pb__color" /><input type="text" bind:value={bg} class="pb__input pb__input--sm" /></div>
+							<label class="pb__label" for="style-bg-color">Background</label>
+							<div class="pb__color-row"><input id="style-bg-color" name="style-bg-color" type="color" bind:value={bg} class="pb__color" /><input id="style-bg-hex" name="style-bg-hex" type="text" bind:value={bg} class="pb__input pb__input--sm" /></div>
 						</div>
 						<div class="pb__field">
-							<span class="pb__label">Text Color</span>
-							<div class="pb__color-row"><input type="color" bind:value={textColor} class="pb__color" /><input type="text" bind:value={textColor} class="pb__input pb__input--sm" /></div>
+							<label class="pb__label" for="style-text-color">Text Color</label>
+							<div class="pb__color-row"><input id="style-text-color" name="style-text-color" type="color" bind:value={textColor} class="pb__color" /><input id="style-text-hex" name="style-text-hex" type="text" bind:value={textColor} class="pb__input pb__input--sm" /></div>
 						</div>
 						<div class="pb__field">
-							<span class="pb__label">Accent Color</span>
-							<div class="pb__color-row"><input type="color" bind:value={accentColor} class="pb__color" /><input type="text" bind:value={accentColor} class="pb__input pb__input--sm" /></div>
+							<label class="pb__label" for="style-accent-color">Accent Color</label>
+							<div class="pb__color-row"><input id="style-accent-color" name="style-accent-color" type="color" bind:value={accentColor} class="pb__color" /><input id="style-accent-hex" name="style-accent-hex" type="text" bind:value={accentColor} class="pb__input pb__input--sm" /></div>
 						</div>
 						<div class="pb__field">
-							<span class="pb__label">Border Radius</span>
-							<input type="text" bind:value={borderRadius} class="pb__input" />
+							<label class="pb__label" for="style-border-radius">Border Radius</label>
+							<input id="style-border-radius" name="style-border-radius" type="text" bind:value={borderRadius} class="pb__input" />
 						</div>
 						<div class="pb__field">
-							<span class="pb__label">Animation</span>
-							<select bind:value={animation} class="pb__input">
+							<label class="pb__label" for="style-animation">Animation</label>
+							<select id="style-animation" name="style-animation" bind:value={animation} class="pb__input">
 								{#each animations as a}<option value={a}>{formatType(a)}</option>{/each}
 							</select>
 						</div>
 						<div class="pb__field">
-							<span class="pb__label">Max Width</span>
-							<input type="text" bind:value={maxWidth} class="pb__input" />
+							<label class="pb__label" for="style-max-width">Max Width</label>
+							<input id="style-max-width" name="style-max-width" type="text" bind:value={maxWidth} class="pb__input" />
 						</div>
 					</div>
 				{:else if activeTab === 'display'}
 					<div class="pb__field">
-						<span class="pb__label">Frequency</span>
-						<select bind:value={frequency} class="pb__input">
+						<label class="pb__label" for="display-frequency">Frequency</label>
+						<select id="display-frequency" name="display-frequency" bind:value={frequency} class="pb__input">
 							{#each frequencies as f}<option value={f.value}>{f.label}</option>{/each}
 						</select>
 					</div>
 					<div class="pb__grid2">
 						<div class="pb__field">
-							<span class="pb__label">Start Date</span>
-							<input type="datetime-local" bind:value={startsAt} class="pb__input" />
+							<label class="pb__label" for="display-starts-at">Start Date</label>
+							<input id="display-starts-at" name="display-starts-at" type="datetime-local" bind:value={startsAt} class="pb__input" />
 						</div>
 						<div class="pb__field">
-							<span class="pb__label">End Date</span>
-							<input type="datetime-local" bind:value={expiresAt} class="pb__input" />
+							<label class="pb__label" for="display-expires-at">End Date</label>
+							<input id="display-expires-at" name="display-expires-at" type="datetime-local" bind:value={expiresAt} class="pb__input" />
 						</div>
 					</div>
 				{/if}
@@ -338,22 +340,22 @@
 							{#if editingId === el.id}
 								<div class="pb__el-edit">
 									{#if el.type === 'heading' || el.type === 'text'}
-										<div class="pb__field"><span class="pb__label">Text</span><input type="text" value={el.props.text ?? ''} oninput={(e) => updateProp(el.id, 'text', e.currentTarget.value)} class="pb__input" /></div>
+										<div class="pb__field"><label class="pb__label" for={`el-${el.id}-text`}>Text</label><input id={`el-${el.id}-text`} name={`el-${el.id}-text`} type="text" value={el.props.text ?? ''} oninput={(e) => updateProp(el.id, 'text', e.currentTarget.value)} class="pb__input" /></div>
 									{/if}
 									{#if el.type === 'heading'}
-										<div class="pb__field"><span class="pb__label">Level</span>
-											<select value={el.props.level ?? 'h2'} onchange={(e) => updateProp(el.id, 'level', e.currentTarget.value)} class="pb__input">
+										<div class="pb__field"><label class="pb__label" for={`el-${el.id}-level`}>Level</label>
+											<select id={`el-${el.id}-level`} name={`el-${el.id}-level`} value={el.props.level ?? 'h2'} onchange={(e) => updateProp(el.id, 'level', e.currentTarget.value)} class="pb__input">
 												<option value="h1">H1</option><option value="h2">H2</option><option value="h3">H3</option>
 											</select>
 										</div>
 									{/if}
 									{#if el.type === 'email' || el.type === 'input'}
-										<div class="pb__field"><span class="pb__label">Label</span><input type="text" value={el.props.label ?? ''} oninput={(e) => updateProp(el.id, 'label', e.currentTarget.value)} class="pb__input" /></div>
-										<div class="pb__field"><span class="pb__label">Placeholder</span><input type="text" value={el.props.placeholder ?? ''} oninput={(e) => updateProp(el.id, 'placeholder', e.currentTarget.value)} class="pb__input" /></div>
-										<label class="pb__check"><input type="checkbox" checked={!!el.props.required} onchange={() => updateProp(el.id, 'required', !el.props.required)} /> Required</label>
+										<div class="pb__field"><label class="pb__label" for={`el-${el.id}-label`}>Label</label><input id={`el-${el.id}-label`} name={`el-${el.id}-label`} type="text" value={el.props.label ?? ''} oninput={(e) => updateProp(el.id, 'label', e.currentTarget.value)} class="pb__input" /></div>
+										<div class="pb__field"><label class="pb__label" for={`el-${el.id}-placeholder`}>Placeholder</label><input id={`el-${el.id}-placeholder`} name={`el-${el.id}-placeholder`} type="text" value={el.props.placeholder ?? ''} oninput={(e) => updateProp(el.id, 'placeholder', e.currentTarget.value)} class="pb__input" /></div>
+										<label class="pb__check" for={`el-${el.id}-required`}><input id={`el-${el.id}-required`} name={`el-${el.id}-required`} type="checkbox" checked={!!el.props.required} onchange={() => updateProp(el.id, 'required', !el.props.required)} /> Required</label>
 									{/if}
 									{#if el.type === 'button'}
-										<div class="pb__field"><span class="pb__label">Button Text</span><input type="text" value={el.props.text ?? ''} oninput={(e) => updateProp(el.id, 'text', e.currentTarget.value)} class="pb__input" /></div>
+										<div class="pb__field"><label class="pb__label" for={`el-${el.id}-btn-text`}>Button Text</label><input id={`el-${el.id}-btn-text`} name={`el-${el.id}-btn-text`} type="text" value={el.props.text ?? ''} oninput={(e) => updateProp(el.id, 'text', e.currentTarget.value)} class="pb__input" /></div>
 									{/if}
 								</div>
 							{/if}
@@ -393,6 +395,7 @@
 
 <style>
 	.pb { max-width: var(--container-max); }
+	.pb__visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 	.pb__back { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--color-grey-400); font-size: var(--fs-sm); text-decoration: none; margin-bottom: 1.25rem; transition: color 200ms var(--ease-out); }
 	.pb__back:hover { color: var(--color-white); }
 	.pb__top { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; }

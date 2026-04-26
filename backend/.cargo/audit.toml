@@ -24,15 +24,6 @@ ignore = [
     # no fixed version of `rsa`; monitor https://github.com/RustCrypto/RSA.
     "RUSTSEC-2023-0071",
 
-    # RUSTSEC-2026-0098 / 0099 — `rustls-webpki 0.101.x` name-constraints
-    # bugs. Pulled in via the bundled `rustls 0.21` inside
-    # `aws-smithy-http-client 1.1.12` (the current latest). The rest of the
-    # tree already runs on `rustls 0.23` + `rustls-webpki 0.103.12`. AWS SDK
-    # team tracking the migration upstream. Re-check on every aws-sdk-s3
-    # bump; drop both entries when the smithy client ships rustls >= 0.23.
-    "RUSTSEC-2026-0098",
-    "RUSTSEC-2026-0099",
-
     # RUSTSEC-2024-0384 — `instant 0.1.x` unmaintained. Pulled in via
     # `async-stripe 0.39` → `http-types` → `futures-lite 1` → `fastrand 1`.
     # async-stripe 1.0 (currently rc.5) drops this chain; planned upgrade

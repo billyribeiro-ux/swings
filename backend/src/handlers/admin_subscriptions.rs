@@ -19,7 +19,7 @@
 //! discoverable at the user level.
 
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     routing::{get, post},
     Json, Router,
@@ -27,7 +27,7 @@ use axum::{
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::Row;
-use utoipa::ToSchema;
+use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 use validator::Validate;
 
@@ -35,7 +35,7 @@ use crate::{
     db,
     error::{AppError, AppResult},
     extractors::{ClientInfo, PrivilegedUser},
-    models::{Subscription, SubscriptionStatus, SubscriptionStatusResponse},
+    models::{PaginatedResponse, Subscription, SubscriptionStatus, SubscriptionStatusResponse},
     services::audit::audit_admin_priv,
     AppState,
 };
@@ -52,11 +52,23 @@ const MAX_EXTEND_DAYS: i64 = 366;
 
 pub fn router() -> Router<AppState> {
     Router::new()
+        .route("/", get(list))
+        .route("/stats", get(stats))
         .route("/comp", post(comp_grant))
         .route("/by-user/{user_id}", get(by_user))
         .route("/{id}/extend", post(extend_period))
         .route("/{id}/billing-cycle", post(override_billing_cycle))
 }
+
+/// Status labels accepted by the list filter and emitted in row payloads.
+/// Mirrors the lowercase Postgres `subscription_status` enum from
+/// `001_initial.sql` + `057_subscription_status_paused.sql`.
+const VALID_STATUSES: &[&str] = &[
+    "active", "past_due", "canceled", "trialing", "unpaid", "paused",
+];
+
+/// Plan labels accepted by the list filter and emitted in row payloads.
+const VALID_PLANS: &[&str] = &["monthly", "annual"];
 
 // ── DTOs ───────────────────────────────────────────────────────────────
 
@@ -454,6 +466,271 @@ pub async fn override_billing_cycle(
         subscription_id,
         previous_anchor: previous,
         new_anchor: req.anchor,
+    }))
+}
+
+// ── List + Stats ───────────────────────────────────────────────────────
+
+/// Query string for the paginated subscriptions list.
+#[derive(Debug, Deserialize, IntoParams)]
+pub struct ListSubscriptionsQuery {
+    /// 1-based page number. Defaults to 1.
+    pub page: Option<i64>,
+    /// Page size. Capped to 100 to keep the join + count cheap.
+    pub per_page: Option<i64>,
+    /// Case-insensitive substring against `users.email`.
+    pub search: Option<String>,
+    /// One of `active|past_due|canceled|trialing|unpaid|paused`.
+    pub status: Option<String>,
+    /// One of `monthly|annual`.
+    pub plan: Option<String>,
+}
+
+/// One subscription row in the admin list response.
+///
+/// Field naming intentionally tracks the SvelteKit consumer at
+/// `src/routes/admin/subscriptions/+page.svelte` (which binds to
+/// `member_id` / `member_name` / `member_email` / `plan_name` /
+/// `interval` / `amount_cents` / `start_date` / `next_renewal`) so the
+/// existing page renders without any frontend changes.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct SubscriptionRow {
+    /// Subscription primary key.
+    pub id: Uuid,
+    /// Member id — frontend route key for `/admin/members/{id}`.
+    pub member_id: Uuid,
+    pub member_name: String,
+    pub member_email: String,
+    pub stripe_subscription_id: String,
+    pub stripe_customer_id: String,
+    /// Plan cadence (`monthly` / `annual`) — what `subscriptions.plan` stores.
+    pub plan: String,
+    /// Human plan name from `pricing_plans.name`, or the cadence label
+    /// when no `pricing_plans` row is linked.
+    pub plan_name: String,
+    /// `month` for monthly subscriptions, `year` for annual — matches
+    /// the `pricing_plans.interval` vocabulary the frontend expects.
+    pub interval: String,
+    /// Lowercase enum label (`active|past_due|canceled|trialing|unpaid|paused`).
+    pub status: String,
+    /// Per-row price in cents. Falls back to the public catalog default
+    /// when the subscription has no `pricing_plan_id`.
+    pub amount_cents: i64,
+    /// `subscriptions.created_at` — when the subscription was first recorded.
+    pub start_date: DateTime<Utc>,
+    /// `subscriptions.current_period_end` while live; `null` once
+    /// canceled (no further renewal expected).
+    pub next_renewal: Option<DateTime<Utc>>,
+    /// `true` when `subscriptions.cancel_at` is set — the subscription
+    /// will end at `current_period_end` without further renewal.
+    pub cancel_at_period_end: bool,
+    pub canceled_at: Option<DateTime<Utc>>,
+}
+
+/// OpenAPI wrapper carrying the concrete `PaginatedResponse<SubscriptionRow>`
+/// shape so the snapshot doesn't leak the generic into `ApiDoc`.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct PaginatedSubscriptionsResponse {
+    pub data: Vec<SubscriptionRow>,
+    pub total: i64,
+    pub page: i64,
+    pub per_page: i64,
+    pub total_pages: i64,
+}
+
+/// Aggregate counters for the subscriptions overview KPIs.
+///
+/// `monthly_count` / `annual_count` mirror what the frontend page binds
+/// to today; the additional status counts and `arr_cents` are surfaced
+/// for upstream tooling and future KPI cards.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct SubscriptionStats {
+    pub total_active: i64,
+    pub monthly_count: i64,
+    pub annual_count: i64,
+    pub trialing: i64,
+    pub past_due: i64,
+    pub canceled: i64,
+    pub unpaid: i64,
+    pub paused: i64,
+    pub mrr_cents: i64,
+    pub arr_cents: i64,
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/admin/subscriptions",
+    tag = "admin-subscriptions",
+    operation_id = "admin_subscriptions_list",
+    security(("bearer_auth" = [])),
+    params(ListSubscriptionsQuery),
+    responses(
+        (status = 200, description = "Paginated subscriptions", body = PaginatedSubscriptionsResponse),
+        (status = 400, description = "Invalid filter value"),
+        (status = 401, description = "Unauthenticated"),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub async fn list(
+    State(state): State<AppState>,
+    privileged: PrivilegedUser,
+    Query(q): Query<ListSubscriptionsQuery>,
+) -> AppResult<Json<PaginatedResponse<SubscriptionRow>>> {
+    privileged.require(&state.policy, PERM_READ)?;
+
+    let page = q.page.unwrap_or(1).max(1);
+    let per_page = q.per_page.unwrap_or(15).clamp(1, 100);
+
+    let status = match q.status.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+        Some(s) if VALID_STATUSES.contains(&s) => Some(s.to_string()),
+        Some(other) => {
+            return Err(AppError::BadRequest(format!(
+                "invalid status `{other}` (expected one of {})",
+                VALID_STATUSES.join(", ")
+            )));
+        }
+        None => None,
+    };
+    let plan = match q.plan.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+        Some(p) if VALID_PLANS.contains(&p) => Some(p.to_string()),
+        Some(other) => {
+            return Err(AppError::BadRequest(format!(
+                "invalid plan `{other}` (expected one of {})",
+                VALID_PLANS.join(", ")
+            )));
+        }
+        None => None,
+    };
+    let search = q
+        .search
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(str::to_string);
+
+    let (rows, total) = db::list_subscriptions_admin(
+        &state.db,
+        page,
+        per_page,
+        search.as_deref(),
+        status.as_deref(),
+        plan.as_deref(),
+    )
+    .await?;
+
+    // Catalog fallback for rows whose subscription has no
+    // `pricing_plan_id` — only fetched when at least one row needs it.
+    let need_fallback = rows.iter().any(|r| r.plan_amount_cents.is_none());
+    let (default_monthly, default_annual) = if need_fallback {
+        db::pricing_monthly_annual_cents(&state.db).await?
+    } else {
+        (0, 0)
+    };
+
+    let data = rows
+        .into_iter()
+        .map(|r| {
+            let plan_label = match r.plan {
+                crate::models::SubscriptionPlan::Monthly => "monthly",
+                crate::models::SubscriptionPlan::Annual => "annual",
+            };
+            let interval = match r.plan {
+                crate::models::SubscriptionPlan::Monthly => "month",
+                crate::models::SubscriptionPlan::Annual => "year",
+            };
+            let amount_cents = i64::from(r.plan_amount_cents.unwrap_or(match r.plan {
+                crate::models::SubscriptionPlan::Monthly => default_monthly,
+                crate::models::SubscriptionPlan::Annual => default_annual,
+            }));
+            let plan_name = r.plan_name.unwrap_or_else(|| {
+                match r.plan {
+                    crate::models::SubscriptionPlan::Monthly => "Monthly",
+                    crate::models::SubscriptionPlan::Annual => "Annual",
+                }
+                .to_string()
+            });
+            let next_renewal = if r.status == "canceled" {
+                None
+            } else {
+                Some(r.current_period_end)
+            };
+            SubscriptionRow {
+                id: r.id,
+                member_id: r.user_id,
+                member_name: r.user_name,
+                member_email: r.user_email,
+                stripe_subscription_id: r.stripe_subscription_id,
+                stripe_customer_id: r.stripe_customer_id,
+                plan: plan_label.to_string(),
+                plan_name,
+                interval: interval.to_string(),
+                status: r.status,
+                amount_cents,
+                start_date: r.created_at,
+                next_renewal,
+                cancel_at_period_end: r.cancel_at.is_some(),
+                canceled_at: r.canceled_at,
+            }
+        })
+        .collect::<Vec<_>>();
+
+    let total_pages = if per_page > 0 {
+        (total + per_page - 1) / per_page
+    } else {
+        0
+    };
+
+    Ok(Json(PaginatedResponse {
+        data,
+        total,
+        page,
+        per_page,
+        total_pages,
+    }))
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/admin/subscriptions/stats",
+    tag = "admin-subscriptions",
+    operation_id = "admin_subscriptions_stats",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Subscription KPIs", body = SubscriptionStats),
+        (status = 401, description = "Unauthenticated"),
+        (status = 403, description = "Forbidden")
+    )
+)]
+pub async fn stats(
+    State(state): State<AppState>,
+    privileged: PrivilegedUser,
+) -> AppResult<Json<SubscriptionStats>> {
+    privileged.require(&state.policy, PERM_READ)?;
+
+    let (mrr_cents, arr_cents, total_active) = db::admin_estimated_mrr_arr_cents(&state.db).await?;
+    let monthly_count =
+        db::count_subscriptions_by_plan(&state.db, &crate::models::SubscriptionPlan::Monthly)
+            .await?;
+    let annual_count =
+        db::count_subscriptions_by_plan(&state.db, &crate::models::SubscriptionPlan::Annual)
+            .await?;
+    let trialing = db::count_subscriptions_by_status(&state.db, "trialing").await?;
+    let past_due = db::count_subscriptions_by_status(&state.db, "past_due").await?;
+    let canceled = db::count_subscriptions_by_status(&state.db, "canceled").await?;
+    let unpaid = db::count_subscriptions_by_status(&state.db, "unpaid").await?;
+    let paused = db::count_subscriptions_by_status(&state.db, "paused").await?;
+
+    Ok(Json(SubscriptionStats {
+        total_active,
+        monthly_count,
+        annual_count,
+        trialing,
+        past_due,
+        canceled,
+        unpaid,
+        paused,
+        mrr_cents,
+        arr_cents,
     }))
 }
 

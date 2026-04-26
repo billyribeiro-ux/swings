@@ -27,18 +27,18 @@ use crate::{
 
 pub fn admin_router() -> Router<AppState> {
     Router::new()
-        .route("/coupons", get(admin_list_coupons))
-        .route("/coupons", post(admin_create_coupon))
-        .route("/coupons/bulk", post(admin_bulk_create_coupons))
-        .route("/coupons/{id}", get(admin_get_coupon))
-        .route("/coupons/{id}", put(admin_update_coupon))
-        .route("/coupons/{id}", delete(admin_delete_coupon))
-        .route("/coupons/{id}/toggle", post(admin_toggle_coupon))
-        .route("/coupons/{id}/usages", get(admin_list_coupon_usages))
+        .route("/", get(admin_list_coupons))
+        .route("/", post(admin_create_coupon))
+        .route("/bulk", post(admin_bulk_create_coupons))
+        .route("/{id}", get(admin_get_coupon))
+        .route("/{id}", put(admin_update_coupon))
+        .route("/{id}", delete(admin_delete_coupon))
+        .route("/{id}/toggle", post(admin_toggle_coupon))
+        .route("/{id}/usages", get(admin_list_coupon_usages))
         // EC-11 additions — scope / BOGO / category / recurring fields.
         // Kept on a dedicated endpoint so the legacy CreateCouponRequest +
         // UpdateCouponRequest DTOs stay stable for pre-migration clients.
-        .route("/coupons/{id}/engine", put(admin_update_coupon_engine))
+        .route("/{id}/engine", put(admin_update_coupon_engine))
 }
 
 // ── Public Coupon Router ───────────────────────────────────────────────
@@ -48,10 +48,10 @@ pub fn public_router() -> Router<AppState> {
     // redemptions), so it's rate-limited 5/min/user. `validate` is a pure
     // preview and stays on the global governor only.
     Router::new()
-        .route("/coupons/validate", post(public_validate_coupon))
+        .route("/validate", post(public_validate_coupon))
         .merge(
             Router::new()
-                .route("/coupons/apply", post(public_apply_coupon))
+                .route("/apply", post(public_apply_coupon))
                 .layer(crate::middleware::rate_limit::coupon_apply_layer()),
         )
 }

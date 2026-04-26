@@ -1554,6 +1554,23 @@ pub struct PopupAnalytics {
     pub conversion_rate: f64,
 }
 
+/// Per-popup summary row returned by `GET /api/admin/popups/analytics`.
+///
+/// Distinct from [`PopupAnalytics`] (the single-popup detail view) because
+/// the collection endpoint also exposes `popup_type` / `is_active` so the
+/// admin index can render a roster without a second round-trip.
+#[derive(Debug, Serialize, sqlx::FromRow, ToSchema)]
+pub struct PopupAnalyticsSummary {
+    pub popup_id: Uuid,
+    pub popup_name: String,
+    pub popup_type: String,
+    pub is_active: bool,
+    pub impressions: i64,
+    pub closes: i64,
+    pub submits: i64,
+    pub conversion_rate: f64,
+}
+
 // Revenue analytics types (SalesEvent, MonthlyRevenueSnapshot, RevenueAnalytics,
 // MonthlyRevenueSummary, PlanRevenueSummary, RevenueAnalyticsQuery) were deleted in
 // FDN-01 because they had no callers. The underlying `sales_events` and

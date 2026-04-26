@@ -14,9 +14,11 @@
 //!   **optional** — requests without it pass through, exactly like
 //!   Stripe / Adyen. This keeps existing clients working.
 //! * The cache key is `(actor_user_id, key)`. The actor id is decoded
-//!   from the `Authorization: Bearer …` JWT (same secret as the
+//!   from the JWT carried by either the `swings_access` httpOnly cookie
+//!   (BFF Phase 1.3+) or the legacy `Authorization: Bearer …` header
+//!   (same dual-carrier resolution and validation as the
 //!   [`AuthUser`](crate::extractors::AuthUser) extractor); requests
-//!   without a valid bearer pass through so the downstream auth layer
+//!   without a valid token pass through so the downstream auth layer
 //!   can reject them with the canonical `401`.
 //! * The cached response includes `status`, `body`, and a small
 //!   allowlist of headers (`Content-Type`, `Location`, …). Replays
@@ -51,14 +53,17 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
-use jsonwebtoken::{decode, DecodingKey, Validation};
+use jsonwebtoken::{decode, DecodingKey};
 use serde::Serialize;
 use serde_json::Value as JsonValue;
 use sha2::{Digest, Sha256};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::{extractors::Claims, AppState};
+use crate::{
+    extractors::{extract_access_token, jwt_validation, Claims},
+    AppState,
+};
 
 /// Maximum allowed length of the `Idempotency-Key` header value. Matches
 /// the database CHECK constraint in migration `071_idempotency_keys.sql`.
@@ -184,14 +189,17 @@ fn extract_key(headers: &HeaderMap) -> Result<Option<String>, Box<Response>> {
 }
 
 fn decode_subject(headers: &HeaderMap, jwt_secret: &str) -> Option<Uuid> {
-    let token = headers
-        .get("authorization")
-        .and_then(|v| v.to_str().ok())
-        .and_then(|s| s.strip_prefix("Bearer "))?;
+    // BFF (Phase 1.4): the SPA presents the access token via the
+    // `swings_access` httpOnly cookie set by `/api/auth/login`; the legacy
+    // `Authorization: Bearer …` header path is preserved for tooling and
+    // for the integration-test harness during the rollout. Both carriers
+    // resolve through `extract_access_token` so the idempotency cache key
+    // is always scoped to the actor that AuthUser would resolve.
+    let token = extract_access_token(headers)?;
     let data = decode::<Claims>(
-        token,
+        &token,
         &DecodingKey::from_secret(jwt_secret.as_bytes()),
-        &Validation::default(),
+        &jwt_validation(),
     )
     .ok()?;
     Some(data.claims.sub)

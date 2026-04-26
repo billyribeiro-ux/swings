@@ -428,6 +428,175 @@ async fn by_user_returns_subscription_and_memberships() {
     assert_eq!(memberships[0]["status"], json!("active"));
 }
 
+// ── List + stats ───────────────────────────────────────────────────────
+
+#[tokio::test]
+async fn list_admin_returns_paginated_envelope_with_member_fields() {
+    let Some(app) = TestApp::try_new().await else {
+        return;
+    };
+    let admin = app.seed_admin().await.expect("seed admin");
+    let user = app.seed_user().await.expect("seed user");
+    let sub_id = seed_subscription_for(&app, user.id).await;
+
+    let resp = app
+        .get(
+            "/api/admin/subscriptions?page=1&per_page=15",
+            Some(&admin.access_token),
+        )
+        .await;
+    resp.assert_status(StatusCode::OK);
+    let body: Value = resp.json().expect("body");
+
+    assert!(body["data"].is_array(), "data should be an array");
+    assert!(body["total"].is_i64(), "total should be present");
+    assert_eq!(body["page"], json!(1));
+    assert_eq!(body["per_page"], json!(15));
+
+    let row = body["data"]
+        .as_array()
+        .and_then(|arr| arr.iter().find(|r| r["id"] == json!(sub_id)))
+        .expect("seeded subscription should appear in list");
+    assert_eq!(row["member_id"], json!(user.id));
+    assert!(
+        row["member_email"].is_string(),
+        "member_email should be present"
+    );
+    assert!(
+        row["member_name"].is_string(),
+        "member_name should be present"
+    );
+    assert_eq!(row["plan"], json!("monthly"));
+    assert_eq!(row["interval"], json!("month"));
+    assert_eq!(row["status"], json!("active"));
+    assert!(row["start_date"].is_string());
+    assert!(row["next_renewal"].is_string());
+    assert_eq!(row["cancel_at_period_end"], json!(false));
+}
+
+#[tokio::test]
+async fn list_admin_filters_by_status() {
+    let Some(app) = TestApp::try_new().await else {
+        return;
+    };
+    let admin = app.seed_admin().await.expect("seed admin");
+    let user = app.seed_user().await.expect("seed user");
+    let _ = seed_subscription_for(&app, user.id).await;
+
+    // Filter to a status with no rows.
+    let resp = app
+        .get(
+            "/api/admin/subscriptions?status=trialing",
+            Some(&admin.access_token),
+        )
+        .await;
+    resp.assert_status(StatusCode::OK);
+    let body: Value = resp.json().expect("body");
+    let data = body["data"].as_array().expect("data array");
+    assert!(
+        data.iter().all(|r| r["status"] == json!("trialing")),
+        "every row should match the requested status"
+    );
+}
+
+#[tokio::test]
+async fn list_admin_rejects_unknown_status_filter() {
+    let Some(app) = TestApp::try_new().await else {
+        return;
+    };
+    let admin = app.seed_admin().await.expect("seed admin");
+
+    let resp = app
+        .get(
+            "/api/admin/subscriptions?status=bogus",
+            Some(&admin.access_token),
+        )
+        .await;
+    resp.assert_status(StatusCode::BAD_REQUEST);
+}
+
+#[tokio::test]
+async fn support_can_read_subscription_list_and_stats() {
+    let Some(app) = TestApp::try_new().await else {
+        return;
+    };
+    let support = app.seed_support().await.expect("seed support");
+
+    // `admin.subscription.read` is granted to support in
+    // 067_subscription_admin.sql, so both reads are allowed.
+    let list = app
+        .get("/api/admin/subscriptions", Some(&support.access_token))
+        .await;
+    list.assert_status(StatusCode::OK);
+
+    let stats = app
+        .get(
+            "/api/admin/subscriptions/stats",
+            Some(&support.access_token),
+        )
+        .await;
+    stats.assert_status(StatusCode::OK);
+}
+
+#[tokio::test]
+async fn member_cannot_read_subscription_list_or_stats() {
+    let Some(app) = TestApp::try_new().await else {
+        return;
+    };
+    let member = app.seed_user().await.expect("seed member");
+
+    let list = app
+        .get("/api/admin/subscriptions", Some(&member.access_token))
+        .await;
+    list.assert_status(StatusCode::FORBIDDEN);
+
+    let stats = app
+        .get("/api/admin/subscriptions/stats", Some(&member.access_token))
+        .await;
+    stats.assert_status(StatusCode::FORBIDDEN);
+}
+
+#[tokio::test]
+async fn stats_returns_expected_counts_after_seeding() {
+    let Some(app) = TestApp::try_new().await else {
+        return;
+    };
+    let admin = app.seed_admin().await.expect("seed admin");
+
+    // Two active monthly subscriptions for two distinct members.
+    let u1 = app.seed_user().await.expect("seed u1");
+    let u2 = app.seed_user().await.expect("seed u2");
+    let _ = seed_subscription_for(&app, u1.id).await;
+    let _ = seed_subscription_for(&app, u2.id).await;
+
+    let resp = app
+        .get("/api/admin/subscriptions/stats", Some(&admin.access_token))
+        .await;
+    resp.assert_status(StatusCode::OK);
+    let body: Value = resp.json().expect("body");
+
+    let total_active = body["total_active"].as_i64().expect("total_active");
+    let monthly_count = body["monthly_count"].as_i64().expect("monthly_count");
+    let annual_count = body["annual_count"].as_i64().expect("annual_count");
+
+    assert!(
+        total_active >= 2,
+        "total_active should reflect at least the two seeded subs (got {total_active})"
+    );
+    assert!(
+        monthly_count >= 2,
+        "monthly_count should include the seeded monthly subs (got {monthly_count})"
+    );
+    assert!(annual_count >= 0);
+    assert!(body["mrr_cents"].is_i64(), "mrr_cents should be present");
+    assert!(body["arr_cents"].is_i64(), "arr_cents should be present");
+    assert!(body["trialing"].is_i64());
+    assert!(body["past_due"].is_i64());
+    assert!(body["canceled"].is_i64());
+    assert!(body["unpaid"].is_i64());
+    assert!(body["paused"].is_i64());
+}
+
 #[tokio::test]
 async fn by_user_unknown_member_is_404() {
     let Some(app) = TestApp::try_new().await else {

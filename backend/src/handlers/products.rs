@@ -47,46 +47,37 @@ use crate::commerce::products::{BundleItem, DownloadableAsset, Product, ProductV
 
 pub fn admin_router() -> Router<AppState> {
     Router::new()
+        .route("/", get(admin_list_products).post(admin_create_product))
         .route(
-            "/products",
-            get(admin_list_products).post(admin_create_product),
-        )
-        .route(
-            "/products/{id}",
+            "/{id}",
             get(admin_get_product)
                 .put(admin_update_product)
                 .delete(admin_delete_product),
         )
-        .route("/products/{id}/status", post(admin_set_status))
+        .route("/{id}/status", post(admin_set_status))
         // Variants
         .route(
-            "/products/{id}/variants",
+            "/{id}/variants",
             get(admin_list_variants).post(admin_add_variant),
         )
         .route(
-            "/products/{id}/variants/{variant_id}",
+            "/{id}/variants/{variant_id}",
             put(admin_update_variant).delete(admin_delete_variant),
         )
         // Downloadable assets
-        .route(
-            "/products/{id}/assets",
-            get(admin_list_assets).post(admin_add_asset),
-        )
-        .route(
-            "/products/{id}/assets/{asset_id}",
-            delete(admin_delete_asset),
-        )
+        .route("/{id}/assets", get(admin_list_assets).post(admin_add_asset))
+        .route("/{id}/assets/{asset_id}", delete(admin_delete_asset))
         // Bundle items
         .route(
-            "/products/{id}/bundle-items",
+            "/{id}/bundle-items",
             get(admin_list_bundle_items).put(admin_set_bundle_items),
         )
 }
 
 pub fn public_router() -> Router<AppState> {
     Router::new()
-        .route("/products", get(public_list_products))
-        .route("/products/{slug}", get(public_get_product))
+        .route("/", get(public_list_products))
+        .route("/{slug}", get(public_get_product))
 }
 
 // ══════════════════════════════════════════════════════════════════════

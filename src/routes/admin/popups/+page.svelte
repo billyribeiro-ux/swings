@@ -38,17 +38,40 @@
 		return analytics.find((a) => a.popup_id === popupId);
 	}
 
+	// Backend shape (collection summary) — kept narrow so this page doesn't
+	// drift from the per-popup `/{id}/analytics` shape (which keeps the
+	// `total_*` field names for backwards compat).
+	type PopupAnalyticsSummaryRow = {
+		popup_id: string;
+		popup_name: string;
+		popup_type: string;
+		is_active: boolean;
+		impressions: number;
+		closes: number;
+		submits: number;
+		conversion_rate: number;
+	};
+
 	async function load() {
 		loading = true;
 		try {
 			const [popupRes, analyticsRes] = await Promise.all([
 				api.get<PaginatedResponse<Popup>>(`/api/admin/popups?page=${page}&per_page=15`),
-				api.get<PopupAnalytics[]>('/api/admin/popups/analytics')
+				api.get<PopupAnalyticsSummaryRow[]>('/api/admin/popups/analytics')
 			]);
 			popups = popupRes.data;
 			total = popupRes.total;
 			totalPages = popupRes.total_pages;
-			analytics = analyticsRes;
+			// Map the collection summary onto the per-popup `PopupAnalytics`
+			// shape this page was originally written against. Avoids touching
+			// every consumer in the template for a one-line field rename.
+			analytics = analyticsRes.map((row) => ({
+				popup_id: row.popup_id,
+				total_impressions: row.impressions,
+				total_closes: row.closes,
+				total_submissions: row.submits,
+				conversion_rate: row.conversion_rate
+			})) as PopupAnalytics[];
 		} catch (e) {
 			toast.error('Failed to load popups', {
 				description: e instanceof Error ? e.message : undefined

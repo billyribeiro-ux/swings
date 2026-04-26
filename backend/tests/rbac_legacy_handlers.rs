@@ -88,7 +88,7 @@ async fn rbac_courses_create_forbidden_for_support() {
     let support = app.seed_support().await.expect("seed support");
     let resp = app
         .post_json(
-            "/api/admin/courses/courses",
+            "/api/admin/courses",
             &json!({ "title": "RBAC", "slug": "rbac" }),
             Some(&support.access_token),
         )
@@ -110,7 +110,7 @@ async fn rbac_courses_delete_forbidden_for_support() {
     let support = app.seed_support().await.expect("seed support");
     let resp = app
         .delete(
-            &format!("/api/admin/courses/courses/{}", Uuid::new_v4()),
+            &format!("/api/admin/courses/{}", Uuid::new_v4()),
             Some(&support.access_token),
         )
         .await;
@@ -127,7 +127,7 @@ async fn rbac_coupons_create_forbidden_for_support() {
     let support = app.seed_support().await.expect("seed support");
     let resp = app
         .post_json(
-            "/api/admin/coupons/coupons",
+            "/api/admin/coupons",
             &json!({
                 "code": "RBACTEST",
                 "discount_type": "percentage",
@@ -153,7 +153,7 @@ async fn rbac_coupons_bulk_create_forbidden_for_support() {
     let support = app.seed_support().await.expect("seed support");
     let resp = app
         .post_json(
-            "/api/admin/coupons/coupons/bulk",
+            "/api/admin/coupons/bulk",
             &json!({
                 "count": 3,
                 "discount_type": "percentage",
@@ -215,7 +215,7 @@ async fn rbac_products_create_forbidden_for_support() {
     let support = app.seed_support().await.expect("seed support");
     let resp = app
         .post_json(
-            "/api/admin/products/products",
+            "/api/admin/products",
             &json!({
                 "slug": "rbac-product",
                 "name": "RBAC Product",
@@ -242,7 +242,7 @@ async fn rbac_products_set_status_forbidden_for_support() {
     let support = app.seed_support().await.expect("seed support");
     let resp = app
         .post_json(
-            &format!("/api/admin/products/products/{}/status", Uuid::new_v4()),
+            &format!("/api/admin/products/{}/status", Uuid::new_v4()),
             &json!({ "status": "published" }),
             Some(&support.access_token),
         )
