@@ -59,11 +59,17 @@
 	});
 
 	function nextPage() {
-		if (currentPage < totalPages) goto(`${resolve('/blog')}?page=${currentPage + 1}`);
+		if (currentPage < totalPages) {
+			// eslint-disable-next-line svelte/no-navigation-without-resolve -- URL is built from resolve('/blog') with a query-string suffix; the rule cannot see through the template literal
+			goto(`${resolve('/blog')}?page=${currentPage + 1}`);
+		}
 	}
 
 	function prevPage() {
-		if (currentPage > 1) goto(`${resolve('/blog')}?page=${currentPage - 1}`);
+		if (currentPage > 1) {
+			// eslint-disable-next-line svelte/no-navigation-without-resolve -- URL is built from resolve('/blog') with a query-string suffix; the rule cannot see through the template literal
+			goto(`${resolve('/blog')}?page=${currentPage - 1}`);
+		}
 	}
 
 	const jsonLd = $derived(

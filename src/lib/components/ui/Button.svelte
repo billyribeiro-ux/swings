@@ -114,7 +114,7 @@
 </script>
 
 {#if href}
-	<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- href is a caller-supplied prop; resolve() must be applied at the call site -->
+	<!-- eslint-disable svelte/no-navigation-without-resolve -- href is a caller-supplied prop; resolve() must be applied at the call site -->
 	<a
 		href={disabled ? undefined : href}
 		class={classes}
@@ -132,6 +132,7 @@
 			></span>
 		{/each}
 	</a>
+	<!-- eslint-enable svelte/no-navigation-without-resolve -->
 {:else}
 	<button
 		{disabled}

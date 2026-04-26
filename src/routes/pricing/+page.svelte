@@ -257,6 +257,7 @@
 							<li><CheckIcon size={16} weight="bold" /> {feature}</li>
 						{/each}
 					</ul>
+					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- href is built by getCheckoutUrl() which uses resolve() internally; the lint rule cannot see through the helper -->
 					<a
 						href={getCheckoutUrl(plan)}
 						class="plan-card__cta"

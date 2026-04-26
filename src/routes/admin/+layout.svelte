@@ -2,9 +2,9 @@
 	import { browser } from '$app/environment';
 	import { onMount, untrack } from 'svelte';
 	import type { Component } from 'svelte';
-	import type { IconComponentProps } from 'phosphor-svelte/lib/shared';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
+	import type { RouteId } from '$app/types';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { api, ApiError } from '$lib/api/client';
 	import type { AuthResponse, UserResponse } from '$lib/api/types';
@@ -46,6 +46,7 @@
 		notificationAdminItems,
 		popupAdminItems,
 		publicAdminRoutes,
+		resolveAdminHref,
 		subscriptionAdminItems
 	} from '$lib/components/admin/admin-nav';
 
@@ -200,9 +201,12 @@
 	}
 
 	type NavItem = {
-		href: Parameters<typeof resolve>[0];
+		href: RouteId;
 		label: string;
-		icon: Component<IconComponentProps, Record<string, never>, ''>;
+		// Phosphor icons are Svelte components with their own prop shape; we don't
+		// re-introduce phosphor's prop type here because the Svelte 5 `Component`
+		// generic only needs the static-import widened back to a Component.
+		icon: Component<Record<string, unknown>, Record<string, never>, ''>;
 	};
 	const navItems: NavItem[] = [
 		{ href: '/admin', label: 'Dashboard', icon: ChartBarIcon },
@@ -380,7 +384,7 @@
 				{#each navItems as item (item.href)}
 					<Tooltip label={item.label} placement="right" disabled={!sidebarCollapsed}>
 						<a
-							href={resolve(item.href)}
+							href={resolveAdminHref(item.href)}
 							class="admin__nav-link"
 							class:admin__nav-link--active={page.url.pathname === item.href}
 							onclick={() => (mobileMenuOpen = false)}
@@ -417,7 +421,7 @@
 						<div class="admin__nav-submenu">
 							{#each blogAdminItems as item (item.href)}
 								<a
-									href={resolve(item.href)}
+									href={resolveAdminHref(item.href)}
 									class="admin__nav-sublink"
 									onclick={() => {
 										mobileMenuOpen = false;
@@ -456,7 +460,7 @@
 						<div class="admin__nav-submenu">
 							{#each courseAdminItems as item (item.href)}
 								<a
-									href={resolve(item.href)}
+									href={resolveAdminHref(item.href)}
 									class="admin__nav-sublink"
 									onclick={() => {
 										mobileMenuOpen = false;
@@ -495,7 +499,7 @@
 						<div class="admin__nav-submenu">
 							{#each subscriptionAdminItems as item (item.href)}
 								<a
-									href={resolve(item.href)}
+									href={resolveAdminHref(item.href)}
 									class="admin__nav-sublink"
 									onclick={() => {
 										mobileMenuOpen = false;
@@ -534,7 +538,7 @@
 						<div class="admin__nav-submenu">
 							{#each couponAdminItems as item (item.href)}
 								<a
-									href={resolve(item.href)}
+									href={resolveAdminHref(item.href)}
 									class="admin__nav-sublink"
 									onclick={() => {
 										mobileMenuOpen = false;
@@ -573,7 +577,7 @@
 						<div class="admin__nav-submenu">
 							{#each popupAdminItems as item (item.href)}
 								<a
-									href={resolve(item.href)}
+									href={resolveAdminHref(item.href)}
 									class="admin__nav-sublink"
 									onclick={() => {
 										mobileMenuOpen = false;
@@ -628,7 +632,7 @@
 						<div class="admin__nav-submenu">
 							{#each notificationAdminItems as item (item.href)}
 								<a
-									href={resolve(item.href)}
+									href={resolveAdminHref(item.href)}
 									class="admin__nav-sublink"
 									onclick={() => {
 										mobileMenuOpen = false;
@@ -698,7 +702,7 @@
 						<div class="admin__nav-submenu">
 							{#each consentAdminItems as item (item.href)}
 								<a
-									href={resolve(item.href)}
+									href={resolveAdminHref(item.href)}
 									class="admin__nav-sublink"
 									onclick={() => {
 										mobileMenuOpen = false;

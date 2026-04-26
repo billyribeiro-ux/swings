@@ -67,14 +67,14 @@
 {/snippet}
 
 {#if href}
-	<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- href is a caller-supplied prop; resolve() must be applied at the call site -->
+	<!-- eslint-disable svelte/no-navigation-without-resolve -- href is a caller-supplied prop; resolve() must be applied at the call site -->
 	<a
+		href={isInactive ? undefined : href}
 		class="btn"
 		data-variant={variant}
 		data-size={size}
 		class:full-width={fullWidth}
 		class:loading
-		href={isInactive ? undefined : href}
 		{target}
 		rel={anchorRel}
 		aria-disabled={isInactive || undefined}
@@ -85,6 +85,7 @@
 	>
 		{@render inner()}
 	</a>
+	<!-- eslint-enable svelte/no-navigation-without-resolve -->
 {:else}
 	<button
 		class="btn"

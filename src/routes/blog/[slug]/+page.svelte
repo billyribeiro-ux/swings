@@ -224,9 +224,9 @@
 						<p class="author-box__bio">{post.author_bio}</p>
 					{/if}
 					{#if post.author_twitter || post.author_linkedin || post.author_youtube || post.author_website}
+						<!-- eslint-disable svelte/no-navigation-without-resolve -- author social URLs are externally hosted (x.com, linkedin.com, youtube.com, author website) and open in a new tab; resolve() does not apply -->
 						<div class="author-box__social">
 							{#if post.author_twitter}
-								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- author social URL is externally hosted (e.g. x.com); resolve() does not apply -->
 								<a
 									href={post.author_twitter}
 									target="_blank"
@@ -238,7 +238,6 @@
 								</a>
 							{/if}
 							{#if post.author_linkedin}
-								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- author social URL is externally hosted (e.g. linkedin.com); resolve() does not apply -->
 								<a
 									href={post.author_linkedin}
 									target="_blank"
@@ -250,7 +249,6 @@
 								</a>
 							{/if}
 							{#if post.author_youtube}
-								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- author social URL is externally hosted (e.g. youtube.com); resolve() does not apply -->
 								<a
 									href={post.author_youtube}
 									target="_blank"
@@ -262,7 +260,6 @@
 								</a>
 							{/if}
 							{#if post.author_website}
-								<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- author website is an author-supplied external URL; resolve() does not apply -->
 								<a
 									href={post.author_website}
 									target="_blank"
@@ -274,6 +271,7 @@
 								</a>
 							{/if}
 						</div>
+						<!-- eslint-enable svelte/no-navigation-without-resolve -->
 					{/if}
 				</div>
 			</div>

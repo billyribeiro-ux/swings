@@ -49,8 +49,8 @@
 		{/if}
 
 		{#if watchlist.video_url}
+			<!-- eslint-disable svelte/no-navigation-without-resolve -- video_url is admin-supplied (typically YouTube/Vimeo) and opens in a new tab; resolve() does not apply -->
 			<div class="wl-detail__video">
-				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- video_url is admin-supplied (typically YouTube/Vimeo) and opens in a new tab; resolve() does not apply -->
 				<a
 					href={watchlist.video_url}
 					target="_blank"
@@ -60,6 +60,7 @@
 					Watch Video Walkthrough →
 				</a>
 			</div>
+			<!-- eslint-enable svelte/no-navigation-without-resolve -->
 		{/if}
 
 		<!-- Alerts -->

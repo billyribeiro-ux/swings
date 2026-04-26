@@ -1,16 +1,37 @@
-import type { resolve } from '$app/paths';
+import { resolve } from '$app/paths';
+import type { ResolvedPathname, RouteId } from '$app/types';
 
 /**
- * `resolve()` from `$app/paths` accepts only literal `RouteId` values, so we
- * tighten `href` to that exact string union. This keeps the data file
- * JSON-serialisable (plain strings — no `resolve()` calls baked in) while
- * giving consumers a typed input they can pass straight into `resolve(item.href)`.
+ * Static (parameterless) `RouteId` — i.e. routes whose path matches their id.
+ * Excludes parametric routes like `/admin/coupons/[id]`, since this nav data
+ * file only ever links to top-level admin sub-surfaces, not to specific rows.
  */
-export type AdminNavHref = Parameters<typeof resolve>[0];
+export type AdminNavHref = RouteId;
 
 export interface AdminNavItem {
 	href: AdminNavHref;
 	label: string;
+}
+
+/**
+ * Apply the SvelteKit 2 `resolve()` helper to a nav item's `href`.
+ *
+ * Why this wrapper exists:
+ * 1. `resolve()` is *overloaded per-route* (one signature per `RouteId`), so
+ *    calling it with a generic `RouteId` union won't typecheck. We widen the
+ *    call signature to `(RouteId) => ResolvedPathname` exactly once, here.
+ * 2. The `svelte/no-navigation-without-resolve` ESLint rule treats a return
+ *    typed as `ResolvedPathname` (from `$app/types`) as already-resolved at
+ *    consumer sites, so `<a href={resolveAdminHref(item.href)}>` lints clean
+ *    without a second `resolve()` wrapper.
+ *
+ * Runtime is unchanged: SvelteKit's `resolve(...)` accepts any `RouteId` at
+ * runtime (the per-route overloads are purely a TypeScript narrowing helper
+ * for parametric routes; static `RouteId`s take no `params` argument).
+ */
+const resolveStatic = resolve as (route: RouteId) => ResolvedPathname;
+export function resolveAdminHref(href: AdminNavHref): ResolvedPathname {
+	return resolveStatic(href);
 }
 
 export const publicAdminRoutes = ['/admin/forgot-password', '/admin/reset-password'];

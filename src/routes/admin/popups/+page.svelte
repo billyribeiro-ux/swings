@@ -177,7 +177,7 @@
 				</p>
 			</div>
 		</div>
-		<a href="/admin/popups/new" class="btn btn--primary">
+		<a href={resolve('/admin/popups/new')} class="btn btn--primary">
 			<PlusIcon size={16} weight="bold" />
 			<span>Create popup</span>
 		</a>
