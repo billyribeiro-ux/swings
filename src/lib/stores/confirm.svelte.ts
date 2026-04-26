@@ -12,10 +12,10 @@ export type ConfirmVariant = 'danger' | 'warning' | 'info';
 
 export interface ConfirmOptions {
 	title: string;
-	message?: string;
-	confirmLabel?: string;
-	cancelLabel?: string;
-	variant?: ConfirmVariant;
+	message?: string | undefined;
+	confirmLabel?: string | undefined;
+	cancelLabel?: string | undefined;
+	variant?: ConfirmVariant | undefined;
 }
 
 export interface ConfirmRequest extends ConfirmOptions {

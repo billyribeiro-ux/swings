@@ -77,8 +77,9 @@
 
 		const rafId = requestAnimationFrame(() => {
 			const list = focusables();
-			if (list.length > 0) {
-				list[0].focus();
+			const head = list[0];
+			if (head) {
+				head.focus();
 			} else {
 				node.focus();
 			}
@@ -98,8 +99,8 @@
 				node.focus();
 				return;
 			}
-			const first = list[0];
-			const last = list[list.length - 1];
+			const first = list[0]!;
+			const last = list[list.length - 1]!;
 			const active = document.activeElement as HTMLElement | null;
 
 			if (e.shiftKey) {

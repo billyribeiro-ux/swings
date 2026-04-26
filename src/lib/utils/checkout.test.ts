@@ -19,7 +19,7 @@ vi.mock('../../routes/api/checkout.remote', () => ({
 
 import { createCheckoutSession } from './checkout';
 
-let hrefSetter: ReturnType<typeof vi.fn>;
+let hrefSetter: (v: string) => void;
 
 beforeEach(() => {
 	remoteSpy.mockReset();
@@ -31,9 +31,7 @@ beforeEach(() => {
 	delete (window as any).location;
 	Object.defineProperty(window, 'location', {
 		configurable: true,
-		writable: true,
 		value: {
-			href: 'http://localhost/',
 			assign: vi.fn(),
 			set href(v: string) {
 				hrefSetter(v);

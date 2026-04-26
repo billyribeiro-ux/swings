@@ -141,7 +141,7 @@ class ApiClient {
 		return this.request<T>(endpoint, {
 			...options,
 			method: 'POST',
-			body: body ? JSON.stringify(body) : undefined
+			body: body ? JSON.stringify(body) : null
 		});
 	}
 
@@ -149,7 +149,7 @@ class ApiClient {
 		return this.request<T>(endpoint, {
 			...options,
 			method: 'PUT',
-			body: body ? JSON.stringify(body) : undefined
+			body: body ? JSON.stringify(body) : null
 		});
 	}
 
@@ -157,7 +157,7 @@ class ApiClient {
 		return this.request<T>(endpoint, {
 			...options,
 			method: 'PATCH',
-			body: body ? JSON.stringify(body) : undefined
+			body: body ? JSON.stringify(body) : null
 		});
 	}
 
@@ -224,14 +224,15 @@ class ApiClient {
 		// Match `filename="…"` or `filename=…` after the standard
 		// `attachment;` prefix that [`stream_artifact`] sets.
 		const m = /filename\*?=(?:UTF-8''|"?)([^";]+)"?/i.exec(disposition);
-		return { blob, filename: m ? decodeURIComponent(m[1]) : null };
+		const captured = m?.[1];
+		return { blob, filename: captured ? decodeURIComponent(captured) : null };
 	}
 }
 
 export class ApiError extends Error {
 	status: number;
 	/** RFC 7807 fields when present (e.g. `errors` for validation failures). */
-	details?: Record<string, unknown>;
+	details?: Record<string, unknown> | undefined;
 
 	constructor(status: number, message: string, details?: Record<string, unknown>) {
 		super(message);
