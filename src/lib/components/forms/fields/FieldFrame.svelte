@@ -24,10 +24,10 @@
 	export interface FieldFrameProps {
 		readonly controlId: string;
 		readonly label: string;
-		readonly helpText?: string;
-		readonly error?: string;
-		readonly required?: boolean;
-		readonly hideLabel?: boolean;
+		readonly helpText?: string | undefined;
+		readonly error?: string | undefined;
+		readonly required?: boolean | undefined;
+		readonly hideLabel?: boolean | undefined;
 		readonly children: Snippet<[FieldFrameChildContext]>;
 	}
 </script>

@@ -16,8 +16,8 @@ export interface FormFieldChildContext {
 export interface FormFieldProps {
 	for: string;
 	label: string;
-	description?: string;
-	error?: string;
-	required?: boolean;
+	description?: string | undefined;
+	error?: string | undefined;
+	required?: boolean | undefined;
 	children: Snippet<[FormFieldChildContext]>;
 }

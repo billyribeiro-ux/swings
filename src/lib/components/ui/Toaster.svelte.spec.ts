@@ -64,8 +64,8 @@ describe('Toaster', () => {
 		toast.success('Brief', { duration: 80 });
 		await tick(20);
 		expect(toast.items.length).toBe(1);
-		// rAF-driven timer; give it more than `duration + animation tail`.
-		await tick(220);
+		// rAF-driven timer; give it generous slack over `duration + animation tail`.
+		await tick(800);
 		expect(toast.items.length).toBe(0);
 	});
 

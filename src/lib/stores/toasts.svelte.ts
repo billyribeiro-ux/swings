@@ -16,17 +16,17 @@ export interface ToastItem {
 	readonly id: string;
 	readonly kind: ToastKind;
 	readonly title: string;
-	readonly description?: string;
+	readonly description?: string | undefined;
 	/** Milliseconds before auto-dismiss. `0` = persistent (dismiss manually). */
 	readonly duration: number;
 	readonly createdAt: number;
 }
 
 export interface ToastInput {
-	kind?: ToastKind;
+	kind?: ToastKind | undefined;
 	title: string;
-	description?: string;
-	duration?: number;
+	description?: string | undefined;
+	duration?: number | undefined;
 }
 
 const DEFAULT_DURATION_MS = 5_000;

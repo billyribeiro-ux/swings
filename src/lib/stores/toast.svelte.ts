@@ -24,20 +24,20 @@ export interface ToastAction {
 
 export interface ToastOptions {
 	/** Optional second-line description rendered under the title. */
-	description?: string;
+	description?: string | undefined;
 	/** Milliseconds before auto-dismiss. `0` = sticky (no auto-dismiss). */
-	duration?: number;
+	duration?: number | undefined;
 	/** Inline action button. The handler does NOT auto-dismiss the toast. */
-	action?: ToastAction;
+	action?: ToastAction | undefined;
 }
 
 export interface ToastItem {
 	readonly id: string;
 	readonly variant: ToastVariant;
 	readonly title: string;
-	readonly description?: string;
+	readonly description?: string | undefined;
 	readonly duration: number;
-	readonly action?: ToastAction;
+	readonly action?: ToastAction | undefined;
 	readonly createdAt: number;
 }
 

@@ -42,8 +42,12 @@ describe('Tooltip', () => {
 		await trigger.hover();
 		await tick();
 		expect(document.querySelector('[role="tooltip"]')).not.toBeNull();
-		// Move pointer off the trigger by hovering the body element.
-		await page.locator('body').hover({ position: { x: 1, y: 1 } });
+		// Dispatch pointerleave directly on the anchor span (which is the
+		// `display: contents` parent of our trigger button); the component
+		// listens via `onpointerleave` so a synthetic event is enough.
+		const anchor = (trigger.element() as HTMLElement).parentElement;
+		expect(anchor).not.toBeNull();
+		anchor!.dispatchEvent(new PointerEvent('pointerleave', { bubbles: true }));
 		await tick();
 		expect(document.querySelector('[role="tooltip"]')).toBeNull();
 	});

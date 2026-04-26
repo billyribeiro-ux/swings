@@ -35,7 +35,7 @@ describe('ConfirmDialogHost', () => {
 		await tick();
 		const dialog = page.getByRole('alertdialog');
 		await expect.element(dialog).toBeInTheDocument();
-		await expect.element(dialog).toContainText('Hosted prompt');
+		await expect.element(dialog).toHaveTextContent(/Hosted prompt/);
 
 		// Cleanup — resolve to drain the queue and let the test finish.
 		confirms.resolveCurrent(false);
