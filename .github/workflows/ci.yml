@@ -65,7 +65,7 @@ jobs:
         # Pinned to the channel declared in `rust-toolchain.toml` so CI,
         # dev, and the Docker builder all resolve to the same compiler.
         # Bump in lockstep with `Dockerfile` when upgrading.
-        uses: dtolnay/rust-toolchain@1.93
+        uses: dtolnay/rust-toolchain@1.100
         with:
           components: rustfmt, clippy
 
@@ -103,7 +103,7 @@ jobs:
 
       - name: Setup Rust
         # Pinned — see `backend` job above.
-        uses: dtolnay/rust-toolchain@1.93
+        uses: dtolnay/rust-toolchain@1.100
         with:
           components: llvm-tools-preview
 

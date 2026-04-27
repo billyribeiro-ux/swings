@@ -38,7 +38,7 @@ jobs:
 
       - name: Setup Rust
         # Pinned — matches `rust-toolchain.toml` and `Dockerfile`.
-        uses: dtolnay/rust-toolchain@1.93
+        uses: dtolnay/rust-toolchain@1.100
 
       - name: Cache cargo artifacts
         uses: Swatinem/rust-cache@v2
