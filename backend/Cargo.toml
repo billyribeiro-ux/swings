@@ -123,7 +123,7 @@ utoipa-swagger-ui = { version = "9.0", features = ["axum"] }
 
 # Observability (Phase 4 follow-on to FDN-08)
 metrics = "0.24"
-metrics-exporter-prometheus = "0.17"
+metrics-exporter-prometheus = "0.18"
 
 # EC-06: PDF invoice / receipt / credit-note generation. `printpdf` is pure
 # Rust, has no system deps, and ships with its own Helvetica subset so we do
