@@ -107,7 +107,7 @@ tower_governor = "0.8"
 # soundness). We use open_readfile (Vec<u8>), but the crate-level advisory
 # still requires the version bump. 0.27 introduces the LookupResult API
 # — see `src/common/geo.rs` for the migration.
-maxminddb = "0.27"
+maxminddb = "0.28"
 
 # User-agent parsing + cache
 woothee = "0.13"
