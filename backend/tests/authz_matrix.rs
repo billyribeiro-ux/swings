@@ -3,10 +3,11 @@
 
 //! FDN-07 integration test.
 //!
-//! Exhaustively asserts every row of the §12 authz matrix in
-//! `docs/archive/AUDIT_PHASE3_PLAN.md`. The fixture below mirrors the `role_permissions`
-//! seed in `backend/migrations/021_rbac.sql`; if either side diverges, one of
-//! the assertions fires immediately and the divergence is surfaced in CI.
+//! Exhaustively asserts every row of the role × permission matrix. The
+//! fixture below mirrors the `role_permissions` seed in
+//! `backend/migrations/021_rbac.sql` (extended by later `0NN_*_perms.sql`
+//! migrations); if either side diverges, one of the assertions fires
+//! immediately and the divergence is surfaced in CI.
 //!
 //! Why an in-memory fixture? Ephemeral-Postgres fixtures are heavyweight and
 //! require a running cluster, which is not part of the `cargo test` sandbox

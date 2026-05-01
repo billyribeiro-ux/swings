@@ -3,7 +3,6 @@
 > **Last revised:** 2026-04-25
 > **Audience:** Operator running a Stripe TEST-mode regression on the local
 > stack (`backend` on `:3001`, frontend on `:5177`, Postgres at `:5434`).
-> **Spec source:** [`docs/REMAINING-WORK.md`](./REMAINING-WORK.md) Phase 4.
 > **Companion:** [`docs/stripe-local-testing.md`](./stripe-local-testing.md)
 > for the day-to-day "how do I run Stripe locally" tutorial.
 >
@@ -964,7 +963,6 @@ stripe logs tail
 | Existing webhook integration tests        | `backend/tests/stripe_webhooks.rs`                    | 1-80 (header) |
 | `pnpm stripe:listen` script               | `package.json`                                        | 28            |
 | Local-testing tutorial (companion doc)    | `docs/stripe-local-testing.md`                        | 1-85          |
-| Spec — Phase 4                            | `docs/REMAINING-WORK.md`                              | 421-559       |
 
 ---
 

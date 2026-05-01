@@ -19,8 +19,8 @@
 //! `main.rs`, and `lib.rs` additions the integrator needs to apply to wire
 //! this module into the live binary.
 //!
-//! OpenTelemetry integration is deliberately left out — it's the Phase 5
-//! follow-up per `docs/archive/AUDIT_PHASE3_PLAN.md` §11.
+//! OpenTelemetry integration is deliberately left out — tracked as a
+//! follow-up.
 
 pub mod correlation;
 pub mod handler;

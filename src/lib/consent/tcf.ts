@@ -13,8 +13,7 @@
  * can read it. When we adopt the full GVL later, the only thing that changes
  * is `buildTcString` — the `__tcfapi` plumbing stays.
  *
- * TODO: wire `@iabtcf/core` + scheduled GVL refresh. See CONSENT-04 v2 in
- *       docs/archive/AUDIT_PHASE3_PLAN.md §3.
+ * TODO: wire `@iabtcf/core` + scheduled GVL refresh.
  */
 
 import { CONSENT_EVENT_NAME, type ConsentEventDetail } from '$lib/stores/consent.svelte';

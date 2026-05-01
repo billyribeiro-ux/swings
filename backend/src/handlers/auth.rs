@@ -409,8 +409,7 @@ pub(crate) async fn refresh(
 
     // BFF: prefer the httpOnly cookie that the SPA never sees. Fall back to
     // the legacy JSON body for the rollout window — once every live client
-    // round-trips through cookie-based login the body branch can go away
-    // (see `docs/REMAINING-WORK.md` Phase 1.3 → Phase B).
+    // round-trips through cookie-based login the body branch can go away.
     let supplied_token = jar
         .get(COOKIE_REFRESH)
         .map(|c| c.value().to_string())

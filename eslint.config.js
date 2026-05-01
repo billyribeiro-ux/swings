@@ -52,8 +52,8 @@ export default defineConfig(
 			// `$lib/utils/safeHtml`.
 			//
 			// `svelte/no-navigation-without-resolve` is intentionally held at `warn`. The SvelteKit 2
-			// `resolve()` migration is a 232-warning / 73-file mechanical sweep that is out of scope
-			// for the audit-fix pass. Tracked as a follow-up; see AUDIT_FIX_PLAN.md Phase 6.1.
+			// `resolve()` migration is a 232-warning / 73-file mechanical sweep — promote to `error`
+			// once the sweep ships.
 			'svelte/no-navigation-without-resolve': 'warn',
 			'svelte/require-each-key': 'error',
 			'svelte/no-dom-manipulating': 'error',

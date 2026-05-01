@@ -46,9 +46,18 @@ async fn register_success_returns_tokens_and_member_role() {
 
     resp.assert_status(StatusCode::OK);
     let body: Value = resp.json().expect("register body");
-    assert_eq!(body["user"]["role"], "member", "new registrant must be 'member'");
-    assert!(body["access_token"].as_str().is_some(), "access_token missing");
-    assert!(body["refresh_token"].as_str().is_some(), "refresh_token missing");
+    assert_eq!(
+        body["user"]["role"], "member",
+        "new registrant must be 'member'"
+    );
+    assert!(
+        body["access_token"].as_str().is_some(),
+        "access_token missing"
+    );
+    assert!(
+        body["refresh_token"].as_str().is_some(),
+        "refresh_token missing"
+    );
 
     // BFF cookies must be set in response headers
     let set_cookies: Vec<String> = resp
@@ -446,7 +455,10 @@ async fn register_issues_email_verification_token_in_db() {
             .await
             .expect("count verification tokens");
 
-    assert!(count > 0, "email verification token must be issued on register");
+    assert!(
+        count > 0,
+        "email verification token must be issued on register"
+    );
 }
 
 #[tokio::test]
@@ -490,13 +502,12 @@ async fn verify_email_with_valid_token_marks_user_verified() {
     assert_eq!(body["verified"], true);
 
     // email_verified_at must now be set
-    let verified_at: Option<chrono::DateTime<Utc>> = sqlx::query_scalar(
-        "SELECT email_verified_at FROM users WHERE id = $1",
-    )
-    .bind(member.id)
-    .fetch_one(app.db())
-    .await
-    .expect("fetch email_verified_at");
+    let verified_at: Option<chrono::DateTime<Utc>> =
+        sqlx::query_scalar("SELECT email_verified_at FROM users WHERE id = $1")
+            .bind(member.id)
+            .fetch_one(app.db())
+            .await
+            .expect("fetch email_verified_at");
 
     assert!(
         verified_at.is_some(),
@@ -504,15 +515,17 @@ async fn verify_email_with_valid_token_marks_user_verified() {
     );
 
     // token must be marked used (used_at IS NOT NULL)
-    let used_at: Option<chrono::DateTime<Utc>> = sqlx::query_scalar(
-        "SELECT used_at FROM email_verification_tokens WHERE token_hash = $1",
-    )
-    .bind(&token_hash)
-    .fetch_one(app.db())
-    .await
-    .expect("fetch used_at");
+    let used_at: Option<chrono::DateTime<Utc>> =
+        sqlx::query_scalar("SELECT used_at FROM email_verification_tokens WHERE token_hash = $1")
+            .bind(&token_hash)
+            .fetch_one(app.db())
+            .await
+            .expect("fetch used_at");
 
-    assert!(used_at.is_some(), "token must be marked used after consumption");
+    assert!(
+        used_at.is_some(),
+        "token must be marked used after consumption"
+    );
 }
 
 #[tokio::test]

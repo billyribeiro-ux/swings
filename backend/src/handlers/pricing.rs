@@ -710,13 +710,11 @@ pub(crate) async fn admin_rollout_preview(
 ) -> AppResult<Json<PricingRolloutPreview>> {
     admin.require(&state.policy, "subscription.plan.manage")?;
 
-    let plan = sqlx::query_as::<_, PricingPlan>(
-        "SELECT * FROM pricing_plans WHERE id = $1",
-    )
-    .bind(id)
-    .fetch_optional(&state.db)
-    .await?
-    .ok_or_else(|| AppError::NotFound("Pricing plan not found".into()))?;
+    let plan = sqlx::query_as::<_, PricingPlan>("SELECT * FROM pricing_plans WHERE id = $1")
+        .bind(id)
+        .fetch_optional(&state.db)
+        .await?
+        .ok_or_else(|| AppError::NotFound("Pricing plan not found".into()))?;
 
     let audience = params.audience.unwrap_or_default();
     let preview = preview_rollout(&state, &plan, audience).await?;

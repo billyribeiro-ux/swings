@@ -1,6 +1,6 @@
 // Svelte 5 reactive auth state class
 //
-// BFF (Phase 1.3 / `docs/REMAINING-WORK.md`):
+// BFF auth model:
 //   The access + refresh tokens NO LONGER live in `localStorage`. They are
 //   minted by the backend as `HttpOnly`, `Secure` (in prod), `SameSite=Lax`
 //   cookies (`swings_access` / `swings_refresh`) that the browser attaches

@@ -2556,6 +2556,8 @@ export type components = {
         AdminStripeRolloutSummary: {
             targeted: number;
             succeeded: number;
+            /** @description Subscriptions skipped because `price_protection_enabled = TRUE`. */
+            skipped_grandfathered: number;
             failed: components["schemas"]["AdminStripeRolloutFailure"][];
         };
         /** @description Response for admin plan update — catalog row plus optional Stripe rollout stats. */
@@ -3499,9 +3501,8 @@ export type components = {
             email: string;
             name: string;
             /**
-             * @description Role to seed the account with. Admin is rejected — the
-             *     operator must escalate via the dedicated role-update endpoint
-             *     so the audit trail flags the event explicitly.
+             * @description Role to seed the account with. `admin` requires
+             *     `admin.role.manage` in addition to `admin.member.create`.
              */
             role: components["schemas"]["UserRole"];
             /**
@@ -4783,9 +4784,21 @@ export type components = {
             push_to_stripe_subscriptions: boolean;
             /** @default linked_subscriptions_only */
             audience: components["schemas"]["PricingStripeRolloutAudience"];
+            /**
+             * @description When `true`, skip every subscription where `price_protection_enabled =
+             *     TRUE` — those members keep their grandfathered rate. When `false` (the
+             *     default) protected subscriptions are still skipped because the rollout
+             *     service always respects `price_protection_enabled`.
+             *
+             *     This field is informational for the request body — the service always
+             *     honours the DB flag.  Setting it `false` does not override protection.
+             * @default true
+             */
+            skip_price_protected: boolean;
         };
         /**
-         * @description Controls whether saving a catalog plan also mutates existing Stripe subscriptions.
+         * @description Controls which existing subscriptions are targeted when pushing a catalog
+         *     price change to Stripe.
          * @enum {string}
          */
         PricingStripeRolloutAudience: "linked_subscriptions_only" | "linked_and_unlinked_legacy_same_cadence";
@@ -5127,6 +5140,19 @@ export type components = {
              *     catalog row (via Checkout metadata → Stripe subscription metadata → webhooks).
              */
             pricing_plan_id?: string | null;
+            /**
+             * Format: int32
+             * @description Price the member was promised at signup. Populated at checkout time from
+             *     `pricing_plans.amount_cents`. NULL for pre-migration rows.
+             */
+            grandfathered_price_cents?: number | null;
+            /** @description ISO-4217 currency that goes with `grandfathered_price_cents`. */
+            grandfathered_currency?: string | null;
+            /**
+             * @description When TRUE the pricing rollout service skips this subscription regardless
+             *     of audience setting — the member keeps their original price forever.
+             */
+            price_protection_enabled: boolean;
             /** Format: date-time */
             created_at: string;
             /** Format: date-time */

@@ -8,7 +8,7 @@ interface FetchOptions extends RequestInit {
 }
 
 /**
- * BFF (Phase 1.3, `docs/REMAINING-WORK.md`):
+ * BFF auth model:
  *
  * Every authenticated request now carries `credentials: 'include'` so the
  * httpOnly `swings_access` cookie travels automatically. We deliberately

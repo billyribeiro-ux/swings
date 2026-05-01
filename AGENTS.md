@@ -129,7 +129,7 @@ not bypass it without a documented reason in the commit message.
 ## 5. Migrations
 
 - Files live in `backend/migrations/` named `0NN_short_description.sql`.
-- Versions in use today: `001–028, 030–039, 041–043, 050–074` (gaps are fine
+- Versions in use today: `001–028, 030–039, 041–043, 050–080` (gaps are fine
   but every prefix must be unique).
 - Two safe defaults when authoring a new migration:
   - Use `IF NOT EXISTS` / `IF EXISTS` and `ON CONFLICT DO NOTHING` so a

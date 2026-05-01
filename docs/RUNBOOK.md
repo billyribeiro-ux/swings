@@ -3,8 +3,7 @@
 > **Last revised**: 2026-04-19
 > **Audience**: on-call SRE / platform engineer holding the pager.
 > **Companion files**: alerts in [`ops/prometheus/admin-alerts.rules.yml`](../ops/prometheus/admin-alerts.rules.yml),
-> dashboards in [`ops/grafana/admin-overview.dashboard.json`](../ops/grafana/admin-overview.dashboard.json),
-> closed admin scope ledger in [`docs/archive/ADMIN_TODO.md`](./archive/ADMIN_TODO.md).
+> dashboards in [`ops/grafana/admin-overview.dashboard.json`](../ops/grafana/admin-overview.dashboard.json).
 
 Every alert in `admin-alerts.rules.yml` carries a `runbook_url`
 annotation that anchors into this file. Section headers MUST stay in

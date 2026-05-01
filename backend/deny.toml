@@ -3,8 +3,7 @@
 # Run: `cargo deny --manifest-path backend/Cargo.toml check licenses`
 # (and optionally `check advisories` / `check bans`).
 #
-# Audit Phase 7.4 — license allowlist seeded from the allowlist in
-# AUDIT_FIX_PLAN.md plus a few extras pulled in by the actual dep graph
+# License allowlist seeded from the actual dep graph
 # (`Unicode-DFS-2016`, `Unicode-3.0` from ICU-derived crates; `OpenSSL` is
 # kept defensive — we use rustls but transient deps occasionally pull it
 # in; `Apache-2.0 WITH LLVM-exception` is a SPDX exception expression).

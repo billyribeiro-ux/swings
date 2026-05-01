@@ -10,6 +10,79 @@ Timestamps use the operator-facing calendar date attached to the change list.
 
 ---
 
+## 2026-05-01 14:55 ET — Repo-wide ledger consolidation + stale-doc retirement
+
+### What changed and why
+
+End-to-end audit of every `.md` file in the repo, every TODO, every blocker —
+verified against code with grep + a full test run (1,477 tests, 0 failed,
+0 ignored). The legacy ledgers (`AUDIT*.md`, `TODO_AUDIT.md`,
+`docs/REMAINING-WORK.md`, `docs/archive/`) were stale by ~7 days; every
+"blocker" they listed was either shipped or never existed. They were actively
+misleading new readers.
+
+### New canonical doc
+
+- **`REPO_STATE.md`** — single source of truth for repo health, with evidence
+  (file paths, line numbers, test counts) for every claim. Includes the
+  6 surviving open items (none are blockers).
+
+### Deletions (14 files, ~21,800 lines of stale ledger content)
+
+```
+AUDIT.md
+AUDIT_FIX_PLAN.md
+AUDIT_REPORT.md
+TODO_AUDIT.md
+docs/REMAINING-WORK.md
+docs/archive/                       (entire directory, 8 files)
+.windsurf/workflows/terms.md        (empty file)
+test-results/                       (gitignored Playwright debris)
+```
+
+Git history preserves every prior version — nothing destroyed, just retired
+from the working tree.
+
+### Doc backlinks rewired
+
+Every code + doc pointer to the deleted files retargeted to the live source
+of truth:
+
+- `README.md`, `AGENTS.md`, `backend/README.md` — migration count corrected
+  from `67 / 001–075` → `72 / 001–080`; archive backlinks replaced with
+  pointers to `migrations/021_rbac.sql`.
+- `docs/README.md` — `archive/` section removed; `CHANGELOG.md` and
+  `REPO_STATE.md` added to the index.
+- `docs/RUNBOOK.md`, `docs/STRIPE-E2E-QA.md`, `docs/wiring/OBSERVABILITY-WIRING.md`
+  — dead `docs/archive/*` and `docs/REMAINING-WORK.md` references stripped.
+- 11 source files (`backend/src/**`, `src/lib/**`, `eslint.config.js`,
+  `Cargo.toml`, `deny.toml`, `audit.toml`, etc.) — module-level comments and
+  config preambles retargeted away from deleted ledgers.
+
+### Code housekeeping landed in the same commit
+
+- OpenAPI snapshot (`backend/tests/snapshots/openapi.json`) regenerated to
+  cover the rollout-preview + price-protection endpoints added in the
+  prior session.
+- Frontend OpenAPI types (`src/lib/api/schema.d.ts`) and the hand-written
+  `src/lib/api/types.ts` updated in lockstep — added `PricingRolloutPreview`
+  type and the `skipped_grandfathered` field on `AdminStripeRolloutSummary`.
+- `cargo fmt --all` mechanical fixes to test files.
+
+### Verification
+
+```
+pnpm lint                      → clean
+pnpm check                     → 0 errors / 0 warnings
+pnpm test:unit                 → 12 files / 103 tests pass
+cargo fmt --all -- --check     → clean
+cargo clippy --all-targets     → clean (-D warnings)
+cargo test --lib               → 524 pass / 0 ignored
+cargo test --tests             → 850 pass / 0 ignored / 0 failed (40 binaries)
+```
+
+---
+
 ## 2026-05-01 14:30 ET — Membership/auth hardening, grandfather price protection, rollout preview
 
 ### Migration

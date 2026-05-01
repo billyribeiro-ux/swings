@@ -56,16 +56,17 @@ pnpm workspace plus a Cargo crate at `backend/`.
 - **Backend** — Axum-on-Tokio with SQLx and an in-process worker pool for
   background tasks (DSAR export, audit-log retention, idempotency-cache GC,
   artefact TTL sweep). Built and shipped from `backend/`.
-- **Database** — PostgreSQL 16 with 67 forward-only `sqlx` migrations
-  in `backend/migrations/` (versions 001–075, gap-tolerant).
+- **Database** — PostgreSQL 16 with 72 forward-only `sqlx` migrations
+  in `backend/migrations/` (versions 001–080, gap-tolerant).
 - **Object storage** — Cloudflare R2 (S3-compatible) for media and DSAR
   exports, with a `Local` filesystem fallback for development.
 - **Observability** — Prometheus metrics on `/metrics`; provisioning-ready
   rules and Grafana dashboard live in [`ops/`](./ops/).
 
-For the full RBAC/audit/security model, see
-[`docs/archive/AUDIT_PHASE3_PLAN.md`](./docs/archive/AUDIT_PHASE3_PLAN.md) §12
-(authz matrix) and [`docs/INFRASTRUCTURE.md`](./docs/INFRASTRUCTURE.md).
+For the RBAC/audit/security model, the live source of truth is migration
+[`backend/migrations/021_rbac.sql`](./backend/migrations/021_rbac.sql) (role
+× permission matrix) plus [`docs/INFRASTRUCTURE.md`](./docs/INFRASTRUCTURE.md)
+for the deployment topology.
 
 ---
 
@@ -85,7 +86,7 @@ For the full RBAC/audit/security model, see
 │   │   ├── security/     # Impersonation + IP allowlist primitives
 │   │   ├── observability/# Tracing + metrics scaffolding
 │   │   └── …             # commerce, consent, popups, forms, notifications, pdf
-│   ├── migrations/       # sqlx forward-only migrations (67 files, versions 001–075)
+│   ├── migrations/       # sqlx forward-only migrations (72 files, versions 001–080)
 │   └── tests/            # Integration tests against a real Postgres
 ├── ops/                  # Prometheus rules + Grafana dashboard + provisioning README
 ├── docs/                 # All long-form documentation (see index below)
@@ -254,8 +255,9 @@ shortcuts:
 - [`docs/SEO_RUNBOOK.md`](./docs/SEO_RUNBOOK.md) — SEO operating standard.
 - [`docs/wiring/`](./docs/wiring/) — integrator-facing wiring docs
   (test harness, observability, common utilities).
-- [`docs/archive/`](./docs/archive/) — historical audit phases and reports
-  kept for traceability; **not** the source of truth for current behaviour.
+- [`CHANGELOG.md`](./CHANGELOG.md) — dated record of every behaviour-affecting
+  change. The canonical historical reference.
+- [`REPO_STATE.md`](./REPO_STATE.md) — most recent end-to-end audit snapshot.
 
 ---
 

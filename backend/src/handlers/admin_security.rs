@@ -12,7 +12,7 @@
 //!   3. Writes one row to `admin_actions` via [`services::audit`] before
 //!      returning so the action is recoverable from the audit log alone.
 //!
-//! See `docs/archive/BACKEND-AUDIT-REPORT.md` (ADM-05 section) for the full design rationale.
+//! Permissions added by `058_admin_lifecycle_perms.sql`.
 
 use axum::{
     extract::{Path, Query, State},

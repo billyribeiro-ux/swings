@@ -1,7 +1,7 @@
 #![deny(warnings)]
 #![forbid(unsafe_code)]
 
-//! BFF auth-cookie integration coverage (Phase 1.3 of `docs/REMAINING-WORK.md`).
+//! BFF auth-cookie integration coverage.
 //!
 //! These tests pin the contract that the migration from
 //! `localStorage`-backed bearer tokens to httpOnly `Set-Cookie` -delivered

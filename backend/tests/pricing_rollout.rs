@@ -48,11 +48,7 @@ async fn seed_pricing_plan(app: &TestApp, interval: &str) -> Uuid {
     id
 }
 
-async fn seed_active_subscription(
-    app: &TestApp,
-    user_id: Uuid,
-    pricing_plan_id: Uuid,
-) -> Uuid {
+async fn seed_active_subscription(app: &TestApp, user_id: Uuid, pricing_plan_id: Uuid) -> Uuid {
     let now = Utc::now();
     let sub = db::upsert_subscription(
         app.db(),
@@ -96,8 +92,14 @@ async fn rollout_preview_returns_total_and_zero_grandfathered_by_default() {
     resp.assert_status(StatusCode::OK);
     let body: Value = resp.json().expect("preview body");
     assert_eq!(body["total_in_audience"], 3, "3 active subs in audience");
-    assert_eq!(body["would_update"], 3, "all 3 should be updated (none protected)");
-    assert_eq!(body["would_skip_grandfathered"], 0, "none grandfathered yet");
+    assert_eq!(
+        body["would_update"], 3,
+        "all 3 should be updated (none protected)"
+    );
+    assert_eq!(
+        body["would_skip_grandfathered"], 0,
+        "none grandfathered yet"
+    );
 }
 
 #[tokio::test]
@@ -111,7 +113,10 @@ async fn rollout_preview_reflects_price_protected_subscriptions() {
     // 2 normal + 1 grandfathered
     let m1 = app.seed_user().await.expect("seed member 1");
     let m2 = app.seed_user().await.expect("seed member 2");
-    let m3 = app.seed_user().await.expect("seed member 3 (grandfathered)");
+    let m3 = app
+        .seed_user()
+        .await
+        .expect("seed member 3 (grandfathered)");
 
     seed_active_subscription(&app, m1.id, plan_id).await;
     seed_active_subscription(&app, m2.id, plan_id).await;
@@ -139,7 +144,10 @@ async fn rollout_preview_reflects_price_protected_subscriptions() {
     let body: Value = resp.json().expect("preview body");
     assert_eq!(body["total_in_audience"], 3);
     assert_eq!(body["would_update"], 2, "only 2 should be updated");
-    assert_eq!(body["would_skip_grandfathered"], 1, "1 grandfathered should be skipped");
+    assert_eq!(
+        body["would_skip_grandfathered"], 1,
+        "1 grandfathered should be skipped"
+    );
 }
 
 // ── Price-protection toggle endpoint ─────────────────────────────────────────
@@ -171,14 +179,16 @@ async fn toggle_price_protection_enables_and_disables() {
     assert_eq!(enable_body["price_protection_enabled"], true);
 
     // Verify DB state
-    let protected: bool = sqlx::query_scalar(
-        "SELECT price_protection_enabled FROM subscriptions WHERE id = $1",
-    )
-    .bind(sub_id)
-    .fetch_one(app.db())
-    .await
-    .expect("fetch protection flag");
-    assert!(protected, "price_protection_enabled must be true after enabling");
+    let protected: bool =
+        sqlx::query_scalar("SELECT price_protection_enabled FROM subscriptions WHERE id = $1")
+            .bind(sub_id)
+            .fetch_one(app.db())
+            .await
+            .expect("fetch protection flag");
+    assert!(
+        protected,
+        "price_protection_enabled must be true after enabling"
+    );
 
     // Disable protection
     let disable_resp = app
@@ -193,14 +203,16 @@ async fn toggle_price_protection_enables_and_disables() {
     assert_eq!(disable_body["price_protection_enabled"], false);
 
     // Verify DB state again
-    let still_protected: bool = sqlx::query_scalar(
-        "SELECT price_protection_enabled FROM subscriptions WHERE id = $1",
-    )
-    .bind(sub_id)
-    .fetch_one(app.db())
-    .await
-    .expect("fetch protection flag after disable");
-    assert!(!still_protected, "price_protection_enabled must be false after disabling");
+    let still_protected: bool =
+        sqlx::query_scalar("SELECT price_protection_enabled FROM subscriptions WHERE id = $1")
+            .bind(sub_id)
+            .fetch_one(app.db())
+            .await
+            .expect("fetch protection flag after disable");
+    assert!(
+        !still_protected,
+        "price_protection_enabled must be false after disabling"
+    );
 }
 
 #[tokio::test]
@@ -212,7 +224,10 @@ async fn toggle_price_protection_unknown_subscription_returns_404() {
 
     let resp = app
         .post_json(
-            &format!("/api/admin/pricing/subscriptions/{}/price-protection", Uuid::new_v4()),
+            &format!(
+                "/api/admin/pricing/subscriptions/{}/price-protection",
+                Uuid::new_v4()
+            ),
             &json!({ "enabled": true }),
             Some(&admin.access_token),
         )
@@ -266,7 +281,10 @@ async fn rollout_preview_unknown_plan_returns_404() {
     let admin = app.seed_admin().await.expect("seed admin");
 
     app.get(
-        &format!("/api/admin/pricing/plans/{}/rollout-preview", Uuid::new_v4()),
+        &format!(
+            "/api/admin/pricing/plans/{}/rollout-preview",
+            Uuid::new_v4()
+        ),
         Some(&admin.access_token),
     )
     .await

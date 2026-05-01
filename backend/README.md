@@ -169,8 +169,8 @@ integration tests against a local MinIO/LocalStack emulator.
   immutable. Editing a checksummed migration after deploy will fail
   boot with `migration N was previously applied but has been modified`.
 
-Current count: **66 migration files** spanning version prefixes
-`001–028, 030–039, 041–043, 050–074`. Gaps are intentional (renumbering
+Current count: **72 migration files** spanning version prefixes
+`001–028, 030–039, 041–043, 050–080`. Gaps are intentional (renumbering
 fallout from forensic ordering fixes — see commit `620ad09`); every
 prefix is unique and validated by CI.
 
@@ -317,5 +317,5 @@ the context small.
   — how the integration test harness is wired.
 - [`../docs/wiring/OBSERVABILITY-WIRING.md`](../docs/wiring/OBSERVABILITY-WIRING.md)
   — tracing + metrics scaffolding.
-- [`../docs/archive/AUDIT_PHASE3_PLAN.md`](../docs/archive/AUDIT_PHASE3_PLAN.md)
-  — original §12 authz matrix (historical, but still the reference).
+- [`migrations/021_rbac.sql`](./migrations/021_rbac.sql) — live source of
+  truth for the role × permission matrix.

@@ -551,6 +551,22 @@ export type PricingStripeRolloutAudience =
 export interface PricingStripeRollout {
 	push_to_stripe_subscriptions: boolean;
 	audience: PricingStripeRolloutAudience;
+	/**
+	 * Skip subscriptions with `price_protection_enabled = TRUE` so grandfathered
+	 * members keep their rate. Defaults to `true` server-side; explicitly
+	 * setting `false` would bulldoze protected subscriptions and is not
+	 * exposed in the admin UI.
+	 */
+	skip_price_protected?: boolean;
+}
+
+/** `GET /api/admin/pricing/plans/{id}/rollout-preview` — dry-run before commit */
+export interface PricingRolloutPreview {
+	total_in_audience: number;
+	would_update: number;
+	would_skip_grandfathered: number;
+	current_amount_cents: number;
+	currency: string;
 }
 
 export interface UpdatePricingPlanPayload {
@@ -581,6 +597,7 @@ export interface AdminStripeRolloutFailure {
 export interface AdminStripeRolloutSummary {
 	targeted: number;
 	succeeded: number;
+	skipped_grandfathered: number;
 	failed: AdminStripeRolloutFailure[];
 }
 

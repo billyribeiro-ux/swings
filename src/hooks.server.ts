@@ -23,7 +23,7 @@ function generateNonce(): string {
 }
 
 /**
- * FDN-08: Content Security Policy spec — §12 of docs/archive/AUDIT_PHASE3_PLAN.md.
+ * FDN-08: Content Security Policy.
  *
  * Exported so unit tests can assert the directives without reimplementing
  * the concat logic. The nonce is injected at callsites.

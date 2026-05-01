@@ -192,7 +192,10 @@ pub async fn preview_rollout(
             .await?;
 
     let total_in_audience = targets.len();
-    let would_skip_grandfathered = targets.iter().filter(|s| s.price_protection_enabled).count();
+    let would_skip_grandfathered = targets
+        .iter()
+        .filter(|s| s.price_protection_enabled)
+        .count();
     let would_update = total_in_audience - would_skip_grandfathered;
 
     Ok(crate::models::PricingRolloutPreview {
