@@ -103,6 +103,55 @@ pub async fn delete_user(pool: &PgPool, user_id: Uuid) -> Result<(), sqlx::Error
 /// Returns the refreshed [`User`] when a row was reactivated, or `None`
 /// when the input either had no expiry or its expiry is still in the
 /// future. Caller can swap the original row out for the returned one.
+/// SECURITY (per-request lifecycle gate): return the **live** lifecycle state
+/// of a user without touching profile metadata. Used by every authenticated
+/// extractor on every request so a ban/suspend issued at 09:00 takes effect
+/// before the next API call lands, not when the JWT expires (which can be
+/// up to `JWT_EXPIRATION_HOURS` later — too long to wait when revoking
+/// access to abusive accounts).
+///
+/// Returns the three lifecycle columns we care about (`banned_at`,
+/// `suspended_at`, `suspended_until`) — not the full row, because the
+/// extractor does not need it and a narrower SELECT is friendlier to
+/// connection-pool throughput.
+///
+/// Returns `Ok(None)` when the user row no longer exists (deleted account).
+/// Caller treats that as `Unauthorized` — same as a banned row.
+pub async fn fetch_user_lifecycle_state(
+    pool: &PgPool,
+    user_id: Uuid,
+) -> Result<Option<UserLifecycleState>, sqlx::Error> {
+    sqlx::query_as::<_, UserLifecycleState>(
+        "SELECT banned_at, suspended_at, suspended_until
+           FROM users
+          WHERE id = $1",
+    )
+    .bind(user_id)
+    .fetch_optional(pool)
+    .await
+}
+
+#[derive(Debug, Clone, sqlx::FromRow)]
+pub struct UserLifecycleState {
+    pub banned_at: Option<DateTime<Utc>>,
+    pub suspended_at: Option<DateTime<Utc>>,
+    pub suspended_until: Option<DateTime<Utc>>,
+}
+
+impl UserLifecycleState {
+    /// `true` when this user can hold an active session right now.
+    pub fn is_active(&self) -> bool {
+        if self.banned_at.is_some() {
+            return false;
+        }
+        match (self.suspended_at, self.suspended_until) {
+            (Some(_), Some(until)) if until <= Utc::now() => true, // expired suspension
+            (Some(_), _) => false,                                 // open or future suspension
+            (None, _) => true,
+        }
+    }
+}
+
 pub async fn lift_expired_suspension(
     pool: &PgPool,
     user_id: Uuid,
@@ -1113,7 +1162,7 @@ pub struct AdminSubscriptionRow {
     /// `057_subscription_status_paused.sql` but the Rust
     /// [`SubscriptionStatus`] enum does not yet enumerate.
     pub status: String,
-    pub plan_amount_cents: Option<i32>,
+    pub plan_amount_cents: Option<i64>,
     pub plan_name: Option<String>,
     pub current_period_start: DateTime<Utc>,
     pub current_period_end: DateTime<Utc>,
@@ -2520,7 +2569,7 @@ pub async fn analytics_sales_revenue_total_cents(
 pub struct RecentSaleRow {
     pub id: Uuid,
     pub event_type: String,
-    pub amount_cents: i32,
+    pub amount_cents: i64,
     pub user_email: String,
     pub created_at: DateTime<Utc>,
 }
@@ -2549,8 +2598,8 @@ pub async fn analytics_recent_sales(
 }
 
 /// Active monthly/annual plan prices from `pricing_plans` (slugs `monthly` / `annual`).
-pub async fn pricing_monthly_annual_cents(pool: &PgPool) -> Result<(i32, i32), sqlx::Error> {
-    let row: (Option<i32>, Option<i32>) = sqlx::query_as(
+pub async fn pricing_monthly_annual_cents(pool: &PgPool) -> Result<(i64, i64), sqlx::Error> {
+    let row: (Option<i64>, Option<i64>) = sqlx::query_as(
         r#"
         SELECT
             MAX(amount_cents) FILTER (WHERE slug = 'monthly'),
@@ -2569,7 +2618,7 @@ pub async fn admin_estimated_mrr_arr_cents(pool: &PgPool) -> Result<(i64, i64, i
     let (monthly_price, annual_price) = pricing_monthly_annual_cents(pool).await?;
     let n_m = count_subscriptions_by_plan(pool, &SubscriptionPlan::Monthly).await?;
     let n_a = count_subscriptions_by_plan(pool, &SubscriptionPlan::Annual).await?;
-    let mrr = n_m * monthly_price as i64 + (n_a * annual_price as i64) / 12;
+    let mrr = n_m * monthly_price + (n_a * annual_price) / 12;
     let arr = mrr * 12;
     let active = count_active_subscriptions(pool).await?;
     Ok((mrr, arr, active))

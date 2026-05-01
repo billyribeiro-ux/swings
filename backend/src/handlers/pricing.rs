@@ -734,7 +734,7 @@ pub(crate) struct PriceProtectionRequest {
     /// `false` = remove protection (subscription will receive price updates).
     pub enabled: bool,
     /// Optional: lock in a specific grandfathered amount for display purposes.
-    pub grandfathered_price_cents: Option<i32>,
+    pub grandfathered_price_cents: Option<i64>,
     pub grandfathered_currency: Option<String>,
 }
 

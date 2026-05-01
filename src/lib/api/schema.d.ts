@@ -3123,9 +3123,9 @@ export type components = {
             discount_type: components["schemas"]["DiscountType"];
             /** Format: decimal */
             discount_value: string;
-            /** Format: int32 */
+            /** Format: int64 */
             min_purchase_cents?: number | null;
-            /** Format: int32 */
+            /** Format: int64 */
             max_discount_cents?: number | null;
             applies_to: string;
             applicable_plan_ids: string[];
@@ -3264,7 +3264,7 @@ export type components = {
         CouponValidationResponse: {
             valid: boolean;
             coupon?: null | components["schemas"]["Coupon"];
-            /** Format: int32 */
+            /** Format: int64 */
             discount_amount_cents?: number | null;
             message: string;
         };
@@ -3280,7 +3280,7 @@ export type components = {
             difficulty: string;
             /** Format: uuid */
             instructor_id: string;
-            /** Format: int32 */
+            /** Format: int64 */
             price_cents: number;
             currency: string;
             is_free: boolean;
@@ -3340,7 +3340,7 @@ export type components = {
             thumbnail_url?: string | null;
             difficulty: string;
             instructor_name: string;
-            /** Format: int32 */
+            /** Format: int64 */
             price_cents: number;
             is_free: boolean;
             is_included_in_subscription: boolean;
@@ -3425,9 +3425,9 @@ export type components = {
             discount_type: components["schemas"]["DiscountType"];
             /** Format: double */
             discount_value: number;
-            /** Format: int32 */
+            /** Format: int64 */
             min_purchase_cents?: number | null;
-            /** Format: int32 */
+            /** Format: int64 */
             max_discount_cents?: number | null;
             applies_to?: string | null;
             applicable_plan_ids?: string[] | null;
@@ -3452,7 +3452,7 @@ export type components = {
             thumbnail_url?: string | null;
             trailer_video_url?: string | null;
             difficulty?: string | null;
-            /** Format: int32 */
+            /** Format: int64 */
             price_cents?: number | null;
             currency?: string | null;
             is_free?: boolean | null;
@@ -3582,7 +3582,7 @@ export type components = {
             description?: string | null;
             stripe_price_id?: string | null;
             stripe_product_id?: string | null;
-            /** Format: int32 */
+            /** Format: int64 */
             amount_cents: number;
             currency?: string | null;
             interval?: string | null;
@@ -4742,7 +4742,7 @@ export type components = {
             description?: string | null;
             stripe_price_id?: string | null;
             stripe_product_id?: string | null;
-            /** Format: int32 */
+            /** Format: int64 */
             amount_cents: number;
             currency: string;
             interval: string;
@@ -4765,9 +4765,9 @@ export type components = {
             /** Format: uuid */
             id: string;
             plan_name: string;
-            /** Format: int32 */
+            /** Format: int64 */
             old_amount_cents: number;
-            /** Format: int32 */
+            /** Format: int64 */
             new_amount_cents: number;
             /** Format: date-time */
             changed_at: string;
@@ -5141,7 +5141,7 @@ export type components = {
              */
             pricing_plan_id?: string | null;
             /**
-             * Format: int32
+             * Format: int64
              * @description Price the member was promised at signup. Populated at checkout time from
              *     `pricing_plans.amount_cents`. NULL for pre-migration rows.
              */
@@ -5419,9 +5419,9 @@ export type components = {
             discount_type?: null | components["schemas"]["DiscountType"];
             /** Format: double */
             discount_value?: number | null;
-            /** Format: int32 */
+            /** Format: int64 */
             min_purchase_cents?: number | null;
-            /** Format: int32 */
+            /** Format: int64 */
             max_discount_cents?: number | null;
             applies_to?: string | null;
             applicable_plan_ids?: string[] | null;
@@ -5446,7 +5446,7 @@ export type components = {
             thumbnail_url?: string | null;
             trailer_video_url?: string | null;
             difficulty?: string | null;
-            /** Format: int32 */
+            /** Format: int64 */
             price_cents?: number | null;
             currency?: string | null;
             is_free?: boolean | null;
@@ -5557,7 +5557,7 @@ export type components = {
             description?: string | null;
             stripe_price_id?: string | null;
             stripe_product_id?: string | null;
-            /** Format: int32 */
+            /** Format: int64 */
             amount_cents?: number | null;
             currency?: string | null;
             interval?: string | null;

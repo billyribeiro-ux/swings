@@ -110,7 +110,7 @@ async fn update_one_stripe_subscription(
                 product_id,
                 interval,
                 interval_count: catalog.interval_count.max(1) as u64,
-                unit_amount_cents: i64::from(catalog.amount_cents),
+                unit_amount_cents: catalog.amount_cents,
             },
         }
     };

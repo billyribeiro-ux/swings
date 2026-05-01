@@ -94,7 +94,7 @@ pub struct ApplyCouponRequest {
     pub code: String,
     pub plan_id: Option<Uuid>,
     pub course_id: Option<Uuid>,
-    pub amount_cents: i32,
+    pub amount_cents: i64,
     pub subscription_id: Option<Uuid>,
 }
 
@@ -200,12 +200,8 @@ fn coupon_input_for(coupon: &Coupon, extras: &CouponExtras) -> CouponInput {
         scope,
         discount_value_cents,
         discount_percent_bps,
-        max_discount: coupon
-            .max_discount_cents
-            .map(|c| Money::cents(i64::from(c))),
-        min_purchase: coupon
-            .min_purchase_cents
-            .map(|c| Money::cents(i64::from(c))),
+        max_discount: coupon.max_discount_cents.map(Money::cents),
+        min_purchase: coupon.min_purchase_cents.map(Money::cents),
         bogo_config,
         includes_product_ids: extras.includes_product_ids.clone(),
         excludes_product_ids: extras.excludes_product_ids.clone(),
@@ -220,7 +216,7 @@ fn coupon_input_for(coupon: &Coupon, extras: &CouponExtras) -> CouponInput {
 /// product-id is the zero UUID; EC-11's engine handles the math with the
 /// scope downgraded to `Cart`.
 #[allow(dead_code)]
-fn calculate_discount_legacy(coupon: &Coupon, amount_cents: i32) -> Option<i32> {
+fn calculate_discount_legacy(coupon: &Coupon, amount_cents: i64) -> Option<i64> {
     // Synthesize extras purely from the legacy columns — pre-migration rows
     // or call sites without per-cart detail land here.
     let extras = CouponExtras {
@@ -238,19 +234,14 @@ fn calculate_discount_legacy(coupon: &Coupon, amount_cents: i32) -> Option<i32> 
         product_id: Uuid::nil(),
         variant_id: None,
         category_id: None,
-        unit_price: Money::cents(i64::from(amount_cents)),
+        unit_price: Money::cents(amount_cents),
         quantity: 1,
         is_subscription: false,
     }];
     let applied = CouponEngine::apply(&cart, &input);
     match coupon.discount_type {
         DiscountType::FreeTrial => None,
-        _ => Some(
-            applied
-                .discount
-                .as_cents()
-                .clamp(0, i64::from(amount_cents)) as i32,
-        ),
+        _ => Some(applied.discount.as_cents().clamp(0, amount_cents)),
     }
 }
 
@@ -260,8 +251,8 @@ fn calculate_discount_legacy(coupon: &Coupon, amount_cents: i32) -> Option<i32> 
 async fn calculate_discount_with_db(
     pool: &sqlx::PgPool,
     coupon: &Coupon,
-    amount_cents: i32,
-) -> AppResult<Option<i32>> {
+    amount_cents: i64,
+) -> AppResult<Option<i64>> {
     if coupon.discount_type == DiscountType::FreeTrial {
         return Ok(None);
     }
@@ -271,17 +262,12 @@ async fn calculate_discount_with_db(
         product_id: Uuid::nil(),
         variant_id: None,
         category_id: None,
-        unit_price: Money::cents(i64::from(amount_cents)),
+        unit_price: Money::cents(amount_cents),
         quantity: 1,
         is_subscription: false,
     }];
     let applied = CouponEngine::apply(&cart, &input);
-    Ok(Some(
-        applied
-            .discount
-            .as_cents()
-            .clamp(0, i64::from(amount_cents)) as i32,
-    ))
+    Ok(Some(applied.discount.as_cents().clamp(0, amount_cents)))
 }
 
 /// Shared validation logic. Returns the coupon if valid, or an error message.

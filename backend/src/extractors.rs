@@ -228,6 +228,35 @@ impl FromRequestParts<AppState> for AuthUser {
         // tokens (no claim) while rejecting tokens with a wrong claim.
         verify_claim_binding(&claims)?;
 
+        // SECURITY (per-request lifecycle gate): an admin who bans / suspends
+        // a member must have that decision honoured before the user's next
+        // API call, not at JWT expiry. Re-read the user row from `users` and
+        // bounce the request if the account is no longer in good standing.
+        // Cost: one indexed PK lookup per authenticated request.
+        match crate::db::fetch_user_lifecycle_state(&state.db, claims.sub).await {
+            Ok(Some(state)) if state.is_active() => {}
+            Ok(Some(_)) => {
+                tracing::info!(
+                    user_id = %claims.sub,
+                    "rejected request from banned/suspended user"
+                );
+                return Err(AppError::Unauthorized);
+            }
+            Ok(None) => {
+                // Row deleted — treat the bearer token as if it never existed.
+                tracing::info!(
+                    user_id = %claims.sub,
+                    "rejected request — user row no longer exists"
+                );
+                return Err(AppError::Unauthorized);
+            }
+            Err(e) => {
+                tracing::error!(error = %e, user_id = %claims.sub,
+                    "lifecycle lookup failed; failing closed");
+                return Err(AppError::Unauthorized);
+            }
+        }
+
         // ADM-07: server-side impersonation check. The JWT alone is not
         // enough to honour the request — we must consult the row so
         // revocations take immediate effect. A missing / revoked /
@@ -407,6 +436,80 @@ impl FromRequestParts<AppState> for PrivilegedUser {
     }
 }
 
+/// Subscription-gated extractor: proves the caller is authenticated AND has
+/// an in-force paid subscription (`status` ∈ {`active`, `trialing`}). Used
+/// by handlers that serve paid content — courses, premium downloads, gated
+/// member areas — so the gate is centralized and impossible to forget.
+///
+/// Status semantics this extractor enforces (sourced from migrations
+/// `001_initial.sql` and `057_subscription_status_paused.sql`):
+///
+///   - `active` / `trialing` → allow
+///   - `past_due` → **block**: payment failed, Stripe is retrying. We side
+///     with the platform here (membership platform standard, e.g. Patreon /
+///     Memberful) — `past_due` should NOT keep premium access; the user
+///     gets their content back the moment Stripe collects.
+///   - `unpaid` → block (Stripe exhausted retries; access has lapsed)
+///   - `canceled` → block (subscription is over)
+///   - `paused` → block (`pause_collection` is active; the member is not
+///     paying and should not consume paid content)
+///   - no row → block
+///
+/// `admin` is the one role that bypasses this gate — operators must be
+/// able to QA paid content without holding a personal subscription.
+pub struct PaidUser {
+    pub user_id: Uuid,
+    pub role: UserRole,
+    pub subscription_id: Option<Uuid>,
+    pub subscription_status: crate::models::SubscriptionStatus,
+}
+
+impl FromRequestParts<AppState> for PaidUser {
+    type Rejection = AppError;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppState,
+    ) -> Result<Self, Self::Rejection> {
+        let auth_user = AuthUser::from_request_parts(parts, state).await?;
+        let role = UserRole::from_str_lower(&auth_user.role).ok_or(AppError::Unauthorized)?;
+
+        // Admin bypass: operators must be able to view paid content for
+        // QA / support without holding a real subscription. Audit log
+        // continues to attribute their actions normally.
+        if role == UserRole::Admin {
+            return Ok(PaidUser {
+                user_id: auth_user.user_id,
+                role,
+                subscription_id: None,
+                subscription_status: crate::models::SubscriptionStatus::Active,
+            });
+        }
+
+        let sub = crate::db::find_subscription_by_user(&state.db, auth_user.user_id)
+            .await
+            .map_err(|e| {
+                tracing::error!(error = %e, user_id = %auth_user.user_id,
+                    "subscription lookup failed in PaidUser extractor");
+                AppError::Forbidden
+            })?
+            .ok_or(AppError::Forbidden)?;
+
+        match sub.status {
+            crate::models::SubscriptionStatus::Active
+            | crate::models::SubscriptionStatus::Trialing => Ok(PaidUser {
+                user_id: auth_user.user_id,
+                role,
+                subscription_id: Some(sub.id),
+                subscription_status: sub.status,
+            }),
+            // Past-due / unpaid / canceled / paused all bounce. The frontend
+            // can pivot the error to the right "fix your billing" CTA.
+            _ => Err(AppError::Forbidden),
+        }
+    }
+}
+
 /// Like [`AuthUser`] but **infallible**: yields `Some` on a valid bearer/cookie
 /// session, `None` on anything else (missing token, expired, malformed,
 /// revoked impersonation, etc.). Use on endpoints that must succeed for
@@ -445,7 +548,7 @@ impl FromRequestParts<AppState> for OptionalAuthUser {
         // BFF: same dual-carrier resolution as `AuthUser`. Anonymous on
         // any failure (this extractor is infallible by contract — public
         // endpoints fall back to a guest view rather than 401).
-        let user_id = extract_access_token(&parts.headers).and_then(|token| {
+        let claims_sub = extract_access_token(&parts.headers).and_then(|token| {
             let data = decode::<Claims>(
                 &token,
                 &DecodingKey::from_secret(state.config.jwt_secret.as_bytes()),
@@ -458,6 +561,18 @@ impl FromRequestParts<AppState> for OptionalAuthUser {
             verify_claim_binding(&data.claims).ok()?;
             Some(data.claims.sub)
         });
+
+        // SECURITY (per-request lifecycle gate, parity with `AuthUser`): a
+        // banned / suspended user must NOT carry an authenticated identity
+        // even on infallible-public endpoints (cart, consent). We downgrade
+        // to anonymous instead of erroring — the contract is "Optional".
+        let user_id = match claims_sub {
+            Some(uid) => match crate::db::fetch_user_lifecycle_state(&state.db, uid).await {
+                Ok(Some(state)) if state.is_active() => Some(uid),
+                _ => None,
+            },
+            None => None,
+        };
 
         Ok(OptionalAuthUser { user_id })
     }

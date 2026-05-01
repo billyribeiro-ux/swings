@@ -9774,14 +9774,14 @@
               "integer",
               "null"
             ],
-            "format": "int32"
+            "format": "int64"
           },
           "max_discount_cents": {
             "type": [
               "integer",
               "null"
             ],
-            "format": "int32"
+            "format": "int64"
           },
           "applies_to": {
             "type": "string"
@@ -10053,7 +10053,7 @@
               "integer",
               "null"
             ],
-            "format": "int32"
+            "format": "int64"
           },
           "message": {
             "type": "string"
@@ -10120,7 +10120,7 @@
           },
           "price_cents": {
             "type": "integer",
-            "format": "int32"
+            "format": "int64"
           },
           "currency": {
             "type": "string"
@@ -10312,7 +10312,7 @@
           },
           "price_cents": {
             "type": "integer",
-            "format": "int32"
+            "format": "int64"
           },
           "is_free": {
             "type": "boolean"
@@ -10603,14 +10603,14 @@
               "integer",
               "null"
             ],
-            "format": "int32"
+            "format": "int64"
           },
           "max_discount_cents": {
             "type": [
               "integer",
               "null"
             ],
-            "format": "int32"
+            "format": "int64"
           },
           "applies_to": {
             "type": [
@@ -10736,7 +10736,7 @@
               "integer",
               "null"
             ],
-            "format": "int32"
+            "format": "int64"
           },
           "currency": {
             "type": [
@@ -11176,7 +11176,7 @@
           },
           "amount_cents": {
             "type": "integer",
-            "format": "int32"
+            "format": "int64"
           },
           "currency": {
             "type": [
@@ -14593,7 +14593,7 @@
           },
           "amount_cents": {
             "type": "integer",
-            "format": "int32"
+            "format": "int64"
           },
           "currency": {
             "type": "string"
@@ -14656,11 +14656,11 @@
           },
           "old_amount_cents": {
             "type": "integer",
-            "format": "int32"
+            "format": "int64"
           },
           "new_amount_cents": {
             "type": "integer",
-            "format": "int32"
+            "format": "int64"
           },
           "changed_at": {
             "type": "string",
@@ -15637,7 +15637,7 @@
               "integer",
               "null"
             ],
-            "format": "int32",
+            "format": "int64",
             "description": "Price the member was promised at signup. Populated at checkout time from\n`pricing_plans.amount_cents`. NULL for pre-migration rows."
           },
           "grandfathered_currency": {
@@ -16329,14 +16329,14 @@
               "integer",
               "null"
             ],
-            "format": "int32"
+            "format": "int64"
           },
           "max_discount_cents": {
             "type": [
               "integer",
               "null"
             ],
-            "format": "int32"
+            "format": "int64"
           },
           "applies_to": {
             "type": [
@@ -16462,7 +16462,7 @@
               "integer",
               "null"
             ],
-            "format": "int32"
+            "format": "int64"
           },
           "currency": {
             "type": [
@@ -16930,7 +16930,7 @@
               "integer",
               "null"
             ],
-            "format": "int32"
+            "format": "int64"
           },
           "currency": {
             "type": [

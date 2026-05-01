@@ -371,7 +371,7 @@ pub struct Subscription {
     pub pricing_plan_id: Option<Uuid>,
     /// Price the member was promised at signup. Populated at checkout time from
     /// `pricing_plans.amount_cents`. NULL for pre-migration rows.
-    pub grandfathered_price_cents: Option<i32>,
+    pub grandfathered_price_cents: Option<i64>,
     /// ISO-4217 currency that goes with `grandfathered_price_cents`.
     pub grandfathered_currency: Option<String>,
     /// When TRUE the pricing rollout service skips this subscription regardless
@@ -381,14 +381,14 @@ pub struct Subscription {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, PartialEq, ToSchema)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type, PartialEq, Eq, ToSchema)]
 #[sqlx(type_name = "subscription_plan", rename_all = "lowercase")]
 pub enum SubscriptionPlan {
     Monthly,
     Annual,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, PartialEq, ToSchema)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type, PartialEq, Eq, ToSchema)]
 #[sqlx(type_name = "subscription_status", rename_all = "lowercase")]
 pub enum SubscriptionStatus {
     Active,
@@ -969,7 +969,7 @@ pub struct AnalyticsTopPage {
 pub struct AnalyticsRecentSale {
     pub id: Uuid,
     pub event_type: String,
-    pub amount_cents: i32,
+    pub amount_cents: i64,
     pub user_email: String,
     pub created_at: DateTime<Utc>,
 }
@@ -1039,7 +1039,7 @@ pub struct Course {
     pub trailer_video_url: Option<String>,
     pub difficulty: String,
     pub instructor_id: Uuid,
-    pub price_cents: i32,
+    pub price_cents: i64,
     pub currency: String,
     pub is_free: bool,
     pub is_included_in_subscription: bool,
@@ -1100,7 +1100,7 @@ pub struct CreateCourseRequest {
     pub thumbnail_url: Option<String>,
     pub trailer_video_url: Option<String>,
     pub difficulty: Option<String>,
-    pub price_cents: Option<i32>,
+    pub price_cents: Option<i64>,
     pub currency: Option<String>,
     pub is_free: Option<bool>,
     pub is_included_in_subscription: Option<bool>,
@@ -1118,7 +1118,7 @@ pub struct UpdateCourseRequest {
     pub thumbnail_url: Option<String>,
     pub trailer_video_url: Option<String>,
     pub difficulty: Option<String>,
-    pub price_cents: Option<i32>,
+    pub price_cents: Option<i64>,
     pub currency: Option<String>,
     pub is_free: Option<bool>,
     pub is_included_in_subscription: Option<bool>,
@@ -1200,7 +1200,7 @@ pub struct CourseListItem {
     pub thumbnail_url: Option<String>,
     pub difficulty: String,
     pub instructor_name: String,
-    pub price_cents: i32,
+    pub price_cents: i64,
     pub is_free: bool,
     pub is_included_in_subscription: bool,
     pub published: bool,
@@ -1219,7 +1219,7 @@ pub struct PricingPlan {
     pub description: Option<String>,
     pub stripe_price_id: Option<String>,
     pub stripe_product_id: Option<String>,
-    pub amount_cents: i32,
+    pub amount_cents: i64,
     pub currency: String,
     pub interval: String,
     pub interval_count: i32,
@@ -1241,7 +1241,7 @@ pub struct CreatePricingPlanRequest {
     pub description: Option<String>,
     pub stripe_price_id: Option<String>,
     pub stripe_product_id: Option<String>,
-    pub amount_cents: i32,
+    pub amount_cents: i64,
     pub currency: Option<String>,
     pub interval: Option<String>,
     pub interval_count: Option<i32>,
@@ -1312,7 +1312,7 @@ pub struct PricingRolloutPreview {
     /// Subscriptions that would be SKIPPED because `price_protection_enabled`.
     pub would_skip_grandfathered: usize,
     /// Current plan amount for reference.
-    pub current_amount_cents: i32,
+    pub current_amount_cents: i64,
     pub currency: String,
 }
 
@@ -1323,7 +1323,7 @@ pub struct UpdatePricingPlanRequest {
     pub description: Option<String>,
     pub stripe_price_id: Option<String>,
     pub stripe_product_id: Option<String>,
-    pub amount_cents: Option<i32>,
+    pub amount_cents: Option<i64>,
     pub currency: Option<String>,
     pub interval: Option<String>,
     pub interval_count: Option<i32>,
@@ -1365,8 +1365,8 @@ pub struct AdminUpdatePricingPlanResponse {
 pub struct PricingPlanAmountChangeLogEntry {
     pub id: Uuid,
     pub plan_name: String,
-    pub old_amount_cents: i32,
-    pub new_amount_cents: i32,
+    pub old_amount_cents: i64,
+    pub new_amount_cents: i64,
     pub changed_at: DateTime<Utc>,
     pub changed_by: String,
 }
@@ -1402,8 +1402,8 @@ pub struct Coupon {
     pub discount_type: DiscountType,
     #[schema(value_type = String, format = "decimal")]
     pub discount_value: rust_decimal::Decimal,
-    pub min_purchase_cents: Option<i32>,
-    pub max_discount_cents: Option<i32>,
+    pub min_purchase_cents: Option<i64>,
+    pub max_discount_cents: Option<i64>,
     pub applies_to: String,
     pub applicable_plan_ids: Vec<Uuid>,
     pub applicable_course_ids: Vec<Uuid>,
@@ -1428,8 +1428,8 @@ pub struct CreateCouponRequest {
     pub description: Option<String>,
     pub discount_type: DiscountType,
     pub discount_value: f64,
-    pub min_purchase_cents: Option<i32>,
-    pub max_discount_cents: Option<i32>,
+    pub min_purchase_cents: Option<i64>,
+    pub max_discount_cents: Option<i64>,
     pub applies_to: Option<String>,
     pub applicable_plan_ids: Option<Vec<Uuid>>,
     pub applicable_course_ids: Option<Vec<Uuid>>,
@@ -1447,8 +1447,8 @@ pub struct UpdateCouponRequest {
     pub description: Option<String>,
     pub discount_type: Option<DiscountType>,
     pub discount_value: Option<f64>,
-    pub min_purchase_cents: Option<i32>,
-    pub max_discount_cents: Option<i32>,
+    pub min_purchase_cents: Option<i64>,
+    pub max_discount_cents: Option<i64>,
     pub applies_to: Option<String>,
     pub applicable_plan_ids: Option<Vec<Uuid>>,
     pub applicable_course_ids: Option<Vec<Uuid>>,
@@ -1472,7 +1472,7 @@ pub struct ValidateCouponRequest {
 pub struct CouponValidationResponse {
     pub valid: bool,
     pub coupon: Option<Coupon>,
-    pub discount_amount_cents: Option<i32>,
+    pub discount_amount_cents: Option<i64>,
     pub message: String,
 }
 
@@ -1482,7 +1482,7 @@ pub struct CouponUsage {
     pub coupon_id: Uuid,
     pub user_id: Uuid,
     pub subscription_id: Option<Uuid>,
-    pub discount_applied_cents: i32,
+    pub discount_applied_cents: i64,
     pub used_at: DateTime<Utc>,
 }
 

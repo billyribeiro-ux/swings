@@ -10,6 +10,109 @@ Timestamps use the operator-facing calendar date attached to the change list.
 
 ---
 
+## 2026-05-01 15:55 ET — Membership platform hardening (Phase A + B)
+
+### Why this exists
+
+End-to-end audit + fix of every real "is this user paid / is this user
+allowed" path on the platform. Revealed and closed five production-grade
+gaps that would each have failed an external pen-test review.
+
+### Security gaps closed
+
+1. **Ban / suspend now revoke active sessions** — `extractors::AuthUser` and
+   `OptionalAuthUser` re-check `users.banned_at` + `users.suspended_at` on
+   every authenticated request. Before this change, a banned user retained
+   full access for up to `JWT_EXPIRATION_HOURS` (default 24h). Cost is one
+   indexed PK lookup per authed call. Lazy-unsuspend logic preserved (an
+   expired time-boxed suspension self-heals on the next request).
+2. **`PaidUser` extractor** — new typed extractor for subscription-gated
+   handlers (`extractors.rs`). Allows only `Active` / `Trialing`. Admins
+   bypass for QA. `PastDue` / `Unpaid` / `Canceled` / `Paused` all bounce.
+3. **Course enrollment gate** — `POST /api/member/courses/{id}/enroll` now
+   honours `is_free` / `is_included_in_subscription` / `price_cents`:
+   - free courses → any authenticated user
+   - sub-included → requires Active/Trialing sub (or admin)
+   - pay-per-course (price > 0, not free, not sub-included) → 403 until the
+     pay-per-course purchase ledger lands
+4. **Lesson content redaction** — `GET /api/courses/{slug}` strips
+   `content` / `content_json` / `video_url` from non-`is_preview` lessons
+   when the caller is not entitled. Preview lessons stay public for
+   marketing. Admin always sees the full payload.
+5. **`subscriptions.canceled_at` is now populated** — the
+   `customer.subscription.deleted` webhook stamps the column. COALESCE
+   guarantees a Stripe retry of the same event does not overwrite the
+   first cancellation timestamp.
+
+### Money type unification (i64 SSOT)
+
+**Migration 081** widens every "money in cents" column from `INTEGER` (max
+~$21.4M) to `BIGINT` (max ~$92 quintillion):
+
+- `pricing_plans.amount_cents`
+- `courses.price_cents`
+- `subscriptions.grandfathered_price_cents`
+- `sales_events.amount_cents`
+- `coupons.min_purchase_cents`, `coupons.max_discount_cents`
+- `coupon_usages.discount_applied_cents`
+
+13 Rust struct fields flipped from `i32` → `i64` in lockstep
+(`models::{Course, CreateCourseRequest, UpdateCourseRequest, CourseListItem,
+PricingPlan, CreatePricingPlanRequest, UpdatePricingPlanRequest,
+PricingRolloutPreview, PricingPlanAmountChangeLogEntry,
+AnalyticsRecentSale, Coupon, CreateCouponRequest, UpdateCouponRequest,
+CouponValidationResponse, CouponUsage}`, plus `db::{RecentSaleRow,
+SubscriptionRow}` and `handlers::pricing::PriceProtectionRequest`,
+`handlers::coupons::ApplyCouponRequest`). `db::pricing_monthly_annual_cents`
+return type updated. OpenAPI snapshot regenerated; frontend types
+regenerated in lockstep. `i64` is now the single source of truth for
+money end-to-end (Postgres BIGINT ↔ Rust i64 ↔ JSON number).
+
+`SubscriptionStatus` and `SubscriptionPlan` enums gained `Copy + Eq` —
+they're unit-only enums, the missing `Copy` was forcing pointless `.clone()`
+calls and blocking idiomatic pattern matching at usage sites.
+
+### New integration tests (43 total, all green)
+
+- **`lifecycle_revocation.rs`** (12 tests): banned-user-on-active-token →
+  401; suspended → 401; expired suspension self-heals; hard-deleted user →
+  401; admin ban → 401 (no admin path leak); future-dated ban still
+  blocks; ban does not leak via `OptionalAuthUser`; refresh after ban
+  fails; un-ban / un-suspend symmetry.
+- **`subscription_lifecycle_access.rs`** (13 tests): per-status
+  `is_active` reporting (Active/Trialing/PastDue/Unpaid/Canceled/Paused/no
+  row); transitions (Active→Canceled, PastDue→Active, Trial→Active);
+  `canceled_at` populated on cancel; COALESCE preserves first
+  cancellation across replays; anonymous → 401.
+- **`course_access_gates.rs`** (18 tests): free-course visibility +
+  enrollment for anonymous & members; sub-included course content
+  redaction matrix (anon, unsubscribed, active, trialing, past_due,
+  canceled, admin); enrollment gating per status; pay-per-course 403;
+  unpublished course 404 for everyone.
+
+### Verification
+
+```
+cargo fmt --all -- --check     → clean
+cargo clippy --all-targets     → clean (-D warnings)
+cargo test --lib               → 524 pass / 0 ignored
+cargo test --tests             → 893 pass / 0 ignored / 0 failed (43 binaries)
+pnpm lint                      → clean
+pnpm check                     → 0 errors / 0 warnings
+pnpm test:unit                 → 12 files / 103 tests pass
+```
+
+### Followups
+
+- Real Stripe E2E (Phase C, blocked on operator pasting real
+  `sk_test_*` keys into `backend/.env` and root `.env`). Will land in
+  `docs/STRIPE-E2E-RESULTS-2026-05-01.md`.
+- Pay-per-course purchase ledger (`course_purchases` table + flow); the
+  enrollment gate currently 403s on this case as a hard block — better
+  than letting anyone enroll without paying.
+
+---
+
 ## 2026-05-01 15:05 ET — Env + dev-config audit; retire stale Render and Neon claims
 
 ### Why this exists

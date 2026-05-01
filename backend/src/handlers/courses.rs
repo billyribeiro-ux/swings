@@ -9,7 +9,7 @@ use validator::Validate;
 
 use crate::{
     error::{AppError, AppResult},
-    extractors::{AdminUser, AuthUser, ClientInfo},
+    extractors::{AdminUser, AuthUser, ClientInfo, MaybeAuthUser},
     models::*,
     services::audit::audit_admin,
     AppState,
@@ -944,6 +944,7 @@ async fn public_list_courses(
 
 async fn public_get_course(
     State(state): State<AppState>,
+    MaybeAuthUser(auth): MaybeAuthUser,
     Path(slug): Path<String>,
 ) -> AppResult<Json<CourseWithModules>> {
     let course = sqlx::query_as::<_, Course>(
@@ -960,6 +961,31 @@ async fn public_get_course(
     .fetch_optional(&state.db)
     .await?
     .ok_or(AppError::NotFound("Course not found".to_string()))?;
+
+    // Decide whether the caller is allowed to see the FULL lesson body
+    // (`content`, `content_json`, `video_url`). Free courses are open to
+    // everyone; subscription-included courses require an active or trialing
+    // subscription; admins always see everything for QA. Lessons flagged
+    // `is_preview = TRUE` are public regardless — that's the marketing
+    // teaser. Everything else returns with the body fields nulled out so
+    // crawlers and unauthenticated visitors can browse the table of contents
+    // without exfiltrating the paid content itself.
+    let viewer_has_full_access = if course.is_free {
+        true
+    } else {
+        match &auth {
+            Some(au) if au.role == "admin" => true,
+            Some(au) if course.is_included_in_subscription => {
+                let sub = crate::db::find_subscription_by_user(&state.db, au.user_id).await?;
+                matches!(
+                    sub.as_ref().map(|s| s.status),
+                    Some(crate::models::SubscriptionStatus::Active)
+                        | Some(crate::models::SubscriptionStatus::Trialing)
+                )
+            }
+            _ => false,
+        }
+    };
 
     let modules = sqlx::query_as::<_, CourseModule>(
         r#"
@@ -988,12 +1014,31 @@ async fn public_get_course(
     .fetch_all(&state.db)
     .await?;
 
+    // Total counts come from the unredacted set so the marketing card
+    // surface ("12 lessons, 4h 20m") stays stable regardless of who is
+    // looking at the course.
     let total_lessons = lessons.len() as i64;
     let total_duration_seconds: i64 = lessons
         .iter()
         .filter_map(|l| l.video_duration_seconds)
         .map(|d| d as i64)
         .sum();
+
+    // Redact body fields on locked lessons. We keep `description`
+    // (assumed to be marketing copy), `title`, `slug`, and metadata so the
+    // SPA renders a "🔒 Subscribe to watch" card with everything it needs
+    // except the paid payload itself.
+    let lessons: Vec<CourseLesson> = lessons
+        .into_iter()
+        .map(|mut l| {
+            if !viewer_has_full_access && !l.is_preview {
+                l.content = String::new();
+                l.content_json = None;
+                l.video_url = None;
+            }
+            l
+        })
+        .collect();
 
     let mut modules_with_lessons: Vec<ModuleWithLessons> = modules
         .into_iter()
@@ -1039,12 +1084,46 @@ pub(crate) async fn enroll_course(
     auth: AuthUser,
     Path(course_id): Path<Uuid>,
 ) -> AppResult<Json<CourseEnrollment>> {
-    // Verify course exists and is published
-    sqlx::query_scalar::<_, Uuid>("SELECT id FROM courses WHERE id = $1 AND published = true")
-        .bind(course_id)
-        .fetch_optional(&state.db)
-        .await?
-        .ok_or(AppError::NotFound("Course not found".to_string()))?;
+    // Verify course exists, is published, and surface its access flags so we
+    // can gate enrollment correctly. Three legitimate access modes today:
+    //
+    //   1. `is_free = TRUE`                      → anyone authenticated.
+    //   2. `is_included_in_subscription = TRUE`  → requires active/trialing sub.
+    //   3. `price_cents > 0` (à-la-carte)        → requires a prior purchase
+    //      tracked in `course_purchases` (not implemented yet — explicit
+    //      Forbidden until the purchase flow lands).
+    //
+    // Admins bypass the gate so they can preview courses without holding a
+    // personal subscription.
+    let row = sqlx::query_as::<_, (bool, bool, i64)>(
+        "SELECT is_free, is_included_in_subscription, price_cents
+           FROM courses WHERE id = $1 AND published = true",
+    )
+    .bind(course_id)
+    .fetch_optional(&state.db)
+    .await?
+    .ok_or_else(|| AppError::NotFound("Course not found".to_string()))?;
+    let (is_free, is_included_in_subscription, price_cents) = row;
+
+    let is_admin = auth.role == "admin";
+
+    if !is_free && !is_admin {
+        if is_included_in_subscription {
+            // Active or trialing sub is required.
+            let sub = crate::db::find_subscription_by_user(&state.db, auth.user_id).await?;
+            let allowed = matches!(
+                sub.as_ref().map(|s| s.status),
+                Some(crate::models::SubscriptionStatus::Active)
+                    | Some(crate::models::SubscriptionStatus::Trialing)
+            );
+            if !allowed {
+                return Err(AppError::Forbidden);
+            }
+        } else if price_cents > 0 {
+            // Pay-per-course; no purchase ledger wired yet.
+            return Err(AppError::Forbidden);
+        }
+    }
 
     let enrollment = sqlx::query_as::<_, CourseEnrollment>(
         r#"

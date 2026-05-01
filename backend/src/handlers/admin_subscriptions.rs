@@ -638,10 +638,10 @@ pub async fn list(
                 crate::models::SubscriptionPlan::Monthly => "month",
                 crate::models::SubscriptionPlan::Annual => "year",
             };
-            let amount_cents = i64::from(r.plan_amount_cents.unwrap_or(match r.plan {
+            let amount_cents = r.plan_amount_cents.unwrap_or(match r.plan {
                 crate::models::SubscriptionPlan::Monthly => default_monthly,
                 crate::models::SubscriptionPlan::Annual => default_annual,
-            }));
+            });
             let plan_name = r.plan_name.unwrap_or_else(|| {
                 match r.plan {
                     crate::models::SubscriptionPlan::Monthly => "Monthly",

@@ -332,6 +332,21 @@ async fn handle_subscription_deleted(
         )
         .await?;
 
+        // Stamp the cancellation timestamp on the row. `upsert_subscription`
+        // only touches a fixed set of columns and intentionally leaves
+        // lifecycle timestamps (`canceled_at`, `paused_at`, …) alone, so we
+        // write `canceled_at` here. Use COALESCE so a second delete event
+        // (Stripe retries) does not overwrite the first cancellation time.
+        sqlx::query(
+            "UPDATE subscriptions
+                SET canceled_at = COALESCE(canceled_at, NOW()),
+                    updated_at  = NOW()
+              WHERE stripe_subscription_id = $1",
+        )
+        .bind(sub_id)
+        .execute(&state.db)
+        .await?;
+
         // FDN-05: notify the member that their subscription is cancelled.
         if let Some(user) = db::find_user_by_id(&state.db, existing.user_id).await? {
             let end_date = existing.current_period_end.format("%B %-d, %Y").to_string();
