@@ -232,6 +232,7 @@ mod tests {
             interval: interval.into(),
             interval_count: 1,
             trial_days: 0,
+            collect_payment_method_at_checkout: true,
             features: serde_json::json!({}),
             highlight_text: None,
             is_popular: false,

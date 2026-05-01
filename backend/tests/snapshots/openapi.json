@@ -11204,6 +11204,12 @@
             ],
             "format": "int32"
           },
+          "collect_payment_method_at_checkout": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
           "features": {},
           "highlight_text": {
             "type": [
@@ -14555,6 +14561,7 @@
           "interval",
           "interval_count",
           "trial_days",
+          "collect_payment_method_at_checkout",
           "features",
           "is_popular",
           "is_active",
@@ -14608,6 +14615,10 @@
           "trial_days": {
             "type": "integer",
             "format": "int32"
+          },
+          "collect_payment_method_at_checkout": {
+            "type": "boolean",
+            "description": "When `true` (default), Stripe Checkout collects a card up-front and\ncharges after the trial. When `false`, the BFF passes\n`payment_method_collection: 'if_required'` so the member starts the\ntrial without entering a card. Stripe will refuse to bill the\nauto-conversion at trial end unless they add one — net effect is\n\"trial → silent auto-cancel if no card.\" Toggle per plan."
           },
           "features": {},
           "highlight_text": {
@@ -15820,6 +15831,7 @@
           "Active",
           "Canceled",
           "PastDue",
+          "Paused",
           "Trialing",
           "Unpaid"
         ]
@@ -16957,6 +16969,12 @@
               "null"
             ],
             "format": "int32"
+          },
+          "collect_payment_method_at_checkout": {
+            "type": [
+              "boolean",
+              "null"
+            ]
           },
           "features": {},
           "highlight_text": {

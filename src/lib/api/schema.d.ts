@@ -3590,6 +3590,7 @@ export type components = {
             interval_count?: number | null;
             /** Format: int32 */
             trial_days?: number | null;
+            collect_payment_method_at_checkout?: boolean | null;
             features?: unknown;
             highlight_text?: string | null;
             is_popular?: boolean | null;
@@ -4750,6 +4751,15 @@ export type components = {
             interval_count: number;
             /** Format: int32 */
             trial_days: number;
+            /**
+             * @description When `true` (default), Stripe Checkout collects a card up-front and
+             *     charges after the trial. When `false`, the BFF passes
+             *     `payment_method_collection: 'if_required'` so the member starts the
+             *     trial without entering a card. Stripe will refuse to bill the
+             *     auto-conversion at trial end unless they add one — net effect is
+             *     "trial → silent auto-cancel if no card." Toggle per plan.
+             */
+            collect_payment_method_at_checkout: boolean;
             features: unknown;
             highlight_text?: string | null;
             is_popular: boolean;
@@ -5253,7 +5263,7 @@ export type components = {
             arr_cents: number;
         };
         /** @enum {string} */
-        SubscriptionStatus: "Active" | "Canceled" | "PastDue" | "Trialing" | "Unpaid";
+        SubscriptionStatus: "Active" | "Canceled" | "PastDue" | "Paused" | "Trialing" | "Unpaid";
         SubscriptionStatusResponse: {
             subscription?: null | components["schemas"]["Subscription"];
             is_active: boolean;
@@ -5565,6 +5575,7 @@ export type components = {
             interval_count?: number | null;
             /** Format: int32 */
             trial_days?: number | null;
+            collect_payment_method_at_checkout?: boolean | null;
             features?: unknown;
             highlight_text?: string | null;
             is_popular?: boolean | null;

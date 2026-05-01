@@ -389,11 +389,23 @@ pub enum SubscriptionPlan {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type, PartialEq, Eq, ToSchema)]
-#[sqlx(type_name = "subscription_status", rename_all = "lowercase")]
+#[sqlx(type_name = "subscription_status", rename_all = "snake_case")]
 pub enum SubscriptionStatus {
     Active,
     Canceled,
+    /// Maps to `past_due` in Postgres (note the underscore — `rename_all
+    /// = "snake_case"` produces it). Pre-2026-05-01 the derive used
+    /// `rename_all = "lowercase"` which serialised this variant as
+    /// `pastdue` and caused every read of a past_due row to 500 with
+    /// `ColumnDecode { invalid value "past_due" for enum SubscriptionStatus }`.
     PastDue,
+    /// `pause_collection` is in effect — the member is not paying right now
+    /// and must NOT have premium access. Added to the Postgres enum in
+    /// `057_subscription_status_paused.sql`; before 2026-05-01 the Rust
+    /// enum did not enumerate it, which made the row undecodable from
+    /// sqlx and caused 500s on `/api/member/subscription` whenever a
+    /// paused subscription was the latest row for a user.
+    Paused,
     Trialing,
     Unpaid,
 }
@@ -1224,6 +1236,13 @@ pub struct PricingPlan {
     pub interval: String,
     pub interval_count: i32,
     pub trial_days: i32,
+    /// When `true` (default), Stripe Checkout collects a card up-front and
+    /// charges after the trial. When `false`, the BFF passes
+    /// `payment_method_collection: 'if_required'` so the member starts the
+    /// trial without entering a card. Stripe will refuse to bill the
+    /// auto-conversion at trial end unless they add one — net effect is
+    /// "trial → silent auto-cancel if no card." Toggle per plan.
+    pub collect_payment_method_at_checkout: bool,
     pub features: serde_json::Value,
     pub highlight_text: Option<String>,
     pub is_popular: bool,
@@ -1246,6 +1265,7 @@ pub struct CreatePricingPlanRequest {
     pub interval: Option<String>,
     pub interval_count: Option<i32>,
     pub trial_days: Option<i32>,
+    pub collect_payment_method_at_checkout: Option<bool>,
     pub features: Option<serde_json::Value>,
     pub highlight_text: Option<String>,
     pub is_popular: Option<bool>,
@@ -1328,6 +1348,7 @@ pub struct UpdatePricingPlanRequest {
     pub interval: Option<String>,
     pub interval_count: Option<i32>,
     pub trial_days: Option<i32>,
+    pub collect_payment_method_at_checkout: Option<bool>,
     pub features: Option<serde_json::Value>,
     pub highlight_text: Option<String>,
     pub is_popular: Option<bool>,

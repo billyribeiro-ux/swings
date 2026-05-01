@@ -145,6 +145,13 @@ pub(crate) async fn stripe_webhook(
         "invoice.payment_failed" => handle_invoice_payment_failed(&state, event_id, &event).await,
         "invoice.paid" => handle_invoice_paid(&state, event_id, &event).await,
         "charge.refunded" => handle_charge_refunded(&state, event_id, &event).await,
+        // Modern Stripe accounts may deliver refund detail via the
+        // standalone `refund` object instead of (or in addition to)
+        // `charge.refunded` with embedded `refunds.data[]`. Both paths
+        // call the same downstream `record_charge_refund`, which is
+        // idempotent on `stripe_refund_id` — receiving both events for
+        // the same refund is safe.
+        "refund.created" => handle_refund_created(&state, event_id, &event).await,
         "payment_intent.payment_failed" => {
             handle_payment_intent_failed(&state, event_id, &event).await
         }
@@ -798,6 +805,76 @@ async fn handle_charge_refunded(
             "amount_cents": fields.amount_cents,
             "currency": fields.currency,
             "order_id": order_id,
+        }),
+    )
+    .await;
+
+    Ok(())
+}
+
+/// `refund.created` — the modern Stripe event for a refund. Some
+/// accounts now receive this INSTEAD of `charge.refunded` with embedded
+/// `refunds.data[]` populated. Parses the standalone `refund` object via
+/// [`refunds::ChargeRefundFields::from_refund_object`] and writes the
+/// `payment_refunds` row. Idempotency holds because
+/// [`refunds::record_charge_refund`] does
+/// `ON CONFLICT (stripe_refund_id) DO NOTHING` — receiving the same
+/// refund on both `charge.refunded` AND `refund.created` lands a single
+/// row.
+async fn handle_refund_created(
+    state: &AppState,
+    event_id: &str,
+    event: &serde_json::Value,
+) -> AppResult<()> {
+    let refund = &event["data"]["object"];
+    let Some(fields) = refunds::ChargeRefundFields::from_refund_object(refund) else {
+        tracing::warn!(event_id, "refund.created missing required fields; skipping");
+        return Ok(());
+    };
+
+    // Cross-link best-effort. Same logic as `handle_charge_refunded`,
+    // but the standalone refund object only carries `charge` + `payment_intent`,
+    // not `customer` or `invoice`. We hydrate from the local order index
+    // when the payment_intent matches a known order.
+    let order = match fields.stripe_payment_intent_id.as_deref() {
+        Some(pi) => orders::get_order_by_payment_intent(&state.db, pi).await?,
+        None => None,
+    };
+    let order_id = order.as_ref().map(|o| o.id);
+    let user_uuid = order.as_ref().and_then(|o| o.user_id);
+
+    let inserted =
+        refunds::record_charge_refund(&state.db, &fields, order_id, None, user_uuid).await?;
+
+    if let Some(order) = order {
+        if let Some(parsed) = orders::OrderStatus::parse(&order.status) {
+            if parsed == orders::OrderStatus::Processing || parsed == orders::OrderStatus::Completed
+            {
+                if let Err(e) = orders::transition(
+                    &state.db,
+                    order.id,
+                    orders::OrderStatus::Refunded,
+                    None,
+                    Some("stripe refund.created webhook"),
+                )
+                .await
+                {
+                    tracing::warn!(order_id = %order.id, error = %e,
+                        "could not transition order to refunded; admin may need to reconcile");
+                }
+            }
+        }
+    }
+
+    record_webhook_audit_best_effort(
+        &state.db,
+        event_id,
+        "refund.created",
+        Some("refund"),
+        inserted.map(|u| u.to_string()).as_deref(),
+        serde_json::json!({
+            "stripe_refund_id": fields.stripe_refund_id,
+            "amount_cents":     fields.amount_cents,
         }),
     )
     .await;

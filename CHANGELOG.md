@@ -10,6 +10,104 @@ Timestamps use the operator-facing calendar date attached to the change list.
 
 ---
 
+## 2026-05-01 17:30 ET — Phase C: real Stripe E2E (11/11 green) + trial support
+
+### What this session shipped
+
+End-to-end QA of the membership platform against a live Stripe sandbox.
+The driver in [`scripts/phase_c_stripe_e2e.py`](./scripts/phase_c_stripe_e2e.py)
+runs 11 lifecycle scenarios (signup, trial, dunning, cancel, pause,
+resume, refund, dispute, ban-vs-active-sub, course gating) and asserts
+DB state + API response after every Stripe action. **All 11 scenarios
+pass with 24/24 assertions.** Full report:
+[`docs/STRIPE-E2E-RESULTS-2026-05-01.md`](./docs/STRIPE-E2E-RESULTS-2026-05-01.md).
+
+### Real backend bugs surfaced and fixed during Phase C
+
+The unit-test suite was green throughout, yet four production bugs lurked
+because none of them was exercised by a fixture-based test that walked
+the full Stripe→webhook→DB→API path:
+
+1. **`SubscriptionStatus` enum derive was `rename_all = "lowercase"`**
+   so `PastDue` serialised as `pastdue` (no underscore). Postgres has
+   `past_due`. Every `/api/member/subscription` call for a past_due
+   user returned HTTP 500 with a sqlx ColumnDecode error. Fixed:
+   `rename_all = "snake_case"`.
+2. **`SubscriptionStatus` was missing the `Paused` variant.** Migration
+   057 added `paused` to the Postgres enum but the Rust side never
+   enumerated it. Same column-decode 500 for any paused subscription.
+   Fixed: added the variant.
+3. **`course_enrollments.id` had no DEFAULT and `enroll_course` did
+   not bind one.** Every enrollment 500'd with a NOT NULL violation.
+   Latent since `001_initial.sql`. Fixed: migration 082 sets
+   `DEFAULT gen_random_uuid()` and the handler now binds an explicit
+   `Uuid::new_v4()` for belt-and-braces.
+4. **`charge.refunded` handler dropped events on modern Stripe API
+   versions.** Stripe is migrating refund delivery from embedded
+   `charge.refunds.data[]` to standalone `refund.*` events; on the
+   `2026-03-25.dahlia` API version the embedded array is empty.
+   Fixed: added a `refund.created` handler that parses the standalone
+   `refund` object via a new
+   `commerce::refunds::ChargeRefundFields::from_refund_object`
+   constructor. Both event paths feed the same idempotent
+   `record_charge_refund` writer.
+
+### Trial subscriptions: 7 / 14 / 30 days, with or without credit card
+
+Operator-driven feature work added in the same landing.
+
+- **Migration 083** adds
+  `pricing_plans.collect_payment_method_at_checkout BOOLEAN DEFAULT TRUE`.
+- **BFF `createCheckoutSession`** ([`src/routes/api/checkout.remote.ts`](./src/routes/api/checkout.remote.ts))
+  now passes `subscription_data.trial_period_days` from `plan.trial_days`,
+  and switches to `payment_method_collection: 'if_required'` when the
+  plan opts out of card collection. Previously, even plans with
+  `trial_days > 0` were billing immediately because the column never
+  reached Stripe.
+- **Three demonstration plans** seeded in dev — `trial-7` (7 days,
+  card required), `trial-14` (14 days, card required), and `trial-30`
+  (30 days, **no card required**).
+
+### New companion docs
+
+- [`docs/SECRETS-PRIMER.md`](./docs/SECRETS-PRIMER.md) — how to mint
+  `JWT_SECRET` / `SETTINGS_ENCRYPTION_KEY`, where to find Stripe test
+  keys, what goes in which `.env`, rotation runbook.
+
+### Operator notes (env/secret hygiene)
+
+- `EMAIL_PROVIDER=noop` set on `backend/.env` for dev so Phase C runs
+  do not blow Resend's free quota minting "welcome" emails for every
+  fresh test user. Keep it that way unless you specifically need to
+  smoke-test email delivery.
+- The `stripe listen` whsec rotates every time the CLI re-establishes
+  its WebSocket. After restarting the backend, restart `stripe listen`
+  too and re-paste the secret — see Phase C run #6 in the session log
+  for what the symptom looks like (no events landing).
+
+### Verification
+
+```
+cargo fmt --all -- --check                        → clean
+cargo clippy --all-targets -- -D warnings         → clean
+cargo test --tests                                → 893 pass / 0 ignored / 0 failed
+pnpm lint + pnpm check + pnpm test:unit           → clean (103 unit tests)
+python3 scripts/phase_c_stripe_e2e.py             → 11/11 scenarios, 24/24 asserts
+```
+
+### Known follow-ups (deferred)
+
+- Pay-per-course purchase ledger (`course_purchases` table + flow);
+  enrollment gate currently 403s on this case as a hard block.
+- `tests/stripe_webhooks.rs::charge_refunded_*` tests passed against
+  the OLD broken behaviour and need re-asserted; add `refund_created_*`
+  test family.
+- Frontend pricing card surface for `collect_payment_method_at_checkout`
+  ("no card required" badge).
+- Stripe `refund.updated` handler (refund status transitions).
+
+---
+
 ## 2026-05-01 15:55 ET — Membership platform hardening (Phase A + B)
 
 ### Why this exists

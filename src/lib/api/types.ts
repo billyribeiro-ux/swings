@@ -517,6 +517,14 @@ export interface PricingPlan {
 	interval: 'month' | 'year' | 'one_time';
 	interval_count: number;
 	trial_days: number;
+	/**
+	 * When `true` (default), Stripe Checkout collects a card up front and
+	 * charges after the trial. When `false`, the BFF passes
+	 * `payment_method_collection: 'if_required'` so the user starts the
+	 * trial without a card. Pair with a non-zero `trial_days` for a
+	 * "free trial — no credit card required" SKU.
+	 */
+	collect_payment_method_at_checkout: boolean;
 	features: string[];
 	highlight_text: string | null;
 	is_popular: boolean;

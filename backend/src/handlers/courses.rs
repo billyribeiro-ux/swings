@@ -1127,12 +1127,13 @@ pub(crate) async fn enroll_course(
 
     let enrollment = sqlx::query_as::<_, CourseEnrollment>(
         r#"
-        INSERT INTO course_enrollments (user_id, course_id, progress)
-        VALUES ($1, $2, 0)
+        INSERT INTO course_enrollments (id, user_id, course_id, progress)
+        VALUES ($1, $2, $3, 0)
         ON CONFLICT (user_id, course_id) DO UPDATE SET user_id = EXCLUDED.user_id
         RETURNING id, user_id, course_id, progress, enrolled_at, completed_at
         "#,
     )
+    .bind(Uuid::new_v4())
     .bind(auth.user_id)
     .bind(course_id.to_string())
     .fetch_one(&state.db)

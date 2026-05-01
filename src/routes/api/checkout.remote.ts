@@ -158,6 +158,8 @@ export const createCheckoutSession = command(
 
 		let line_items: Stripe.Checkout.SessionCreateParams['line_items'];
 		let swingsPricingPlanId: string | undefined;
+		let trialPeriodDays: number | undefined;
+		let collectPaymentMethod = true; // default — collect a card up front
 
 		if (priceId) {
 			line_items = [{ price: priceId, quantity: 1 }];
@@ -169,6 +171,19 @@ export const createCheckoutSession = command(
 			}
 			line_items = lineItemsForPlan(plan);
 			swingsPricingPlanId = plan.id;
+			// Honour the catalog's trial offer. `trial_days = 0` (the default)
+			// produces a regular paid subscription with no trial.
+			if (plan.trial_days && plan.trial_days > 0) {
+				trialPeriodDays = plan.trial_days;
+			}
+			// Honour the "trial without credit card" toggle. When the catalog
+			// row has `collect_payment_method_at_checkout = false`, Stripe
+			// Checkout skips the card form (`payment_method_collection =
+			// if_required`) — typically paired with a non-zero `trial_days`
+			// so the member starts the trial without paying.
+			if (plan.collect_payment_method_at_checkout === false) {
+				collectPaymentMethod = false;
+			}
 		} else {
 			error(400, 'Pass planSlug (e.g. monthly) or priceId (price_...)');
 		}
@@ -185,15 +200,22 @@ export const createCheckoutSession = command(
 				mode: 'subscription',
 				payment_method_types: ['card'],
 				line_items,
-				...(swingsPricingPlanId
-					? {
-							subscription_data: {
-								metadata: {
-									swings_pricing_plan_id: swingsPricingPlanId
-								}
-							}
-						}
-					: {}),
+				// `subscription_data` carries both the catalog-link metadata
+				// (used by `customer.subscription.*` webhooks to populate
+				// `subscriptions.pricing_plan_id`) and the trial window when
+				// the plan offers one.
+				subscription_data: {
+					...(swingsPricingPlanId
+						? { metadata: { swings_pricing_plan_id: swingsPricingPlanId } }
+						: {}),
+					...(trialPeriodDays !== undefined ? { trial_period_days: trialPeriodDays } : {})
+				},
+				// `if_required` lets the member skip the card form during the
+				// hosted Checkout when no payment is due immediately (i.e.
+				// they're starting a free trial). Stripe will email them
+				// when the trial is about to end and ask for a card; if they
+				// don't add one the subscription auto-cancels at trial end.
+				payment_method_collection: collectPaymentMethod ? 'always' : 'if_required',
 				success_url: `${appUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
 				cancel_url: `${appUrl}/pricing?canceled=true`,
 				allow_promotion_codes: true,

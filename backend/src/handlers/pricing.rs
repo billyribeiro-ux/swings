@@ -75,7 +75,7 @@ async fn admin_list_plans(
         r#"
         SELECT id, name, slug, description, stripe_price_id, stripe_product_id,
                amount_cents, currency, interval, interval_count, trial_days,
-               features, highlight_text, is_popular, is_active, sort_order,
+               collect_payment_method_at_checkout, features, highlight_text, is_popular, is_active, sort_order,
                created_at, updated_at
         FROM pricing_plans
         ORDER BY sort_order ASC, created_at ASC
@@ -118,6 +118,7 @@ pub(crate) async fn admin_create_plan(
     let interval = req.interval.as_deref().unwrap_or("month");
     let interval_count = req.interval_count.unwrap_or(1);
     let trial_days = req.trial_days.unwrap_or(0);
+    let collect_pm = req.collect_payment_method_at_checkout.unwrap_or(true);
     let features = req.features.clone().unwrap_or(serde_json::json!([]));
     let is_popular = req.is_popular.unwrap_or(false);
     let is_active = req.is_active.unwrap_or(true);
@@ -128,11 +129,11 @@ pub(crate) async fn admin_create_plan(
         INSERT INTO pricing_plans
             (name, slug, description, stripe_price_id, stripe_product_id,
              amount_cents, currency, interval, interval_count, trial_days,
-             features, highlight_text, is_popular, is_active, sort_order)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+             collect_payment_method_at_checkout, features, highlight_text, is_popular, is_active, sort_order)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
         RETURNING id, name, slug, description, stripe_price_id, stripe_product_id,
                   amount_cents, currency, interval, interval_count, trial_days,
-                  features, highlight_text, is_popular, is_active, sort_order,
+                  collect_payment_method_at_checkout, features, highlight_text, is_popular, is_active, sort_order,
                   created_at, updated_at
         "#,
     )
@@ -146,6 +147,7 @@ pub(crate) async fn admin_create_plan(
     .bind(interval)
     .bind(interval_count)
     .bind(trial_days)
+    .bind(collect_pm)
     .bind(&features)
     .bind(&req.highlight_text)
     .bind(is_popular)
@@ -182,7 +184,7 @@ async fn admin_get_plan(
         r#"
         SELECT id, name, slug, description, stripe_price_id, stripe_product_id,
                amount_cents, currency, interval, interval_count, trial_days,
-               features, highlight_text, is_popular, is_active, sort_order,
+               collect_payment_method_at_checkout, features, highlight_text, is_popular, is_active, sort_order,
                created_at, updated_at
         FROM pricing_plans
         WHERE id = $1
@@ -237,7 +239,7 @@ pub(crate) async fn admin_update_plan(
         r#"
         SELECT id, name, slug, description, stripe_price_id, stripe_product_id,
                amount_cents, currency, interval, interval_count, trial_days,
-               features, highlight_text, is_popular, is_active, sort_order,
+               collect_payment_method_at_checkout, features, highlight_text, is_popular, is_active, sort_order,
                created_at, updated_at
         FROM pricing_plans
         WHERE id = $1
@@ -397,12 +399,13 @@ pub(crate) async fn admin_update_plan(
         SET name = $1, slug = $2, description = $3, stripe_price_id = $4,
             stripe_product_id = $5, amount_cents = $6, currency = $7,
             interval = $8, interval_count = $9, trial_days = $10,
-            features = $11, highlight_text = $12, is_popular = $13,
-            is_active = $14, sort_order = $15, updated_at = NOW()
-        WHERE id = $16
+            collect_payment_method_at_checkout = $11,
+            features = $12, highlight_text = $13, is_popular = $14,
+            is_active = $15, sort_order = $16, updated_at = NOW()
+        WHERE id = $17
         RETURNING id, name, slug, description, stripe_price_id, stripe_product_id,
                   amount_cents, currency, interval, interval_count, trial_days,
-                  features, highlight_text, is_popular, is_active, sort_order,
+                  collect_payment_method_at_checkout, features, highlight_text, is_popular, is_active, sort_order,
                   created_at, updated_at
         "#,
     )
@@ -416,6 +419,7 @@ pub(crate) async fn admin_update_plan(
     .bind(interval)
     .bind(interval_count)
     .bind(trial_days)
+    .bind(req.collect_payment_method_at_checkout.unwrap_or(existing.collect_payment_method_at_checkout))
     .bind(&features)
     .bind(highlight_text)
     .bind(is_popular)
@@ -638,7 +642,7 @@ pub(crate) async fn admin_toggle_plan(
         WHERE id = $1
         RETURNING id, name, slug, description, stripe_price_id, stripe_product_id,
                   amount_cents, currency, interval, interval_count, trial_days,
-                  features, highlight_text, is_popular, is_active, sort_order,
+                  collect_payment_method_at_checkout, features, highlight_text, is_popular, is_active, sort_order,
                   created_at, updated_at
         "#,
     )
@@ -804,7 +808,7 @@ async fn public_list_plans(State(state): State<AppState>) -> AppResult<Json<Vec<
         r#"
         SELECT id, name, slug, description, stripe_price_id, stripe_product_id,
                amount_cents, currency, interval, interval_count, trial_days,
-               features, highlight_text, is_popular, is_active, sort_order,
+               collect_payment_method_at_checkout, features, highlight_text, is_popular, is_active, sort_order,
                created_at, updated_at
         FROM pricing_plans
         WHERE is_active = true

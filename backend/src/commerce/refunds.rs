@@ -90,6 +90,64 @@ impl ChargeRefundFields {
             status,
         })
     }
+
+    /// Parse a top-level `refund` event payload (`refund.created`,
+    /// `refund.updated`). Stripe's modern API surfaces refund details on
+    /// the standalone `refund` object — newer accounts (or accounts on
+    /// API versions where the embedded `charge.refunds.data[]` array is
+    /// not always populated on `charge.refunded`) MUST listen on
+    /// `refund.created` to receive every refund.
+    ///
+    /// Why we need both this AND `latest_from_charge`: Stripe is
+    /// migrating refund delivery from the old "embed refunds inside
+    /// the charge.refunded event" model to the new "fire dedicated
+    /// refund.* events" model. We listen on both so live deployments
+    /// don't lose data regardless of which API version their account is
+    /// pinned to.
+    pub fn from_refund_object(refund: &serde_json::Value) -> Option<Self> {
+        let stripe_refund_id = refund.get("id").and_then(|v| v.as_str())?.to_string();
+        let amount_cents = refund.get("amount").and_then(|v| v.as_i64())?;
+        let currency = refund
+            .get("currency")
+            .and_then(|v| v.as_str())
+            .unwrap_or("usd")
+            .to_string();
+        let stripe_charge_id = refund
+            .get("charge")
+            .and_then(|v| v.as_str())
+            .map(str::to_string);
+        let stripe_payment_intent_id = refund
+            .get("payment_intent")
+            .and_then(|v| v.as_str())
+            .map(str::to_string);
+        // The standalone refund object does NOT carry `customer` or
+        // `invoice` directly — those live on the parent charge. The
+        // webhook handler will hydrate them via Stripe API on demand if
+        // the correlation matters; for now they default to None and the
+        // refund still gets recorded with whatever IDs the event carried.
+        let stripe_customer_id = None;
+        let stripe_invoice_id = None;
+        let reason = refund
+            .get("reason")
+            .and_then(|v| v.as_str())
+            .map(str::to_string);
+        let status = refund
+            .get("status")
+            .and_then(|v| v.as_str())
+            .unwrap_or("succeeded")
+            .to_string();
+        Some(Self {
+            stripe_refund_id,
+            stripe_charge_id,
+            stripe_payment_intent_id,
+            stripe_customer_id,
+            stripe_invoice_id,
+            amount_cents,
+            currency,
+            reason,
+            status,
+        })
+    }
 }
 
 /// Insert a `payment_refunds` row. Idempotent on `stripe_refund_id`.
