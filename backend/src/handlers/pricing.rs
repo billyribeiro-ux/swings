@@ -11,7 +11,10 @@ use crate::{
     error::{AppError, AppResult},
     extractors::{AdminUser, ClientInfo},
     models::*,
-    services::{audit::audit_admin, pricing_rollout::rollout_after_plan_save},
+    services::{
+        audit::audit_admin,
+        pricing_rollout::{preview_rollout, rollout_after_plan_save},
+    },
     AppState,
 };
 
@@ -27,6 +30,13 @@ pub fn admin_router() -> Router<AppState> {
         .route("/plans/{id}", axum::routing::delete(admin_delete_plan))
         .route("/plans/{id}/toggle", post(admin_toggle_plan))
         .route("/plans/{id}/history", get(admin_plan_history))
+        // Dry-run preview before committing a Stripe rollout.
+        .route("/plans/{id}/rollout-preview", get(admin_rollout_preview))
+        // Per-subscription grandfather price-protection toggle.
+        .route(
+            "/subscriptions/{sub_id}/price-protection",
+            post(admin_toggle_price_protection),
+        )
 }
 
 // ── Public Pricing Router ─────────────────────────────────────────────
@@ -683,6 +693,110 @@ async fn admin_plan_history(
     .await?;
 
     Ok(Json(history))
+}
+
+// ── Rollout Preview ───────────────────────────────────────────────────
+
+/// `GET /api/admin/pricing/plans/{id}/rollout-preview?audience=linked_subscriptions_only`
+///
+/// Dry-run: returns how many subscriptions would be updated vs skipped
+/// (grandfathered) without touching Stripe. Call this before confirming
+/// a rollout in the UI to show the operator an accurate member count.
+pub(crate) async fn admin_rollout_preview(
+    State(state): State<AppState>,
+    admin: AdminUser,
+    Path(id): Path<Uuid>,
+    axum::extract::Query(params): axum::extract::Query<RolloutPreviewParams>,
+) -> AppResult<Json<PricingRolloutPreview>> {
+    admin.require(&state.policy, "subscription.plan.manage")?;
+
+    let plan = sqlx::query_as::<_, PricingPlan>(
+        "SELECT * FROM pricing_plans WHERE id = $1",
+    )
+    .bind(id)
+    .fetch_optional(&state.db)
+    .await?
+    .ok_or_else(|| AppError::NotFound("Pricing plan not found".into()))?;
+
+    let audience = params.audience.unwrap_or_default();
+    let preview = preview_rollout(&state, &plan, audience).await?;
+    Ok(Json(preview))
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub(crate) struct RolloutPreviewParams {
+    pub audience: Option<PricingStripeRolloutAudience>,
+}
+
+// ── Price-Protection Toggle ───────────────────────────────────────────
+
+#[derive(Debug, serde::Deserialize)]
+pub(crate) struct PriceProtectionRequest {
+    /// `true` = enable grandfather protection (skip on future rollouts).
+    /// `false` = remove protection (subscription will receive price updates).
+    pub enabled: bool,
+    /// Optional: lock in a specific grandfathered amount for display purposes.
+    pub grandfathered_price_cents: Option<i32>,
+    pub grandfathered_currency: Option<String>,
+}
+
+/// `POST /api/admin/pricing/subscriptions/{sub_id}/price-protection`
+///
+/// Toggle per-subscription grandfather price protection. When enabled,
+/// pricing rollouts will skip this subscription regardless of audience.
+pub(crate) async fn admin_toggle_price_protection(
+    State(state): State<AppState>,
+    admin: AdminUser,
+    client: ClientInfo,
+    Path(sub_id): Path<Uuid>,
+    Json(req): Json<PriceProtectionRequest>,
+) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "subscription.price_protection.manage")?;
+
+    let rows = sqlx::query(
+        r#"
+        UPDATE subscriptions
+        SET price_protection_enabled  = $2,
+            grandfathered_price_cents = COALESCE($3, grandfathered_price_cents),
+            grandfathered_currency    = COALESCE($4, grandfathered_currency),
+            updated_at                = NOW()
+        WHERE id = $1
+        "#,
+    )
+    .bind(sub_id)
+    .bind(req.enabled)
+    .bind(req.grandfathered_price_cents)
+    .bind(req.grandfathered_currency.as_deref())
+    .execute(&state.db)
+    .await?
+    .rows_affected();
+
+    if rows == 0 {
+        return Err(AppError::NotFound("Subscription not found".into()));
+    }
+
+    audit_admin(
+        &state.db,
+        &admin,
+        &client,
+        if req.enabled {
+            "subscription.price_protection.enabled"
+        } else {
+            "subscription.price_protection.disabled"
+        },
+        "subscription",
+        sub_id,
+        serde_json::json!({
+            "enabled": req.enabled,
+            "grandfathered_price_cents": req.grandfathered_price_cents,
+        }),
+    )
+    .await;
+
+    Ok(Json(serde_json::json!({
+        "subscription_id": sub_id,
+        "price_protection_enabled": req.enabled,
+    })))
 }
 
 // ── Public Handlers ───────────────────────────────────────────────────

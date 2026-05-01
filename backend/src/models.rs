@@ -1253,11 +1253,13 @@ pub struct CreatePricingPlanRequest {
     pub sort_order: Option<i32>,
 }
 
-/// Controls whether saving a catalog plan also mutates existing Stripe subscriptions.
+/// Controls which existing subscriptions are targeted when pushing a catalog
+/// price change to Stripe.
 #[derive(Debug, Clone, Copy, Deserialize, Serialize, ToSchema, Eq, PartialEq, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum PricingStripeRolloutAudience {
-    /// Only rows where `subscriptions.pricing_plan_id` matches the plan being edited.
+    /// Only rows where `subscriptions.pricing_plan_id` matches the plan being
+    /// edited. Safest default — cannot bleed into the wrong plan.
     #[default]
     LinkedSubscriptionsOnly,
     /// Same as linked, plus legacy rows with `pricing_plan_id IS NULL` whose
@@ -1278,6 +1280,14 @@ pub struct PricingStripeRollout {
     /// `stripe_price_id`. Requires an `Idempotency-Key` request header.
     pub push_to_stripe_subscriptions: bool,
     pub audience: PricingStripeRolloutAudience,
+    /// When `true`, skip every subscription where `price_protection_enabled =
+    /// TRUE` — those members keep their grandfathered rate. When `false` (the
+    /// default) protected subscriptions are still skipped because the rollout
+    /// service always respects `price_protection_enabled`.
+    ///
+    /// This field is informational for the request body — the service always
+    /// honours the DB flag.  Setting it `false` does not override protection.
+    pub skip_price_protected: bool,
 }
 
 impl Default for PricingStripeRollout {
@@ -1285,8 +1295,25 @@ impl Default for PricingStripeRollout {
         Self {
             push_to_stripe_subscriptions: false,
             audience: PricingStripeRolloutAudience::LinkedSubscriptionsOnly,
+            skip_price_protected: true,
         }
     }
+}
+
+/// Read-only preview of which subscriptions would be affected before the
+/// operator commits a rollout. Returned by
+/// `GET /api/admin/pricing/plans/{id}/rollout-preview`.
+#[derive(Debug, Clone, Serialize, ToSchema)]
+pub struct PricingRolloutPreview {
+    /// Total active/trialing subscriptions in the chosen audience.
+    pub total_in_audience: usize,
+    /// Subscriptions that WOULD be updated (not price-protected).
+    pub would_update: usize,
+    /// Subscriptions that would be SKIPPED because `price_protection_enabled`.
+    pub would_skip_grandfathered: usize,
+    /// Current plan amount for reference.
+    pub current_amount_cents: i32,
+    pub currency: String,
 }
 
 #[derive(Debug, Deserialize, ToSchema)]
@@ -1320,6 +1347,8 @@ pub struct AdminStripeRolloutFailure {
 pub struct AdminStripeRolloutSummary {
     pub targeted: usize,
     pub succeeded: usize,
+    /// Subscriptions skipped because `price_protection_enabled = TRUE`.
+    pub skipped_grandfathered: usize,
     pub failed: Vec<AdminStripeRolloutFailure>,
 }
 

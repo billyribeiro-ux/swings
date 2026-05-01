@@ -29,7 +29,23 @@
 </script>
 
 <script lang="ts">
+	import { browser } from '$app/environment';
+	import type { Attachment } from 'svelte/attachments';
 	import type { Snippet } from 'svelte';
+
+	/**
+	 * Move the tooltip bubble to `document.body` so `position: fixed` is relative
+	 * to the viewport and isn’t clipped or re-rooted by ancestors with
+	 * `overflow-*`, `backdrop-filter`, `filter`, or `transform` (common in
+	 * admin tables and glass panels).
+	 */
+	const portalToBody: Attachment = (node) => {
+		if (!browser) return;
+		document.body.appendChild(node);
+		return () => {
+			node.remove();
+		};
+	};
 
 	type Placement = 'top' | 'right' | 'bottom' | 'left';
 
@@ -267,6 +283,7 @@
 {#if open && label && !disabled}
 	<div
 		bind:this={tooltipEl}
+		{@attach portalToBody}
 		{id}
 		role="tooltip"
 		class="tooltip tooltip--{resolvedPlacement}"
@@ -287,7 +304,8 @@
 
 	.tooltip {
 		position: fixed;
-		z-index: var(--z-tooltip, 9999);
+		/* Above command palette (10000) and admin chrome */
+		z-index: var(--z-tooltip, 11000);
 		display: inline-flex;
 		align-items: center;
 		max-width: 22rem;

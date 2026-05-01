@@ -1337,10 +1337,11 @@
 
 		.members-page__table-wrap {
 			display: block;
-			overflow-x: hidden;
-			background: rgba(19, 43, 80, 0.35);
-			backdrop-filter: blur(24px);
-			-webkit-backdrop-filter: blur(24px);
+			/* `hidden` on one axis forces the other to `auto` (unwanted vertical bar). */
+			overflow-x: clip;
+			overflow-y: visible;
+			background: rgba(19, 43, 80, 0.48);
+			/* Skip backdrop-filter here: it creates a fixed-position containing block and clips tooltips. */
 			border: 1px solid rgba(255, 255, 255, 0.08);
 			border-radius: var(--radius-2xl);
 			box-shadow:

@@ -128,6 +128,9 @@ async fn update_one_stripe_subscription(
 
 /// After `pricing_plans` has been updated in Postgres, optionally push the new
 /// commercial terms to Stripe for every targeted member subscription.
+///
+/// Subscriptions with `price_protection_enabled = TRUE` are always skipped —
+/// those members keep their grandfathered rate regardless of `audience`.
 pub async fn rollout_after_plan_save(
     state: &AppState,
     catalog: &PricingPlan,
@@ -145,8 +148,14 @@ pub async fn rollout_after_plan_save(
 
     let mut failed = Vec::new();
     let mut succeeded: usize = 0;
+    let mut skipped_grandfathered: usize = 0;
 
     for (idx, row) in targets.iter().enumerate() {
+        // Always honour the per-subscription grandfather flag.
+        if row.price_protection_enabled {
+            skipped_grandfathered += 1;
+            continue;
+        }
         let key = format!("{}-rollout-{}-{}", admin_idempotency_key, catalog.id, idx);
         match update_one_stripe_subscription(state, catalog, row, &key).await {
             Ok(()) => succeeded += 1,
@@ -161,7 +170,37 @@ pub async fn rollout_after_plan_save(
     Ok(AdminStripeRolloutSummary {
         targeted: targets.len(),
         succeeded,
+        skipped_grandfathered,
         failed,
+    })
+}
+
+/// Dry-run preview: returns counts without touching Stripe.
+/// Used by `GET /api/admin/pricing/plans/{id}/rollout-preview`.
+pub async fn preview_rollout(
+    state: &AppState,
+    catalog: &PricingPlan,
+    audience: PricingStripeRolloutAudience,
+) -> AppResult<crate::models::PricingRolloutPreview> {
+    let cadence = subscription_cadence_for_plan(catalog)?;
+    let include_legacy = matches!(
+        audience,
+        PricingStripeRolloutAudience::LinkedAndUnlinkedLegacySameCadence
+    );
+    let targets =
+        db::list_subscriptions_for_pricing_rollout(&state.db, catalog.id, include_legacy, &cadence)
+            .await?;
+
+    let total_in_audience = targets.len();
+    let would_skip_grandfathered = targets.iter().filter(|s| s.price_protection_enabled).count();
+    let would_update = total_in_audience - would_skip_grandfathered;
+
+    Ok(crate::models::PricingRolloutPreview {
+        total_in_audience,
+        would_update,
+        would_skip_grandfathered,
+        current_amount_cents: catalog.amount_cents,
+        currency: catalog.currency.clone(),
     })
 }
 
