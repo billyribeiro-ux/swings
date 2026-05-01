@@ -668,6 +668,142 @@ pub async fn update_subscription_item_price(
     Ok(())
 }
 
+// ─── Member-facing plan-switch helpers ─────────────────────────────────
+
+/// Member-facing subscription line-item swap with caller-controlled proration.
+///
+/// Mirrors [`update_subscription_item_price`] (which the catalog rollout
+/// workflow uses) but exposes Stripe's `proration_behavior` flag — the
+/// member endpoints accept a `prorate` boolean from the SPA so a downgrade
+/// "next period only" path doesn't surface a surprise immediate charge.
+pub async fn swap_subscription_price_with_proration(
+    state: &AppState,
+    stripe_subscription_id: &str,
+    item_id: &str,
+    new_price_id: &str,
+    prorate: bool,
+    idempotency_key: Option<&str>,
+) -> AppResult<()> {
+    validate_id(stripe_subscription_id, "subscription")?;
+    validate_id(item_id, "subscription_item")?;
+    if new_price_id.trim().is_empty() {
+        return Err(AppError::BadRequest(
+            "stripe_price_id is required for plan switch".into(),
+        ));
+    }
+    let c = client(state)?;
+    let mut form = FormBody::new();
+    form.push("items[0][id]", item_id);
+    form.push("items[0][price]", new_price_id);
+    form.push(
+        "proration_behavior",
+        if prorate { "create_prorations" } else { "none" },
+    );
+
+    let path = format!("/v1/subscriptions/{stripe_subscription_id}");
+    let _ignored: serde_json::Value = c
+        .request(Method::POST, &path, Some(form.into_body()), idempotency_key)
+        .await?;
+    Ok(())
+}
+
+/// Aggregated proration preview returned by [`preview_subscription_change`].
+///
+/// All values are in the smallest currency unit (cents) and follow Stripe's
+/// invoice convention: positive `proration_charge_cents` means the member
+/// owes that amount on the next invoice; positive `proration_credit_cents`
+/// means the member is being credited.
+#[derive(Debug, Clone)]
+pub struct SubscriptionChangePreview {
+    pub proration_credit_cents: i64,
+    pub proration_charge_cents: i64,
+    pub immediate_total_cents: i64,
+    pub next_invoice_total_cents: i64,
+    pub currency: String,
+}
+
+/// Stripe `/v1/invoices/upcoming` proration preview for a single-item
+/// subscription line-item swap. Returns the cents that would be charged
+/// or credited if the caller went on to call
+/// [`swap_subscription_price_with_proration`] with `prorate = true`.
+///
+/// Lives behind [`crate::handlers::member`]'s switch-plan preview endpoint.
+pub async fn preview_subscription_change(
+    state: &AppState,
+    stripe_subscription_id: &str,
+    item_id: &str,
+    new_price_id: &str,
+) -> AppResult<SubscriptionChangePreview> {
+    validate_id(stripe_subscription_id, "subscription")?;
+    validate_id(item_id, "subscription_item")?;
+    if new_price_id.trim().is_empty() {
+        return Err(AppError::BadRequest(
+            "stripe_price_id is required for plan switch preview".into(),
+        ));
+    }
+    let c = client(state)?;
+    // Stripe's `/v1/invoices/upcoming` is a GET that nevertheless takes
+    // bracket-encoded subscription_items. We percent-encode each pair.
+    let sub = urlencoding::encode(stripe_subscription_id);
+    let item_key = urlencoding::encode("subscription_items[0][id]");
+    let item_val = urlencoding::encode(item_id);
+    let price_key = urlencoding::encode("subscription_items[0][price]");
+    let price_val = urlencoding::encode(new_price_id);
+    let behavior_key = urlencoding::encode("subscription_proration_behavior");
+    let behavior_val = urlencoding::encode("create_prorations");
+    let path = format!(
+        "/v1/invoices/upcoming?subscription={sub}\
+         &{item_key}={item_val}\
+         &{price_key}={price_val}\
+         &{behavior_key}={behavior_val}",
+    );
+
+    #[derive(Deserialize)]
+    struct InvoiceLineItem {
+        amount: Option<i64>,
+        proration: Option<bool>,
+    }
+    #[derive(Deserialize)]
+    struct InvoiceLines {
+        #[serde(default)]
+        data: Vec<InvoiceLineItem>,
+    }
+    #[derive(Deserialize)]
+    struct UpcomingInvoice {
+        amount_due: Option<i64>,
+        total: Option<i64>,
+        currency: Option<String>,
+        #[serde(default)]
+        lines: Option<InvoiceLines>,
+    }
+
+    let invoice: UpcomingInvoice = c.request(Method::GET, &path, None, None).await?;
+    let mut credit_cents: i64 = 0;
+    let mut charge_cents: i64 = 0;
+    if let Some(lines) = &invoice.lines {
+        for line in &lines.data {
+            if line.proration.unwrap_or(false) {
+                let amount = line.amount.unwrap_or(0);
+                if amount < 0 {
+                    credit_cents = credit_cents.saturating_sub(amount); // amount is negative → adds positive
+                } else {
+                    charge_cents = charge_cents.saturating_add(amount);
+                }
+            }
+        }
+    }
+    let immediate_total_cents = invoice.amount_due.unwrap_or(0);
+    let next_invoice_total_cents = invoice.total.unwrap_or(immediate_total_cents);
+    let currency = invoice.currency.unwrap_or_else(|| "usd".to_string());
+    Ok(SubscriptionChangePreview {
+        proration_credit_cents: credit_cents,
+        proration_charge_cents: charge_cents,
+        immediate_total_cents,
+        next_invoice_total_cents,
+        currency,
+    })
+}
+
 // ─── Tests ─────────────────────────────────────────────────────────────
 
 #[cfg(test)]

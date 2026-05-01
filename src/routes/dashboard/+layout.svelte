@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { onMount } from 'svelte';
 	import HouseIcon from 'phosphor-svelte/lib/HouseIcon';
@@ -24,11 +25,30 @@
 	}
 
 	const navItems = [
-		{ href: resolve('/dashboard'), label: 'Overview', icon: HouseIcon },
-		{ href: resolve('/dashboard/watchlists'), label: 'Watchlists', icon: ListChecksIcon },
-		{ href: resolve('/dashboard/courses'), label: 'Courses', icon: BookOpenIcon },
-		{ href: resolve('/dashboard/account'), label: 'Account', icon: UserCircleIcon }
+		{ href: resolve('/dashboard'), label: 'Overview', icon: HouseIcon, exact: true },
+		{
+			href: resolve('/dashboard/watchlists'),
+			label: 'Watchlists',
+			icon: ListChecksIcon,
+			exact: false
+		},
+		{ href: resolve('/dashboard/courses'), label: 'Courses', icon: BookOpenIcon, exact: false },
+		{ href: resolve('/dashboard/account'), label: 'Account', icon: UserCircleIcon, exact: false }
 	];
+
+	const currentPath = $derived(page.url.pathname);
+
+	function isActive(href: string, exact: boolean): boolean {
+		if (exact) return currentPath === href;
+		return currentPath === href || currentPath.startsWith(href + '/');
+	}
+
+	function initials(name: string | undefined): string {
+		if (!name) return '?';
+		const parts = name.trim().split(/\s+/);
+		if (parts.length === 1) return parts[0]![0]!.toUpperCase();
+		return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase();
+	}
 </script>
 
 {#if auth.isAuthenticated}
@@ -41,7 +61,13 @@
 
 			<nav class="dash__nav">
 				{#each navItems as item (item.href)}
-					<a href={item.href} class="dash__nav-link">
+					{@const active = isActive(item.href, item.exact)}
+					<a
+						href={item.href}
+						class="dash__nav-link"
+						class:dash__nav-link--active={active}
+						aria-current={active ? 'page' : undefined}
+					>
 						<item.icon size={20} weight="duotone" />
 						<span>{item.label}</span>
 					</a>
@@ -54,6 +80,27 @@
 						Admin Panel
 					</a>
 				{/if}
+
+				<div class="dash__user">
+					<div class="dash__avatar">
+						{#if auth.user?.avatar_url}
+							<img
+								src={auth.user.avatar_url}
+								alt={auth.user.name ?? 'Member avatar'}
+								class="dash__avatar-img"
+							/>
+						{:else}
+							<span class="dash__avatar-initials" aria-hidden="true">
+								{initials(auth.user?.name)}
+							</span>
+						{/if}
+					</div>
+					<div class="dash__user-meta">
+						<span class="dash__user-name">{auth.user?.name ?? 'Member'}</span>
+						<span class="dash__user-role">Member</span>
+					</div>
+				</div>
+
 				<button onclick={handleLogout} class="dash__logout">
 					<SignOutIcon size={20} weight="duotone" />
 					<span>Sign Out</span>
@@ -62,16 +109,35 @@
 		</aside>
 
 		<div class="dash__main">
-			<header class="dash__header">
-				<div>
-					<h2 class="dash__greeting">Welcome back, {auth.user?.name?.split(' ')[0]}</h2>
-				</div>
-			</header>
-
 			<div class="dash__content">
 				{@render children()}
 			</div>
 		</div>
+
+		<nav class="dash__tabbar" aria-label="Primary">
+			{#each navItems as item (item.href)}
+				{@const active = isActive(item.href, item.exact)}
+				{@const isAccount = item.label === 'Account'}
+				<a
+					href={item.href}
+					class="dash__tab"
+					class:dash__tab--active={active}
+					aria-current={active ? 'page' : undefined}
+				>
+					{#if isAccount && auth.user?.avatar_url}
+						<img
+							src={auth.user.avatar_url}
+							alt=""
+							class="dash__tab-avatar"
+							aria-hidden="true"
+						/>
+					{:else}
+						<item.icon size={20} weight="duotone" />
+					{/if}
+					<span class="dash__tab-label">{item.label}</span>
+				</a>
+			{/each}
+		</nav>
 	</div>
 {/if}
 
@@ -131,11 +197,18 @@
 		font-weight: var(--w-medium);
 		text-decoration: none;
 		transition: all 200ms var(--ease-out);
+		border-left: 3px solid transparent;
 	}
 
 	.dash__nav-link:hover {
 		color: var(--color-white);
 		background-color: rgba(255, 255, 255, 0.05);
+	}
+
+	.dash__nav-link--active {
+		color: var(--color-white);
+		background-color: rgba(15, 164, 175, 0.08);
+		border-left: 3px solid var(--color-teal);
 	}
 
 	.dash__nav-link--admin {
@@ -148,6 +221,78 @@
 	.dash__sidebar-footer {
 		border-top: 1px solid rgba(255, 255, 255, 0.06);
 		padding-top: 1rem;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.dash__user {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+		padding: 0.65rem 0.5rem;
+		border-radius: var(--radius-lg);
+		margin-bottom: 0.75rem;
+		min-width: 0;
+	}
+
+	.dash__avatar {
+		width: 36px;
+		height: 36px;
+		border-radius: var(--radius-full);
+		overflow: hidden;
+		flex-shrink: 0;
+		background: linear-gradient(135deg, var(--color-teal), #0d8a94);
+	}
+
+	.dash__avatar-img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+	}
+
+	.dash__avatar-initials {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: var(--fs-xs);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+		background: linear-gradient(135deg, var(--color-teal), #0d8a94);
+		letter-spacing: 0.02em;
+	}
+
+	.dash__user-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+		min-width: 0;
+		flex: 1;
+	}
+
+	.dash__user-name {
+		font-size: var(--fs-sm);
+		font-weight: var(--w-semibold);
+		color: var(--color-white);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.dash__user-role {
+		display: inline-flex;
+		align-self: flex-start;
+		align-items: center;
+		font-size: var(--fs-2xs);
+		font-weight: var(--w-semibold);
+		color: var(--color-teal);
+		background-color: rgba(15, 164, 175, 0.15);
+		border-radius: var(--radius-full);
+		padding: 0.15rem 0.5rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
 	}
 
 	.dash__logout {
@@ -178,21 +323,13 @@
 		overflow-y: auto;
 	}
 
-	.dash__header {
-		padding: 1.5rem 2rem;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-	}
-
-	.dash__greeting {
-		font-size: var(--fs-xl);
-		font-weight: var(--w-bold);
-		color: var(--color-white);
-		font-family: var(--font-heading);
-	}
-
 	.dash__content {
 		flex: 1;
 		padding: 2rem;
+	}
+
+	.dash__tabbar {
+		display: none;
 	}
 
 	@media (max-width: 768px) {
@@ -201,29 +338,55 @@
 		}
 
 		.dash__sidebar {
-			width: 100%;
-			height: auto;
-			position: relative;
-			flex-direction: row;
-			flex-wrap: wrap;
-			align-items: center;
-			padding: 1rem;
-		}
-
-		.dash__nav {
-			flex-direction: row;
-			gap: 0.25rem;
-			flex: initial;
-		}
-
-		.dash__sidebar-footer {
-			border-top: none;
-			padding-top: 0;
-			margin-left: auto;
+			display: none;
 		}
 
 		.dash__content {
 			padding: 1rem;
+			padding-bottom: 4rem;
+		}
+
+		.dash__tabbar {
+			display: grid;
+			grid-template-columns: repeat(4, 1fr);
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			height: 56px;
+			background-color: var(--color-navy);
+			border-top: 1px solid rgba(255, 255, 255, 0.06);
+			z-index: 50;
+		}
+
+		.dash__tab {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 0.15rem;
+			color: var(--color-grey-400);
+			text-decoration: none;
+			font-size: var(--fs-xs);
+			font-weight: var(--w-medium);
+			transition: color 200ms var(--ease-out);
+		}
+
+		.dash__tab--active {
+			color: var(--color-teal);
+		}
+
+		.dash__tab-label {
+			font-size: 0.7rem;
+			line-height: 1;
+		}
+
+		.dash__tab-avatar {
+			width: 22px;
+			height: 22px;
+			border-radius: var(--radius-full);
+			object-fit: cover;
+			border: 1.5px solid rgba(15, 164, 175, 0.4);
 		}
 	}
 </style>

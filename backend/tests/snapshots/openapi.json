@@ -7518,6 +7518,37 @@
         ]
       }
     },
+    "/api/member/coupons/redeemed": {
+      "get": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "list_redeemed_coupons",
+        "responses": {
+          "200": {
+            "description": "Coupon redemptions for the authenticated member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MemberCouponRedemptionResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/member/courses/{course_id}/enroll": {
       "post": {
         "tags": [
@@ -7730,6 +7761,99 @@
         ]
       }
     },
+    "/api/member/orders": {
+      "get": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "list_orders",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "1-based page number (default 1)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "Page size (default 20, max 50)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated orders for the authenticated member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedMemberOrdersResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/orders/{id}": {
+      "get": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "get_order_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Order id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberOrderDetailResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Order not found or not owned by the member"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/member/password": {
       "post": {
         "tags": [
@@ -7848,6 +7972,393 @@
           },
           "401": {
             "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/subscriptions": {
+      "get": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "list_subscriptions",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "1-based page number (default 1)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "Page size (default 20, max 50)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Full subscription history for the authenticated member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedMemberSubscriptionsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/subscriptions/{id}": {
+      "get": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "get_subscription_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Subscription id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subscription detail (plan + invoices + related orders)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberSubscriptionDetailResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Subscription not found or not owned by the member"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/subscriptions/{id}/cancel": {
+      "post": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "post_cancel_subscription",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Subscription id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cancel-at-period-end flag set on the subscription",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Subscription not found or not owned by the member"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/subscriptions/{id}/pause": {
+      "post": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "post_pause_subscription",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Subscription id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PauseSubscriptionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Subscription paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Subscription not found or not owned by the member"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/subscriptions/{id}/resume": {
+      "post": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "post_resume_subscription",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Subscription id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cancel-at-period-end flag cleared",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Subscription not found or not owned by the member"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/subscriptions/{id}/switch-plan": {
+      "post": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "post_switch_subscription_plan",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Subscription id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SwitchPlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Subscription switched to the new plan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Target plan invalid (no Stripe price id, missing line item, etc.)"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Subscription or pricing plan not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/subscriptions/{id}/switch-plan/preview": {
+      "get": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "get_switch_plan_preview",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Subscription id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "pricing_plan_id",
+            "in": "query",
+            "description": "Target pricing_plans.id to preview",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stripe upcoming-invoice proration preview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwitchPlanPreviewResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Target plan invalid or local subscription has no Stripe twin"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Subscription or pricing plan not found"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/subscriptions/{id}/unpause": {
+      "post": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "post_unpause_subscription",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Subscription id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subscription resumed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Subscription not found or not owned by the member"
           }
         },
         "security": [
@@ -12876,6 +13387,39 @@
           "metadata": {}
         }
       },
+      "MemberCouponRedemptionResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "coupon_code",
+          "discount_applied_cents",
+          "redeemed_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "coupon_code": {
+            "type": "string"
+          },
+          "discount_applied_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "redeemed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "subscription_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        }
+      },
       "MemberDetailResponse": {
         "type": "object",
         "description": "Composite payload returned by `GET /api/admin/members/{id}/detail`.\nPre-bundles the member, their current subscription, and the recent\nactivity streams the detail UI renders so the SPA needs one round\ntrip per page load.",
@@ -12909,6 +13453,167 @@
             "items": {
               "$ref": "#/components/schemas/MemberPaymentFailure"
             }
+          }
+        }
+      },
+      "MemberOrderDetailResponse": {
+        "type": "object",
+        "required": [
+          "order",
+          "items",
+          "refunds",
+          "state_log"
+        ],
+        "properties": {
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItem"
+            }
+          },
+          "refunds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberOrderRefund"
+            }
+          },
+          "state_log": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberOrderStateTransition"
+            }
+          }
+        }
+      },
+      "MemberOrderListItem": {
+        "type": "object",
+        "description": "Compact order row returned by `GET /api/member/orders` and embedded\ninside [`MemberSubscriptionDetailResponse::related_orders`]. Strict\nsubset of the admin `Order` shape — the SPA only renders the columns\nactually visible on the member dashboard.",
+        "required": [
+          "id",
+          "number",
+          "status",
+          "currency",
+          "total_cents",
+          "item_count",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "total_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "item_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "placed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MemberOrderRefund": {
+        "type": "object",
+        "description": "Lightweight refund row exposed to members. We deliberately omit\n`created_by` (operator id) — that's privileged context.",
+        "required": [
+          "id",
+          "amount_cents",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MemberOrderStateTransition": {
+        "type": "object",
+        "description": "One transition in the order's state log; mirrors the\n`order_state_transitions` row shape minus the actor id.",
+        "required": [
+          "from_status",
+          "to_status",
+          "created_at"
+        ],
+        "properties": {
+          "from_status": {
+            "type": "string"
+          },
+          "to_status": {
+            "type": "string"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MemberOrdersListQuery": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "per_page": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
           }
         }
       },
@@ -12972,6 +13677,202 @@
             "items": {
               "$ref": "#/components/schemas/NotificationPreference"
             }
+          }
+        }
+      },
+      "MemberSubscriptionDetailResponse": {
+        "type": "object",
+        "required": [
+          "subscription",
+          "invoices",
+          "related_orders"
+        ],
+        "properties": {
+          "subscription": {
+            "$ref": "#/components/schemas/Subscription"
+          },
+          "plan": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PricingPlan"
+              }
+            ]
+          },
+          "invoices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberSubscriptionInvoice"
+            }
+          },
+          "related_orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberOrderListItem"
+            }
+          }
+        }
+      },
+      "MemberSubscriptionInvoice": {
+        "type": "object",
+        "description": "Mirror of `subscription_invoices` with only the columns we surface to\nmembers (no `attempt_count`, no actor metadata).",
+        "required": [
+          "id",
+          "stripe_invoice_id",
+          "status",
+          "amount_due_cents",
+          "amount_paid_cents",
+          "currency",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stripe_invoice_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "amount_due_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "amount_paid_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "period_start": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "period_end": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "paid_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MemberSubscriptionListItem": {
+        "type": "object",
+        "description": "Compact subscription row for `GET /api/member/subscriptions`. Joins\n`pricing_plans` so the SPA can render the catalog name + price without\na follow-up call.",
+        "required": [
+          "id",
+          "plan",
+          "status",
+          "current_period_start",
+          "current_period_end",
+          "cancel_at_period_end",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/SubscriptionPlan"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SubscriptionStatus"
+          },
+          "current_period_start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "current_period_end": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "paused_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "pause_resumes_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "cancel_at_period_end": {
+            "type": "boolean",
+            "description": "Derived from `subscriptions.cancel_at IS NOT NULL`. Stripe stores\nthe boolean separately; we mirror the admin handler convention so\nboth surfaces agree."
+          },
+          "pricing_plan_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "plan_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "amount_cents": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MemberSubscriptionsListQuery": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "per_page": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
           }
         }
       },
@@ -13590,6 +14491,75 @@
           }
         }
       },
+      "PaginatedMemberOrdersResponse": {
+        "type": "object",
+        "description": "OpenAPI wrapper around `PaginatedResponse<MemberOrderListItem>` so the\nsnapshot doesn't leak the generic into `ApiDoc`.",
+        "required": [
+          "data",
+          "total",
+          "page",
+          "per_page",
+          "total_pages"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberOrderListItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "per_page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total_pages": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "PaginatedMemberSubscriptionsResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "total",
+          "page",
+          "per_page",
+          "total_pages"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberSubscriptionListItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "per_page": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total_pages": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "PaginatedOutboxResponse": {
         "type": "object",
         "description": "OpenAPI wrapper so the snapshot carries a concrete `PaginatedResponse<OutboxRowDto>`\nschema without bleeding the generic into `ApiDoc`.",
@@ -14074,6 +15044,19 @@
           "updated_at": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "PauseSubscriptionRequest": {
+        "type": "object",
+        "properties": {
+          "resume_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Optional RFC3339 timestamp at which the subscription should auto-resume.\n`None` ⇒ open-ended pause (member must call `unpause` to lift)."
           }
         }
       },
@@ -15917,6 +16900,66 @@
           }
         }
       },
+      "SwitchPlanPreviewQuery": {
+        "type": "object",
+        "required": [
+          "pricing_plan_id"
+        ],
+        "properties": {
+          "pricing_plan_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "SwitchPlanPreviewResponse": {
+        "type": "object",
+        "required": [
+          "proration_credit_cents",
+          "proration_charge_cents",
+          "immediate_total_cents",
+          "next_invoice_total_cents",
+          "currency"
+        ],
+        "properties": {
+          "proration_credit_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "proration_charge_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "immediate_total_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "next_invoice_total_cents": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "currency": {
+            "type": "string"
+          }
+        }
+      },
+      "SwitchPlanRequest": {
+        "type": "object",
+        "required": [
+          "pricing_plan_id"
+        ],
+        "properties": {
+          "pricing_plan_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Target `pricing_plans.id` to switch the subscription onto."
+          },
+          "prorate": {
+            "type": "boolean",
+            "description": "When `true` (default) Stripe creates prorations for the swap.\n`false` defers the new price to the next renewal — useful for\ndowngrades that should not refund mid-cycle."
+          }
+        }
+      },
       "Template": {
         "type": "object",
         "description": "A concrete template row loaded from `notification_templates`.\n\n`body_compiled` is maintained by the admin API at save time (currently a\nstraight copy of `body_source` until MJML compilation lands in FDN-09);\nrendering reads `body_compiled` so the hot path never re-parses MJML.",
@@ -17161,6 +18204,24 @@
             "type": [
               "string",
               "null"
+            ]
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Phase 5: free-text phone number. Validation is intentionally minimal\nat the API edge — the DB CHECK in migration 079 caps it at 32 chars."
+          },
+          "billing_address": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BillingAddress",
+                "description": "Phase 5: billing address. Mirrors the Stripe `Address` shape so the\nSPA can pass a single object through to both backends. Each field\ninside `BillingAddress` is independently optional; missing fields\nleave the corresponding column untouched."
+              }
             ]
           }
         }

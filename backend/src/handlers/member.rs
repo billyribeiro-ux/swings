@@ -8,11 +8,14 @@ use axum::{
     routing::{delete, get, post, put},
     Json, Router,
 };
-use chrono::Utc;
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use sqlx::FromRow;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
+    commerce::{orders as orders_repo, subscriptions as subs_repo},
     db,
     error::{AppError, AppResult},
     extractors::{AuthUser, ClientInfo},
@@ -30,11 +33,34 @@ pub fn router() -> Router<AppState> {
         // Profile
         .route("/profile", get(get_profile))
         .route("/profile", put(update_profile))
-        // Subscription
+        // Subscription (singleton — current/active)
         .route("/subscription", get(get_subscription))
         .route("/billing-portal", post(post_billing_portal))
         .route("/subscription/cancel", post(post_subscription_cancel))
         .route("/subscription/resume", post(post_subscription_resume))
+        // Subscriptions history + per-subscription actions (Phase 5).
+        .route("/subscriptions", get(list_subscriptions))
+        .route("/subscriptions/{id}", get(get_subscription_detail))
+        .route("/subscriptions/{id}/cancel", post(post_cancel_subscription))
+        .route("/subscriptions/{id}/resume", post(post_resume_subscription))
+        .route("/subscriptions/{id}/pause", post(post_pause_subscription))
+        .route(
+            "/subscriptions/{id}/unpause",
+            post(post_unpause_subscription),
+        )
+        .route(
+            "/subscriptions/{id}/switch-plan",
+            post(post_switch_subscription_plan),
+        )
+        .route(
+            "/subscriptions/{id}/switch-plan/preview",
+            get(get_switch_plan_preview),
+        )
+        // Orders history + detail
+        .route("/orders", get(list_orders))
+        .route("/orders/{id}", get(get_order_detail))
+        // Coupon redemption history
+        .route("/coupons/redeemed", get(list_redeemed_coupons))
         // Watchlists
         .route("/watchlists", get(list_watchlists))
         .route("/watchlists/{id}", get(get_watchlist))
@@ -71,6 +97,16 @@ pub struct UpdateProfileRequest {
     linkedin_url: Option<String>,
     youtube_url: Option<String>,
     instagram_url: Option<String>,
+    /// Phase 5: free-text phone number. Validation is intentionally minimal
+    /// at the API edge — the DB CHECK in migration 079 caps it at 32 chars.
+    #[serde(default)]
+    phone: Option<String>,
+    /// Phase 5: billing address. Mirrors the Stripe `Address` shape so the
+    /// SPA can pass a single object through to both backends. Each field
+    /// inside `BillingAddress` is independently optional; missing fields
+    /// leave the corresponding column untouched.
+    #[serde(default)]
+    billing_address: Option<BillingAddress>,
 }
 
 #[utoipa::path(
@@ -106,12 +142,45 @@ pub(crate) async fn update_profile(
         .as_deref()
         .or(user.instagram_url.as_deref());
 
+    // Phase 5: COALESCE-style overlay for phone + billing fields. `None`
+    // anywhere in the request leaves the existing column untouched so a
+    // partial PATCH can land a single field without zeroing the rest.
+    let phone = req.phone.as_deref().or(user.phone.as_deref());
+    let addr = req.billing_address.as_ref();
+    let billing_line1 = addr
+        .and_then(|a| a.line1.as_deref())
+        .or(user.billing_line1.as_deref());
+    let billing_line2 = addr
+        .and_then(|a| a.line2.as_deref())
+        .or(user.billing_line2.as_deref());
+    let billing_city = addr
+        .and_then(|a| a.city.as_deref())
+        .or(user.billing_city.as_deref());
+    let billing_state = addr
+        .and_then(|a| a.state.as_deref())
+        .or(user.billing_state.as_deref());
+    let billing_postal_code = addr
+        .and_then(|a| a.postal_code.as_deref())
+        .or(user.billing_postal_code.as_deref());
+    // Stripe normalises country codes to upper-case; mirror that contract
+    // so the value persisted here is identical to what the admin path
+    // would push through `stripe_api::update_customer_address`.
+    let normalised_country: Option<String> = addr
+        .and_then(|a| a.country.as_deref())
+        .map(|c| c.trim().to_ascii_uppercase())
+        .or_else(|| user.billing_country.clone());
+    let billing_country = normalised_country.as_deref();
+
     let updated = sqlx::query_as::<_, crate::models::User>(
         r#"UPDATE users SET
             name = $1, avatar_url = $2, bio = $3, position = $4,
             website_url = $5, twitter_url = $6, linkedin_url = $7,
-            youtube_url = $8, instagram_url = $9, updated_at = NOW()
-           WHERE id = $10 RETURNING *"#,
+            youtube_url = $8, instagram_url = $9,
+            phone = $10,
+            billing_line1 = $11, billing_line2 = $12, billing_city = $13,
+            billing_state = $14, billing_postal_code = $15, billing_country = $16,
+            updated_at = NOW()
+           WHERE id = $17 RETURNING *"#,
     )
     .bind(name)
     .bind(avatar_url)
@@ -122,6 +191,13 @@ pub(crate) async fn update_profile(
     .bind(linkedin_url)
     .bind(youtube_url)
     .bind(instagram_url)
+    .bind(phone)
+    .bind(billing_line1)
+    .bind(billing_line2)
+    .bind(billing_city)
+    .bind(billing_state)
+    .bind(billing_postal_code)
+    .bind(billing_country)
     .bind(auth.user_id)
     .fetch_one(&state.db)
     .await?;
@@ -657,4 +733,1007 @@ pub(crate) async fn post_apply_coupon(
         valid: true,
         message,
     }))
+}
+
+// ── Phase 5: Orders history ────────────────────────────────────────────
+
+/// Compact order row returned by `GET /api/member/orders` and embedded
+/// inside [`MemberSubscriptionDetailResponse::related_orders`]. Strict
+/// subset of the admin `Order` shape — the SPA only renders the columns
+/// actually visible on the member dashboard.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct MemberOrderListItem {
+    pub id: Uuid,
+    pub number: String,
+    pub status: String,
+    pub currency: String,
+    pub total_cents: i64,
+    pub item_count: i64,
+    pub placed_at: Option<DateTime<Utc>>,
+    pub completed_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+}
+
+/// Lightweight refund row exposed to members. We deliberately omit
+/// `created_by` (operator id) — that's privileged context.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct MemberOrderRefund {
+    pub id: Uuid,
+    pub amount_cents: i64,
+    pub reason: Option<String>,
+    pub created_at: DateTime<Utc>,
+}
+
+/// One transition in the order's state log; mirrors the
+/// `order_state_transitions` row shape minus the actor id.
+#[derive(Debug, Serialize, ToSchema, FromRow)]
+pub struct MemberOrderStateTransition {
+    pub from_status: String,
+    pub to_status: String,
+    pub reason: Option<String>,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Serialize, ToSchema)]
+pub struct MemberOrderDetailResponse {
+    pub order: orders_repo::Order,
+    pub items: Vec<orders_repo::OrderItem>,
+    pub refunds: Vec<MemberOrderRefund>,
+    pub state_log: Vec<MemberOrderStateTransition>,
+}
+
+/// OpenAPI wrapper around `PaginatedResponse<MemberOrderListItem>` so the
+/// snapshot doesn't leak the generic into `ApiDoc`.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct PaginatedMemberOrdersResponse {
+    pub data: Vec<MemberOrderListItem>,
+    pub total: i64,
+    pub page: i64,
+    pub per_page: i64,
+    pub total_pages: i64,
+}
+
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct MemberOrdersListQuery {
+    pub page: Option<i64>,
+    pub per_page: Option<i64>,
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/member/orders",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    params(
+        ("page" = Option<i64>, Query, description = "1-based page number (default 1)"),
+        ("per_page" = Option<i64>, Query, description = "Page size (default 20, max 50)"),
+    ),
+    responses(
+        (status = 200, description = "Paginated orders for the authenticated member", body = PaginatedMemberOrdersResponse),
+        (status = 401, description = "Unauthorized")
+    )
+)]
+pub(crate) async fn list_orders(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    Query(q): Query<MemberOrdersListQuery>,
+) -> AppResult<Json<PaginatedResponse<MemberOrderListItem>>> {
+    let page = q.page.unwrap_or(1).max(1);
+    let per_page = q.per_page.unwrap_or(20).clamp(1, 50);
+    let offset = (page - 1) * per_page;
+
+    let rows = sqlx::query_as::<_, MemberOrderListRow>(
+        r#"
+        SELECT o.id,
+               o.number,
+               o.status::text AS status,
+               o.currency,
+               o.total_cents,
+               COALESCE((SELECT COUNT(*) FROM order_items WHERE order_id = o.id), 0)::bigint
+                   AS item_count,
+               o.placed_at,
+               o.completed_at,
+               o.created_at
+          FROM orders o
+         WHERE o.user_id = $1
+         ORDER BY o.created_at DESC
+         LIMIT $2 OFFSET $3
+        "#,
+    )
+    .bind(auth.user_id)
+    .bind(per_page)
+    .bind(offset)
+    .fetch_all(&state.db)
+    .await?;
+
+    let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM orders WHERE user_id = $1")
+        .bind(auth.user_id)
+        .fetch_one(&state.db)
+        .await?;
+
+    let total_pages = if per_page > 0 {
+        (total + per_page - 1) / per_page
+    } else {
+        0
+    };
+
+    let data = rows.into_iter().map(MemberOrderListItem::from).collect();
+
+    Ok(Json(PaginatedResponse {
+        data,
+        total,
+        page,
+        per_page,
+        total_pages,
+    }))
+}
+
+/// FromRow shim used by the orders list query. Mirrors the columns the
+/// SELECT projects so we don't have to write a manual `try_get` per field.
+#[derive(Debug, FromRow)]
+struct MemberOrderListRow {
+    id: Uuid,
+    number: String,
+    status: String,
+    currency: String,
+    total_cents: i64,
+    item_count: i64,
+    placed_at: Option<DateTime<Utc>>,
+    completed_at: Option<DateTime<Utc>>,
+    created_at: DateTime<Utc>,
+}
+
+impl From<MemberOrderListRow> for MemberOrderListItem {
+    fn from(r: MemberOrderListRow) -> Self {
+        Self {
+            id: r.id,
+            number: r.number,
+            status: r.status,
+            currency: r.currency,
+            total_cents: r.total_cents,
+            item_count: r.item_count,
+            placed_at: r.placed_at,
+            completed_at: r.completed_at,
+            created_at: r.created_at,
+        }
+    }
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/member/orders/{id}",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Order id")),
+    responses(
+        (status = 200, description = "Order detail", body = MemberOrderDetailResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Order not found or not owned by the member")
+    )
+)]
+pub(crate) async fn get_order_detail(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    Path(id): Path<Uuid>,
+) -> AppResult<Json<MemberOrderDetailResponse>> {
+    // Ownership check folded into the lookup — anything that isn't the
+    // member's own order returns 404 (NOT 403) to avoid leaking
+    // existence to a probing client.
+    let order = orders_repo::get_order(&state.db, id)
+        .await?
+        .filter(|o| o.user_id == Some(auth.user_id))
+        .ok_or_else(|| AppError::NotFound("Order not found".to_string()))?;
+
+    let items = sqlx::query_as::<_, orders_repo::OrderItem>(
+        "SELECT * FROM order_items WHERE order_id = $1 ORDER BY created_at",
+    )
+    .bind(id)
+    .fetch_all(&state.db)
+    .await?;
+
+    let refunds = sqlx::query_as::<_, orders_repo::OrderRefund>(
+        "SELECT * FROM order_refunds WHERE order_id = $1 ORDER BY created_at",
+    )
+    .bind(id)
+    .fetch_all(&state.db)
+    .await?
+    .into_iter()
+    .map(|r| MemberOrderRefund {
+        id: r.id,
+        amount_cents: r.amount_cents,
+        reason: r.reason,
+        created_at: r.created_at,
+    })
+    .collect();
+
+    let state_log = sqlx::query_as::<_, MemberOrderStateTransition>(
+        r#"
+        SELECT from_status::text AS from_status,
+               to_status::text   AS to_status,
+               reason,
+               created_at
+          FROM order_state_transitions
+         WHERE order_id = $1
+         ORDER BY created_at
+        "#,
+    )
+    .bind(id)
+    .fetch_all(&state.db)
+    .await?;
+
+    Ok(Json(MemberOrderDetailResponse {
+        order,
+        items,
+        refunds,
+        state_log,
+    }))
+}
+
+// ── Phase 5: Subscriptions history + actions ───────────────────────────
+
+/// Compact subscription row for `GET /api/member/subscriptions`. Joins
+/// `pricing_plans` so the SPA can render the catalog name + price without
+/// a follow-up call.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct MemberSubscriptionListItem {
+    pub id: Uuid,
+    pub plan: SubscriptionPlan,
+    pub status: SubscriptionStatus,
+    pub current_period_start: DateTime<Utc>,
+    pub current_period_end: DateTime<Utc>,
+    pub paused_at: Option<DateTime<Utc>>,
+    pub pause_resumes_at: Option<DateTime<Utc>>,
+    /// Derived from `subscriptions.cancel_at IS NOT NULL`. Stripe stores
+    /// the boolean separately; we mirror the admin handler convention so
+    /// both surfaces agree.
+    pub cancel_at_period_end: bool,
+    pub pricing_plan_id: Option<Uuid>,
+    pub plan_name: Option<String>,
+    pub amount_cents: Option<i64>,
+    pub currency: Option<String>,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Serialize, ToSchema)]
+pub struct PaginatedMemberSubscriptionsResponse {
+    pub data: Vec<MemberSubscriptionListItem>,
+    pub total: i64,
+    pub page: i64,
+    pub per_page: i64,
+    pub total_pages: i64,
+}
+
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct MemberSubscriptionsListQuery {
+    pub page: Option<i64>,
+    pub per_page: Option<i64>,
+}
+
+/// Mirror of `subscription_invoices` with only the columns we surface to
+/// members (no `attempt_count`, no actor metadata).
+#[derive(Debug, Serialize, ToSchema, FromRow)]
+pub struct MemberSubscriptionInvoice {
+    pub id: Uuid,
+    pub stripe_invoice_id: String,
+    pub status: String,
+    pub amount_due_cents: i64,
+    pub amount_paid_cents: i64,
+    pub currency: String,
+    pub period_start: Option<DateTime<Utc>>,
+    pub period_end: Option<DateTime<Utc>>,
+    pub paid_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Serialize, ToSchema)]
+pub struct MemberSubscriptionDetailResponse {
+    pub subscription: Subscription,
+    pub plan: Option<PricingPlan>,
+    pub invoices: Vec<MemberSubscriptionInvoice>,
+    pub related_orders: Vec<MemberOrderListItem>,
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/member/subscriptions",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    params(
+        ("page" = Option<i64>, Query, description = "1-based page number (default 1)"),
+        ("per_page" = Option<i64>, Query, description = "Page size (default 20, max 50)"),
+    ),
+    responses(
+        (status = 200, description = "Full subscription history for the authenticated member", body = PaginatedMemberSubscriptionsResponse),
+        (status = 401, description = "Unauthorized")
+    )
+)]
+pub(crate) async fn list_subscriptions(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    Query(q): Query<MemberSubscriptionsListQuery>,
+) -> AppResult<Json<PaginatedResponse<MemberSubscriptionListItem>>> {
+    let page = q.page.unwrap_or(1).max(1);
+    let per_page = q.per_page.unwrap_or(20).clamp(1, 50);
+    let offset = (page - 1) * per_page;
+
+    let rows = sqlx::query_as::<_, MemberSubscriptionListRow>(
+        r#"
+        SELECT s.id,
+               s.plan,
+               s.status,
+               s.current_period_start,
+               s.current_period_end,
+               s.paused_at,
+               s.pause_resumes_at,
+               (s.cancel_at IS NOT NULL) AS cancel_at_period_end,
+               s.pricing_plan_id,
+               p.name           AS plan_name,
+               p.amount_cents   AS plan_amount_cents,
+               p.currency       AS plan_currency,
+               s.created_at
+          FROM subscriptions s
+          LEFT JOIN pricing_plans p ON p.id = s.pricing_plan_id
+         WHERE s.user_id = $1
+         ORDER BY s.created_at DESC
+         LIMIT $2 OFFSET $3
+        "#,
+    )
+    .bind(auth.user_id)
+    .bind(per_page)
+    .bind(offset)
+    .fetch_all(&state.db)
+    .await?;
+
+    let total: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM subscriptions WHERE user_id = $1")
+        .bind(auth.user_id)
+        .fetch_one(&state.db)
+        .await?;
+
+    let total_pages = if per_page > 0 {
+        (total + per_page - 1) / per_page
+    } else {
+        0
+    };
+
+    let data = rows
+        .into_iter()
+        .map(MemberSubscriptionListItem::from)
+        .collect();
+
+    Ok(Json(PaginatedResponse {
+        data,
+        total,
+        page,
+        per_page,
+        total_pages,
+    }))
+}
+
+#[derive(Debug, FromRow)]
+struct MemberSubscriptionListRow {
+    id: Uuid,
+    plan: SubscriptionPlan,
+    status: SubscriptionStatus,
+    current_period_start: DateTime<Utc>,
+    current_period_end: DateTime<Utc>,
+    paused_at: Option<DateTime<Utc>>,
+    pause_resumes_at: Option<DateTime<Utc>>,
+    cancel_at_period_end: bool,
+    pricing_plan_id: Option<Uuid>,
+    plan_name: Option<String>,
+    plan_amount_cents: Option<i64>,
+    plan_currency: Option<String>,
+    created_at: DateTime<Utc>,
+}
+
+impl From<MemberSubscriptionListRow> for MemberSubscriptionListItem {
+    fn from(r: MemberSubscriptionListRow) -> Self {
+        Self {
+            id: r.id,
+            plan: r.plan,
+            status: r.status,
+            current_period_start: r.current_period_start,
+            current_period_end: r.current_period_end,
+            paused_at: r.paused_at,
+            pause_resumes_at: r.pause_resumes_at,
+            cancel_at_period_end: r.cancel_at_period_end,
+            pricing_plan_id: r.pricing_plan_id,
+            plan_name: r.plan_name,
+            amount_cents: r.plan_amount_cents,
+            currency: r.plan_currency,
+            created_at: r.created_at,
+        }
+    }
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/member/subscriptions/{id}",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Subscription id")),
+    responses(
+        (status = 200, description = "Subscription detail (plan + invoices + related orders)", body = MemberSubscriptionDetailResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Subscription not found or not owned by the member")
+    )
+)]
+pub(crate) async fn get_subscription_detail(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    Path(id): Path<Uuid>,
+) -> AppResult<Json<MemberSubscriptionDetailResponse>> {
+    let subscription = load_owned_subscription(&state, auth.user_id, id).await?;
+
+    let plan = if let Some(plan_id) = subscription.pricing_plan_id {
+        sqlx::query_as::<_, PricingPlan>("SELECT * FROM pricing_plans WHERE id = $1")
+            .bind(plan_id)
+            .fetch_optional(&state.db)
+            .await?
+    } else {
+        None
+    };
+
+    let invoices = sqlx::query_as::<_, MemberSubscriptionInvoice>(
+        r#"
+        SELECT id, stripe_invoice_id, status, amount_due_cents, amount_paid_cents,
+               currency, period_start, period_end, paid_at, created_at
+          FROM subscription_invoices
+         WHERE subscription_id = $1 OR (user_id = $2 AND stripe_subscription_id = $3)
+         ORDER BY created_at DESC
+        "#,
+    )
+    .bind(subscription.id)
+    .bind(auth.user_id)
+    .bind(&subscription.stripe_subscription_id)
+    .fetch_all(&state.db)
+    .await?;
+
+    // Related orders: anything where the order metadata names this
+    // subscription, or anything that shared the same Stripe customer id
+    // (covers post-checkout digital-good orders that don't carry the
+    // subscription id explicitly).
+    let related_orders = sqlx::query_as::<_, MemberOrderListRow>(
+        r#"
+        SELECT o.id,
+               o.number,
+               o.status::text AS status,
+               o.currency,
+               o.total_cents,
+               COALESCE((SELECT COUNT(*) FROM order_items WHERE order_id = o.id), 0)::bigint
+                   AS item_count,
+               o.placed_at,
+               o.completed_at,
+               o.created_at
+          FROM orders o
+         WHERE o.user_id = $1
+           AND (
+                (o.metadata ->> 'subscription_id') = $2
+                OR ($3::text <> '' AND o.stripe_customer_id = $3)
+           )
+         ORDER BY o.created_at DESC
+         LIMIT 50
+        "#,
+    )
+    .bind(auth.user_id)
+    .bind(subscription.id.to_string())
+    .bind(&subscription.stripe_customer_id)
+    .fetch_all(&state.db)
+    .await?
+    .into_iter()
+    .map(MemberOrderListItem::from)
+    .collect();
+
+    Ok(Json(MemberSubscriptionDetailResponse {
+        subscription,
+        plan,
+        invoices,
+        related_orders,
+    }))
+}
+
+/// Look up a subscription by id, enforcing member ownership. Returns
+/// `404` (not `403`) on a foreign id so callers cannot enumerate
+/// subscription primary keys.
+async fn load_owned_subscription(
+    state: &AppState,
+    user_id: Uuid,
+    subscription_id: Uuid,
+) -> AppResult<Subscription> {
+    let sub = sqlx::query_as::<_, Subscription>("SELECT * FROM subscriptions WHERE id = $1")
+        .bind(subscription_id)
+        .fetch_optional(&state.db)
+        .await?
+        .filter(|s| s.user_id == user_id)
+        .ok_or_else(|| AppError::NotFound("Subscription not found".to_string()))?;
+    Ok(sub)
+}
+
+/// Re-fetch a subscription after a mutation so the response carries the
+/// freshly-persisted shape (paused_at, status, etc.).
+async fn fetch_subscription(state: &AppState, subscription_id: Uuid) -> AppResult<Subscription> {
+    sqlx::query_as::<_, Subscription>("SELECT * FROM subscriptions WHERE id = $1")
+        .bind(subscription_id)
+        .fetch_optional(&state.db)
+        .await?
+        .ok_or_else(|| AppError::NotFound("Subscription not found".to_string()))
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/member/subscriptions/{id}/cancel",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Subscription id")),
+    responses(
+        (status = 200, description = "Cancel-at-period-end flag set on the subscription", body = Subscription),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Subscription not found or not owned by the member")
+    )
+)]
+pub(crate) async fn post_cancel_subscription(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    client: ClientInfo,
+    Path(id): Path<Uuid>,
+) -> AppResult<Json<Subscription>> {
+    let sub = load_owned_subscription(&state, auth.user_id, id).await?;
+
+    // Only call Stripe when there's a real Stripe twin id. Local-only
+    // rows (created via tests / comp grants) skip the Stripe round trip
+    // but still mirror the cancel state in the DB.
+    if !sub.stripe_subscription_id.is_empty() {
+        stripe_api::set_subscription_cancel_at_period_end(
+            &state,
+            &sub.stripe_subscription_id,
+            true,
+        )
+        .await?;
+    }
+
+    sqlx::query(
+        "UPDATE subscriptions SET cancel_at = current_period_end, updated_at = NOW() WHERE id = $1",
+    )
+    .bind(sub.id)
+    .execute(&state.db)
+    .await?;
+
+    audit_admin_under_impersonation(
+        &state.db,
+        &auth,
+        &client,
+        "member.subscription.cancel",
+        "subscription",
+        sub.id,
+        serde_json::json!({
+            "self_service":           true,
+            "stripe_subscription_id": sub.stripe_subscription_id,
+        }),
+    )
+    .await;
+
+    let refreshed = fetch_subscription(&state, sub.id).await?;
+    Ok(Json(refreshed))
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/member/subscriptions/{id}/resume",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Subscription id")),
+    responses(
+        (status = 200, description = "Cancel-at-period-end flag cleared", body = Subscription),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Subscription not found or not owned by the member")
+    )
+)]
+pub(crate) async fn post_resume_subscription(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    client: ClientInfo,
+    Path(id): Path<Uuid>,
+) -> AppResult<Json<Subscription>> {
+    let sub = load_owned_subscription(&state, auth.user_id, id).await?;
+
+    if !sub.stripe_subscription_id.is_empty() {
+        stripe_api::set_subscription_cancel_at_period_end(
+            &state,
+            &sub.stripe_subscription_id,
+            false,
+        )
+        .await?;
+    }
+
+    sqlx::query("UPDATE subscriptions SET cancel_at = NULL, updated_at = NOW() WHERE id = $1")
+        .bind(sub.id)
+        .execute(&state.db)
+        .await?;
+
+    audit_admin_under_impersonation(
+        &state.db,
+        &auth,
+        &client,
+        "member.subscription.resume",
+        "subscription",
+        sub.id,
+        serde_json::json!({
+            "self_service":           true,
+            "stripe_subscription_id": sub.stripe_subscription_id,
+        }),
+    )
+    .await;
+
+    let refreshed = fetch_subscription(&state, sub.id).await?;
+    Ok(Json(refreshed))
+}
+
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct PauseSubscriptionRequest {
+    /// Optional RFC3339 timestamp at which the subscription should auto-resume.
+    /// `None` ⇒ open-ended pause (member must call `unpause` to lift).
+    #[serde(default)]
+    pub resume_at: Option<DateTime<Utc>>,
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/member/subscriptions/{id}/pause",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Subscription id")),
+    request_body = PauseSubscriptionRequest,
+    responses(
+        (status = 200, description = "Subscription paused", body = Subscription),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Subscription not found or not owned by the member")
+    )
+)]
+pub(crate) async fn post_pause_subscription(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    client: ClientInfo,
+    Path(id): Path<Uuid>,
+    Json(req): Json<PauseSubscriptionRequest>,
+) -> AppResult<Json<Subscription>> {
+    let sub = load_owned_subscription(&state, auth.user_id, id).await?;
+
+    subs_repo::pause(&state.db, sub.id, req.resume_at).await?;
+
+    audit_admin_under_impersonation(
+        &state.db,
+        &auth,
+        &client,
+        "member.subscription.pause",
+        "subscription",
+        sub.id,
+        serde_json::json!({
+            "self_service": true,
+            "resume_at":    req.resume_at,
+        }),
+    )
+    .await;
+
+    let refreshed = fetch_subscription(&state, sub.id).await?;
+    Ok(Json(refreshed))
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/member/subscriptions/{id}/unpause",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Subscription id")),
+    responses(
+        (status = 200, description = "Subscription resumed", body = Subscription),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Subscription not found or not owned by the member")
+    )
+)]
+pub(crate) async fn post_unpause_subscription(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    client: ClientInfo,
+    Path(id): Path<Uuid>,
+) -> AppResult<Json<Subscription>> {
+    let sub = load_owned_subscription(&state, auth.user_id, id).await?;
+
+    subs_repo::resume(&state.db, sub.id).await?;
+
+    audit_admin_under_impersonation(
+        &state.db,
+        &auth,
+        &client,
+        "member.subscription.unpause",
+        "subscription",
+        sub.id,
+        serde_json::json!({ "self_service": true }),
+    )
+    .await;
+
+    let refreshed = fetch_subscription(&state, sub.id).await?;
+    Ok(Json(refreshed))
+}
+
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct SwitchPlanRequest {
+    /// Target `pricing_plans.id` to switch the subscription onto.
+    pub pricing_plan_id: Uuid,
+    /// When `true` (default) Stripe creates prorations for the swap.
+    /// `false` defers the new price to the next renewal — useful for
+    /// downgrades that should not refund mid-cycle.
+    #[serde(default = "default_prorate")]
+    pub prorate: bool,
+}
+
+fn default_prorate() -> bool {
+    true
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/member/subscriptions/{id}/switch-plan",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    params(("id" = Uuid, Path, description = "Subscription id")),
+    request_body = SwitchPlanRequest,
+    responses(
+        (status = 200, description = "Subscription switched to the new plan", body = Subscription),
+        (status = 400, description = "Target plan invalid (no Stripe price id, missing line item, etc.)"),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Subscription or pricing plan not found")
+    )
+)]
+pub(crate) async fn post_switch_subscription_plan(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    client: ClientInfo,
+    headers: HeaderMap,
+    Path(id): Path<Uuid>,
+    Json(req): Json<SwitchPlanRequest>,
+) -> AppResult<Json<Subscription>> {
+    let sub = load_owned_subscription(&state, auth.user_id, id).await?;
+
+    let target_plan = sqlx::query_as::<_, PricingPlan>(
+        "SELECT * FROM pricing_plans WHERE id = $1 AND is_active = TRUE",
+    )
+    .bind(req.pricing_plan_id)
+    .fetch_optional(&state.db)
+    .await?
+    .ok_or_else(|| AppError::NotFound("Pricing plan not found".to_string()))?;
+
+    let stripe_price_id = target_plan.stripe_price_id.as_deref().ok_or_else(|| {
+        AppError::BadRequest(
+            "Target pricing plan has no stripe_price_id; cannot switch via Stripe".to_string(),
+        )
+    })?;
+
+    // Talk to Stripe only when the local row carries a real Stripe twin —
+    // otherwise we mirror the switch in the DB and call it done.
+    if !sub.stripe_subscription_id.is_empty() {
+        let stripe_sub =
+            stripe_api::retrieve_subscription(&state, &sub.stripe_subscription_id).await?;
+        let item_id = stripe_sub
+            .items
+            .data
+            .first()
+            .map(|i| i.id.clone())
+            .ok_or_else(|| {
+                AppError::BadRequest("Stripe subscription has no line items to swap".to_string())
+            })?;
+        let idempotency_key = headers
+            .get("idempotency-key")
+            .and_then(|v| v.to_str().ok())
+            .map(str::to_string);
+        stripe_api::swap_subscription_price_with_proration(
+            &state,
+            &sub.stripe_subscription_id,
+            &item_id,
+            stripe_price_id,
+            req.prorate,
+            idempotency_key.as_deref(),
+        )
+        .await?;
+    }
+
+    // Persist the local switch + log into `subscription_changes` so the
+    // history view shows the upgrade/downgrade. We keep the cadence enum
+    // consistent with the catalog row's interval (`month`/`year`).
+    let new_cadence = match target_plan.interval.as_str() {
+        "year" => SubscriptionPlan::Annual,
+        _ => SubscriptionPlan::Monthly,
+    };
+    sqlx::query(
+        r#"
+        UPDATE subscriptions
+           SET pricing_plan_id = $1,
+               plan            = $2,
+               updated_at      = NOW()
+         WHERE id = $3
+        "#,
+    )
+    .bind(target_plan.id)
+    .bind(new_cadence)
+    .bind(sub.id)
+    .execute(&state.db)
+    .await?;
+
+    let _change = subs_repo::record_change(
+        &state.db,
+        sub.id,
+        "switch_plan",
+        sub.pricing_plan_id,
+        Some(target_plan.id),
+        0,
+        Some(auth.user_id),
+        Some("member.self_service"),
+    )
+    .await?;
+
+    audit_admin_under_impersonation(
+        &state.db,
+        &auth,
+        &client,
+        "member.subscription.switch_plan",
+        "subscription",
+        sub.id,
+        serde_json::json!({
+            "self_service":     true,
+            "from_plan_id":     sub.pricing_plan_id,
+            "to_plan_id":       target_plan.id,
+            "prorate":          req.prorate,
+            "stripe_price_id":  stripe_price_id,
+        }),
+    )
+    .await;
+
+    let refreshed = fetch_subscription(&state, sub.id).await?;
+    Ok(Json(refreshed))
+}
+
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct SwitchPlanPreviewQuery {
+    pub pricing_plan_id: Uuid,
+}
+
+#[derive(Debug, Serialize, ToSchema)]
+pub struct SwitchPlanPreviewResponse {
+    pub proration_credit_cents: i64,
+    pub proration_charge_cents: i64,
+    pub immediate_total_cents: i64,
+    pub next_invoice_total_cents: i64,
+    pub currency: String,
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/member/subscriptions/{id}/switch-plan/preview",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    params(
+        ("id" = Uuid, Path, description = "Subscription id"),
+        ("pricing_plan_id" = Uuid, Query, description = "Target pricing_plans.id to preview"),
+    ),
+    responses(
+        (status = 200, description = "Stripe upcoming-invoice proration preview", body = SwitchPlanPreviewResponse),
+        (status = 400, description = "Target plan invalid or local subscription has no Stripe twin"),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Subscription or pricing plan not found")
+    )
+)]
+pub(crate) async fn get_switch_plan_preview(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    Path(id): Path<Uuid>,
+    Query(q): Query<SwitchPlanPreviewQuery>,
+) -> AppResult<Json<SwitchPlanPreviewResponse>> {
+    let sub = load_owned_subscription(&state, auth.user_id, id).await?;
+    if sub.stripe_subscription_id.is_empty() {
+        return Err(AppError::BadRequest(
+            "Subscription has no Stripe twin; preview unavailable".to_string(),
+        ));
+    }
+    let target_plan = sqlx::query_as::<_, PricingPlan>(
+        "SELECT * FROM pricing_plans WHERE id = $1 AND is_active = TRUE",
+    )
+    .bind(q.pricing_plan_id)
+    .fetch_optional(&state.db)
+    .await?
+    .ok_or_else(|| AppError::NotFound("Pricing plan not found".to_string()))?;
+    let stripe_price_id = target_plan.stripe_price_id.as_deref().ok_or_else(|| {
+        AppError::BadRequest(
+            "Target pricing plan has no stripe_price_id; cannot preview".to_string(),
+        )
+    })?;
+
+    let stripe_sub = stripe_api::retrieve_subscription(&state, &sub.stripe_subscription_id).await?;
+    let item_id = stripe_sub
+        .items
+        .data
+        .first()
+        .map(|i| i.id.clone())
+        .ok_or_else(|| {
+            AppError::BadRequest("Stripe subscription has no line items to preview".to_string())
+        })?;
+
+    let preview = stripe_api::preview_subscription_change(
+        &state,
+        &sub.stripe_subscription_id,
+        &item_id,
+        stripe_price_id,
+    )
+    .await?;
+
+    Ok(Json(SwitchPlanPreviewResponse {
+        proration_credit_cents: preview.proration_credit_cents,
+        proration_charge_cents: preview.proration_charge_cents,
+        immediate_total_cents: preview.immediate_total_cents,
+        next_invoice_total_cents: preview.next_invoice_total_cents,
+        currency: preview.currency,
+    }))
+}
+
+// ── Phase 5: Coupon redemptions history ────────────────────────────────
+
+#[derive(Debug, Serialize, ToSchema)]
+pub struct MemberCouponRedemptionResponse {
+    pub id: Uuid,
+    pub coupon_code: String,
+    pub discount_applied_cents: i64,
+    pub redeemed_at: DateTime<Utc>,
+    pub subscription_id: Option<Uuid>,
+}
+
+#[derive(Debug, FromRow)]
+struct MemberCouponRedemptionRow {
+    id: Uuid,
+    coupon_code: String,
+    discount_applied_cents: i64,
+    redeemed_at: DateTime<Utc>,
+    subscription_id: Option<Uuid>,
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/member/coupons/redeemed",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Coupon redemptions for the authenticated member", body = [MemberCouponRedemptionResponse]),
+        (status = 401, description = "Unauthorized")
+    )
+)]
+pub(crate) async fn list_redeemed_coupons(
+    State(state): State<AppState>,
+    auth: AuthUser,
+) -> AppResult<Json<Vec<MemberCouponRedemptionResponse>>> {
+    let rows = sqlx::query_as::<_, MemberCouponRedemptionRow>(
+        r#"
+        SELECT u.id              AS id,
+               c.code            AS coupon_code,
+               u.discount_applied_cents,
+               u.used_at         AS redeemed_at,
+               u.subscription_id
+          FROM coupon_usages u
+          JOIN coupons c ON c.id = u.coupon_id
+         WHERE u.user_id = $1
+         ORDER BY u.used_at DESC
+        "#,
+    )
+    .bind(auth.user_id)
+    .fetch_all(&state.db)
+    .await?;
+
+    let data = rows
+        .into_iter()
+        .map(|r| MemberCouponRedemptionResponse {
+            id: r.id,
+            coupon_code: r.coupon_code,
+            discount_applied_cents: r.discount_applied_cents,
+            redeemed_at: r.redeemed_at,
+            subscription_id: r.subscription_id,
+        })
+        .collect();
+
+    Ok(Json(data))
 }

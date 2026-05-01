@@ -11,6 +11,9 @@
 //!     transition back to `active`.
 //!   * `charge.refunded`        → `payment_refunds` row + (when an order
 //!     is linked) order status flip to `refunded`.
+//!   * `refund.created`         → `payment_refunds` row via standalone
+//!     refund object (modern Stripe delivery path). Idempotent with
+//!     `charge.refunded` on the same `stripe_refund_id`.
 //!   * `payment_intent.payment_failed` → `payment_failures` row + (when
 //!     an order is linked) order status flip to `failed`.
 //!   * `charge.dispute.created` → `payment_disputes` row + outbox event
@@ -785,4 +788,140 @@ async fn subscription_resumed_flips_status_back_to_active() {
     assert!(row.1.is_none(), "paused_at should be cleared on resume");
 
     assert_eq!(audit_count_for(rig.pool(), &event_id).await, 1);
+}
+
+// ── E. refund.created (modern standalone Stripe event) ─────────────────
+
+/// `refund.created` records a `payment_refunds` row using the standalone
+/// refund object that modern Stripe accounts deliver instead of (or in
+/// addition to) the embedded `charge.refunds.data[]` shape in
+/// `charge.refunded`. This path goes through
+/// `ChargeRefundFields::from_refund_object`.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn refund_created_records_refund_row() {
+    let Some(rig) = WebhookTestRig::try_new().await else {
+        return;
+    };
+
+    let event_id = unique("evt");
+    let stripe_refund_id = unique("re");
+    let stripe_charge_id = unique("ch");
+    let stripe_pi_id = unique("pi");
+
+    let event = json!({
+        "id": event_id,
+        "type": "refund.created",
+        "data": {
+            "object": {
+                "id": stripe_refund_id,
+                "object": "refund",
+                "amount": 4999,
+                "currency": "usd",
+                "charge": stripe_charge_id,
+                "payment_intent": stripe_pi_id,
+                "reason": "duplicate",
+                "status": "succeeded",
+                "created": Utc::now().timestamp(),
+            }
+        }
+    });
+
+    assert_eq!(rig.post_stripe(&event).await, StatusCode::OK);
+
+    let row: (String, i64) = sqlx::query_as(
+        "SELECT stripe_refund_id, amount_cents FROM payment_refunds WHERE stripe_refund_id = $1",
+    )
+    .bind(&stripe_refund_id)
+    .fetch_one(rig.pool())
+    .await
+    .expect("refund row");
+    assert_eq!(row.0, stripe_refund_id);
+    assert_eq!(row.1, 4999);
+
+    assert_eq!(audit_count_for(rig.pool(), &event_id).await, 1);
+}
+
+/// When both `charge.refunded` (old embedded shape) AND `refund.created`
+/// (modern standalone shape) arrive for the same `stripe_refund_id`, only
+/// a single `payment_refunds` row is written. The idempotency key is the
+/// `stripe_refund_id` — `ON CONFLICT (stripe_refund_id) DO NOTHING`.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn charge_refunded_and_refund_created_are_idempotent_for_same_refund() {
+    let Some(rig) = WebhookTestRig::try_new().await else {
+        return;
+    };
+    let user = seed_user(rig.pool(), &format!("{}@example.com", unique("u"))).await;
+    let stripe_customer_id = unique("cus");
+    seed_active_subscription(
+        rig.pool(),
+        user.id,
+        &unique("sub"),
+        &stripe_customer_id,
+        SubscriptionStatus::Active,
+    )
+    .await;
+
+    let charge_id = unique("ch");
+    let pi_id = unique("pi");
+    let stripe_refund_id = unique("re");
+
+    // First: the old `charge.refunded` event with embedded refunds.data[]
+    let charge_refunded_event_id = unique("evt");
+    let charge_refunded = json!({
+        "id": charge_refunded_event_id,
+        "type": "charge.refunded",
+        "data": {
+            "object": {
+                "id": charge_id,
+                "object": "charge",
+                "payment_intent": pi_id,
+                "customer": stripe_customer_id,
+                "currency": "usd",
+                "refunds": {
+                    "data": [{
+                        "id": stripe_refund_id,
+                        "amount": 1500,
+                        "currency": "usd",
+                        "reason": "requested_by_customer",
+                        "status": "succeeded",
+                        "created": Utc::now().timestamp(),
+                    }]
+                }
+            }
+        }
+    });
+
+    // Second: the modern `refund.created` for the same refund id
+    let refund_created_event_id = unique("evt");
+    let refund_created = json!({
+        "id": refund_created_event_id,
+        "type": "refund.created",
+        "data": {
+            "object": {
+                "id": stripe_refund_id,
+                "object": "refund",
+                "amount": 1500,
+                "currency": "usd",
+                "charge": charge_id,
+                "payment_intent": pi_id,
+                "reason": "requested_by_customer",
+                "status": "succeeded",
+                "created": Utc::now().timestamp(),
+            }
+        }
+    });
+
+    assert_eq!(rig.post_stripe(&charge_refunded).await, StatusCode::OK);
+    assert_eq!(rig.post_stripe(&refund_created).await, StatusCode::OK);
+
+    let count: (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM payment_refunds WHERE stripe_refund_id = $1")
+            .bind(&stripe_refund_id)
+            .fetch_one(rig.pool())
+            .await
+            .unwrap();
+    assert_eq!(
+        count.0, 1,
+        "duplicate events must produce exactly one refund row"
+    );
 }
