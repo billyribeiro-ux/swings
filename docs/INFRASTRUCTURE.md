@@ -18,10 +18,10 @@ Vercel (SvelteKit SSR + API Routes)          ← Frontend + BFF
   ▼
 Railway (Rust/Axum Binary)                    ← Backend API
   │
-  ├──▶ Neon (Serverless PostgreSQL)           ← Database
+  ├──▶ Railway PostgreSQL 16                  ← Database (auto-linked)
   ├──▶ Cloudflare R2 (S3-Compatible)          ← Media Storage
   ├──▶ Stripe (Billing + Webhooks)            ← Payments
-  └──▶ Postmark (SMTP)                        ← Transactional Email
+  └──▶ Resend (Transactional Email)           ← Mail provider
 
 Cloudflare DNS                                ← DNS + CDN for media
 ```
@@ -90,7 +90,7 @@ export default {
 | **Framework**       | Axum 0.8.x                                           |
 | **Database driver** | SQLx 0.8.x                                           |
 | **Deploy method**   | GitHub push → auto-build from `backend/Dockerfile`   |
-| **Region**          | US East (closest to Vercel + Neon)                   |
+| **Region**          | US East (closest to Vercel)                          |
 | **Max resources**   | 32 GB RAM, 32 vCPU (Pro limit)                       |
 | **Networking**      | Public HTTPS domain auto-provisioned                 |
 | **Spend limit**     | Set to $50/month (configurable in Railway dashboard) |
@@ -99,7 +99,7 @@ export default {
 
 | Variable                | Value                                         |
 | ----------------------- | --------------------------------------------- |
-| `DATABASE_URL`          | Neon connection string (pooled endpoint)      |
+| `DATABASE_URL`          | Reference Railway Postgres `DATABASE_URL`     |
 | `JWT_SECRET`            | Strong random 64-char string                  |
 | `APP_ENV`               | `production`                                  |
 | `ADMIN_EMAIL`           | Admin email address                           |
@@ -131,62 +131,55 @@ tower_governor = "0.6"
 
 ---
 
-## 3. Database — Neon Scale
+## 3. Database — Railway PostgreSQL
 
-| Detail                 | Value                             |
-| ---------------------- | --------------------------------- |
-| **Service**            | Neon                              |
-| **Plan**               | Scale                             |
-| **Cost**               | $5/month minimum (usage-based)    |
-| **Compute rate**       | $0.222/CU-hour                    |
-| **Storage rate**       | $0.35/GB-month                    |
-| **Max autoscale**      | Up to 56 CUs (224 GB RAM)         |
-| **Scale to zero**      | Yes (350ms cold start)            |
-| **PITR**               | Up to 30 days                     |
-| **Branches**           | 25 included per project           |
-| **Compliance**         | SOC 2 Type 2, HIPAA eligible      |
-| **Region**             | `us-east-1` (AWS)                 |
-| **Connection pooling** | Built-in (use `-pooler` endpoint) |
+| Detail                 | Value                                                              |
+| ---------------------- | ------------------------------------------------------------------ |
+| **Service**            | Railway PostgreSQL                                                 |
+| **Plan**               | Pro add-on (provisioned alongside the API service)                 |
+| **Engine**             | PostgreSQL 16                                                      |
+| **Cost**               | Included in Railway Pro base + usage (storage + RAM)               |
+| **Networking**         | Private link from API service via `postgres.railway.internal`      |
+| **TLS**                | `sslmode=require` (Railway terminates TLS at the network edge)     |
+| **Region**             | US East (paired with the API service)                              |
+| **Backups**            | Daily snapshots retained per Railway Pro policy                    |
+| **Connection pooling** | None at the platform layer — sqlx pool sizes are tuned client-side |
 
 ### Connection String Format
 
 ```
-postgresql://user:pass@ep-xxxxx-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require
+postgres://postgres:<password>@postgres.railway.internal:5432/railway?sslmode=require
 ```
 
-Use the **pooled** endpoint (with `-pooler` in the hostname) for the Rust API.
+Use the **private** Railway-internal hostname inside the API service (no
+public exposure). Keep `DATABASE_URL` as a Railway service-link reference
+so credential rotation propagates automatically.
 
-### SQLx Pool Configuration for Neon
+### sqlx Pool Tuning
+
+The `db::create_pool` factory in `backend/src/db.rs` reads the
+`PGPOOL_*` env vars (see `backend/.env.example`) and falls back to safe
+defaults sized for a 2-vCPU container. Override only when ops metrics
+demand it:
 
 ```rust
 let pool = sqlx::postgres::PgPoolOptions::new()
-    .max_connections(10)
-    .min_connections(0)
-    .acquire_timeout(std::time::Duration::from_secs(10))
-    .idle_timeout(std::time::Duration::from_secs(300))
-    .max_lifetime(std::time::Duration::from_secs(1800))
-    .connect(&database_url)
-    .await
-    .expect("Failed to connect to database");
-```
-
-### Branching Workflow
-
-| Branch      | Purpose                | Lifecycle                          |
-| ----------- | ---------------------- | ---------------------------------- |
-| `main`      | Production database    | Permanent                          |
-| `dev`       | Shared development     | Long-lived                         |
-| `feature/*` | Per-feature/PR testing | Create on PR open, delete on merge |
-
-Create branches in Neon console or via CLI:
-
-```bash
-neonctl branches create --name feature/new-courses --parent main
+    .max_connections(cfg.pgpool_max)        // default: 10
+    .min_connections(cfg.pgpool_min)        // default: 0
+    .acquire_timeout(cfg.pgpool_acquire_timeout)
+    .idle_timeout(cfg.pgpool_idle_timeout)
+    .max_lifetime(cfg.pgpool_max_lifetime)
+    .connect(&cfg.database_url)
+    .await?;
 ```
 
 ### Migrations
 
-All 16 existing migrations (`001_initial.sql` through `016_blog_trash_meta.sql`) plus two new ones (`017_webhook_idempotency.sql`, `018_refresh_token_families.sql`) run automatically on API startup via SQLx.
+All 72 forward-only migrations in `backend/migrations/`
+(versions `001–080`, gap-tolerant) run automatically on API startup via
+`sqlx::migrate!()` in `backend/src/main.rs`. SHA-384 checksums are
+enforced; editing a migration after it has been applied to any
+environment fails the next boot.
 
 ---
 
@@ -386,12 +379,12 @@ The SvelteKit frontend manages browser sessions:
 | -------------------------- | ------------- | ----------------------- |
 | Vercel                     | Pro           | $20                     |
 | Railway                    | Pro           | $20 base + ~$5-15 usage |
-| Neon                       | Scale         | $5-20 (usage-based)     |
+| Railway PostgreSQL         | Pro add-on    | included in Railway Pro |
 | Cloudflare R2              | Free tier     | $0                      |
 | Cloudflare DNS             | Free          | $0                      |
-| Postmark                   | Basic         | $15                     |
+| Resend                     | Free / Pro    | $0 (free tier) — $20    |
 | Stripe                     | Pay-as-you-go | 2.9% + $0.30/txn        |
-| **Total (infrastructure)** |               | **$60-90/month**        |
+| **Total (infrastructure)** |               | **$40-60/month**        |
 
 **At launch with light traffic: ~$60/month**
 **With moderate traffic and active members: ~$70-80/month**
@@ -401,28 +394,8 @@ The SvelteKit frontend manages browser sessions:
 
 ## 11. New Database Migrations
 
-### `017_webhook_idempotency.sql`
-
-```sql
-CREATE TABLE IF NOT EXISTS processed_webhook_events (
-    event_id TEXT PRIMARY KEY,
-    event_type TEXT NOT NULL,
-    processed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX idx_processed_webhook_events_date
-    ON processed_webhook_events(processed_at);
-```
-
-### `018_refresh_token_families.sql`
-
-```sql
-ALTER TABLE refresh_tokens ADD COLUMN IF NOT EXISTS family_id UUID NOT NULL DEFAULT gen_random_uuid();
-ALTER TABLE refresh_tokens ADD COLUMN IF NOT EXISTS used BOOLEAN NOT NULL DEFAULT FALSE;
-
-CREATE INDEX IF NOT EXISTS idx_refresh_tokens_family_id
-    ON refresh_tokens(family_id);
-```
+The full migration set is in `backend/migrations/`. See
+`backend/README.md` for thematic groupings (auth, commerce, RBAC, DSAR, etc.).
 
 ---
 
@@ -435,8 +408,8 @@ CREATE INDEX IF NOT EXISTS idx_refresh_tokens_family_id
 - [ ] Set Vercel environment variables (PRIVATE_API_URL, PUBLIC_APP_URL, STRIPE_PUBLIC_KEY)
 - [ ] Create Railway Pro account and connect backend repo
 - [ ] Set Railway spend limit to $50/month
-- [ ] Create Neon Scale account in `us-east-1` region
-- [ ] Copy Neon pooled connection string to Railway `DATABASE_URL`
+- [ ] Provision the Railway PostgreSQL add-on next to the API service
+- [ ] Reference the add-on's `DATABASE_URL` from the API service env
 - [ ] Create Cloudflare account and add domain
 - [ ] Create R2 bucket with public access
 - [ ] Create R2 API token (Object Read & Write)
@@ -476,7 +449,7 @@ CREATE INDEX IF NOT EXISTS idx_refresh_tokens_family_id
 | Multi-region          | Single US East region serves fine           | When you have significant international traffic                    |
 | CDN for API responses | Cloudflare free plan in front of Railway    | When API response caching would help                               |
 | Background job queue  | Stripe webhooks and analytics handle inline | When you need async email sends, report generation, etc.           |
-| Monitoring/APM        | Railway built-in metrics + Neon dashboard   | When you need distributed tracing (OpenTelemetry → Grafana)        |
+| Monitoring/APM        | Railway built-in metrics + Prometheus       | When you need distributed tracing (OpenTelemetry → Grafana)        |
 | Log aggregation       | Railway logs + structured `tracing` output  | When you need searchable log history beyond Railway's retention    |
 
 ---

@@ -39,7 +39,7 @@ src/
 ├── main.rs                # boot: config → migrations → workers → server
 ├── lib.rs                 # crate facade for tests
 ├── config.rs              # typed env loader; panics in prod on missing vars
-├── db.rs                  # PgPool factory (Neon-tuned)
+├── db.rs                  # PgPool factory (env-tuned via PGPOOL_*)
 ├── error.rs               # AppError + RFC 7807 application/problem+json
 ├── extractors.rs          # AuthUser / AdminUser / PrivilegedUser
 ├── openapi.rs             # utoipa registry; snapshot-tested
@@ -107,7 +107,7 @@ every background worker, and begin serving on `$PORT` (default `3001`).
 | Environment    | Where `ADMIN_EMAIL` / `ADMIN_PASSWORD` go                                                                                                                                                                                                                                   |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Local**      | `backend/.env` only — file is **gitignored** (`backend/.gitignore`). Copy from `.env.example`, put your real password there. That is the normal way to work: secrets on disk for dev, never in git.                                                                         |
-| **Production** | Same variable names in Railway / Render / etc. **Variables** UI — not a committed file.                                                                                                                                                                                     |
+| **Production** | Same variable names in Railway **Variables** UI — not a committed file.                                                                                                                                                                                     |
 | **Database**   | After first successful seed, only `users.password_hash` exists (Argon2). Plaintext is not recoverable. Changing `.env` later does not rotate an existing admin’s password (see `db::seed_admin` `ON CONFLICT`); delete the user row or use password reset if you forgot it. |
 
 ---
@@ -122,7 +122,7 @@ missing or empty.
 
 | Variable       | Purpose                                   |
 | -------------- | ----------------------------------------- |
-| `DATABASE_URL` | Postgres DSN (`sslmode=require` for Neon) |
+| `DATABASE_URL` | Postgres DSN (`sslmode=require` in production) |
 | `JWT_SECRET`   | HS256 signing key for access tokens       |
 
 ### Required in production
@@ -288,9 +288,9 @@ cargo build --release
 | Build the production image            | `docker build -f ../Dockerfile -t swings-api ..` |
 
 There is only one Dockerfile, at the repo root (`../Dockerfile`). It
-is consumed by Railway, Render, and the local `docker-compose.yml` —
-all from the repo root as build context. A root `.dockerignore` keeps
-the context small.
+is consumed by Railway and the local `docker-compose.yml` — both from
+the repo root as build context. A root `.dockerignore` keeps the
+context small.
 
 ---
 

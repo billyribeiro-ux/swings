@@ -6,11 +6,8 @@
 #   * Railway       — build context = repo root (see `backend/railway.toml`)
 #   * docker compose — build context = repo root (see `docker-compose.yml`)
 #
-# Render is no longer a supported deployment target — Railway is canonical
-# (see `docs/DEPLOYMENT.md`).
-#
 # Build context is always the repo root so that the `COPY backend/...`
-# instructions resolve consistently across every PaaS. There is no
+# instructions resolve consistently across PaaS targets. There is no
 # secondary `backend/Dockerfile`; keep this file as the single source of
 # truth and harden here.
 #
@@ -35,14 +32,11 @@ FROM rust:1.93-slim-bookworm AS builder
 # stack we don't otherwise need at build time, so installing `curl` is
 # the smaller delta.
 #
-# AUDIT_FIX_PLAN Phase 6.7: `pkg-config` + `libssl-dev` were removed
-# alongside the migration off `async-stripe 0.39 (runtime-tokio-hyper)`,
-# which was the last consumer of `openssl-sys` in the build graph.
-# Stripe now uses an in-tree `reqwest`-rustls wrapper (see
-# `backend/src/stripe_api.rs`); the OpenSSL development headers and
-# `pkg-config` are no longer needed by any direct or transitive crate.
-# Verified locally with `cargo tree --target all --invert openssl-sys`,
-# which reports "did not match any packages" after the change.
+# `pkg-config` + `libssl-dev` were intentionally removed when Stripe
+# moved to the in-tree `reqwest`-rustls wrapper (see
+# `backend/src/stripe_api.rs`). No direct or transitive crate now pulls
+# `openssl-sys`; verify with `cargo tree --target all --invert openssl-sys`
+# before re-introducing OpenSSL.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         curl \

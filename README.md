@@ -93,9 +93,8 @@ for the deployment topology.
 ├── scripts/              # Repo automation (audit dump, OpenAPI → TS, SEO check)
 ├── .github/workflows/    # CI: ci.yml, sql-lint.yml, openapi-drift.yml, security.yml
 ├── docker-compose.yml    # Full local stack (api + db; Postgres on host :5434)
-├── Dockerfile            # Single source of truth — used by Railway, Render, compose
+├── Dockerfile            # Single source of truth — used by Railway and local compose
 ├── .dockerignore         # Trims build context for the consolidated Dockerfile
-├── render.yaml           # Render blueprint — references ./Dockerfile
 ├── vercel.json           # Vercel routing/env hints
 └── package.json          # pnpm workspace root
 ```
@@ -208,7 +207,6 @@ no S3-compatible emulator (MinIO/LocalStack) is running.
 | -------- | -------- | ----------------------------------------------------- | -------------------- |
 | Frontend | Vercel   | `vercel.json` + `svelte.config.js` (`adapter-vercel`) | Edge / Node (auto)   |
 | Backend  | Railway  | root `Dockerfile` (build context = repo root)         | `swings-api` service |
-| Backend  | Render   | `render.yaml` → root `Dockerfile`                     | mirror deploy target |
 | Database | Railway  | provisioned Postgres 16 add-on                        | persistent volume    |
 
 A healthy Railway boot prints:

@@ -241,12 +241,11 @@ detect a stalled loop. Add the same shape when introducing a new one.
 | -------- | -------- | ----------------------------------------------------- |
 | Frontend | Vercel   | `vercel.json` + `svelte.config.js` (`adapter-vercel`) |
 | Backend  | Railway  | root `Dockerfile` (build context = repo root)         |
-| Backend  | Render   | `render.yaml` → root `Dockerfile`                     |
 
-There is exactly **one** Dockerfile (at the repo root). All three
-deploy targets — Railway, Render, local `docker-compose.yml` — build
-from the repo root using that single file. Harden in one place. The
-root `.dockerignore` keeps the build context small.
+There is exactly **one** Dockerfile (at the repo root). Both deploy
+targets — Railway and local `docker-compose.yml` — build from the repo
+root using that single file. Harden in one place. The root
+`.dockerignore` keeps the build context small.
 
 Full deployment guide: [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md).
 

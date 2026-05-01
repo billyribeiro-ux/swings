@@ -51,8 +51,8 @@ async fn main() -> Result<()> {
 
     // Postgres pool sizing is env-driven so operators can tune per-env
     // without a redeploy. Defaults are the "safe for a single 2-vCPU
-    // container" numbers that match a small managed Postgres (e.g. Neon
-    // free, Railway hobby). Production should set `PGPOOL_MAX` based on
+    // container" numbers that match a small managed Postgres add-on.
+    // Production should set `PGPOOL_MAX` based on
     // `(server max_connections - other clients) / container replicas`.
     //
     // * `PGPOOL_MAX`             — default 10, ceiling of in-flight queries

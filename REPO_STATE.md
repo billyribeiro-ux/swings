@@ -1,9 +1,12 @@
-# Repo State — 2026-05-01 14:25 EDT
+# Repo State — 2026-05-01 (latest pass: 14:55 EDT)
 
 > **Auditor:** principal-engineer-grade end-to-end verification, evidence-only.
-> **Scope:** every `.md` file in the repo, every claim re-checked against code,
-> migrations, and a full test run.
-> **Branch / HEAD:** `main` @ `ac96416` — clean, in sync with `origin/main`.
+> **Scope:** every committed file in the repo — `.md`, dotfiles, env templates,
+> docker / deploy configs, source code — re-checked against runtime, migrations,
+> and a full test run. The first pass (14:25 EDT) covered only `.md` files;
+> a follow-up pass (15:05 EDT) closed the gap on dotfiles + env / deploy configs
+> after `.neon` and stale `INFRASTRUCTURE.md` Neon claims were spotted.
+> **Branch / HEAD:** `main` (in sync with `origin/main`).
 
 ---
 

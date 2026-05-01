@@ -10,6 +10,78 @@ Timestamps use the operator-facing calendar date attached to the change list.
 
 ---
 
+## 2026-05-01 15:05 ET — Env + dev-config audit; retire stale Render and Neon claims
+
+### Why this exists
+
+The 14:55 audit pass covered only `.md` files and missed two stale dotfiles
+plus a doc cluster that still claimed Neon as the production database when
+production has run on Railway PostgreSQL since at least 2026-04-15. This
+follow-up pass closes that gap by auditing every dotfile + env + deploy
+config end-to-end.
+
+### Verified, classified, kept
+
+| File | Verdict | Why |
+|---|---|---|
+| `.editorconfig`, `.npmrc`, `.nvmrc`, `.prettierrc`, `.prettierignore` | KEEP | standard tooling configs |
+| `.sqlfluff` | KEEP | live config consumed by `.github/workflows/sql-lint.yml` |
+| `.trivyignore` | KEEP | live config consumed by `.github/workflows/security.yml`; currently empty list (intentional — file documents the suppression policy and provides a curated home for any future entry) |
+| `.vercelignore`, `.dockerignore`, `.gitignore` | KEEP | active build excludes |
+| `.mcp.json` | KEEP | project-level MCP server registration (Svelte + rust-analyzer) |
+| `project.inlang/settings.json` | KEEP | inlang IDE / Sherlock / Fink tooling source-of-truth + planned migration path for `src/lib/i18n/paraglide.ts` shim |
+| `backend/.env.example`, `.env.example` | KEEP | committed templates; documented `SWINGS_ALLOW_HTTP_WEBHOOKS` (the one env var production code reads but the template did not list) |
+
+### Deleted
+
+- **`.neon`** — Neon CLI org-id pin (`{"orgId":"org-dark-rice-71594132"}`).
+  No code, no doc, no workflow read it. Production runs Railway PostgreSQL
+  per `docs/DEPLOYMENT.md` (canonical). Stale leftover from an early Neon
+  experiment that never shipped.
+
+### Stale Render / Neon claims rewired
+
+- `Dockerfile`, `.dockerignore`, `README.md`, `AGENTS.md`, `backend/README.md`
+  — Render references stripped (Render is no longer a deploy target;
+  `render.yaml` does not exist; Railway is canonical).
+- `Dockerfile` preamble — stale `AUDIT_FIX_PLAN Phase 6.7` pointer to a
+  deleted ledger replaced with a concrete explanation that survives.
+- `docs/INFRASTRUCTURE.md` § 3 — full rewrite from "Database — Neon Scale"
+  to "Database — Railway PostgreSQL", including connection string format,
+  sqlx pool tuning that matches what `Config::from_env` actually reads,
+  and accurate migration count (72 forward-only, versions 001–080).
+  Replaced two embedded SQL snippets (047, 048) that documented two
+  long-shipped migrations with a pointer to `backend/migrations/`.
+- `docs/INFRASTRUCTURE.md` cost summary — Neon line removed; total
+  re-priced to reflect Railway-bundled PostgreSQL ($40-60/month).
+- `docs/INFRASTRUCTURE.md` deployment checklist — "Create Neon Scale
+  account" replaced with "Provision the Railway PostgreSQL add-on".
+- `backend/README.md` — `db.rs` annotation changed from "Neon-tuned" to
+  "env-tuned via PGPOOL_*"; `DATABASE_URL` row updated to drop the
+  Neon-specific framing.
+- `backend/src/main.rs` — pool-tuning comment retargeted away from Neon.
+
+### Auditor's note
+
+The first audit pass treated dotfiles as inert config noise and only
+inspected `.md` files. That left `.neon` and the `INFRASTRUCTURE.md` Neon
+cluster in place, contradicting `docs/DEPLOYMENT.md` and the actual
+production setup. The user caught both — this pass closes the gap, and
+`REPO_STATE.md` is updated to reflect "every committed file" as the
+audit scope going forward, not just `.md`.
+
+### Verification
+
+```
+cargo fmt --all -- --check     → clean
+cargo clippy --all-targets     → clean (-D warnings)
+pnpm lint                      → clean
+pnpm check                     → 0 errors / 0 warnings
+docker compose config          → both compose files parse
+```
+
+---
+
 ## 2026-05-01 14:55 ET — Repo-wide ledger consolidation + stale-doc retirement
 
 ### What changed and why

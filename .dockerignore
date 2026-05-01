@@ -53,7 +53,6 @@ SECURITY.md
 # ─── deploy-config siblings (don't need them inside the image) ───────
 docker-compose.yml
 backend/docker-compose.yml
-render.yaml
 vercel.json
 backend/railway.toml
 
