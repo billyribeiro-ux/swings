@@ -369,6 +369,14 @@ pub struct Subscription {
     /// When set, this subscription was purchased from a specific `pricing_plans`
     /// catalog row (via Checkout metadata → Stripe subscription metadata → webhooks).
     pub pricing_plan_id: Option<Uuid>,
+    /// Price the member was promised at signup. Populated at checkout time from
+    /// `pricing_plans.amount_cents`. NULL for pre-migration rows.
+    pub grandfathered_price_cents: Option<i32>,
+    /// ISO-4217 currency that goes with `grandfathered_price_cents`.
+    pub grandfathered_currency: Option<String>,
+    /// When TRUE the pricing rollout service skips this subscription regardless
+    /// of audience setting — the member keeps their original price forever.
+    pub price_protection_enabled: bool,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }

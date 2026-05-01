@@ -1337,7 +1337,7 @@
 
 		.members-page__table-wrap {
 			display: block;
-			overflow-x: auto;
+			overflow-x: hidden;
 			background: rgba(19, 43, 80, 0.35);
 			backdrop-filter: blur(24px);
 			-webkit-backdrop-filter: blur(24px);
@@ -1350,6 +1350,7 @@
 
 		.m-table {
 			width: 100%;
+			table-layout: fixed;
 			border-collapse: collapse;
 		}
 
@@ -1397,6 +1398,7 @@
 			display: flex;
 			align-items: center;
 			gap: 0.625rem;
+			min-width: 0;
 		}
 
 		.m-table__identity--btn {
@@ -1406,6 +1408,8 @@
 			cursor: pointer;
 			color: inherit;
 			font: inherit;
+			min-width: 0;
+			max-width: 100%;
 		}
 
 		.m-table__avatar {
@@ -1426,10 +1430,17 @@
 		.m-table__name {
 			font-weight: 600;
 			color: var(--color-white);
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			min-width: 0;
 		}
 
 		.m-table__muted {
 			color: var(--color-grey-400);
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
 		}
 
 		.m-table__role {
