@@ -30,6 +30,18 @@
 	let logOpen = $state(false);
 	let lastStripeRolloutSummary = $state<string | null>(null);
 
+	// Preview counts returned by /rollout-preview before the user commits.
+	type RolloutPreview = {
+		total_in_audience: number;
+		would_update: number;
+		would_skip_grandfathered: number;
+		current_amount_cents: number;
+		currency: string;
+	};
+	let rolloutPreview = $state<RolloutPreview | null>(null);
+	let rolloutPreviewLoading = $state(false);
+	let showRolloutConfirm = $state(false);
+
 	let editDraft = $state<{
 		name: string;
 		amount_dollars: string;
@@ -95,6 +107,8 @@
 	function startEdit(plan: PricingPlan) {
 		editingId = plan.id;
 		lastStripeRolloutSummary = null;
+		rolloutPreview = null;
+		showRolloutConfirm = false;
 		editDraft = {
 			name: plan.name,
 			amount_dollars: (plan.amount_cents / 100).toFixed(2),
@@ -109,11 +123,35 @@
 
 	function cancelEdit() {
 		editingId = null;
+		rolloutPreview = null;
+		showRolloutConfirm = false;
+	}
+
+	async function fetchRolloutPreview(planId: string) {
+		rolloutPreviewLoading = true;
+		rolloutPreview = null;
+		try {
+			rolloutPreview = await api.get<RolloutPreview>(
+				`/api/admin/pricing/plans/${planId}/rollout-preview?audience=${editDraft.rollout_audience}`
+			);
+		} catch {
+			rolloutPreview = null;
+		} finally {
+			rolloutPreviewLoading = false;
+		}
 	}
 
 	async function saveEdit(planId: string) {
+		// If rollout is enabled and not yet confirmed, show confirmation first.
+		if (editDraft.push_to_stripe_subscribers && !showRolloutConfirm) {
+			await fetchRolloutPreview(planId);
+			showRolloutConfirm = true;
+			return;
+		}
+
 		saving = planId;
 		lastStripeRolloutSummary = null;
+		showRolloutConfirm = false;
 		try {
 			const payload: UpdatePricingPlanPayload = {
 				name: editDraft.name,
@@ -129,7 +167,8 @@
 			if (editDraft.push_to_stripe_subscribers) {
 				payload.stripe_rollout = {
 					push_to_stripe_subscriptions: true,
-					audience: editDraft.rollout_audience
+					audience: editDraft.rollout_audience,
+					skip_price_protected: true
 				};
 			}
 			const fetchOpts = editDraft.push_to_stripe_subscribers
@@ -147,13 +186,18 @@
 					.map((f) => `${f.stripe_subscription_id}: ${f.error}`)
 					.join(' · ');
 				const more = r.failed.length > 3 ? ` (+${r.failed.length - 3} more)` : '';
-				lastStripeRolloutSummary = `Stripe rollout: ${r.succeeded}/${r.targeted} succeeded.${
+				const skippedNote =
+					r.skipped_grandfathered > 0
+						? ` ${r.skipped_grandfathered} grandfathered member(s) kept their price.`
+						: '';
+				lastStripeRolloutSummary = `Stripe rollout: ${r.succeeded}/${r.targeted} updated.${skippedNote}${
 					r.failed.length ? ` Failures: ${failPreview}${more}` : ''
 				}`;
 			}
 			await loadPlans();
 			await loadPriceLog();
 			editingId = null;
+			rolloutPreview = null;
 		} catch {
 			// keep form open on error
 		} finally {
@@ -453,6 +497,10 @@
 										name="plan-push-stripe"
 										type="checkbox"
 										bind:checked={editDraft.push_to_stripe_subscribers}
+										onchange={() => {
+											rolloutPreview = null;
+											showRolloutConfirm = false;
+										}}
 									/>
 									<span>Also update existing Stripe subscriptions after save</span
 									>
@@ -460,7 +508,8 @@
 								<p class="rollout-panel__hint">
 									Requires Stripe configuration and an <code>Idempotency-Key</code
 									> (sent automatically). Only runs when you change billing fields (price,
-									currency, interval, or Stripe price id).
+									currency, interval, or Stripe price id). Members with grandfather
+									price protection are always skipped.
 								</p>
 								{#if editDraft.push_to_stripe_subscribers}
 									<fieldset class="rollout-panel__audience">
@@ -473,6 +522,10 @@
 												name="rollout-audience-{plan.id}"
 												value="linked_subscriptions_only"
 												bind:group={editDraft.rollout_audience}
+												onchange={() => {
+													rolloutPreview = null;
+													showRolloutConfirm = false;
+												}}
 											/>
 											<span
 												>Linked only (recommended) — members who checked out
@@ -485,6 +538,10 @@
 												name="rollout-audience-{plan.id}"
 												value="linked_and_unlinked_legacy_same_cadence"
 												bind:group={editDraft.rollout_audience}
+												onchange={() => {
+													rolloutPreview = null;
+													showRolloutConfirm = false;
+												}}
 											/>
 											<span
 												>Linked + legacy same cadence — also monthly/annual
@@ -492,20 +549,61 @@
 											>
 										</label>
 									</fieldset>
+
+									{#if showRolloutConfirm && rolloutPreview}
+										<div class="rollout-confirm" role="alert">
+											<p class="rollout-confirm__heading">
+												Confirm Stripe price update
+											</p>
+											<ul class="rollout-confirm__counts">
+												<li>
+													<strong>{rolloutPreview.would_update}</strong> subscription(s)
+													will be updated to the new price
+												</li>
+												{#if rolloutPreview.would_skip_grandfathered > 0}
+													<li>
+														<strong
+															>{rolloutPreview.would_skip_grandfathered}</strong
+														> grandfathered member(s) will keep their current price
+													</li>
+												{/if}
+											</ul>
+											<p class="rollout-confirm__warning">
+												This cannot be undone from the admin. Are you sure?
+											</p>
+										</div>
+									{:else if rolloutPreviewLoading}
+										<p class="rollout-panel__hint">Loading preview…</p>
+									{/if}
 								{/if}
 							</div>
 						</div>
 						<div class="plan-card__actions">
-							<button class="btn btn--ghost" onclick={cancelEdit}>Cancel</button>
+							<button
+								class="btn btn--ghost"
+								onclick={() => {
+									if (showRolloutConfirm) {
+										showRolloutConfirm = false;
+										rolloutPreview = null;
+									} else {
+										cancelEdit();
+									}
+								}}
+							>
+								{showRolloutConfirm ? 'Back' : 'Cancel'}
+							</button>
 							<button
 								class="btn btn--primary"
-								disabled={saving === plan.id}
+								disabled={saving === plan.id || rolloutPreviewLoading}
 								onclick={() => saveEdit(plan.id)}
 							>
-								{#if saving === plan.id}Saving...{:else}<FloppyDiskIcon
-										size={15}
-										weight="bold"
-									/> Save{/if}
+								{#if saving === plan.id}
+									Saving…
+								{:else if showRolloutConfirm}
+									Confirm &amp; Push to Stripe
+								{:else}
+									<FloppyDiskIcon size={15} weight="bold" /> Save
+								{/if}
 							</button>
 						</div>
 					{:else}
@@ -717,6 +815,31 @@
 	}
 	.rollout-panel__radio input {
 		margin-top: 0.15rem;
+	}
+
+	.rollout-confirm {
+		margin-top: 0.75rem;
+		padding: 0.75rem 1rem;
+		border-radius: var(--radius-md);
+		background: rgba(255, 180, 0, 0.06);
+		border: 1px solid rgba(255, 180, 0, 0.25);
+	}
+	.rollout-confirm__heading {
+		font-size: var(--fs-xs);
+		font-weight: var(--w-semibold);
+		color: var(--color-warning, #f5a623);
+		margin-bottom: 0.4rem;
+	}
+	.rollout-confirm__counts {
+		margin: 0 0 0.4rem 1rem;
+		padding: 0;
+		font-size: var(--fs-xs);
+		color: var(--color-grey-200);
+		line-height: 1.6;
+	}
+	.rollout-confirm__warning {
+		font-size: var(--fs-2xs);
+		color: var(--color-grey-400);
 	}
 
 	/* Grid */

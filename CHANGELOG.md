@@ -10,6 +10,66 @@ Timestamps use the operator-facing calendar date attached to the change list.
 
 ---
 
+## 2026-05-01 14:30 ET — Membership/auth hardening, grandfather price protection, rollout preview
+
+### Migration
+
+- **`backend/migrations/080_subscription_price_protection.sql`** (new)
+  - Adds `grandfathered_price_cents INTEGER`, `grandfathered_currency TEXT DEFAULT 'usd'`, and `price_protection_enabled BOOLEAN NOT NULL DEFAULT FALSE` to `subscriptions`.
+  - Adds partial index `idx_subscriptions_price_protected` on `pricing_plan_id WHERE price_protection_enabled = TRUE` for fast audit queries.
+  - Seeds two new permissions: `subscription.price_protection.manage` (admin only).
+
+### Backend — models
+
+- **`backend/src/models.rs`**
+  - `Subscription`: three new fields: `grandfathered_price_cents: Option<i32>`, `grandfathered_currency: Option<String>`, `price_protection_enabled: bool`.
+  - `PricingStripeRollout`: new `skip_price_protected: bool` field (default `true`).
+  - `AdminStripeRolloutSummary`: new `skipped_grandfathered: usize` field.
+  - New `PricingRolloutPreview` struct: `total_in_audience`, `would_update`, `would_skip_grandfathered`, `current_amount_cents`, `currency`.
+
+### Backend — pricing rollout service
+
+- **`backend/src/services/pricing_rollout.rs`**
+  - `rollout_after_plan_save()`: skips any subscription with `price_protection_enabled = true` and counts them in `skipped_grandfathered`.
+  - New `preview_rollout()`: dry-run that returns `PricingRolloutPreview` counts without calling Stripe.
+
+### Backend — pricing handlers
+
+- **`backend/src/handlers/pricing.rs`**
+  - New `GET /api/admin/pricing/plans/{id}/rollout-preview` (`admin_rollout_preview`): returns preview counts; requires `subscription.plan.manage`.
+  - New `POST /api/admin/pricing/subscriptions/{sub_id}/price-protection` (`admin_toggle_price_protection`): toggles grandfather flag per subscription; requires `subscription.price_protection.manage`; writes audit row.
+  - `RolloutPreviewParams` and `PriceProtectionRequest` DTOs added.
+
+### Integration tests
+
+- **`backend/tests/auth_membership.rs`** (18 tests, all new)
+  - Registration: success + BFF cookie check, duplicate 409, weak password, bad email.
+  - Login gates: banned → 401, suspended → 401, expired suspension auto-lifted → 200.
+  - RBAC: member → 403 on subscriptions / members / audit / pricing; unauthenticated → 401.
+  - Refresh rotation: new pair returned, spent token rejected.
+  - Logout: prevents refresh reuse.
+  - Password reset: forgot-password always 200 (no enumeration), invalid token 4xx.
+  - Email verification: token row created in DB on register.
+
+- **`backend/tests/pricing_rollout.rs`** (8 tests, all new)
+  - Preview endpoint returns correct total + zero grandfathered when none protected.
+  - Preview reflects protected subscriptions in `would_skip_grandfathered`.
+  - Toggle endpoint enables then disables protection; verifies DB state both ways.
+  - Toggle returns 404 for unknown subscription.
+  - RBAC: member blocked from preview and toggle endpoints.
+  - Preview returns 404 for unknown plan.
+
+### Admin frontend
+
+- **`src/routes/admin/subscriptions/plans/+page.svelte`**
+  - Two-step Stripe rollout confirmation: first "Save" with rollout enabled fetches preview and shows member counts; second "Confirm & Push to Stripe" commits.
+  - Results banner now surfaces `skipped_grandfathered` count ("X grandfathered member(s) kept their price.").
+  - State: `rolloutPreview`, `rolloutPreviewLoading`, `showRolloutConfirm`; `fetchRolloutPreview()` helper.
+  - New `.rollout-confirm` CSS block for the confirmation card.
+  - Svelte autofixer confirmed zero issues post-edit.
+
+---
+
 ## 2026-05-01 10:45 ET — Full-backend audit + observability fixes
 
 ### Audit scope
