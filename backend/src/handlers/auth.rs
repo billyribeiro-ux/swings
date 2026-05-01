@@ -11,12 +11,12 @@ use axum::{
 use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{encode, EncodingKey, Header};
-use sha2::{Digest, Sha256};
 use time::Duration as CookieDuration;
 use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
+    crypto::hash_token,
     db,
     error::{AppError, AppResult},
     extractors::{AuthUser, Claims, ClientInfo, MaybeAuthUser, JWT_AUDIENCE, JWT_ISSUER},
@@ -844,16 +844,6 @@ pub(crate) async fn generate_tokens(state: &AppState, user: &User) -> AppResult<
     .await?;
 
     Ok((access_token, refresh_token))
-}
-
-fn hash_token(token: &str) -> String {
-    let mut hasher = Sha256::new();
-    hasher.update(token.as_bytes());
-    hasher
-        .finalize()
-        .iter()
-        .map(|b| format!("{b:02x}"))
-        .collect()
 }
 
 /// Inspect the `Authorization` header for an impersonation JWT — without

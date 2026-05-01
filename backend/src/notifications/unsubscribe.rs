@@ -11,12 +11,11 @@
 use chrono::{DateTime, Duration, Utc};
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 use sqlx::{FromRow, PgExecutor, PgPool};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-use crate::error::AppError;
+use crate::{crypto::hash_token, error::AppError};
 
 use super::preferences::{self, PreferenceUpdate};
 use super::suppression::{self, REASON_UNSUBSCRIBE_ALL};
@@ -80,16 +79,6 @@ impl From<UnsubscribeError> for AppError {
 }
 
 /// SHA-256 hex of a raw token string.
-fn hash_token(raw: &str) -> String {
-    let mut hasher = Sha256::new();
-    hasher.update(raw.as_bytes());
-    hasher
-        .finalize()
-        .iter()
-        .map(|b| format!("{b:02x}"))
-        .collect()
-}
-
 /// Mint a fresh token. Returns the raw 32-byte URL-safe base64 representation
 /// — the caller embeds this in the rendered e-mail; only the SHA-256 hash
 /// lives in the DB.

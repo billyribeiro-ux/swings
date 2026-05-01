@@ -17,8 +17,10 @@
 mod support;
 
 use axum::http::StatusCode;
+use chrono::{Duration, Utc};
 use serde_json::{json, Value};
 use support::TestApp;
+use swings_api::crypto::hash_token;
 use uuid::Uuid;
 
 // ── Registration ─────────────────────────────────────────────────────────────
@@ -445,4 +447,159 @@ async fn register_issues_email_verification_token_in_db() {
             .expect("count verification tokens");
 
     assert!(count > 0, "email verification token must be issued on register");
+}
+
+#[tokio::test]
+async fn verify_email_with_valid_token_marks_user_verified() {
+    let Some(app) = TestApp::try_new().await else {
+        return;
+    };
+
+    let member = app.seed_user().await.expect("seed member");
+
+    // Seed a known raw token directly: compute the hash ourselves using the
+    // same function the handler uses, insert it, then call the endpoint with
+    // the raw token. This roundtrip proves the handler finds and accepts the
+    // token without relying on email delivery.
+    let raw_token = Uuid::new_v4().to_string();
+    let token_hash = hash_token(&raw_token);
+    let expires_at = Utc::now() + Duration::hours(24);
+
+    sqlx::query(
+        "INSERT INTO email_verification_tokens (id, user_id, token_hash, expires_at)
+         VALUES ($1, $2, $3, $4)",
+    )
+    .bind(Uuid::new_v4())
+    .bind(member.id)
+    .bind(&token_hash)
+    .bind(expires_at)
+    .execute(app.db())
+    .await
+    .expect("seed verification token");
+
+    let resp = app
+        .post_json(
+            "/api/auth/verify-email",
+            &json!({ "token": raw_token }),
+            None,
+        )
+        .await;
+
+    resp.assert_status(StatusCode::OK);
+    let body: Value = resp.json().expect("verify-email body");
+    assert_eq!(body["verified"], true);
+
+    // email_verified_at must now be set
+    let verified_at: Option<chrono::DateTime<Utc>> = sqlx::query_scalar(
+        "SELECT email_verified_at FROM users WHERE id = $1",
+    )
+    .bind(member.id)
+    .fetch_one(app.db())
+    .await
+    .expect("fetch email_verified_at");
+
+    assert!(
+        verified_at.is_some(),
+        "email_verified_at must be set after successful verification"
+    );
+
+    // token must be marked used (used_at IS NOT NULL)
+    let used_at: Option<chrono::DateTime<Utc>> = sqlx::query_scalar(
+        "SELECT used_at FROM email_verification_tokens WHERE token_hash = $1",
+    )
+    .bind(&token_hash)
+    .fetch_one(app.db())
+    .await
+    .expect("fetch used_at");
+
+    assert!(used_at.is_some(), "token must be marked used after consumption");
+}
+
+#[tokio::test]
+async fn verify_email_with_expired_token_returns_4xx() {
+    let Some(app) = TestApp::try_new().await else {
+        return;
+    };
+
+    let member = app.seed_user().await.expect("seed member");
+
+    let raw_token = Uuid::new_v4().to_string();
+    let token_hash = hash_token(&raw_token);
+    // expires_at is in the past — the handler must reject it
+    let expired_at = Utc::now() - Duration::seconds(1);
+
+    sqlx::query(
+        "INSERT INTO email_verification_tokens (id, user_id, token_hash, expires_at)
+         VALUES ($1, $2, $3, $4)",
+    )
+    .bind(Uuid::new_v4())
+    .bind(member.id)
+    .bind(&token_hash)
+    .bind(expired_at)
+    .execute(app.db())
+    .await
+    .expect("seed expired verification token");
+
+    let resp = app
+        .post_json(
+            "/api/auth/verify-email",
+            &json!({ "token": raw_token }),
+            None,
+        )
+        .await;
+
+    assert!(
+        resp.status().is_client_error(),
+        "expired token must be rejected, got {}",
+        resp.status()
+    );
+}
+
+#[tokio::test]
+async fn verify_email_token_cannot_be_reused() {
+    let Some(app) = TestApp::try_new().await else {
+        return;
+    };
+
+    let member = app.seed_user().await.expect("seed member");
+
+    let raw_token = Uuid::new_v4().to_string();
+    let token_hash = hash_token(&raw_token);
+    let expires_at = Utc::now() + Duration::hours(24);
+
+    sqlx::query(
+        "INSERT INTO email_verification_tokens (id, user_id, token_hash, expires_at)
+         VALUES ($1, $2, $3, $4)",
+    )
+    .bind(Uuid::new_v4())
+    .bind(member.id)
+    .bind(&token_hash)
+    .bind(expires_at)
+    .execute(app.db())
+    .await
+    .expect("seed verification token");
+
+    // First use — must succeed
+    app.post_json(
+        "/api/auth/verify-email",
+        &json!({ "token": raw_token }),
+        None,
+    )
+    .await
+    .assert_status(StatusCode::OK);
+
+    // Second use of the same token — must be rejected
+    let resp = app
+        .post_json(
+            "/api/auth/verify-email",
+            &json!({ "token": raw_token }),
+            None,
+        )
+        .await;
+
+    assert!(
+        resp.status().is_client_error(),
+        "reused verification token must be rejected, got {}",
+        resp.status()
+    );
 }

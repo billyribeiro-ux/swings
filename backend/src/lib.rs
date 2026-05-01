@@ -10,6 +10,8 @@ use std::sync::Arc;
 
 pub mod authz;
 pub mod commerce;
+#[doc(hidden)]
+pub mod crypto;
 pub mod common;
 pub mod config;
 pub mod consent;
