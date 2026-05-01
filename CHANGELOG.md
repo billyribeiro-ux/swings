@@ -3,9 +3,84 @@
 All notable changes described in this file are grouped by release date.  
 Timestamps use the operator-facing calendar date attached to the change list.
 
+> **Convention (from 2026-05-01 onward):** every session that changes code
+> must prepend a new `## YYYY-MM-DD HH:MM ET — <title>` section at the top
+> of this log. Each entry documents the *why* and *impact*; the diff is the
+> full record of *what*.
+
 ---
 
-## 2024-04-24 — Subscription price rollout & catalog ↔ Stripe control
+## 2026-05-01 10:45 ET — Full-backend audit + observability fixes
+
+### Audit scope
+
+Five parallel streams audited the entire backend and admin dashboard:
+HTTP handlers, services/workers, middleware, database migrations, domain
+modules, RBAC, integration/unit/E2E test coverage, and the admin frontend.
+
+### All-clear findings (no code changes needed)
+
+| Area | Result |
+|------|--------|
+| Admin mutation `policy.require` enforcement | All 31 handlers compliant |
+| Admin mutation `audit_admin` recording | All 31 handlers compliant |
+| Idempotency-Key middleware on all admin POST/PUT/DELETE | Fully wired |
+| `unwrap` / `expect` / `panic!` in non-test production code | Zero violations |
+| Handler registration — orphaned or unregistered handlers | None found |
+| Database table ↔ HTTP endpoint coverage | 100% |
+| Background worker graceful-shutdown paths | All 5 workers correct |
+| Migration sequence 001–079 (gaps 029/040 intentional) | Clean |
+| Migration foreign-key ordering | No violations |
+| RBAC permission matrix: handler calls vs. seeded migrations | 37/37 match |
+| Domain modules completeness (commerce, consent, popups, forms, notifications, pdf) | All fully implemented |
+| Admin frontend: idempotency keys auto-injected by API client | Correct |
+| Admin frontend: BFF HttpOnly-cookie auth pattern | Correctly implemented |
+| Admin frontend: route auth guards | All protected, no gaps |
+| Admin frontend: TypeScript strict mode, zero `any` types | Confirmed |
+| Backend integration tests — `#[ignore]` violations | Zero (policy maintained) |
+| Backend integration tests — handler coverage | 36 tests, all 31 handlers covered |
+
+### False positive resolved
+
+- **`webhooks.rs` line 1259 `expect("valid hmac key")`** — initially flagged
+  as a production-code violation. Confirmed on re-read: the call lives inside
+  the `#[cfg(test)]` block (`make_signature` test helper). The production
+  path at line 196 uses `match … { Err(_) => return false }`. **No fix needed.**
+
+### Fixed — `outbox_last_success_unixtime` Prometheus gauge missing
+
+- **File:** [`backend/src/events/worker.rs`](backend/src/events/worker.rs)
+- **Rule:** AGENTS.md §7 — every worker must emit `*_last_success_unixtime`
+  so the runbook can detect a stalled loop.
+- **Change:** After each non-empty dispatch batch (`Ok(n)` arm), worker now
+  emits `metrics::gauge!("outbox_last_success_unixtime").set(...)`.
+  Added `use chrono::Utc` import.
+- **Impact:** Prometheus staleness alert for the outbox worker now has data to
+  fire on; previously the alert would never trigger regardless of worker state.
+
+### Fixed — `dsar_export_last_success_unixtime` Prometheus gauge missing
+
+- **File:** [`backend/src/services/dsar_worker.rs`](backend/src/services/dsar_worker.rs)
+- **Rule:** AGENTS.md §7 — same as above.
+- **Change:** After each successful job export inside `process_job`, worker
+  now emits `metrics::gauge!("dsar_export_last_success_unixtime").set(...)`.
+  Uses existing `chrono::Utc` full-path style (no new import needed).
+- **Impact:** Operators can detect a stuck DSAR export pipeline via Prometheus
+  without manually querying `dsar_jobs` row states.
+
+### Known gaps documented (no fix in this session)
+
+- **E2E coverage: ~13% of routes.** Admin feature CRUD pages (blog, courses,
+  consent, coupons, products, notifications, popups, forms, subscriptions),
+  member dashboard, and public utility pages have no Playwright spec. Backend
+  API correctness is fully covered by 36 integration tests.
+- **Frontend component unit tests: ~30 components untested.** Landing page
+  and chrome/layout components (static presentation, minimal logic). Admin
+  feature components rely on E2E coverage instead of isolated unit tests.
+
+---
+
+## 2026-04-24 — Subscription price rollout & catalog ↔ Stripe control
 
 > **Note on the date:** this entry was authored under the heading **April 24, 2024** per project request. The engineering work ships with repository state current as of **2026-04-24** (migrations, OpenAPI snapshot, and coordinated frontend/backend commits).
 

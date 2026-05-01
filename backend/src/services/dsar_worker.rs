@@ -186,6 +186,8 @@ async fn process_job(pool: &PgPool, media_backend: &MediaBackend, job: ClaimedJo
             metrics::counter!("dsar_export_completed_total").increment(1);
             metrics::histogram!("dsar_export_duration_seconds")
                 .record(started.elapsed().as_secs_f64());
+            metrics::gauge!("dsar_export_last_success_unixtime")
+                .set(chrono::Utc::now().timestamp() as f64);
             tracing::info!(
                 job_id = %job.id,
                 target = %job.target_user_id,

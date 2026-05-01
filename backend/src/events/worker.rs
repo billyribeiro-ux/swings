@@ -16,6 +16,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+use chrono::Utc;
 use sqlx::PgPool;
 use tokio::select;
 use tokio::sync::broadcast;
@@ -123,6 +124,8 @@ impl Worker {
                             }
                             Ok(n) => {
                                 debug!(worker = worker_id, processed = n, "outbox tick drained batch");
+                                metrics::gauge!("outbox_last_success_unixtime")
+                                    .set(Utc::now().timestamp() as f64);
                             }
                             Err(err) => {
                                 warn!(worker = worker_id, error = %err, "outbox tick failed; backing off");
