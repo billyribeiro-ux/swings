@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { api, ApiError } from '$lib/api/client';
@@ -30,8 +30,11 @@
 	let roleFilter = $state<'' | 'admin' | 'member'>('');
 	let statusFilter = $state<StatusFilter>('');
 	let searchTimeout: ReturnType<typeof setTimeout>;
+	/** Monotonic guard so slower network responses cannot overwrite newer search/filter results. */
+	let membersLoadGeneration = 0;
 
 	async function loadMembers() {
+		const gen = ++membersLoadGeneration;
 		loading = true;
 		try {
 			// We hand-build the query string instead of allocating a
@@ -39,33 +42,57 @@
 			// flags the mutable instance and a non-reactive plain string
 			// is what we actually want here (the request fires once per
 			// `loadMembers()`).
+			const q = search.trim();
 			const parts: string[] = [`page=${page}`, `per_page=15`];
-			if (search) parts.push(`search=${encodeURIComponent(search)}`);
+			if (q) parts.push(`search=${encodeURIComponent(q)}`);
 			if (roleFilter) parts.push(`role=${roleFilter}`);
 			if (statusFilter) parts.push(`status=${statusFilter}`);
 			const url = `/api/admin/members?${parts.join('&')}`;
 			const res = await api.get<PaginatedResponse<UserResponse>>(url);
+			if (gen !== membersLoadGeneration) return;
 			members = res.data;
 			total = res.total;
 			totalPages = res.total_pages;
 		} catch (e) {
+			if (gen !== membersLoadGeneration) return;
 			toast.error(e instanceof ApiError ? e.message : 'Failed to load members');
 		} finally {
-			loading = false;
+			if (gen === membersLoadGeneration) loading = false;
 		}
 	}
 
 	onMount(loadMembers);
 
-	function handleSearchInput(e: Event) {
-		const val = (e.target as HTMLInputElement).value;
+	function scheduleSearchReload() {
 		clearTimeout(searchTimeout);
 		searchTimeout = setTimeout(() => {
-			search = val;
 			page = 1;
 			loadMembers();
-		}, 300);
+		}, 280);
 	}
+
+	/** Run search immediately (Enter in the field, search form submit). */
+	function commitSearchNow(e: Event) {
+		e.preventDefault();
+		clearTimeout(searchTimeout);
+		page = 1;
+		loadMembers();
+	}
+
+	onDestroy(() => clearTimeout(searchTimeout));
+
+	function clearMemberFilters() {
+		clearTimeout(searchTimeout);
+		search = '';
+		roleFilter = '';
+		statusFilter = '';
+		page = 1;
+		loadMembers();
+	}
+
+	const hasMemberFilters = $derived(
+		Boolean(search.trim() || roleFilter || statusFilter)
+	);
 
 	function changeRole(r: typeof roleFilter) {
 		roleFilter = r;
@@ -193,7 +220,10 @@
 		const newRole = member.role === 'admin' ? 'member' : 'admin';
 		const ok = await confirmDialog({
 			title: 'Change role?',
-			message: `Promote ${member.name} to ${newRole}?`,
+			message:
+				newRole === 'admin'
+					? `Promote ${member.name} to administrator? They will have full operator access.`
+					: `Demote ${member.name} to member? They will lose administrator access.`,
 			confirmLabel: 'Change role',
 			variant: 'warning'
 		});
@@ -223,11 +253,11 @@
 <div class="members-page">
 	<header class="members-page__page-header">
 		<div class="members-page__heading">
-			<span class="members-page__eyebrow">Directory</span>
 			<h1 class="members-page__title">Members</h1>
 			<p class="members-page__subtitle">
 				{total.toLocaleString()} total {total === 1 ? 'member' : 'members'} — manage roles, lifecycle,
-				and billing profile.
+				and billing profile. To add someone new, use <strong>Search &amp; create</strong> (role, temp
+				password, optional setup email).
 			</p>
 		</div>
 		<a class="members-page__cta" href={resolve('/admin/members/manage')}>
@@ -239,7 +269,12 @@
 
 	<!-- Filter / search bar -->
 	<div class="members-page__toolbar">
-		<div class="members-page__search">
+		<form
+			class="members-page__search"
+			role="search"
+			aria-label="Search members by name or email"
+			onsubmit={commitSearchNow}
+		>
 			<MagnifyingGlassIcon size={16} weight="bold" class="members-page__search-icon" />
 			<input
 				id="member-search"
@@ -247,9 +282,13 @@
 				type="search"
 				class="members-page__search-input"
 				placeholder="Search by name or email…"
-				oninput={handleSearchInput}
+				autocomplete="off"
+				spellcheck="false"
+				enterkeyhint="search"
+				bind:value={search}
+				oninput={scheduleSearchReload}
 			/>
-		</div>
+		</form>
 		<div class="members-page__tabs" role="tablist" aria-label="Filter by role">
 			<button
 				class="members-page__tab"
@@ -326,14 +365,42 @@
 			{/each}
 		</div>
 	{:else if members.length === 0}
-		<div class="members-page__empty">
-			<UsersIcon size={48} weight="duotone" color="var(--color-grey-500)" />
-			<p class="members-page__empty-title">No members found</p>
-			<p class="members-page__empty-body">
-				{search || roleFilter || statusFilter
-					? 'Try adjusting your search or filters.'
-					: 'New sign-ups will appear here automatically.'}
-			</p>
+		<div class="members-page__empty" role="status" aria-live="polite">
+			<div class="members-page__empty-panel">
+				<div class="members-page__empty-icon" aria-hidden="true">
+					<UsersIcon size={28} weight="duotone" color="var(--color-grey-400)" />
+				</div>
+				<h2 class="members-page__empty-title">
+					{hasMemberFilters ? 'No matching members' : 'No members yet'}
+				</h2>
+				<p class="members-page__empty-body">
+					{hasMemberFilters
+						? 'Adjust your search or clear filters to see everyone in the directory.'
+						: 'New sign-ups show up here automatically, or add someone from search & create.'}
+				</p>
+				<div class="members-page__empty-actions">
+					{#if hasMemberFilters}
+						<button
+							type="button"
+							class="members-page__empty-btn members-page__empty-btn--primary"
+							onclick={clearMemberFilters}
+						>
+							Clear filters
+						</button>
+					{/if}
+					<a
+						href={resolve('/admin/members/manage')}
+						class={[
+							'members-page__empty-btn',
+							hasMemberFilters
+								? 'members-page__empty-btn--secondary'
+								: 'members-page__empty-btn--primary'
+						]}
+					>
+						{hasMemberFilters ? 'Add a member' : 'Search & create'}
+					</a>
+				</div>
+			</div>
 		</div>
 	{:else}
 		<!-- Mobile: Card view -->
@@ -380,52 +447,93 @@
 						<span>View profile</span>
 					</a>
 					<div class="member-card__actions">
-						<Tooltip label="Edit profile">
-							<button
-								onclick={() => quickEdit(member)}
-								class="member-card__btn"
-								aria-label="Edit profile"
-							>
-								<PencilSimpleIcon size={16} weight="bold" />
-							</button>
+						<Tooltip
+							label="Edit profile — name, email, and other directory fields."
+							placement="bottom"
+							delay={320}
+						>
+							{#snippet trigger(p)}
+								<button
+									{...p}
+									onclick={() => quickEdit(member)}
+									class="member-card__btn"
+									aria-label="Edit member profile"
+								>
+									<PencilSimpleIcon size={16} weight="bold" />
+								</button>
+							{/snippet}
 						</Tooltip>
 						<Tooltip
-							label={member.suspended_at ? 'Lift suspension' : 'Suspend / timeout'}
+							label={member.suspended_at
+								? "Lift suspension — restores this person's ability to sign in."
+								: 'Suspend sign-in — optional end date for cooling-off or review.'}
+							placement="bottom"
+							delay={320}
 						>
-							<button
-								onclick={() => suspendOrUnsuspend(member)}
-								class="member-card__btn member-card__btn--warn"
-								aria-label="Suspend member"
-							>
-								<ClockCountdownIcon size={16} weight="bold" />
-							</button>
+							{#snippet trigger(p)}
+								<button
+									{...p}
+									onclick={() => suspendOrUnsuspend(member)}
+									class="member-card__btn member-card__btn--warn"
+									aria-label={member.suspended_at
+										? 'Lift suspension'
+										: 'Suspend member sign-in'}
+								>
+									<ClockCountdownIcon size={16} weight="bold" />
+								</button>
+							{/snippet}
 						</Tooltip>
-						<Tooltip label={member.banned_at ? 'Lift ban' : 'Ban member'}>
-							<button
-								onclick={() => banOrUnban(member)}
-								class="member-card__btn member-card__btn--danger"
-								aria-label="Ban member"
-							>
-								<ProhibitIcon size={16} weight="bold" />
-							</button>
+						<Tooltip
+							label={member.banned_at
+								? 'Lift ban — reinstate a previously banned account.'
+								: 'Ban — blocks sign-in and cancels active subscriptions immediately.'}
+							placement="bottom"
+							delay={320}
+						>
+							{#snippet trigger(p)}
+								<button
+									{...p}
+									onclick={() => banOrUnban(member)}
+									class="member-card__btn member-card__btn--danger"
+									aria-label={member.banned_at ? 'Lift ban' : 'Ban member'}
+								>
+									<ProhibitIcon size={16} weight="bold" />
+								</button>
+							{/snippet}
 						</Tooltip>
-						<Tooltip label="Toggle admin role">
-							<button
-								onclick={() => toggleRole(member)}
-								class="member-card__btn"
-								aria-label="Toggle role"
-							>
-								<ShieldCheckIcon size={16} weight="bold" />
-							</button>
+						<Tooltip
+							label={member.role === 'admin'
+								? 'Demote to member — removes administrator access.'
+								: 'Promote to admin — grants full operator console access.'}
+							placement="bottom"
+							delay={320}
+						>
+							{#snippet trigger(p)}
+								<button
+									{...p}
+									onclick={() => toggleRole(member)}
+									class="member-card__btn"
+									aria-label={member.role === 'admin' ? 'Demote to member' : 'Promote to admin'}
+								>
+									<ShieldCheckIcon size={16} weight="bold" />
+								</button>
+							{/snippet}
 						</Tooltip>
-						<Tooltip label="Delete member">
-							<button
-								onclick={() => deleteMember(member)}
-								class="member-card__btn member-card__btn--delete"
-								aria-label="Delete member"
-							>
-								<TrashIcon size={16} weight="bold" />
-							</button>
+						<Tooltip
+							label="Delete permanently — removes the account and billing; cannot be undone."
+							placement="bottom"
+							delay={320}
+						>
+							{#snippet trigger(p)}
+								<button
+									{...p}
+									onclick={() => deleteMember(member)}
+									class="member-card__btn member-card__btn--delete"
+									aria-label="Delete member account"
+								>
+									<TrashIcon size={16} weight="bold" />
+								</button>
+							{/snippet}
 						</Tooltip>
 					</div>
 				</div>
@@ -481,67 +589,117 @@
 							<td class="m-table__muted">{formatDate(member.created_at)}</td>
 							<td>
 								<div class="m-table__actions">
-									<Tooltip label="View profile">
-										<button
-											onclick={() => viewMember(member)}
-											class="m-table__btn"
-											aria-label="View profile"
-										>
-											<EyeIcon size={16} weight="bold" />
-										</button>
+									<Tooltip
+										label="View full profile — notes, subscriptions, orders, and lifecycle."
+										placement="bottom"
+										delay={320}
+									>
+										{#snippet trigger(p)}
+											<button
+												type="button"
+												{...p}
+												onclick={() => viewMember(member)}
+												class="m-table__btn"
+												aria-label="View member profile"
+											>
+												<EyeIcon size={16} weight="bold" />
+											</button>
+										{/snippet}
 									</Tooltip>
-									<Tooltip label="Edit profile">
-										<button
-											onclick={() => quickEdit(member)}
-											class="m-table__btn"
-											aria-label="Edit profile"
-										>
-											<PencilSimpleIcon size={16} weight="bold" />
-										</button>
+									<Tooltip
+										label="Edit profile — name, email, and other directory fields."
+										placement="bottom"
+										delay={320}
+									>
+										{#snippet trigger(p)}
+											<button
+												type="button"
+												{...p}
+												onclick={() => quickEdit(member)}
+												class="m-table__btn"
+												aria-label="Edit member profile"
+											>
+												<PencilSimpleIcon size={16} weight="bold" />
+											</button>
+										{/snippet}
 									</Tooltip>
 									<Tooltip
 										label={member.suspended_at
-											? 'Lift suspension'
-											: 'Suspend / timeout'}
+											? "Lift suspension — restores this person's ability to sign in."
+											: 'Suspend sign-in — optional end date for cooling-off or review.'}
+										placement="bottom"
+										delay={320}
 									>
-										<button
-											onclick={() => suspendOrUnsuspend(member)}
-											class="m-table__btn m-table__btn--warn"
-											aria-label="Suspend member"
-										>
-											<ClockCountdownIcon size={16} weight="bold" />
-										</button>
+										{#snippet trigger(p)}
+											<button
+												type="button"
+												{...p}
+												onclick={() => suspendOrUnsuspend(member)}
+												class="m-table__btn m-table__btn--warn"
+												aria-label={member.suspended_at
+													? 'Lift suspension'
+													: 'Suspend member sign-in'}
+											>
+												<ClockCountdownIcon size={16} weight="bold" />
+											</button>
+										{/snippet}
 									</Tooltip>
-									<Tooltip label={member.banned_at ? 'Lift ban' : 'Ban member'}>
-										<button
-											onclick={() => banOrUnban(member)}
-											class="m-table__btn m-table__btn--danger"
-											aria-label="Ban member"
-										>
-											<ProhibitIcon size={16} weight="bold" />
-										</button>
+									<Tooltip
+										label={member.banned_at
+											? 'Lift ban — reinstate a previously banned account.'
+											: 'Ban — blocks sign-in and cancels active subscriptions immediately.'}
+										placement="bottom"
+										delay={320}
+									>
+										{#snippet trigger(p)}
+											<button
+												type="button"
+												{...p}
+												onclick={() => banOrUnban(member)}
+												class="m-table__btn m-table__btn--danger"
+												aria-label={member.banned_at ? 'Lift ban' : 'Ban member'}
+											>
+												<ProhibitIcon size={16} weight="bold" />
+											</button>
+										{/snippet}
 									</Tooltip>
 									<Tooltip
 										label={member.role === 'admin'
-											? 'Demote to member'
-											: 'Promote to admin'}
+											? 'Demote to member — removes administrator access.'
+											: 'Promote to admin — grants full operator console access.'}
+										placement="bottom"
+										delay={320}
 									>
-										<button
-											onclick={() => toggleRole(member)}
-											class="m-table__btn m-table__btn--role"
-											aria-label="Toggle role"
-										>
-											<ShieldCheckIcon size={16} weight="bold" />
-										</button>
+										{#snippet trigger(p)}
+											<button
+												type="button"
+												{...p}
+												onclick={() => toggleRole(member)}
+												class="m-table__btn m-table__btn--role"
+												aria-label={member.role === 'admin'
+													? 'Demote to member'
+													: 'Promote to admin'}
+											>
+												<ShieldCheckIcon size={16} weight="bold" />
+											</button>
+										{/snippet}
 									</Tooltip>
-									<Tooltip label="Delete member">
-										<button
-											onclick={() => deleteMember(member)}
-											class="m-table__btn m-table__btn--delete"
-											aria-label="Delete member"
-										>
-											<TrashIcon size={16} weight="bold" />
-										</button>
+									<Tooltip
+										label="Delete permanently — removes the account and billing; cannot be undone."
+										placement="bottom"
+										delay={320}
+									>
+										{#snippet trigger(p)}
+											<button
+												type="button"
+												{...p}
+												onclick={() => deleteMember(member)}
+												class="m-table__btn m-table__btn--delete"
+												aria-label="Delete member account"
+											>
+												<TrashIcon size={16} weight="bold" />
+											</button>
+										{/snippet}
 									</Tooltip>
 								</div>
 							</td>
@@ -600,15 +758,6 @@
 		margin-bottom: 1.25rem;
 	}
 
-	.members-page__eyebrow {
-		font-size: 0.6875rem;
-		font-weight: 700;
-		color: var(--color-grey-500);
-		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		line-height: 1;
-	}
-
 	.members-page__title {
 		font-family: var(--font-heading);
 		font-size: 1.5rem;
@@ -616,7 +765,7 @@
 		color: var(--color-white);
 		line-height: 1.2;
 		letter-spacing: -0.01em;
-		margin: 0.25rem 0 0.5rem;
+		margin: 0 0 0.5rem;
 	}
 
 	.members-page__subtitle {
@@ -665,6 +814,9 @@
 		position: relative;
 		display: flex;
 		align-items: center;
+		margin: 0;
+		padding: 0;
+		border: none;
 	}
 
 	.members-page__search :global(.members-page__search-icon) {
@@ -757,35 +909,127 @@
 		animation: shimmer 1.6s ease-in-out infinite;
 	}
 
+	/* Empty state: centered, width-capped panel (common product pattern — readable measure, not full-bleed). */
 	.members-page__empty {
+		display: flex;
+		justify-content: center;
+		align-items: flex-start;
+		padding: clamp(2rem, 5vw, 3rem) 1rem;
+		min-height: min(17.5rem, 42vh);
+	}
+
+	.members-page__empty-panel {
+		width: 100%;
+		max-width: 21.5rem;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 0.5rem;
-		padding: 3rem 1rem;
-		background: rgba(19, 43, 80, 0.35);
-		backdrop-filter: blur(24px);
-		-webkit-backdrop-filter: blur(24px);
-		border: 1px dashed rgba(255, 255, 255, 0.15);
-		border-radius: var(--radius-2xl);
 		text-align: center;
+		padding: 2rem 1.5rem 1.875rem;
+		background: rgba(19, 43, 80, 0.45);
+		backdrop-filter: blur(20px);
+		-webkit-backdrop-filter: blur(20px);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: var(--radius-2xl);
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.06) inset,
+			0 12px 32px -12px rgba(0, 0, 0, 0.35);
+	}
+
+	.members-page__empty-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 3.5rem;
+		height: 3.5rem;
+		margin-bottom: 0.25rem;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.055);
+		border: 1px solid rgba(255, 255, 255, 0.08);
 	}
 
 	.members-page__empty-title {
-		font-size: 0.875rem;
+		font-family: var(--font-heading);
+		font-size: 1.125rem;
 		font-weight: 600;
 		color: var(--color-white);
-		line-height: 1.35;
-		margin: 0.5rem 0 0;
+		line-height: 1.3;
+		letter-spacing: -0.015em;
+		margin: 0.625rem 0 0;
 	}
 
 	.members-page__empty-body {
-		font-size: 0.75rem;
+		font-size: 0.875rem;
 		font-weight: 400;
-		color: var(--color-grey-500);
-		line-height: 1.4;
-		margin: 0;
-		max-width: 36ch;
+		color: var(--color-grey-400);
+		line-height: 1.5;
+		margin: 0.5rem 0 0;
+		max-width: min(19rem, 36ch);
+	}
+
+	.members-page__empty-actions {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+		gap: 0.5rem;
+		width: 100%;
+		margin-top: 1.25rem;
+		max-width: 18rem;
+	}
+
+	@media (min-width: 480px) {
+		.members-page__empty-actions {
+			flex-direction: row;
+			justify-content: center;
+			flex-wrap: wrap;
+		}
+	}
+
+	.members-page__empty-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 2.5rem;
+		padding: 0.5rem 1rem;
+		border-radius: var(--radius-lg, 0.5rem);
+		font-size: 0.8125rem;
+		font-weight: 600;
+		font-family: var(--font-ui);
+		text-decoration: none;
+		cursor: pointer;
+		transition:
+			background-color 150ms ease,
+			color 150ms ease,
+			border-color 150ms ease,
+			box-shadow 150ms ease;
+		border: 1px solid transparent;
+	}
+
+	.members-page__empty-btn:focus-visible {
+		outline: 2px solid var(--color-teal, #0fa4af);
+		outline-offset: 2px;
+	}
+
+	.members-page__empty-btn--primary {
+		background: var(--color-teal, #0fa4af);
+		color: #fff;
+		border-color: rgba(0, 0, 0, 0.08);
+		box-shadow: 0 1px 0 rgba(255, 255, 255, 0.15) inset;
+	}
+
+	.members-page__empty-btn--primary:hover {
+		background: var(--color-teal-600, #0d8c95);
+	}
+
+	.members-page__empty-btn--secondary {
+		background: rgba(255, 255, 255, 0.06);
+		color: var(--color-grey-200);
+		border-color: rgba(255, 255, 255, 0.14);
+	}
+
+	.members-page__empty-btn--secondary:hover {
+		background: rgba(255, 255, 255, 0.1);
+		border-color: rgba(255, 255, 255, 0.2);
 	}
 
 	.members-page__cards {

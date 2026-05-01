@@ -445,13 +445,11 @@ impl UserStatusFilter {
 
 /// ADM-10: paginated, indexed search across the members table.
 ///
-/// `query` is interpreted as a case-insensitive substring against
-/// `email` and `name`; both columns have GIN trigram indexes so the
-/// `ILIKE '%q%'` predicates resolve in milliseconds at scale. When
-/// the input contains a `@`, the email predicate is anchored on
-/// `lower(email)` for slightly better selectivity. Empty `query`
-/// degrades gracefully to a paginated list (and reuses the
-/// `(role, created_at DESC)` index when `role_filter` is set).
+/// `query` is interpreted as a **literal** case-insensitive substring
+/// against `email` and `name` (`%` / `_` in the input are not wildcards).
+/// Both columns have GIN trigram indexes so `LIKE` still resolves quickly
+/// at scale. Empty `query` degrades gracefully to an unfiltered list shape
+/// (optional `role` / `status` predicates still apply).
 ///
 /// Returns `(rows, total_matching)` so the caller can render a
 /// paged grid without a follow-up round trip.
@@ -463,13 +461,25 @@ pub async fn search_users(
     limit: i64,
     offset: i64,
 ) -> Result<(Vec<User>, i64), sqlx::Error> {
+    /// Escape `\`, `%`, and `_` so the user's text is matched literally under SQL LIKE.
+    fn like_literal(fragment: &str) -> String {
+        let mut out = String::with_capacity(fragment.len());
+        for ch in fragment.chars() {
+            if matches!(ch, '\\' | '%' | '_') {
+                out.push('\\');
+            }
+            out.push(ch);
+        }
+        out
+    }
+
     // We intentionally build the WHERE clause inline rather than via
     // dynamic SQL: every fragment uses bind parameters, so there is
     // no string-interpolation surface for SQL injection. The number
     // of bind slots is fixed; unused slots are passed as `NULL` and
     // gated by their corresponding `IS NULL OR …` guard.
     let q = query.map(|s| s.trim()).filter(|s| !s.is_empty());
-    let pattern = q.map(|s| format!("%{}%", s.to_lowercase()));
+    let pattern = q.map(|s| format!("%{}%", like_literal(&s.to_lowercase())));
 
     let status_active = matches!(status_filter, Some(UserStatusFilter::Active));
     let status_suspended = matches!(status_filter, Some(UserStatusFilter::Suspended));
@@ -481,10 +491,12 @@ pub async fn search_users(
     //   $2: role  (NULL → no role filter)
     //   $3-$6: status flags (Booleans, exactly 0 or 1 may be true)
     //   $7: limit, $8: offset
+    //
+    // `ESCAPE E'\\'` keeps `%` / `_` / `\` in the needle from behaving as LIKE metacharacters.
     let where_sql = r#"
         WHERE ($1::text IS NULL
-               OR lower(email) LIKE $1
-               OR lower(name)  LIKE $1)
+               OR lower(email) LIKE $1 ESCAPE E'\\'
+               OR lower(name)  LIKE $1 ESCAPE E'\\')
           AND ($2::user_role IS NULL OR role = $2)
           AND ( NOT $3 OR (suspended_at IS NULL AND banned_at IS NULL) )
           AND ( NOT $4 OR suspended_at IS NOT NULL )

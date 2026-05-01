@@ -777,51 +777,55 @@
 
 		<div class="admin__main">
 			<header class="admin__main-topbar">
-				<nav class="admin__breadcrumbs" aria-label="Breadcrumb">
-					<ol class="admin__breadcrumbs-list">
-						{#each breadcrumbs as crumb, i (crumb.href)}
-							<li class="admin__breadcrumbs-item">
-								{#if i === breadcrumbs.length - 1}
-									<span class="admin__breadcrumbs-current" aria-current="page"
-										>{crumb.label}</span
-									>
-								{:else}
-									<!-- Breadcrumb hrefs are derived live from `page.url.pathname` (which already has `paths.base` applied), so they don't need a second `resolve()` pass — they are already real URLs, not route-id literals. -->
-									<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-									<a href={crumb.href} class="admin__breadcrumbs-link"
-										>{crumb.label}</a
-									>
-									<CaretRightIcon
-										size={12}
-										weight="bold"
-										class="admin__breadcrumbs-sep"
-									/>
-								{/if}
-							</li>
-						{/each}
-					</ol>
-				</nav>
-				<div class="admin__main-topbar-actions">
-					<button
-						type="button"
-						class="admin__search-pill"
-						onclick={() => (paletteOpen = true)}
-						aria-label="Open command palette"
-					>
-						<MagnifyingGlassIcon size={16} weight="bold" />
-						<span>Search</span>
-						<kbd class="admin__search-pill-kbd">⌘K</kbd>
-					</button>
-					<Tooltip label="Open public site in same tab" placement="bottom">
-						<a href={resolve('/')} class="admin__view-site">
-							<ArrowSquareOutIcon size={16} weight="bold" />
-							<span>View site</span>
-						</a>
-					</Tooltip>
+				<div class="admin__shell-inner admin__shell-inner--topbar">
+					<nav class="admin__breadcrumbs" aria-label="Breadcrumb">
+						<ol class="admin__breadcrumbs-list">
+							{#each breadcrumbs as crumb, i (crumb.href)}
+								<li class="admin__breadcrumbs-item">
+									{#if i === breadcrumbs.length - 1}
+										<span class="admin__breadcrumbs-current" aria-current="page"
+											>{crumb.label}</span
+										>
+									{:else}
+										<!-- Breadcrumb hrefs are derived live from `page.url.pathname` (which already has `paths.base` applied), so they don't need a second `resolve()` pass — they are already real URLs, not route-id literals. -->
+										<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+										<a href={crumb.href} class="admin__breadcrumbs-link"
+											>{crumb.label}</a
+										>
+										<CaretRightIcon
+											size={18}
+											weight="bold"
+											class="admin__breadcrumbs-sep"
+										/>
+									{/if}
+								</li>
+							{/each}
+						</ol>
+					</nav>
+					<div class="admin__main-topbar-actions">
+						<button
+							type="button"
+							class="admin__search-pill"
+							onclick={() => (paletteOpen = true)}
+							aria-label="Open command palette"
+						>
+							<MagnifyingGlassIcon size={16} weight="bold" />
+							<span>Search</span>
+							<kbd class="admin__search-pill-kbd">⌘K</kbd>
+						</button>
+						<Tooltip label="Open public site in same tab" placement="bottom">
+							<a href={resolve('/')} class="admin__view-site">
+								<ArrowSquareOutIcon size={16} weight="bold" />
+								<span>View site</span>
+							</a>
+						</Tooltip>
+					</div>
 				</div>
 			</header>
 			<div class="admin__content">
-				{@render children()}
+				<div class="admin__shell-inner">
+					{@render children()}
+				</div>
 			</div>
 		</div>
 		<CommandPalette open={paletteOpen} onClose={() => (paletteOpen = false)} />
@@ -1244,10 +1248,34 @@
 		flex: 1 1 auto;
 		min-width: 0;
 		overflow-y: auto;
+		display: flex;
+		flex-direction: column;
+		/* Enables @container queries for the content column (Material 3 “window size class”–style adaptation independent of viewport). See: https://m3.material.io/foundations/layout/applying-layout/window-size-classes */
+		container-type: inline-size;
+		container-name: admin-main;
+	}
+
+	/**
+	 * Shared content column: max width + horizontal centering (Material / responsive admin pattern).
+	 * Padding uses clamp() for comfortable touch targets on narrow viewports.
+	 */
+	.admin__shell-inner {
+		width: 100%;
+		max-width: min(75rem, 100%);
+		margin-inline: auto;
+		padding-inline: clamp(1rem, 4vw, 1.5rem);
+		box-sizing: border-box;
+	}
+
+	.admin__shell-inner--topbar {
+		display: none;
 	}
 
 	.admin__content {
-		padding: 1rem;
+		flex: 1 1 auto;
+		min-width: 0;
+		padding-block: clamp(1rem, 3vw, 1.75rem);
+		padding-inline: 0;
 	}
 
 	/* Tablet breakpoint (768px+) */
@@ -1336,10 +1364,10 @@
 
 		.admin__main-topbar {
 			display: flex;
-			justify-content: space-between;
+			justify-content: center;
 			align-items: center;
-			gap: 1rem;
-			padding: 0.65rem 1.5rem;
+			gap: 0;
+			padding: 0;
 			border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 			background: rgba(11, 29, 58, 0.7);
 			backdrop-filter: blur(24px);
@@ -1351,45 +1379,75 @@
 			z-index: 20;
 		}
 
+		.admin__shell-inner--topbar {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 1rem;
+			min-height: 3.25rem;
+			padding-block: 0.65rem;
+			min-width: 0;
+		}
+
 		.admin__main-topbar-actions {
 			display: inline-flex;
 			align-items: center;
 			gap: 0.5rem;
+			flex-shrink: 0;
 			min-width: 0;
 		}
 
+		/* Trail grows across the top bar; actions keep intrinsic width (M3: prioritize readable navigation). */
 		.admin__breadcrumbs {
+			flex: 1 1 0;
 			min-width: 0;
 			overflow: hidden;
 		}
 
 		.admin__breadcrumbs-list {
-			display: inline-flex;
+			display: flex;
+			flex-wrap: nowrap;
 			align-items: center;
-			gap: 0.4rem;
+			gap: 0.55rem;
 			list-style: none;
 			padding: 0;
 			margin: 0;
 			min-width: 0;
+			width: 100%;
+			max-width: 100%;
 		}
 
 		.admin__breadcrumbs-item {
 			display: inline-flex;
 			align-items: center;
-			gap: 0.4rem;
-			font-size: 0.8125rem;
+			gap: 0.55rem;
+			font-size: 0.9375rem;
 			font-weight: 500;
+			line-height: 1.35;
 			color: var(--color-grey-300);
 			min-width: 0;
+		}
+
+		.admin__breadcrumbs-item:not(:last-child) {
+			flex-shrink: 0;
+		}
+
+		.admin__breadcrumbs-item:last-child {
+			flex: 1 1 0;
+			min-width: 0;
+			max-width: 100%;
 		}
 
 		.admin__breadcrumbs-link {
 			color: var(--color-grey-400);
 			font-weight: 500;
 			text-decoration: none;
-			padding: 0.15rem 0.35rem;
-			margin: -0.15rem -0.35rem;
+			padding: 0.3rem 0.45rem;
+			margin: -0.3rem -0.45rem;
 			border-radius: var(--radius-sm);
+			min-height: 2.25rem;
+			display: inline-flex;
+			align-items: center;
 			transition:
 				color 150ms var(--ease-out),
 				background-color 150ms var(--ease-out);
@@ -1407,18 +1465,53 @@
 		}
 
 		.admin__breadcrumbs-current {
+			display: block;
 			color: var(--color-white);
 			font-weight: 600;
+			font-size: 0.9375rem;
+			line-height: 1.35;
 			letter-spacing: -0.005em;
 			white-space: nowrap;
 			overflow: hidden;
 			text-overflow: ellipsis;
+			min-width: 0;
 		}
 
 		:global(.admin__breadcrumbs-sep) {
-			color: var(--color-grey-700);
+			color: var(--color-grey-600);
 			flex-shrink: 0;
-			opacity: 0.7;
+			opacity: 0.85;
+		}
+
+		/*
+		 * Compact main column (<600px): Material “compact” window class — avoid crushing the trail
+		 * beside actions; stack full-width rows (m3.material.io window size classes).
+		 */
+		@container admin-main (max-width: 599.98px) {
+			.admin__shell-inner--topbar {
+				flex-wrap: wrap;
+				align-items: flex-start;
+				row-gap: 0.625rem;
+				column-gap: 0.75rem;
+			}
+
+			.admin__breadcrumbs {
+				flex: 1 1 100%;
+				order: 1;
+				overflow: visible;
+			}
+
+			.admin__breadcrumbs-list {
+				flex-wrap: wrap;
+				row-gap: 0.35rem;
+			}
+
+			.admin__main-topbar-actions {
+				order: 2;
+				width: 100%;
+				justify-content: flex-end;
+				flex-wrap: wrap;
+			}
 		}
 
 		.admin__search-pill,
@@ -1479,21 +1572,16 @@
 			border-radius: var(--radius-md);
 			line-height: 1.4;
 		}
-
-		.admin__content {
-			padding: 1.5rem;
-		}
 	}
 
-	/* Desktop breakpoint (1024px+) */
+	/* Desktop breakpoint (1024px+): slightly more air; column stays centered via `.admin__shell-inner`. */
 	@media (min-width: 1024px) {
-		.admin__content {
-			padding: 2rem;
-			max-width: 1400px;
+		.admin__shell-inner {
+			padding-inline: clamp(1.5rem, 3vw, 2.25rem);
 		}
 
-		.admin__main-topbar {
-			padding: 0.65rem 2rem;
+		.admin__content {
+			padding-block: clamp(1.35rem, 2.5vw, 2.25rem);
 		}
 	}
 

@@ -428,7 +428,10 @@
 
 <style>
 	.page {
-		max-width: 1100px;
+		width: 100%;
+		max-width: min(1100px, 100%);
+		margin-inline: auto;
+		box-sizing: border-box;
 	}
 	.page__header {
 		margin-bottom: var(--space-5);

@@ -4,7 +4,7 @@
 	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
 	import UserPlusIcon from 'phosphor-svelte/lib/UserPlusIcon';
 	import ArrowClockwiseIcon from 'phosphor-svelte/lib/ArrowClockwiseIcon';
-	import { ApiError } from '$lib/api/client';
+	import { api, ApiError } from '$lib/api/client';
 	import {
 		adminMembersTyped,
 		type AdminMemberSearchQuery,
@@ -32,7 +32,12 @@
 	let cRole = $state<CreateMemberRequest['role']>('member');
 	let cTempPw = $state('');
 	let cVerified = $state(false);
-	let createResult = $state<{ id: string; needsPwSetup: boolean } | null>(null);
+	let cSendSetupEmail = $state(true);
+	let createResult = $state<{
+		id: string;
+		needsPwSetup: boolean;
+		inviteDispatched?: boolean | undefined;
+	} | null>(null);
 
 	function flash(msg: string) {
 		toast = msg;
@@ -82,8 +87,45 @@
 				temp_password: cTempPw.trim() ? cTempPw.trim() : undefined,
 				email_verified: cVerified
 			});
-			createResult = { id: res.user.id, needsPwSetup: res.requires_password_setup };
-			flash(`Created ${res.user.email}`);
+			let inviteDispatched: boolean | undefined;
+			if (res.requires_password_setup && cSendSetupEmail && !cTempPw.trim()) {
+				try {
+					const fr = await api.post<{ reset_url_dispatched: boolean }>(
+						`/api/admin/members/${res.user.id}/force-password-reset`,
+						{}
+					);
+					inviteDispatched = fr.reset_url_dispatched;
+				} catch (invErr) {
+					flash(
+						invErr instanceof ApiError
+							? `Created ${res.user.email}, but invite email failed: ${invErr.message}`
+							: `Created ${res.user.email}, but invite email failed.`
+					);
+					createResult = {
+						id: res.user.id,
+						needsPwSetup: res.requires_password_setup,
+						inviteDispatched: false
+					};
+					cEmail = '';
+					cName = '';
+					cTempPw = '';
+					cVerified = false;
+					await refresh();
+					return;
+				}
+			}
+			createResult = {
+				id: res.user.id,
+				needsPwSetup: res.requires_password_setup,
+				inviteDispatched
+			};
+			flash(
+				res.requires_password_setup && !cTempPw.trim() && cSendSetupEmail
+					? inviteDispatched
+						? `Created ${res.user.email} — setup email sent`
+						: `Created ${res.user.email} — account saved, but email was not dispatched (check email / notifications)`
+					: `Created ${res.user.email}`
+			);
 			cEmail = '';
 			cName = '';
 			cTempPw = '';
@@ -122,8 +164,11 @@
 		</div>
 		<p class="page__subtitle">
 			Indexed search backed by <code>pg_trgm</code> over email + name. Filters by role and
-			lifecycle status. Manual create gates on <code>admin.member.create</code>; passing a
-			temp password skips the invite flow.
+			lifecycle status. 			Manual create gates on <code>admin.member.create</code>. Administrator
+			accounts require <code>admin.role.manage</code>. Leaving the temp
+			password blank disables login until the user sets a password — you can
+			send a setup link by checking &quot;Send password setup email&quot;
+			(outbound email must be configured).
 		</p>
 	</header>
 
@@ -207,6 +252,7 @@
 						<option value="member">member</option>
 						<option value="author">author</option>
 						<option value="support">support</option>
+						<option value="admin">admin</option>
 					</select>
 				</div>
 				<div class="field">
@@ -220,6 +266,17 @@
 						bind:value={cTempPw}
 					/>
 				</div>
+				<label class="field field--checkbox" class:field--disabled={!!cTempPw.trim()}>
+					<input
+						type="checkbox"
+						bind:checked={cSendSetupEmail}
+						disabled={!!cTempPw.trim()}
+					/>
+					<span
+						>Send password setup email (uses the same secure link as &quot;force
+						reset&quot;)</span
+					>
+				</label>
 				<label class="field field--checkbox">
 					<input type="checkbox" bind:checked={cVerified} />
 					<span>Mark email verified</span>
@@ -241,7 +298,15 @@
 				<div class="hint">
 					<strong>{createResult.id}</strong>
 					{#if createResult.needsPwSetup}
-						created in disabled state — send reset link to enable login.
+						{#if createResult.inviteDispatched === true}
+							— setup link emailed (or queued).
+						{:else if createResult.inviteDispatched === false}
+							— account awaits a password; invite was not sent (check logs / email
+							config) or use Force reset from the member profile.
+						{:else}
+							— created in disabled state; send a reset link from the member
+							profile or run create again with &quot;Send password setup email&quot;.
+						{/if}
 					{:else}
 						created with the temp password you supplied.
 					{/if}
@@ -392,6 +457,9 @@
 		gap: var(--space-2);
 		font-size: var(--fs-sm);
 		color: var(--color-grey-300);
+	}
+	.field--disabled {
+		opacity: 0.55;
 	}
 	.field__label {
 		font-size: var(--fs-xs);

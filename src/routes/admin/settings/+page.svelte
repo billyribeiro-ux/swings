@@ -545,8 +545,11 @@
 
 <style>
 	.settings-page {
-		max-width: 56rem;
+		width: 100%;
+		max-width: min(56rem, 100%);
+		margin-inline: auto;
 		padding: 0 0 6rem;
+		box-sizing: border-box;
 	}
 
 	.settings-page__header {

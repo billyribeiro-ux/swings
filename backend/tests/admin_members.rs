@@ -269,7 +269,7 @@ async fn create_member_with_temp_password_logs_in() {
 }
 
 #[tokio::test]
-async fn cannot_create_admin_via_manual_create() {
+async fn can_create_admin_via_manual_create_when_actor_has_role_manage() {
     let Some(app) = TestApp::try_new().await else {
         return;
     };
@@ -279,18 +279,18 @@ async fn cannot_create_admin_via_manual_create() {
         .post_json::<Value>(
             "/api/admin/members",
             &json!({
-                "email": "shadow.admin@example.com",
-                "name":  "Shadow",
-                "role":  "admin"
+                "email": "new.admin@example.com",
+                "name":  "New Admin",
+                "role":  "admin",
+                "email_verified": true
             }),
             Some(&admin.access_token),
         )
         .await;
-    resp.assert_problem(AssertProblem {
-        status: StatusCode::BAD_REQUEST,
-        type_suffix: "bad-request",
-        title: "Bad Request",
-    });
+    resp.assert_status(StatusCode::CREATED);
+    let body: Value = resp.json().expect("body");
+    assert_eq!(body["user"]["role"], json!("admin"));
+    assert_eq!(body["user"]["email"], json!("new.admin@example.com"));
 }
 
 #[tokio::test]

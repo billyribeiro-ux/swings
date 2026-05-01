@@ -18,9 +18,10 @@
 //!   Manually create a member account with an explicit role and an
 //!   optional one-shot temporary password. When no password is set,
 //!   the account is created in a "disabled" state and the operator
-//!   is expected to send the new user a password-reset / invite
-//!   link via the existing recovery flow. The created row is
-//!   audited under `admin.member.create`.
+//!   can send a reset link via `POST .../force-password-reset`.
+//!   Seeding `role: admin` is allowed only when the actor also holds
+//!   `admin.role.manage` (same gate as assigning roles elsewhere).
+//!   The created row is audited under `admin.member.create`.
 
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
@@ -47,6 +48,7 @@ use crate::{
 
 const PERM_READ: &str = "admin.member.read";
 const PERM_CREATE: &str = "admin.member.create";
+const PERM_ROLE_MANAGE: &str = "admin.role.manage";
 
 const DEFAULT_LIMIT: i64 = 25;
 const MAX_LIMIT: i64 = 200;
@@ -85,9 +87,8 @@ pub struct CreateMemberRequest {
     pub email: String,
     #[validate(length(min = 1, max = 200, message = "Name is required (1-200 chars)"))]
     pub name: String,
-    /// Role to seed the account with. Admin is rejected — the
-    /// operator must escalate via the dedicated role-update endpoint
-    /// so the audit trail flags the event explicitly.
+    /// Role to seed the account with. `admin` requires
+    /// `admin.role.manage` in addition to `admin.member.create`.
     pub role: UserRole,
     /// Optional one-shot temporary password. When `None` the account
     /// is created in a disabled state (no login until the user
@@ -204,15 +205,10 @@ pub async fn create(
     req.validate()
         .map_err(|e| AppError::BadRequest(e.to_string()))?;
 
-    // Privilege escalation guard: forbid seeding the admin role via
-    // the manual-create surface. Operators who want a new admin must
-    // create a normal account and then escalate via
-    // PUT /api/admin/members/{id}/role, which the audit log marks
-    // separately as `user.role.update`.
+    // Privilege escalation: only operators who may assign roles (same
+    // catalogue key as the role-picker UI) may seed an admin directly.
     if matches!(req.role, UserRole::Admin) {
-        return Err(AppError::BadRequest(
-            "Cannot seed an admin account via manual create — escalate via /role".to_string(),
-        ));
+        privileged.require(&state.policy, PERM_ROLE_MANAGE)?;
     }
 
     let normalized = db::normalize_email(&req.email);

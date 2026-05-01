@@ -290,7 +290,7 @@
 		z-index: var(--z-tooltip, 9999);
 		display: inline-flex;
 		align-items: center;
-		max-width: 16rem;
+		max-width: 22rem;
 		padding: 0.35rem 0.55rem;
 		background: var(--color-navy-deep);
 		border: 1px solid rgba(255, 255, 255, 0.12);
