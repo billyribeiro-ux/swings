@@ -113,7 +113,7 @@ Pre-commit hook: `pnpm lint && pnpm test:unit -- --run`. Do not bypass without d
 
 ## Hard rules
 
-1. **Migrations are forward-only.** Never edit a `0NN_*.sql` file after it's been applied. Add a new one instead. Current versions: `001–087` (some gaps are fine; every prefix must be unique).
+1. **Migrations are forward-only.** Never edit a `0NN_*.sql` file after it's been applied. Add a new one instead. Highest version in tree: `091_perf_indexes.sql` (some gaps are fine; every prefix must be unique).
 2. **Audit every admin mutation.** Call `services::audit::record(...)` in every admin handler.
 3. **RBAC every admin mutation.** Call `policy.require(ctx, "admin.<resource>.<verb>")` before doing work. Matrix is seeded by `021_rbac.sql`.
 4. **`Idempotency-Key` on all admin POSTs.** Enforced by `backend/src/middleware/idempotency.rs`.
@@ -135,7 +135,7 @@ backend/
     middleware/       Tower layers (idempotency, rate-limit, IP allowlist)
     security/         Impersonation + IP allowlist
     commerce/ consent/ popups/ forms/ notifications/ pdf/  Domain modules
-  migrations/         Forward-only sqlx migrations (001–087)
+  migrations/         Forward-only sqlx migrations (highest: 091)
   tests/              Integration tests (real Postgres on :5433)
 e2e/                  Playwright specs
 ops/                  Prometheus rules + Grafana dashboard

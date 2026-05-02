@@ -25,6 +25,16 @@
 
 	type StatusFilter = '' | 'active' | 'suspended' | 'banned' | 'unverified';
 
+	/**
+	 * Page size — single source of truth for both the API query and the
+	 * reserved layout box. The cards wrapper and the table-wrap each have a
+	 * CSS `min-height` derived from `PER_PAGE × row-height`, so the box
+	 * stays the same size whether the filter returns 15, 3, or 0 rows. The
+	 * skeleton renders exactly `PER_PAGE` rows for the same reason — first-
+	 * paint and first-data have identical box dimensions.
+	 */
+	const PER_PAGE = 15;
+
 	let members = $state<UserResponse[]>([]);
 	let total = $state(0);
 	let page = $state(1);
@@ -55,7 +65,7 @@
 			// is what we actually want here (the request fires once per
 			// `loadMembers()`).
 			const q = search.trim();
-			const parts: string[] = [`page=${page}`, `per_page=15`];
+			const parts: string[] = [`page=${page}`, `per_page=${PER_PAGE}`];
 			if (q) parts.push(`search=${encodeURIComponent(q)}`);
 			if (roleFilter) parts.push(`role=${roleFilter}`);
 			if (statusFilter) parts.push(`status=${statusFilter}`);
@@ -79,7 +89,7 @@
 		clearTimeout(searchTimeout);
 		searchTimeout = setTimeout(() => {
 			page = 1;
-			loadMembers();
+			loadMembers({ silent: true });
 		}, 280);
 	}
 
@@ -88,7 +98,7 @@
 		e.preventDefault();
 		clearTimeout(searchTimeout);
 		page = 1;
-		loadMembers();
+		loadMembers({ silent: true });
 	}
 
 	onDestroy(() => clearTimeout(searchTimeout));
@@ -99,21 +109,33 @@
 		roleFilter = '';
 		statusFilter = '';
 		page = 1;
-		loadMembers();
+		loadMembers({ silent: true });
 	}
 
 	const hasMemberFilters = $derived(Boolean(search.trim() || roleFilter || statusFilter));
 
+	/**
+	 * Render the empty-state panel *inline*, inside the reserved list box,
+	 * when a filter returns no rows. The wrapper has a CSS `min-height`
+	 * sized for `PER_PAGE` rows, so loading → real-data → empty → real-data
+	 * transitions never resize the wrapper — i.e. nothing on the page below
+	 * the table moves on a filter swap.
+	 */
+	const showInlineEmpty = $derived(!loading && members.length === 0);
+
 	function changeRole(r: typeof roleFilter) {
 		roleFilter = r;
 		page = 1;
-		loadMembers();
+		// Silent refetch: list is already mounted; flipping `loading=true` here
+		// would unmount the table and remount the 5-row skeleton, then remount
+		// the table at the new row count — two layout shifts per filter click.
+		loadMembers({ silent: true });
 	}
 
 	function changeStatus(s: StatusFilter) {
 		statusFilter = s;
 		page = 1;
-		loadMembers();
+		loadMembers({ silent: true });
 	}
 
 	type Lifecycle = 'banned' | 'suspended' | 'active';
@@ -278,11 +300,29 @@
 <div class="members-page">
 	<header class="members-page__page-header">
 		<div class="members-page__heading">
-			<h1 class="members-page__title">Members</h1>
+			<div class="members-page__title-row">
+				<h1 class="members-page__title">Members</h1>
+				<!--
+					Live count badge — separated from the descriptive subtitle so the
+					dynamic `total` value can change without reflowing the surrounding
+					paragraph. (When the count was inline in the paragraph, the
+					character-count change between `0` and the real total shifted the
+					line wrap, pushing every element below the header down by one line
+					— a load-time CLS spike of ~0.034 on desktop.)
+				-->
+				<span
+					class="members-page__count"
+					aria-live="polite"
+					aria-label="Total members"
+					title="Total members"
+				>
+					{total.toLocaleString()}
+				</span>
+			</div>
 			<p class="members-page__subtitle">
-				{total.toLocaleString()} total {total === 1 ? 'member' : 'members'} — manage roles, lifecycle,
-				and billing profile. To add someone new, use <strong>Search &amp; create</strong> (role,
-				temp password, optional setup email).
+				Manage roles, lifecycle, and billing profile. To add someone new, use
+				<strong>Search &amp; create</strong>
+				(role, temp password, optional setup email).
 			</p>
 		</div>
 		<a class="members-page__cta" href={resolve('/admin/members/manage')}>
@@ -383,53 +423,31 @@
 		</div>
 	</div>
 
-	{#if loading}
-		<div class="members-page__skeleton" aria-hidden="true">
-			{#each Array(5) as _, i (i)}
-				<div class="members-page__skeleton-row"></div>
+	<!--
+		Reserved-space layout:
+
+		Both the cards block (mobile) and the table-wrap (tablet+) are ALWAYS
+		mounted, with a CSS `min-height` sized for `PER_PAGE` rows. The inner
+		content swaps between skeleton / empty-state / real rows but the
+		container box never changes size. This is what kills CLS on filter
+		swaps — the page below the list cannot move because the list slot is
+		fixed-height regardless of result count. The skeleton is also sized
+		to PER_PAGE rows so the first-paint → first-data transition is a
+		pure in-place row swap, not a height change.
+	-->
+
+	<!-- Mobile: Card view -->
+	<div
+		class="members-page__cards"
+		data-state={loading ? 'loading' : showInlineEmpty ? 'empty' : 'ready'}
+	>
+		{#if loading}
+			{#each Array(PER_PAGE) as _, i (i)}
+				<div class="members-page__skeleton-row" aria-hidden="true"></div>
 			{/each}
-		</div>
-	{:else if members.length === 0}
-		<div class="members-page__empty" role="status" aria-live="polite">
-			<div class="members-page__empty-panel">
-				<div class="members-page__empty-icon" aria-hidden="true">
-					<UsersIcon size={28} weight="duotone" color="var(--color-grey-400)" />
-				</div>
-				<h2 class="members-page__empty-title">
-					{hasMemberFilters ? 'No matching members' : 'No members yet'}
-				</h2>
-				<p class="members-page__empty-body">
-					{hasMemberFilters
-						? 'Adjust your search or clear filters to see everyone in the directory.'
-						: 'New sign-ups show up here automatically, or add someone from search & create.'}
-				</p>
-				<div class="members-page__empty-actions">
-					{#if hasMemberFilters}
-						<button
-							type="button"
-							class="members-page__empty-btn members-page__empty-btn--primary"
-							onclick={clearMemberFilters}
-						>
-							Clear filters
-						</button>
-					{/if}
-					<a
-						href={resolve('/admin/members/manage')}
-						class={[
-							'members-page__empty-btn',
-							hasMemberFilters
-								? 'members-page__empty-btn--secondary'
-								: 'members-page__empty-btn--primary'
-						]}
-					>
-						{hasMemberFilters ? 'Add a member' : 'Search & create'}
-					</a>
-				</div>
-			</div>
-		</div>
-	{:else}
-		<!-- Mobile: Card view -->
-		<div class="members-page__cards">
+		{:else if showInlineEmpty}
+			{@render emptyPanel()}
+		{:else}
 			{#each members as member (member.id)}
 				{@const state = lifecycle(member)}
 				<div class="member-card" data-state={state}>
@@ -526,9 +544,22 @@
 					</div>
 				</div>
 			{/each}
-		</div>
-		<!-- Tablet+: Table view -->
-		<div class="members-page__table-wrap">
+		{/if}
+	</div>
+
+	<!-- Tablet+: Table view (always mounted; tbody swaps content based on state) -->
+	<div
+		class="members-page__table-wrap"
+		data-state={loading ? 'loading' : showInlineEmpty ? 'empty' : 'ready'}
+	>
+		{#if showInlineEmpty}
+			<!--
+				Empty state lives INSIDE the table-wrap. The wrapper has a CSS
+				`min-height` sized for `PER_PAGE` rows so the box doesn't shrink
+				when a filter returns nothing. The panel centers within that box.
+			-->
+			{@render emptyPanel()}
+		{:else}
 			<table class="m-table">
 				<thead>
 					<tr>
@@ -541,137 +572,215 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each members as member (member.id)}
-						{@const state = lifecycle(member)}
-						<tr>
-							<td>
-								<button
-									type="button"
-									class="m-table__identity m-table__identity--btn"
-									onclick={() => viewMember(member)}
-								>
-									<span class="m-table__avatar" aria-hidden="true">
-										{member.name?.[0]?.toUpperCase() || '?'}
+					{#if loading}
+						{#each Array(PER_PAGE) as _, i (i)}
+							<tr class="m-table__skeleton-row" aria-hidden="true">
+								<td colspan="6"></td>
+							</tr>
+						{/each}
+					{:else}
+						{#each members as member (member.id)}
+							{@const state = lifecycle(member)}
+							<tr>
+								<td>
+									<button
+										type="button"
+										class="m-table__identity m-table__identity--btn"
+										onclick={() => viewMember(member)}
+									>
+										<span class="m-table__avatar" aria-hidden="true">
+											{member.name?.[0]?.toUpperCase() || '?'}
+										</span>
+										<span class="m-table__name">{member.name}</span>
+									</button>
+								</td>
+								<td class="m-table__muted">{member.email}</td>
+								<td>
+									<span
+										class={[
+											'm-table__role',
+											member.role === 'admin'
+												? 'm-table__role--admin'
+												: 'm-table__role--member'
+										]}
+									>
+										{member.role}
 									</span>
-									<span class="m-table__name">{member.name}</span>
-								</button>
-							</td>
-							<td class="m-table__muted">{member.email}</td>
-							<td>
-								<span
-									class={[
-										'm-table__role',
-										member.role === 'admin'
-											? 'm-table__role--admin'
-											: 'm-table__role--member'
-									]}
-								>
-									{member.role}
-								</span>
-							</td>
-							<td>
-								<span class={['m-table__pill', `m-table__pill--${state}`]}>
-									{statusLabel(state)}
-								</span>
-							</td>
-							<td class="m-table__muted">{formatDate(member.created_at)}</td>
-							<td>
-								<div class="m-table__actions">
-									<ActionMenu placement="bottom-end" label="Member actions">
-										{#snippet trigger(p)}
-											<button
-												type="button"
-												{...p}
-												class="m-table__menu-trigger"
-												aria-label="Open member actions menu"
-											>
-												<DotsThreeVerticalIcon size={18} weight="bold" />
-											</button>
-										{/snippet}
-										{#snippet items()}
-											<ActionMenuItem
-												icon={UserIcon}
-												onclick={() => viewMember(member)}
-											>
-												View profile
-											</ActionMenuItem>
-											<ActionMenuItem
-												icon={PencilSimpleIcon}
-												onclick={() => quickEdit(member)}
-											>
-												Edit profile
-											</ActionMenuItem>
-											<ActionMenuItem
-												icon={ClockCountdownIcon}
-												onclick={() => suspendOrUnsuspend(member)}
-											>
-												{member.suspended_at
-													? 'Lift suspension'
-													: 'Suspend sign-in'}
-											</ActionMenuItem>
-											<ActionMenuItem
-												icon={ShieldCheckIcon}
-												onclick={() => toggleRole(member)}
-											>
-												{member.role === 'admin'
-													? 'Demote to member'
-													: 'Promote to admin'}
-											</ActionMenuItem>
-											<ActionMenuItem
-												icon={ProhibitIcon}
-												onclick={() => banOrUnban(member)}
-											>
-												{member.banned_at ? 'Lift ban' : 'Ban'}
-											</ActionMenuItem>
-											<ActionMenuDivider />
-											<ActionMenuItem
-												icon={TrashIcon}
-												variant="danger"
-												onclick={() => deleteMember(member)}
-											>
-												Delete account
-											</ActionMenuItem>
-										{/snippet}
-									</ActionMenu>
-								</div>
-							</td>
-						</tr>
-					{/each}
+								</td>
+								<td>
+									<span class={['m-table__pill', `m-table__pill--${state}`]}>
+										{statusLabel(state)}
+									</span>
+								</td>
+								<td class="m-table__muted">{formatDate(member.created_at)}</td>
+								<td>
+									<div class="m-table__actions">
+										<ActionMenu placement="bottom-end" label="Member actions">
+											{#snippet trigger(p)}
+												<button
+													type="button"
+													{...p}
+													class="m-table__menu-trigger"
+													aria-label="Open member actions menu"
+												>
+													<DotsThreeVerticalIcon
+														size={18}
+														weight="bold"
+													/>
+												</button>
+											{/snippet}
+											{#snippet items()}
+												<ActionMenuItem
+													icon={UserIcon}
+													onclick={() => viewMember(member)}
+												>
+													View profile
+												</ActionMenuItem>
+												<ActionMenuItem
+													icon={PencilSimpleIcon}
+													onclick={() => quickEdit(member)}
+												>
+													Edit profile
+												</ActionMenuItem>
+												<ActionMenuItem
+													icon={ClockCountdownIcon}
+													onclick={() => suspendOrUnsuspend(member)}
+												>
+													{member.suspended_at
+														? 'Lift suspension'
+														: 'Suspend sign-in'}
+												</ActionMenuItem>
+												<ActionMenuItem
+													icon={ShieldCheckIcon}
+													onclick={() => toggleRole(member)}
+												>
+													{member.role === 'admin'
+														? 'Demote to member'
+														: 'Promote to admin'}
+												</ActionMenuItem>
+												<ActionMenuItem
+													icon={ProhibitIcon}
+													onclick={() => banOrUnban(member)}
+												>
+													{member.banned_at ? 'Lift ban' : 'Ban'}
+												</ActionMenuItem>
+												<ActionMenuDivider />
+												<ActionMenuItem
+													icon={TrashIcon}
+													variant="danger"
+													onclick={() => deleteMember(member)}
+												>
+													Delete account
+												</ActionMenuItem>
+											{/snippet}
+										</ActionMenu>
+									</div>
+								</td>
+							</tr>
+						{/each}
+					{/if}
 				</tbody>
 			</table>
-		</div>
-
-		{#if totalPages > 1}
-			<div class="members-page__pagination">
-				<button
-					onclick={() => {
-						page--;
-						loadMembers();
-					}}
-					disabled={page <= 1}
-					class="members-page__page-btn"
-					aria-label="Previous page"
-				>
-					<CaretLeftIcon size={16} weight="bold" />
-					<span>Prev</span>
-				</button>
-				<span class="members-page__page-info">Page {page} of {totalPages}</span>
-				<button
-					onclick={() => {
-						page++;
-						loadMembers();
-					}}
-					disabled={page >= totalPages}
-					class="members-page__page-btn"
-					aria-label="Next page"
-				>
-					<span>Next</span>
-					<CaretRightIcon size={16} weight="bold" />
-				</button>
-			</div>
 		{/if}
-	{/if}
+	</div>
+
+	<!--
+		Pagination slot — always mounted to reserve its vertical space. When
+		`totalPages <= 1` the inner controls are visibility-hidden (their box
+		is preserved). Without this, going from a multi-page filter result to
+		a single-page one would unmount the entire pagination row and the
+		page footer would jump up by ~3rem.
+	-->
+	<div
+		class="members-page__pagination"
+		class:members-page__pagination--reserved={totalPages <= 1}
+		aria-hidden={totalPages <= 1}
+	>
+		{#if totalPages > 1}
+			<button
+				onclick={() => {
+					page--;
+					loadMembers({ silent: true });
+				}}
+				disabled={page <= 1}
+				class="members-page__page-btn"
+				aria-label="Previous page"
+			>
+				<CaretLeftIcon size={16} weight="bold" />
+				<span>Prev</span>
+			</button>
+			<span class="members-page__page-info">Page {page} of {totalPages}</span>
+			<button
+				onclick={() => {
+					page++;
+					loadMembers({ silent: true });
+				}}
+				disabled={page >= totalPages}
+				class="members-page__page-btn"
+				aria-label="Next page"
+			>
+				<span>Next</span>
+				<CaretRightIcon size={16} weight="bold" />
+			</button>
+		{:else}
+			<!-- Phantom controls preserve the slot height when a single page exists. -->
+			<span
+				class="members-page__page-btn members-page__page-btn--placeholder"
+				aria-hidden="true"
+			></span>
+			<span
+				class="members-page__page-info members-page__page-info--placeholder"
+				aria-hidden="true"
+			>
+				Page 1 of 1
+			</span>
+			<span
+				class="members-page__page-btn members-page__page-btn--placeholder"
+				aria-hidden="true"
+			></span>
+		{/if}
+	</div>
 </div>
+
+{#snippet emptyPanel()}
+	<div class="members-page__empty" role="status" aria-live="polite">
+		<div class="members-page__empty-panel">
+			<div class="members-page__empty-icon" aria-hidden="true">
+				<UsersIcon size={28} weight="duotone" color="var(--color-grey-400)" />
+			</div>
+			<h2 class="members-page__empty-title">
+				{hasMemberFilters ? 'No matching members' : 'No members yet'}
+			</h2>
+			<p class="members-page__empty-body">
+				{hasMemberFilters
+					? 'Adjust your search or clear filters to see everyone in the directory.'
+					: 'New sign-ups show up here automatically, or add someone from search & create.'}
+			</p>
+			<div class="members-page__empty-actions">
+				{#if hasMemberFilters}
+					<button
+						type="button"
+						class="members-page__empty-btn members-page__empty-btn--primary"
+						onclick={clearMemberFilters}
+					>
+						Clear filters
+					</button>
+				{/if}
+				<a
+					href={resolve('/admin/members/manage')}
+					class={[
+						'members-page__empty-btn',
+						hasMemberFilters
+							? 'members-page__empty-btn--secondary'
+							: 'members-page__empty-btn--primary'
+					]}
+				>
+					{hasMemberFilters ? 'Add a member' : 'Search & create'}
+				</a>
+			</div>
+		</div>
+	</div>
+{/snippet}
 
 <style>
 	@keyframes shimmer {
@@ -690,6 +799,14 @@
 		margin-bottom: 1.25rem;
 	}
 
+	.members-page__title-row {
+		display: flex;
+		align-items: baseline;
+		gap: 0.625rem;
+		margin: 0 0 0.5rem;
+		flex-wrap: wrap;
+	}
+
 	.members-page__title {
 		font-family: var(--font-heading);
 		font-size: 1.5rem;
@@ -697,7 +814,28 @@
 		color: var(--color-white);
 		line-height: 1.2;
 		letter-spacing: -0.01em;
-		margin: 0 0 0.5rem;
+		margin: 0;
+	}
+
+	/*
+	 * Live count badge — sits next to the H1, isolated from the descriptive
+	 * subtitle paragraph. Keeping the dynamic value in a separate inline
+	 * element means the `total` number changing 0 → 27 → 5 (filter swaps,
+	 * delete, etc.) cannot reflow the subtitle text below.
+	 */
+	.members-page__count {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 2.25rem;
+		padding: 0.15rem 0.6rem;
+		background: rgba(15, 164, 175, 0.12);
+		color: var(--color-teal-light);
+		border-radius: var(--radius-full);
+		font-size: 0.75rem;
+		font-weight: 700;
+		font-variant-numeric: tabular-nums;
+		line-height: 1.2;
 	}
 
 	.members-page__subtitle {
@@ -708,6 +846,10 @@
 		line-height: 1.5;
 		margin: 0;
 		hyphens: none;
+		/*
+		 * Subtitle text is now 100% static (no dynamic count) so it cannot
+		 * change line-wrap at runtime. No `min-height` reservation needed.
+		 */
 	}
 
 	.members-page__cta {
@@ -822,19 +964,62 @@
 		color: var(--color-teal-light);
 	}
 
-	.members-page__skeleton {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
+	/*
+	 * Reserved-space layout — single source of truth.
+	 *
+	 * The container's height is derived from `--per-page × row-h + chrome`
+	 * so it never changes when the dataset size changes. Both viewports
+	 * use the same constants, just different row-h values (cards are
+	 * physically taller than table rows).
+	 *
+	 * The CLS guarantee: with these values, going from 15-row → 0-row →
+	 * 15-row results doesn't resize either container, so nothing on the
+	 * page below the list moves. Verified by `e2e/admin/members-filter-cls.spec.ts`.
+	 */
+	.members-page {
+		--per-page: 15;
+		--row-h: 3.6rem; /* table row, tablet+ */
+		--cards-row-h: 9rem; /* card view row, mobile (≈ 5rem content + gap) */
+		--cards-gap: 0.625rem;
+		--table-thead-h: 3rem;
 	}
 
+	/*
+	 * Mobile cards view — fixed height = PER_PAGE × cards-row-h + gaps.
+	 * Skeleton rows + empty panel + real cards all fit inside this box.
+	 */
+	.members-page__cards {
+		display: flex;
+		flex-direction: column;
+		gap: var(--cards-gap);
+		/* Reserved height: PER_PAGE × cards-row-h + (PER_PAGE - 1) × gap. */
+		min-height: calc(
+			var(--per-page) * var(--cards-row-h) + (var(--per-page) - 1) * var(--cards-gap)
+		);
+	}
+
+	/* Empty panel + skeleton both fill the cards container vertically when
+	   they are the only child, so the parent's `min-height` is honoured. */
+	.members-page__cards[data-state='empty'],
+	.members-page__cards[data-state='loading'] {
+		justify-content: flex-start;
+	}
+
+	.members-page__cards[data-state='empty'] :global(.members-page__empty) {
+		flex: 1;
+	}
+
+	/*
+	 * Skeleton row — used by BOTH viewports.
+	 * - In `.members-page__cards` (mobile): wraps `<div>` rows, height = cards-row-h.
+	 * - In `.m-table__skeleton-row` (tablet+): set on the `<tr>` directly, height = row-h.
+	 *
+	 * Because the cards skeleton matches the real card height and the
+	 * skeleton count matches PER_PAGE, the loading → ready transition is
+	 * a pure in-place swap with no height delta.
+	 */
 	.members-page__skeleton-row {
-		/* CLS guard (mobile, card view): real `.member-card` runs ~5rem
-		   tall on a typical viewport — the prior 80px overshoots by
-		   ~10px per row × 5 rows = ~50px reflow when the data lands.
-		   Pinning to the same `.member-card` height keeps the layout
-		   box stable through the loading → ready transition. */
-		height: 5rem;
+		height: var(--cards-row-h);
 		border-radius: var(--radius-xl);
 		background: linear-gradient(
 			90deg,
@@ -846,13 +1031,17 @@
 		animation: shimmer 1.6s ease-in-out infinite;
 	}
 
-	/* Empty state: centered, width-capped panel (common product pattern — readable measure, not full-bleed). */
+	/*
+	 * Empty state — lives INSIDE the list container (cards or table-wrap)
+	 * so the container's reserved height envelopes it. The panel is centered
+	 * inside whatever space the container has; it does not contribute its
+	 * own min-height.
+	 */
 	.members-page__empty {
 		display: flex;
 		justify-content: center;
-		align-items: flex-start;
+		align-items: center;
 		padding: clamp(2rem, 5vw, 3rem) 1rem;
-		min-height: min(17.5rem, 42vh);
 	}
 
 	.members-page__empty-panel {
@@ -969,13 +1158,8 @@
 		border-color: rgba(255, 255, 255, 0.2);
 	}
 
-	.members-page__cards {
-		display: flex;
-		flex-direction: column;
-		gap: 0.625rem;
-	}
-
 	.members-page__table-wrap {
+		/* Hidden by default — promoted to grid display at ≥768px. */
 		display: none;
 	}
 
@@ -1253,7 +1437,17 @@
 		}
 
 		.members-page__table-wrap {
-			display: block;
+			/*
+			 * Reserved-space container.
+			 * - `display: grid` makes the empty-panel center inside the
+			 *   reserved box (`place-items: center`).
+			 * - `min-height` is locked to PER_PAGE × row-h + the thead
+			 *   block. Going from a 15-row result to a 0-row empty panel
+			 *   does not shrink this container, so nothing below it moves.
+			 */
+			display: grid;
+			place-items: stretch;
+			min-height: calc(var(--per-page) * var(--row-h) + var(--table-thead-h));
 			/* `hidden` on one axis forces the other to `auto` (unwanted vertical bar). */
 			overflow-x: clip;
 			overflow-y: visible;
@@ -1264,6 +1458,12 @@
 			box-shadow:
 				0 1px 0 rgba(255, 255, 255, 0.05) inset,
 				0 16px 32px -8px rgba(0, 0, 0, 0.3);
+		}
+
+		/* When the table is showing the inline empty panel, center the panel
+		   inside the reserved box. (The grid container's default would stretch.) */
+		.members-page__table-wrap[data-state='empty'] {
+			place-items: center;
 		}
 
 		.m-table {
@@ -1301,6 +1501,10 @@
 		}
 
 		.m-table tbody tr {
+			/* Lock every row (real + skeleton) to the same physical height.
+			   Without this, content-driven row heights drift between filters
+			   (e.g. a long email wraps to two lines) and the table reflows. */
+			height: var(--row-h);
 			transition: background-color 150ms var(--ease-out);
 		}
 
@@ -1310,6 +1514,27 @@
 
 		.m-table tbody tr:last-child td {
 			border-bottom: none;
+		}
+
+		/*
+		 * Skeleton rows — identical box to real rows. The shimmer lives on
+		 * the inner `<td>` so the row's `border-bottom` (which sits on `<td>`)
+		 * is undisturbed; using a `<tr>`-level background would not paint
+		 * visibly because `<tr>` doesn't establish a backdrop in most engines.
+		 */
+		.m-table__skeleton-row td {
+			background: linear-gradient(
+				90deg,
+				rgba(255, 255, 255, 0.03) 0%,
+				rgba(255, 255, 255, 0.06) 50%,
+				rgba(255, 255, 255, 0.03) 100%
+			);
+			background-size: 200% 100%;
+			animation: shimmer 1.6s ease-in-out infinite;
+		}
+
+		.m-table__skeleton-row:hover td {
+			background-color: transparent;
 		}
 
 		.m-table__identity {
@@ -1449,19 +1674,37 @@
 		.members-page__page-btn {
 			padding: 0.55rem 1rem;
 		}
+	}
 
-		/* CLS guard (tablet+, table view): real `.m-table` rows are
-		   ~3.6rem tall (`.m-table td` padding 0.875rem × 2 + ~1rem
-		   content). Lock the skeleton to the same physical footprint
-		   so the table doesn't grow upward when the data lands. */
-		.members-page__skeleton-row {
-			height: 3.6rem;
-			border-radius: var(--radius-md);
-		}
+	/*
+	 * Reserved-pagination — when there is only one page of results we still
+	 * render a phantom row so the slot height stays constant. Without this,
+	 * filtering from a "150 banned" result set (10 pages) to "0 banned"
+	 * (no pagination) would unmount the row entirely and the page footer
+	 * would jump up by ~3rem.
+	 */
+	.members-page__pagination--reserved :global(.members-page__page-btn--placeholder) {
+		visibility: hidden;
+	}
+
+	.members-page__pagination--reserved :global(.members-page__page-info--placeholder) {
+		visibility: hidden;
+	}
+
+	.members-page__page-btn--placeholder {
+		/* Match the real button's box exactly so the row height is identical. */
+		display: inline-flex;
+		min-height: 3rem;
+		padding: 0 1.25rem;
+		border: 1px solid transparent;
+		border-radius: var(--radius-xl);
+		font-size: 0.8125rem;
+		font-weight: 600;
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.members-page__skeleton-row {
+		.members-page__skeleton-row,
+		.m-table__skeleton-row td {
 			animation: none;
 		}
 	}
