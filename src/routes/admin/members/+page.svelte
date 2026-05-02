@@ -35,7 +35,10 @@
 	let modalDays = $state('');
 	let modalResolve = $state<((v: { reason: string; days: string } | null) => void) | null>(null);
 
-	function openActionModal(member: UserResponse, mode: ModalMode): Promise<{ reason: string; days: string } | null> {
+	function openActionModal(
+		member: UserResponse,
+		mode: ModalMode
+	): Promise<{ reason: string; days: string } | null> {
 		return new Promise((resolve) => {
 			modalMember = member;
 			modalMode = mode;
@@ -237,7 +240,10 @@
 			until = ts.toISOString();
 		}
 		try {
-			await api.post(`/api/admin/members/${member.id}/suspend`, { reason: result.reason, until });
+			await api.post(`/api/admin/members/${member.id}/suspend`, {
+				reason: result.reason,
+				until
+			});
 			toast.success(
 				until
 					? `Suspended until ${new Date(until).toLocaleDateString()}`
@@ -842,7 +848,9 @@
 
 				{#if modalMode === 'suspend'}
 					<label class="action-modal__label" for="action-modal-days">
-						Duration in days <span class="action-modal__optional">(blank = open-ended)</span>
+						Duration in days <span class="action-modal__optional"
+							>(blank = open-ended)</span
+						>
 					</label>
 					<input
 						id="action-modal-days"
@@ -856,7 +864,11 @@
 			</div>
 
 			<div class="action-modal__footer">
-				<button type="button" class="action-modal__btn action-modal__btn--cancel" onclick={() => closeActionModal(false)}>
+				<button
+					type="button"
+					class="action-modal__btn action-modal__btn--cancel"
+					onclick={() => closeActionModal(false)}
+				>
 					Cancel
 				</button>
 				<button
