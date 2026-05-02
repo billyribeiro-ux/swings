@@ -204,13 +204,6 @@
 	// ────────────────────────────────────────────────────────────────────
 	// Formatters / delta math
 	// ────────────────────────────────────────────────────────────────────
-	function formatDate(dateStr: string): string {
-		return new Date(dateStr).toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric'
-		});
-	}
-
 	type Delta = { kind: 'up' | 'down' | 'flat'; pctLabel: string };
 
 	function computeDelta(current: number, previous: number): Delta {
@@ -572,100 +565,6 @@
 				{/if}
 			</article>
 		</div>
-
-		<!-- Recent Members -->
-		<section class="admin-dash__section" style="--section-delay: 360ms;">
-			<div class="admin-dash__section-header">
-				<div>
-					<span class="admin-dash__eyebrow admin-dash__eyebrow--inline">Members</span>
-					<h2 class="admin-dash__section-title">Recent sign-ups</h2>
-				</div>
-				<a href={resolve('/admin/members')} class="admin-dash__link">
-					<span>View all</span>
-					<ArrowRightIcon size={12} weight="bold" />
-				</a>
-			</div>
-
-			{#if stats.recent_members.length === 0}
-				<p class="admin-dash__empty">
-					<UsersIcon size={14} weight="regular" aria-hidden="true" />
-					<span>No members yet — sign-ups will appear here.</span>
-				</p>
-			{:else}
-				<!-- Mobile: Card view -->
-				<div class="admin-dash__cards">
-					{#each stats.recent_members as member (member.id)}
-						<div class="member-card">
-							<div class="member-card__row">
-								<span class="member-card__label">Name</span>
-								<span class="member-card__value member-card__name"
-									>{member.name}</span
-								>
-							</div>
-							<div class="member-card__row">
-								<span class="member-card__label">Email</span>
-								<span class="member-card__value">{member.email}</span>
-							</div>
-							<div class="member-card__row">
-								<span class="member-card__label">Role</span>
-								<span
-									class={[
-										'member-card__role',
-										member.role === 'admin'
-											? 'member-card__role--admin'
-											: 'member-card__role--member'
-									]}
-								>
-									{member.role}
-								</span>
-							</div>
-							<div class="member-card__row">
-								<span class="member-card__label">Joined</span>
-								<span class="member-card__value"
-									>{formatDate(member.created_at)}</span
-								>
-							</div>
-						</div>
-					{/each}
-				</div>
-				<!-- Tablet+: Table view -->
-				<div class="admin-dash__table-wrap">
-					<table class="admin-table">
-						<thead>
-							<tr>
-								<th>Name</th>
-								<th>Email</th>
-								<th>Role</th>
-								<th>Joined</th>
-							</tr>
-						</thead>
-						<tbody>
-							{#each stats.recent_members as member (member.id)}
-								<tr>
-									<td class="admin-table__name">{member.name}</td>
-									<td class="admin-table__muted">{member.email}</td>
-									<td>
-										<span
-											class={[
-												'admin-table__role',
-												member.role === 'admin'
-													? 'admin-table__role--admin'
-													: 'admin-table__role--member'
-											]}
-										>
-											{member.role}
-										</span>
-									</td>
-									<td class="admin-table__muted"
-										>{formatDate(member.created_at)}</td
-									>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-				</div>
-			{/if}
-		</section>
 
 		<!-- Quick Actions -->
 		<section class="admin-dash__section" style="--section-delay: 420ms;">
@@ -1293,122 +1192,6 @@
 		margin: 0 0 0.25rem 0;
 	}
 
-	.admin-dash__link {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.35rem;
-		font-size: 0.8125rem;
-		color: var(--color-teal-light);
-		font-weight: 600;
-		text-decoration: none;
-		white-space: nowrap;
-		padding: 0.4rem 0.6rem;
-		border-radius: var(--radius-md);
-		transition: all 150ms var(--ease-out);
-	}
-
-	.admin-dash__link:hover {
-		background: rgba(15, 164, 175, 0.1);
-		color: var(--color-teal-light);
-	}
-
-	/* ====================================================================
-	   EMPTY STATE — quiet inline note, not a full card
-	   ==================================================================== */
-	.admin-dash__empty {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.4rem;
-		padding: 0.4rem 0.65rem;
-		font-size: 0.75rem;
-		color: var(--color-grey-500);
-		line-height: 1.3;
-		margin: 0;
-	}
-
-	/* ====================================================================
-	   MEMBER CARDS (mobile)
-	   ==================================================================== */
-	.admin-dash__table-wrap {
-		display: block;
-	}
-
-	.admin-table {
-		display: none;
-	}
-
-	.admin-dash__cards {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.member-card {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-		padding: 1rem 1.25rem;
-		background: rgba(19, 43, 80, 0.35);
-		backdrop-filter: blur(24px);
-		-webkit-backdrop-filter: blur(24px);
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		border-radius: var(--radius-2xl);
-		box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.2);
-		transition: all 250ms var(--ease-out);
-	}
-
-	.member-card:hover {
-		border-color: rgba(255, 255, 255, 0.1);
-		transform: translateY(-1px);
-	}
-
-	.member-card__row {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.member-card__label {
-		font-size: 0.6875rem;
-		color: var(--color-grey-500);
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.06em;
-	}
-
-	.member-card__value {
-		font-size: 0.875rem;
-		font-weight: 400;
-		color: var(--color-grey-300);
-		text-align: right;
-		word-break: break-word;
-	}
-
-	.member-card__name {
-		font-weight: 600;
-		color: var(--color-white);
-	}
-
-	.member-card__role {
-		font-size: 0.6875rem;
-		font-weight: 600;
-		letter-spacing: 0.04em;
-		padding: 0.2rem 0.55rem;
-		border-radius: var(--radius-full);
-		text-transform: capitalize;
-	}
-
-	.member-card__role--admin {
-		background-color: rgba(245, 158, 11, 0.12);
-		color: #f59e0b;
-	}
-
-	.member-card__role--member {
-		background-color: rgba(15, 164, 175, 0.12);
-		color: var(--color-teal);
-	}
-
 	/* ====================================================================
 	   QUICK ACTIONS
 	   ==================================================================== */
@@ -1509,93 +1292,6 @@
 			margin-bottom: 2rem;
 		}
 
-		/* Show table, hide cards */
-		.admin-dash__table-wrap {
-			overflow-x: auto;
-			background: rgba(19, 43, 80, 0.35);
-			backdrop-filter: blur(24px);
-			-webkit-backdrop-filter: blur(24px);
-			border: 1px solid rgba(255, 255, 255, 0.08);
-			border-radius: var(--radius-2xl);
-			box-shadow:
-				0 1px 0 rgba(255, 255, 255, 0.05) inset,
-				0 16px 32px -8px rgba(0, 0, 0, 0.3);
-		}
-
-		.admin-table {
-			display: table;
-			width: 100%;
-			border-collapse: collapse;
-		}
-
-		.admin-dash__cards {
-			display: none;
-		}
-
-		.admin-table thead {
-			background-color: rgba(255, 255, 255, 0.02);
-		}
-
-		.admin-table th {
-			text-align: left;
-			font-size: 0.6875rem;
-			font-weight: 700;
-			color: var(--color-grey-500);
-			text-transform: uppercase;
-			letter-spacing: 0.05em;
-			padding: 0.875rem 1rem;
-			border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-		}
-
-		.admin-table td {
-			padding: 0.875rem 1rem;
-			font-size: 0.875rem;
-			font-weight: 400;
-			color: var(--color-grey-300);
-			border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-		}
-
-		.admin-table tbody tr {
-			transition: background-color 150ms var(--ease-out);
-		}
-
-		.admin-table tbody tr:hover {
-			background-color: rgba(255, 255, 255, 0.02);
-		}
-
-		.admin-table tbody tr:last-child td {
-			border-bottom: none;
-		}
-
-		.admin-table__name {
-			font-weight: 600;
-			color: var(--color-white);
-		}
-
-		.admin-table__muted {
-			color: var(--color-grey-400);
-		}
-
-		.admin-table__role {
-			display: inline-block;
-			font-size: 0.6875rem;
-			font-weight: 600;
-			letter-spacing: 0.04em;
-			padding: 0.2rem 0.6rem;
-			border-radius: var(--radius-full);
-			text-transform: capitalize;
-		}
-
-		.admin-table__role--admin {
-			background-color: rgba(245, 158, 11, 0.12);
-			color: #f59e0b;
-		}
-
-		.admin-table__role--member {
-			background-color: rgba(15, 164, 175, 0.12);
-			color: var(--color-teal);
-		}
-
 		.admin-dash__actions {
 			grid-template-columns: repeat(3, minmax(0, 1fr));
 			gap: 0.5rem;
@@ -1622,14 +1318,12 @@
 		}
 
 		.admin-dash__action,
-		.admin-dash__action--primary,
-		.member-card {
+		.admin-dash__action--primary {
 			transition: none;
 		}
 
 		.admin-dash__action:hover,
-		.admin-dash__action--primary:hover,
-		.member-card:hover {
+		.admin-dash__action--primary:hover {
 			transform: none;
 		}
 

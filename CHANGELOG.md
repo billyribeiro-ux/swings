@@ -10,6 +10,25 @@ Timestamps use the operator-facing calendar date attached to the change list.
 
 ---
 
+## 2026-05-01 23:30 ET — Removed "Recent sign-ups" from admin home
+
+The admin home page was rendering a "Recent sign-ups" table as the
+second-to-last section. That belongs on `/admin/members` (which already
+has a full members list with filters), not on the operator's main
+landing — admin home is for ops health (KPIs, quick actions), not
+member-acquisition feeds. Removed the section in
+`src/routes/admin/+page.svelte` and cleaned up:
+- The orphan `formatDate()` helper (only used by the removed section)
+- All orphan CSS (`.admin-dash__link`, `.admin-dash__empty`,
+  `.admin-dash__table-wrap`, `.admin-dash__cards`, the entire
+  `.admin-table*` block, the entire `.member-card*` block)
+- The reduced-motion rule that referenced `.member-card`
+
+`pnpm check` now: 4426 files / 0 errors / **0 warnings** (was 0 errors /
+31 warnings before the cleanup, all of them dead-CSS from this section).
+
+---
+
 ## 2026-05-01 23:15 ET — Clean-DB pass: seed strip, blog-post 500 fix, ellipsis member actions, consent banner z-index
 
 Shipped under commit `0597bb1` (squashed by the operator). This entry
