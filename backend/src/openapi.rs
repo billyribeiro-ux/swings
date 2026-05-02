@@ -247,6 +247,11 @@ impl Modify for SecurityAddon {
         member::post_switch_subscription_plan,
         member::get_switch_plan_preview,
         member::list_redeemed_coupons,
+        // Member native payment-methods management
+        member::list_payment_methods,
+        member::post_setup_intent,
+        member::post_set_default_payment_method,
+        member::delete_payment_method,
         // Outbox (FDN-04 admin ops)
         outbox::list_outbox,
         outbox::get_outbox,
@@ -557,6 +562,12 @@ impl Modify for SecurityAddon {
             member::SwitchPlanPreviewQuery,
             member::SwitchPlanPreviewResponse,
             member::MemberCouponRedemptionResponse,
+            // Native payment-methods management
+            member::MemberPaymentMethodsResponse,
+            member::SetupIntentResponse,
+            member::SetDefaultPaymentMethodResponse,
+            member::DeletePaymentMethodResponse,
+            crate::stripe_api::PaymentMethodSummary,
             // Outbox DTOs (FDN-04)
             outbox::OutboxRowDto,
             outbox::OutboxRetryResponse,

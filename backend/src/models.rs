@@ -377,6 +377,22 @@ pub struct Subscription {
     /// When TRUE the pricing rollout service skips this subscription regardless
     /// of audience setting — the member keeps their original price forever.
     pub price_protection_enabled: bool,
+    /// When the subscription will be canceled. Set when the member (or admin)
+    /// schedules a cancel-at-period-end; the row is otherwise NULL while the
+    /// subscription is active. Mirror of `subscriptions.cancel_at` from
+    /// migration `041_subscriptions_v2.sql`.
+    pub cancel_at: Option<DateTime<Utc>>,
+    /// When the subscription was paused via Stripe `pause_collection`. NULL
+    /// while active. Mirror of `subscriptions.paused_at` from migration
+    /// `041_subscriptions_v2.sql`.
+    pub paused_at: Option<DateTime<Utc>>,
+    /// When an open-pause should auto-lift. NULL means manual resume only —
+    /// the member must call `/unpause` explicitly. Mirror of
+    /// `subscriptions.pause_resumes_at` from `041_subscriptions_v2.sql`.
+    pub pause_resumes_at: Option<DateTime<Utc>>,
+    /// When the trial ends. NULL when the subscription is not in trial.
+    /// Mirror of `subscriptions.trial_end` from `041_subscriptions_v2.sql`.
+    pub trial_end: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -1505,6 +1521,16 @@ pub struct CouponUsage {
     pub subscription_id: Option<Uuid>,
     pub discount_applied_cents: i64,
     pub used_at: DateTime<Utc>,
+    /// ISO 4217 currency code (lowercase) the discount was denominated in
+    /// at redemption time. Defaults to `'usd'` for rows seeded before
+    /// migration 085. Frontend formats `discount_applied_cents` against
+    /// this code with `Intl.NumberFormat`.
+    pub currency: String,
+    /// Optional FK to `orders.id` when the redemption was tied to a
+    /// concrete order. NULL for subscription-only applications (the
+    /// `apply-coupon` member endpoint never has an order id) and for
+    /// legacy rows seeded before migration 085.
+    pub order_id: Option<Uuid>,
 }
 
 #[derive(Debug, Deserialize, ToSchema)]

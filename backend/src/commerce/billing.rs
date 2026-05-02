@@ -38,6 +38,13 @@ pub struct InvoiceFields {
     pub period_start: Option<DateTime<Utc>>,
     pub period_end: Option<DateTime<Utc>>,
     pub paid_at: Option<DateTime<Utc>>,
+    /// Stripe-hosted invoice page (member-friendly receipt). Populated by
+    /// Stripe once the invoice is finalized. Migration `084_*` adds the
+    /// matching column to `subscription_invoices`.
+    pub hosted_invoice_url: Option<String>,
+    /// Direct link to the rendered PDF for the invoice. Same lifecycle as
+    /// `hosted_invoice_url` above.
+    pub invoice_pdf: Option<String>,
 }
 
 impl InvoiceFields {
@@ -90,6 +97,17 @@ impl InvoiceFields {
             .and_then(|v| v.get("paid_at"))
             .and_then(|v| v.as_i64())
             .and_then(|ts| DateTime::from_timestamp(ts, 0));
+        // Stripe-hosted receipt + PDF. Both are top-level fields and exist
+        // once the invoice is finalized; we tolerate their absence on
+        // drafts.
+        let hosted_invoice_url = invoice
+            .get("hosted_invoice_url")
+            .and_then(|v| v.as_str())
+            .map(str::to_string);
+        let invoice_pdf = invoice
+            .get("invoice_pdf")
+            .and_then(|v| v.as_str())
+            .map(str::to_string);
         Some(Self {
             stripe_invoice_id,
             stripe_subscription_id,
@@ -102,6 +120,8 @@ impl InvoiceFields {
             period_start,
             period_end,
             paid_at,
+            hosted_invoice_url,
+            invoice_pdf,
         })
     }
 }
@@ -122,19 +142,24 @@ pub async fn upsert_invoice(
         INSERT INTO subscription_invoices (
             stripe_invoice_id, stripe_subscription_id, stripe_customer_id,
             subscription_id, user_id, status, amount_due_cents, amount_paid_cents,
-            currency, attempt_count, period_start, period_end, paid_at
+            currency, attempt_count, period_start, period_end, paid_at,
+            hosted_invoice_url, invoice_pdf
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
         ON CONFLICT (stripe_invoice_id) DO UPDATE
-           SET status            = EXCLUDED.status,
-               amount_paid_cents = EXCLUDED.amount_paid_cents,
-               amount_due_cents  = EXCLUDED.amount_due_cents,
-               attempt_count     = GREATEST(subscription_invoices.attempt_count,
-                                            EXCLUDED.attempt_count),
-               paid_at           = COALESCE(EXCLUDED.paid_at, subscription_invoices.paid_at),
-               subscription_id   = COALESCE(EXCLUDED.subscription_id, subscription_invoices.subscription_id),
-               user_id           = COALESCE(EXCLUDED.user_id, subscription_invoices.user_id),
-               updated_at        = NOW()
+           SET status             = EXCLUDED.status,
+               amount_paid_cents  = EXCLUDED.amount_paid_cents,
+               amount_due_cents   = EXCLUDED.amount_due_cents,
+               attempt_count      = GREATEST(subscription_invoices.attempt_count,
+                                             EXCLUDED.attempt_count),
+               paid_at            = COALESCE(EXCLUDED.paid_at, subscription_invoices.paid_at),
+               subscription_id    = COALESCE(EXCLUDED.subscription_id, subscription_invoices.subscription_id),
+               user_id            = COALESCE(EXCLUDED.user_id, subscription_invoices.user_id),
+               hosted_invoice_url = COALESCE(EXCLUDED.hosted_invoice_url,
+                                             subscription_invoices.hosted_invoice_url),
+               invoice_pdf        = COALESCE(EXCLUDED.invoice_pdf,
+                                             subscription_invoices.invoice_pdf),
+               updated_at         = NOW()
         RETURNING id
         "#,
     )
@@ -151,6 +176,8 @@ pub async fn upsert_invoice(
     .bind(invoice.period_start)
     .bind(invoice.period_end)
     .bind(invoice.paid_at)
+    .bind(&invoice.hosted_invoice_url)
+    .bind(&invoice.invoice_pdf)
     .fetch_one(pool)
     .await?;
     Ok(row.0)

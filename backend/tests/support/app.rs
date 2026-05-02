@@ -121,6 +121,40 @@ impl TestApp {
     /// Errors propagate via [`TestAppError`] so the caller can decide
     /// whether to skip (via [`TestApp::try_new`]) or fail outright.
     pub async fn new() -> TestResult<Self> {
+        Self::new_with_stripe_override(None).await
+    }
+
+    /// Like [`TestApp::try_new`] but additionally points the Stripe REST
+    /// client at `stripe_base_url`. Used by integration tests that drive
+    /// the member subscription Stripe round-trip end-to-end against a
+    /// `wiremock::MockServer` rather than the real Stripe API.
+    ///
+    /// Setting `stripe_base_url` also primes a non-empty `stripe_secret_key`
+    /// in the `Config` so the `client(state)` helper does not short-circuit
+    /// with the "Stripe is not configured" error before reaching the mock.
+    pub async fn try_new_with_stripe(stripe_base_url: &str) -> Option<Self> {
+        if !super::has_test_database() {
+            eprintln!(
+                "[TestApp] skipping: neither DATABASE_URL_TEST nor DATABASE_URL is set. \
+                 Start a Postgres and set one to enable integration tests."
+            );
+            return None;
+        }
+        match Self::new_with_stripe_override(Some(stripe_base_url.to_string())).await {
+            Ok(app) => Some(app),
+            Err(e) => {
+                eprintln!("[TestApp] skipping: harness init failed: {e}");
+                None
+            }
+        }
+    }
+
+    /// Internal: fully parameterised constructor used by both [`TestApp::new`]
+    /// and [`TestApp::try_new_with_stripe`]. `stripe_base_url` is `None` for
+    /// the default test config (matches production: hardcoded
+    /// `https://api.stripe.com`); `Some(url)` redirects every Stripe REST
+    /// call through the supplied base URL.
+    pub async fn new_with_stripe_override(stripe_base_url: Option<String>) -> TestResult<Self> {
         let db = TestDb::new().await?;
         let upload_dir = TempDir::new().map_err(TestAppError::from)?;
         let upload_path = upload_dir
@@ -134,7 +168,13 @@ impl TestApp {
             })?
             .to_string();
 
-        let config = test_config(upload_path.clone())?;
+        let mut config = test_config(upload_path.clone())?;
+        if let Some(base) = stripe_base_url {
+            // Prime a non-empty key so `client(state)` does not short-circuit
+            // with "Stripe is not configured" before reaching the mock.
+            config.stripe_secret_key = "sk_test_harness_stub".to_string();
+            config.stripe_api_base_url_override = Some(base);
+        }
         // Hydrate the authz policy from the freshly migrated schema. The
         // migration `021_rbac.sql` seeds the role_permissions catalogue, so
         // the snapshot here matches what `main.rs` would load in production.
@@ -885,6 +925,7 @@ fn test_config(upload_dir: String) -> TestResult<Config> {
         frontend_url: frontend_url.clone(),
         stripe_secret_key: String::new(),
         stripe_webhook_secret: String::new(),
+        stripe_api_base_url_override: None,
         upload_dir,
         api_url: "http://localhost:3001".to_string(),
         smtp_host: "smtp.example.test".to_string(),

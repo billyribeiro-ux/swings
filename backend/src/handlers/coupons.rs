@@ -96,6 +96,15 @@ pub struct ApplyCouponRequest {
     pub course_id: Option<Uuid>,
     pub amount_cents: i64,
     pub subscription_id: Option<Uuid>,
+    /// Optional order this redemption is attached to. When set, the
+    /// `coupon_usages.order_id` row is populated so the member coupons
+    /// history page can deep-link to the order detail view.
+    #[serde(default)]
+    pub order_id: Option<Uuid>,
+    /// Optional currency override (lowercase ISO 4217). Defaults to `usd`
+    /// when absent. The discount is denominated in this currency.
+    #[serde(default)]
+    pub currency: Option<String>,
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────
@@ -1146,10 +1155,22 @@ pub(crate) async fn public_apply_coupon(
     // Insert usage record and increment usage_count in a transaction
     let mut tx = state.db.begin().await?;
 
+    // `currency` falls back to `'usd'` because the legacy `coupons` table
+    // has no per-row currency column; if the caller passes one explicitly
+    // we honour it (lowercased to match the storage convention).
+    // `order_id` is taken from the request when present, NULL otherwise.
+    let currency = req
+        .currency
+        .as_deref()
+        .map(|c| c.trim().to_lowercase())
+        .filter(|c| !c.is_empty())
+        .unwrap_or_else(|| "usd".to_string());
     let usage: CouponUsage = sqlx::query_as(
         r#"
-        INSERT INTO coupon_usages (id, coupon_id, user_id, subscription_id, discount_applied_cents, used_at)
-        VALUES ($1, $2, $3, $4, $5, NOW())
+        INSERT INTO coupon_usages
+            (id, coupon_id, user_id, subscription_id, discount_applied_cents,
+             currency, order_id, used_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
         RETURNING *
         "#,
     )
@@ -1158,6 +1179,8 @@ pub(crate) async fn public_apply_coupon(
     .bind(auth.user_id)
     .bind(req.subscription_id)
     .bind(discount_applied_cents)
+    .bind(currency)
+    .bind(req.order_id)
     .fetch_one(&mut *tx)
     .await?;
 

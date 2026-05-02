@@ -2316,6 +2316,22 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/member/coupons/redeemed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_redeemed_coupons"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/member/courses/{course_id}/enroll": {
         parameters: {
             query?: never;
@@ -2380,6 +2396,38 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/api/member/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_orders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/member/orders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_order_detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/member/password": {
         parameters: {
             query?: never;
@@ -2390,6 +2438,70 @@ export type paths = {
         get?: never;
         put?: never;
         post: operations["post_change_password"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/member/payment-methods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_payment_methods"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/member/payment-methods/setup-intent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["post_setup_intent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/member/payment-methods/{pm_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["delete_payment_method"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/member/payment-methods/{pm_id}/set-default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["post_set_default_payment_method"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2438,6 +2550,134 @@ export type paths = {
         get?: never;
         put?: never;
         post: operations["post_subscription_resume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/member/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_subscriptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/member/subscriptions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_subscription_detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/member/subscriptions/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["post_cancel_subscription"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/member/subscriptions/{id}/pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["post_pause_subscription"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/member/subscriptions/{id}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["post_resume_subscription"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/member/subscriptions/{id}/switch-plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["post_switch_subscription_plan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/member/subscriptions/{id}/switch-plan/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_switch_plan_preview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/member/subscriptions/{id}/unpause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["post_unpause_subscription"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3694,6 +3934,10 @@ export type components = {
             /** @description Inclusive end `YYYY-MM-DD`. Required when `range=custom`, ignored otherwise. */
             to?: string | null;
         };
+        /** @description Response body for `DELETE /api/member/payment-methods/{pm_id}`. */
+        DeletePaymentMethodResponse: {
+            deleted: boolean;
+        };
         DeliveryListQuery: {
             status?: string | null;
             /** Format: uuid */
@@ -4171,6 +4415,32 @@ export type components = {
             created_at: string;
             metadata: unknown;
         };
+        MemberCouponRedemptionResponse: {
+            /** Format: uuid */
+            id: string;
+            coupon_code: string;
+            /** Format: int64 */
+            discount_applied_cents: number;
+            /** Format: date-time */
+            redeemed_at: string;
+            /** Format: uuid */
+            subscription_id?: string | null;
+            /**
+             * @description ISO 4217 currency code (lowercase) the discount was denominated
+             *     in at redemption time. Frontend formats `discount_applied_cents`
+             *     against this code so members see e.g. `−$5.00 USD` or
+             *     `−€10.00 EUR` rather than a bare cent value.
+             */
+            currency: string;
+            /**
+             * Format: uuid
+             * @description FK to `orders.id` when the redemption was tied to a concrete
+             *     order (vs. attached only to a subscription). NULL when no order
+             *     was involved — the member UI hides the "view order" link in that
+             *     case.
+             */
+            order_id?: string | null;
+        };
         /**
          * @description Composite payload returned by `GET /api/admin/members/{id}/detail`.
          *     Pre-bundles the member, their current subscription, and the recent
@@ -4182,6 +4452,65 @@ export type components = {
             subscription?: null | components["schemas"]["Subscription"];
             activity: components["schemas"]["MemberActivityEntry"][];
             payment_failures: components["schemas"]["MemberPaymentFailure"][];
+        };
+        MemberOrderDetailResponse: {
+            order: components["schemas"]["Order"];
+            items: components["schemas"]["OrderItem"][];
+            refunds: components["schemas"]["MemberOrderRefund"][];
+            state_log: components["schemas"]["MemberOrderStateTransition"][];
+        };
+        /**
+         * @description Compact order row returned by `GET /api/member/orders` and embedded
+         *     inside [`MemberSubscriptionDetailResponse::related_orders`]. Strict
+         *     subset of the admin `Order` shape — the SPA only renders the columns
+         *     actually visible on the member dashboard.
+         */
+        MemberOrderListItem: {
+            /** Format: uuid */
+            id: string;
+            number: string;
+            status: string;
+            currency: string;
+            /** Format: int64 */
+            total_cents: number;
+            /** Format: int64 */
+            item_count: number;
+            /** Format: date-time */
+            placed_at?: string | null;
+            /** Format: date-time */
+            completed_at?: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        /**
+         * @description Lightweight refund row exposed to members. We deliberately omit
+         *     `created_by` (operator id) — that's privileged context.
+         */
+        MemberOrderRefund: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int64 */
+            amount_cents: number;
+            reason?: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        /**
+         * @description One transition in the order's state log; mirrors the
+         *     `order_state_transitions` row shape minus the actor id.
+         */
+        MemberOrderStateTransition: {
+            from_status: string;
+            to_status: string;
+            reason?: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        MemberOrdersListQuery: {
+            /** Format: int64 */
+            page?: number | null;
+            /** Format: int64 */
+            per_page?: number | null;
         };
         /** @description One row in the recent-payment-failures list on the member detail page. */
         MemberPaymentFailure: {
@@ -4196,8 +4525,92 @@ export type components = {
             /** Format: date-time */
             created_at: string;
         };
+        /** @description Wire shape returned by `GET /api/member/payment-methods`. */
+        MemberPaymentMethodsResponse: {
+            payment_methods: components["schemas"]["PaymentMethodSummary"][];
+            default_payment_method_id?: string | null;
+        };
         MemberPreferencesResponse: {
             preferences: components["schemas"]["NotificationPreference"][];
+        };
+        MemberSubscriptionDetailResponse: {
+            subscription: components["schemas"]["Subscription"];
+            plan?: null | components["schemas"]["PricingPlan"];
+            invoices: components["schemas"]["MemberSubscriptionInvoice"][];
+            related_orders: components["schemas"]["MemberOrderListItem"][];
+        };
+        /**
+         * @description Mirror of `subscription_invoices` with only the columns we surface to
+         *     members (no `attempt_count`, no actor metadata).
+         */
+        MemberSubscriptionInvoice: {
+            /** Format: uuid */
+            id: string;
+            stripe_invoice_id: string;
+            status: string;
+            /** Format: int64 */
+            amount_due_cents: number;
+            /** Format: int64 */
+            amount_paid_cents: number;
+            currency: string;
+            /** Format: date-time */
+            period_start?: string | null;
+            /** Format: date-time */
+            period_end?: string | null;
+            /** Format: date-time */
+            paid_at?: string | null;
+            /**
+             * @description Stripe-hosted invoice page (member-friendly receipt). Populated by
+             *     the `invoice.paid` / `invoice.payment_failed` webhooks once Stripe
+             *     has finalized the invoice. NULL on drafts.
+             */
+            hosted_invoice_url?: string | null;
+            /**
+             * @description Direct link to the PDF rendering of the invoice. Same lifecycle as
+             *     `hosted_invoice_url` — populated when Stripe finalizes the invoice.
+             */
+            invoice_pdf?: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        /**
+         * @description Compact subscription row for `GET /api/member/subscriptions`. Joins
+         *     `pricing_plans` so the SPA can render the catalog name + price without
+         *     a follow-up call.
+         */
+        MemberSubscriptionListItem: {
+            /** Format: uuid */
+            id: string;
+            plan: components["schemas"]["SubscriptionPlan"];
+            status: components["schemas"]["SubscriptionStatus"];
+            /** Format: date-time */
+            current_period_start: string;
+            /** Format: date-time */
+            current_period_end: string;
+            /** Format: date-time */
+            paused_at?: string | null;
+            /** Format: date-time */
+            pause_resumes_at?: string | null;
+            /**
+             * @description Derived from `subscriptions.cancel_at IS NOT NULL`. Stripe stores
+             *     the boolean separately; we mirror the admin handler convention so
+             *     both surfaces agree.
+             */
+            cancel_at_period_end: boolean;
+            /** Format: uuid */
+            pricing_plan_id?: string | null;
+            plan_name?: string | null;
+            /** Format: int64 */
+            amount_cents?: number | null;
+            currency?: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        MemberSubscriptionsListQuery: {
+            /** Format: int64 */
+            page?: number | null;
+            /** Format: int64 */
+            per_page?: number | null;
         };
         MembershipRow: {
             /** Format: uuid */
@@ -4410,6 +4823,32 @@ export type components = {
             total_pages: number;
         };
         /**
+         * @description OpenAPI wrapper around `PaginatedResponse<MemberOrderListItem>` so the
+         *     snapshot doesn't leak the generic into `ApiDoc`.
+         */
+        PaginatedMemberOrdersResponse: {
+            data: components["schemas"]["MemberOrderListItem"][];
+            /** Format: int64 */
+            total: number;
+            /** Format: int64 */
+            page: number;
+            /** Format: int64 */
+            per_page: number;
+            /** Format: int64 */
+            total_pages: number;
+        };
+        PaginatedMemberSubscriptionsResponse: {
+            data: components["schemas"]["MemberSubscriptionListItem"][];
+            /** Format: int64 */
+            total: number;
+            /** Format: int64 */
+            page: number;
+            /** Format: int64 */
+            per_page: number;
+            /** Format: int64 */
+            total_pages: number;
+        };
+        /**
          * @description OpenAPI wrapper so the snapshot carries a concrete `PaginatedResponse<OutboxRowDto>`
          *     schema without bleeding the generic into `ApiDoc`.
          */
@@ -4570,6 +5009,14 @@ export type components = {
             /** Format: date-time */
             updated_at: string;
         };
+        PauseSubscriptionRequest: {
+            /**
+             * Format: date-time
+             * @description Optional RFC3339 timestamp at which the subscription should auto-resume.
+             *     `None` ⇒ open-ended pause (member must call `unpause` to lift).
+             */
+            resume_at?: string | null;
+        };
         PaymentIntentClientResponse: {
             intent_id: string;
             client_secret: string;
@@ -4593,6 +5040,32 @@ export type components = {
              *     later cross-link `form_payment_intents.partial_id`).
              */
             resume_token?: string | null;
+        };
+        /**
+         * @description Compact view of a Stripe `PaymentMethod` (card type only) returned to
+         *     the SPA. The wire shape is intentionally minimal — we never expose
+         *     raw Stripe identifiers beyond the `pm_*` id, and we never round-trip
+         *     the underlying card number, expiry CVC, or fingerprint. The
+         *     publishable key + Stripe Elements iframe own the PCI scope.
+         */
+        PaymentMethodSummary: {
+            id: string;
+            /**
+             * @description Card brand (`visa`, `mastercard`, `amex`, `discover`, etc.). Always
+             *     lowercased per Stripe's contract.
+             */
+            brand: string;
+            last4: string;
+            /** Format: int64 */
+            exp_month: number;
+            /** Format: int64 */
+            exp_year: number;
+            /**
+             * @description Set true when this `id` matches the customer's
+             *     `invoice_settings.default_payment_method`. Computed at the API edge
+             *     because it requires a separate `GET /v1/customers/{id}` round trip.
+             */
+            is_default: boolean;
         };
         /**
          * @description Per-window counts. The dashboard sends two of these — the selected window
@@ -5012,6 +5485,10 @@ export type components = {
         SetBundleItemsRequest: {
             items: components["schemas"]["BundleItemInput"][];
         };
+        /** @description Response body for `POST /api/member/payment-methods/{pm_id}/set-default`. */
+        SetDefaultPaymentMethodResponse: {
+            default_payment_method_id: string;
+        };
         /** @description Admin-only payload for `POST /api/admin/products/{id}/status`. */
         SetStatusRequest: {
             status: components["schemas"]["ProductStatus"];
@@ -5082,6 +5559,10 @@ export type components = {
             updated_at: string;
             /** Format: uuid */
             updated_by?: string | null;
+        };
+        /** @description Response body for `POST /api/member/payment-methods/setup-intent`. */
+        SetupIntentResponse: {
+            client_secret: string;
         };
         State: {
             /** @description ISO 3166-2 (`"US-CA"`, `"CA-ON"`). */
@@ -5163,6 +5644,34 @@ export type components = {
              *     of audience setting — the member keeps their original price forever.
              */
             price_protection_enabled: boolean;
+            /**
+             * Format: date-time
+             * @description When the subscription will be canceled. Set when the member (or admin)
+             *     schedules a cancel-at-period-end; the row is otherwise NULL while the
+             *     subscription is active. Mirror of `subscriptions.cancel_at` from
+             *     migration `041_subscriptions_v2.sql`.
+             */
+            cancel_at?: string | null;
+            /**
+             * Format: date-time
+             * @description When the subscription was paused via Stripe `pause_collection`. NULL
+             *     while active. Mirror of `subscriptions.paused_at` from migration
+             *     `041_subscriptions_v2.sql`.
+             */
+            paused_at?: string | null;
+            /**
+             * Format: date-time
+             * @description When an open-pause should auto-lift. NULL means manual resume only —
+             *     the member must call `/unpause` explicitly. Mirror of
+             *     `subscriptions.pause_resumes_at` from `041_subscriptions_v2.sql`.
+             */
+            pause_resumes_at?: string | null;
+            /**
+             * Format: date-time
+             * @description When the trial ends. NULL when the subscription is not in trial.
+             *     Mirror of `subscriptions.trial_end` from `041_subscriptions_v2.sql`.
+             */
+            trial_end?: string | null;
             /** Format: date-time */
             created_at: string;
             /** Format: date-time */
@@ -5295,6 +5804,34 @@ export type components = {
              *     `unsuspend` call.
              */
             until?: string | null;
+        };
+        SwitchPlanPreviewQuery: {
+            /** Format: uuid */
+            pricing_plan_id: string;
+        };
+        SwitchPlanPreviewResponse: {
+            /** Format: int64 */
+            proration_credit_cents: number;
+            /** Format: int64 */
+            proration_charge_cents: number;
+            /** Format: int64 */
+            immediate_total_cents: number;
+            /** Format: int64 */
+            next_invoice_total_cents: number;
+            currency: string;
+        };
+        SwitchPlanRequest: {
+            /**
+             * Format: uuid
+             * @description Target `pricing_plans.id` to switch the subscription onto.
+             */
+            pricing_plan_id: string;
+            /**
+             * @description When `true` (default) Stripe creates prorations for the swap.
+             *     `false` defers the new price to the next renewal — useful for
+             *     downgrades that should not refund mid-cycle.
+             */
+            prorate?: boolean;
         };
         /**
          * @description A concrete template row loaded from `notification_templates`.
@@ -5619,6 +6156,12 @@ export type components = {
             linkedin_url?: string | null;
             youtube_url?: string | null;
             instagram_url?: string | null;
+            /**
+             * @description Phase 5: free-text phone number. Validation is intentionally minimal
+             *     at the API edge — the DB CHECK in migration 079 caps it at 32 chars.
+             */
+            phone?: string | null;
+            billing_address?: null | components["schemas"]["BillingAddress"];
         };
         UpdateTemplateRequest: {
             subject?: string | null;
@@ -12122,6 +12665,33 @@ export interface operations {
             };
         };
     };
+    list_redeemed_coupons: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Coupon redemptions for the authenticated member */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberCouponRedemptionResponse"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     enroll_course: {
         parameters: {
             query?: never;
@@ -12299,6 +12869,75 @@ export interface operations {
             };
         };
     };
+    list_orders: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number (default 1) */
+                page?: number;
+                /** @description Page size (default 20, max 50) */
+                per_page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated orders for the authenticated member */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedMemberOrdersResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_order_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Order id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Order detail */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberOrderDetailResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Order not found or not owned by the member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     post_change_password: {
         parameters: {
             query?: never;
@@ -12330,6 +12969,155 @@ export interface operations {
             };
             /** @description Unauthorized or current_password mismatch */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_payment_methods: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Saved payment methods + the customer's current default */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberPaymentMethodsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Member has no Stripe customer on file */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    post_setup_intent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Stripe SetupIntent client_secret for Stripe Elements */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupIntentResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Member has no Stripe customer on file */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    delete_payment_method: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Stripe payment method id (`pm_*`) */
+                pm_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Payment method detached */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletePaymentMethodResponse"];
+                };
+            };
+            /** @description Refused: card is the active subscription's default */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Payment method not found or not owned by the member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    post_set_default_payment_method: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Stripe payment method id (`pm_*`) */
+                pm_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Default payment method updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetDefaultPaymentMethodResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Payment method not found or not owned by the member */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -12425,6 +13213,322 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_subscriptions: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number (default 1) */
+                page?: number;
+                /** @description Page size (default 20, max 50) */
+                per_page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Full subscription history for the authenticated member */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedMemberSubscriptionsResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_subscription_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Subscription id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Subscription detail (plan + invoices + related orders) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberSubscriptionDetailResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Subscription not found or not owned by the member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    post_cancel_subscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Subscription id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Cancel-at-period-end flag set on the subscription */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Subscription"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Subscription not found or not owned by the member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    post_pause_subscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Subscription id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PauseSubscriptionRequest"];
+            };
+        };
+        responses: {
+            /** @description Subscription paused */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Subscription"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Subscription not found or not owned by the member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    post_resume_subscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Subscription id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Cancel-at-period-end flag cleared */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Subscription"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Subscription not found or not owned by the member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    post_switch_subscription_plan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Subscription id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SwitchPlanRequest"];
+            };
+        };
+        responses: {
+            /** @description Subscription switched to the new plan */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Subscription"];
+                };
+            };
+            /** @description Target plan invalid (no Stripe price id, missing line item, etc.) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Subscription or pricing plan not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_switch_plan_preview: {
+        parameters: {
+            query: {
+                /** @description Target pricing_plans.id to preview */
+                pricing_plan_id: string;
+            };
+            header?: never;
+            path: {
+                /** @description Subscription id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Stripe upcoming-invoice proration preview */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SwitchPlanPreviewResponse"];
+                };
+            };
+            /** @description Target plan invalid or local subscription has no Stripe twin */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Subscription or pricing plan not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    post_unpause_subscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Subscription id */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Subscription resumed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Subscription"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Subscription not found or not owned by the member */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

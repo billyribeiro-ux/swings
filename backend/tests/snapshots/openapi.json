@@ -7895,6 +7895,155 @@
         ]
       }
     },
+    "/api/member/payment-methods": {
+      "get": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "list_payment_methods",
+        "responses": {
+          "200": {
+            "description": "Saved payment methods + the customer's current default",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberPaymentMethodsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Member has no Stripe customer on file"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/payment-methods/setup-intent": {
+      "post": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "post_setup_intent",
+        "responses": {
+          "200": {
+            "description": "Stripe SetupIntent client_secret for Stripe Elements",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupIntentResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Member has no Stripe customer on file"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/payment-methods/{pm_id}": {
+      "delete": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "delete_payment_method",
+        "parameters": [
+          {
+            "name": "pm_id",
+            "in": "path",
+            "description": "Stripe payment method id (`pm_*`)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment method detached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletePaymentMethodResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Refused: card is the active subscription's default"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Payment method not found or not owned by the member"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
+    "/api/member/payment-methods/{pm_id}/set-default": {
+      "post": {
+        "tags": [
+          "member"
+        ],
+        "operationId": "post_set_default_payment_method",
+        "parameters": [
+          {
+            "name": "pm_id",
+            "in": "path",
+            "description": "Stripe payment method id (`pm_*`)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default payment method updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetDefaultPaymentMethodResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Payment method not found or not owned by the member"
+          }
+        },
+        "security": [
+          {
+            "bearer_auth": []
+          }
+        ]
+      }
+    },
     "/api/member/profile": {
       "put": {
         "tags": [
@@ -12077,6 +12226,18 @@
           }
         }
       },
+      "DeletePaymentMethodResponse": {
+        "type": "object",
+        "description": "Response body for `DELETE /api/member/payment-methods/{pm_id}`.",
+        "required": [
+          "deleted"
+        ],
+        "properties": {
+          "deleted": {
+            "type": "boolean"
+          }
+        }
+      },
       "DeliveryListQuery": {
         "type": "object",
         "properties": {
@@ -13393,7 +13554,8 @@
           "id",
           "coupon_code",
           "discount_applied_cents",
-          "redeemed_at"
+          "redeemed_at",
+          "currency"
         ],
         "properties": {
           "id": {
@@ -13417,6 +13579,18 @@
               "null"
             ],
             "format": "uuid"
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217 currency code (lowercase) the discount was denominated\nin at redemption time. Frontend formats `discount_applied_cents`\nagainst this code so members see e.g. `−$5.00 USD` or\n`−€10.00 EUR` rather than a bare cent value."
+          },
+          "order_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "FK to `orders.id` when the redemption was tied to a concrete\norder (vs. attached only to a subscription). NULL when no order\nwas involved — the member UI hides the \"view order\" link in that\ncase."
           }
         }
       },
@@ -13666,6 +13840,27 @@
           }
         }
       },
+      "MemberPaymentMethodsResponse": {
+        "type": "object",
+        "description": "Wire shape returned by `GET /api/member/payment-methods`.",
+        "required": [
+          "payment_methods"
+        ],
+        "properties": {
+          "payment_methods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentMethodSummary"
+            }
+          },
+          "default_payment_method_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
       "MemberPreferencesResponse": {
         "type": "object",
         "required": [
@@ -13769,6 +13964,20 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "hosted_invoice_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Stripe-hosted invoice page (member-friendly receipt). Populated by\nthe `invoice.paid` / `invoice.payment_failed` webhooks once Stripe\nhas finalized the invoice. NULL on drafts."
+          },
+          "invoice_pdf": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Direct link to the PDF rendering of the invoice. Same lifecycle as\n`hosted_invoice_url` — populated when Stripe finalizes the invoice."
           },
           "created_at": {
             "type": "string",
@@ -15116,6 +15325,42 @@
           }
         }
       },
+      "PaymentMethodSummary": {
+        "type": "object",
+        "description": "Compact view of a Stripe `PaymentMethod` (card type only) returned to\nthe SPA. The wire shape is intentionally minimal — we never expose\nraw Stripe identifiers beyond the `pm_*` id, and we never round-trip\nthe underlying card number, expiry CVC, or fingerprint. The\npublishable key + Stripe Elements iframe own the PCI scope.",
+        "required": [
+          "id",
+          "brand",
+          "last4",
+          "exp_month",
+          "exp_year",
+          "is_default"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "brand": {
+            "type": "string",
+            "description": "Card brand (`visa`, `mastercard`, `amex`, `discover`, etc.). Always\nlowercased per Stripe's contract."
+          },
+          "last4": {
+            "type": "string"
+          },
+          "exp_month": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "exp_year": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "is_default": {
+            "type": "boolean",
+            "description": "Set true when this `id` matches the customer's\n`invoice_settings.default_payment_method`. Computed at the API edge\nbecause it requires a separate `GET /v1/customers/{id}` round trip."
+          }
+        }
+      },
       "PeriodWindow": {
         "type": "object",
         "description": "Per-window counts. The dashboard sends two of these — the selected window\nand the immediately-preceding window of identical length — so the UI can\ncompute deltas without a second round-trip.",
@@ -16254,6 +16499,18 @@
           }
         }
       },
+      "SetDefaultPaymentMethodResponse": {
+        "type": "object",
+        "description": "Response body for `POST /api/member/payment-methods/{pm_id}/set-default`.",
+        "required": [
+          "default_payment_method_id"
+        ],
+        "properties": {
+          "default_payment_method_id": {
+            "type": "string"
+          }
+        }
+      },
       "SetStatusRequest": {
         "type": "object",
         "description": "Admin-only payload for `POST /api/admin/products/{id}/status`.",
@@ -16453,6 +16710,18 @@
           }
         }
       },
+      "SetupIntentResponse": {
+        "type": "object",
+        "description": "Response body for `POST /api/member/payment-methods/setup-intent`.",
+        "required": [
+          "client_secret"
+        ],
+        "properties": {
+          "client_secret": {
+            "type": "string"
+          }
+        }
+      },
       "State": {
         "type": "object",
         "required": [
@@ -16644,6 +16913,38 @@
           "price_protection_enabled": {
             "type": "boolean",
             "description": "When TRUE the pricing rollout service skips this subscription regardless\nof audience setting — the member keeps their original price forever."
+          },
+          "cancel_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the subscription will be canceled. Set when the member (or admin)\nschedules a cancel-at-period-end; the row is otherwise NULL while the\nsubscription is active. Mirror of `subscriptions.cancel_at` from\nmigration `041_subscriptions_v2.sql`."
+          },
+          "paused_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the subscription was paused via Stripe `pause_collection`. NULL\nwhile active. Mirror of `subscriptions.paused_at` from migration\n`041_subscriptions_v2.sql`."
+          },
+          "pause_resumes_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When an open-pause should auto-lift. NULL means manual resume only —\nthe member must call `/unpause` explicitly. Mirror of\n`subscriptions.pause_resumes_at` from `041_subscriptions_v2.sql`."
+          },
+          "trial_end": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the trial ends. NULL when the subscription is not in trial.\nMirror of `subscriptions.trial_end` from `041_subscriptions_v2.sql`."
           },
           "created_at": {
             "type": "string",

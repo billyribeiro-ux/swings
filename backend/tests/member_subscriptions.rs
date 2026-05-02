@@ -417,3 +417,93 @@ async fn redeemed_coupons_returns_only_callers_history() {
     assert_eq!(arr[0]["coupon_code"], serde_json::json!("WELCOME10"));
     assert_eq!(arr[0]["discount_applied_cents"], serde_json::json!(500));
 }
+
+/// Migration 085 surfaces `currency` and `order_id` so the member coupons
+/// page can render `−€10.00 EUR` and a `View order →` deep-link. This
+/// test seeds a redemption with both columns set explicitly and asserts
+/// the reader handler returns them on `GET /api/member/coupons/redeemed`.
+#[tokio::test]
+async fn redeemed_coupons_includes_currency_and_order_id() {
+    let Some(app) = TestApp::try_new().await else {
+        return;
+    };
+    let alice = app.seed_user().await.expect("seed alice");
+
+    // Seed a coupon owned by alice (created_by FK) — value is irrelevant
+    // for this test since we override `discount_applied_cents` on the
+    // usage row directly.
+    let coupon_id = Uuid::new_v4();
+    sqlx::query(
+        r#"
+        INSERT INTO coupons (
+            id, code, description, discount_type, discount_value,
+            min_purchase_cents, max_discount_cents, applies_to,
+            applicable_plan_ids, applicable_course_ids,
+            usage_limit, usage_count, per_user_limit,
+            starts_at, expires_at, is_active, stackable, first_purchase_only,
+            stripe_coupon_id, created_by, created_at, updated_at
+        ) VALUES (
+            $1, 'EURFIVE', NULL, 'fixed_amount'::discount_type, 10,
+            NULL, NULL, 'all',
+            '{}', '{}',
+            NULL, 0, 99,
+            NULL, NULL, true, false, false,
+            NULL, $2, NOW(), NOW()
+        )
+        "#,
+    )
+    .bind(coupon_id)
+    .bind(alice.id)
+    .execute(app.db())
+    .await
+    .expect("seed coupon");
+
+    // Seed a parent order whose currency matches the redemption — the
+    // FK on `coupon_usages.order_id` requires this row to exist.
+    let order_id = Uuid::new_v4();
+    let order_number = format!("ORD-TEST-{}", &order_id.to_string()[..8]);
+    sqlx::query(
+        r#"
+        INSERT INTO orders
+            (id, number, user_id, status, currency,
+             subtotal_cents, discount_cents, tax_cents, total_cents, email,
+             metadata, placed_at)
+        VALUES ($1, $2, $3, 'pending'::order_status, 'eur',
+                1000, 1000, 0, 0, 'alice@example.test', '{}'::jsonb, NOW())
+        "#,
+    )
+    .bind(order_id)
+    .bind(&order_number)
+    .bind(alice.id)
+    .execute(app.db())
+    .await
+    .expect("seed order");
+
+    sqlx::query(
+        r#"
+        INSERT INTO coupon_usages
+            (id, coupon_id, user_id, subscription_id, discount_applied_cents,
+             currency, order_id, used_at)
+        VALUES ($1, $2, $3, NULL, 1000, 'eur', $4, NOW())
+        "#,
+    )
+    .bind(Uuid::new_v4())
+    .bind(coupon_id)
+    .bind(alice.id)
+    .bind(order_id)
+    .execute(app.db())
+    .await
+    .expect("seed coupon_usage");
+
+    let resp = app
+        .get("/api/member/coupons/redeemed", Some(&alice.access_token))
+        .await;
+    resp.assert_status(StatusCode::OK);
+    let body: Value = resp.json().expect("body");
+    let arr = body.as_array().expect("array");
+    assert_eq!(arr.len(), 1, "alice has one redemption");
+    assert_eq!(arr[0]["coupon_code"], serde_json::json!("EURFIVE"));
+    assert_eq!(arr[0]["discount_applied_cents"], serde_json::json!(1000));
+    assert_eq!(arr[0]["currency"], serde_json::json!("eur"));
+    assert_eq!(arr[0]["order_id"], serde_json::json!(order_id.to_string()));
+}

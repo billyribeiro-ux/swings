@@ -66,6 +66,9 @@ use crate::{
 
 // ─── Constants ─────────────────────────────────────────────────────────
 
+/// Default Stripe REST API base. Production always uses this; the
+/// integration test suite overrides it through [`Config::stripe_api_base_url_override`]
+/// so a `wiremock::MockServer` can stand in for the real API.
 const STRIPE_API_BASE: &str = "https://api.stripe.com";
 /// Stripe API version pin. Bump intentionally; the request shape and
 /// response schema depend on this header.
@@ -135,21 +138,46 @@ impl FormBody {
 /// re-uses a kept-alive TLS connection; constructing the client per
 /// request is fine for our call volume but we still cache it as part of
 /// the workflow helpers below.
+///
+/// `base_url` is normally [`STRIPE_API_BASE`] (the production endpoint).
+/// Tests override it via [`Client::with_base_url`] so a wiremock server
+/// can stand in for the real Stripe API. The `https_only` builder flag
+/// is therefore disabled — overriding to an `http://` mock is a test
+/// concern only and never reaches production code paths because the
+/// override is hydrated from a plumbed [`Config`] field rather than a
+/// caller-supplied URL.
 #[derive(Clone)]
 pub struct Client {
     http: HttpClient,
     secret_key: String,
+    base_url: String,
 }
 
 impl Client {
-    /// Construct a new client. `reqwest::Client::new()` would accept the
-    /// builder defaults but we prefer to force the timeout explicitly so
-    /// future reqwest releases that change the default never silently
-    /// extend our blast radius on a wedged TLS handshake.
+    /// Construct a new client pointed at production Stripe. `reqwest::Client::new()`
+    /// would accept the builder defaults but we prefer to force the timeout
+    /// explicitly so future reqwest releases that change the default never
+    /// silently extend our blast radius on a wedged TLS handshake.
     pub fn new(secret_key: impl Into<String>) -> AppResult<Self> {
+        Self::build(secret_key, STRIPE_API_BASE.to_string(), true)
+    }
+
+    /// Construct a new client pointed at a caller-supplied base URL —
+    /// **for tests only**. Production callers go through [`Client::new`]
+    /// (or the [`client`] helper) which pins the production base URL.
+    /// `https_only` is disabled because integration tests run against an
+    /// HTTP mock server.
+    pub fn with_base_url(
+        secret_key: impl Into<String>,
+        base_url: impl Into<String>,
+    ) -> AppResult<Self> {
+        Self::build(secret_key, base_url.into(), false)
+    }
+
+    fn build(secret_key: impl Into<String>, base_url: String, https_only: bool) -> AppResult<Self> {
         let http = HttpClient::builder()
             .timeout(REQUEST_TIMEOUT)
-            .https_only(true)
+            .https_only(https_only)
             .build()
             .map_err(|e| {
                 AppError::BadRequest(format!("Stripe: failed to build HTTP client: {e}"))
@@ -157,6 +185,7 @@ impl Client {
         Ok(Self {
             http,
             secret_key: secret_key.into(),
+            base_url: base_url.trim_end_matches('/').to_string(),
         })
     }
 
@@ -174,7 +203,7 @@ impl Client {
     where
         T: for<'de> Deserialize<'de>,
     {
-        let url = format!("{STRIPE_API_BASE}{path}");
+        let url = format!("{}{path}", self.base_url);
         let mut headers = HeaderMap::new();
         headers.insert(
             AUTHORIZATION,
@@ -273,13 +302,24 @@ fn map_stripe_error(status: StatusCode, body: &[u8]) -> AppError {
 
 /// Build a Stripe HTTP client from `AppState`. Mirrors the shape of the
 /// previous helper so callers don't have to change.
+///
+/// When [`Config::stripe_api_base_url_override`] is set (test-only path —
+/// hydrated from `STRIPE_API_BASE_URL` only when non-empty) the client is
+/// pointed at that base URL. Production never sets the env var, so the
+/// hardcoded [`STRIPE_API_BASE`] is used and the request shape on the
+/// wire is unchanged.
 pub fn client(state: &AppState) -> AppResult<Client> {
     if state.config.stripe_secret_key.is_empty() {
         return Err(AppError::BadRequest(
             "Stripe is not configured (missing STRIPE_SECRET_KEY)".to_string(),
         ));
     }
-    Client::new(&state.config.stripe_secret_key)
+    match state.config.stripe_api_base_url() {
+        Some(base) if !base.is_empty() => {
+            Client::with_base_url(&state.config.stripe_secret_key, base)
+        }
+        _ => Client::new(&state.config.stripe_secret_key),
+    }
 }
 
 // ─── Typed responses we actually deserialise ───────────────────────────
@@ -802,6 +842,198 @@ pub async fn preview_subscription_change(
         next_invoice_total_cents,
         currency,
     })
+}
+
+// ─── Member-facing payment-method wrappers ─────────────────────────────
+
+/// Compact view of a Stripe `PaymentMethod` (card type only) returned to
+/// the SPA. The wire shape is intentionally minimal — we never expose
+/// raw Stripe identifiers beyond the `pm_*` id, and we never round-trip
+/// the underlying card number, expiry CVC, or fingerprint. The
+/// publishable key + Stripe Elements iframe own the PCI scope.
+#[derive(Debug, Clone, serde::Serialize, Deserialize, utoipa::ToSchema)]
+pub struct PaymentMethodSummary {
+    pub id: String,
+    /// Card brand (`visa`, `mastercard`, `amex`, `discover`, etc.). Always
+    /// lowercased per Stripe's contract.
+    pub brand: String,
+    pub last4: String,
+    pub exp_month: i64,
+    pub exp_year: i64,
+    /// Set true when this `id` matches the customer's
+    /// `invoice_settings.default_payment_method`. Computed at the API edge
+    /// because it requires a separate `GET /v1/customers/{id}` round trip.
+    pub is_default: bool,
+}
+
+/// Internal: a Stripe payment-method row deserialised from
+/// `GET /v1/customers/{id}/payment_methods` or
+/// `GET /v1/payment_methods/{id}`. Carries the customer link so the
+/// member handler can enforce ownership before mutating.
+#[derive(Debug, Clone, Deserialize)]
+pub struct PaymentMethodFull {
+    pub id: String,
+    pub card: PaymentMethodCard,
+    /// `customer` is `null` on detached payment methods. We surface the
+    /// `Option` so the handler can 404 a probe rather than a 500.
+    pub customer: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct PaymentMethodCard {
+    pub brand: String,
+    pub last4: String,
+    pub exp_month: i64,
+    pub exp_year: i64,
+}
+
+impl From<&PaymentMethodFull> for PaymentMethodSummary {
+    fn from(pm: &PaymentMethodFull) -> Self {
+        Self {
+            id: pm.id.clone(),
+            brand: pm.card.brand.clone(),
+            last4: pm.card.last4.clone(),
+            exp_month: pm.card.exp_month,
+            exp_year: pm.card.exp_year,
+            is_default: false,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct PaymentMethodListResponse {
+    data: Vec<PaymentMethodFull>,
+}
+
+#[derive(Debug, Deserialize)]
+struct CustomerInvoiceSettingsView {
+    #[serde(default)]
+    invoice_settings: Option<CustomerInvoiceSettings>,
+}
+
+#[derive(Debug, Deserialize)]
+struct CustomerInvoiceSettings {
+    /// Stripe returns the id as a string when expanded=false (our default
+    /// — we don't ask for expansion). May also be null when the customer
+    /// has never had a default set.
+    #[serde(default)]
+    default_payment_method: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct SetupIntentResponse {
+    client_secret: Option<String>,
+}
+
+/// List every card-type payment method attached to the given Stripe
+/// customer. The `is_default` field on each row is left `false` —
+/// callers should pair this with [`get_customer_default_payment_method`]
+/// and stamp the matching id themselves.
+pub async fn list_customer_payment_methods(
+    state: &AppState,
+    customer_id: &str,
+) -> AppResult<Vec<PaymentMethodSummary>> {
+    validate_id(customer_id, "customer")?;
+    let c = client(state)?;
+    let path = format!("/v1/customers/{customer_id}/payment_methods?type=card");
+    let resp: PaymentMethodListResponse = c.request(Method::GET, &path, None, None).await?;
+    Ok(resp.data.iter().map(PaymentMethodSummary::from).collect())
+}
+
+/// Read the customer's `invoice_settings.default_payment_method`. Returns
+/// `None` when the customer exists but has no default on file — the
+/// caller distinguishes this from the 404 path because Stripe returns a
+/// 200 with the field nulled out.
+pub async fn get_customer_default_payment_method(
+    state: &AppState,
+    customer_id: &str,
+) -> AppResult<Option<String>> {
+    validate_id(customer_id, "customer")?;
+    let c = client(state)?;
+    let path = format!("/v1/customers/{customer_id}");
+    let cust: CustomerInvoiceSettingsView = c.request(Method::GET, &path, None, None).await?;
+    Ok(cust.invoice_settings.and_then(|s| s.default_payment_method))
+}
+
+/// Mint a Stripe SetupIntent so the SPA can collect a new card via
+/// Stripe Elements. `usage=off_session` is required for Stripe to attach
+/// the resulting payment method to the customer for future charges
+/// (subscription renewals, off-session top-ups, etc.).
+///
+/// `idempotency_key` is forwarded as the `Idempotency-Key` header so a
+/// retried POST reuses the same SetupIntent rather than minting a second
+/// one — important because every SetupIntent counts against Stripe's
+/// rate-limit budget.
+pub async fn create_setup_intent(
+    state: &AppState,
+    customer_id: &str,
+    idempotency_key: Option<&str>,
+) -> AppResult<String> {
+    validate_id(customer_id, "customer")?;
+    let c = client(state)?;
+    let mut form = FormBody::new();
+    form.push("customer", customer_id)
+        .push("usage", "off_session")
+        .push("payment_method_types[0]", "card");
+    let resp: SetupIntentResponse = c
+        .request(
+            Method::POST,
+            "/v1/setup_intents",
+            Some(form.into_body()),
+            idempotency_key,
+        )
+        .await?;
+    resp.client_secret.ok_or_else(|| {
+        AppError::BadRequest("Stripe returned SetupIntent without client_secret".to_string())
+    })
+}
+
+/// Pin `pm_id` as the customer's default payment method. Stripe stores
+/// this on `invoice_settings.default_payment_method`; future invoices
+/// will charge that method automatically.
+pub async fn set_default_payment_method(
+    state: &AppState,
+    customer_id: &str,
+    pm_id: &str,
+) -> AppResult<()> {
+    validate_id(customer_id, "customer")?;
+    validate_id(pm_id, "payment_method")?;
+    let c = client(state)?;
+    let mut form = FormBody::new();
+    form.push("invoice_settings[default_payment_method]", pm_id);
+    let path = format!("/v1/customers/{customer_id}");
+    let _ignored: serde_json::Value = c
+        .request(Method::POST, &path, Some(form.into_body()), None)
+        .await?;
+    Ok(())
+}
+
+/// Detach a payment method from its customer. After this call the `pm_*`
+/// id is no longer chargeable — Stripe will reject any future
+/// PaymentIntent that references it without re-attachment.
+pub async fn detach_payment_method(state: &AppState, pm_id: &str) -> AppResult<()> {
+    validate_id(pm_id, "payment_method")?;
+    let c = client(state)?;
+    let path = format!("/v1/payment_methods/{pm_id}/detach");
+    // Detach is a POST with no body — Stripe accepts an empty
+    // form-encoded body, but reqwest needs `Some("")` to set the
+    // content-type header so Stripe doesn't reject the missing CT.
+    let _ignored: serde_json::Value = c
+        .request(Method::POST, &path, Some(String::new()), None)
+        .await?;
+    Ok(())
+}
+
+/// Fetch a single payment method by id. Used by the member handlers to
+/// validate ownership (the returned `customer` field must match the
+/// caller's stripe_customer_id) before either setting it as default or
+/// detaching it.
+pub async fn get_payment_method(state: &AppState, pm_id: &str) -> AppResult<PaymentMethodFull> {
+    validate_id(pm_id, "payment_method")?;
+    let c = client(state)?;
+    let path = format!("/v1/payment_methods/{pm_id}");
+    let pm: PaymentMethodFull = c.request(Method::GET, &path, None, None).await?;
+    Ok(pm)
 }
 
 // ─── Tests ─────────────────────────────────────────────────────────────

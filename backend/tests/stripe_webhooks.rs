@@ -100,6 +100,7 @@ impl WebhookTestRig {
             frontend_url: "http://localhost:5173".into(),
             stripe_secret_key: String::new(),
             stripe_webhook_secret: TEST_WEBHOOK_SECRET.into(),
+            stripe_api_base_url_override: None,
             upload_dir: upload_path.clone(),
             api_url: "http://localhost:3001".into(),
             smtp_host: "smtp.example.test".into(),

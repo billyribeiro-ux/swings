@@ -71,6 +71,14 @@ pub fn router() -> Router<AppState> {
         .route("/password", post(post_change_password))
         .route("/account", delete(delete_account))
         .route("/coupons/apply", post(post_apply_coupon))
+        // Native Stripe Elements payment-method management.
+        .route("/payment-methods", get(list_payment_methods))
+        .route("/payment-methods/setup-intent", post(post_setup_intent))
+        .route(
+            "/payment-methods/{pm_id}/set-default",
+            post(post_set_default_payment_method),
+        )
+        .route("/payment-methods/{pm_id}", delete(delete_payment_method))
         .layer(crate::middleware::rate_limit::member_layer())
 }
 
@@ -682,12 +690,16 @@ pub(crate) async fn post_apply_coupon(
 
     // 5. Insert the redemption + bump usage_count atomically so a
     //    Stripe-applied coupon can never end up unrecorded locally.
+    //    `currency` falls back to `'usd'` because `coupons` does not yet
+    //    carry a per-coupon currency column; `order_id` is NULL because
+    //    apply-coupon attaches to a subscription, not an order.
     let mut tx = state.db.begin().await?;
     let usage: CouponUsage = sqlx::query_as(
         r#"
         INSERT INTO coupon_usages
-            (id, coupon_id, user_id, subscription_id, discount_applied_cents, used_at)
-        VALUES ($1, $2, $3, $4, 0, NOW())
+            (id, coupon_id, user_id, subscription_id, discount_applied_cents,
+             currency, order_id, used_at)
+        VALUES ($1, $2, $3, $4, 0, $5, NULL, NOW())
         RETURNING *
         "#,
     )
@@ -695,6 +707,7 @@ pub(crate) async fn post_apply_coupon(
     .bind(coupon.id)
     .bind(auth.user_id)
     .bind(Some(subscription.id))
+    .bind("usd")
     .fetch_one(&mut *tx)
     .await?;
     sqlx::query(
@@ -1022,6 +1035,13 @@ pub struct MemberSubscriptionInvoice {
     pub period_start: Option<DateTime<Utc>>,
     pub period_end: Option<DateTime<Utc>>,
     pub paid_at: Option<DateTime<Utc>>,
+    /// Stripe-hosted invoice page (member-friendly receipt). Populated by
+    /// the `invoice.paid` / `invoice.payment_failed` webhooks once Stripe
+    /// has finalized the invoice. NULL on drafts.
+    pub hosted_invoice_url: Option<String>,
+    /// Direct link to the PDF rendering of the invoice. Same lifecycle as
+    /// `hosted_invoice_url` — populated when Stripe finalizes the invoice.
+    pub invoice_pdf: Option<String>,
     pub created_at: DateTime<Utc>,
 }
 
@@ -1177,7 +1197,8 @@ pub(crate) async fn get_subscription_detail(
     let invoices = sqlx::query_as::<_, MemberSubscriptionInvoice>(
         r#"
         SELECT id, stripe_invoice_id, status, amount_due_cents, amount_paid_cents,
-               currency, period_start, period_end, paid_at, created_at
+               currency, period_start, period_end, paid_at,
+               hosted_invoice_url, invoice_pdf, created_at
           FROM subscription_invoices
          WHERE subscription_id = $1 OR (user_id = $2 AND stripe_subscription_id = $3)
          ORDER BY created_at DESC
@@ -1682,6 +1703,16 @@ pub struct MemberCouponRedemptionResponse {
     pub discount_applied_cents: i64,
     pub redeemed_at: DateTime<Utc>,
     pub subscription_id: Option<Uuid>,
+    /// ISO 4217 currency code (lowercase) the discount was denominated
+    /// in at redemption time. Frontend formats `discount_applied_cents`
+    /// against this code so members see e.g. `−$5.00 USD` or
+    /// `−€10.00 EUR` rather than a bare cent value.
+    pub currency: String,
+    /// FK to `orders.id` when the redemption was tied to a concrete
+    /// order (vs. attached only to a subscription). NULL when no order
+    /// was involved — the member UI hides the "view order" link in that
+    /// case.
+    pub order_id: Option<Uuid>,
 }
 
 #[derive(Debug, FromRow)]
@@ -1691,6 +1722,8 @@ struct MemberCouponRedemptionRow {
     discount_applied_cents: i64,
     redeemed_at: DateTime<Utc>,
     subscription_id: Option<Uuid>,
+    currency: String,
+    order_id: Option<Uuid>,
 }
 
 #[utoipa::path(
@@ -1713,7 +1746,9 @@ pub(crate) async fn list_redeemed_coupons(
                c.code            AS coupon_code,
                u.discount_applied_cents,
                u.used_at         AS redeemed_at,
-               u.subscription_id
+               u.subscription_id,
+               u.currency,
+               u.order_id
           FROM coupon_usages u
           JOIN coupons c ON c.id = u.coupon_id
          WHERE u.user_id = $1
@@ -1732,8 +1767,260 @@ pub(crate) async fn list_redeemed_coupons(
             discount_applied_cents: r.discount_applied_cents,
             redeemed_at: r.redeemed_at,
             subscription_id: r.subscription_id,
+            currency: r.currency,
+            order_id: r.order_id,
         })
         .collect();
 
     Ok(Json(data))
+}
+
+// ── Native payment-methods management ──────────────────────────────────
+//
+// These endpoints let the SPA list / set-default / delete saved cards and
+// mint a SetupIntent for the Stripe Elements iframe — replacing the
+// Stripe-portal redirect that previously powered the "Payment Methods"
+// page. The PCI scope still belongs to Stripe (the SPA never sees a raw
+// PAN); we only round-trip `pm_*` ids on the wire.
+//
+// The customer id is resolved through the most recent Stripe-twinned
+// `subscriptions` row for the user (Stripe customers are first created
+// at checkout). Members without any subscription cannot manage saved
+// cards yet — we return 404 instead of inventing a customer at GET
+// time, mirroring the behaviour of the billing-portal endpoint.
+
+/// Wire shape returned by `GET /api/member/payment-methods`.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct MemberPaymentMethodsResponse {
+    pub payment_methods: Vec<stripe_api::PaymentMethodSummary>,
+    pub default_payment_method_id: Option<String>,
+}
+
+/// Response body for `POST /api/member/payment-methods/setup-intent`.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct SetupIntentResponse {
+    pub client_secret: String,
+}
+
+/// Response body for `POST /api/member/payment-methods/{pm_id}/set-default`.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct SetDefaultPaymentMethodResponse {
+    pub default_payment_method_id: String,
+}
+
+/// Response body for `DELETE /api/member/payment-methods/{pm_id}`.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct DeletePaymentMethodResponse {
+    pub deleted: bool,
+}
+
+/// Resolve the Stripe customer id for the calling member. We look at
+/// every subscription on the user (active or otherwise) and pick the
+/// first one carrying a non-empty `stripe_customer_id` — returning 404
+/// when nothing matches. We deliberately don't fall back to a fresh
+/// `POST /v1/customers` here: customers should be born at checkout so
+/// the local mirror always has a row to attach the `pm_*` to.
+async fn resolve_member_stripe_customer(state: &AppState, user_id: Uuid) -> AppResult<String> {
+    let customer_id: Option<String> = sqlx::query_scalar(
+        r#"
+        SELECT stripe_customer_id
+          FROM subscriptions
+         WHERE user_id = $1
+           AND stripe_customer_id <> ''
+         ORDER BY created_at DESC
+         LIMIT 1
+        "#,
+    )
+    .bind(user_id)
+    .fetch_optional(&state.db)
+    .await?;
+
+    customer_id.ok_or_else(|| {
+        AppError::NotFound(
+            "No Stripe customer on file. Subscribe first to manage payment methods.".to_string(),
+        )
+    })
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/member/payment-methods",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Saved payment methods + the customer's current default", body = MemberPaymentMethodsResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Member has no Stripe customer on file"),
+    )
+)]
+pub(crate) async fn list_payment_methods(
+    State(state): State<AppState>,
+    auth: AuthUser,
+) -> AppResult<Json<MemberPaymentMethodsResponse>> {
+    let customer_id = resolve_member_stripe_customer(&state, auth.user_id).await?;
+    // Two Stripe round-trips — the list itself and the customer GET so we
+    // can stamp `is_default` on the matching row. We could squeeze into
+    // a single call by expanding `default_payment_method` on the list
+    // endpoint, but that endpoint doesn't accept the expand parameter
+    // (Stripe quirk), so we accept the extra round trip.
+    let mut payment_methods =
+        stripe_api::list_customer_payment_methods(&state, &customer_id).await?;
+    let default_payment_method_id =
+        stripe_api::get_customer_default_payment_method(&state, &customer_id).await?;
+    if let Some(default_id) = default_payment_method_id.as_deref() {
+        for pm in payment_methods.iter_mut() {
+            if pm.id == default_id {
+                pm.is_default = true;
+            }
+        }
+    }
+    Ok(Json(MemberPaymentMethodsResponse {
+        payment_methods,
+        default_payment_method_id,
+    }))
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/member/payment-methods/setup-intent",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "Stripe SetupIntent client_secret for Stripe Elements", body = SetupIntentResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Member has no Stripe customer on file"),
+    )
+)]
+pub(crate) async fn post_setup_intent(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    headers: HeaderMap,
+) -> AppResult<Json<SetupIntentResponse>> {
+    let customer_id = resolve_member_stripe_customer(&state, auth.user_id).await?;
+    // Forward the SPA-supplied Idempotency-Key (auto-attached by the
+    // BFF client) so a retry of the modal "Add card" submit reuses the
+    // existing SetupIntent rather than minting a second one.
+    let idempotency_key = headers
+        .get("idempotency-key")
+        .and_then(|v| v.to_str().ok())
+        .map(str::to_string);
+    let client_secret =
+        stripe_api::create_setup_intent(&state, &customer_id, idempotency_key.as_deref()).await?;
+    Ok(Json(SetupIntentResponse { client_secret }))
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/member/payment-methods/{pm_id}/set-default",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    params(("pm_id" = String, Path, description = "Stripe payment method id (`pm_*`)")),
+    responses(
+        (status = 200, description = "Default payment method updated", body = SetDefaultPaymentMethodResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Payment method not found or not owned by the member"),
+    )
+)]
+pub(crate) async fn post_set_default_payment_method(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    client: ClientInfo,
+    Path(pm_id): Path<String>,
+) -> AppResult<Json<SetDefaultPaymentMethodResponse>> {
+    let customer_id = resolve_member_stripe_customer(&state, auth.user_id).await?;
+    // Ownership probe: GET the PM and refuse if the `customer` field
+    // doesn't match the caller's customer id. Returns 404 (not 403) so
+    // a probing client can't enumerate `pm_*` ids belonging to others.
+    let pm = stripe_api::get_payment_method(&state, &pm_id).await?;
+    if pm.customer.as_deref() != Some(customer_id.as_str()) {
+        return Err(AppError::NotFound("Payment method not found".to_string()));
+    }
+    stripe_api::set_default_payment_method(&state, &customer_id, &pm_id).await?;
+
+    audit_admin_under_impersonation(
+        &state.db,
+        &auth,
+        &client,
+        "member.payment_method.set_default",
+        "payment_method",
+        pm_id.clone(),
+        serde_json::json!({
+            "self_service": true,
+            "stripe_customer_id": customer_id,
+        }),
+    )
+    .await;
+
+    Ok(Json(SetDefaultPaymentMethodResponse {
+        default_payment_method_id: pm_id,
+    }))
+}
+
+#[utoipa::path(
+    delete,
+    path = "/api/member/payment-methods/{pm_id}",
+    tag = "member",
+    security(("bearer_auth" = [])),
+    params(("pm_id" = String, Path, description = "Stripe payment method id (`pm_*`)")),
+    responses(
+        (status = 200, description = "Payment method detached", body = DeletePaymentMethodResponse),
+        (status = 400, description = "Refused: card is the active subscription's default"),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Payment method not found or not owned by the member"),
+    )
+)]
+pub(crate) async fn delete_payment_method(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    client: ClientInfo,
+    Path(pm_id): Path<String>,
+) -> AppResult<Json<DeletePaymentMethodResponse>> {
+    let customer_id = resolve_member_stripe_customer(&state, auth.user_id).await?;
+    let pm = stripe_api::get_payment_method(&state, &pm_id).await?;
+    if pm.customer.as_deref() != Some(customer_id.as_str()) {
+        return Err(AppError::NotFound("Payment method not found".to_string()));
+    }
+
+    // Refuse to detach the default card while a subscription is active —
+    // otherwise the next renewal silently fails. The member should set
+    // another card as default first. We only check active/trialing
+    // subscriptions; canceled ones can have their default detached
+    // freely.
+    let default_id = stripe_api::get_customer_default_payment_method(&state, &customer_id).await?;
+    if default_id.as_deref() == Some(pm_id.as_str()) {
+        let active_count: i64 = sqlx::query_scalar(
+            r#"
+            SELECT COUNT(*) FROM subscriptions
+             WHERE user_id = $1
+               AND status IN ('active', 'trialing')
+            "#,
+        )
+        .bind(auth.user_id)
+        .fetch_one(&state.db)
+        .await?;
+        if active_count > 0 {
+            return Err(AppError::BadRequest(
+                "Cannot remove the default payment method while a subscription is active. Set another card as default first.".to_string(),
+            ));
+        }
+    }
+
+    stripe_api::detach_payment_method(&state, &pm_id).await?;
+
+    audit_admin_under_impersonation(
+        &state.db,
+        &auth,
+        &client,
+        "member.payment_method.delete",
+        "payment_method",
+        pm_id.clone(),
+        serde_json::json!({
+            "self_service": true,
+            "stripe_customer_id": customer_id,
+            "was_default": default_id.as_deref() == Some(pm_id.as_str()),
+        }),
+    )
+    .await;
+
+    Ok(Json(DeletePaymentMethodResponse { deleted: true }))
 }

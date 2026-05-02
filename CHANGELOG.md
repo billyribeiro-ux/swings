@@ -10,6 +10,166 @@ Timestamps use the operator-facing calendar date attached to the change list.
 
 ---
 
+## 2026-05-01 21:00 ET — Member account self-service (orders, subscriptions, coupons, billing, payment methods)
+
+### What this session shipped
+
+A complete member account section that mirrors the WooCommerce
+"My Account" UX (left-rail nav: Orders · Subscriptions · Coupons ·
+Billing Address · Payment Methods · Account Details · Log out) and
+gives paying members full control over every billing surface without
+leaving the app.
+
+Architecturally this lands as 7 sub-routes under `/dashboard/account/`,
+11 new member-facing endpoints, 3 new Stripe wrappers, 2 forward-only
+migrations, and 25 new integration tests. Backend lib stays at 524/524;
+integration suite goes 850 → 930 passes across 48 binaries; frontend
+4423 files / 0 errors / 0 warnings; live smoke-test confirms every new
+route is wired (401 on unauth, 404 on nonsense path).
+
+### New member endpoints (`backend/src/handlers/member.rs`)
+
+Orders
+- `GET  /api/member/orders` — paginated history (own orders only)
+- `GET  /api/member/orders/{id}` — items + refunds + state-log
+
+Subscriptions (full history, not just current)
+- `GET  /api/member/subscriptions` — paginated, includes cancelled/paused
+- `GET  /api/member/subscriptions/{id}` — sub + plan + invoices + related orders
+- `POST /api/member/subscriptions/{id}/cancel` — cancel-at-period-end
+- `POST /api/member/subscriptions/{id}/resume` — undo cancel
+- `POST /api/member/subscriptions/{id}/pause` — body `{ resume_at? }`
+- `POST /api/member/subscriptions/{id}/unpause`
+- `POST /api/member/subscriptions/{id}/switch-plan` — body `{ pricing_plan_id, prorate? }`
+- `GET  /api/member/subscriptions/{id}/switch-plan/preview` — Stripe upcoming-invoice proration dry-run
+
+Coupons / Profile
+- `GET  /api/member/coupons/redeemed` — redemption history with `currency` + `order_id`
+- Extended `PUT /api/member/profile` to accept `phone` + `billing_address`
+
+Payment methods (native, Stripe-Elements based — no portal redirect)
+- `GET    /api/member/payment-methods`
+- `POST   /api/member/payment-methods/setup-intent` — returns Stripe SetupIntent client_secret
+- `POST   /api/member/payment-methods/{pm_id}/set-default`
+- `DELETE /api/member/payment-methods/{pm_id}` — refuses to remove default while subscription is active
+
+Every mutation: ownership check returns 404 (not 403) to avoid existence
+leakage, audit row written via `services::audit::record`, idempotency
+key forwarded to Stripe.
+
+### New Stripe wrappers (`backend/src/stripe_api.rs`)
+
+- `swap_subscription_price_with_proration` — POST `/v1/subscriptions/{id}` with caller-controlled `proration_behavior`
+- `preview_subscription_change` — GET `/v1/invoices/upcoming` aggregated into `SubscriptionChangePreview`
+- 6 new payment-method helpers: `list_customer_payment_methods`, `get_customer_default_payment_method`, `create_setup_intent`, `set_default_payment_method`, `detach_payment_method`, `get_payment_method`
+- Stripe `Client` refactored to support per-instance `base_url` so
+  wiremock can intercept calls in tests; production code path unchanged
+  (defaults to `https://api.stripe.com`). Override via env
+  `STRIPE_API_BASE_URL` for isolated test runs.
+
+### Schema gap closures
+
+Both columns existed in the DB but weren't surfaced through the typed
+struct → OpenAPI → frontend types pipeline. Now they are:
+
+- `Subscription` struct now exposes `cancel_at`, `paused_at`,
+  `pause_resumes_at`, `trial_end` (mirror of columns added in
+  `041_subscriptions_v2.sql`).
+- `MemberSubscriptionInvoice` exposes `hosted_invoice_url` +
+  `invoice_pdf` so the SPA can deep-link to Stripe-hosted receipts and
+  PDFs without a portal round-trip.
+
+### Migrations (forward-only)
+
+- `084_subscription_invoice_urls.sql` — add `hosted_invoice_url` and
+  `invoice_pdf` columns to `subscription_invoices`. Webhook ingester in
+  `commerce::billing::upsert_invoice` now persists both on every
+  `invoice.paid` / `invoice.payment_failed` event (COALESCE-style so
+  drafts that lack the field don't blank out previously-stored values).
+- `085_coupon_usages_currency_order.sql` — add `currency TEXT NOT NULL
+  DEFAULT 'usd'` and `order_id UUID REFERENCES orders(id) ON DELETE
+  SET NULL` to `coupon_usages`. Both apply-coupon writers (member +
+  public) now persist them; reader and `MemberCouponRedemptionResponse`
+  return them; coupons frontend page renders `currency` next to the
+  discount and adds a "View order →" deep-link column.
+
+### New frontend routes
+
+`src/routes/dashboard/account/`:
+- `+layout.svelte` — left-rail nav with active link highlighting,
+  mobile horizontal-scroll pill bar, divider, "Log out" at the bottom
+- `+page.svelte` — redirects to `/dashboard/account/subscriptions`
+- `orders/+page.svelte` — paginated table (responsive → cards on mobile)
+- `orders/[id]/+page.svelte` — items + totals + refunds + collapsible state-log
+- `subscriptions/+page.svelte` — full history with status badges
+- `subscriptions/[id]/+page.svelte` — overview + actions (cancel/pause
+  with date picker, resume, switch-plan with proration preview) +
+  invoices table with hosted-receipt links + related orders
+- `coupons/+page.svelte` — apply form + redemption history
+- `billing-address/+page.svelte` — phone + address form, ISO-3166
+  country select, pre-filled from `GET /profile`
+- `payment-methods/+page.svelte` — native card list with set-default /
+  delete actions; "+ Add card" modal mounts Stripe Elements card field
+  via dynamic `https://js.stripe.com/v3/` script load and confirms via
+  `stripe.confirmCardSetup(client_secret, …)`. PCI scope stays inside
+  Stripe Elements; the BFF only ever sees opaque `pm_*` ids.
+- `details/+page.svelte` — name editor + change-password + DELETE-typed
+  danger zone
+
+Account UX polish on the dashboard layout: 36×36 sidebar avatar with
+photo-or-teal-initials fallback + "Member" badge; mobile bottom-tab
+bar shows the avatar circle in place of the generic Account icon when
+the member has uploaded one.
+
+### Test additions
+
+- `tests/member_orders.rs` — 6 tests (list/detail + ownership 404)
+- `tests/member_subscriptions.rs` — 13 tests (was 12; added
+  `redeemed_coupons_includes_currency_and_order_id`)
+- `tests/member_subscriptions_stripe.rs` — 5 wiremock-driven tests
+  covering switch-plan and preview happy-paths, proration_behavior
+  toggling, Stripe error bubble-up, and DB rollback verification
+- `tests/member_payment_methods.rs` — 7 wiremock tests covering list,
+  setup-intent (with idempotency-key forwarding asserted byte-for-byte),
+  set-default with ownership 404, delete with active-sub-default
+  rejection
+- `tests/member_self_service.rs` — 13 tests (existing harness already
+  covered cancel/resume/pause; ran green throughout)
+- `tests/member_profile_address.rs` — 4 tests covering billing-address
+  overlay semantics
+
+### Verification (binding evidence)
+
+| Check | Result |
+|---|---|
+| `cargo fmt --all -- --check` | clean (exit 0) |
+| `cargo clippy --all-targets -- -D warnings` | clean (exit 0) |
+| `cargo test --lib` | 524 passed / 0 failed / 0 ignored |
+| `cargo test --tests --no-fail-fast` (real Postgres on :5433) | 930 passed / 0 failed / 0 ignored across 48 binaries |
+| `pnpm check` (incl. OpenAPI regen + svelte-kit sync) | 4423 files / 0 errors / 0 warnings |
+| `pnpm lint` | clean |
+| `pnpm test:unit -- --run` | 103 passed / 103 total across 12 files |
+| Migration replay (fresh DB, `001..085` in order) | all 85 apply cleanly; new columns confirmed via `\d` |
+| Live smoke test (cargo run + curl) | 11/11 new endpoints return 401 (route wired); negative path returns 404 |
+
+### Decisions worth flagging
+
+- Payment Methods is **native, not portal redirect** — Stripe Elements
+  mounts client-side, the BFF only ever holds the opaque `pm_*` id.
+  PCI scope stays inside Stripe Elements; we don't touch raw card data.
+- Switch-plan **happy-path round-trip is integration-tested via
+  wiremock**, not stubbed. Required refactoring `Client` to take a
+  per-instance `base_url`. Test harness sets the override; production
+  code path defaults to `https://api.stripe.com` and is unchanged.
+- Coupon-history `currency` defaults to `'usd'` for back-compat with
+  rows inserted before migration 085. `order_id` is nullable because
+  apply-coupon doesn't always have an order context.
+- Refused to delete a member's default payment method while they have
+  an active subscription — returns 400 with explicit operator-facing
+  message instead of leaving the sub stranded with no card.
+
+---
+
 ## 2026-05-01 17:30 ET — Phase C: real Stripe E2E (11/11 green) + trial support
 
 ### What this session shipped

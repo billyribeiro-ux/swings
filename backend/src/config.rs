@@ -12,6 +12,16 @@ pub struct Config {
     pub frontend_url: String,
     pub stripe_secret_key: String,
     pub stripe_webhook_secret: String,
+    /// Test-only override for the Stripe REST API base URL.
+    ///
+    /// `None` (production) → the hardcoded `https://api.stripe.com` is
+    /// used. `Some(url)` redirects every Stripe REST call to the supplied
+    /// base — exclusively used by `backend/tests/member_subscriptions_stripe.rs`
+    /// to point the client at a `wiremock::MockServer`. Hydrated from
+    /// `STRIPE_API_BASE_URL` and only stored when the env var is set to
+    /// a non-empty value, so unsetting it (the production default) keeps
+    /// behaviour identical to before this field existed.
+    pub stripe_api_base_url_override: Option<String>,
     pub upload_dir: String,
     pub api_url: String,
     pub smtp_host: String,
@@ -68,6 +78,10 @@ impl Config {
             frontend_url,
             stripe_secret_key: env::var("STRIPE_SECRET_KEY").unwrap_or_default(),
             stripe_webhook_secret: env::var("STRIPE_WEBHOOK_SECRET").unwrap_or_default(),
+            stripe_api_base_url_override: env::var("STRIPE_API_BASE_URL")
+                .ok()
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty()),
             upload_dir: env::var("UPLOAD_DIR").unwrap_or_else(|_| "./uploads".to_string()),
             api_url: env::var("API_URL").unwrap_or_else(|_| "http://localhost:3001".to_string()),
             smtp_host: env::var("SMTP_HOST").unwrap_or_else(|_| "smtp.gmail.com".to_string()),
@@ -84,6 +98,17 @@ impl Config {
 
     pub fn is_production(&self) -> bool {
         self.app_env.eq_ignore_ascii_case("production")
+    }
+
+    /// Resolved Stripe REST base URL.
+    ///
+    /// Returns the per-process override when one was supplied via
+    /// `STRIPE_API_BASE_URL` (only ever set by the integration test
+    /// harness pointing at a `wiremock::MockServer`); production deploys
+    /// leave the env var unset and the wrapper falls back to its own
+    /// hardcoded `https://api.stripe.com` constant via [`Option::as_deref`].
+    pub fn stripe_api_base_url(&self) -> Option<&str> {
+        self.stripe_api_base_url_override.as_deref()
     }
 
     /// Returns an error in production when required secrets or URLs are missing or invalid.
