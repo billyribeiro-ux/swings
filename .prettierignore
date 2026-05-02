@@ -10,3 +10,9 @@ bun.lockb
 
 # Rust build output (local cargo build)
 backend/target/
+
+# Rust-owned generated artefact. Prettier format would conflict with
+# what `serde_json::to_string_pretty` produces (2-space JSON, no tabs),
+# and the openapi_snapshot test asserts an exact byte match. Keep Prettier
+# out of this directory entirely.
+backend/tests/snapshots/

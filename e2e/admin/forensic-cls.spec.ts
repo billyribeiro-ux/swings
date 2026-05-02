@@ -100,8 +100,7 @@ test.describe('forensic admin sweep', () => {
 								startTime: ls.startTime,
 								sources: (ls.sources ?? []).map((s) => ({
 									tag: s.node?.nodeName,
-									html:
-										(s.node?.outerHTML ?? '').slice(0, 220),
+									html: (s.node?.outerHTML ?? '').slice(0, 220),
 									prev: s.previousRect && {
 										x: s.previousRect.x,
 										y: s.previousRect.y,
@@ -128,10 +127,18 @@ test.describe('forensic admin sweep', () => {
 			// and the auth store identically to a real session.
 			await page.goto('/admin/login', { waitUntil: 'domcontentloaded' });
 			try {
-				await page.locator('input[type="email"]').first().fill(process.env.ADMIN_EMAIL ?? '');
-				await page.locator('input[type="password"]').first().fill(process.env.ADMIN_PASSWORD ?? '');
+				await page
+					.locator('input[type="email"]')
+					.first()
+					.fill(process.env.ADMIN_EMAIL ?? '');
+				await page
+					.locator('input[type="password"]')
+					.first()
+					.fill(process.env.ADMIN_PASSWORD ?? '');
 				await Promise.all([
-					page.waitForResponse((r) => r.url().includes('/api/auth/login'), { timeout: 10_000 }),
+					page.waitForResponse((r) => r.url().includes('/api/auth/login'), {
+						timeout: 10_000
+					}),
 					page.locator('button[type="submit"]').first().click()
 				]);
 				await page.waitForURL((u) => !u.toString().includes('/admin/login'), {
@@ -167,8 +174,15 @@ test.describe('forensic admin sweep', () => {
 
 			const cls = await page.evaluate(() => {
 				const entries =
-					(window as unknown as { __clsEntries: Array<{ value: number; hadRecentInput: boolean; sources?: unknown[] }> })
-						.__clsEntries ?? [];
+					(
+						window as unknown as {
+							__clsEntries: Array<{
+								value: number;
+								hadRecentInput: boolean;
+								sources?: unknown[];
+							}>;
+						}
+					).__clsEntries ?? [];
 				const total = entries
 					.filter((e) => !e.hadRecentInput)
 					.reduce((s, e) => s + e.value, 0);

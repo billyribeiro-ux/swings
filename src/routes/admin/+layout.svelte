@@ -290,7 +290,9 @@
 				</button>
 			</form>
 
-			<a href={resolve('/admin/forgot-password')} class="admin-login__forgot">Forgot password?</a>
+			<a href={resolve('/admin/forgot-password')} class="admin-login__forgot"
+				>Forgot password?</a
+			>
 			<a href={resolve('/')} class="admin-login__back">
 				<ArrowLeftIcon size={14} weight="bold" />
 				<span>Back to site</span>
@@ -355,12 +357,7 @@
 			class:admin__sidebar--collapsed={sidebarCollapsed}
 		>
 			<div class="admin__sidebar-top">
-				<a
-					href={resolve('/')}
-					class="admin__logo"
-					title={SITE.name}
-					aria-label={SITE.name}
-				>
+				<a href={resolve('/')} class="admin__logo" title={SITE.name} aria-label={SITE.name}>
 					<span class="admin__logo-mark" aria-hidden="true">P</span>
 					<span class="admin__logo-wordmark">
 						<span class="admin__logo-brand">{SITE.logoBrandPrimary}</span>

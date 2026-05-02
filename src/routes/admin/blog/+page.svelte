@@ -1480,5 +1480,4 @@
 		color: var(--color-white);
 		border-color: rgba(255, 255, 255, 0.22);
 	}
-
 </style>

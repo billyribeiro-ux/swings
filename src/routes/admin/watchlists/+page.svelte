@@ -232,10 +232,7 @@
 							<td class="wl-table__muted">{formatDate(wl.published_at)}</td>
 							<td>
 								<div class="wl-table__actions">
-									<ActionMenu
-										placement="bottom-end"
-										label="Watchlist actions"
-									>
+									<ActionMenu placement="bottom-end" label="Watchlist actions">
 										{#snippet trigger(p)}
 											<button
 												type="button"
@@ -243,10 +240,7 @@
 												class="wl-table__menu-trigger"
 												aria-label="Open watchlist actions menu"
 											>
-												<DotsThreeVerticalIcon
-													size={18}
-													weight="bold"
-												/>
+												<DotsThreeVerticalIcon size={18} weight="bold" />
 											</button>
 										{/snippet}
 										{#snippet items()}

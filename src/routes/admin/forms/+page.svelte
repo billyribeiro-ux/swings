@@ -97,7 +97,11 @@
 				form; archive hides without deleting.
 			</p>
 		</div>
-		<button class="btn btn--primary" type="button" onclick={() => goto(resolve('/admin/forms/new'))}>
+		<button
+			class="btn btn--primary"
+			type="button"
+			onclick={() => goto(resolve('/admin/forms/new'))}
+		>
 			<PlusIcon size={16} weight="bold" />
 			<span>New form</span>
 		</button>
@@ -122,7 +126,11 @@
 				Build a form once, then drop it into a popup, blog post, or standalone page.
 				Submissions and version history are tracked per form.
 			</p>
-			<button class="btn btn--primary" type="button" onclick={() => goto(resolve('/admin/forms/new'))}>
+			<button
+				class="btn btn--primary"
+				type="button"
+				onclick={() => goto(resolve('/admin/forms/new'))}
+			>
 				<PlusIcon size={16} weight="bold" />
 				<span>Create first form</span>
 			</button>
@@ -177,7 +185,9 @@
 										</a>
 										<a
 											class="action-btn"
-											href={resolve('/admin/forms/[id]/preview', { id: f.id })}
+											href={resolve('/admin/forms/[id]/preview', {
+												id: f.id
+											})}
 											aria-label={`Preview ${f.name}`}
 											title="Preview"
 										>
@@ -197,7 +207,9 @@
 										</a>
 										<a
 											class="action-btn"
-											href={resolve('/admin/forms/[id]/versions', { id: f.id })}
+											href={resolve('/admin/forms/[id]/versions', {
+												id: f.id
+											})}
 											aria-label={`Versions of ${f.name}`}
 											title="Versions"
 										>

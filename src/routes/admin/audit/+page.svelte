@@ -292,13 +292,13 @@
 	{:else if !envelope || envelope.data.length === 0}
 		{@const filtered = Boolean(
 			filters.q?.trim() ||
-				filters.action?.trim() ||
-				filters.actor_id?.trim() ||
-				filters.target_kind?.trim() ||
-				filters.target_id?.trim() ||
-				filters.metadata_contains?.trim() ||
-				filters.from ||
-				filters.to
+			filters.action?.trim() ||
+			filters.actor_id?.trim() ||
+			filters.target_kind?.trim() ||
+			filters.target_id?.trim() ||
+			filters.metadata_contains?.trim() ||
+			filters.from ||
+			filters.to
 		)}
 		<div class="empty" role="status">
 			<div class="empty__icon" aria-hidden="true">

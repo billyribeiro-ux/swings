@@ -295,12 +295,16 @@
 							<div class="od__event-dot" aria-hidden="true"></div>
 							<div class="od__event-body">
 								<div class="od__event-row">
-									<span class="badge badge--grey">{statusLabel(event.from_status)}</span>
+									<span class="badge badge--grey"
+										>{statusLabel(event.from_status)}</span
+									>
 									<CaretRightIcon size={12} weight="bold" />
 									<span class="badge badge--{statusTone(event.to_status)}">
 										{statusLabel(event.to_status)}
 									</span>
-									<span class="od__event-time">{formatDateTime(event.created_at)}</span>
+									<span class="od__event-time"
+										>{formatDateTime(event.created_at)}</span
+									>
 								</div>
 								{#if event.reason}
 									<p class="od__event-reason">{event.reason}</p>

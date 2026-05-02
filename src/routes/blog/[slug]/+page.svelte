@@ -188,8 +188,9 @@
 				<div class="post-tags">
 					<span class="post-tags__label">Tags:</span>
 					{#each post.tags as tag (tag.id ?? tag.slug)}
-						<a href={resolve('/blog/tag/[slug]', { slug: tag.slug })} class="post-tags__pill"
-							>{tag.name}</a
+						<a
+							href={resolve('/blog/tag/[slug]', { slug: tag.slug })}
+							class="post-tags__pill">{tag.name}</a
 						>
 					{/each}
 				</div>

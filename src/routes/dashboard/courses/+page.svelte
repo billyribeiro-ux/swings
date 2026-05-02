@@ -299,7 +299,9 @@
 									<span class="course-card__pct">{enrollment.progress}%</span>
 								</div>
 								<a
-									href={resolve('/dashboard/courses/[slug]', { slug: course.slug })}
+									href={resolve('/dashboard/courses/[slug]', {
+										slug: course.slug
+									})}
 									class="course-card__action"
 								>
 									Continue Learning

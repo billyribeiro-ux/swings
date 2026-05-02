@@ -39,34 +39,35 @@ Then EACH `.nest(...)`/`.merge(...)` call applies its own `idempotency::enforce`
 
 Per-mount idempotency layer source lines:
 
-| Mount sub-prefix                           | Nest line | Idempotency layer wrap |
-|--------------------------------------------|-----------|------------------------|
-| `/api/admin` (legacy admin::router)         | main.rs:505 | main.rs:511          |
-| `/api/admin` (admin_security via .merge)    | main.rs:520 | main.rs:521 (per merge) |
-| `/api/admin/members` (admin_members .merge) | main.rs:532 | main.rs:533          |
-| `/api/admin/security/ip-allowlist`          | main.rs:540 | main.rs:541          |
-| `/api/admin/security/impersonation`         | main.rs:551 | main.rs:553          |
-| `/api/admin/settings`                       | main.rs:564 | main.rs:566          |
-| `/api/admin/security/roles`                 | main.rs:573 | main.rs:574          |
-| `/api/admin/subscriptions`                  | main.rs:585 | main.rs:587          |
-| `/api/admin/orders`                         | main.rs:598 | main.rs:600          |
-| `/api/admin/dsar`                           | main.rs:609 | main.rs:611          |
-| `/api/admin/audit`                          | main.rs:616 — **NO** layer (lacks `.layer(...)` after the nest) |
-| `/api/admin/blog`                           | main.rs:626 | main.rs:628          |
-| `/api/admin/courses`                        | main.rs:633 | main.rs:635          |
-| `/api/admin/pricing`                        | main.rs:640 | main.rs:642          |
-| `/api/admin/coupons`                        | main.rs:647 | main.rs:649          |
-| `/api/admin/popups`                         | main.rs:654 | main.rs:656          |
-| `/api/admin/products`                       | main.rs:661 | main.rs:663          |
-| `/api/admin/outbox`                         | main.rs:668 | main.rs:670          |
-| `/api/admin/forms`                          | main.rs:675 | main.rs:677          |
-| `/api/admin/notifications`                  | main.rs:682 | main.rs:684          |
-| `/api/admin/consent` (admin_consent)        | main.rs:691 | main.rs:693          |
-| `/api/admin/consent` (consent::admin_router)| main.rs:700 — **DUPLICATE PREFIX** of admin_consent | main.rs:702 |
+| Mount sub-prefix                             | Nest line                                                       | Idempotency layer wrap  |
+| -------------------------------------------- | --------------------------------------------------------------- | ----------------------- |
+| `/api/admin` (legacy admin::router)          | main.rs:505                                                     | main.rs:511             |
+| `/api/admin` (admin_security via .merge)     | main.rs:520                                                     | main.rs:521 (per merge) |
+| `/api/admin/members` (admin_members .merge)  | main.rs:532                                                     | main.rs:533             |
+| `/api/admin/security/ip-allowlist`           | main.rs:540                                                     | main.rs:541             |
+| `/api/admin/security/impersonation`          | main.rs:551                                                     | main.rs:553             |
+| `/api/admin/settings`                        | main.rs:564                                                     | main.rs:566             |
+| `/api/admin/security/roles`                  | main.rs:573                                                     | main.rs:574             |
+| `/api/admin/subscriptions`                   | main.rs:585                                                     | main.rs:587             |
+| `/api/admin/orders`                          | main.rs:598                                                     | main.rs:600             |
+| `/api/admin/dsar`                            | main.rs:609                                                     | main.rs:611             |
+| `/api/admin/audit`                           | main.rs:616 — **NO** layer (lacks `.layer(...)` after the nest) |
+| `/api/admin/blog`                            | main.rs:626                                                     | main.rs:628             |
+| `/api/admin/courses`                         | main.rs:633                                                     | main.rs:635             |
+| `/api/admin/pricing`                         | main.rs:640                                                     | main.rs:642             |
+| `/api/admin/coupons`                         | main.rs:647                                                     | main.rs:649             |
+| `/api/admin/popups`                          | main.rs:654                                                     | main.rs:656             |
+| `/api/admin/products`                        | main.rs:661                                                     | main.rs:663             |
+| `/api/admin/outbox`                          | main.rs:668                                                     | main.rs:670             |
+| `/api/admin/forms`                           | main.rs:675                                                     | main.rs:677             |
+| `/api/admin/notifications`                   | main.rs:682                                                     | main.rs:684             |
+| `/api/admin/consent` (admin_consent)         | main.rs:691                                                     | main.rs:693             |
+| `/api/admin/consent` (consent::admin_router) | main.rs:700 — **DUPLICATE PREFIX** of admin_consent             | main.rs:702             |
 
 ### Flag — duplicate prefix on `/api/admin/consent`
 
 Two distinct sub-routers are nested under the same prefix at lines 675-690 of `main.rs`. They register disjoint route sets:
+
 - `admin_consent::router()` (CONSENT-07 — banners/categories/services/policies/log/integrity).
 - `consent::admin_router()` (CONSENT-03 — DSAR list + fulfill).
 
@@ -175,11 +176,11 @@ The same prefix also accepts a SECOND `.nest("/api/member", handlers::courses::m
 
 ### Flag — multi-nest on `/api/member` with asymmetric middleware
 
-| Mount line | Router source                            | idempotency | rate_limit::member |
-|------------|-------------------------------------------|-------------|--------------------|
-| main.rs:744 | handlers::member::router                 | YES         | YES (member.rs:82) |
-| main.rs:751 | handlers::courses::member_router         | NO          | NO                 |
-| main.rs:752 | handlers::notifications::member_router   | NO          | NO                 |
+| Mount line  | Router source                          | idempotency | rate_limit::member |
+| ----------- | -------------------------------------- | ----------- | ------------------ |
+| main.rs:744 | handlers::member::router               | YES         | YES (member.rs:82) |
+| main.rs:751 | handlers::courses::member_router       | NO          | NO                 |
+| main.rs:752 | handlers::notifications::member_router | NO          | NO                 |
 
 Routes hosted under the second/third nest (R-0260..R-0263 for courses, R-0316..R-0317 for notification-preferences) bypass both protective layers, despite all three nests sharing the same `/api/member` URL prefix.
 

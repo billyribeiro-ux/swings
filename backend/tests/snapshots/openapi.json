@@ -10521,6 +10521,13 @@
           "updated_at": {
             "type": "string",
             "format": "date-time"
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO-4217 currency code (lowercase) the fixed-amount coupon is\ndenominated in. `None` means \"currency-agnostic\" — typical for\npercent-discount coupons or legacy rows that pre-date migration\n089. The redemption flow refuses to apply a coupon whose\ncurrency mismatches the cart's currency when both sides are\npopulated."
           }
         }
       },
@@ -11256,7 +11263,15 @@
           },
           "discount_value": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "description": "Discount magnitude. Interpretation depends on `discount_type`:\n  * `percentage` → value in 0.0..=100.0 (e.g. 25.0 = 25% off)\n  * `fixed_amount` → value in cents, ≥ 0 (e.g. 5_000 = $50.00)\n  * `free_trial` → value in days, ≥ 0\n\nNegative, NaN, infinite, or out-of-range values are rejected by\n`validate_discount_value` at handler entry — the `validator`\ncrate has no built-in `range(min, max)` for `f64`, so we\nhand-roll the check."
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO-4217 currency code (lowercase) for fixed-amount coupons.\n`None` for percent / free-trial coupons or legacy rows."
           },
           "min_purchase_cents": {
             "type": [
@@ -12338,9 +12353,9 @@
       "DiscountType": {
         "type": "string",
         "enum": [
-          "Percentage",
-          "FixedAmount",
-          "FreeTrial"
+          "percentage",
+          "fixed_amount",
+          "free_trial"
         ]
       },
       "DownloadableAsset": {
@@ -17679,6 +17694,12 @@
               "null"
             ],
             "format": "double"
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "min_purchase_cents": {
             "type": [

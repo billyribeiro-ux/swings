@@ -22,7 +22,9 @@
 		const trimmed = url.trim();
 
 		// YouTube — youtube.com/watch?v=ID
-		const ytWatch = trimmed.match(/(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?(?:.*&)?v=([\w-]{6,})/);
+		const ytWatch = trimmed.match(
+			/(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?(?:.*&)?v=([\w-]{6,})/
+		);
 		if (ytWatch) {
 			return `https://www.youtube.com/embed/${ytWatch[1]}?rel=0&modestbranding=1`;
 		}

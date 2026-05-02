@@ -93,9 +93,7 @@
 <svelte:head><title>New Coupon - Admin - Precision Options Signals</title></svelte:head>
 
 <div class="pg">
-	<a href={resolve('/admin/coupons')} class="back"
-		><ArrowLeftIcon size={18} /> Back to Coupons</a
-	>
+	<a href={resolve('/admin/coupons')} class="back"><ArrowLeftIcon size={18} /> Back to Coupons</a>
 	<div class="hdr">
 		<TicketIcon size={24} weight="bold" />
 		<h1>Create New Coupon</h1>

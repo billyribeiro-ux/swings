@@ -93,7 +93,9 @@
 				try {
 					const course = allCourses.find((c) => c.id === lastAccessedCourseId);
 					if (course) {
-						const detail = await api.get<CourseWithModules>(`/api/courses/${course.slug}`);
+						const detail = await api.get<CourseWithModules>(
+							`/api/courses/${course.slug}`
+						);
 						nextLessonTitle = pickNextLessonTitle(
 							detail,
 							progressByCourse[lastAccessedCourseId] ?? []
@@ -266,7 +268,9 @@
 									style="width: {lastAccessedEnrollment.progress}%"
 								></div>
 							</div>
-							<span class="continue-card__pct">{lastAccessedEnrollment.progress}%</span>
+							<span class="continue-card__pct"
+								>{lastAccessedEnrollment.progress}%</span
+							>
 						</div>
 						{#if nextLessonTitle}
 							<p class="continue-card__next">Next up: "{nextLessonTitle}"</p>
@@ -339,7 +343,9 @@
 											d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
 										/>
 									</svg>
-									<span class="course-card__circle-text">{enrollment.progress}%</span>
+									<span class="course-card__circle-text"
+										>{enrollment.progress}%</span
+									>
 								</div>
 								<a
 									href={resolve('/dashboard/courses/[slug]', {

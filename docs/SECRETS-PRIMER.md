@@ -12,15 +12,15 @@
 
 ## TL;DR cheat sheet
 
-| Variable | Where you get it | Where it goes | Why it exists |
-| --- | --- | --- | --- |
-| `JWT_SECRET` | `openssl rand -base64 64` (you generate it locally) | `backend/.env` only | Signs access tokens. Anyone who knows it can mint valid JWTs. |
-| `SETTINGS_ENCRYPTION_KEY` | `openssl rand -base64 32` | `backend/.env` only | AEAD key for `app_settings.value_type='secret'` rows. 32 bytes exactly. |
-| `STRIPE_SECRET_KEY` (test) | https://dashboard.stripe.com/test/apikeys → "Secret key" (`sk_test_…`). Or `stripe config --list` if you've already run `stripe login`. | **Both** `backend/.env` AND root `.env` with the **same** value | Backend uses it for webhook verification + portal sessions; SvelteKit BFF uses it to mint Checkout Sessions. Same Stripe account = same key. |
-| `STRIPE_WEBHOOK_SECRET` (test) | First-line stdout of `stripe listen --print-secret …` | `backend/.env` only | Verifies that incoming webhook bodies were actually signed by Stripe. |
-| `RESEND_API_KEY` | https://resend.com/api-keys (or set `EMAIL_PROVIDER=noop` for dev) | `backend/.env` only | Outbound email. `noop` logs to stdout instead of sending. |
-| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | You choose them | `backend/.env` only | Seeded into the `users` table on first boot. Argon2-hashed at rest. |
-| `DATABASE_URL` | Docker-compose default for local dev | `backend/.env` | Postgres DSN. |
+| Variable                         | Where you get it                                                                                                                        | Where it goes                                                   | Why it exists                                                                                                                                |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `JWT_SECRET`                     | `openssl rand -base64 64` (you generate it locally)                                                                                     | `backend/.env` only                                             | Signs access tokens. Anyone who knows it can mint valid JWTs.                                                                                |
+| `SETTINGS_ENCRYPTION_KEY`        | `openssl rand -base64 32`                                                                                                               | `backend/.env` only                                             | AEAD key for `app_settings.value_type='secret'` rows. 32 bytes exactly.                                                                      |
+| `STRIPE_SECRET_KEY` (test)       | https://dashboard.stripe.com/test/apikeys → "Secret key" (`sk_test_…`). Or `stripe config --list` if you've already run `stripe login`. | **Both** `backend/.env` AND root `.env` with the **same** value | Backend uses it for webhook verification + portal sessions; SvelteKit BFF uses it to mint Checkout Sessions. Same Stripe account = same key. |
+| `STRIPE_WEBHOOK_SECRET` (test)   | First-line stdout of `stripe listen --print-secret …`                                                                                   | `backend/.env` only                                             | Verifies that incoming webhook bodies were actually signed by Stripe.                                                                        |
+| `RESEND_API_KEY`                 | https://resend.com/api-keys (or set `EMAIL_PROVIDER=noop` for dev)                                                                      | `backend/.env` only                                             | Outbound email. `noop` logs to stdout instead of sending.                                                                                    |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | You choose them                                                                                                                         | `backend/.env` only                                             | Seeded into the `users` table on first boot. Argon2-hashed at rest.                                                                          |
+| `DATABASE_URL`                   | Docker-compose default for local dev                                                                                                    | `backend/.env`                                                  | Postgres DSN.                                                                                                                                |
 
 `.env.example` files in this repo carry **placeholder values, never real
 secrets**. They are committed to git and tell you the shape of each value
@@ -154,30 +154,30 @@ swings/
 Read by SvelteKit's `$env/dynamic/public` and `$env/dynamic/private`
 machinery during SSR + the Vercel runtime. Contains:
 
-| Var | Purpose |
-| --- | --- |
-| `PUBLIC_APP_URL` | Where Stripe should redirect users back after Checkout. |
-| `STRIPE_SECRET_KEY` | The BFF mints Checkout Sessions; needs Stripe API access. **Same value as `backend/.env`'s copy.** |
+| Var                             | Purpose                                                                                                                                                                |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PUBLIC_APP_URL`                | Where Stripe should redirect users back after Checkout.                                                                                                                |
+| `STRIPE_SECRET_KEY`             | The BFF mints Checkout Sessions; needs Stripe API access. **Same value as `backend/.env`'s copy.**                                                                     |
 | `PUBLIC_STRIPE_PUBLISHABLE_KEY` | Optional. Only needed if you embed Stripe Elements (card fields) directly in a form. Prefix `PUBLIC_` is required by SvelteKit so the value is exposed to the browser. |
-| `VITE_API_URL` | Optional. Backend origin for SSR fetches in non-Vercel deploys (Vercel rewrites `/api/*` to Railway directly via `vercel.json`). |
+| `VITE_API_URL`                  | Optional. Backend origin for SSR fetches in non-Vercel deploys (Vercel rewrites `/api/*` to Railway directly via `vercel.json`).                                       |
 
 ### `backend/.env` (Rust API)
 
 Read by `swings_api::config::Config::from_env` at boot. Contains
 **everything** the Axum binary needs:
 
-| Bucket | Vars |
-| --- | --- |
-| Core | `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRATION_HOURS`, `REFRESH_TOKEN_EXPIRATION_DAYS`, `PORT`, `APP_ENV`, `FRONTEND_URL`, `API_URL`, `APP_URL`, `CORS_ALLOWED_ORIGINS` |
-| Crypto | `SETTINGS_ENCRYPTION_KEY` (and optional `APP_DATA_KEY`) |
-| Admin seeding | `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` |
-| Stripe | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` |
-| Email | `EMAIL_PROVIDER` (`resend` / `smtp` / `noop`), `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, `RESEND_FROM`, `SMTP_*` |
-| Object storage | `R2_*` |
-| Anti-abuse (optional) | `TURNSTILE_SECRET`, `AKISMET_*`, `MAXMIND_DB_PATH`, `CONSENT_IP_SALT` |
-| Worker tuning | `OUTBOX_*`, `AUDIT_RETENTION_INTERVAL_SECS`, `DSAR_*_INTERVAL_SECS`, `IDEMPOTENCY_GC_INTERVAL_SECS` |
-| Pool tuning | `PGPOOL_*` |
-| Misc | `RATE_LIMIT_BACKEND`, `LOG_FORMAT`, `SWINGS_ALLOW_HTTP_WEBHOOKS` |
+| Bucket                | Vars                                                                                                                                                                   |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Core                  | `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRATION_HOURS`, `REFRESH_TOKEN_EXPIRATION_DAYS`, `PORT`, `APP_ENV`, `FRONTEND_URL`, `API_URL`, `APP_URL`, `CORS_ALLOWED_ORIGINS` |
+| Crypto                | `SETTINGS_ENCRYPTION_KEY` (and optional `APP_DATA_KEY`)                                                                                                                |
+| Admin seeding         | `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME`                                                                                                                          |
+| Stripe                | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`                                                                                                                           |
+| Email                 | `EMAIL_PROVIDER` (`resend` / `smtp` / `noop`), `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, `RESEND_FROM`, `SMTP_*`                                                      |
+| Object storage        | `R2_*`                                                                                                                                                                 |
+| Anti-abuse (optional) | `TURNSTILE_SECRET`, `AKISMET_*`, `MAXMIND_DB_PATH`, `CONSENT_IP_SALT`                                                                                                  |
+| Worker tuning         | `OUTBOX_*`, `AUDIT_RETENTION_INTERVAL_SECS`, `DSAR_*_INTERVAL_SECS`, `IDEMPOTENCY_GC_INTERVAL_SECS`                                                                    |
+| Pool tuning           | `PGPOOL_*`                                                                                                                                                             |
+| Misc                  | `RATE_LIMIT_BACKEND`, `LOG_FORMAT`, `SWINGS_ALLOW_HTTP_WEBHOOKS`                                                                                                       |
 
 Full reference with defaults: see [`backend/.env.example`](../backend/.env.example).
 
@@ -249,12 +249,12 @@ one runtime guard.
 
 ## Rotation runbook
 
-| Variable | Trigger | Steps |
-| --- | --- | --- |
-| `JWT_SECRET` | Quarterly OR after suspected exposure | 1) Generate new value. 2) Set in env (rolling deploy). 3) Every user re-logs in on next request — expected. 4) Revoke any long-lived API tokens that were minted by hand. |
-| `SETTINGS_ENCRYPTION_KEY` | Suspected exposure ONLY (rotation breaks reads) | 1) Generate new value. 2) Run a one-off migration that reads each `app_settings` secret with the **old** key and re-encrypts with the **new** key. 3) Then swap env. (Do NOT just rotate the env var or all secret-typed settings become unreadable.) |
-| `STRIPE_SECRET_KEY` | If leaked: Stripe dashboard "Roll keys" generates new pair instantly. | 1) Roll in dashboard. 2) Paste new value into Railway + Vercel. 3) Stripe deactivates the old one immediately. |
-| `STRIPE_WEBHOOK_SECRET` | If leaked: regenerate in dashboard. | 1) Click "Roll" next to the webhook endpoint in Stripe dashboard. 2) Paste new `whsec_…` into Railway. 3) Restart backend. |
+| Variable                  | Trigger                                                               | Steps                                                                                                                                                                                                                                                 |
+| ------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `JWT_SECRET`              | Quarterly OR after suspected exposure                                 | 1) Generate new value. 2) Set in env (rolling deploy). 3) Every user re-logs in on next request — expected. 4) Revoke any long-lived API tokens that were minted by hand.                                                                             |
+| `SETTINGS_ENCRYPTION_KEY` | Suspected exposure ONLY (rotation breaks reads)                       | 1) Generate new value. 2) Run a one-off migration that reads each `app_settings` secret with the **old** key and re-encrypts with the **new** key. 3) Then swap env. (Do NOT just rotate the env var or all secret-typed settings become unreadable.) |
+| `STRIPE_SECRET_KEY`       | If leaked: Stripe dashboard "Roll keys" generates new pair instantly. | 1) Roll in dashboard. 2) Paste new value into Railway + Vercel. 3) Stripe deactivates the old one immediately.                                                                                                                                        |
+| `STRIPE_WEBHOOK_SECRET`   | If leaked: regenerate in dashboard.                                   | 1) Click "Roll" next to the webhook endpoint in Stripe dashboard. 2) Paste new `whsec_…` into Railway. 3) Restart backend.                                                                                                                            |
 
 ---
 

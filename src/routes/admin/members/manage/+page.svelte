@@ -164,11 +164,10 @@
 		</div>
 		<p class="page__subtitle">
 			Indexed search backed by <code>pg_trgm</code> over email + name. Filters by role and
-			lifecycle status. 			Manual create gates on <code>admin.member.create</code>. Administrator
-			accounts require <code>admin.role.manage</code>. Leaving the temp
-			password blank disables login until the user sets a password — you can
-			send a setup link by checking &quot;Send password setup email&quot;
-			(outbound email must be configured).
+			lifecycle status. Manual create gates on <code>admin.member.create</code>. Administrator
+			accounts require <code>admin.role.manage</code>. Leaving the temp password blank
+			disables login until the user sets a password — you can send a setup link by checking
+			&quot;Send password setup email&quot; (outbound email must be configured).
 		</p>
 	</header>
 
@@ -304,8 +303,8 @@
 							— account awaits a password; invite was not sent (check logs / email
 							config) or use Force reset from the member profile.
 						{:else}
-							— created in disabled state; send a reset link from the member
-							profile or run create again with &quot;Send password setup email&quot;.
+							— created in disabled state; send a reset link from the member profile
+							or run create again with &quot;Send password setup email&quot;.
 						{/if}
 					{:else}
 						created with the temp password you supplied.

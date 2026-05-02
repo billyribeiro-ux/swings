@@ -44,7 +44,8 @@
 		"ci:all": "pnpm ci:frontend && pnpm ci:backend"
 	},
 	"simple-git-hooks": {
-		"pre-commit": "pnpm lint && pnpm test:unit -- --run"
+		"pre-commit": "pnpm lint && pnpm test:unit -- --run",
+		"pre-push": "pnpm ci:all"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.5",

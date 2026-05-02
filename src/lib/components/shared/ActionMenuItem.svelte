@@ -25,8 +25,7 @@
 		mirrored?: boolean;
 	}
 	interface IconComponentProps
-		extends Omit<SVGAttributes<SVGSVGElement>, keyof IconBaseProps>,
-			IconBaseProps {}
+		extends Omit<SVGAttributes<SVGSVGElement>, keyof IconBaseProps>, IconBaseProps {}
 
 	interface Props {
 		icon?: Component<IconComponentProps, Record<string, never>, ''> | undefined;
@@ -44,14 +43,7 @@
 		children: Snippet;
 	}
 
-	let {
-		icon,
-		variant = 'default',
-		disabled = false,
-		onclick,
-		href,
-		children
-	}: Props = $props();
+	let { icon, variant = 'default', disabled = false, onclick, href, children }: Props = $props();
 
 	function handleClick(event: MouseEvent) {
 		if (disabled) {

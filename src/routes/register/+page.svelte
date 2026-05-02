@@ -218,7 +218,8 @@
 
 			<p class="auth-form__legal">
 				By creating an account, you agree to our
-				<a href={resolve('/terms')} class="auth-card__link auth-card__link--inline">Terms</a>
+				<a href={resolve('/terms')} class="auth-card__link auth-card__link--inline">Terms</a
+				>
 				and
 				<a href={resolve('/privacy')} class="auth-card__link auth-card__link--inline"
 					>Privacy Policy</a

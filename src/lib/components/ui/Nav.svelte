@@ -209,7 +209,9 @@
 							<span>{dashLabel}</span>
 						</a>
 					{:else}
-						<Button variant="primary" href={resolve('/register')}>Get Instant Access</Button>
+						<Button variant="primary" href={resolve('/register')}
+							>Get Instant Access</Button
+						>
 						<div class="nav__signin">
 							<p class="nav__cta-signin-label">Already a member?</p>
 							<a
@@ -295,13 +297,17 @@
 					class="mobile-menu__links"
 					in:fly={{ y: 16, duration: tDur(400), delay: tDelay(90), easing: expoOut }}
 				>
-					<a href={resolve('/about')} class="mobile-menu__link" onclick={closeAll}>About</a>
+					<a href={resolve('/about')} class="mobile-menu__link" onclick={closeAll}
+						>About</a
+					>
 					<a href={resolve('/courses')} class="mobile-menu__link" onclick={closeAll}
 						>All Courses</a
 					>
 					<a href={resolve('/blog')} class="mobile-menu__link" onclick={closeAll}>Blog</a>
-					<a href={resolve('/pricing/monthly')} class="mobile-menu__link" onclick={closeAll}
-						>Pricing</a
+					<a
+						href={resolve('/pricing/monthly')}
+						class="mobile-menu__link"
+						onclick={closeAll}>Pricing</a
 					>
 				</div>
 
@@ -316,7 +322,11 @@
 							{dashLabel}
 						</a>
 					{:else}
-						<a href={resolve('/register')} class="mobile-menu__cta-btn" onclick={closeAll}>
+						<a
+							href={resolve('/register')}
+							class="mobile-menu__cta-btn"
+							onclick={closeAll}
+						>
 							Get Instant Access
 							<ArrowRightIcon size={16} weight="bold" />
 						</a>

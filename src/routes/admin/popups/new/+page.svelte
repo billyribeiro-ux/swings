@@ -197,7 +197,9 @@
 <svelte:head><title>New Popup - Admin</title></svelte:head>
 
 <div class="pb">
-	<a href={resolve('/admin/popups')} class="pb__back"><ArrowLeftIcon size={18} /> Back to Popups</a>
+	<a href={resolve('/admin/popups')} class="pb__back"
+		><ArrowLeftIcon size={18} /> Back to Popups</a
+	>
 
 	<div class="pb__top">
 		<div class="pb__top-left">

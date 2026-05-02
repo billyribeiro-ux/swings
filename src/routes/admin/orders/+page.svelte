@@ -467,11 +467,7 @@
 						Clear filters
 					</button>
 				{/if}
-				<button
-					type="button"
-					class="btn btn--primary"
-					onclick={() => (showCreate = true)}
-				>
+				<button type="button" class="btn btn--primary" onclick={() => (showCreate = true)}>
 					<PlusIcon size={16} weight="bold" />
 					<span>{filtersActive ? 'Manual order' : 'Create first order'}</span>
 				</button>

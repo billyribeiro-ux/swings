@@ -34,6 +34,30 @@ try {
 	throw err;
 }
 
+/**
+ * Format the generated source with Prettier so the committed file is
+ * always Prettier-clean. Without this, `pnpm gen:types` produces a
+ * file that `prettier --check` rejects, and `pnpm ci:frontend` fails
+ * before any real work runs (it does `gen:types && prettier --check`
+ * back-to-back). Dynamic import for the same reason as above —
+ * fresh-clone resilience.
+ */
+let prettierFormat = null;
+let prettierResolveConfig = null;
+try {
+	const prettier = await import('prettier');
+	prettierFormat = prettier.format;
+	prettierResolveConfig = prettier.resolveConfig;
+} catch (err) {
+	if (err && (err.code === 'ERR_MODULE_NOT_FOUND' || err.code === 'MODULE_NOT_FOUND')) {
+		console.warn(
+			'[openapi-to-ts] prettier not installed; writing unformatted output. Run `pnpm install` first.'
+		);
+	} else {
+		throw err;
+	}
+}
+
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '..');
 
@@ -77,7 +101,22 @@ async function main() {
 	});
 
 	const generated = astToString(ast);
-	const out = `${banner}\n${generated}`;
+	const raw_out = `${banner}\n${generated}`;
+
+	// Run Prettier with the project config so the file matches what
+	// `prettier --check .` would accept. We must explicitly resolve the
+	// `.prettierrc` for the target file — passing only `filepath` makes
+	// Prettier infer the parser but does NOT auto-load the project
+	// config, which is why earlier attempts still produced a file that
+	// `prettier --check` rejected.
+	let out = raw_out;
+	if (prettierFormat) {
+		const cfg = prettierResolveConfig ? ((await prettierResolveConfig(outPath)) ?? {}) : {};
+		out = await prettierFormat(raw_out, {
+			...cfg,
+			filepath: outPath
+		});
+	}
 
 	await mkdir(dirname(outPath), { recursive: true });
 	await writeFile(outPath, out, 'utf8');

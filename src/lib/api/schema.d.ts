@@ -8,13680 +8,13708 @@
  */
 
 export type paths = {
-    "/api/admin/alerts/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["update_alert"];
-        post?: never;
-        delete: operations["delete_alert"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/audit": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_audit_list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/audit/export.csv": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_audit_export_csv"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/audit/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_audit_read_one"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/blog/categories": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_create_category"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/blog/categories/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["admin_update_category"];
-        post?: never;
-        delete: operations["admin_delete_category"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/blog/media/upload": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_upload_media"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/blog/media/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["admin_update_media"];
-        post?: never;
-        delete: operations["admin_delete_media"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/blog/posts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_create_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/blog/posts/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["admin_update_post"];
-        post?: never;
-        delete: operations["admin_delete_post"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/blog/posts/{id}/autosave": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_autosave_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/blog/posts/{id}/meta": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_upsert_post_meta"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/blog/posts/{id}/meta/{key}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["admin_delete_post_meta"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/blog/posts/{id}/restore": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_restore_post_from_trash"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/blog/posts/{id}/revisions/{rev_id}/restore": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_restore_revision"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/blog/posts/{id}/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["admin_update_post_status"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/blog/tags": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_create_tag"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/blog/tags/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["admin_delete_tag"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/consent/dsar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** `GET /api/admin/consent/dsar` (AdminUser). */
-        get: operations["admin_list_dsar"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/consent/dsar/{id}/fulfill": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** `POST /api/admin/consent/dsar/{id}/fulfill` (AdminUser). */
-        post: operations["admin_fulfill_dsar"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/coupons": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_create_coupon"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/coupons/bulk": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_bulk_create_coupons"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/coupons/stats": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_coupon_stats"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/coupons/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["admin_update_coupon"];
-        post?: never;
-        delete: operations["admin_delete_coupon"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/coupons/{id}/engine": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["admin_update_coupon_engine"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/coupons/{id}/toggle": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_toggle_coupon"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/courses": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["create_course"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/courses/{course_id}/modules/{module_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["update_module"];
-        post?: never;
-        delete: operations["delete_module"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/courses/{course_id}/modules/{module_id}/lessons": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["create_lesson"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/courses/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["update_course"];
-        post?: never;
-        delete: operations["delete_course"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/courses/{id}/modules": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["create_module"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/courses/{id}/publish": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["toggle_publish"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/dsar/jobs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_dsar_list_jobs"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/dsar/jobs/erase/request": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_dsar_request_erase"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/dsar/jobs/export": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_dsar_create_export"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/dsar/jobs/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_dsar_read_job"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/dsar/jobs/{id}/artifact": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Stream the artefact behind a `local`-mode async export.
-         * @description Async DSAR exports stored on R2 expose a presigned URL the operator
-         *     hits directly; for local-storage deployments (dev, single-node, or
-         *     air-gapped) we serve the JSON via this RBAC-gated route instead so
-         *     no anonymous filesystem access is required. Returns `404` for
-         *     inline jobs (the artefact is already in `artifact_url`) and for
-         *     jobs that have not yet been composed.
-         */
-        get: operations["admin_dsar_stream_artifact"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/dsar/jobs/{id}/cancel": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_dsar_cancel_job"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/dsar/jobs/{id}/erase/approve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_dsar_approve_erase"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/forms/{id}/submissions/bulk": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_bulk_update_submissions"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/lessons/{lesson_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["update_lesson"];
-        post?: never;
-        delete: operations["delete_lesson"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/members": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_members_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/members/search": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_members_search"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/members/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["delete_member"];
-        options?: never;
-        head?: never;
-        patch: operations["update_member_profile"];
-        trace?: never;
-    };
-    "/api/admin/members/{id}/ban": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["ban_member"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/members/{id}/billing-portal": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_member_billing_portal"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/members/{id}/detail": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["member_detail"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/members/{id}/force-password-reset": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["force_password_reset"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/members/{id}/reactivate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["reactivate_member"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/members/{id}/role": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["update_member_role"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/members/{id}/sessions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["list_sessions"];
-        put?: never;
-        post?: never;
-        delete: operations["force_logout"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/members/{id}/sessions/{session_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["revoke_session"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/members/{id}/subscription/cancel": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_member_subscription_cancel"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/members/{id}/subscription/resume": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_member_subscription_resume"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/members/{id}/suspend": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["suspend_member"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/members/{id}/unban": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["unban_member"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/members/{id}/unsuspend": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["unsuspend_member"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/members/{id}/verify-email": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["mark_email_verified"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/notifications/deliveries": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["list_deliveries"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/notifications/suppression": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["list_suppression"];
-        put?: never;
-        post: operations["add_suppression"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/notifications/suppression/remove": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["remove_suppression"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/notifications/templates": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["list_templates"];
-        put?: never;
-        post: operations["create_template"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/notifications/templates/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["get_template"];
-        put: operations["update_template"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/notifications/templates/{id}/preview": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["preview_template"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/notifications/templates/{id}/test-send": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["test_send_template"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/orders": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_orders_list"];
-        put?: never;
-        post: operations["admin_orders_create_manual"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/orders/export.csv": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_orders_export_csv"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/orders/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_orders_read_one"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/orders/{id}/refund": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_orders_refund"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/orders/{id}/void": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_orders_void"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/outbox": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["list_outbox"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/outbox/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["get_outbox"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/outbox/{id}/retry": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["retry_outbox"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/popups": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_create_popup"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/popups/analytics": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_list_analytics"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/popups/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["admin_update_popup"];
-        post?: never;
-        delete: operations["admin_delete_popup"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/popups/{id}/duplicate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_duplicate_popup"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/popups/{id}/toggle": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_toggle_popup"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/pricing/plans": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_create_plan"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/pricing/plans/price-log": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_plan_price_change_log"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/pricing/plans/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["admin_update_plan"];
-        post?: never;
-        delete: operations["admin_delete_plan"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/pricing/plans/{id}/toggle": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_toggle_plan"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/products": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_create_product"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/products/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["admin_update_product"];
-        post?: never;
-        delete: operations["admin_delete_product"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/products/{id}/assets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_add_asset"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/products/{id}/assets/{asset_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["admin_delete_asset"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/products/{id}/bundle-items": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["admin_set_bundle_items"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/products/{id}/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_set_status"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/products/{id}/variants": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_add_variant"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/products/{id}/variants/{variant_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["admin_update_variant"];
-        post?: never;
-        delete: operations["admin_delete_variant"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/security/audit-log": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["list_audit_log"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/security/failed-logins": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["list_failed_logins"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/security/impersonation": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_impersonation_list"];
-        put?: never;
-        post: operations["admin_impersonation_mint"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/security/impersonation/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_impersonation_get_one"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/security/impersonation/{id}/revoke": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_impersonation_revoke"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/security/ip-allowlist": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["list_entries"];
-        put?: never;
-        post: operations["create_entry"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/security/ip-allowlist/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["delete_entry"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/security/ip-allowlist/{id}/toggle": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["toggle_entry"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/security/roles": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_roles_list_matrix"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/security/roles/_reload": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_roles_reload"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/security/roles/permissions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_roles_list_permissions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/security/roles/{role}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["admin_roles_replace"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/security/roles/{role}/{permission}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_roles_grant"];
-        delete: operations["admin_roles_revoke"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/settings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_settings_list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/settings/_reload": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_settings_reload"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/settings/{key}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_settings_get_one"];
-        put: operations["admin_settings_upsert"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/subscriptions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_subscriptions_list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/subscriptions/by-user/{user_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_subscriptions_by_user"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/subscriptions/comp": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_subscriptions_comp_grant"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/subscriptions/stats": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["admin_subscriptions_stats"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/subscriptions/{id}/billing-cycle": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_subscriptions_override_billing_cycle"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/subscriptions/{id}/extend": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["admin_subscriptions_extend_period"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/watchlists": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["create_watchlist"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/watchlists/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["update_watchlist"];
-        post?: never;
-        delete: operations["delete_watchlist"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/watchlists/{id}/alerts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["create_alert"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/analytics/events": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Public ingest for SPA analytics (optional Bearer links session to logged-in user). */
-        post: operations["ingest_events"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/forgot-password": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["forgot_password"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/impersonation/exit": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["auth_impersonation_exit"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["login"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/logout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["logout"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/refresh": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["refresh"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/register": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["register"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/resend-verification": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["resend_verification"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/reset-password": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["reset_password"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/verify-email": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["verify_email"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/blog/posts/{slug}/unlock": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["public_unlock_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/consent/banner": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Resolve the active banner config + category list + current policy version.
-         * @description Always returns 200 with the `default`/`en` seed if no better match exists.
-         *     The only error shape is a `503` if the tables are empty (which can only
-         *     happen if migration `024_consent.sql` has not run).
-         */
-        get: operations["get_banner"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/consent/me": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** `GET /api/consent/me` */
-        get: operations["get_my_consent"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/consent/record": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** `POST /api/consent/record` */
-        post: operations["post_record"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/coupons/apply": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["public_apply_coupon"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/coupons/validate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["public_validate_coupon"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/csp-report": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * POST /api/csp-report — accept a browser violation report, log it, and
-         *     return 204 No Content. Never exposes internal state or reflects the body.
-         */
-        post: operations["csp_report"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/dsar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** `POST /api/dsar` (public — no auth required). */
-        post: operations["post_dsar"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/forms/geo/countries": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** FORM-10: ISO 3166-1 alpha-2 country list for the chained dropdown. */
-        get: operations["public_geo_countries"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/forms/geo/states": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * FORM-10: ISO 3166-2 state / province list for the supplied alpha-2
-         *     country. Returns an empty array for uncovered countries — the
-         *     renderer falls back to a free-text input in that case.
-         */
-        get: operations["public_geo_states"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/forms/{slug}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["public_get_form"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/forms/{slug}/partial": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["public_save_partial"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/forms/{slug}/payment-intent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * FORM-08: mint a Stripe PaymentIntent for a payment / donation field.
-         * @description Required header: `Idempotency-Key` (UUID-ish opaque token). Replays
-         *     short-circuit at the DB lookup before we ever round-trip Stripe.
-         */
-        post: operations["public_create_payment_intent"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/forms/{slug}/submit": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["public_submit"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/account": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["delete_account"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/billing-portal": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["post_billing_portal"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/coupons/apply": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["post_apply_coupon"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/coupons/redeemed": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["list_redeemed_coupons"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/courses/{course_id}/enroll": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["enroll_course"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/courses/{course_id}/progress": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["update_progress"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/lessons/{lesson_id}/progress": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["update_lesson_progress"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/notification-preferences": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["get_member_preferences"];
-        put: operations["update_member_preferences"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/orders": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["list_orders"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/orders/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["get_order_detail"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/password": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["post_change_password"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/payment-methods": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["list_payment_methods"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/payment-methods/setup-intent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["post_setup_intent"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/payment-methods/{pm_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["delete_payment_method"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/payment-methods/{pm_id}/set-default": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["post_set_default_payment_method"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/profile": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["update_profile"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/subscription/cancel": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["post_subscription_cancel"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/subscription/resume": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["post_subscription_resume"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/subscriptions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["list_subscriptions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/subscriptions/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["get_subscription_detail"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/subscriptions/{id}/cancel": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["post_cancel_subscription"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/subscriptions/{id}/pause": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["post_pause_subscription"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/subscriptions/{id}/resume": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["post_resume_subscription"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/subscriptions/{id}/switch-plan": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["post_switch_subscription_plan"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/subscriptions/{id}/switch-plan/preview": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["get_switch_plan_preview"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/member/subscriptions/{id}/unpause": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["post_unpause_subscription"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/popups/event": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["public_track_event"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/popups/submit": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["public_submit_form"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/webhooks/email/resend": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["resend_email_webhook"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/webhooks/stripe": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["stripe_webhook"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
+	'/api/admin/alerts/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['update_alert'];
+		post?: never;
+		delete: operations['delete_alert'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/audit': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_audit_list'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/audit/export.csv': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_audit_export_csv'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/audit/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_audit_read_one'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/blog/categories': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_create_category'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/blog/categories/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['admin_update_category'];
+		post?: never;
+		delete: operations['admin_delete_category'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/blog/media/upload': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_upload_media'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/blog/media/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['admin_update_media'];
+		post?: never;
+		delete: operations['admin_delete_media'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/blog/posts': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_create_post'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/blog/posts/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['admin_update_post'];
+		post?: never;
+		delete: operations['admin_delete_post'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/blog/posts/{id}/autosave': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_autosave_post'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/blog/posts/{id}/meta': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_upsert_post_meta'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/blog/posts/{id}/meta/{key}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post?: never;
+		delete: operations['admin_delete_post_meta'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/blog/posts/{id}/restore': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_restore_post_from_trash'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/blog/posts/{id}/revisions/{rev_id}/restore': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_restore_revision'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/blog/posts/{id}/status': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['admin_update_post_status'];
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/blog/tags': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_create_tag'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/blog/tags/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post?: never;
+		delete: operations['admin_delete_tag'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/consent/dsar': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** `GET /api/admin/consent/dsar` (AdminUser). */
+		get: operations['admin_list_dsar'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/consent/dsar/{id}/fulfill': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** `POST /api/admin/consent/dsar/{id}/fulfill` (AdminUser). */
+		post: operations['admin_fulfill_dsar'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/coupons': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_create_coupon'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/coupons/bulk': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_bulk_create_coupons'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/coupons/stats': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_coupon_stats'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/coupons/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['admin_update_coupon'];
+		post?: never;
+		delete: operations['admin_delete_coupon'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/coupons/{id}/engine': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['admin_update_coupon_engine'];
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/coupons/{id}/toggle': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_toggle_coupon'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/courses': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['create_course'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/courses/{course_id}/modules/{module_id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['update_module'];
+		post?: never;
+		delete: operations['delete_module'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/courses/{course_id}/modules/{module_id}/lessons': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['create_lesson'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/courses/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['update_course'];
+		post?: never;
+		delete: operations['delete_course'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/courses/{id}/modules': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['create_module'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/courses/{id}/publish': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['toggle_publish'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/dsar/jobs': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_dsar_list_jobs'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/dsar/jobs/erase/request': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_dsar_request_erase'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/dsar/jobs/export': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_dsar_create_export'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/dsar/jobs/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_dsar_read_job'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/dsar/jobs/{id}/artifact': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Stream the artefact behind a `local`-mode async export.
+		 * @description Async DSAR exports stored on R2 expose a presigned URL the operator
+		 *     hits directly; for local-storage deployments (dev, single-node, or
+		 *     air-gapped) we serve the JSON via this RBAC-gated route instead so
+		 *     no anonymous filesystem access is required. Returns `404` for
+		 *     inline jobs (the artefact is already in `artifact_url`) and for
+		 *     jobs that have not yet been composed.
+		 */
+		get: operations['admin_dsar_stream_artifact'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/dsar/jobs/{id}/cancel': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_dsar_cancel_job'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/dsar/jobs/{id}/erase/approve': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_dsar_approve_erase'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/forms/{id}/submissions/bulk': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_bulk_update_submissions'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/lessons/{lesson_id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['update_lesson'];
+		post?: never;
+		delete: operations['delete_lesson'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/members': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_members_create'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/members/search': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_members_search'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/members/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post?: never;
+		delete: operations['delete_member'];
+		options?: never;
+		head?: never;
+		patch: operations['update_member_profile'];
+		trace?: never;
+	};
+	'/api/admin/members/{id}/ban': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['ban_member'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/members/{id}/billing-portal': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_member_billing_portal'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/members/{id}/detail': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['member_detail'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/members/{id}/force-password-reset': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['force_password_reset'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/members/{id}/reactivate': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['reactivate_member'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/members/{id}/role': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['update_member_role'];
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/members/{id}/sessions': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['list_sessions'];
+		put?: never;
+		post?: never;
+		delete: operations['force_logout'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/members/{id}/sessions/{session_id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post?: never;
+		delete: operations['revoke_session'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/members/{id}/subscription/cancel': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_member_subscription_cancel'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/members/{id}/subscription/resume': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_member_subscription_resume'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/members/{id}/suspend': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['suspend_member'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/members/{id}/unban': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['unban_member'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/members/{id}/unsuspend': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['unsuspend_member'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/members/{id}/verify-email': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['mark_email_verified'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/notifications/deliveries': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['list_deliveries'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/notifications/suppression': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['list_suppression'];
+		put?: never;
+		post: operations['add_suppression'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/notifications/suppression/remove': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['remove_suppression'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/notifications/templates': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['list_templates'];
+		put?: never;
+		post: operations['create_template'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/notifications/templates/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['get_template'];
+		put: operations['update_template'];
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/notifications/templates/{id}/preview': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['preview_template'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/notifications/templates/{id}/test-send': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['test_send_template'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/orders': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_orders_list'];
+		put?: never;
+		post: operations['admin_orders_create_manual'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/orders/export.csv': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_orders_export_csv'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/orders/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_orders_read_one'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/orders/{id}/refund': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_orders_refund'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/orders/{id}/void': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_orders_void'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/outbox': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['list_outbox'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/outbox/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['get_outbox'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/outbox/{id}/retry': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['retry_outbox'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/popups': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_create_popup'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/popups/analytics': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_list_analytics'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/popups/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['admin_update_popup'];
+		post?: never;
+		delete: operations['admin_delete_popup'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/popups/{id}/duplicate': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_duplicate_popup'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/popups/{id}/toggle': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_toggle_popup'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/pricing/plans': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_create_plan'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/pricing/plans/price-log': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_plan_price_change_log'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/pricing/plans/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['admin_update_plan'];
+		post?: never;
+		delete: operations['admin_delete_plan'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/pricing/plans/{id}/toggle': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_toggle_plan'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/products': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_create_product'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/products/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['admin_update_product'];
+		post?: never;
+		delete: operations['admin_delete_product'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/products/{id}/assets': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_add_asset'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/products/{id}/assets/{asset_id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post?: never;
+		delete: operations['admin_delete_asset'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/products/{id}/bundle-items': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['admin_set_bundle_items'];
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/products/{id}/status': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_set_status'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/products/{id}/variants': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_add_variant'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/products/{id}/variants/{variant_id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['admin_update_variant'];
+		post?: never;
+		delete: operations['admin_delete_variant'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/security/audit-log': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['list_audit_log'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/security/failed-logins': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['list_failed_logins'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/security/impersonation': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_impersonation_list'];
+		put?: never;
+		post: operations['admin_impersonation_mint'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/security/impersonation/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_impersonation_get_one'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/security/impersonation/{id}/revoke': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_impersonation_revoke'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/security/ip-allowlist': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['list_entries'];
+		put?: never;
+		post: operations['create_entry'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/security/ip-allowlist/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post?: never;
+		delete: operations['delete_entry'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/security/ip-allowlist/{id}/toggle': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['toggle_entry'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/security/roles': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_roles_list_matrix'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/security/roles/_reload': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_roles_reload'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/security/roles/permissions': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_roles_list_permissions'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/security/roles/{role}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['admin_roles_replace'];
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/security/roles/{role}/{permission}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_roles_grant'];
+		delete: operations['admin_roles_revoke'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/settings': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_settings_list'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/settings/_reload': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_settings_reload'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/settings/{key}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_settings_get_one'];
+		put: operations['admin_settings_upsert'];
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/subscriptions': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_subscriptions_list'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/subscriptions/by-user/{user_id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_subscriptions_by_user'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/subscriptions/comp': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_subscriptions_comp_grant'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/subscriptions/stats': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['admin_subscriptions_stats'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/subscriptions/{id}/billing-cycle': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_subscriptions_override_billing_cycle'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/subscriptions/{id}/extend': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['admin_subscriptions_extend_period'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/watchlists': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['create_watchlist'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/watchlists/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['update_watchlist'];
+		post?: never;
+		delete: operations['delete_watchlist'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/admin/watchlists/{id}/alerts': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['create_alert'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/analytics/events': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** Public ingest for SPA analytics (optional Bearer links session to logged-in user). */
+		post: operations['ingest_events'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/auth/forgot-password': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['forgot_password'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/auth/impersonation/exit': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['auth_impersonation_exit'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/auth/login': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['login'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/auth/logout': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['logout'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/auth/refresh': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['refresh'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/auth/register': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['register'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/auth/resend-verification': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['resend_verification'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/auth/reset-password': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['reset_password'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/auth/verify-email': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['verify_email'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/blog/posts/{slug}/unlock': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['public_unlock_post'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/consent/banner': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * Resolve the active banner config + category list + current policy version.
+		 * @description Always returns 200 with the `default`/`en` seed if no better match exists.
+		 *     The only error shape is a `503` if the tables are empty (which can only
+		 *     happen if migration `024_consent.sql` has not run).
+		 */
+		get: operations['get_banner'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/consent/me': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** `GET /api/consent/me` */
+		get: operations['get_my_consent'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/consent/record': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** `POST /api/consent/record` */
+		post: operations['post_record'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/coupons/apply': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['public_apply_coupon'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/coupons/validate': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['public_validate_coupon'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/csp-report': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/**
+		 * POST /api/csp-report — accept a browser violation report, log it, and
+		 *     return 204 No Content. Never exposes internal state or reflects the body.
+		 */
+		post: operations['csp_report'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/dsar': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** `POST /api/dsar` (public — no auth required). */
+		post: operations['post_dsar'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/forms/geo/countries': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** FORM-10: ISO 3166-1 alpha-2 country list for the chained dropdown. */
+		get: operations['public_geo_countries'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/forms/geo/states': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/**
+		 * FORM-10: ISO 3166-2 state / province list for the supplied alpha-2
+		 *     country. Returns an empty array for uncovered countries — the
+		 *     renderer falls back to a free-text input in that case.
+		 */
+		get: operations['public_geo_states'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/forms/{slug}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['public_get_form'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/forms/{slug}/partial': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['public_save_partial'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/forms/{slug}/payment-intent': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/**
+		 * FORM-08: mint a Stripe PaymentIntent for a payment / donation field.
+		 * @description Required header: `Idempotency-Key` (UUID-ish opaque token). Replays
+		 *     short-circuit at the DB lookup before we ever round-trip Stripe.
+		 */
+		post: operations['public_create_payment_intent'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/forms/{slug}/submit': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['public_submit'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/account': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post?: never;
+		delete: operations['delete_account'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/billing-portal': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['post_billing_portal'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/coupons/apply': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['post_apply_coupon'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/coupons/redeemed': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['list_redeemed_coupons'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/courses/{course_id}/enroll': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['enroll_course'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/courses/{course_id}/progress': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['update_progress'];
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/lessons/{lesson_id}/progress': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['update_lesson_progress'];
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/notification-preferences': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['get_member_preferences'];
+		put: operations['update_member_preferences'];
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/orders': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['list_orders'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/orders/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['get_order_detail'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/password': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['post_change_password'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/payment-methods': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['list_payment_methods'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/payment-methods/setup-intent': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['post_setup_intent'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/payment-methods/{pm_id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post?: never;
+		delete: operations['delete_payment_method'];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/payment-methods/{pm_id}/set-default': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['post_set_default_payment_method'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/profile': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations['update_profile'];
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/subscription/cancel': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['post_subscription_cancel'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/subscription/resume': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['post_subscription_resume'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/subscriptions': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['list_subscriptions'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/subscriptions/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['get_subscription_detail'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/subscriptions/{id}/cancel': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['post_cancel_subscription'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/subscriptions/{id}/pause': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['post_pause_subscription'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/subscriptions/{id}/resume': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['post_resume_subscription'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/subscriptions/{id}/switch-plan': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['post_switch_subscription_plan'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/subscriptions/{id}/switch-plan/preview': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: operations['get_switch_plan_preview'];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/member/subscriptions/{id}/unpause': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['post_unpause_subscription'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/popups/event': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['public_track_event'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/popups/submit': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['public_submit_form'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/webhooks/email/resend': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['resend_email_webhook'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/webhooks/stripe': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: operations['stripe_webhook'];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 };
 export type webhooks = Record<string, never>;
 export type components = {
-    schemas: {
-        AddSuppressionRequest: {
-            email: string;
-            reason: string;
-        };
-        AdminStats: {
-            /** Format: int64 */
-            total_members: number;
-            /** Format: int64 */
-            active_subscriptions: number;
-            /** Format: int64 */
-            monthly_subscriptions: number;
-            /** Format: int64 */
-            annual_subscriptions: number;
-            /** Format: int64 */
-            total_watchlists: number;
-            /** Format: int64 */
-            total_enrollments: number;
-            recent_members: components["schemas"]["UserResponse"][];
-            /** @description Echo of the resolved range so the client can rehydrate the picker. */
-            range: components["schemas"]["DashboardRange"];
-            /**
-             * Format: date-time
-             * @description Resolved start of the selected window (UTC, inclusive).
-             */
-            from: string;
-            /**
-             * Format: date-time
-             * @description Resolved end of the selected window (UTC, exclusive).
-             */
-            to: string;
-            /** @description Counts inside the selected window. */
-            period: components["schemas"]["PeriodWindow"];
-            /** @description Counts inside the immediately-preceding window of equal length, for delta math. */
-            previous_period: components["schemas"]["PeriodWindow"];
-        };
-        AdminStripeRolloutFailure: {
-            stripe_subscription_id: string;
-            /** Format: uuid */
-            user_id: string;
-            error: string;
-        };
-        AdminStripeRolloutSummary: {
-            targeted: number;
-            succeeded: number;
-            /** @description Subscriptions skipped because `price_protection_enabled = TRUE`. */
-            skipped_grandfathered: number;
-            failed: components["schemas"]["AdminStripeRolloutFailure"][];
-        };
-        /** @description Response for admin plan update — catalog row plus optional Stripe rollout stats. */
-        AdminUpdatePricingPlanResponse: components["schemas"]["PricingPlan"] & {
-            stripe_rollout?: null | components["schemas"]["AdminStripeRolloutSummary"];
-        };
-        /** @description Materialised allowlist entry as returned by the admin CRUD endpoints. */
-        AllowlistEntry: {
-            /** Format: uuid */
-            id: string;
-            /**
-             * @description CIDR range in canonical text form (e.g. `203.0.113.0/24`,
-             *     `2001:db8::/32`). Always returned via `cidr::text` cast on read.
-             */
-            cidr: string;
-            /**
-             * @description Human label so operators can recall what each entry covers
-             *     (e.g. "office VPN", "Cloudflare egress").
-             */
-            label: string;
-            is_active: boolean;
-            /** Format: uuid */
-            created_by: string;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        AllowlistResponse: {
-            data: components["schemas"]["AllowlistEntry"][];
-            /** Format: int64 */
-            total: number;
-        };
-        AnalyticsIngestEvent: {
-            event_type: string;
-            path: string;
-            referrer?: string | null;
-            metadata?: unknown;
-        };
-        AnalyticsIngestRequest: {
-            /** Format: uuid */
-            session_id: string;
-            events: components["schemas"]["AnalyticsIngestEvent"][];
-        };
-        /**
-         * @description Phase 4.6: apply-coupon request body for
-         *     `POST /api/member/coupons/apply`.
-         */
-        ApplyCouponRequest: {
-            code: string;
-        };
-        /**
-         * @description Response returned by [`post_apply_coupon`].
-         *
-         *     Carries both the audit-plan canonical fields (`ok`, `coupon_id`,
-         *     `applied_at`) and the legacy [`CouponValidationResponse`] aliases
-         *     (`valid`, `message`) so the existing dashboard page at
-         *     `routes/dashboard/account/+page.svelte` keeps rendering after the
-         *     Phase 4.6 rollout. `valid` mirrors `ok` because every 200 response
-         *     represents a successful redemption — failure paths land on 4xx with
-         *     an `AppError` body instead.
-         */
-        ApplyCouponResponse: {
-            ok: boolean;
-            /** Format: uuid */
-            coupon_id: string;
-            /** Format: date-time */
-            applied_at: string;
-            /**
-             * @description Legacy alias for `ok` — frontend compatibility with the
-             *     pre-existing `CouponValidationResponse` shape.
-             */
-            valid: boolean;
-            /** @description Human-readable success message; surfaced verbatim by the SPA. */
-            message: string;
-        };
-        AuditListEnvelope: {
-            data: components["schemas"]["AuditRow"][];
-            /** Format: int64 */
-            total: number;
-            /** Format: int64 */
-            page: number;
-            /** Format: int64 */
-            per_page: number;
-            /** Format: int64 */
-            total_pages: number;
-        };
-        AuditLogFilter: {
-            /** Format: uuid */
-            actor_id?: string | null;
-            action?: string | null;
-            target_kind?: string | null;
-            target_id?: string | null;
-            /** Format: int64 */
-            page?: number | null;
-            /** Format: int64 */
-            per_page?: number | null;
-        };
-        AuditLogResponse: {
-            data: components["schemas"]["AuditLogRow"][];
-            /** Format: int64 */
-            page: number;
-            /** Format: int64 */
-            per_page: number;
-            /** Format: int64 */
-            total: number;
-            /** Format: int64 */
-            total_pages: number;
-        };
-        AuditLogRow: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            actor_id: string;
-            actor_role: components["schemas"]["UserRole"];
-            action: string;
-            target_kind: string;
-            target_id?: string | null;
-            ip_address?: string | null;
-            user_agent?: string | null;
-            metadata: unknown;
-            /** Format: date-time */
-            created_at: string;
-        };
-        AuditRow: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            actor_id: string;
-            actor_role: string;
-            action: string;
-            target_kind: string;
-            target_id?: string | null;
-            ip_address?: string | null;
-            user_agent?: string | null;
-            metadata: unknown;
-            /** Format: date-time */
-            created_at: string;
-        };
-        AuthResponse: {
-            user: components["schemas"]["UserResponse"];
-            access_token: string;
-            refresh_token: string;
-        };
-        AutosaveRequest: {
-            title?: string | null;
-            content?: string | null;
-            content_json?: unknown;
-        };
-        BannerConfig: {
-            /**
-             * Format: int32
-             * @description Banner config row version. Bumped when copy/layout changes; used by
-             *     CONSENT-03 to re-prompt subjects whose recorded consent predates this.
-             */
-            version: number;
-            /**
-             * Format: int32
-             * @description Current privacy-policy version, sourced from `consent_policies`.
-             */
-            policyVersion: number;
-            layout: components["schemas"]["BannerLayout"];
-            position: components["schemas"]["BannerPosition"];
-            locale: string;
-            region: string;
-            categories: components["schemas"]["ConsentCategoryDef"][];
-            copy: components["schemas"]["BannerCopy"];
-            /** @description Opaque theme overrides; the frontend maps known keys to PE7 CSS vars. */
-            theme: unknown;
-        };
-        BannerCopy: {
-            title: string;
-            body: string;
-            acceptAll: string;
-            rejectAll: string;
-            customize: string;
-            savePreferences: string;
-            privacyPolicyHref?: string | null;
-            privacyPolicyLabel?: string | null;
-        };
-        /** @enum {string} */
-        BannerLayout: "bar" | "box" | "popup" | "fullscreen";
-        /** @enum {string} */
-        BannerPosition: "top" | "bottom" | "center" | "bottom-start" | "bottom-end";
-        /**
-         * @description Billing address payload — mirrors the Stripe `Address` shape so the
-         *     JSON we accept on `PATCH /api/admin/members/{id}` round-trips into
-         *     `Customer.address` with no field-mapping at the handler edge.
-         */
-        BillingAddress: {
-            line1?: string | null;
-            line2?: string | null;
-            city?: string | null;
-            state?: string | null;
-            postal_code?: string | null;
-            /**
-             * @description ISO 3166-1 alpha-2 country code. Validated case-insensitively;
-             *     the handler normalises to upper-case before persisting.
-             */
-            country?: string | null;
-        };
-        BillingPortalRequest: {
-            return_url?: string | null;
-        };
-        BillingPortalResponse: {
-            url: string;
-        };
-        BlogCategory: {
-            /** Format: uuid */
-            id: string;
-            name: string;
-            slug: string;
-            description?: string | null;
-            /** Format: uuid */
-            parent_id?: string | null;
-            /** Format: int32 */
-            sort_order: number;
-            /** Format: date-time */
-            created_at: string;
-        };
-        BlogPost: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            author_id: string;
-            title: string;
-            slug: string;
-            content: string;
-            content_json?: unknown;
-            excerpt?: string | null;
-            /** Format: uuid */
-            featured_image_id?: string | null;
-            status: components["schemas"]["PostStatus"];
-            pre_trash_status?: null | components["schemas"]["PostStatus"];
-            /** Format: date-time */
-            trashed_at?: string | null;
-            visibility: string;
-            password_hash?: string | null;
-            format: string;
-            is_sticky: boolean;
-            allow_comments: boolean;
-            meta_title?: string | null;
-            meta_description?: string | null;
-            canonical_url?: string | null;
-            og_image_url?: string | null;
-            /** Format: int32 */
-            reading_time_minutes: number;
-            /** Format: int32 */
-            word_count: number;
-            /** Format: date-time */
-            scheduled_at?: string | null;
-            /** Format: date-time */
-            published_at?: string | null;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        BlogPostListItem: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            author_id: string;
-            author_name: string;
-            title: string;
-            slug: string;
-            excerpt?: string | null;
-            featured_image_url?: string | null;
-            status: components["schemas"]["PostStatus"];
-            format: string;
-            is_sticky: boolean;
-            /** Format: int32 */
-            reading_time_minutes: number;
-            /** Format: int32 */
-            word_count: number;
-            /** Format: date-time */
-            published_at?: string | null;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-            categories: components["schemas"]["BlogCategory"][];
-            tags: components["schemas"]["BlogTag"][];
-        };
-        BlogPostResponse: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            author_id: string;
-            author_name: string;
-            author_avatar?: string | null;
-            author_position?: string | null;
-            author_bio?: string | null;
-            author_website?: string | null;
-            author_twitter?: string | null;
-            author_linkedin?: string | null;
-            author_youtube?: string | null;
-            title: string;
-            slug: string;
-            content: string;
-            content_json?: unknown;
-            excerpt?: string | null;
-            featured_image_url?: string | null;
-            status: components["schemas"]["PostStatus"];
-            pre_trash_status?: null | components["schemas"]["PostStatus"];
-            /** Format: date-time */
-            trashed_at?: string | null;
-            visibility: string;
-            is_password_protected: boolean;
-            format: string;
-            is_sticky: boolean;
-            allow_comments: boolean;
-            meta_title?: string | null;
-            meta_description?: string | null;
-            canonical_url?: string | null;
-            og_image_url?: string | null;
-            /** Format: int32 */
-            reading_time_minutes: number;
-            /** Format: int32 */
-            word_count: number;
-            categories: components["schemas"]["BlogCategory"][];
-            tags: components["schemas"]["BlogTag"][];
-            meta: components["schemas"]["PostMeta"][];
-            /** Format: date-time */
-            scheduled_at?: string | null;
-            /** Format: date-time */
-            published_at?: string | null;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        BlogRevision: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            post_id: string;
-            /** Format: uuid */
-            author_id: string;
-            title: string;
-            content: string;
-            content_json?: unknown;
-            /** Format: int32 */
-            revision_number: number;
-            /** Format: date-time */
-            created_at: string;
-        };
-        BlogTag: {
-            /** Format: uuid */
-            id: string;
-            name: string;
-            slug: string;
-            /** Format: date-time */
-            created_at: string;
-        };
-        /**
-         * @description Configuration for a "buy N, get M free" promotion.
-         *
-         *     The engine groups cart lines matching `applies_to_product_ids` (empty = any
-         *     product), totals their quantity, and emits `floor(total / (buy + get)) * get`
-         *     free units, evaluated at the cheapest matching unit price so the customer's
-         *     "free" units come off the least-expensive line first. That rule mirrors
-         *     WooCommerce's default BOGO behaviour and avoids the abuse of stacking a
-         *     high-priced free unit onto a low-priced purchase.
-         */
-        BogoConfig: {
-            /** Format: int32 */
-            buy_qty: number;
-            /** Format: int32 */
-            get_qty: number;
-            applies_to_product_ids?: string[];
-        };
-        BulkActionRequest: {
-            ids: string[];
-            /** @description `delete` | `mark_spam` | `restore`. */
-            action: string;
-        };
-        BulkActionResponse: {
-            /** Format: int64 */
-            updated: number;
-        };
-        BulkCouponRequest: {
-            /** Format: int32 */
-            count: number;
-            prefix?: string | null;
-            discount_type: components["schemas"]["DiscountType"];
-            /** Format: double */
-            discount_value: number;
-            /** Format: int32 */
-            usage_limit?: number | null;
-            /** Format: date-time */
-            expires_at?: string | null;
-        };
-        BulkPreferenceUpdate: {
-            items: components["schemas"]["PreferenceUpdate"][];
-        };
-        /**
-         * @description `bundle_items` row. `quantity` is always positive (CHECK-enforced).
-         *     `child_variant_id` is optional; when set, the bundle includes that specific
-         *     variant, otherwise it includes the default/any variant of the child product.
-         */
-        BundleItem: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            bundle_product_id: string;
-            /** Format: uuid */
-            child_product_id: string;
-            /** Format: uuid */
-            child_variant_id?: string | null;
-            /** Format: int32 */
-            quantity: number;
-            /** Format: int32 */
-            position: number;
-        };
-        /** @description Admin-only payload for a single bundle component. */
-        BundleItemInput: {
-            /** Format: uuid */
-            child_product_id: string;
-            /** Format: uuid */
-            child_variant_id?: string | null;
-            /** Format: int32 */
-            quantity: number;
-            /** Format: int32 */
-            position: number;
-        };
-        CancelBody: {
-            reason?: string | null;
-        };
-        /** @description Phase 4.6: change-password request body for `POST /api/member/password`. */
-        ChangePasswordRequest: {
-            current_password: string;
-            new_password: string;
-        };
-        ChangePasswordResponse: {
-            ok: boolean;
-        };
-        CompGrantRequest: {
-            /**
-             * Format: uuid
-             * @description Recipient — must already exist in `users`.
-             */
-            user_id: string;
-            /**
-             * Format: uuid
-             * @description Membership plan id from `membership_plans`.
-             */
-            plan_id: string;
-            /**
-             * Format: int64
-             * @description Length of the comp grant in days; `None` ⇒ open-ended (the
-             *     access engine treats `ends_at IS NULL` as "until cancelled").
-             */
-            duration_days?: number | null;
-            /** @description Free-text reason captured on the audit row. */
-            notes?: string | null;
-        };
-        CompGrantResponse: {
-            /** Format: uuid */
-            membership_id: string;
-            /** Format: date-time */
-            starts_at: string;
-            /** Format: date-time */
-            ends_at?: string | null;
-        };
-        /**
-         * @description Single-category entry in the banner response.
-         *
-         *     Wire fields are camelCased to match the frontend stub at
-         *     `src/lib/api/consent.ts`; when schema codegen replaces the stub the
-         *     Svelte components consume this shape unchanged.
-         */
-        ConsentCategoryDef: {
-            /**
-             * @description Stable key — MUST NOT be renamed after a row has been written to the
-             *     consent log (CONSENT-03). Migration-level change only.
-             */
-            key: string;
-            label: string;
-            description: string;
-            /** @description When true, toggle is disabled in the preferences modal. */
-            required: boolean;
-            /**
-             * @description Whether the category is pre-checked before the user interacts.
-             *     GDPR Art. 4(11) + EDPB 05/2020 §86: non-required categories MUST default
-             *     to `false`. Derived here rather than stored so a data fix is cheap.
-             */
-            defaultEnabled: boolean;
-        };
-        ConsentRecordRequest: {
-            /**
-             * @description One of `granted` / `denied` / `updated` / `revoked` / `expired` /
-             *     `prefill`. Enforced at the DB CHECK level; validated here for a
-             *     friendlier 400.
-             */
-            action: string;
-            /**
-             * @description Map of category key → granted bool. Must include every category the
-             *     current banner version exposes.
-             */
-            categories: unknown;
-            /**
-             * @description Optional per-service overrides (when the subject used the advanced
-             *     picker). Empty object is fine.
-             */
-            services?: unknown;
-            tcfString?: string | null;
-            gpcSignal?: boolean | null;
-            /**
-             * Format: uuid
-             * @description Browser-generated anonymous id (UUID cookie). Used when the subject
-             *     is not signed in so the audit log can still be linked across sessions.
-             */
-            anonymousId?: string | null;
-            /**
-             * Format: int32
-             * @description Optional banner / policy version overrides — defaults come from the
-             *     authoritative banner config when omitted. Kept as options so the
-             *     client can send them when it already has a cached banner copy.
-             */
-            bannerVersion?: number | null;
-            /** Format: int32 */
-            policyVersion?: number | null;
-        };
-        ConsentRecordResponse: {
-            /** Format: uuid */
-            id: string;
-        };
-        /**
-         * @description Serialized row shape — shared across `POST /record` response and
-         *     `GET /me` listings.
-         */
-        ConsentRecordRow: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            subjectId?: string | null;
-            /** Format: uuid */
-            anonymousId?: string | null;
-            /** Format: int32 */
-            bannerVersion: number;
-            /** Format: int32 */
-            policyVersion: number;
-            categories: unknown;
-            services: unknown;
-            action: string;
-            tcfString?: string | null;
-            gpcSignal?: boolean | null;
-            country?: string | null;
-            /** Format: date-time */
-            createdAt: string;
-        };
-        Country: {
-            /** @description ISO 3166-1 alpha-2 (`"US"`, `"GB"`, `"DE"`). */
-            code: string;
-            name: string;
-        };
-        Coupon: {
-            /** Format: uuid */
-            id: string;
-            code: string;
-            description?: string | null;
-            discount_type: components["schemas"]["DiscountType"];
-            /** Format: decimal */
-            discount_value: string;
-            /** Format: int64 */
-            min_purchase_cents?: number | null;
-            /** Format: int64 */
-            max_discount_cents?: number | null;
-            applies_to: string;
-            applicable_plan_ids: string[];
-            applicable_course_ids: string[];
-            /** Format: int32 */
-            usage_limit?: number | null;
-            /** Format: int32 */
-            usage_count: number;
-            /** Format: int32 */
-            per_user_limit: number;
-            /** Format: date-time */
-            starts_at?: string | null;
-            /** Format: date-time */
-            expires_at?: string | null;
-            is_active: boolean;
-            stackable: boolean;
-            first_purchase_only: boolean;
-            stripe_coupon_id?: string | null;
-            stripe_promotion_code_id?: string | null;
-            /** Format: uuid */
-            created_by: string;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        /**
-         * @description Row shape covering the EC-11 fields plus the legacy `is_active` flag so
-         *     the response mirrors the admin's view after mutation.
-         */
-        CouponEngineView: {
-            /** Format: uuid */
-            id: string;
-            code: string;
-            scope: string;
-            /** Format: int64 */
-            discount_value_cents?: number | null;
-            /** Format: int32 */
-            discount_percent_bps?: number | null;
-            bogo_config?: unknown;
-            includes_product_ids: string[];
-            excludes_product_ids: string[];
-            includes_category_ids: string[];
-            recurring_mode: string;
-            is_active: boolean;
-        };
-        /**
-         * @description Discount scope — where on the cart the discount applies.
-         * @enum {string}
-         */
-        CouponScope: "cart" | "product" | "category" | "subscription";
-        /**
-         * @description Aggregate counters for the admin coupons dashboard
-         *     (`GET /api/admin/coupons/stats`).
-         *
-         *     Counts are non-overlapping in spirit but a coupon can satisfy multiple
-         *     buckets (e.g. an inactive expired one); each metric is computed from its
-         *     own predicate against the `coupons` / `coupon_usages` tables, so the sum
-         *     of `active + expired + scheduled` is not guaranteed to equal `total`.
-         *
-         *     The struct carries both the audit-plan canonical names
-         *     (`total_coupons`, `active_coupons`, `expired_coupons`,
-         *     `redemptions_total`, `redemptions_today`) and the legacy aliases
-         *     (`total`, `active`, `expired`, `redemption_count`, `active_count`,
-         *     `total_usages`) so the frontend page that already binds against the
-         *     legacy names keeps rendering after the Phase 4.5 rollout.
-         */
-        CouponStats: {
-            /**
-             * Format: int64
-             * @description Phase 4.5 spec — count of all rows in `coupons`.
-             */
-            total_coupons: number;
-            /**
-             * Format: int64
-             * @description Phase 4.5 spec — `is_active = TRUE AND (expires_at IS NULL OR expires_at > NOW())`.
-             */
-            active_coupons: number;
-            /**
-             * Format: int64
-             * @description Phase 4.5 spec — `expires_at` is non-null and in the past.
-             */
-            expired_coupons: number;
-            /**
-             * Format: int64
-             * @description Phase 4.5 spec — total redemptions across `coupon_usages` (lifetime).
-             */
-            redemptions_total: number;
-            /**
-             * Format: int64
-             * @description Phase 4.5 spec — redemptions whose `used_at >= today (UTC midnight)`.
-             */
-            redemptions_today: number;
-            /**
-             * Format: int64
-             * @description Legacy alias for `total_coupons`.
-             */
-            total: number;
-            /**
-             * Format: int64
-             * @description Legacy alias for `active_coupons`.
-             */
-            active: number;
-            /**
-             * Format: int64
-             * @description Legacy alias for `active_coupons` — frontend reads this name.
-             */
-            active_count: number;
-            /**
-             * Format: int64
-             * @description Legacy alias for `expired_coupons`.
-             */
-            expired: number;
-            /**
-             * Format: int64
-             * @description `starts_at` is non-null and in the future. Carried for the legacy
-             *     renderer; not required by the audit-plan spec.
-             */
-            scheduled: number;
-            /**
-             * Format: int64
-             * @description Legacy alias for `redemptions_total`.
-             */
-            redemption_count: number;
-            /**
-             * Format: int64
-             * @description Legacy alias for `redemptions_total` — frontend reads this name.
-             */
-            total_usages: number;
-            /**
-             * Format: int64
-             * @description Sum of `coupon_usages.discount_applied_cents` across every redemption.
-             */
-            total_discount_cents: number;
-        };
-        CouponValidationResponse: {
-            valid: boolean;
-            coupon?: null | components["schemas"]["Coupon"];
-            /** Format: int64 */
-            discount_amount_cents?: number | null;
-            message: string;
-        };
-        Course: {
-            /** Format: uuid */
-            id: string;
-            title: string;
-            slug: string;
-            description: string;
-            short_description?: string | null;
-            thumbnail_url?: string | null;
-            trailer_video_url?: string | null;
-            difficulty: string;
-            /** Format: uuid */
-            instructor_id: string;
-            /** Format: int64 */
-            price_cents: number;
-            currency: string;
-            is_free: boolean;
-            is_included_in_subscription: boolean;
-            /** Format: int32 */
-            sort_order: number;
-            published: boolean;
-            /** Format: date-time */
-            published_at?: string | null;
-            /** Format: int32 */
-            estimated_duration_minutes: number;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        CourseEnrollment: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            user_id: string;
-            course_id: string;
-            /** Format: int32 */
-            progress: number;
-            /** Format: date-time */
-            enrolled_at: string;
-            /** Format: date-time */
-            completed_at?: string | null;
-        };
-        CourseLesson: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            module_id: string;
-            title: string;
-            slug: string;
-            description?: string | null;
-            content: string;
-            content_json?: unknown;
-            video_url?: string | null;
-            /** Format: int32 */
-            video_duration_seconds?: number | null;
-            /** Format: int32 */
-            sort_order: number;
-            is_preview: boolean;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        CourseListItem: {
-            /** Format: uuid */
-            id: string;
-            title: string;
-            slug: string;
-            short_description?: string | null;
-            thumbnail_url?: string | null;
-            difficulty: string;
-            instructor_name: string;
-            /** Format: int64 */
-            price_cents: number;
-            is_free: boolean;
-            is_included_in_subscription: boolean;
-            published: boolean;
-            /** Format: int32 */
-            estimated_duration_minutes: number;
-            /** Format: int64 */
-            total_lessons: number;
-            /** Format: date-time */
-            created_at: string;
-        };
-        CourseModule: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            course_id: string;
-            title: string;
-            description?: string | null;
-            /** Format: int32 */
-            sort_order: number;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        CourseWithModules: components["schemas"]["Course"] & {
-            modules: components["schemas"]["ModuleWithLessons"][];
-            /** Format: int64 */
-            total_lessons: number;
-            /** Format: int64 */
-            total_duration_seconds: number;
-        };
-        CreateAlertRequest: {
-            ticker: string;
-            direction: components["schemas"]["TradeDirection"];
-            entry_zone: string;
-            invalidation: string;
-            profit_zones: string[];
-            notes?: string | null;
-            chart_url?: string | null;
-        };
-        /** @description Inputs accepted by `POST /api/admin/security/ip-allowlist`. */
-        CreateAllowlistInput: {
-            /**
-             * @description CIDR range. Anything Postgres' `cidr` type accepts is valid here
-             *     (`192.0.2.42`, `198.51.100.0/24`, `::1/128`, …).
-             */
-            cidr: string;
-            label: string;
-            /** @description Optional initial active flag — defaults to `true`. */
-            is_active?: boolean;
-        };
-        /** @description Admin-only payload for adding a downloadable asset. */
-        CreateAssetRequest: {
-            /** Format: uuid */
-            variant_id?: string | null;
-            storage_key: string;
-            filename: string;
-            mime_type: string;
-            /** Format: int64 */
-            size_bytes: number;
-            sha256: string;
-            access_policy?: string | null;
-            required_tier?: string | null;
-            /** Format: int32 */
-            download_limit?: number | null;
-            /** Format: int32 */
-            expires_after_hours?: number | null;
-        };
-        CreateCategoryRequest: {
-            name: string;
-            slug?: string | null;
-            description?: string | null;
-            /** Format: uuid */
-            parent_id?: string | null;
-            /** Format: int32 */
-            sort_order?: number | null;
-        };
-        CreateCouponRequest: {
-            code?: string | null;
-            description?: string | null;
-            discount_type: components["schemas"]["DiscountType"];
-            /** Format: double */
-            discount_value: number;
-            /** Format: int64 */
-            min_purchase_cents?: number | null;
-            /** Format: int64 */
-            max_discount_cents?: number | null;
-            applies_to?: string | null;
-            applicable_plan_ids?: string[] | null;
-            applicable_course_ids?: string[] | null;
-            /** Format: int32 */
-            usage_limit?: number | null;
-            /** Format: int32 */
-            per_user_limit?: number | null;
-            /** Format: date-time */
-            starts_at?: string | null;
-            /** Format: date-time */
-            expires_at?: string | null;
-            is_active?: boolean | null;
-            stackable?: boolean | null;
-            first_purchase_only?: boolean | null;
-        };
-        CreateCourseRequest: {
-            title: string;
-            slug?: string | null;
-            description?: string | null;
-            short_description?: string | null;
-            thumbnail_url?: string | null;
-            trailer_video_url?: string | null;
-            difficulty?: string | null;
-            /** Format: int64 */
-            price_cents?: number | null;
-            currency?: string | null;
-            is_free?: boolean | null;
-            is_included_in_subscription?: boolean | null;
-            /** Format: int32 */
-            sort_order?: number | null;
-            published?: boolean | null;
-            /** Format: int32 */
-            estimated_duration_minutes?: number | null;
-        };
-        /** @description Inputs accepted by `POST /api/admin/security/impersonation`. */
-        CreateImpersonationInput: {
-            /**
-             * Format: uuid
-             * @description User to impersonate. Must exist; must not be the caller; must
-             *     not itself be an admin (defence-in-depth — `impersonator` audit
-             *     trail across admins would be a privilege-escalation footgun).
-             */
-            target_user_id: string;
-            /**
-             * @description Required free-text justification (1..=500 chars). Surfaced in
-             *     the audit log so post-incident review can answer "why".
-             */
-            reason: string;
-            /**
-             * Format: int64
-             * @description Requested TTL in minutes. Capped at [`MAX_TTL_MINUTES`].
-             *     Defaults to [`DEFAULT_TTL_MINUTES`] when omitted.
-             */
-            ttl_minutes?: number | null;
-        };
-        CreateLessonRequest: {
-            title: string;
-            slug?: string | null;
-            description?: string | null;
-            content?: string | null;
-            content_json?: unknown;
-            video_url?: string | null;
-            /** Format: int32 */
-            video_duration_seconds?: number | null;
-            /** Format: int32 */
-            sort_order?: number | null;
-            is_preview?: boolean | null;
-        };
-        CreateMemberRequest: {
-            email: string;
-            name: string;
-            /**
-             * @description Role to seed the account with. `admin` requires
-             *     `admin.role.manage` in addition to `admin.member.create`.
-             */
-            role: components["schemas"]["UserRole"];
-            /**
-             * @description Optional one-shot temporary password. When `None` the account
-             *     is created in a disabled state (no login until the user
-             *     completes the password-reset / invite flow).
-             */
-            temp_password?: string | null;
-            /**
-             * @description Mark the email as already verified (operator vouches that
-             *     they typed the address themselves, e.g. seeding a colleague).
-             */
-            email_verified?: boolean;
-        };
-        CreateMemberResponse: {
-            user: components["schemas"]["UserResponse"];
-            /**
-             * @description `true` when no temp_password was supplied and the operator
-             *     must follow up with a password-reset / invite link out of band.
-             */
-            requires_password_setup: boolean;
-        };
-        CreateModuleRequest: {
-            title: string;
-            description?: string | null;
-            /** Format: int32 */
-            sort_order?: number | null;
-        };
-        CreatePopupRequest: {
-            name: string;
-            popup_type?: string | null;
-            trigger_type?: string | null;
-            trigger_config?: unknown;
-            content_json?: unknown;
-            style_json?: unknown;
-            targeting_rules?: unknown;
-            display_frequency?: string | null;
-            frequency_config?: unknown;
-            success_message?: string | null;
-            redirect_url?: string | null;
-            is_active?: boolean | null;
-            /** Format: date-time */
-            starts_at?: string | null;
-            /** Format: date-time */
-            expires_at?: string | null;
-            /** Format: int32 */
-            priority?: number | null;
-        };
-        CreatePostRequest: {
-            title: string;
-            slug?: string | null;
-            content?: string | null;
-            content_json?: unknown;
-            excerpt?: string | null;
-            /** Format: uuid */
-            featured_image_id?: string | null;
-            status?: null | components["schemas"]["PostStatus"];
-            visibility?: string | null;
-            is_sticky?: boolean | null;
-            allow_comments?: boolean | null;
-            meta_title?: string | null;
-            meta_description?: string | null;
-            canonical_url?: string | null;
-            og_image_url?: string | null;
-            category_ids?: string[] | null;
-            tag_ids?: string[] | null;
-            /** Format: date-time */
-            scheduled_at?: string | null;
-            post_password?: string | null;
-            /** Format: uuid */
-            author_id?: string | null;
-            format?: string | null;
-        };
-        CreatePricingPlanRequest: {
-            name: string;
-            slug?: string | null;
-            description?: string | null;
-            stripe_price_id?: string | null;
-            stripe_product_id?: string | null;
-            /** Format: int64 */
-            amount_cents: number;
-            currency?: string | null;
-            interval?: string | null;
-            /** Format: int32 */
-            interval_count?: number | null;
-            /** Format: int32 */
-            trial_days?: number | null;
-            collect_payment_method_at_checkout?: boolean | null;
-            features?: unknown;
-            highlight_text?: string | null;
-            is_popular?: boolean | null;
-            is_active?: boolean | null;
-            /** Format: int32 */
-            sort_order?: number | null;
-        };
-        /**
-         * @description Admin-only payload for `POST /api/admin/products`. `product_type` + `slug`
-         *     are mandatory; everything else is optional on create and can be updated
-         *     later.
-         */
-        CreateProductRequest: {
-            slug: string;
-            name: string;
-            product_type: components["schemas"]["ProductType"];
-            description?: string | null;
-            status?: null | components["schemas"]["ProductStatus"];
-            /** Format: int64 */
-            price_cents?: number | null;
-            /** Format: int64 */
-            compare_at_cents?: number | null;
-            currency?: string | null;
-            tax_class?: string | null;
-            stripe_product_id?: string | null;
-            stripe_price_id?: string | null;
-            gallery_media_ids?: string[] | null;
-            /** Format: uuid */
-            featured_media_id?: string | null;
-            seo_title?: string | null;
-            seo_description?: string | null;
-            metadata?: unknown;
-        };
-        CreateTagRequest: {
-            name: string;
-            slug?: string | null;
-        };
-        CreateTemplateRequest: {
-            key: string;
-            channel: string;
-            locale?: string | null;
-            subject?: string | null;
-            body_source: string;
-            variables?: unknown;
-            is_active?: boolean | null;
-        };
-        /** @description Admin-only payload for creating a variant. */
-        CreateVariantRequest: {
-            sku?: string | null;
-            name?: string | null;
-            /** Format: int64 */
-            price_cents?: number | null;
-            currency?: string | null;
-            attributes?: unknown;
-            stripe_price_id?: string | null;
-            /** Format: int32 */
-            position?: number | null;
-            is_active?: boolean | null;
-        };
-        CreateWatchlistRequest: {
-            title: string;
-            /** Format: date */
-            week_of: string;
-            video_url?: string | null;
-            notes?: string | null;
-            published?: boolean | null;
-        };
-        CycleOverrideRequest: {
-            /**
-             * Format: date-time
-             * @description New `billing_cycle_anchor`. Must be in the future (you cannot
-             *     retroactively shift a billing cycle in this admin path; if you
-             *     need to backdate, do it via Stripe and let the webhook
-             *     reconcile).
-             */
-            anchor: string;
-            notes?: string | null;
-        };
-        CycleOverrideResponse: {
-            /** Format: uuid */
-            subscription_id: string;
-            /** Format: date-time */
-            previous_anchor?: string | null;
-            /** Format: date-time */
-            new_anchor: string;
-        };
-        /**
-         * @description Selectable reporting window for `GET /api/admin/stats`.
-         *
-         *     All variants except `Custom` resolve to a window ending at `now` and
-         *     extending back the indicated duration (or to the start of the current UTC
-         *     year for `YearToDate`). `Custom` requires `from` + `to` `YYYY-MM-DD` query
-         *     params (inclusive `to`).
-         * @enum {string}
-         */
-        DashboardRange: "last_7_days" | "last_30_days" | "last_90_days" | "year_to_date" | "custom";
-        DashboardStatsQuery: {
-            range?: null | components["schemas"]["DashboardRange"];
-            /** @description Inclusive start `YYYY-MM-DD`. Required when `range=custom`, ignored otherwise. */
-            from?: string | null;
-            /** @description Inclusive end `YYYY-MM-DD`. Required when `range=custom`, ignored otherwise. */
-            to?: string | null;
-        };
-        /** @description Response body for `DELETE /api/member/payment-methods/{pm_id}`. */
-        DeletePaymentMethodResponse: {
-            deleted: boolean;
-        };
-        DeliveryListQuery: {
-            status?: string | null;
-            /** Format: uuid */
-            user_id?: string | null;
-            /** Format: int64 */
-            page?: number | null;
-            /** Format: int64 */
-            per_page?: number | null;
-        };
-        DeliveryRow: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            user_id?: string | null;
-            anonymous_email?: string | null;
-            template_key: string;
-            channel: string;
-            provider_id?: string | null;
-            status: string;
-            subject?: string | null;
-            rendered_body: string;
-            metadata: unknown;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        /** @enum {string} */
-        DiscountType: "Percentage" | "FixedAmount" | "FreeTrial";
-        /**
-         * @description `downloadable_assets` row. `storage_key` is the R2 object key; EC-07 will
-         *     wire signed-URL issuance against it. `access_policy` gates who can request
-         *     a fresh signed URL.
-         */
-        DownloadableAsset: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            product_id: string;
-            /** Format: uuid */
-            variant_id?: string | null;
-            storage_key: string;
-            filename: string;
-            mime_type: string;
-            /** Format: int64 */
-            size_bytes: number;
-            sha256: string;
-            access_policy: string;
-            required_tier?: string | null;
-            /** Format: int32 */
-            download_limit?: number | null;
-            /** Format: int32 */
-            expires_after_hours?: number | null;
-            /** Format: date-time */
-            created_at: string;
-        };
-        DsarFulfillRequest: {
-            fulfillmentUrl?: string | null;
-            adminNotes?: string | null;
-        };
-        /**
-         * @description Admin fulfill response. When the DSAR is `access` / `portability` and the
-         *     admin did not provide a URL, the exported JSON is inlined in `export` so
-         *     the caller can pipe it to a download without a second round-trip.
-         */
-        DsarFulfillResponse: {
-            request: components["schemas"]["DsarRow"];
-            export?: unknown;
-        };
-        DsarJob: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            target_user_id: string;
-            kind: string;
-            status: string;
-            /** Format: uuid */
-            requested_by: string;
-            request_reason: string;
-            /** Format: uuid */
-            approved_by?: string | null;
-            approval_reason?: string | null;
-            /** Format: date-time */
-            approved_at?: string | null;
-            artifact_url?: string | null;
-            /**
-             * @description ADM-17: storage transport for the artefact. `inline`
-             *     (legacy synchronous path → `data:` URI on `artifact_url`),
-             *     `r2` (presigned URL on `artifact_url`), or `local`
-             *     (download via `/jobs/{id}/artifact` streamer with bearer
-             *     auth).
-             */
-            artifact_kind?: string | null;
-            /**
-             * @description ADM-17: opaque storage key (R2 object key, or `dsar/{id}.json`
-             *     for local mode). Operator surface only — downloads use
-             *     `artifact_url` or the streamer.
-             */
-            artifact_storage_key?: string | null;
-            /**
-             * Format: date-time
-             * @description ADM-17 + ADM-19: TTL after which the TTL sweep deletes the
-             *     underlying object and NULLs all three artefact columns.
-             */
-            artifact_expires_at?: string | null;
-            erasure_summary?: unknown;
-            /** Format: date-time */
-            completed_at?: string | null;
-            failure_reason?: string | null;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        DsarListResponse: {
-            data: components["schemas"]["DsarRow"][];
-            /** Format: int64 */
-            total: number;
-            /** Format: int64 */
-            page: number;
-            /** Format: int64 */
-            perPage: number;
-            /** Format: int64 */
-            totalPages: number;
-        };
-        /** @description Row shape returned from the admin list + the subject submission response. */
-        DsarRow: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            userId?: string | null;
-            email: string;
-            kind: string;
-            status: string;
-            payload: unknown;
-            /** Format: date-time */
-            fulfilledAt?: string | null;
-            /** Format: uuid */
-            fulfilledBy?: string | null;
-            fulfillmentUrl?: string | null;
-            adminNotes?: string | null;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        DsarSubmitRequest: {
-            email: string;
-            kind: string;
-            payload?: unknown;
-        };
-        DsarSubmitResponse: {
-            /** Format: uuid */
-            id: string;
-        };
-        EraseApproveBody: {
-            approval_reason: string;
-        };
-        EraseApproveResponse: {
-            job: components["schemas"]["DsarJob"];
-            summary: components["schemas"]["TombstoneSummary"];
-        };
-        EraseRequestBody: {
-            /** Format: uuid */
-            target_user_id: string;
-            reason: string;
-        };
-        ExportRequest: {
-            /** Format: uuid */
-            target_user_id: string;
-            reason: string;
-            /**
-             * @description ADM-17: opt into the async pipeline. When `true` the handler
-             *     queues a `pending` job for the background worker and returns
-             *     `202 Accepted` with the row but no inline export. When `false`
-             *     (default) the legacy synchronous compose runs inline and the
-             *     response includes the full document — preserved for parity with
-             *     pre-ADM-17 callers and for ergonomic small-export UX.
-             */
-            async?: boolean;
-        };
-        ExportResponse: {
-            job: components["schemas"]["DsarJob"];
-            /**
-             * @description Inline JSON snapshot of the export. Operators usually consume
-             *     `job.artifact_url` (a `data:` URI for inline mode, presigned R2
-             *     URL or `/artifact` streamer route for async mode) for the
-             *     round-trippable document; `export` is the same payload
-             *     deserialised so admin UIs can render it without a second hop.
-             *     `null` when the request opted into the async pipeline because
-             *     the worker has not composed the artefact yet.
-             */
-            export?: unknown;
-        };
-        ExtendRequest: {
-            /**
-             * Format: int64
-             * @description Number of days to add to `current_period_end`. Must be 1..=366.
-             */
-            days: number;
-            notes?: string | null;
-        };
-        ExtendResponse: {
-            /** Format: uuid */
-            subscription_id: string;
-            /** Format: date-time */
-            previous_current_period_end: string;
-            /** Format: date-time */
-            new_current_period_end: string;
-        };
-        FailedLoginFilter: {
-            email?: string | null;
-            ip?: string | null;
-            /** Format: int64 */
-            since_hours?: number | null;
-            /** Format: int64 */
-            page?: number | null;
-            /** Format: int64 */
-            per_page?: number | null;
-        };
-        FailedLoginResponse: {
-            data: components["schemas"]["FailedLoginRow"][];
-            /** Format: int64 */
-            page: number;
-            /** Format: int64 */
-            per_page: number;
-            /** Format: int64 */
-            total: number;
-            /** Format: int64 */
-            total_pages: number;
-        };
-        FailedLoginRow: {
-            /** Format: uuid */
-            id: string;
-            email: string;
-            ip_address?: string | null;
-            user_agent?: string | null;
-            reason: string;
-            /** Format: date-time */
-            occurred_at: string;
-        };
-        ForcePasswordResetResponse: {
-            /** Format: uuid */
-            user_id: string;
-            reset_url_dispatched: boolean;
-        };
-        ForgotPasswordRequest: {
-            email: string;
-        };
-        /** @description Payload of `GET /api/forms/{slug}` — the shape FORM-10's renderer hydrates. */
-        FormDefinition: {
-            /** Format: uuid */
-            id: string;
-            slug: string;
-            name: string;
-            description?: string | null;
-            settings: unknown;
-            /** @description Active version's `schema_json` — a JSON array of `FieldSchema` variants. */
-            schema: unknown;
-            /** @description Active version's `logic_json` — a JSON array of `LogicRule`. */
-            logic: unknown;
-            /** Format: int32 */
-            version: number;
-        };
-        FormRow: {
-            /** Format: uuid */
-            id: string;
-            slug: string;
-            name: string;
-            description?: string | null;
-            is_active: boolean;
-            settings: unknown;
-            /** Format: uuid */
-            created_by?: string | null;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        FormVersionRow: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            form_id: string;
-            /** Format: int32 */
-            version: number;
-            schema_json: unknown;
-            logic_json: unknown;
-            is_published: boolean;
-            /** Format: date-time */
-            published_at?: string | null;
-            /** Format: date-time */
-            created_at: string;
-        };
-        /**
-         * @description Materialised impersonation-session row as returned by the admin CRUD
-         *     endpoints and consumed by [`crate::extractors::AuthUser`].
-         */
-        ImpersonationSession: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            actor_user_id: string;
-            actor_role: components["schemas"]["UserRole"];
-            /** Format: uuid */
-            target_user_id: string;
-            reason: string;
-            /** Format: date-time */
-            issued_at: string;
-            /** Format: date-time */
-            expires_at: string;
-            /** Format: date-time */
-            revoked_at?: string | null;
-            /** Format: uuid */
-            revoked_by?: string | null;
-            revoke_reason?: string | null;
-            /**
-             * @description Mint-time IP in canonical text form. Stored as Postgres `inet`,
-             *     projected via `host(...)` so callers don't need the `ipnetwork`
-             *     sqlx feature.
-             */
-            ip_address?: string | null;
-            user_agent?: string | null;
-        };
-        JobListEnvelope: {
-            data: components["schemas"]["DsarJob"][];
-            /** Format: int64 */
-            total: number;
-            /** Format: int64 */
-            page: number;
-            /** Format: int64 */
-            per_page: number;
-            /** Format: int64 */
-            total_pages: number;
-        };
-        LessonProgress: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            user_id: string;
-            /** Format: uuid */
-            lesson_id: string;
-            completed: boolean;
-            /** Format: int32 */
-            progress_seconds: number;
-            /** Format: date-time */
-            completed_at?: string | null;
-            /** Format: date-time */
-            last_accessed_at: string;
-        };
-        LifecycleRequest: {
-            /**
-             * @description Optional free-text reason captured in the audit log + the `users`
-             *     row (truncated to 512 chars by the DB CHECK constraint).
-             */
-            reason?: string | null;
-        };
-        /**
-         * @description Query string accepted by `GET /api/admin/members`.
-         *
-         *     Backwards-compatible with the original `page` / `per_page` shape;
-         *     adds optional `search`, `role`, and `status` filters that route
-         *     through [`db::search_users`]. The list page on the SPA uses the same
-         *     extractor so a GET without any new params behaves exactly as it did
-         *     before this change.
-         */
-        ListMembersQuery: {
-            /** Format: int64 */
-            page?: number | null;
-            /** Format: int64 */
-            per_page?: number | null;
-            search?: string | null;
-            role?: string | null;
-            status?: string | null;
-        };
-        ListResponse: {
-            data: components["schemas"]["ImpersonationSession"][];
-            /** Format: int64 */
-            total: number;
-            /**
-             * Format: date-time
-             * @description Cursor (`issued_at` of the last row) to pass back via `?after=`
-             *     to fetch the next page; `None` when the page is not full.
-             */
-            next_cursor?: string | null;
-        };
-        LoginRequest: {
-            email: string;
-            password: string;
-        };
-        ManualOrderItem: {
-            /** Format: uuid */
-            product_id: string;
-            /** Format: int32 */
-            quantity: number;
-            /**
-             * Format: int64
-             * @description Cents per unit. Operator-supplied so wholesale / comp pricing
-             *     can deviate from the public catalogue.
-             */
-            unit_price_cents: number;
-            name: string;
-            sku?: string | null;
-        };
-        ManualOrderRequest: {
-            email: string;
-            /** Format: uuid */
-            user_id?: string | null;
-            currency?: string;
-            items: components["schemas"]["ManualOrderItem"][];
-            /** Format: int64 */
-            discount_cents?: number | null;
-            /** Format: int64 */
-            tax_cents?: number | null;
-            /**
-             * @description `true` ⇒ skip the pending state and mark the order completed
-             *     immediately (the operator already collected payment off-band).
-             *     `false` (default) leaves the order in `pending` so the standard
-             *     reconciliation pipeline can advance it.
-             */
-            mark_completed?: boolean;
-            notes?: string | null;
-        };
-        MatrixResponse: {
-            /**
-             * @description Every active (role, permission) row, alphabetised by (role,
-             *     permission). Stable order — the SPA renders directly.
-             */
-            matrix: components["schemas"]["RolePermPair"][];
-            /**
-             * @description Every role label the backend recognises. Driven by the Rust
-             *     enum so the SPA does not need to mirror it.
-             */
-            roles: string[];
-            /** @description Every permission key in the catalogue. */
-            permissions: components["schemas"]["PermissionRow"][];
-        };
-        Media: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            uploader_id: string;
-            filename: string;
-            original_filename: string;
-            title?: string | null;
-            mime_type: string;
-            /** Format: int64 */
-            file_size: number;
-            /** Format: int32 */
-            width?: number | null;
-            /** Format: int32 */
-            height?: number | null;
-            alt_text?: string | null;
-            caption?: string | null;
-            storage_path: string;
-            url: string;
-            /** Format: double */
-            focal_x: number;
-            /** Format: double */
-            focal_y: number;
-            /** Format: date-time */
-            created_at: string;
-        };
-        /**
-         * @description One row in the activity timeline rendered on the member detail page.
-         *     Mirrors `admin_actions` minus the `id` (the timeline doesn't link
-         *     out to the audit viewer yet) and with the metadata pre-serialised.
-         */
-        MemberActivityEntry: {
-            action: string;
-            /** Format: uuid */
-            actor_id: string;
-            actor_role: components["schemas"]["UserRole"];
-            /** Format: date-time */
-            created_at: string;
-            metadata: unknown;
-        };
-        MemberCouponRedemptionResponse: {
-            /** Format: uuid */
-            id: string;
-            coupon_code: string;
-            /** Format: int64 */
-            discount_applied_cents: number;
-            /** Format: date-time */
-            redeemed_at: string;
-            /** Format: uuid */
-            subscription_id?: string | null;
-            /**
-             * @description ISO 4217 currency code (lowercase) the discount was denominated
-             *     in at redemption time. Frontend formats `discount_applied_cents`
-             *     against this code so members see e.g. `−$5.00 USD` or
-             *     `−€10.00 EUR` rather than a bare cent value.
-             */
-            currency: string;
-            /**
-             * Format: uuid
-             * @description FK to `orders.id` when the redemption was tied to a concrete
-             *     order (vs. attached only to a subscription). NULL when no order
-             *     was involved — the member UI hides the "view order" link in that
-             *     case.
-             */
-            order_id?: string | null;
-        };
-        /**
-         * @description Composite payload returned by `GET /api/admin/members/{id}/detail`.
-         *     Pre-bundles the member, their current subscription, and the recent
-         *     activity streams the detail UI renders so the SPA needs one round
-         *     trip per page load.
-         */
-        MemberDetailResponse: {
-            user: components["schemas"]["UserResponse"];
-            subscription?: null | components["schemas"]["Subscription"];
-            activity: components["schemas"]["MemberActivityEntry"][];
-            payment_failures: components["schemas"]["MemberPaymentFailure"][];
-        };
-        MemberOrderDetailResponse: {
-            order: components["schemas"]["Order"];
-            items: components["schemas"]["OrderItem"][];
-            refunds: components["schemas"]["MemberOrderRefund"][];
-            state_log: components["schemas"]["MemberOrderStateTransition"][];
-        };
-        /**
-         * @description Compact order row returned by `GET /api/member/orders` and embedded
-         *     inside [`MemberSubscriptionDetailResponse::related_orders`]. Strict
-         *     subset of the admin `Order` shape — the SPA only renders the columns
-         *     actually visible on the member dashboard.
-         */
-        MemberOrderListItem: {
-            /** Format: uuid */
-            id: string;
-            number: string;
-            status: string;
-            currency: string;
-            /** Format: int64 */
-            total_cents: number;
-            /** Format: int64 */
-            item_count: number;
-            /** Format: date-time */
-            placed_at?: string | null;
-            /** Format: date-time */
-            completed_at?: string | null;
-            /** Format: date-time */
-            created_at: string;
-        };
-        /**
-         * @description Lightweight refund row exposed to members. We deliberately omit
-         *     `created_by` (operator id) — that's privileged context.
-         */
-        MemberOrderRefund: {
-            /** Format: uuid */
-            id: string;
-            /** Format: int64 */
-            amount_cents: number;
-            reason?: string | null;
-            /** Format: date-time */
-            created_at: string;
-        };
-        /**
-         * @description One transition in the order's state log; mirrors the
-         *     `order_state_transitions` row shape minus the actor id.
-         */
-        MemberOrderStateTransition: {
-            from_status: string;
-            to_status: string;
-            reason?: string | null;
-            /** Format: date-time */
-            created_at: string;
-        };
-        MemberOrdersListQuery: {
-            /** Format: int64 */
-            page?: number | null;
-            /** Format: int64 */
-            per_page?: number | null;
-        };
-        /** @description One row in the recent-payment-failures list on the member detail page. */
-        MemberPaymentFailure: {
-            stripe_invoice_id?: string | null;
-            /** Format: int64 */
-            amount_cents?: number | null;
-            currency?: string | null;
-            failure_code?: string | null;
-            failure_message?: string | null;
-            /** Format: int32 */
-            attempt_count: number;
-            /** Format: date-time */
-            created_at: string;
-        };
-        /** @description Wire shape returned by `GET /api/member/payment-methods`. */
-        MemberPaymentMethodsResponse: {
-            payment_methods: components["schemas"]["PaymentMethodSummary"][];
-            default_payment_method_id?: string | null;
-        };
-        MemberPreferencesResponse: {
-            preferences: components["schemas"]["NotificationPreference"][];
-        };
-        MemberSubscriptionDetailResponse: {
-            subscription: components["schemas"]["Subscription"];
-            plan?: null | components["schemas"]["PricingPlan"];
-            invoices: components["schemas"]["MemberSubscriptionInvoice"][];
-            related_orders: components["schemas"]["MemberOrderListItem"][];
-        };
-        /**
-         * @description Mirror of `subscription_invoices` with only the columns we surface to
-         *     members (no `attempt_count`, no actor metadata).
-         */
-        MemberSubscriptionInvoice: {
-            /** Format: uuid */
-            id: string;
-            stripe_invoice_id: string;
-            status: string;
-            /** Format: int64 */
-            amount_due_cents: number;
-            /** Format: int64 */
-            amount_paid_cents: number;
-            currency: string;
-            /** Format: date-time */
-            period_start?: string | null;
-            /** Format: date-time */
-            period_end?: string | null;
-            /** Format: date-time */
-            paid_at?: string | null;
-            /**
-             * @description Stripe-hosted invoice page (member-friendly receipt). Populated by
-             *     the `invoice.paid` / `invoice.payment_failed` webhooks once Stripe
-             *     has finalized the invoice. NULL on drafts.
-             */
-            hosted_invoice_url?: string | null;
-            /**
-             * @description Direct link to the PDF rendering of the invoice. Same lifecycle as
-             *     `hosted_invoice_url` — populated when Stripe finalizes the invoice.
-             */
-            invoice_pdf?: string | null;
-            /** Format: date-time */
-            created_at: string;
-        };
-        /**
-         * @description Compact subscription row for `GET /api/member/subscriptions`. Joins
-         *     `pricing_plans` so the SPA can render the catalog name + price without
-         *     a follow-up call.
-         */
-        MemberSubscriptionListItem: {
-            /** Format: uuid */
-            id: string;
-            plan: components["schemas"]["SubscriptionPlan"];
-            status: components["schemas"]["SubscriptionStatus"];
-            /** Format: date-time */
-            current_period_start: string;
-            /** Format: date-time */
-            current_period_end: string;
-            /** Format: date-time */
-            paused_at?: string | null;
-            /** Format: date-time */
-            pause_resumes_at?: string | null;
-            /**
-             * @description Derived from `subscriptions.cancel_at IS NOT NULL`. Stripe stores
-             *     the boolean separately; we mirror the admin handler convention so
-             *     both surfaces agree.
-             */
-            cancel_at_period_end: boolean;
-            /** Format: uuid */
-            pricing_plan_id?: string | null;
-            plan_name?: string | null;
-            /** Format: int64 */
-            amount_cents?: number | null;
-            currency?: string | null;
-            /** Format: date-time */
-            created_at: string;
-        };
-        MemberSubscriptionsListQuery: {
-            /** Format: int64 */
-            page?: number | null;
-            /** Format: int64 */
-            per_page?: number | null;
-        };
-        MembershipRow: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            user_id: string;
-            /** Format: uuid */
-            plan_id: string;
-            granted_by: string;
-            status: string;
-            /** Format: date-time */
-            starts_at: string;
-            /** Format: date-time */
-            ends_at?: string | null;
-        };
-        /**
-         * @description Response body for `POST /` (mint). Contains the freshly-issued
-         *     impersonation JWT plus the row metadata so the SPA does not need a
-         *     follow-up GET to render the banner.
-         */
-        MintResponse: {
-            access_token: string;
-            /**
-             * Format: date-time
-             * @description Echoed `expires_at` — same value carried in the JWT's `exp`.
-             */
-            expires_at: string;
-            session: components["schemas"]["ImpersonationSession"];
-        };
-        ModuleWithLessons: components["schemas"]["CourseModule"] & {
-            lessons: components["schemas"]["CourseLesson"][];
-        };
-        MyConsentResponse: {
-            /** @description Flattened category → granted map, derived from the most recent record. */
-            categories: unknown;
-            /**
-             * Format: date-time
-             * @description ISO-8601 UTC. `None` if the subject has no recorded decisions yet.
-             */
-            decidedAt?: string | null;
-            records: components["schemas"]["ConsentRecordRow"][];
-        };
-        /**
-         * @description A (user, category, channel) preference row as stored in
-         *     `notification_preferences`.
-         */
-        NotificationPreference: {
-            /** Format: uuid */
-            user_id: string;
-            category: string;
-            channel: string;
-            enabled: boolean;
-            quiet_hours_start?: string | null;
-            quiet_hours_end?: string | null;
-            timezone: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        Order: {
-            /** Format: uuid */
-            id: string;
-            number: string;
-            /** Format: uuid */
-            user_id?: string | null;
-            /** Format: uuid */
-            cart_id?: string | null;
-            status: string;
-            currency: string;
-            /** Format: int64 */
-            subtotal_cents: number;
-            /** Format: int64 */
-            discount_cents: number;
-            /** Format: int64 */
-            tax_cents: number;
-            /** Format: int64 */
-            total_cents: number;
-            email: string;
-            stripe_payment_intent_id?: string | null;
-            stripe_customer_id?: string | null;
-            idempotency_key?: string | null;
-            metadata: unknown;
-            /** Format: date-time */
-            placed_at?: string | null;
-            /** Format: date-time */
-            completed_at?: string | null;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        OrderDetail: {
-            order: components["schemas"]["Order"];
-            items: components["schemas"]["OrderItem"][];
-            refunds: components["schemas"]["OrderRefund"][];
-            notes: components["schemas"]["OrderNote"][];
-            /**
-             * Format: int64
-             * @description Cents already refunded (sum of `order_refunds.amount_cents`).
-             */
-            refunded_cents: number;
-            /** Format: int64 */
-            remaining_refundable_cents: number;
-        };
-        OrderItem: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            order_id: string;
-            /** Format: uuid */
-            product_id: string;
-            /** Format: uuid */
-            variant_id?: string | null;
-            sku?: string | null;
-            name: string;
-            /** Format: int32 */
-            quantity: number;
-            /** Format: int64 */
-            unit_price_cents: number;
-            /** Format: int64 */
-            line_total_cents: number;
-            metadata: unknown;
-            /** Format: date-time */
-            created_at: string;
-        };
-        OrderListEnvelope: {
-            data: components["schemas"]["Order"][];
-            /** Format: int64 */
-            total: number;
-            /** Format: int64 */
-            page: number;
-            /** Format: int64 */
-            per_page: number;
-            /** Format: int64 */
-            total_pages: number;
-        };
-        OrderNote: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            order_id: string;
-            /** Format: uuid */
-            author_id?: string | null;
-            kind: string;
-            body: string;
-            /** Format: date-time */
-            created_at: string;
-        };
-        OrderRefund: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            order_id: string;
-            /** Format: int64 */
-            amount_cents: number;
-            reason?: string | null;
-            stripe_refund_id?: string | null;
-            /** Format: uuid */
-            created_by?: string | null;
-            /** Format: date-time */
-            created_at: string;
-        };
-        /** @description Response body for `POST /api/admin/outbox/{id}/retry`. */
-        OutboxRetryResponse: {
-            /** Format: uuid */
-            id: string;
-            status: components["schemas"]["OutboxStatus"];
-            /** Format: date-time */
-            next_attempt_at: string;
-        };
-        /**
-         * @description Paginated outbox row. Kept in sync with [`OutboxRecord`] but serialises the
-         *     status as a lowercase string for frontend friendliness.
-         */
-        OutboxRowDto: {
-            /** Format: uuid */
-            id: string;
-            aggregate_type: string;
-            aggregate_id: string;
-            event_type: string;
-            payload: unknown;
-            headers: unknown;
-            status: components["schemas"]["OutboxStatus"];
-            /** Format: int32 */
-            attempts: number;
-            /** Format: int32 */
-            max_attempts: number;
-            /** Format: date-time */
-            next_attempt_at: string;
-            last_error?: string | null;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        /**
-         * @description Lifecycle states for an outbox row. Mirrors the `CHECK` constraint in
-         *     `019_outbox.sql`.
-         * @enum {string}
-         */
-        OutboxStatus: "pending" | "in_flight" | "delivered" | "failed" | "dead_letter";
-        PaginatedDeliveriesResponse: {
-            data: components["schemas"]["DeliveryRow"][];
-            /** Format: int64 */
-            total: number;
-            /** Format: int64 */
-            page: number;
-            /** Format: int64 */
-            per_page: number;
-            /** Format: int64 */
-            total_pages: number;
-        };
-        /**
-         * @description OpenAPI wrapper around `PaginatedResponse<MemberOrderListItem>` so the
-         *     snapshot doesn't leak the generic into `ApiDoc`.
-         */
-        PaginatedMemberOrdersResponse: {
-            data: components["schemas"]["MemberOrderListItem"][];
-            /** Format: int64 */
-            total: number;
-            /** Format: int64 */
-            page: number;
-            /** Format: int64 */
-            per_page: number;
-            /** Format: int64 */
-            total_pages: number;
-        };
-        PaginatedMemberSubscriptionsResponse: {
-            data: components["schemas"]["MemberSubscriptionListItem"][];
-            /** Format: int64 */
-            total: number;
-            /** Format: int64 */
-            page: number;
-            /** Format: int64 */
-            per_page: number;
-            /** Format: int64 */
-            total_pages: number;
-        };
-        /**
-         * @description OpenAPI wrapper so the snapshot carries a concrete `PaginatedResponse<OutboxRowDto>`
-         *     schema without bleeding the generic into `ApiDoc`.
-         */
-        PaginatedOutboxResponse: {
-            data: components["schemas"]["OutboxRowDto"][];
-            /** Format: int64 */
-            total: number;
-            /** Format: int64 */
-            page: number;
-            /** Format: int64 */
-            per_page: number;
-            /** Format: int64 */
-            total_pages: number;
-        };
-        PaginatedResponse_UserResponse: {
-            data: {
-                /** Format: uuid */
-                id: string;
-                email: string;
-                name: string;
-                role: components["schemas"]["UserRole"];
-                avatar_url?: string | null;
-                bio?: string | null;
-                position?: string | null;
-                website_url?: string | null;
-                twitter_url?: string | null;
-                linkedin_url?: string | null;
-                youtube_url?: string | null;
-                instagram_url?: string | null;
-                /** Format: date-time */
-                created_at: string;
-                /**
-                 * Format: date-time
-                 * @description ADM-02: lifecycle state surfaced to the admin members UI. `None`
-                 *     for each timestamp means the account is not in that state.
-                 */
-                suspended_at?: string | null;
-                suspension_reason?: string | null;
-                /** Format: date-time */
-                banned_at?: string | null;
-                ban_reason?: string | null;
-                /** Format: date-time */
-                email_verified_at?: string | null;
-                billing_line1?: string | null;
-                billing_line2?: string | null;
-                billing_city?: string | null;
-                billing_state?: string | null;
-                billing_postal_code?: string | null;
-                billing_country?: string | null;
-                phone?: string | null;
-                /** Format: date-time */
-                suspended_until?: string | null;
-            }[];
-            /** Format: int64 */
-            total: number;
-            /** Format: int64 */
-            page: number;
-            /** Format: int64 */
-            per_page: number;
-            /** Format: int64 */
-            total_pages: number;
-        };
-        PaginatedSubmissions: {
-            data: components["schemas"]["SubmissionRow"][];
-            /** Format: int64 */
-            total: number;
-            /** Format: int64 */
-            page: number;
-            /** Format: int64 */
-            per_page: number;
-            /** Format: int64 */
-            total_pages: number;
-        };
-        /**
-         * @description OpenAPI wrapper carrying the concrete `PaginatedResponse<SubscriptionRow>`
-         *     shape so the snapshot doesn't leak the generic into `ApiDoc`.
-         */
-        PaginatedSubscriptionsResponse: {
-            data: components["schemas"]["SubscriptionRow"][];
-            /** Format: int64 */
-            total: number;
-            /** Format: int64 */
-            page: number;
-            /** Format: int64 */
-            per_page: number;
-            /** Format: int64 */
-            total_pages: number;
-        };
-        PaginatedSuppressionResponse: {
-            data: components["schemas"]["Suppression"][];
-            /** Format: int64 */
-            total: number;
-            /** Format: int64 */
-            page: number;
-            /** Format: int64 */
-            per_page: number;
-            /** Format: int64 */
-            total_pages: number;
-        };
-        PaginatedTemplatesResponse: {
-            data: components["schemas"]["Template"][];
-            /** Format: int64 */
-            total: number;
-            /** Format: int64 */
-            page: number;
-            /** Format: int64 */
-            per_page: number;
-            /** Format: int64 */
-            total_pages: number;
-        };
-        PaginationParams: {
-            /** Format: int64 */
-            page?: number | null;
-            /** Format: int64 */
-            per_page?: number | null;
-        };
-        PartialLoadResponse: {
-            data: unknown;
-            /** Format: int32 */
-            current_step: number;
-            /** Format: date-time */
-            expires_at: string;
-        };
-        PartialRequest: {
-            data: unknown;
-            /**
-             * @description Optional: extend an existing resume token in place. When set + the
-             *     token is valid, the existing row is updated and the same token is
-             *     returned; otherwise a fresh token is minted.
-             */
-            resume_token?: string | null;
-            /**
-             * Format: int32
-             * @description Zero-based page-break index the draft was on when saved. Lets the
-             *     renderer jump straight back to the right step on resume.
-             */
-            current_step?: number | null;
-        };
-        PartialResponse: {
-            resume_token: string;
-            /** Format: date-time */
-            expires_at: string;
-        };
-        PartialRow: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            form_id: string;
-            data_json: unknown;
-            /** Format: int32 */
-            current_step: number;
-            /** Format: uuid */
-            subject_id?: string | null;
-            /** Format: date-time */
-            expires_at: string;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        PauseSubscriptionRequest: {
-            /**
-             * Format: date-time
-             * @description Optional RFC3339 timestamp at which the subscription should auto-resume.
-             *     `None` ⇒ open-ended pause (member must call `unpause` to lift).
-             */
-            resume_at?: string | null;
-        };
-        PaymentIntentClientResponse: {
-            intent_id: string;
-            client_secret: string;
-            /** Format: int64 */
-            amount_cents: number;
-            currency: string;
-        };
-        PaymentIntentRequest: {
-            /** @description FieldSchema `key` of the payment field on the form. */
-            field_key: string;
-            /**
-             * Format: int64
-             * @description Donor-supplied amount for `payment_kind = donation`. Ignored for
-             *     fixed-amount one-time payments — the schema's `amount_cents` wins.
-             */
-            amount_cents?: number | null;
-            /** @description Donor email — receipts are sent to this address. */
-            email: string;
-            /**
-             * @description Optional resume token if the field is on a draft (so we can
-             *     later cross-link `form_payment_intents.partial_id`).
-             */
-            resume_token?: string | null;
-        };
-        /**
-         * @description Compact view of a Stripe `PaymentMethod` (card type only) returned to
-         *     the SPA. The wire shape is intentionally minimal — we never expose
-         *     raw Stripe identifiers beyond the `pm_*` id, and we never round-trip
-         *     the underlying card number, expiry CVC, or fingerprint. The
-         *     publishable key + Stripe Elements iframe own the PCI scope.
-         */
-        PaymentMethodSummary: {
-            id: string;
-            /**
-             * @description Card brand (`visa`, `mastercard`, `amex`, `discover`, etc.). Always
-             *     lowercased per Stripe's contract.
-             */
-            brand: string;
-            last4: string;
-            /** Format: int64 */
-            exp_month: number;
-            /** Format: int64 */
-            exp_year: number;
-            /**
-             * @description Set true when this `id` matches the customer's
-             *     `invoice_settings.default_payment_method`. Computed at the API edge
-             *     because it requires a separate `GET /v1/customers/{id}` round trip.
-             */
-            is_default: boolean;
-        };
-        /**
-         * @description Per-window counts. The dashboard sends two of these — the selected window
-         *     and the immediately-preceding window of identical length — so the UI can
-         *     compute deltas without a second round-trip.
-         */
-        PeriodWindow: {
-            /** Format: int64 */
-            new_members: number;
-            /** Format: int64 */
-            new_subscriptions: number;
-            /** Format: int64 */
-            canceled_subscriptions: number;
-            /** Format: int64 */
-            new_enrollments: number;
-            /** Format: int64 */
-            new_watchlists: number;
-            /** Format: int64 */
-            revenue_cents: number;
-        };
-        PermissionRow: {
-            key: string;
-            description: string;
-        };
-        PermissionsResponse: {
-            data: components["schemas"]["PermissionRow"][];
-            /** Format: int64 */
-            total: number;
-        };
-        Popup: {
-            /** Format: uuid */
-            id: string;
-            name: string;
-            popup_type: string;
-            trigger_type: string;
-            trigger_config: unknown;
-            content_json: unknown;
-            style_json: unknown;
-            targeting_rules: unknown;
-            display_frequency: string;
-            frequency_config: unknown;
-            success_message?: string | null;
-            redirect_url?: string | null;
-            is_active: boolean;
-            /** Format: date-time */
-            starts_at?: string | null;
-            /** Format: date-time */
-            expires_at?: string | null;
-            /** Format: int32 */
-            priority: number;
-            /** Format: uuid */
-            created_by: string;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        PopupAnalytics: {
-            /** Format: uuid */
-            popup_id: string;
-            popup_name: string;
-            /** Format: int64 */
-            total_impressions: number;
-            /** Format: int64 */
-            total_closes: number;
-            /** Format: int64 */
-            total_submissions: number;
-            /** Format: double */
-            conversion_rate: number;
-        };
-        /**
-         * @description Per-popup summary row returned by `GET /api/admin/popups/analytics`.
-         *
-         *     Distinct from [`PopupAnalytics`] (the single-popup detail view) because
-         *     the collection endpoint also exposes `popup_type` / `is_active` so the
-         *     admin index can render a roster without a second round-trip.
-         */
-        PopupAnalyticsSummary: {
-            /** Format: uuid */
-            popup_id: string;
-            popup_name: string;
-            popup_type: string;
-            is_active: boolean;
-            /** Format: int64 */
-            impressions: number;
-            /** Format: int64 */
-            closes: number;
-            /** Format: int64 */
-            submits: number;
-            /** Format: double */
-            conversion_rate: number;
-        };
-        PopupSubmission: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            popup_id: string;
-            /** Format: uuid */
-            user_id?: string | null;
-            /** Format: uuid */
-            session_id?: string | null;
-            form_data: unknown;
-            ip_address?: string | null;
-            user_agent?: string | null;
-            page_url?: string | null;
-            /** Format: date-time */
-            submitted_at: string;
-        };
-        PopupSubmitRequest: {
-            /** Format: uuid */
-            popup_id: string;
-            /** Format: uuid */
-            session_id?: string | null;
-            form_data: unknown;
-            page_url?: string | null;
-        };
-        PostMeta: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            post_id: string;
-            meta_key: string;
-            meta_value: string;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        /** @enum {string} */
-        PostStatus: "draft" | "pending_review" | "published" | "private" | "scheduled" | "trash";
-        /** @description Input shape for the bulk set endpoint. Missing timezone defaults to UTC. */
-        PreferenceUpdate: {
-            category: string;
-            channel: string;
-            enabled: boolean;
-            quiet_hours_start?: string | null;
-            quiet_hours_end?: string | null;
-            timezone?: string | null;
-        };
-        PreviewRequest: {
-            context: unknown;
-        };
-        PricingPlan: {
-            /** Format: uuid */
-            id: string;
-            name: string;
-            slug: string;
-            description?: string | null;
-            stripe_price_id?: string | null;
-            stripe_product_id?: string | null;
-            /** Format: int64 */
-            amount_cents: number;
-            currency: string;
-            interval: string;
-            /** Format: int32 */
-            interval_count: number;
-            /** Format: int32 */
-            trial_days: number;
-            /**
-             * @description When `true` (default), Stripe Checkout collects a card up-front and
-             *     charges after the trial. When `false`, the BFF passes
-             *     `payment_method_collection: 'if_required'` so the member starts the
-             *     trial without entering a card. Stripe will refuse to bill the
-             *     auto-conversion at trial end unless they add one — net effect is
-             *     "trial → silent auto-cancel if no card." Toggle per plan.
-             */
-            collect_payment_method_at_checkout: boolean;
-            features: unknown;
-            highlight_text?: string | null;
-            is_popular: boolean;
-            is_active: boolean;
-            /** Format: int32 */
-            sort_order: number;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        PricingPlanAmountChangeLogEntry: {
-            /** Format: uuid */
-            id: string;
-            plan_name: string;
-            /** Format: int64 */
-            old_amount_cents: number;
-            /** Format: int64 */
-            new_amount_cents: number;
-            /** Format: date-time */
-            changed_at: string;
-            changed_by: string;
-        };
-        /** @description Optional Stripe rollout payload on `PUT /api/admin/pricing/plans/{id}`. */
-        PricingStripeRollout: {
-            /**
-             * @description When `true`, after the catalog row is persisted the API updates each
-             *     targeted Stripe subscription’s primary line item to the new amount or
-             *     `stripe_price_id`. Requires an `Idempotency-Key` request header.
-             * @default false
-             */
-            push_to_stripe_subscriptions: boolean;
-            /** @default linked_subscriptions_only */
-            audience: components["schemas"]["PricingStripeRolloutAudience"];
-            /**
-             * @description When `true`, skip every subscription where `price_protection_enabled =
-             *     TRUE` — those members keep their grandfathered rate. When `false` (the
-             *     default) protected subscriptions are still skipped because the rollout
-             *     service always respects `price_protection_enabled`.
-             *
-             *     This field is informational for the request body — the service always
-             *     honours the DB flag.  Setting it `false` does not override protection.
-             * @default true
-             */
-            skip_price_protected: boolean;
-        };
-        /**
-         * @description Controls which existing subscriptions are targeted when pushing a catalog
-         *     price change to Stripe.
-         * @enum {string}
-         */
-        PricingStripeRolloutAudience: "linked_subscriptions_only" | "linked_and_unlinked_legacy_same_cadence";
-        /**
-         * @description `products` row. Money fields are `BIGINT` cents; translate via
-         *     [`crate::common::money::Money::cents`] when arithmetic is needed.
-         */
-        Product: {
-            /** Format: uuid */
-            id: string;
-            slug: string;
-            name: string;
-            description?: string | null;
-            product_type: string;
-            status: string;
-            /** Format: int64 */
-            price_cents?: number | null;
-            /** Format: int64 */
-            compare_at_cents?: number | null;
-            currency: string;
-            tax_class: string;
-            stripe_product_id?: string | null;
-            stripe_price_id?: string | null;
-            gallery_media_ids: string[];
-            /** Format: uuid */
-            featured_media_id?: string | null;
-            seo_title?: string | null;
-            seo_description?: string | null;
-            metadata: unknown;
-            /** Format: uuid */
-            created_by?: string | null;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        /**
-         * @description Bundle of a product + its first-class children. Returned by `GET
-         *     /api/admin/products/{id}` and `GET /api/products/{slug}` so the admin UI
-         *     and the public PDP both receive a single hydrated document.
-         */
-        ProductDetail: components["schemas"]["Product"] & {
-            variants: components["schemas"]["ProductVariant"][];
-            assets: components["schemas"]["DownloadableAsset"][];
-            bundle_items: components["schemas"]["BundleItem"][];
-        };
-        /**
-         * @description Publication lifecycle. `draft` is the default on insert; only `published`
-         *     rows surface through the public router. `archived` is terminal and hides
-         *     the product from every lookup except admin list views.
-         * @enum {string}
-         */
-        ProductStatus: "draft" | "published" | "archived";
-        /**
-         * @description Top-level product archetype. Matches the CHECK constraint in
-         *     `migrations/040_products.sql`.
-         * @enum {string}
-         */
-        ProductType: "simple" | "subscription" | "downloadable" | "bundle";
-        /**
-         * @description `product_variants` row. A variant overrides product pricing when
-         *     `price_cents` is set; otherwise it inherits.
-         */
-        ProductVariant: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            product_id: string;
-            sku?: string | null;
-            name?: string | null;
-            /** Format: int64 */
-            price_cents?: number | null;
-            currency?: string | null;
-            attributes: unknown;
-            stripe_price_id?: string | null;
-            /** Format: int32 */
-            position: number;
-            is_active: boolean;
-            /** Format: date-time */
-            created_at: string;
-        };
-        ProgressUpdate: {
-            /** Format: int32 */
-            progress: number;
-        };
-        /**
-         * @description Subscription billing applicability for a coupon.
-         * @enum {string}
-         */
-        RecurringMode: "one_time" | "forever" | "repeating";
-        RefreshRequest: {
-            /**
-             * @description Optional during BFF rollout (Phase 1.3): when the SPA carries the
-             *     refresh token via the `swings_refresh` httpOnly cookie, the JSON body
-             *     is empty (`{}`) and this field is `None`. The handler reads from the
-             *     cookie jar in that case. Legacy clients can still send the value here.
-             */
-            refresh_token?: string | null;
-        };
-        RefundRequest: {
-            /** Format: int64 */
-            amount_cents: number;
-            reason?: string | null;
-            /**
-             * @description Operator-supplied Stripe refund id when the refund was issued
-             *     out-of-band via the dashboard. Persisted on `order_refunds`
-             *     so reconciliation can match.
-             */
-            stripe_refund_id?: string | null;
-        };
-        RefundResponse: {
-            refund: components["schemas"]["OrderRefund"];
-            /**
-             * @description `true` when the cumulative refund total reached the order
-             *     total and the engine flipped the order to `refunded`.
-             */
-            order_marked_refunded: boolean;
-            /** Format: int64 */
-            remaining_refundable_cents: number;
-        };
-        RegisterRequest: {
-            email: string;
-            password: string;
-            name: string;
-        };
-        RemoveSuppressionRequest: {
-            email: string;
-        };
-        /**
-         * @description Output of [`Template::render`]. Kept narrow so channels do not have to
-         *     re-parse Tera output.
-         */
-        RenderedTemplate: {
-            subject?: string | null;
-            body: string;
-        };
-        ReplaceRoleRequest: {
-            /**
-             * @description New permission set for the role. Unknown keys (not in the
-             *     permissions catalogue) are rejected with `400`.
-             */
-            permissions: string[];
-        };
-        ResendVerificationRequest: {
-            email: string;
-        };
-        ResetPasswordRequest: {
-            token: string;
-            new_password: string;
-        };
-        RevisionResponse: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            post_id: string;
-            /** Format: uuid */
-            author_id: string;
-            author_name: string;
-            title: string;
-            /** Format: int32 */
-            revision_number: number;
-            /** Format: date-time */
-            created_at: string;
-        };
-        RevokeRequest: {
-            /**
-             * @description Optional free-text justification for the revocation. Stored on
-             *     the row and surfaced in the audit-log metadata.
-             */
-            reason?: string | null;
-        };
-        /** @description Canonical role/permission pair. */
-        RolePermPair: {
-            role: string;
-            permission: string;
-        };
-        RoleUpdate: {
-            role: components["schemas"]["UserRole"];
-        };
-        SessionRow: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            user_id: string;
-            /** Format: uuid */
-            family_id: string;
-            used: boolean;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            expires_at: string;
-        };
-        SessionsResponse: {
-            /** Format: uuid */
-            user_id: string;
-            active_sessions: components["schemas"]["SessionRow"][];
-            /** Format: int64 */
-            total: number;
-        };
-        /** @description Admin-only payload for `PUT /api/admin/products/{id}/bundle-items`. */
-        SetBundleItemsRequest: {
-            items: components["schemas"]["BundleItemInput"][];
-        };
-        /** @description Response body for `POST /api/member/payment-methods/{pm_id}/set-default`. */
-        SetDefaultPaymentMethodResponse: {
-            default_payment_method_id: string;
-        };
-        /** @description Admin-only payload for `POST /api/admin/products/{id}/status`. */
-        SetStatusRequest: {
-            status: components["schemas"]["ProductStatus"];
-        };
-        SettingGetResponse: components["schemas"]["SettingView"] & {
-            revealed_value?: null | components["schemas"]["Value"];
-        };
-        SettingListResponse: {
-            data: components["schemas"]["SettingView"][];
-            /** Format: int64 */
-            total: number;
-        };
-        /**
-         * @description Materialised in-memory representation of an `app_settings` row.
-         *     `value` always carries the canonical Postgres JSONB; for `Secret`
-         *     rows the JSON is the encrypted envelope (see `crypto`).
-         */
-        SettingRecord: {
-            key: string;
-            value: components["schemas"]["Value"];
-            value_type: components["schemas"]["SettingType"];
-            is_secret: boolean;
-            description?: string | null;
-            category: string;
-            /** Format: date-time */
-            updated_at: string;
-            /** Format: uuid */
-            updated_by?: string | null;
-        };
-        /**
-         * @description Storage discriminator. Mirrors the `value_type` CHECK constraint in
-         *     migration 062. Kept as a strict enum so the admin handler cannot
-         *     silently coerce between types.
-         * @enum {string}
-         */
-        SettingType: "string" | "int" | "bool" | "json" | "secret";
-        SettingUpsertRequest: {
-            value_type?: null | components["schemas"]["SettingType"];
-            /** @description Defaults to `false` on create. Ignored on update. */
-            is_secret?: boolean;
-            /** @description Optional admin-facing description; only persisted on create. */
-            description?: string | null;
-            /** @description Defaults to `"general"` on create. Ignored on update. */
-            category?: string | null;
-            /**
-             * @description The raw value. For `secret` types, pass the cleartext as a JSON
-             *     string — the server encrypts before persisting.
-             */
-            value: components["schemas"]["Value"];
-        };
-        /**
-         * @description Public-API view: redacts secret values and surfaces the canonical
-         *     envelope structure. Use [`reveal_secret`] when the caller carries
-         *     `admin.settings.read_secret`.
-         */
-        SettingView: {
-            key: string;
-            /**
-             * @description Either the actual value (non-secret) or the JSON literal
-             *     `"***"` (secret + caller lacks reveal permission).
-             */
-            value: components["schemas"]["Value"];
-            value_type: components["schemas"]["SettingType"];
-            is_secret: boolean;
-            description?: string | null;
-            category: string;
-            /** Format: date-time */
-            updated_at: string;
-            /** Format: uuid */
-            updated_by?: string | null;
-        };
-        /** @description Response body for `POST /api/member/payment-methods/setup-intent`. */
-        SetupIntentResponse: {
-            client_secret: string;
-        };
-        State: {
-            /** @description ISO 3166-2 (`"US-CA"`, `"CA-ON"`). */
-            code: string;
-            name: string;
-        };
-        SubmissionRow: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            form_id: string;
-            /** Format: uuid */
-            form_version_id: string;
-            /** Format: uuid */
-            subject_id?: string | null;
-            /** Format: uuid */
-            anonymous_id?: string | null;
-            status: string;
-            data_json: unknown;
-            files_json: unknown;
-            ip_hash: string;
-            user_agent: string;
-            referrer?: string | null;
-            utm: unknown;
-            validation_errors?: unknown;
-            /** Format: date-time */
-            submitted_at: string;
-        };
-        SubmitRequest: {
-            data: unknown;
-            /** @description Optional UTM block captured from the query-string at render time. */
-            utm?: unknown;
-            /**
-             * @description Optional file descriptors from FORM-05. Shape `[{ field_key, file_id,
-             *     filename, size, sha256, mime_type }]`.
-             */
-            files?: unknown;
-            /**
-             * Format: uuid
-             * @description Optional anonymous id cookie — the frontend generates one for
-             *     unauthenticated sessions so repeat submissions tie back together.
-             */
-            anonymous_id?: string | null;
-        };
-        SubmitResponse: {
-            /** Format: uuid */
-            id: string;
-            status: string;
-        };
-        Subscription: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            user_id: string;
-            stripe_customer_id: string;
-            stripe_subscription_id: string;
-            plan: components["schemas"]["SubscriptionPlan"];
-            status: components["schemas"]["SubscriptionStatus"];
-            /** Format: date-time */
-            current_period_start: string;
-            /** Format: date-time */
-            current_period_end: string;
-            /**
-             * Format: uuid
-             * @description When set, this subscription was purchased from a specific `pricing_plans`
-             *     catalog row (via Checkout metadata → Stripe subscription metadata → webhooks).
-             */
-            pricing_plan_id?: string | null;
-            /**
-             * Format: int64
-             * @description Price the member was promised at signup. Populated at checkout time from
-             *     `pricing_plans.amount_cents`. NULL for pre-migration rows.
-             */
-            grandfathered_price_cents?: number | null;
-            /** @description ISO-4217 currency that goes with `grandfathered_price_cents`. */
-            grandfathered_currency?: string | null;
-            /**
-             * @description When TRUE the pricing rollout service skips this subscription regardless
-             *     of audience setting — the member keeps their original price forever.
-             */
-            price_protection_enabled: boolean;
-            /**
-             * Format: date-time
-             * @description When the subscription will be canceled. Set when the member (or admin)
-             *     schedules a cancel-at-period-end; the row is otherwise NULL while the
-             *     subscription is active. Mirror of `subscriptions.cancel_at` from
-             *     migration `041_subscriptions_v2.sql`.
-             */
-            cancel_at?: string | null;
-            /**
-             * Format: date-time
-             * @description When the subscription was paused via Stripe `pause_collection`. NULL
-             *     while active. Mirror of `subscriptions.paused_at` from migration
-             *     `041_subscriptions_v2.sql`.
-             */
-            paused_at?: string | null;
-            /**
-             * Format: date-time
-             * @description When an open-pause should auto-lift. NULL means manual resume only —
-             *     the member must call `/unpause` explicitly. Mirror of
-             *     `subscriptions.pause_resumes_at` from `041_subscriptions_v2.sql`.
-             */
-            pause_resumes_at?: string | null;
-            /**
-             * Format: date-time
-             * @description When the trial ends. NULL when the subscription is not in trial.
-             *     Mirror of `subscriptions.trial_end` from `041_subscriptions_v2.sql`.
-             */
-            trial_end?: string | null;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        /** @enum {string} */
-        SubscriptionPlan: "Monthly" | "Annual";
-        /**
-         * @description One subscription row in the admin list response.
-         *
-         *     Field naming intentionally tracks the SvelteKit consumer at
-         *     `src/routes/admin/subscriptions/+page.svelte` (which binds to
-         *     `member_id` / `member_name` / `member_email` / `plan_name` /
-         *     `interval` / `amount_cents` / `start_date` / `next_renewal`) so the
-         *     existing page renders without any frontend changes.
-         */
-        SubscriptionRow: {
-            /**
-             * Format: uuid
-             * @description Subscription primary key.
-             */
-            id: string;
-            /**
-             * Format: uuid
-             * @description Member id — frontend route key for `/admin/members/{id}`.
-             */
-            member_id: string;
-            member_name: string;
-            member_email: string;
-            stripe_subscription_id: string;
-            stripe_customer_id: string;
-            /** @description Plan cadence (`monthly` / `annual`) — what `subscriptions.plan` stores. */
-            plan: string;
-            /**
-             * @description Human plan name from `pricing_plans.name`, or the cadence label
-             *     when no `pricing_plans` row is linked.
-             */
-            plan_name: string;
-            /**
-             * @description `month` for monthly subscriptions, `year` for annual — matches
-             *     the `pricing_plans.interval` vocabulary the frontend expects.
-             */
-            interval: string;
-            /** @description Lowercase enum label (`active|past_due|canceled|trialing|unpaid|paused`). */
-            status: string;
-            /**
-             * Format: int64
-             * @description Per-row price in cents. Falls back to the public catalog default
-             *     when the subscription has no `pricing_plan_id`.
-             */
-            amount_cents: number;
-            /**
-             * Format: date-time
-             * @description `subscriptions.created_at` — when the subscription was first recorded.
-             */
-            start_date: string;
-            /**
-             * Format: date-time
-             * @description `subscriptions.current_period_end` while live; `null` once
-             *     canceled (no further renewal expected).
-             */
-            next_renewal?: string | null;
-            /**
-             * @description `true` when `subscriptions.cancel_at` is set — the subscription
-             *     will end at `current_period_end` without further renewal.
-             */
-            cancel_at_period_end: boolean;
-            /** Format: date-time */
-            canceled_at?: string | null;
-        };
-        /**
-         * @description Aggregate counters for the subscriptions overview KPIs.
-         *
-         *     `monthly_count` / `annual_count` mirror what the frontend page binds
-         *     to today; the additional status counts and `arr_cents` are surfaced
-         *     for upstream tooling and future KPI cards.
-         */
-        SubscriptionStats: {
-            /** Format: int64 */
-            total_active: number;
-            /** Format: int64 */
-            monthly_count: number;
-            /** Format: int64 */
-            annual_count: number;
-            /** Format: int64 */
-            trialing: number;
-            /** Format: int64 */
-            past_due: number;
-            /** Format: int64 */
-            canceled: number;
-            /** Format: int64 */
-            unpaid: number;
-            /** Format: int64 */
-            paused: number;
-            /** Format: int64 */
-            mrr_cents: number;
-            /** Format: int64 */
-            arr_cents: number;
-        };
-        /** @enum {string} */
-        SubscriptionStatus: "Active" | "Canceled" | "PastDue" | "Paused" | "Trialing" | "Unpaid";
-        SubscriptionStatusResponse: {
-            subscription?: null | components["schemas"]["Subscription"];
-            is_active: boolean;
-        };
-        /** @description Row shape for `notification_suppression`. */
-        Suppression: {
-            email: string;
-            reason: string;
-            /** Format: date-time */
-            suppressed_at: string;
-        };
-        SuppressionListQuery: {
-            /** Format: int64 */
-            page?: number | null;
-            /** Format: int64 */
-            per_page?: number | null;
-        };
-        /**
-         * @description `POST /api/admin/members/{id}/suspend` body. Combines the existing
-         *     `LifecycleRequest` (just a `reason`) with an optional `until`
-         *     timestamp that flips the suspension into a *timeout*.
-         */
-        SuspendMemberRequest: {
-            reason?: string | null;
-            /**
-             * Format: date-time
-             * @description When set, the suspension auto-lifts once `now() >= until`.
-             *     Open-ended suspensions (no `until`) require a manual
-             *     `unsuspend` call.
-             */
-            until?: string | null;
-        };
-        SwitchPlanPreviewQuery: {
-            /** Format: uuid */
-            pricing_plan_id: string;
-        };
-        SwitchPlanPreviewResponse: {
-            /** Format: int64 */
-            proration_credit_cents: number;
-            /** Format: int64 */
-            proration_charge_cents: number;
-            /** Format: int64 */
-            immediate_total_cents: number;
-            /** Format: int64 */
-            next_invoice_total_cents: number;
-            currency: string;
-        };
-        SwitchPlanRequest: {
-            /**
-             * Format: uuid
-             * @description Target `pricing_plans.id` to switch the subscription onto.
-             */
-            pricing_plan_id: string;
-            /**
-             * @description When `true` (default) Stripe creates prorations for the swap.
-             *     `false` defers the new price to the next renewal — useful for
-             *     downgrades that should not refund mid-cycle.
-             */
-            prorate?: boolean;
-        };
-        /**
-         * @description A concrete template row loaded from `notification_templates`.
-         *
-         *     `body_compiled` is maintained by the admin API at save time (currently a
-         *     straight copy of `body_source` until MJML compilation lands in FDN-09);
-         *     rendering reads `body_compiled` so the hot path never re-parses MJML.
-         */
-        Template: {
-            /** Format: uuid */
-            id: string;
-            key: string;
-            channel: string;
-            locale: string;
-            subject?: string | null;
-            body_source: string;
-            body_compiled: string;
-            variables: unknown;
-            /** Format: int32 */
-            version: number;
-            is_active: boolean;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        TemplateListQuery: {
-            key?: string | null;
-            channel?: string | null;
-            locale?: string | null;
-            active_only?: boolean | null;
-            /** Format: int64 */
-            page?: number | null;
-            /** Format: int64 */
-            per_page?: number | null;
-        };
-        TestSendRequest: {
-            to: string;
-            context: unknown;
-        };
-        TestSendResponse: {
-            provider_id: string;
-            subject?: string | null;
-        };
-        ToggleRequest: {
-            is_active: boolean;
-        };
-        TokenResponse: {
-            access_token: string;
-            refresh_token: string;
-        };
-        /**
-         * @description Summary of a tombstone operation.
-         *
-         *     Persisted on `dsar_jobs.erasure_summary` so audits can verify the
-         *     service did exactly what it claimed.
-         */
-        TombstoneSummary: {
-            /** @description The placeholder email written to `users.email`. */
-            placeholder_email: string;
-            /**
-             * Format: date-time
-             * @description `users` row updated_at after the operation.
-             */
-            erased_at: string;
-            /**
-             * Format: int64
-             * @description Row counts of auxiliary tables we cleared.
-             */
-            refresh_tokens_deleted: number;
-            /** Format: int64 */
-            password_resets_deleted: number;
-            /** Format: int64 */
-            notification_preferences_deleted: number;
-            /** Format: int64 */
-            failed_logins_deleted: number;
-        };
-        TrackEventRequest: {
-            /** Format: uuid */
-            popup_id: string;
-            event_type: string;
-            /** Format: uuid */
-            session_id?: string | null;
-        };
-        /** @enum {string} */
-        TradeDirection: "Bullish" | "Bearish";
-        UpdateAlertRequest: {
-            ticker?: string | null;
-            direction?: null | components["schemas"]["TradeDirection"];
-            entry_zone?: string | null;
-            invalidation?: string | null;
-            profit_zones?: string[] | null;
-            notes?: string | null;
-            chart_url?: string | null;
-        };
-        UpdateCategoryRequest: {
-            name?: string | null;
-            slug?: string | null;
-            description?: string | null;
-            /** Format: uuid */
-            parent_id?: string | null;
-            /** Format: int32 */
-            sort_order?: number | null;
-        };
-        /**
-         * @description Admin-only payload for `PUT /api/admin/coupons/{id}/engine`. Every field
-         *     is optional; `None` means "leave the existing value alone". Pass an empty
-         *     array to clear an includes/excludes list.
-         */
-        UpdateCouponEngineRequest: {
-            /**
-             * Format: int64
-             * @description Flat discount value in minor units (cents). Setting both this and
-             *     `discount_percent_bps` is accepted but only one takes effect — the
-             *     engine prefers the cents field.
-             */
-            discount_value_cents?: number | null;
-            /**
-             * Format: int32
-             * @description Percentage discount in basis points (`10_000 bps = 100%`).
-             */
-            discount_percent_bps?: number | null;
-            scope?: null | components["schemas"]["CouponScope"];
-            bogo_config?: unknown;
-            includes_product_ids?: string[] | null;
-            excludes_product_ids?: string[] | null;
-            includes_category_ids?: string[] | null;
-            recurring_mode?: null | components["schemas"]["RecurringMode"];
-        };
-        UpdateCouponRequest: {
-            description?: string | null;
-            discount_type?: null | components["schemas"]["DiscountType"];
-            /** Format: double */
-            discount_value?: number | null;
-            /** Format: int64 */
-            min_purchase_cents?: number | null;
-            /** Format: int64 */
-            max_discount_cents?: number | null;
-            applies_to?: string | null;
-            applicable_plan_ids?: string[] | null;
-            applicable_course_ids?: string[] | null;
-            /** Format: int32 */
-            usage_limit?: number | null;
-            /** Format: int32 */
-            per_user_limit?: number | null;
-            /** Format: date-time */
-            starts_at?: string | null;
-            /** Format: date-time */
-            expires_at?: string | null;
-            is_active?: boolean | null;
-            stackable?: boolean | null;
-            first_purchase_only?: boolean | null;
-        };
-        UpdateCourseRequest: {
-            title?: string | null;
-            slug?: string | null;
-            description?: string | null;
-            short_description?: string | null;
-            thumbnail_url?: string | null;
-            trailer_video_url?: string | null;
-            difficulty?: string | null;
-            /** Format: int64 */
-            price_cents?: number | null;
-            currency?: string | null;
-            is_free?: boolean | null;
-            is_included_in_subscription?: boolean | null;
-            /** Format: int32 */
-            sort_order?: number | null;
-            published?: boolean | null;
-            /** Format: int32 */
-            estimated_duration_minutes?: number | null;
-        };
-        UpdateLessonProgressRequest: {
-            /** Format: int32 */
-            progress_seconds?: number | null;
-            completed?: boolean | null;
-        };
-        UpdateLessonRequest: {
-            title?: string | null;
-            slug?: string | null;
-            description?: string | null;
-            content?: string | null;
-            content_json?: unknown;
-            video_url?: string | null;
-            /** Format: int32 */
-            video_duration_seconds?: number | null;
-            /** Format: int32 */
-            sort_order?: number | null;
-            is_preview?: boolean | null;
-        };
-        UpdateMediaRequest: {
-            title?: string | null;
-            alt_text?: string | null;
-            caption?: string | null;
-            /** Format: double */
-            focal_x?: number | null;
-            /** Format: double */
-            focal_y?: number | null;
-        };
-        /**
-         * @description `PATCH /api/admin/members/{id}` body. Every field is optional —
-         *     callers send only what they want to change. Missing keys leave the
-         *     existing column untouched; `null` is currently treated as
-         *     "no change" rather than "clear the field" so support workflows that
-         *     PATCH a single field don't accidentally wipe sibling columns.
-         */
-        UpdateMemberRequest: {
-            name?: string | null;
-            email?: string | null;
-            phone?: string | null;
-            billing_address?: null | components["schemas"]["BillingAddress"];
-        };
-        UpdateModuleRequest: {
-            title?: string | null;
-            description?: string | null;
-            /** Format: int32 */
-            sort_order?: number | null;
-        };
-        UpdatePopupRequest: {
-            name?: string | null;
-            popup_type?: string | null;
-            trigger_type?: string | null;
-            trigger_config?: unknown;
-            content_json?: unknown;
-            style_json?: unknown;
-            targeting_rules?: unknown;
-            display_frequency?: string | null;
-            frequency_config?: unknown;
-            success_message?: string | null;
-            redirect_url?: string | null;
-            is_active?: boolean | null;
-            /** Format: date-time */
-            starts_at?: string | null;
-            /** Format: date-time */
-            expires_at?: string | null;
-            /** Format: int32 */
-            priority?: number | null;
-        };
-        UpdatePostRequest: {
-            title?: string | null;
-            slug?: string | null;
-            content?: string | null;
-            content_json?: unknown;
-            excerpt?: string | null;
-            /** Format: uuid */
-            featured_image_id?: string | null;
-            status?: null | components["schemas"]["PostStatus"];
-            visibility?: string | null;
-            is_sticky?: boolean | null;
-            allow_comments?: boolean | null;
-            meta_title?: string | null;
-            meta_description?: string | null;
-            canonical_url?: string | null;
-            og_image_url?: string | null;
-            category_ids?: string[] | null;
-            tag_ids?: string[] | null;
-            /** Format: date-time */
-            scheduled_at?: string | null;
-            post_password?: string | null;
-            /** Format: uuid */
-            author_id?: string | null;
-            format?: string | null;
-        };
-        UpdatePostStatusRequest: {
-            status: components["schemas"]["PostStatus"];
-        };
-        UpdatePricingPlanRequest: {
-            name?: string | null;
-            slug?: string | null;
-            description?: string | null;
-            stripe_price_id?: string | null;
-            stripe_product_id?: string | null;
-            /** Format: int64 */
-            amount_cents?: number | null;
-            currency?: string | null;
-            interval?: string | null;
-            /** Format: int32 */
-            interval_count?: number | null;
-            /** Format: int32 */
-            trial_days?: number | null;
-            collect_payment_method_at_checkout?: boolean | null;
-            features?: unknown;
-            highlight_text?: string | null;
-            is_popular?: boolean | null;
-            is_active?: boolean | null;
-            /** Format: int32 */
-            sort_order?: number | null;
-            stripe_rollout?: null | components["schemas"]["PricingStripeRollout"];
-        };
-        /**
-         * @description Admin-only payload for `PUT /api/admin/products/{id}`. Every field is
-         *     optional — `None` means "leave the existing value alone" (COALESCE in the
-         *     repo layer). `product_type` is deliberately not update-able because
-         *     changing it post-creation would invalidate variant + asset + bundle rows.
-         */
-        UpdateProductRequest: {
-            slug?: string | null;
-            name?: string | null;
-            description?: string | null;
-            /** Format: int64 */
-            price_cents?: number | null;
-            /** Format: int64 */
-            compare_at_cents?: number | null;
-            currency?: string | null;
-            tax_class?: string | null;
-            stripe_product_id?: string | null;
-            stripe_price_id?: string | null;
-            gallery_media_ids?: string[] | null;
-            /** Format: uuid */
-            featured_media_id?: string | null;
-            seo_title?: string | null;
-            seo_description?: string | null;
-            metadata?: unknown;
-        };
-        UpdateProfileRequest: {
-            name?: string | null;
-            avatar_url?: string | null;
-            bio?: string | null;
-            position?: string | null;
-            website_url?: string | null;
-            twitter_url?: string | null;
-            linkedin_url?: string | null;
-            youtube_url?: string | null;
-            instagram_url?: string | null;
-            /**
-             * @description Phase 5: free-text phone number. Validation is intentionally minimal
-             *     at the API edge — the DB CHECK in migration 079 caps it at 32 chars.
-             */
-            phone?: string | null;
-            billing_address?: null | components["schemas"]["BillingAddress"];
-        };
-        UpdateTemplateRequest: {
-            subject?: string | null;
-            body_source: string;
-            variables?: unknown;
-            is_active?: boolean | null;
-        };
-        /** @description Admin-only payload for updating a variant. */
-        UpdateVariantRequest: {
-            sku?: string | null;
-            name?: string | null;
-            /** Format: int64 */
-            price_cents?: number | null;
-            currency?: string | null;
-            attributes?: unknown;
-            stripe_price_id?: string | null;
-            /** Format: int32 */
-            position?: number | null;
-            is_active?: boolean | null;
-        };
-        UpdateWatchlistRequest: {
-            title?: string | null;
-            /** Format: date */
-            week_of?: string | null;
-            video_url?: string | null;
-            notes?: string | null;
-            published?: boolean | null;
-        };
-        UpsertPostMetaRequest: {
-            meta_key: string;
-            meta_value: string;
-        };
-        User: {
-            /** Format: uuid */
-            id: string;
-            email: string;
-            name: string;
-            role: components["schemas"]["UserRole"];
-            avatar_url?: string | null;
-            bio?: string | null;
-            position?: string | null;
-            website_url?: string | null;
-            twitter_url?: string | null;
-            linkedin_url?: string | null;
-            youtube_url?: string | null;
-            instagram_url?: string | null;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-            /** Format: date-time */
-            suspended_at?: string | null;
-            suspension_reason?: string | null;
-            /** Format: date-time */
-            banned_at?: string | null;
-            ban_reason?: string | null;
-            /** Format: date-time */
-            email_verified_at?: string | null;
-            billing_line1?: string | null;
-            billing_line2?: string | null;
-            billing_city?: string | null;
-            billing_state?: string | null;
-            billing_postal_code?: string | null;
-            billing_country?: string | null;
-            phone?: string | null;
-            /** Format: date-time */
-            suspended_until?: string | null;
-        };
-        UserResponse: {
-            /** Format: uuid */
-            id: string;
-            email: string;
-            name: string;
-            role: components["schemas"]["UserRole"];
-            avatar_url?: string | null;
-            bio?: string | null;
-            position?: string | null;
-            website_url?: string | null;
-            twitter_url?: string | null;
-            linkedin_url?: string | null;
-            youtube_url?: string | null;
-            instagram_url?: string | null;
-            /** Format: date-time */
-            created_at: string;
-            /**
-             * Format: date-time
-             * @description ADM-02: lifecycle state surfaced to the admin members UI. `None`
-             *     for each timestamp means the account is not in that state.
-             */
-            suspended_at?: string | null;
-            suspension_reason?: string | null;
-            /** Format: date-time */
-            banned_at?: string | null;
-            ban_reason?: string | null;
-            /** Format: date-time */
-            email_verified_at?: string | null;
-            billing_line1?: string | null;
-            billing_line2?: string | null;
-            billing_city?: string | null;
-            billing_state?: string | null;
-            billing_postal_code?: string | null;
-            billing_country?: string | null;
-            phone?: string | null;
-            /** Format: date-time */
-            suspended_until?: string | null;
-        };
-        /** @enum {string} */
-        UserRole: "Member" | "Author" | "Support" | "Admin";
-        UserSubscriptionView: {
-            subscription: components["schemas"]["SubscriptionStatusResponse"];
-            /** @description All non-expired memberships attached to the user, newest first. */
-            memberships: components["schemas"]["MembershipRow"][];
-        };
-        ValidateCouponRequest: {
-            code: string;
-            /** Format: uuid */
-            plan_id?: string | null;
-            /** Format: uuid */
-            course_id?: string | null;
-        };
-        /**
-         * @description Structured validation failure. Stable `code` strings are the shared contract
-         *     with `src/lib/forms/validate.ts`.
-         */
-        ValidationError: {
-            field_key: string;
-            code: string;
-            message: string;
-        };
-        Value: unknown;
-        VerifyEmailRequest: {
-            token: string;
-        };
-        VerifyPostPasswordRequest: {
-            password: string;
-        };
-        VoidRequest: {
-            reason?: string | null;
-        };
-        Watchlist: {
-            /** Format: uuid */
-            id: string;
-            title: string;
-            /** Format: date */
-            week_of: string;
-            video_url?: string | null;
-            notes?: string | null;
-            published: boolean;
-            /** Format: date-time */
-            published_at?: string | null;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        WatchlistAlert: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            watchlist_id: string;
-            ticker: string;
-            direction: components["schemas"]["TradeDirection"];
-            entry_zone: string;
-            invalidation: string;
-            profit_zones: string[];
-            notes?: string | null;
-            chart_url?: string | null;
-            /** Format: date-time */
-            created_at: string;
-        };
-        WatchlistWithAlerts: components["schemas"]["Watchlist"] & {
-            alerts: components["schemas"]["WatchlistAlert"][];
-        };
-    };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+	schemas: {
+		AddSuppressionRequest: {
+			email: string;
+			reason: string;
+		};
+		AdminStats: {
+			/** Format: int64 */
+			total_members: number;
+			/** Format: int64 */
+			active_subscriptions: number;
+			/** Format: int64 */
+			monthly_subscriptions: number;
+			/** Format: int64 */
+			annual_subscriptions: number;
+			/** Format: int64 */
+			total_watchlists: number;
+			/** Format: int64 */
+			total_enrollments: number;
+			recent_members: components['schemas']['UserResponse'][];
+			/** @description Echo of the resolved range so the client can rehydrate the picker. */
+			range: components['schemas']['DashboardRange'];
+			/**
+			 * Format: date-time
+			 * @description Resolved start of the selected window (UTC, inclusive).
+			 */
+			from: string;
+			/**
+			 * Format: date-time
+			 * @description Resolved end of the selected window (UTC, exclusive).
+			 */
+			to: string;
+			/** @description Counts inside the selected window. */
+			period: components['schemas']['PeriodWindow'];
+			/** @description Counts inside the immediately-preceding window of equal length, for delta math. */
+			previous_period: components['schemas']['PeriodWindow'];
+		};
+		AdminStripeRolloutFailure: {
+			stripe_subscription_id: string;
+			/** Format: uuid */
+			user_id: string;
+			error: string;
+		};
+		AdminStripeRolloutSummary: {
+			targeted: number;
+			succeeded: number;
+			/** @description Subscriptions skipped because `price_protection_enabled = TRUE`. */
+			skipped_grandfathered: number;
+			failed: components['schemas']['AdminStripeRolloutFailure'][];
+		};
+		/** @description Response for admin plan update — catalog row plus optional Stripe rollout stats. */
+		AdminUpdatePricingPlanResponse: components['schemas']['PricingPlan'] & {
+			stripe_rollout?: null | components['schemas']['AdminStripeRolloutSummary'];
+		};
+		/** @description Materialised allowlist entry as returned by the admin CRUD endpoints. */
+		AllowlistEntry: {
+			/** Format: uuid */
+			id: string;
+			/**
+			 * @description CIDR range in canonical text form (e.g. `203.0.113.0/24`,
+			 *     `2001:db8::/32`). Always returned via `cidr::text` cast on read.
+			 */
+			cidr: string;
+			/**
+			 * @description Human label so operators can recall what each entry covers
+			 *     (e.g. "office VPN", "Cloudflare egress").
+			 */
+			label: string;
+			is_active: boolean;
+			/** Format: uuid */
+			created_by: string;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		AllowlistResponse: {
+			data: components['schemas']['AllowlistEntry'][];
+			/** Format: int64 */
+			total: number;
+		};
+		AnalyticsIngestEvent: {
+			event_type: string;
+			path: string;
+			referrer?: string | null;
+			metadata?: unknown;
+		};
+		AnalyticsIngestRequest: {
+			/** Format: uuid */
+			session_id: string;
+			events: components['schemas']['AnalyticsIngestEvent'][];
+		};
+		/**
+		 * @description Phase 4.6: apply-coupon request body for
+		 *     `POST /api/member/coupons/apply`.
+		 */
+		ApplyCouponRequest: {
+			code: string;
+		};
+		/**
+		 * @description Response returned by [`post_apply_coupon`].
+		 *
+		 *     Carries both the audit-plan canonical fields (`ok`, `coupon_id`,
+		 *     `applied_at`) and the legacy [`CouponValidationResponse`] aliases
+		 *     (`valid`, `message`) so the existing dashboard page at
+		 *     `routes/dashboard/account/+page.svelte` keeps rendering after the
+		 *     Phase 4.6 rollout. `valid` mirrors `ok` because every 200 response
+		 *     represents a successful redemption — failure paths land on 4xx with
+		 *     an `AppError` body instead.
+		 */
+		ApplyCouponResponse: {
+			ok: boolean;
+			/** Format: uuid */
+			coupon_id: string;
+			/** Format: date-time */
+			applied_at: string;
+			/**
+			 * @description Legacy alias for `ok` — frontend compatibility with the
+			 *     pre-existing `CouponValidationResponse` shape.
+			 */
+			valid: boolean;
+			/** @description Human-readable success message; surfaced verbatim by the SPA. */
+			message: string;
+		};
+		AuditListEnvelope: {
+			data: components['schemas']['AuditRow'][];
+			/** Format: int64 */
+			total: number;
+			/** Format: int64 */
+			page: number;
+			/** Format: int64 */
+			per_page: number;
+			/** Format: int64 */
+			total_pages: number;
+		};
+		AuditLogFilter: {
+			/** Format: uuid */
+			actor_id?: string | null;
+			action?: string | null;
+			target_kind?: string | null;
+			target_id?: string | null;
+			/** Format: int64 */
+			page?: number | null;
+			/** Format: int64 */
+			per_page?: number | null;
+		};
+		AuditLogResponse: {
+			data: components['schemas']['AuditLogRow'][];
+			/** Format: int64 */
+			page: number;
+			/** Format: int64 */
+			per_page: number;
+			/** Format: int64 */
+			total: number;
+			/** Format: int64 */
+			total_pages: number;
+		};
+		AuditLogRow: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			actor_id: string;
+			actor_role: components['schemas']['UserRole'];
+			action: string;
+			target_kind: string;
+			target_id?: string | null;
+			ip_address?: string | null;
+			user_agent?: string | null;
+			metadata: unknown;
+			/** Format: date-time */
+			created_at: string;
+		};
+		AuditRow: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			actor_id: string;
+			actor_role: string;
+			action: string;
+			target_kind: string;
+			target_id?: string | null;
+			ip_address?: string | null;
+			user_agent?: string | null;
+			metadata: unknown;
+			/** Format: date-time */
+			created_at: string;
+		};
+		AuthResponse: {
+			user: components['schemas']['UserResponse'];
+			access_token: string;
+			refresh_token: string;
+		};
+		AutosaveRequest: {
+			title?: string | null;
+			content?: string | null;
+			content_json?: unknown;
+		};
+		BannerConfig: {
+			/**
+			 * Format: int32
+			 * @description Banner config row version. Bumped when copy/layout changes; used by
+			 *     CONSENT-03 to re-prompt subjects whose recorded consent predates this.
+			 */
+			version: number;
+			/**
+			 * Format: int32
+			 * @description Current privacy-policy version, sourced from `consent_policies`.
+			 */
+			policyVersion: number;
+			layout: components['schemas']['BannerLayout'];
+			position: components['schemas']['BannerPosition'];
+			locale: string;
+			region: string;
+			categories: components['schemas']['ConsentCategoryDef'][];
+			copy: components['schemas']['BannerCopy'];
+			/** @description Opaque theme overrides; the frontend maps known keys to PE7 CSS vars. */
+			theme: unknown;
+		};
+		BannerCopy: {
+			title: string;
+			body: string;
+			acceptAll: string;
+			rejectAll: string;
+			customize: string;
+			savePreferences: string;
+			privacyPolicyHref?: string | null;
+			privacyPolicyLabel?: string | null;
+		};
+		/** @enum {string} */
+		BannerLayout: 'bar' | 'box' | 'popup' | 'fullscreen';
+		/** @enum {string} */
+		BannerPosition: 'top' | 'bottom' | 'center' | 'bottom-start' | 'bottom-end';
+		/**
+		 * @description Billing address payload — mirrors the Stripe `Address` shape so the
+		 *     JSON we accept on `PATCH /api/admin/members/{id}` round-trips into
+		 *     `Customer.address` with no field-mapping at the handler edge.
+		 */
+		BillingAddress: {
+			line1?: string | null;
+			line2?: string | null;
+			city?: string | null;
+			state?: string | null;
+			postal_code?: string | null;
+			/**
+			 * @description ISO 3166-1 alpha-2 country code. Validated case-insensitively;
+			 *     the handler normalises to upper-case before persisting.
+			 */
+			country?: string | null;
+		};
+		BillingPortalRequest: {
+			return_url?: string | null;
+		};
+		BillingPortalResponse: {
+			url: string;
+		};
+		BlogCategory: {
+			/** Format: uuid */
+			id: string;
+			name: string;
+			slug: string;
+			description?: string | null;
+			/** Format: uuid */
+			parent_id?: string | null;
+			/** Format: int32 */
+			sort_order: number;
+			/** Format: date-time */
+			created_at: string;
+		};
+		BlogPost: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			author_id: string;
+			title: string;
+			slug: string;
+			content: string;
+			content_json?: unknown;
+			excerpt?: string | null;
+			/** Format: uuid */
+			featured_image_id?: string | null;
+			status: components['schemas']['PostStatus'];
+			pre_trash_status?: null | components['schemas']['PostStatus'];
+			/** Format: date-time */
+			trashed_at?: string | null;
+			visibility: string;
+			password_hash?: string | null;
+			format: string;
+			is_sticky: boolean;
+			allow_comments: boolean;
+			meta_title?: string | null;
+			meta_description?: string | null;
+			canonical_url?: string | null;
+			og_image_url?: string | null;
+			/** Format: int32 */
+			reading_time_minutes: number;
+			/** Format: int32 */
+			word_count: number;
+			/** Format: date-time */
+			scheduled_at?: string | null;
+			/** Format: date-time */
+			published_at?: string | null;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		BlogPostListItem: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			author_id: string;
+			author_name: string;
+			title: string;
+			slug: string;
+			excerpt?: string | null;
+			featured_image_url?: string | null;
+			status: components['schemas']['PostStatus'];
+			format: string;
+			is_sticky: boolean;
+			/** Format: int32 */
+			reading_time_minutes: number;
+			/** Format: int32 */
+			word_count: number;
+			/** Format: date-time */
+			published_at?: string | null;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+			categories: components['schemas']['BlogCategory'][];
+			tags: components['schemas']['BlogTag'][];
+		};
+		BlogPostResponse: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			author_id: string;
+			author_name: string;
+			author_avatar?: string | null;
+			author_position?: string | null;
+			author_bio?: string | null;
+			author_website?: string | null;
+			author_twitter?: string | null;
+			author_linkedin?: string | null;
+			author_youtube?: string | null;
+			title: string;
+			slug: string;
+			content: string;
+			content_json?: unknown;
+			excerpt?: string | null;
+			featured_image_url?: string | null;
+			status: components['schemas']['PostStatus'];
+			pre_trash_status?: null | components['schemas']['PostStatus'];
+			/** Format: date-time */
+			trashed_at?: string | null;
+			visibility: string;
+			is_password_protected: boolean;
+			format: string;
+			is_sticky: boolean;
+			allow_comments: boolean;
+			meta_title?: string | null;
+			meta_description?: string | null;
+			canonical_url?: string | null;
+			og_image_url?: string | null;
+			/** Format: int32 */
+			reading_time_minutes: number;
+			/** Format: int32 */
+			word_count: number;
+			categories: components['schemas']['BlogCategory'][];
+			tags: components['schemas']['BlogTag'][];
+			meta: components['schemas']['PostMeta'][];
+			/** Format: date-time */
+			scheduled_at?: string | null;
+			/** Format: date-time */
+			published_at?: string | null;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		BlogRevision: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			post_id: string;
+			/** Format: uuid */
+			author_id: string;
+			title: string;
+			content: string;
+			content_json?: unknown;
+			/** Format: int32 */
+			revision_number: number;
+			/** Format: date-time */
+			created_at: string;
+		};
+		BlogTag: {
+			/** Format: uuid */
+			id: string;
+			name: string;
+			slug: string;
+			/** Format: date-time */
+			created_at: string;
+		};
+		/**
+		 * @description Configuration for a "buy N, get M free" promotion.
+		 *
+		 *     The engine groups cart lines matching `applies_to_product_ids` (empty = any
+		 *     product), totals their quantity, and emits `floor(total / (buy + get)) * get`
+		 *     free units, evaluated at the cheapest matching unit price so the customer's
+		 *     "free" units come off the least-expensive line first. That rule mirrors
+		 *     WooCommerce's default BOGO behaviour and avoids the abuse of stacking a
+		 *     high-priced free unit onto a low-priced purchase.
+		 */
+		BogoConfig: {
+			/** Format: int32 */
+			buy_qty: number;
+			/** Format: int32 */
+			get_qty: number;
+			applies_to_product_ids?: string[];
+		};
+		BulkActionRequest: {
+			ids: string[];
+			/** @description `delete` | `mark_spam` | `restore`. */
+			action: string;
+		};
+		BulkActionResponse: {
+			/** Format: int64 */
+			updated: number;
+		};
+		BulkCouponRequest: {
+			/** Format: int32 */
+			count: number;
+			prefix?: string | null;
+			discount_type: components['schemas']['DiscountType'];
+			/** Format: double */
+			discount_value: number;
+			/** Format: int32 */
+			usage_limit?: number | null;
+			/** Format: date-time */
+			expires_at?: string | null;
+		};
+		BulkPreferenceUpdate: {
+			items: components['schemas']['PreferenceUpdate'][];
+		};
+		/**
+		 * @description `bundle_items` row. `quantity` is always positive (CHECK-enforced).
+		 *     `child_variant_id` is optional; when set, the bundle includes that specific
+		 *     variant, otherwise it includes the default/any variant of the child product.
+		 */
+		BundleItem: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			bundle_product_id: string;
+			/** Format: uuid */
+			child_product_id: string;
+			/** Format: uuid */
+			child_variant_id?: string | null;
+			/** Format: int32 */
+			quantity: number;
+			/** Format: int32 */
+			position: number;
+		};
+		/** @description Admin-only payload for a single bundle component. */
+		BundleItemInput: {
+			/** Format: uuid */
+			child_product_id: string;
+			/** Format: uuid */
+			child_variant_id?: string | null;
+			/** Format: int32 */
+			quantity: number;
+			/** Format: int32 */
+			position: number;
+		};
+		CancelBody: {
+			reason?: string | null;
+		};
+		/** @description Phase 4.6: change-password request body for `POST /api/member/password`. */
+		ChangePasswordRequest: {
+			current_password: string;
+			new_password: string;
+		};
+		ChangePasswordResponse: {
+			ok: boolean;
+		};
+		CompGrantRequest: {
+			/**
+			 * Format: uuid
+			 * @description Recipient — must already exist in `users`.
+			 */
+			user_id: string;
+			/**
+			 * Format: uuid
+			 * @description Membership plan id from `membership_plans`.
+			 */
+			plan_id: string;
+			/**
+			 * Format: int64
+			 * @description Length of the comp grant in days; `None` ⇒ open-ended (the
+			 *     access engine treats `ends_at IS NULL` as "until cancelled").
+			 */
+			duration_days?: number | null;
+			/** @description Free-text reason captured on the audit row. */
+			notes?: string | null;
+		};
+		CompGrantResponse: {
+			/** Format: uuid */
+			membership_id: string;
+			/** Format: date-time */
+			starts_at: string;
+			/** Format: date-time */
+			ends_at?: string | null;
+		};
+		/**
+		 * @description Single-category entry in the banner response.
+		 *
+		 *     Wire fields are camelCased to match the frontend stub at
+		 *     `src/lib/api/consent.ts`; when schema codegen replaces the stub the
+		 *     Svelte components consume this shape unchanged.
+		 */
+		ConsentCategoryDef: {
+			/**
+			 * @description Stable key — MUST NOT be renamed after a row has been written to the
+			 *     consent log (CONSENT-03). Migration-level change only.
+			 */
+			key: string;
+			label: string;
+			description: string;
+			/** @description When true, toggle is disabled in the preferences modal. */
+			required: boolean;
+			/**
+			 * @description Whether the category is pre-checked before the user interacts.
+			 *     GDPR Art. 4(11) + EDPB 05/2020 §86: non-required categories MUST default
+			 *     to `false`. Derived here rather than stored so a data fix is cheap.
+			 */
+			defaultEnabled: boolean;
+		};
+		ConsentRecordRequest: {
+			/**
+			 * @description One of `granted` / `denied` / `updated` / `revoked` / `expired` /
+			 *     `prefill`. Enforced at the DB CHECK level; validated here for a
+			 *     friendlier 400.
+			 */
+			action: string;
+			/**
+			 * @description Map of category key → granted bool. Must include every category the
+			 *     current banner version exposes.
+			 */
+			categories: unknown;
+			/**
+			 * @description Optional per-service overrides (when the subject used the advanced
+			 *     picker). Empty object is fine.
+			 */
+			services?: unknown;
+			tcfString?: string | null;
+			gpcSignal?: boolean | null;
+			/**
+			 * Format: uuid
+			 * @description Browser-generated anonymous id (UUID cookie). Used when the subject
+			 *     is not signed in so the audit log can still be linked across sessions.
+			 */
+			anonymousId?: string | null;
+			/**
+			 * Format: int32
+			 * @description Optional banner / policy version overrides — defaults come from the
+			 *     authoritative banner config when omitted. Kept as options so the
+			 *     client can send them when it already has a cached banner copy.
+			 */
+			bannerVersion?: number | null;
+			/** Format: int32 */
+			policyVersion?: number | null;
+		};
+		ConsentRecordResponse: {
+			/** Format: uuid */
+			id: string;
+		};
+		/**
+		 * @description Serialized row shape — shared across `POST /record` response and
+		 *     `GET /me` listings.
+		 */
+		ConsentRecordRow: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			subjectId?: string | null;
+			/** Format: uuid */
+			anonymousId?: string | null;
+			/** Format: int32 */
+			bannerVersion: number;
+			/** Format: int32 */
+			policyVersion: number;
+			categories: unknown;
+			services: unknown;
+			action: string;
+			tcfString?: string | null;
+			gpcSignal?: boolean | null;
+			country?: string | null;
+			/** Format: date-time */
+			createdAt: string;
+		};
+		Country: {
+			/** @description ISO 3166-1 alpha-2 (`"US"`, `"GB"`, `"DE"`). */
+			code: string;
+			name: string;
+		};
+		Coupon: {
+			/** Format: uuid */
+			id: string;
+			code: string;
+			description?: string | null;
+			discount_type: components['schemas']['DiscountType'];
+			/** Format: decimal */
+			discount_value: string;
+			/** Format: int64 */
+			min_purchase_cents?: number | null;
+			/** Format: int64 */
+			max_discount_cents?: number | null;
+			applies_to: string;
+			applicable_plan_ids: string[];
+			applicable_course_ids: string[];
+			/** Format: int32 */
+			usage_limit?: number | null;
+			/** Format: int32 */
+			usage_count: number;
+			/** Format: int32 */
+			per_user_limit: number;
+			/** Format: date-time */
+			starts_at?: string | null;
+			/** Format: date-time */
+			expires_at?: string | null;
+			is_active: boolean;
+			stackable: boolean;
+			first_purchase_only: boolean;
+			stripe_coupon_id?: string | null;
+			stripe_promotion_code_id?: string | null;
+			/** Format: uuid */
+			created_by: string;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+			/**
+			 * @description ISO-4217 currency code (lowercase) the fixed-amount coupon is
+			 *     denominated in. `None` means "currency-agnostic" — typical for
+			 *     percent-discount coupons or legacy rows that pre-date migration
+			 *     089. The redemption flow refuses to apply a coupon whose
+			 *     currency mismatches the cart's currency when both sides are
+			 *     populated.
+			 */
+			currency?: string | null;
+		};
+		/**
+		 * @description Row shape covering the EC-11 fields plus the legacy `is_active` flag so
+		 *     the response mirrors the admin's view after mutation.
+		 */
+		CouponEngineView: {
+			/** Format: uuid */
+			id: string;
+			code: string;
+			scope: string;
+			/** Format: int64 */
+			discount_value_cents?: number | null;
+			/** Format: int32 */
+			discount_percent_bps?: number | null;
+			bogo_config?: unknown;
+			includes_product_ids: string[];
+			excludes_product_ids: string[];
+			includes_category_ids: string[];
+			recurring_mode: string;
+			is_active: boolean;
+		};
+		/**
+		 * @description Discount scope — where on the cart the discount applies.
+		 * @enum {string}
+		 */
+		CouponScope: 'cart' | 'product' | 'category' | 'subscription';
+		/**
+		 * @description Aggregate counters for the admin coupons dashboard
+		 *     (`GET /api/admin/coupons/stats`).
+		 *
+		 *     Counts are non-overlapping in spirit but a coupon can satisfy multiple
+		 *     buckets (e.g. an inactive expired one); each metric is computed from its
+		 *     own predicate against the `coupons` / `coupon_usages` tables, so the sum
+		 *     of `active + expired + scheduled` is not guaranteed to equal `total`.
+		 *
+		 *     The struct carries both the audit-plan canonical names
+		 *     (`total_coupons`, `active_coupons`, `expired_coupons`,
+		 *     `redemptions_total`, `redemptions_today`) and the legacy aliases
+		 *     (`total`, `active`, `expired`, `redemption_count`, `active_count`,
+		 *     `total_usages`) so the frontend page that already binds against the
+		 *     legacy names keeps rendering after the Phase 4.5 rollout.
+		 */
+		CouponStats: {
+			/**
+			 * Format: int64
+			 * @description Phase 4.5 spec — count of all rows in `coupons`.
+			 */
+			total_coupons: number;
+			/**
+			 * Format: int64
+			 * @description Phase 4.5 spec — `is_active = TRUE AND (expires_at IS NULL OR expires_at > NOW())`.
+			 */
+			active_coupons: number;
+			/**
+			 * Format: int64
+			 * @description Phase 4.5 spec — `expires_at` is non-null and in the past.
+			 */
+			expired_coupons: number;
+			/**
+			 * Format: int64
+			 * @description Phase 4.5 spec — total redemptions across `coupon_usages` (lifetime).
+			 */
+			redemptions_total: number;
+			/**
+			 * Format: int64
+			 * @description Phase 4.5 spec — redemptions whose `used_at >= today (UTC midnight)`.
+			 */
+			redemptions_today: number;
+			/**
+			 * Format: int64
+			 * @description Legacy alias for `total_coupons`.
+			 */
+			total: number;
+			/**
+			 * Format: int64
+			 * @description Legacy alias for `active_coupons`.
+			 */
+			active: number;
+			/**
+			 * Format: int64
+			 * @description Legacy alias for `active_coupons` — frontend reads this name.
+			 */
+			active_count: number;
+			/**
+			 * Format: int64
+			 * @description Legacy alias for `expired_coupons`.
+			 */
+			expired: number;
+			/**
+			 * Format: int64
+			 * @description `starts_at` is non-null and in the future. Carried for the legacy
+			 *     renderer; not required by the audit-plan spec.
+			 */
+			scheduled: number;
+			/**
+			 * Format: int64
+			 * @description Legacy alias for `redemptions_total`.
+			 */
+			redemption_count: number;
+			/**
+			 * Format: int64
+			 * @description Legacy alias for `redemptions_total` — frontend reads this name.
+			 */
+			total_usages: number;
+			/**
+			 * Format: int64
+			 * @description Sum of `coupon_usages.discount_applied_cents` across every redemption.
+			 */
+			total_discount_cents: number;
+		};
+		CouponValidationResponse: {
+			valid: boolean;
+			coupon?: null | components['schemas']['Coupon'];
+			/** Format: int64 */
+			discount_amount_cents?: number | null;
+			message: string;
+		};
+		Course: {
+			/** Format: uuid */
+			id: string;
+			title: string;
+			slug: string;
+			description: string;
+			short_description?: string | null;
+			thumbnail_url?: string | null;
+			trailer_video_url?: string | null;
+			difficulty: string;
+			/** Format: uuid */
+			instructor_id: string;
+			/** Format: int64 */
+			price_cents: number;
+			currency: string;
+			is_free: boolean;
+			is_included_in_subscription: boolean;
+			/** Format: int32 */
+			sort_order: number;
+			published: boolean;
+			/** Format: date-time */
+			published_at?: string | null;
+			/** Format: int32 */
+			estimated_duration_minutes: number;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		CourseEnrollment: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			user_id: string;
+			course_id: string;
+			/** Format: int32 */
+			progress: number;
+			/** Format: date-time */
+			enrolled_at: string;
+			/** Format: date-time */
+			completed_at?: string | null;
+		};
+		CourseLesson: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			module_id: string;
+			title: string;
+			slug: string;
+			description?: string | null;
+			content: string;
+			content_json?: unknown;
+			video_url?: string | null;
+			/** Format: int32 */
+			video_duration_seconds?: number | null;
+			/** Format: int32 */
+			sort_order: number;
+			is_preview: boolean;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		CourseListItem: {
+			/** Format: uuid */
+			id: string;
+			title: string;
+			slug: string;
+			short_description?: string | null;
+			thumbnail_url?: string | null;
+			difficulty: string;
+			instructor_name: string;
+			/** Format: int64 */
+			price_cents: number;
+			is_free: boolean;
+			is_included_in_subscription: boolean;
+			published: boolean;
+			/** Format: int32 */
+			estimated_duration_minutes: number;
+			/** Format: int64 */
+			total_lessons: number;
+			/** Format: date-time */
+			created_at: string;
+		};
+		CourseModule: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			course_id: string;
+			title: string;
+			description?: string | null;
+			/** Format: int32 */
+			sort_order: number;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		CourseWithModules: components['schemas']['Course'] & {
+			modules: components['schemas']['ModuleWithLessons'][];
+			/** Format: int64 */
+			total_lessons: number;
+			/** Format: int64 */
+			total_duration_seconds: number;
+		};
+		CreateAlertRequest: {
+			ticker: string;
+			direction: components['schemas']['TradeDirection'];
+			entry_zone: string;
+			invalidation: string;
+			profit_zones: string[];
+			notes?: string | null;
+			chart_url?: string | null;
+		};
+		/** @description Inputs accepted by `POST /api/admin/security/ip-allowlist`. */
+		CreateAllowlistInput: {
+			/**
+			 * @description CIDR range. Anything Postgres' `cidr` type accepts is valid here
+			 *     (`192.0.2.42`, `198.51.100.0/24`, `::1/128`, …).
+			 */
+			cidr: string;
+			label: string;
+			/** @description Optional initial active flag — defaults to `true`. */
+			is_active?: boolean;
+		};
+		/** @description Admin-only payload for adding a downloadable asset. */
+		CreateAssetRequest: {
+			/** Format: uuid */
+			variant_id?: string | null;
+			storage_key: string;
+			filename: string;
+			mime_type: string;
+			/** Format: int64 */
+			size_bytes: number;
+			sha256: string;
+			access_policy?: string | null;
+			required_tier?: string | null;
+			/** Format: int32 */
+			download_limit?: number | null;
+			/** Format: int32 */
+			expires_after_hours?: number | null;
+		};
+		CreateCategoryRequest: {
+			name: string;
+			slug?: string | null;
+			description?: string | null;
+			/** Format: uuid */
+			parent_id?: string | null;
+			/** Format: int32 */
+			sort_order?: number | null;
+		};
+		CreateCouponRequest: {
+			code?: string | null;
+			description?: string | null;
+			discount_type: components['schemas']['DiscountType'];
+			/**
+			 * Format: double
+			 * @description Discount magnitude. Interpretation depends on `discount_type`:
+			 *       * `percentage` → value in 0.0..=100.0 (e.g. 25.0 = 25% off)
+			 *       * `fixed_amount` → value in cents, ≥ 0 (e.g. 5_000 = $50.00)
+			 *       * `free_trial` → value in days, ≥ 0
+			 *
+			 *     Negative, NaN, infinite, or out-of-range values are rejected by
+			 *     `validate_discount_value` at handler entry — the `validator`
+			 *     crate has no built-in `range(min, max)` for `f64`, so we
+			 *     hand-roll the check.
+			 */
+			discount_value: number;
+			/**
+			 * @description ISO-4217 currency code (lowercase) for fixed-amount coupons.
+			 *     `None` for percent / free-trial coupons or legacy rows.
+			 */
+			currency?: string | null;
+			/** Format: int64 */
+			min_purchase_cents?: number | null;
+			/** Format: int64 */
+			max_discount_cents?: number | null;
+			applies_to?: string | null;
+			applicable_plan_ids?: string[] | null;
+			applicable_course_ids?: string[] | null;
+			/** Format: int32 */
+			usage_limit?: number | null;
+			/** Format: int32 */
+			per_user_limit?: number | null;
+			/** Format: date-time */
+			starts_at?: string | null;
+			/** Format: date-time */
+			expires_at?: string | null;
+			is_active?: boolean | null;
+			stackable?: boolean | null;
+			first_purchase_only?: boolean | null;
+		};
+		CreateCourseRequest: {
+			title: string;
+			slug?: string | null;
+			description?: string | null;
+			short_description?: string | null;
+			thumbnail_url?: string | null;
+			trailer_video_url?: string | null;
+			difficulty?: string | null;
+			/** Format: int64 */
+			price_cents?: number | null;
+			currency?: string | null;
+			is_free?: boolean | null;
+			is_included_in_subscription?: boolean | null;
+			/** Format: int32 */
+			sort_order?: number | null;
+			published?: boolean | null;
+			/** Format: int32 */
+			estimated_duration_minutes?: number | null;
+		};
+		/** @description Inputs accepted by `POST /api/admin/security/impersonation`. */
+		CreateImpersonationInput: {
+			/**
+			 * Format: uuid
+			 * @description User to impersonate. Must exist; must not be the caller; must
+			 *     not itself be an admin (defence-in-depth — `impersonator` audit
+			 *     trail across admins would be a privilege-escalation footgun).
+			 */
+			target_user_id: string;
+			/**
+			 * @description Required free-text justification (1..=500 chars). Surfaced in
+			 *     the audit log so post-incident review can answer "why".
+			 */
+			reason: string;
+			/**
+			 * Format: int64
+			 * @description Requested TTL in minutes. Capped at [`MAX_TTL_MINUTES`].
+			 *     Defaults to [`DEFAULT_TTL_MINUTES`] when omitted.
+			 */
+			ttl_minutes?: number | null;
+		};
+		CreateLessonRequest: {
+			title: string;
+			slug?: string | null;
+			description?: string | null;
+			content?: string | null;
+			content_json?: unknown;
+			video_url?: string | null;
+			/** Format: int32 */
+			video_duration_seconds?: number | null;
+			/** Format: int32 */
+			sort_order?: number | null;
+			is_preview?: boolean | null;
+		};
+		CreateMemberRequest: {
+			email: string;
+			name: string;
+			/**
+			 * @description Role to seed the account with. `admin` requires
+			 *     `admin.role.manage` in addition to `admin.member.create`.
+			 */
+			role: components['schemas']['UserRole'];
+			/**
+			 * @description Optional one-shot temporary password. When `None` the account
+			 *     is created in a disabled state (no login until the user
+			 *     completes the password-reset / invite flow).
+			 */
+			temp_password?: string | null;
+			/**
+			 * @description Mark the email as already verified (operator vouches that
+			 *     they typed the address themselves, e.g. seeding a colleague).
+			 */
+			email_verified?: boolean;
+		};
+		CreateMemberResponse: {
+			user: components['schemas']['UserResponse'];
+			/**
+			 * @description `true` when no temp_password was supplied and the operator
+			 *     must follow up with a password-reset / invite link out of band.
+			 */
+			requires_password_setup: boolean;
+		};
+		CreateModuleRequest: {
+			title: string;
+			description?: string | null;
+			/** Format: int32 */
+			sort_order?: number | null;
+		};
+		CreatePopupRequest: {
+			name: string;
+			popup_type?: string | null;
+			trigger_type?: string | null;
+			trigger_config?: unknown;
+			content_json?: unknown;
+			style_json?: unknown;
+			targeting_rules?: unknown;
+			display_frequency?: string | null;
+			frequency_config?: unknown;
+			success_message?: string | null;
+			redirect_url?: string | null;
+			is_active?: boolean | null;
+			/** Format: date-time */
+			starts_at?: string | null;
+			/** Format: date-time */
+			expires_at?: string | null;
+			/** Format: int32 */
+			priority?: number | null;
+		};
+		CreatePostRequest: {
+			title: string;
+			slug?: string | null;
+			content?: string | null;
+			content_json?: unknown;
+			excerpt?: string | null;
+			/** Format: uuid */
+			featured_image_id?: string | null;
+			status?: null | components['schemas']['PostStatus'];
+			visibility?: string | null;
+			is_sticky?: boolean | null;
+			allow_comments?: boolean | null;
+			meta_title?: string | null;
+			meta_description?: string | null;
+			canonical_url?: string | null;
+			og_image_url?: string | null;
+			category_ids?: string[] | null;
+			tag_ids?: string[] | null;
+			/** Format: date-time */
+			scheduled_at?: string | null;
+			post_password?: string | null;
+			/** Format: uuid */
+			author_id?: string | null;
+			format?: string | null;
+		};
+		CreatePricingPlanRequest: {
+			name: string;
+			slug?: string | null;
+			description?: string | null;
+			stripe_price_id?: string | null;
+			stripe_product_id?: string | null;
+			/** Format: int64 */
+			amount_cents: number;
+			currency?: string | null;
+			interval?: string | null;
+			/** Format: int32 */
+			interval_count?: number | null;
+			/** Format: int32 */
+			trial_days?: number | null;
+			collect_payment_method_at_checkout?: boolean | null;
+			features?: unknown;
+			highlight_text?: string | null;
+			is_popular?: boolean | null;
+			is_active?: boolean | null;
+			/** Format: int32 */
+			sort_order?: number | null;
+		};
+		/**
+		 * @description Admin-only payload for `POST /api/admin/products`. `product_type` + `slug`
+		 *     are mandatory; everything else is optional on create and can be updated
+		 *     later.
+		 */
+		CreateProductRequest: {
+			slug: string;
+			name: string;
+			product_type: components['schemas']['ProductType'];
+			description?: string | null;
+			status?: null | components['schemas']['ProductStatus'];
+			/** Format: int64 */
+			price_cents?: number | null;
+			/** Format: int64 */
+			compare_at_cents?: number | null;
+			currency?: string | null;
+			tax_class?: string | null;
+			stripe_product_id?: string | null;
+			stripe_price_id?: string | null;
+			gallery_media_ids?: string[] | null;
+			/** Format: uuid */
+			featured_media_id?: string | null;
+			seo_title?: string | null;
+			seo_description?: string | null;
+			metadata?: unknown;
+		};
+		CreateTagRequest: {
+			name: string;
+			slug?: string | null;
+		};
+		CreateTemplateRequest: {
+			key: string;
+			channel: string;
+			locale?: string | null;
+			subject?: string | null;
+			body_source: string;
+			variables?: unknown;
+			is_active?: boolean | null;
+		};
+		/** @description Admin-only payload for creating a variant. */
+		CreateVariantRequest: {
+			sku?: string | null;
+			name?: string | null;
+			/** Format: int64 */
+			price_cents?: number | null;
+			currency?: string | null;
+			attributes?: unknown;
+			stripe_price_id?: string | null;
+			/** Format: int32 */
+			position?: number | null;
+			is_active?: boolean | null;
+		};
+		CreateWatchlistRequest: {
+			title: string;
+			/** Format: date */
+			week_of: string;
+			video_url?: string | null;
+			notes?: string | null;
+			published?: boolean | null;
+		};
+		CycleOverrideRequest: {
+			/**
+			 * Format: date-time
+			 * @description New `billing_cycle_anchor`. Must be in the future (you cannot
+			 *     retroactively shift a billing cycle in this admin path; if you
+			 *     need to backdate, do it via Stripe and let the webhook
+			 *     reconcile).
+			 */
+			anchor: string;
+			notes?: string | null;
+		};
+		CycleOverrideResponse: {
+			/** Format: uuid */
+			subscription_id: string;
+			/** Format: date-time */
+			previous_anchor?: string | null;
+			/** Format: date-time */
+			new_anchor: string;
+		};
+		/**
+		 * @description Selectable reporting window for `GET /api/admin/stats`.
+		 *
+		 *     All variants except `Custom` resolve to a window ending at `now` and
+		 *     extending back the indicated duration (or to the start of the current UTC
+		 *     year for `YearToDate`). `Custom` requires `from` + `to` `YYYY-MM-DD` query
+		 *     params (inclusive `to`).
+		 * @enum {string}
+		 */
+		DashboardRange: 'last_7_days' | 'last_30_days' | 'last_90_days' | 'year_to_date' | 'custom';
+		DashboardStatsQuery: {
+			range?: null | components['schemas']['DashboardRange'];
+			/** @description Inclusive start `YYYY-MM-DD`. Required when `range=custom`, ignored otherwise. */
+			from?: string | null;
+			/** @description Inclusive end `YYYY-MM-DD`. Required when `range=custom`, ignored otherwise. */
+			to?: string | null;
+		};
+		/** @description Response body for `DELETE /api/member/payment-methods/{pm_id}`. */
+		DeletePaymentMethodResponse: {
+			deleted: boolean;
+		};
+		DeliveryListQuery: {
+			status?: string | null;
+			/** Format: uuid */
+			user_id?: string | null;
+			/** Format: int64 */
+			page?: number | null;
+			/** Format: int64 */
+			per_page?: number | null;
+		};
+		DeliveryRow: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			user_id?: string | null;
+			anonymous_email?: string | null;
+			template_key: string;
+			channel: string;
+			provider_id?: string | null;
+			status: string;
+			subject?: string | null;
+			rendered_body: string;
+			metadata: unknown;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		/** @enum {string} */
+		DiscountType: 'percentage' | 'fixed_amount' | 'free_trial';
+		/**
+		 * @description `downloadable_assets` row. `storage_key` is the R2 object key; EC-07 will
+		 *     wire signed-URL issuance against it. `access_policy` gates who can request
+		 *     a fresh signed URL.
+		 */
+		DownloadableAsset: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			product_id: string;
+			/** Format: uuid */
+			variant_id?: string | null;
+			storage_key: string;
+			filename: string;
+			mime_type: string;
+			/** Format: int64 */
+			size_bytes: number;
+			sha256: string;
+			access_policy: string;
+			required_tier?: string | null;
+			/** Format: int32 */
+			download_limit?: number | null;
+			/** Format: int32 */
+			expires_after_hours?: number | null;
+			/** Format: date-time */
+			created_at: string;
+		};
+		DsarFulfillRequest: {
+			fulfillmentUrl?: string | null;
+			adminNotes?: string | null;
+		};
+		/**
+		 * @description Admin fulfill response. When the DSAR is `access` / `portability` and the
+		 *     admin did not provide a URL, the exported JSON is inlined in `export` so
+		 *     the caller can pipe it to a download without a second round-trip.
+		 */
+		DsarFulfillResponse: {
+			request: components['schemas']['DsarRow'];
+			export?: unknown;
+		};
+		DsarJob: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			target_user_id: string;
+			kind: string;
+			status: string;
+			/** Format: uuid */
+			requested_by: string;
+			request_reason: string;
+			/** Format: uuid */
+			approved_by?: string | null;
+			approval_reason?: string | null;
+			/** Format: date-time */
+			approved_at?: string | null;
+			artifact_url?: string | null;
+			/**
+			 * @description ADM-17: storage transport for the artefact. `inline`
+			 *     (legacy synchronous path → `data:` URI on `artifact_url`),
+			 *     `r2` (presigned URL on `artifact_url`), or `local`
+			 *     (download via `/jobs/{id}/artifact` streamer with bearer
+			 *     auth).
+			 */
+			artifact_kind?: string | null;
+			/**
+			 * @description ADM-17: opaque storage key (R2 object key, or `dsar/{id}.json`
+			 *     for local mode). Operator surface only — downloads use
+			 *     `artifact_url` or the streamer.
+			 */
+			artifact_storage_key?: string | null;
+			/**
+			 * Format: date-time
+			 * @description ADM-17 + ADM-19: TTL after which the TTL sweep deletes the
+			 *     underlying object and NULLs all three artefact columns.
+			 */
+			artifact_expires_at?: string | null;
+			erasure_summary?: unknown;
+			/** Format: date-time */
+			completed_at?: string | null;
+			failure_reason?: string | null;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		DsarListResponse: {
+			data: components['schemas']['DsarRow'][];
+			/** Format: int64 */
+			total: number;
+			/** Format: int64 */
+			page: number;
+			/** Format: int64 */
+			perPage: number;
+			/** Format: int64 */
+			totalPages: number;
+		};
+		/** @description Row shape returned from the admin list + the subject submission response. */
+		DsarRow: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			userId?: string | null;
+			email: string;
+			kind: string;
+			status: string;
+			payload: unknown;
+			/** Format: date-time */
+			fulfilledAt?: string | null;
+			/** Format: uuid */
+			fulfilledBy?: string | null;
+			fulfillmentUrl?: string | null;
+			adminNotes?: string | null;
+			/** Format: date-time */
+			createdAt: string;
+			/** Format: date-time */
+			updatedAt: string;
+		};
+		DsarSubmitRequest: {
+			email: string;
+			kind: string;
+			payload?: unknown;
+		};
+		DsarSubmitResponse: {
+			/** Format: uuid */
+			id: string;
+		};
+		EraseApproveBody: {
+			approval_reason: string;
+		};
+		EraseApproveResponse: {
+			job: components['schemas']['DsarJob'];
+			summary: components['schemas']['TombstoneSummary'];
+		};
+		EraseRequestBody: {
+			/** Format: uuid */
+			target_user_id: string;
+			reason: string;
+		};
+		ExportRequest: {
+			/** Format: uuid */
+			target_user_id: string;
+			reason: string;
+			/**
+			 * @description ADM-17: opt into the async pipeline. When `true` the handler
+			 *     queues a `pending` job for the background worker and returns
+			 *     `202 Accepted` with the row but no inline export. When `false`
+			 *     (default) the legacy synchronous compose runs inline and the
+			 *     response includes the full document — preserved for parity with
+			 *     pre-ADM-17 callers and for ergonomic small-export UX.
+			 */
+			async?: boolean;
+		};
+		ExportResponse: {
+			job: components['schemas']['DsarJob'];
+			/**
+			 * @description Inline JSON snapshot of the export. Operators usually consume
+			 *     `job.artifact_url` (a `data:` URI for inline mode, presigned R2
+			 *     URL or `/artifact` streamer route for async mode) for the
+			 *     round-trippable document; `export` is the same payload
+			 *     deserialised so admin UIs can render it without a second hop.
+			 *     `null` when the request opted into the async pipeline because
+			 *     the worker has not composed the artefact yet.
+			 */
+			export?: unknown;
+		};
+		ExtendRequest: {
+			/**
+			 * Format: int64
+			 * @description Number of days to add to `current_period_end`. Must be 1..=366.
+			 */
+			days: number;
+			notes?: string | null;
+		};
+		ExtendResponse: {
+			/** Format: uuid */
+			subscription_id: string;
+			/** Format: date-time */
+			previous_current_period_end: string;
+			/** Format: date-time */
+			new_current_period_end: string;
+		};
+		FailedLoginFilter: {
+			email?: string | null;
+			ip?: string | null;
+			/** Format: int64 */
+			since_hours?: number | null;
+			/** Format: int64 */
+			page?: number | null;
+			/** Format: int64 */
+			per_page?: number | null;
+		};
+		FailedLoginResponse: {
+			data: components['schemas']['FailedLoginRow'][];
+			/** Format: int64 */
+			page: number;
+			/** Format: int64 */
+			per_page: number;
+			/** Format: int64 */
+			total: number;
+			/** Format: int64 */
+			total_pages: number;
+		};
+		FailedLoginRow: {
+			/** Format: uuid */
+			id: string;
+			email: string;
+			ip_address?: string | null;
+			user_agent?: string | null;
+			reason: string;
+			/** Format: date-time */
+			occurred_at: string;
+		};
+		ForcePasswordResetResponse: {
+			/** Format: uuid */
+			user_id: string;
+			reset_url_dispatched: boolean;
+		};
+		ForgotPasswordRequest: {
+			email: string;
+		};
+		/** @description Payload of `GET /api/forms/{slug}` — the shape FORM-10's renderer hydrates. */
+		FormDefinition: {
+			/** Format: uuid */
+			id: string;
+			slug: string;
+			name: string;
+			description?: string | null;
+			settings: unknown;
+			/** @description Active version's `schema_json` — a JSON array of `FieldSchema` variants. */
+			schema: unknown;
+			/** @description Active version's `logic_json` — a JSON array of `LogicRule`. */
+			logic: unknown;
+			/** Format: int32 */
+			version: number;
+		};
+		FormRow: {
+			/** Format: uuid */
+			id: string;
+			slug: string;
+			name: string;
+			description?: string | null;
+			is_active: boolean;
+			settings: unknown;
+			/** Format: uuid */
+			created_by?: string | null;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		FormVersionRow: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			form_id: string;
+			/** Format: int32 */
+			version: number;
+			schema_json: unknown;
+			logic_json: unknown;
+			is_published: boolean;
+			/** Format: date-time */
+			published_at?: string | null;
+			/** Format: date-time */
+			created_at: string;
+		};
+		/**
+		 * @description Materialised impersonation-session row as returned by the admin CRUD
+		 *     endpoints and consumed by [`crate::extractors::AuthUser`].
+		 */
+		ImpersonationSession: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			actor_user_id: string;
+			actor_role: components['schemas']['UserRole'];
+			/** Format: uuid */
+			target_user_id: string;
+			reason: string;
+			/** Format: date-time */
+			issued_at: string;
+			/** Format: date-time */
+			expires_at: string;
+			/** Format: date-time */
+			revoked_at?: string | null;
+			/** Format: uuid */
+			revoked_by?: string | null;
+			revoke_reason?: string | null;
+			/**
+			 * @description Mint-time IP in canonical text form. Stored as Postgres `inet`,
+			 *     projected via `host(...)` so callers don't need the `ipnetwork`
+			 *     sqlx feature.
+			 */
+			ip_address?: string | null;
+			user_agent?: string | null;
+		};
+		JobListEnvelope: {
+			data: components['schemas']['DsarJob'][];
+			/** Format: int64 */
+			total: number;
+			/** Format: int64 */
+			page: number;
+			/** Format: int64 */
+			per_page: number;
+			/** Format: int64 */
+			total_pages: number;
+		};
+		LessonProgress: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			user_id: string;
+			/** Format: uuid */
+			lesson_id: string;
+			completed: boolean;
+			/** Format: int32 */
+			progress_seconds: number;
+			/** Format: date-time */
+			completed_at?: string | null;
+			/** Format: date-time */
+			last_accessed_at: string;
+		};
+		LifecycleRequest: {
+			/**
+			 * @description Optional free-text reason captured in the audit log + the `users`
+			 *     row (truncated to 512 chars by the DB CHECK constraint).
+			 */
+			reason?: string | null;
+		};
+		/**
+		 * @description Query string accepted by `GET /api/admin/members`.
+		 *
+		 *     Backwards-compatible with the original `page` / `per_page` shape;
+		 *     adds optional `search`, `role`, and `status` filters that route
+		 *     through [`db::search_users`]. The list page on the SPA uses the same
+		 *     extractor so a GET without any new params behaves exactly as it did
+		 *     before this change.
+		 */
+		ListMembersQuery: {
+			/** Format: int64 */
+			page?: number | null;
+			/** Format: int64 */
+			per_page?: number | null;
+			search?: string | null;
+			role?: string | null;
+			status?: string | null;
+		};
+		ListResponse: {
+			data: components['schemas']['ImpersonationSession'][];
+			/** Format: int64 */
+			total: number;
+			/**
+			 * Format: date-time
+			 * @description Cursor (`issued_at` of the last row) to pass back via `?after=`
+			 *     to fetch the next page; `None` when the page is not full.
+			 */
+			next_cursor?: string | null;
+		};
+		LoginRequest: {
+			email: string;
+			password: string;
+		};
+		ManualOrderItem: {
+			/** Format: uuid */
+			product_id: string;
+			/** Format: int32 */
+			quantity: number;
+			/**
+			 * Format: int64
+			 * @description Cents per unit. Operator-supplied so wholesale / comp pricing
+			 *     can deviate from the public catalogue.
+			 */
+			unit_price_cents: number;
+			name: string;
+			sku?: string | null;
+		};
+		ManualOrderRequest: {
+			email: string;
+			/** Format: uuid */
+			user_id?: string | null;
+			currency?: string;
+			items: components['schemas']['ManualOrderItem'][];
+			/** Format: int64 */
+			discount_cents?: number | null;
+			/** Format: int64 */
+			tax_cents?: number | null;
+			/**
+			 * @description `true` ⇒ skip the pending state and mark the order completed
+			 *     immediately (the operator already collected payment off-band).
+			 *     `false` (default) leaves the order in `pending` so the standard
+			 *     reconciliation pipeline can advance it.
+			 */
+			mark_completed?: boolean;
+			notes?: string | null;
+		};
+		MatrixResponse: {
+			/**
+			 * @description Every active (role, permission) row, alphabetised by (role,
+			 *     permission). Stable order — the SPA renders directly.
+			 */
+			matrix: components['schemas']['RolePermPair'][];
+			/**
+			 * @description Every role label the backend recognises. Driven by the Rust
+			 *     enum so the SPA does not need to mirror it.
+			 */
+			roles: string[];
+			/** @description Every permission key in the catalogue. */
+			permissions: components['schemas']['PermissionRow'][];
+		};
+		Media: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			uploader_id: string;
+			filename: string;
+			original_filename: string;
+			title?: string | null;
+			mime_type: string;
+			/** Format: int64 */
+			file_size: number;
+			/** Format: int32 */
+			width?: number | null;
+			/** Format: int32 */
+			height?: number | null;
+			alt_text?: string | null;
+			caption?: string | null;
+			storage_path: string;
+			url: string;
+			/** Format: double */
+			focal_x: number;
+			/** Format: double */
+			focal_y: number;
+			/** Format: date-time */
+			created_at: string;
+		};
+		/**
+		 * @description One row in the activity timeline rendered on the member detail page.
+		 *     Mirrors `admin_actions` minus the `id` (the timeline doesn't link
+		 *     out to the audit viewer yet) and with the metadata pre-serialised.
+		 */
+		MemberActivityEntry: {
+			action: string;
+			/** Format: uuid */
+			actor_id: string;
+			actor_role: components['schemas']['UserRole'];
+			/** Format: date-time */
+			created_at: string;
+			metadata: unknown;
+		};
+		MemberCouponRedemptionResponse: {
+			/** Format: uuid */
+			id: string;
+			coupon_code: string;
+			/** Format: int64 */
+			discount_applied_cents: number;
+			/** Format: date-time */
+			redeemed_at: string;
+			/** Format: uuid */
+			subscription_id?: string | null;
+			/**
+			 * @description ISO 4217 currency code (lowercase) the discount was denominated
+			 *     in at redemption time. Frontend formats `discount_applied_cents`
+			 *     against this code so members see e.g. `−$5.00 USD` or
+			 *     `−€10.00 EUR` rather than a bare cent value.
+			 */
+			currency: string;
+			/**
+			 * Format: uuid
+			 * @description FK to `orders.id` when the redemption was tied to a concrete
+			 *     order (vs. attached only to a subscription). NULL when no order
+			 *     was involved — the member UI hides the "view order" link in that
+			 *     case.
+			 */
+			order_id?: string | null;
+		};
+		/**
+		 * @description Composite payload returned by `GET /api/admin/members/{id}/detail`.
+		 *     Pre-bundles the member, their current subscription, and the recent
+		 *     activity streams the detail UI renders so the SPA needs one round
+		 *     trip per page load.
+		 */
+		MemberDetailResponse: {
+			user: components['schemas']['UserResponse'];
+			subscription?: null | components['schemas']['Subscription'];
+			activity: components['schemas']['MemberActivityEntry'][];
+			payment_failures: components['schemas']['MemberPaymentFailure'][];
+		};
+		MemberOrderDetailResponse: {
+			order: components['schemas']['Order'];
+			items: components['schemas']['OrderItem'][];
+			refunds: components['schemas']['MemberOrderRefund'][];
+			state_log: components['schemas']['MemberOrderStateTransition'][];
+		};
+		/**
+		 * @description Compact order row returned by `GET /api/member/orders` and embedded
+		 *     inside [`MemberSubscriptionDetailResponse::related_orders`]. Strict
+		 *     subset of the admin `Order` shape — the SPA only renders the columns
+		 *     actually visible on the member dashboard.
+		 */
+		MemberOrderListItem: {
+			/** Format: uuid */
+			id: string;
+			number: string;
+			status: string;
+			currency: string;
+			/** Format: int64 */
+			total_cents: number;
+			/** Format: int64 */
+			item_count: number;
+			/** Format: date-time */
+			placed_at?: string | null;
+			/** Format: date-time */
+			completed_at?: string | null;
+			/** Format: date-time */
+			created_at: string;
+		};
+		/**
+		 * @description Lightweight refund row exposed to members. We deliberately omit
+		 *     `created_by` (operator id) — that's privileged context.
+		 */
+		MemberOrderRefund: {
+			/** Format: uuid */
+			id: string;
+			/** Format: int64 */
+			amount_cents: number;
+			reason?: string | null;
+			/** Format: date-time */
+			created_at: string;
+		};
+		/**
+		 * @description One transition in the order's state log; mirrors the
+		 *     `order_state_transitions` row shape minus the actor id.
+		 */
+		MemberOrderStateTransition: {
+			from_status: string;
+			to_status: string;
+			reason?: string | null;
+			/** Format: date-time */
+			created_at: string;
+		};
+		MemberOrdersListQuery: {
+			/** Format: int64 */
+			page?: number | null;
+			/** Format: int64 */
+			per_page?: number | null;
+		};
+		/** @description One row in the recent-payment-failures list on the member detail page. */
+		MemberPaymentFailure: {
+			stripe_invoice_id?: string | null;
+			/** Format: int64 */
+			amount_cents?: number | null;
+			currency?: string | null;
+			failure_code?: string | null;
+			failure_message?: string | null;
+			/** Format: int32 */
+			attempt_count: number;
+			/** Format: date-time */
+			created_at: string;
+		};
+		/** @description Wire shape returned by `GET /api/member/payment-methods`. */
+		MemberPaymentMethodsResponse: {
+			payment_methods: components['schemas']['PaymentMethodSummary'][];
+			default_payment_method_id?: string | null;
+		};
+		MemberPreferencesResponse: {
+			preferences: components['schemas']['NotificationPreference'][];
+		};
+		MemberSubscriptionDetailResponse: {
+			subscription: components['schemas']['Subscription'];
+			plan?: null | components['schemas']['PricingPlan'];
+			invoices: components['schemas']['MemberSubscriptionInvoice'][];
+			related_orders: components['schemas']['MemberOrderListItem'][];
+		};
+		/**
+		 * @description Mirror of `subscription_invoices` with only the columns we surface to
+		 *     members (no `attempt_count`, no actor metadata).
+		 */
+		MemberSubscriptionInvoice: {
+			/** Format: uuid */
+			id: string;
+			stripe_invoice_id: string;
+			status: string;
+			/** Format: int64 */
+			amount_due_cents: number;
+			/** Format: int64 */
+			amount_paid_cents: number;
+			currency: string;
+			/** Format: date-time */
+			period_start?: string | null;
+			/** Format: date-time */
+			period_end?: string | null;
+			/** Format: date-time */
+			paid_at?: string | null;
+			/**
+			 * @description Stripe-hosted invoice page (member-friendly receipt). Populated by
+			 *     the `invoice.paid` / `invoice.payment_failed` webhooks once Stripe
+			 *     has finalized the invoice. NULL on drafts.
+			 */
+			hosted_invoice_url?: string | null;
+			/**
+			 * @description Direct link to the PDF rendering of the invoice. Same lifecycle as
+			 *     `hosted_invoice_url` — populated when Stripe finalizes the invoice.
+			 */
+			invoice_pdf?: string | null;
+			/** Format: date-time */
+			created_at: string;
+		};
+		/**
+		 * @description Compact subscription row for `GET /api/member/subscriptions`. Joins
+		 *     `pricing_plans` so the SPA can render the catalog name + price without
+		 *     a follow-up call.
+		 */
+		MemberSubscriptionListItem: {
+			/** Format: uuid */
+			id: string;
+			plan: components['schemas']['SubscriptionPlan'];
+			status: components['schemas']['SubscriptionStatus'];
+			/** Format: date-time */
+			current_period_start: string;
+			/** Format: date-time */
+			current_period_end: string;
+			/** Format: date-time */
+			paused_at?: string | null;
+			/** Format: date-time */
+			pause_resumes_at?: string | null;
+			/**
+			 * @description Derived from `subscriptions.cancel_at IS NOT NULL`. Stripe stores
+			 *     the boolean separately; we mirror the admin handler convention so
+			 *     both surfaces agree.
+			 */
+			cancel_at_period_end: boolean;
+			/** Format: uuid */
+			pricing_plan_id?: string | null;
+			plan_name?: string | null;
+			/** Format: int64 */
+			amount_cents?: number | null;
+			currency?: string | null;
+			/** Format: date-time */
+			created_at: string;
+		};
+		MemberSubscriptionsListQuery: {
+			/** Format: int64 */
+			page?: number | null;
+			/** Format: int64 */
+			per_page?: number | null;
+		};
+		MembershipRow: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			user_id: string;
+			/** Format: uuid */
+			plan_id: string;
+			granted_by: string;
+			status: string;
+			/** Format: date-time */
+			starts_at: string;
+			/** Format: date-time */
+			ends_at?: string | null;
+		};
+		/**
+		 * @description Response body for `POST /` (mint). Contains the freshly-issued
+		 *     impersonation JWT plus the row metadata so the SPA does not need a
+		 *     follow-up GET to render the banner.
+		 */
+		MintResponse: {
+			access_token: string;
+			/**
+			 * Format: date-time
+			 * @description Echoed `expires_at` — same value carried in the JWT's `exp`.
+			 */
+			expires_at: string;
+			session: components['schemas']['ImpersonationSession'];
+		};
+		ModuleWithLessons: components['schemas']['CourseModule'] & {
+			lessons: components['schemas']['CourseLesson'][];
+		};
+		MyConsentResponse: {
+			/** @description Flattened category → granted map, derived from the most recent record. */
+			categories: unknown;
+			/**
+			 * Format: date-time
+			 * @description ISO-8601 UTC. `None` if the subject has no recorded decisions yet.
+			 */
+			decidedAt?: string | null;
+			records: components['schemas']['ConsentRecordRow'][];
+		};
+		/**
+		 * @description A (user, category, channel) preference row as stored in
+		 *     `notification_preferences`.
+		 */
+		NotificationPreference: {
+			/** Format: uuid */
+			user_id: string;
+			category: string;
+			channel: string;
+			enabled: boolean;
+			quiet_hours_start?: string | null;
+			quiet_hours_end?: string | null;
+			timezone: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		Order: {
+			/** Format: uuid */
+			id: string;
+			number: string;
+			/** Format: uuid */
+			user_id?: string | null;
+			/** Format: uuid */
+			cart_id?: string | null;
+			status: string;
+			currency: string;
+			/** Format: int64 */
+			subtotal_cents: number;
+			/** Format: int64 */
+			discount_cents: number;
+			/** Format: int64 */
+			tax_cents: number;
+			/** Format: int64 */
+			total_cents: number;
+			email: string;
+			stripe_payment_intent_id?: string | null;
+			stripe_customer_id?: string | null;
+			idempotency_key?: string | null;
+			metadata: unknown;
+			/** Format: date-time */
+			placed_at?: string | null;
+			/** Format: date-time */
+			completed_at?: string | null;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		OrderDetail: {
+			order: components['schemas']['Order'];
+			items: components['schemas']['OrderItem'][];
+			refunds: components['schemas']['OrderRefund'][];
+			notes: components['schemas']['OrderNote'][];
+			/**
+			 * Format: int64
+			 * @description Cents already refunded (sum of `order_refunds.amount_cents`).
+			 */
+			refunded_cents: number;
+			/** Format: int64 */
+			remaining_refundable_cents: number;
+		};
+		OrderItem: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			order_id: string;
+			/** Format: uuid */
+			product_id: string;
+			/** Format: uuid */
+			variant_id?: string | null;
+			sku?: string | null;
+			name: string;
+			/** Format: int32 */
+			quantity: number;
+			/** Format: int64 */
+			unit_price_cents: number;
+			/** Format: int64 */
+			line_total_cents: number;
+			metadata: unknown;
+			/** Format: date-time */
+			created_at: string;
+		};
+		OrderListEnvelope: {
+			data: components['schemas']['Order'][];
+			/** Format: int64 */
+			total: number;
+			/** Format: int64 */
+			page: number;
+			/** Format: int64 */
+			per_page: number;
+			/** Format: int64 */
+			total_pages: number;
+		};
+		OrderNote: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			order_id: string;
+			/** Format: uuid */
+			author_id?: string | null;
+			kind: string;
+			body: string;
+			/** Format: date-time */
+			created_at: string;
+		};
+		OrderRefund: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			order_id: string;
+			/** Format: int64 */
+			amount_cents: number;
+			reason?: string | null;
+			stripe_refund_id?: string | null;
+			/** Format: uuid */
+			created_by?: string | null;
+			/** Format: date-time */
+			created_at: string;
+		};
+		/** @description Response body for `POST /api/admin/outbox/{id}/retry`. */
+		OutboxRetryResponse: {
+			/** Format: uuid */
+			id: string;
+			status: components['schemas']['OutboxStatus'];
+			/** Format: date-time */
+			next_attempt_at: string;
+		};
+		/**
+		 * @description Paginated outbox row. Kept in sync with [`OutboxRecord`] but serialises the
+		 *     status as a lowercase string for frontend friendliness.
+		 */
+		OutboxRowDto: {
+			/** Format: uuid */
+			id: string;
+			aggregate_type: string;
+			aggregate_id: string;
+			event_type: string;
+			payload: unknown;
+			headers: unknown;
+			status: components['schemas']['OutboxStatus'];
+			/** Format: int32 */
+			attempts: number;
+			/** Format: int32 */
+			max_attempts: number;
+			/** Format: date-time */
+			next_attempt_at: string;
+			last_error?: string | null;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		/**
+		 * @description Lifecycle states for an outbox row. Mirrors the `CHECK` constraint in
+		 *     `019_outbox.sql`.
+		 * @enum {string}
+		 */
+		OutboxStatus: 'pending' | 'in_flight' | 'delivered' | 'failed' | 'dead_letter';
+		PaginatedDeliveriesResponse: {
+			data: components['schemas']['DeliveryRow'][];
+			/** Format: int64 */
+			total: number;
+			/** Format: int64 */
+			page: number;
+			/** Format: int64 */
+			per_page: number;
+			/** Format: int64 */
+			total_pages: number;
+		};
+		/**
+		 * @description OpenAPI wrapper around `PaginatedResponse<MemberOrderListItem>` so the
+		 *     snapshot doesn't leak the generic into `ApiDoc`.
+		 */
+		PaginatedMemberOrdersResponse: {
+			data: components['schemas']['MemberOrderListItem'][];
+			/** Format: int64 */
+			total: number;
+			/** Format: int64 */
+			page: number;
+			/** Format: int64 */
+			per_page: number;
+			/** Format: int64 */
+			total_pages: number;
+		};
+		PaginatedMemberSubscriptionsResponse: {
+			data: components['schemas']['MemberSubscriptionListItem'][];
+			/** Format: int64 */
+			total: number;
+			/** Format: int64 */
+			page: number;
+			/** Format: int64 */
+			per_page: number;
+			/** Format: int64 */
+			total_pages: number;
+		};
+		/**
+		 * @description OpenAPI wrapper so the snapshot carries a concrete `PaginatedResponse<OutboxRowDto>`
+		 *     schema without bleeding the generic into `ApiDoc`.
+		 */
+		PaginatedOutboxResponse: {
+			data: components['schemas']['OutboxRowDto'][];
+			/** Format: int64 */
+			total: number;
+			/** Format: int64 */
+			page: number;
+			/** Format: int64 */
+			per_page: number;
+			/** Format: int64 */
+			total_pages: number;
+		};
+		PaginatedResponse_UserResponse: {
+			data: {
+				/** Format: uuid */
+				id: string;
+				email: string;
+				name: string;
+				role: components['schemas']['UserRole'];
+				avatar_url?: string | null;
+				bio?: string | null;
+				position?: string | null;
+				website_url?: string | null;
+				twitter_url?: string | null;
+				linkedin_url?: string | null;
+				youtube_url?: string | null;
+				instagram_url?: string | null;
+				/** Format: date-time */
+				created_at: string;
+				/**
+				 * Format: date-time
+				 * @description ADM-02: lifecycle state surfaced to the admin members UI. `None`
+				 *     for each timestamp means the account is not in that state.
+				 */
+				suspended_at?: string | null;
+				suspension_reason?: string | null;
+				/** Format: date-time */
+				banned_at?: string | null;
+				ban_reason?: string | null;
+				/** Format: date-time */
+				email_verified_at?: string | null;
+				billing_line1?: string | null;
+				billing_line2?: string | null;
+				billing_city?: string | null;
+				billing_state?: string | null;
+				billing_postal_code?: string | null;
+				billing_country?: string | null;
+				phone?: string | null;
+				/** Format: date-time */
+				suspended_until?: string | null;
+			}[];
+			/** Format: int64 */
+			total: number;
+			/** Format: int64 */
+			page: number;
+			/** Format: int64 */
+			per_page: number;
+			/** Format: int64 */
+			total_pages: number;
+		};
+		PaginatedSubmissions: {
+			data: components['schemas']['SubmissionRow'][];
+			/** Format: int64 */
+			total: number;
+			/** Format: int64 */
+			page: number;
+			/** Format: int64 */
+			per_page: number;
+			/** Format: int64 */
+			total_pages: number;
+		};
+		/**
+		 * @description OpenAPI wrapper carrying the concrete `PaginatedResponse<SubscriptionRow>`
+		 *     shape so the snapshot doesn't leak the generic into `ApiDoc`.
+		 */
+		PaginatedSubscriptionsResponse: {
+			data: components['schemas']['SubscriptionRow'][];
+			/** Format: int64 */
+			total: number;
+			/** Format: int64 */
+			page: number;
+			/** Format: int64 */
+			per_page: number;
+			/** Format: int64 */
+			total_pages: number;
+		};
+		PaginatedSuppressionResponse: {
+			data: components['schemas']['Suppression'][];
+			/** Format: int64 */
+			total: number;
+			/** Format: int64 */
+			page: number;
+			/** Format: int64 */
+			per_page: number;
+			/** Format: int64 */
+			total_pages: number;
+		};
+		PaginatedTemplatesResponse: {
+			data: components['schemas']['Template'][];
+			/** Format: int64 */
+			total: number;
+			/** Format: int64 */
+			page: number;
+			/** Format: int64 */
+			per_page: number;
+			/** Format: int64 */
+			total_pages: number;
+		};
+		PaginationParams: {
+			/** Format: int64 */
+			page?: number | null;
+			/** Format: int64 */
+			per_page?: number | null;
+		};
+		PartialLoadResponse: {
+			data: unknown;
+			/** Format: int32 */
+			current_step: number;
+			/** Format: date-time */
+			expires_at: string;
+		};
+		PartialRequest: {
+			data: unknown;
+			/**
+			 * @description Optional: extend an existing resume token in place. When set + the
+			 *     token is valid, the existing row is updated and the same token is
+			 *     returned; otherwise a fresh token is minted.
+			 */
+			resume_token?: string | null;
+			/**
+			 * Format: int32
+			 * @description Zero-based page-break index the draft was on when saved. Lets the
+			 *     renderer jump straight back to the right step on resume.
+			 */
+			current_step?: number | null;
+		};
+		PartialResponse: {
+			resume_token: string;
+			/** Format: date-time */
+			expires_at: string;
+		};
+		PartialRow: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			form_id: string;
+			data_json: unknown;
+			/** Format: int32 */
+			current_step: number;
+			/** Format: uuid */
+			subject_id?: string | null;
+			/** Format: date-time */
+			expires_at: string;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		PauseSubscriptionRequest: {
+			/**
+			 * Format: date-time
+			 * @description Optional RFC3339 timestamp at which the subscription should auto-resume.
+			 *     `None` ⇒ open-ended pause (member must call `unpause` to lift).
+			 */
+			resume_at?: string | null;
+		};
+		PaymentIntentClientResponse: {
+			intent_id: string;
+			client_secret: string;
+			/** Format: int64 */
+			amount_cents: number;
+			currency: string;
+		};
+		PaymentIntentRequest: {
+			/** @description FieldSchema `key` of the payment field on the form. */
+			field_key: string;
+			/**
+			 * Format: int64
+			 * @description Donor-supplied amount for `payment_kind = donation`. Ignored for
+			 *     fixed-amount one-time payments — the schema's `amount_cents` wins.
+			 */
+			amount_cents?: number | null;
+			/** @description Donor email — receipts are sent to this address. */
+			email: string;
+			/**
+			 * @description Optional resume token if the field is on a draft (so we can
+			 *     later cross-link `form_payment_intents.partial_id`).
+			 */
+			resume_token?: string | null;
+		};
+		/**
+		 * @description Compact view of a Stripe `PaymentMethod` (card type only) returned to
+		 *     the SPA. The wire shape is intentionally minimal — we never expose
+		 *     raw Stripe identifiers beyond the `pm_*` id, and we never round-trip
+		 *     the underlying card number, expiry CVC, or fingerprint. The
+		 *     publishable key + Stripe Elements iframe own the PCI scope.
+		 */
+		PaymentMethodSummary: {
+			id: string;
+			/**
+			 * @description Card brand (`visa`, `mastercard`, `amex`, `discover`, etc.). Always
+			 *     lowercased per Stripe's contract.
+			 */
+			brand: string;
+			last4: string;
+			/** Format: int64 */
+			exp_month: number;
+			/** Format: int64 */
+			exp_year: number;
+			/**
+			 * @description Set true when this `id` matches the customer's
+			 *     `invoice_settings.default_payment_method`. Computed at the API edge
+			 *     because it requires a separate `GET /v1/customers/{id}` round trip.
+			 */
+			is_default: boolean;
+		};
+		/**
+		 * @description Per-window counts. The dashboard sends two of these — the selected window
+		 *     and the immediately-preceding window of identical length — so the UI can
+		 *     compute deltas without a second round-trip.
+		 */
+		PeriodWindow: {
+			/** Format: int64 */
+			new_members: number;
+			/** Format: int64 */
+			new_subscriptions: number;
+			/** Format: int64 */
+			canceled_subscriptions: number;
+			/** Format: int64 */
+			new_enrollments: number;
+			/** Format: int64 */
+			new_watchlists: number;
+			/** Format: int64 */
+			revenue_cents: number;
+		};
+		PermissionRow: {
+			key: string;
+			description: string;
+		};
+		PermissionsResponse: {
+			data: components['schemas']['PermissionRow'][];
+			/** Format: int64 */
+			total: number;
+		};
+		Popup: {
+			/** Format: uuid */
+			id: string;
+			name: string;
+			popup_type: string;
+			trigger_type: string;
+			trigger_config: unknown;
+			content_json: unknown;
+			style_json: unknown;
+			targeting_rules: unknown;
+			display_frequency: string;
+			frequency_config: unknown;
+			success_message?: string | null;
+			redirect_url?: string | null;
+			is_active: boolean;
+			/** Format: date-time */
+			starts_at?: string | null;
+			/** Format: date-time */
+			expires_at?: string | null;
+			/** Format: int32 */
+			priority: number;
+			/** Format: uuid */
+			created_by: string;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		PopupAnalytics: {
+			/** Format: uuid */
+			popup_id: string;
+			popup_name: string;
+			/** Format: int64 */
+			total_impressions: number;
+			/** Format: int64 */
+			total_closes: number;
+			/** Format: int64 */
+			total_submissions: number;
+			/** Format: double */
+			conversion_rate: number;
+		};
+		/**
+		 * @description Per-popup summary row returned by `GET /api/admin/popups/analytics`.
+		 *
+		 *     Distinct from [`PopupAnalytics`] (the single-popup detail view) because
+		 *     the collection endpoint also exposes `popup_type` / `is_active` so the
+		 *     admin index can render a roster without a second round-trip.
+		 */
+		PopupAnalyticsSummary: {
+			/** Format: uuid */
+			popup_id: string;
+			popup_name: string;
+			popup_type: string;
+			is_active: boolean;
+			/** Format: int64 */
+			impressions: number;
+			/** Format: int64 */
+			closes: number;
+			/** Format: int64 */
+			submits: number;
+			/** Format: double */
+			conversion_rate: number;
+		};
+		PopupSubmission: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			popup_id: string;
+			/** Format: uuid */
+			user_id?: string | null;
+			/** Format: uuid */
+			session_id?: string | null;
+			form_data: unknown;
+			ip_address?: string | null;
+			user_agent?: string | null;
+			page_url?: string | null;
+			/** Format: date-time */
+			submitted_at: string;
+		};
+		PopupSubmitRequest: {
+			/** Format: uuid */
+			popup_id: string;
+			/** Format: uuid */
+			session_id?: string | null;
+			form_data: unknown;
+			page_url?: string | null;
+		};
+		PostMeta: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			post_id: string;
+			meta_key: string;
+			meta_value: string;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		/** @enum {string} */
+		PostStatus: 'draft' | 'pending_review' | 'published' | 'private' | 'scheduled' | 'trash';
+		/** @description Input shape for the bulk set endpoint. Missing timezone defaults to UTC. */
+		PreferenceUpdate: {
+			category: string;
+			channel: string;
+			enabled: boolean;
+			quiet_hours_start?: string | null;
+			quiet_hours_end?: string | null;
+			timezone?: string | null;
+		};
+		PreviewRequest: {
+			context: unknown;
+		};
+		PricingPlan: {
+			/** Format: uuid */
+			id: string;
+			name: string;
+			slug: string;
+			description?: string | null;
+			stripe_price_id?: string | null;
+			stripe_product_id?: string | null;
+			/** Format: int64 */
+			amount_cents: number;
+			currency: string;
+			interval: string;
+			/** Format: int32 */
+			interval_count: number;
+			/** Format: int32 */
+			trial_days: number;
+			/**
+			 * @description When `true` (default), Stripe Checkout collects a card up-front and
+			 *     charges after the trial. When `false`, the BFF passes
+			 *     `payment_method_collection: 'if_required'` so the member starts the
+			 *     trial without entering a card. Stripe will refuse to bill the
+			 *     auto-conversion at trial end unless they add one — net effect is
+			 *     "trial → silent auto-cancel if no card." Toggle per plan.
+			 */
+			collect_payment_method_at_checkout: boolean;
+			features: unknown;
+			highlight_text?: string | null;
+			is_popular: boolean;
+			is_active: boolean;
+			/** Format: int32 */
+			sort_order: number;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		PricingPlanAmountChangeLogEntry: {
+			/** Format: uuid */
+			id: string;
+			plan_name: string;
+			/** Format: int64 */
+			old_amount_cents: number;
+			/** Format: int64 */
+			new_amount_cents: number;
+			/** Format: date-time */
+			changed_at: string;
+			changed_by: string;
+		};
+		/** @description Optional Stripe rollout payload on `PUT /api/admin/pricing/plans/{id}`. */
+		PricingStripeRollout: {
+			/**
+			 * @description When `true`, after the catalog row is persisted the API updates each
+			 *     targeted Stripe subscription’s primary line item to the new amount or
+			 *     `stripe_price_id`. Requires an `Idempotency-Key` request header.
+			 * @default false
+			 */
+			push_to_stripe_subscriptions: boolean;
+			/** @default linked_subscriptions_only */
+			audience: components['schemas']['PricingStripeRolloutAudience'];
+			/**
+			 * @description When `true`, skip every subscription where `price_protection_enabled =
+			 *     TRUE` — those members keep their grandfathered rate. When `false` (the
+			 *     default) protected subscriptions are still skipped because the rollout
+			 *     service always respects `price_protection_enabled`.
+			 *
+			 *     This field is informational for the request body — the service always
+			 *     honours the DB flag.  Setting it `false` does not override protection.
+			 * @default true
+			 */
+			skip_price_protected: boolean;
+		};
+		/**
+		 * @description Controls which existing subscriptions are targeted when pushing a catalog
+		 *     price change to Stripe.
+		 * @enum {string}
+		 */
+		PricingStripeRolloutAudience:
+			| 'linked_subscriptions_only'
+			| 'linked_and_unlinked_legacy_same_cadence';
+		/**
+		 * @description `products` row. Money fields are `BIGINT` cents; translate via
+		 *     [`crate::common::money::Money::cents`] when arithmetic is needed.
+		 */
+		Product: {
+			/** Format: uuid */
+			id: string;
+			slug: string;
+			name: string;
+			description?: string | null;
+			product_type: string;
+			status: string;
+			/** Format: int64 */
+			price_cents?: number | null;
+			/** Format: int64 */
+			compare_at_cents?: number | null;
+			currency: string;
+			tax_class: string;
+			stripe_product_id?: string | null;
+			stripe_price_id?: string | null;
+			gallery_media_ids: string[];
+			/** Format: uuid */
+			featured_media_id?: string | null;
+			seo_title?: string | null;
+			seo_description?: string | null;
+			metadata: unknown;
+			/** Format: uuid */
+			created_by?: string | null;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		/**
+		 * @description Bundle of a product + its first-class children. Returned by `GET
+		 *     /api/admin/products/{id}` and `GET /api/products/{slug}` so the admin UI
+		 *     and the public PDP both receive a single hydrated document.
+		 */
+		ProductDetail: components['schemas']['Product'] & {
+			variants: components['schemas']['ProductVariant'][];
+			assets: components['schemas']['DownloadableAsset'][];
+			bundle_items: components['schemas']['BundleItem'][];
+		};
+		/**
+		 * @description Publication lifecycle. `draft` is the default on insert; only `published`
+		 *     rows surface through the public router. `archived` is terminal and hides
+		 *     the product from every lookup except admin list views.
+		 * @enum {string}
+		 */
+		ProductStatus: 'draft' | 'published' | 'archived';
+		/**
+		 * @description Top-level product archetype. Matches the CHECK constraint in
+		 *     `migrations/040_products.sql`.
+		 * @enum {string}
+		 */
+		ProductType: 'simple' | 'subscription' | 'downloadable' | 'bundle';
+		/**
+		 * @description `product_variants` row. A variant overrides product pricing when
+		 *     `price_cents` is set; otherwise it inherits.
+		 */
+		ProductVariant: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			product_id: string;
+			sku?: string | null;
+			name?: string | null;
+			/** Format: int64 */
+			price_cents?: number | null;
+			currency?: string | null;
+			attributes: unknown;
+			stripe_price_id?: string | null;
+			/** Format: int32 */
+			position: number;
+			is_active: boolean;
+			/** Format: date-time */
+			created_at: string;
+		};
+		ProgressUpdate: {
+			/** Format: int32 */
+			progress: number;
+		};
+		/**
+		 * @description Subscription billing applicability for a coupon.
+		 * @enum {string}
+		 */
+		RecurringMode: 'one_time' | 'forever' | 'repeating';
+		RefreshRequest: {
+			/**
+			 * @description Optional during BFF rollout (Phase 1.3): when the SPA carries the
+			 *     refresh token via the `swings_refresh` httpOnly cookie, the JSON body
+			 *     is empty (`{}`) and this field is `None`. The handler reads from the
+			 *     cookie jar in that case. Legacy clients can still send the value here.
+			 */
+			refresh_token?: string | null;
+		};
+		RefundRequest: {
+			/** Format: int64 */
+			amount_cents: number;
+			reason?: string | null;
+			/**
+			 * @description Operator-supplied Stripe refund id when the refund was issued
+			 *     out-of-band via the dashboard. Persisted on `order_refunds`
+			 *     so reconciliation can match.
+			 */
+			stripe_refund_id?: string | null;
+		};
+		RefundResponse: {
+			refund: components['schemas']['OrderRefund'];
+			/**
+			 * @description `true` when the cumulative refund total reached the order
+			 *     total and the engine flipped the order to `refunded`.
+			 */
+			order_marked_refunded: boolean;
+			/** Format: int64 */
+			remaining_refundable_cents: number;
+		};
+		RegisterRequest: {
+			email: string;
+			password: string;
+			name: string;
+		};
+		RemoveSuppressionRequest: {
+			email: string;
+		};
+		/**
+		 * @description Output of [`Template::render`]. Kept narrow so channels do not have to
+		 *     re-parse Tera output.
+		 */
+		RenderedTemplate: {
+			subject?: string | null;
+			body: string;
+		};
+		ReplaceRoleRequest: {
+			/**
+			 * @description New permission set for the role. Unknown keys (not in the
+			 *     permissions catalogue) are rejected with `400`.
+			 */
+			permissions: string[];
+		};
+		ResendVerificationRequest: {
+			email: string;
+		};
+		ResetPasswordRequest: {
+			token: string;
+			new_password: string;
+		};
+		RevisionResponse: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			post_id: string;
+			/** Format: uuid */
+			author_id: string;
+			author_name: string;
+			title: string;
+			/** Format: int32 */
+			revision_number: number;
+			/** Format: date-time */
+			created_at: string;
+		};
+		RevokeRequest: {
+			/**
+			 * @description Optional free-text justification for the revocation. Stored on
+			 *     the row and surfaced in the audit-log metadata.
+			 */
+			reason?: string | null;
+		};
+		/** @description Canonical role/permission pair. */
+		RolePermPair: {
+			role: string;
+			permission: string;
+		};
+		RoleUpdate: {
+			role: components['schemas']['UserRole'];
+		};
+		SessionRow: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			user_id: string;
+			/** Format: uuid */
+			family_id: string;
+			used: boolean;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			expires_at: string;
+		};
+		SessionsResponse: {
+			/** Format: uuid */
+			user_id: string;
+			active_sessions: components['schemas']['SessionRow'][];
+			/** Format: int64 */
+			total: number;
+		};
+		/** @description Admin-only payload for `PUT /api/admin/products/{id}/bundle-items`. */
+		SetBundleItemsRequest: {
+			items: components['schemas']['BundleItemInput'][];
+		};
+		/** @description Response body for `POST /api/member/payment-methods/{pm_id}/set-default`. */
+		SetDefaultPaymentMethodResponse: {
+			default_payment_method_id: string;
+		};
+		/** @description Admin-only payload for `POST /api/admin/products/{id}/status`. */
+		SetStatusRequest: {
+			status: components['schemas']['ProductStatus'];
+		};
+		SettingGetResponse: components['schemas']['SettingView'] & {
+			revealed_value?: null | components['schemas']['Value'];
+		};
+		SettingListResponse: {
+			data: components['schemas']['SettingView'][];
+			/** Format: int64 */
+			total: number;
+		};
+		/**
+		 * @description Materialised in-memory representation of an `app_settings` row.
+		 *     `value` always carries the canonical Postgres JSONB; for `Secret`
+		 *     rows the JSON is the encrypted envelope (see `crypto`).
+		 */
+		SettingRecord: {
+			key: string;
+			value: components['schemas']['Value'];
+			value_type: components['schemas']['SettingType'];
+			is_secret: boolean;
+			description?: string | null;
+			category: string;
+			/** Format: date-time */
+			updated_at: string;
+			/** Format: uuid */
+			updated_by?: string | null;
+		};
+		/**
+		 * @description Storage discriminator. Mirrors the `value_type` CHECK constraint in
+		 *     migration 062. Kept as a strict enum so the admin handler cannot
+		 *     silently coerce between types.
+		 * @enum {string}
+		 */
+		SettingType: 'string' | 'int' | 'bool' | 'json' | 'secret';
+		SettingUpsertRequest: {
+			value_type?: null | components['schemas']['SettingType'];
+			/** @description Defaults to `false` on create. Ignored on update. */
+			is_secret?: boolean;
+			/** @description Optional admin-facing description; only persisted on create. */
+			description?: string | null;
+			/** @description Defaults to `"general"` on create. Ignored on update. */
+			category?: string | null;
+			/**
+			 * @description The raw value. For `secret` types, pass the cleartext as a JSON
+			 *     string — the server encrypts before persisting.
+			 */
+			value: components['schemas']['Value'];
+		};
+		/**
+		 * @description Public-API view: redacts secret values and surfaces the canonical
+		 *     envelope structure. Use [`reveal_secret`] when the caller carries
+		 *     `admin.settings.read_secret`.
+		 */
+		SettingView: {
+			key: string;
+			/**
+			 * @description Either the actual value (non-secret) or the JSON literal
+			 *     `"***"` (secret + caller lacks reveal permission).
+			 */
+			value: components['schemas']['Value'];
+			value_type: components['schemas']['SettingType'];
+			is_secret: boolean;
+			description?: string | null;
+			category: string;
+			/** Format: date-time */
+			updated_at: string;
+			/** Format: uuid */
+			updated_by?: string | null;
+		};
+		/** @description Response body for `POST /api/member/payment-methods/setup-intent`. */
+		SetupIntentResponse: {
+			client_secret: string;
+		};
+		State: {
+			/** @description ISO 3166-2 (`"US-CA"`, `"CA-ON"`). */
+			code: string;
+			name: string;
+		};
+		SubmissionRow: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			form_id: string;
+			/** Format: uuid */
+			form_version_id: string;
+			/** Format: uuid */
+			subject_id?: string | null;
+			/** Format: uuid */
+			anonymous_id?: string | null;
+			status: string;
+			data_json: unknown;
+			files_json: unknown;
+			ip_hash: string;
+			user_agent: string;
+			referrer?: string | null;
+			utm: unknown;
+			validation_errors?: unknown;
+			/** Format: date-time */
+			submitted_at: string;
+		};
+		SubmitRequest: {
+			data: unknown;
+			/** @description Optional UTM block captured from the query-string at render time. */
+			utm?: unknown;
+			/**
+			 * @description Optional file descriptors from FORM-05. Shape `[{ field_key, file_id,
+			 *     filename, size, sha256, mime_type }]`.
+			 */
+			files?: unknown;
+			/**
+			 * Format: uuid
+			 * @description Optional anonymous id cookie — the frontend generates one for
+			 *     unauthenticated sessions so repeat submissions tie back together.
+			 */
+			anonymous_id?: string | null;
+		};
+		SubmitResponse: {
+			/** Format: uuid */
+			id: string;
+			status: string;
+		};
+		Subscription: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			user_id: string;
+			stripe_customer_id: string;
+			stripe_subscription_id: string;
+			plan: components['schemas']['SubscriptionPlan'];
+			status: components['schemas']['SubscriptionStatus'];
+			/** Format: date-time */
+			current_period_start: string;
+			/** Format: date-time */
+			current_period_end: string;
+			/**
+			 * Format: uuid
+			 * @description When set, this subscription was purchased from a specific `pricing_plans`
+			 *     catalog row (via Checkout metadata → Stripe subscription metadata → webhooks).
+			 */
+			pricing_plan_id?: string | null;
+			/**
+			 * Format: int64
+			 * @description Price the member was promised at signup. Populated at checkout time from
+			 *     `pricing_plans.amount_cents`. NULL for pre-migration rows.
+			 */
+			grandfathered_price_cents?: number | null;
+			/** @description ISO-4217 currency that goes with `grandfathered_price_cents`. */
+			grandfathered_currency?: string | null;
+			/**
+			 * @description When TRUE the pricing rollout service skips this subscription regardless
+			 *     of audience setting — the member keeps their original price forever.
+			 */
+			price_protection_enabled: boolean;
+			/**
+			 * Format: date-time
+			 * @description When the subscription will be canceled. Set when the member (or admin)
+			 *     schedules a cancel-at-period-end; the row is otherwise NULL while the
+			 *     subscription is active. Mirror of `subscriptions.cancel_at` from
+			 *     migration `041_subscriptions_v2.sql`.
+			 */
+			cancel_at?: string | null;
+			/**
+			 * Format: date-time
+			 * @description When the subscription was paused via Stripe `pause_collection`. NULL
+			 *     while active. Mirror of `subscriptions.paused_at` from migration
+			 *     `041_subscriptions_v2.sql`.
+			 */
+			paused_at?: string | null;
+			/**
+			 * Format: date-time
+			 * @description When an open-pause should auto-lift. NULL means manual resume only —
+			 *     the member must call `/unpause` explicitly. Mirror of
+			 *     `subscriptions.pause_resumes_at` from `041_subscriptions_v2.sql`.
+			 */
+			pause_resumes_at?: string | null;
+			/**
+			 * Format: date-time
+			 * @description When the trial ends. NULL when the subscription is not in trial.
+			 *     Mirror of `subscriptions.trial_end` from `041_subscriptions_v2.sql`.
+			 */
+			trial_end?: string | null;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		/** @enum {string} */
+		SubscriptionPlan: 'Monthly' | 'Annual';
+		/**
+		 * @description One subscription row in the admin list response.
+		 *
+		 *     Field naming intentionally tracks the SvelteKit consumer at
+		 *     `src/routes/admin/subscriptions/+page.svelte` (which binds to
+		 *     `member_id` / `member_name` / `member_email` / `plan_name` /
+		 *     `interval` / `amount_cents` / `start_date` / `next_renewal`) so the
+		 *     existing page renders without any frontend changes.
+		 */
+		SubscriptionRow: {
+			/**
+			 * Format: uuid
+			 * @description Subscription primary key.
+			 */
+			id: string;
+			/**
+			 * Format: uuid
+			 * @description Member id — frontend route key for `/admin/members/{id}`.
+			 */
+			member_id: string;
+			member_name: string;
+			member_email: string;
+			stripe_subscription_id: string;
+			stripe_customer_id: string;
+			/** @description Plan cadence (`monthly` / `annual`) — what `subscriptions.plan` stores. */
+			plan: string;
+			/**
+			 * @description Human plan name from `pricing_plans.name`, or the cadence label
+			 *     when no `pricing_plans` row is linked.
+			 */
+			plan_name: string;
+			/**
+			 * @description `month` for monthly subscriptions, `year` for annual — matches
+			 *     the `pricing_plans.interval` vocabulary the frontend expects.
+			 */
+			interval: string;
+			/** @description Lowercase enum label (`active|past_due|canceled|trialing|unpaid|paused`). */
+			status: string;
+			/**
+			 * Format: int64
+			 * @description Per-row price in cents. Falls back to the public catalog default
+			 *     when the subscription has no `pricing_plan_id`.
+			 */
+			amount_cents: number;
+			/**
+			 * Format: date-time
+			 * @description `subscriptions.created_at` — when the subscription was first recorded.
+			 */
+			start_date: string;
+			/**
+			 * Format: date-time
+			 * @description `subscriptions.current_period_end` while live; `null` once
+			 *     canceled (no further renewal expected).
+			 */
+			next_renewal?: string | null;
+			/**
+			 * @description `true` when `subscriptions.cancel_at` is set — the subscription
+			 *     will end at `current_period_end` without further renewal.
+			 */
+			cancel_at_period_end: boolean;
+			/** Format: date-time */
+			canceled_at?: string | null;
+		};
+		/**
+		 * @description Aggregate counters for the subscriptions overview KPIs.
+		 *
+		 *     `monthly_count` / `annual_count` mirror what the frontend page binds
+		 *     to today; the additional status counts and `arr_cents` are surfaced
+		 *     for upstream tooling and future KPI cards.
+		 */
+		SubscriptionStats: {
+			/** Format: int64 */
+			total_active: number;
+			/** Format: int64 */
+			monthly_count: number;
+			/** Format: int64 */
+			annual_count: number;
+			/** Format: int64 */
+			trialing: number;
+			/** Format: int64 */
+			past_due: number;
+			/** Format: int64 */
+			canceled: number;
+			/** Format: int64 */
+			unpaid: number;
+			/** Format: int64 */
+			paused: number;
+			/** Format: int64 */
+			mrr_cents: number;
+			/** Format: int64 */
+			arr_cents: number;
+		};
+		/** @enum {string} */
+		SubscriptionStatus: 'Active' | 'Canceled' | 'PastDue' | 'Paused' | 'Trialing' | 'Unpaid';
+		SubscriptionStatusResponse: {
+			subscription?: null | components['schemas']['Subscription'];
+			is_active: boolean;
+		};
+		/** @description Row shape for `notification_suppression`. */
+		Suppression: {
+			email: string;
+			reason: string;
+			/** Format: date-time */
+			suppressed_at: string;
+		};
+		SuppressionListQuery: {
+			/** Format: int64 */
+			page?: number | null;
+			/** Format: int64 */
+			per_page?: number | null;
+		};
+		/**
+		 * @description `POST /api/admin/members/{id}/suspend` body. Combines the existing
+		 *     `LifecycleRequest` (just a `reason`) with an optional `until`
+		 *     timestamp that flips the suspension into a *timeout*.
+		 */
+		SuspendMemberRequest: {
+			reason?: string | null;
+			/**
+			 * Format: date-time
+			 * @description When set, the suspension auto-lifts once `now() >= until`.
+			 *     Open-ended suspensions (no `until`) require a manual
+			 *     `unsuspend` call.
+			 */
+			until?: string | null;
+		};
+		SwitchPlanPreviewQuery: {
+			/** Format: uuid */
+			pricing_plan_id: string;
+		};
+		SwitchPlanPreviewResponse: {
+			/** Format: int64 */
+			proration_credit_cents: number;
+			/** Format: int64 */
+			proration_charge_cents: number;
+			/** Format: int64 */
+			immediate_total_cents: number;
+			/** Format: int64 */
+			next_invoice_total_cents: number;
+			currency: string;
+		};
+		SwitchPlanRequest: {
+			/**
+			 * Format: uuid
+			 * @description Target `pricing_plans.id` to switch the subscription onto.
+			 */
+			pricing_plan_id: string;
+			/**
+			 * @description When `true` (default) Stripe creates prorations for the swap.
+			 *     `false` defers the new price to the next renewal — useful for
+			 *     downgrades that should not refund mid-cycle.
+			 */
+			prorate?: boolean;
+		};
+		/**
+		 * @description A concrete template row loaded from `notification_templates`.
+		 *
+		 *     `body_compiled` is maintained by the admin API at save time (currently a
+		 *     straight copy of `body_source` until MJML compilation lands in FDN-09);
+		 *     rendering reads `body_compiled` so the hot path never re-parses MJML.
+		 */
+		Template: {
+			/** Format: uuid */
+			id: string;
+			key: string;
+			channel: string;
+			locale: string;
+			subject?: string | null;
+			body_source: string;
+			body_compiled: string;
+			variables: unknown;
+			/** Format: int32 */
+			version: number;
+			is_active: boolean;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		TemplateListQuery: {
+			key?: string | null;
+			channel?: string | null;
+			locale?: string | null;
+			active_only?: boolean | null;
+			/** Format: int64 */
+			page?: number | null;
+			/** Format: int64 */
+			per_page?: number | null;
+		};
+		TestSendRequest: {
+			to: string;
+			context: unknown;
+		};
+		TestSendResponse: {
+			provider_id: string;
+			subject?: string | null;
+		};
+		ToggleRequest: {
+			is_active: boolean;
+		};
+		TokenResponse: {
+			access_token: string;
+			refresh_token: string;
+		};
+		/**
+		 * @description Summary of a tombstone operation.
+		 *
+		 *     Persisted on `dsar_jobs.erasure_summary` so audits can verify the
+		 *     service did exactly what it claimed.
+		 */
+		TombstoneSummary: {
+			/** @description The placeholder email written to `users.email`. */
+			placeholder_email: string;
+			/**
+			 * Format: date-time
+			 * @description `users` row updated_at after the operation.
+			 */
+			erased_at: string;
+			/**
+			 * Format: int64
+			 * @description Row counts of auxiliary tables we cleared.
+			 */
+			refresh_tokens_deleted: number;
+			/** Format: int64 */
+			password_resets_deleted: number;
+			/** Format: int64 */
+			notification_preferences_deleted: number;
+			/** Format: int64 */
+			failed_logins_deleted: number;
+		};
+		TrackEventRequest: {
+			/** Format: uuid */
+			popup_id: string;
+			event_type: string;
+			/** Format: uuid */
+			session_id?: string | null;
+		};
+		/** @enum {string} */
+		TradeDirection: 'Bullish' | 'Bearish';
+		UpdateAlertRequest: {
+			ticker?: string | null;
+			direction?: null | components['schemas']['TradeDirection'];
+			entry_zone?: string | null;
+			invalidation?: string | null;
+			profit_zones?: string[] | null;
+			notes?: string | null;
+			chart_url?: string | null;
+		};
+		UpdateCategoryRequest: {
+			name?: string | null;
+			slug?: string | null;
+			description?: string | null;
+			/** Format: uuid */
+			parent_id?: string | null;
+			/** Format: int32 */
+			sort_order?: number | null;
+		};
+		/**
+		 * @description Admin-only payload for `PUT /api/admin/coupons/{id}/engine`. Every field
+		 *     is optional; `None` means "leave the existing value alone". Pass an empty
+		 *     array to clear an includes/excludes list.
+		 */
+		UpdateCouponEngineRequest: {
+			/**
+			 * Format: int64
+			 * @description Flat discount value in minor units (cents). Setting both this and
+			 *     `discount_percent_bps` is accepted but only one takes effect — the
+			 *     engine prefers the cents field.
+			 */
+			discount_value_cents?: number | null;
+			/**
+			 * Format: int32
+			 * @description Percentage discount in basis points (`10_000 bps = 100%`).
+			 */
+			discount_percent_bps?: number | null;
+			scope?: null | components['schemas']['CouponScope'];
+			bogo_config?: unknown;
+			includes_product_ids?: string[] | null;
+			excludes_product_ids?: string[] | null;
+			includes_category_ids?: string[] | null;
+			recurring_mode?: null | components['schemas']['RecurringMode'];
+		};
+		UpdateCouponRequest: {
+			description?: string | null;
+			discount_type?: null | components['schemas']['DiscountType'];
+			/** Format: double */
+			discount_value?: number | null;
+			currency?: string | null;
+			/** Format: int64 */
+			min_purchase_cents?: number | null;
+			/** Format: int64 */
+			max_discount_cents?: number | null;
+			applies_to?: string | null;
+			applicable_plan_ids?: string[] | null;
+			applicable_course_ids?: string[] | null;
+			/** Format: int32 */
+			usage_limit?: number | null;
+			/** Format: int32 */
+			per_user_limit?: number | null;
+			/** Format: date-time */
+			starts_at?: string | null;
+			/** Format: date-time */
+			expires_at?: string | null;
+			is_active?: boolean | null;
+			stackable?: boolean | null;
+			first_purchase_only?: boolean | null;
+		};
+		UpdateCourseRequest: {
+			title?: string | null;
+			slug?: string | null;
+			description?: string | null;
+			short_description?: string | null;
+			thumbnail_url?: string | null;
+			trailer_video_url?: string | null;
+			difficulty?: string | null;
+			/** Format: int64 */
+			price_cents?: number | null;
+			currency?: string | null;
+			is_free?: boolean | null;
+			is_included_in_subscription?: boolean | null;
+			/** Format: int32 */
+			sort_order?: number | null;
+			published?: boolean | null;
+			/** Format: int32 */
+			estimated_duration_minutes?: number | null;
+		};
+		UpdateLessonProgressRequest: {
+			/** Format: int32 */
+			progress_seconds?: number | null;
+			completed?: boolean | null;
+		};
+		UpdateLessonRequest: {
+			title?: string | null;
+			slug?: string | null;
+			description?: string | null;
+			content?: string | null;
+			content_json?: unknown;
+			video_url?: string | null;
+			/** Format: int32 */
+			video_duration_seconds?: number | null;
+			/** Format: int32 */
+			sort_order?: number | null;
+			is_preview?: boolean | null;
+		};
+		UpdateMediaRequest: {
+			title?: string | null;
+			alt_text?: string | null;
+			caption?: string | null;
+			/** Format: double */
+			focal_x?: number | null;
+			/** Format: double */
+			focal_y?: number | null;
+		};
+		/**
+		 * @description `PATCH /api/admin/members/{id}` body. Every field is optional —
+		 *     callers send only what they want to change. Missing keys leave the
+		 *     existing column untouched; `null` is currently treated as
+		 *     "no change" rather than "clear the field" so support workflows that
+		 *     PATCH a single field don't accidentally wipe sibling columns.
+		 */
+		UpdateMemberRequest: {
+			name?: string | null;
+			email?: string | null;
+			phone?: string | null;
+			billing_address?: null | components['schemas']['BillingAddress'];
+		};
+		UpdateModuleRequest: {
+			title?: string | null;
+			description?: string | null;
+			/** Format: int32 */
+			sort_order?: number | null;
+		};
+		UpdatePopupRequest: {
+			name?: string | null;
+			popup_type?: string | null;
+			trigger_type?: string | null;
+			trigger_config?: unknown;
+			content_json?: unknown;
+			style_json?: unknown;
+			targeting_rules?: unknown;
+			display_frequency?: string | null;
+			frequency_config?: unknown;
+			success_message?: string | null;
+			redirect_url?: string | null;
+			is_active?: boolean | null;
+			/** Format: date-time */
+			starts_at?: string | null;
+			/** Format: date-time */
+			expires_at?: string | null;
+			/** Format: int32 */
+			priority?: number | null;
+		};
+		UpdatePostRequest: {
+			title?: string | null;
+			slug?: string | null;
+			content?: string | null;
+			content_json?: unknown;
+			excerpt?: string | null;
+			/** Format: uuid */
+			featured_image_id?: string | null;
+			status?: null | components['schemas']['PostStatus'];
+			visibility?: string | null;
+			is_sticky?: boolean | null;
+			allow_comments?: boolean | null;
+			meta_title?: string | null;
+			meta_description?: string | null;
+			canonical_url?: string | null;
+			og_image_url?: string | null;
+			category_ids?: string[] | null;
+			tag_ids?: string[] | null;
+			/** Format: date-time */
+			scheduled_at?: string | null;
+			post_password?: string | null;
+			/** Format: uuid */
+			author_id?: string | null;
+			format?: string | null;
+		};
+		UpdatePostStatusRequest: {
+			status: components['schemas']['PostStatus'];
+		};
+		UpdatePricingPlanRequest: {
+			name?: string | null;
+			slug?: string | null;
+			description?: string | null;
+			stripe_price_id?: string | null;
+			stripe_product_id?: string | null;
+			/** Format: int64 */
+			amount_cents?: number | null;
+			currency?: string | null;
+			interval?: string | null;
+			/** Format: int32 */
+			interval_count?: number | null;
+			/** Format: int32 */
+			trial_days?: number | null;
+			collect_payment_method_at_checkout?: boolean | null;
+			features?: unknown;
+			highlight_text?: string | null;
+			is_popular?: boolean | null;
+			is_active?: boolean | null;
+			/** Format: int32 */
+			sort_order?: number | null;
+			stripe_rollout?: null | components['schemas']['PricingStripeRollout'];
+		};
+		/**
+		 * @description Admin-only payload for `PUT /api/admin/products/{id}`. Every field is
+		 *     optional — `None` means "leave the existing value alone" (COALESCE in the
+		 *     repo layer). `product_type` is deliberately not update-able because
+		 *     changing it post-creation would invalidate variant + asset + bundle rows.
+		 */
+		UpdateProductRequest: {
+			slug?: string | null;
+			name?: string | null;
+			description?: string | null;
+			/** Format: int64 */
+			price_cents?: number | null;
+			/** Format: int64 */
+			compare_at_cents?: number | null;
+			currency?: string | null;
+			tax_class?: string | null;
+			stripe_product_id?: string | null;
+			stripe_price_id?: string | null;
+			gallery_media_ids?: string[] | null;
+			/** Format: uuid */
+			featured_media_id?: string | null;
+			seo_title?: string | null;
+			seo_description?: string | null;
+			metadata?: unknown;
+		};
+		UpdateProfileRequest: {
+			name?: string | null;
+			avatar_url?: string | null;
+			bio?: string | null;
+			position?: string | null;
+			website_url?: string | null;
+			twitter_url?: string | null;
+			linkedin_url?: string | null;
+			youtube_url?: string | null;
+			instagram_url?: string | null;
+			/**
+			 * @description Phase 5: free-text phone number. Validation is intentionally minimal
+			 *     at the API edge — the DB CHECK in migration 079 caps it at 32 chars.
+			 */
+			phone?: string | null;
+			billing_address?: null | components['schemas']['BillingAddress'];
+		};
+		UpdateTemplateRequest: {
+			subject?: string | null;
+			body_source: string;
+			variables?: unknown;
+			is_active?: boolean | null;
+		};
+		/** @description Admin-only payload for updating a variant. */
+		UpdateVariantRequest: {
+			sku?: string | null;
+			name?: string | null;
+			/** Format: int64 */
+			price_cents?: number | null;
+			currency?: string | null;
+			attributes?: unknown;
+			stripe_price_id?: string | null;
+			/** Format: int32 */
+			position?: number | null;
+			is_active?: boolean | null;
+		};
+		UpdateWatchlistRequest: {
+			title?: string | null;
+			/** Format: date */
+			week_of?: string | null;
+			video_url?: string | null;
+			notes?: string | null;
+			published?: boolean | null;
+		};
+		UpsertPostMetaRequest: {
+			meta_key: string;
+			meta_value: string;
+		};
+		User: {
+			/** Format: uuid */
+			id: string;
+			email: string;
+			name: string;
+			role: components['schemas']['UserRole'];
+			avatar_url?: string | null;
+			bio?: string | null;
+			position?: string | null;
+			website_url?: string | null;
+			twitter_url?: string | null;
+			linkedin_url?: string | null;
+			youtube_url?: string | null;
+			instagram_url?: string | null;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+			/** Format: date-time */
+			suspended_at?: string | null;
+			suspension_reason?: string | null;
+			/** Format: date-time */
+			banned_at?: string | null;
+			ban_reason?: string | null;
+			/** Format: date-time */
+			email_verified_at?: string | null;
+			billing_line1?: string | null;
+			billing_line2?: string | null;
+			billing_city?: string | null;
+			billing_state?: string | null;
+			billing_postal_code?: string | null;
+			billing_country?: string | null;
+			phone?: string | null;
+			/** Format: date-time */
+			suspended_until?: string | null;
+		};
+		UserResponse: {
+			/** Format: uuid */
+			id: string;
+			email: string;
+			name: string;
+			role: components['schemas']['UserRole'];
+			avatar_url?: string | null;
+			bio?: string | null;
+			position?: string | null;
+			website_url?: string | null;
+			twitter_url?: string | null;
+			linkedin_url?: string | null;
+			youtube_url?: string | null;
+			instagram_url?: string | null;
+			/** Format: date-time */
+			created_at: string;
+			/**
+			 * Format: date-time
+			 * @description ADM-02: lifecycle state surfaced to the admin members UI. `None`
+			 *     for each timestamp means the account is not in that state.
+			 */
+			suspended_at?: string | null;
+			suspension_reason?: string | null;
+			/** Format: date-time */
+			banned_at?: string | null;
+			ban_reason?: string | null;
+			/** Format: date-time */
+			email_verified_at?: string | null;
+			billing_line1?: string | null;
+			billing_line2?: string | null;
+			billing_city?: string | null;
+			billing_state?: string | null;
+			billing_postal_code?: string | null;
+			billing_country?: string | null;
+			phone?: string | null;
+			/** Format: date-time */
+			suspended_until?: string | null;
+		};
+		/** @enum {string} */
+		UserRole: 'Member' | 'Author' | 'Support' | 'Admin';
+		UserSubscriptionView: {
+			subscription: components['schemas']['SubscriptionStatusResponse'];
+			/** @description All non-expired memberships attached to the user, newest first. */
+			memberships: components['schemas']['MembershipRow'][];
+		};
+		ValidateCouponRequest: {
+			code: string;
+			/** Format: uuid */
+			plan_id?: string | null;
+			/** Format: uuid */
+			course_id?: string | null;
+		};
+		/**
+		 * @description Structured validation failure. Stable `code` strings are the shared contract
+		 *     with `src/lib/forms/validate.ts`.
+		 */
+		ValidationError: {
+			field_key: string;
+			code: string;
+			message: string;
+		};
+		Value: unknown;
+		VerifyEmailRequest: {
+			token: string;
+		};
+		VerifyPostPasswordRequest: {
+			password: string;
+		};
+		VoidRequest: {
+			reason?: string | null;
+		};
+		Watchlist: {
+			/** Format: uuid */
+			id: string;
+			title: string;
+			/** Format: date */
+			week_of: string;
+			video_url?: string | null;
+			notes?: string | null;
+			published: boolean;
+			/** Format: date-time */
+			published_at?: string | null;
+			/** Format: date-time */
+			created_at: string;
+			/** Format: date-time */
+			updated_at: string;
+		};
+		WatchlistAlert: {
+			/** Format: uuid */
+			id: string;
+			/** Format: uuid */
+			watchlist_id: string;
+			ticker: string;
+			direction: components['schemas']['TradeDirection'];
+			entry_zone: string;
+			invalidation: string;
+			profit_zones: string[];
+			notes?: string | null;
+			chart_url?: string | null;
+			/** Format: date-time */
+			created_at: string;
+		};
+		WatchlistWithAlerts: components['schemas']['Watchlist'] & {
+			alerts: components['schemas']['WatchlistAlert'][];
+		};
+	};
+	responses: never;
+	parameters: never;
+	requestBodies: never;
+	headers: never;
+	pathItems: never;
 };
 export type $defs = Record<string, never>;
 export interface operations {
-    update_alert: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Alert id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateAlertRequest"];
-            };
-        };
-        responses: {
-            /** @description Alert updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WatchlistAlert"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    delete_alert: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Alert id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Alert deleted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_audit_list: {
-        parameters: {
-            query?: {
-                /** @description Full-text query */
-                q?: string;
-                /** @description Filter by actor */
-                actor_id?: string;
-                /** @description Exact action key */
-                action?: string;
-                /** @description Exact target kind */
-                target_kind?: string;
-                /** @description Substring on target_id */
-                target_id?: string;
-                /** @description JSON object — metadata @> $ */
-                metadata_contains?: string;
-                /** @description Inclusive lower bound */
-                from?: string;
-                /** @description Inclusive upper bound */
-                to?: string;
-                /** @description Page size (1..=200) */
-                limit?: number;
-                /** @description Cursor offset */
-                offset?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Paginated audit rows */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuditListEnvelope"];
-                };
-            };
-            /** @description Invalid filter */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_audit_export_csv: {
-        parameters: {
-            query?: {
-                /** @description Full-text query */
-                q?: string;
-                /** @description Filter by actor */
-                actor_id?: string;
-                /** @description Exact action */
-                action?: string;
-                /** @description Exact target_kind */
-                target_kind?: string;
-                /** @description Substring target_id */
-                target_id?: string;
-                /** @description JSON containment */
-                metadata_contains?: string;
-                /** @description Inclusive lower bound */
-                from?: string;
-                /** @description Inclusive upper bound */
-                to?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description CSV stream */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/csv": unknown;
-                };
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_audit_read_one: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Audit row id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Audit row */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuditRow"];
-                };
-            };
-            /** @description Row not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_create_category: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateCategoryRequest"];
-            };
-        };
-        responses: {
-            /** @description Category created */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BlogCategory"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_update_category: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Category id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateCategoryRequest"];
-            };
-        };
-        responses: {
-            /** @description Category updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BlogCategory"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_delete_category: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Category id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Category deleted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_upload_media: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "multipart/form-data": unknown;
-            };
-        };
-        responses: {
-            /** @description Media uploaded */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Media"];
-                };
-            };
-            /** @description Invalid file or multipart error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Upload exceeds size cap */
-            413: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_update_media: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Media id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateMediaRequest"];
-            };
-        };
-        responses: {
-            /** @description Media metadata updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Media"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_delete_media: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Media id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Media deleted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_create_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreatePostRequest"];
-            };
-        };
-        responses: {
-            /** @description Post created */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BlogPostResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_update_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Post id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdatePostRequest"];
-            };
-        };
-        responses: {
-            /** @description Post updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BlogPostResponse"];
-                };
-            };
-            /** @description Post in trash */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Post not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_delete_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Post id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Post permanently deleted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Post not in trash */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Post not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_autosave_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Post id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AutosaveRequest"];
-            };
-        };
-        responses: {
-            /** @description Autosave recorded */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_upsert_post_meta: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Post id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpsertPostMetaRequest"];
-            };
-        };
-        responses: {
-            /** @description Meta upserted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PostMeta"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_delete_post_meta: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Post id */
-                id: string;
-                /** @description Meta key to delete */
-                key: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Meta deleted */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_restore_post_from_trash: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Post id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Post restored from trash */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BlogPostResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_restore_revision: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Post id */
-                id: string;
-                /** @description Revision id */
-                rev_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Post restored from revision */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BlogPostResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Post or revision not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_update_post_status: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Post id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdatePostStatusRequest"];
-            };
-        };
-        responses: {
-            /** @description Post status updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BlogPostResponse"];
-                };
-            };
-            /** @description Post in trash */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Post not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_create_tag: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateTagRequest"];
-            };
-        };
-        responses: {
-            /** @description Tag created */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BlogTag"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_delete_tag: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Tag id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Tag deleted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_list_dsar: {
-        parameters: {
-            query?: {
-                status?: string | null;
-                page?: number | null;
-                perPage?: number | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Paginated DSAR list */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DsarListResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_fulfill_dsar: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description DSAR request id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DsarFulfillRequest"];
-            };
-        };
-        responses: {
-            /** @description DSAR fulfilled */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DsarFulfillResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description DSAR not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_create_coupon: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateCouponRequest"];
-            };
-        };
-        responses: {
-            /** @description Coupon created */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Coupon"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_bulk_create_coupons: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BulkCouponRequest"];
-            };
-        };
-        responses: {
-            /** @description Bulk coupons created */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Coupon"][];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_coupon_stats: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Coupon dashboard aggregates */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CouponStats"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_update_coupon: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Coupon id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateCouponRequest"];
-            };
-        };
-        responses: {
-            /** @description Coupon updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Coupon"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Coupon not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_delete_coupon: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Coupon id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Coupon deleted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Coupon not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_update_coupon_engine: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Coupon id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateCouponEngineRequest"];
-            };
-        };
-        responses: {
-            /** @description Coupon engine fields updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CouponEngineView"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Coupon not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_toggle_coupon: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Coupon id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Coupon active flag toggled */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Coupon"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Coupon not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    create_course: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateCourseRequest"];
-            };
-        };
-        responses: {
-            /** @description Course created */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Course"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    update_module: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Course id */
-                course_id: string;
-                /** @description Module id */
-                module_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateModuleRequest"];
-            };
-        };
-        responses: {
-            /** @description Module updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CourseModule"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Module not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    delete_module: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Course id */
-                course_id: string;
-                /** @description Module id */
-                module_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Module deleted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Module not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    create_lesson: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Course id */
-                course_id: string;
-                /** @description Module id */
-                module_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateLessonRequest"];
-            };
-        };
-        responses: {
-            /** @description Lesson created */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CourseLesson"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Module not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    update_course: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Course id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateCourseRequest"];
-            };
-        };
-        responses: {
-            /** @description Course updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Course"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Course not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    delete_course: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Course id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Course deleted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Course not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    create_module: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Course id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateModuleRequest"];
-            };
-        };
-        responses: {
-            /** @description Module created */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CourseModule"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Course not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    toggle_publish: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Course id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Publish toggled */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Course"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Course not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_dsar_list_jobs: {
-        parameters: {
-            query?: {
-                /** @description Status filter */
-                status?: string;
-                /** @description Kind filter (export|erase) */
-                kind?: string;
-                /** @description Filter by target user */
-                target_user_id?: string;
-                /** @description Page size (1..=200) */
-                limit?: number;
-                /** @description Cursor offset */
-                offset?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Paginated DSAR jobs */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["JobListEnvelope"];
-                };
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_dsar_request_erase: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EraseRequestBody"];
-            };
-        };
-        responses: {
-            /** @description Erasure pending approval */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DsarJob"];
-                };
-            };
-            /** @description Validation failed */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Target user not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Pending erasure already exists, or user already erased */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_dsar_create_export: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ExportRequest"];
-            };
-        };
-        responses: {
-            /** @description Export composed */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ExportResponse"];
-                };
-            };
-            /** @description Validation failed */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Target user not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_dsar_read_job: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description DSAR job id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description DSAR job */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DsarJob"];
-                };
-            };
-            /** @description Job not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_dsar_stream_artifact: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description DSAR job id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Streamed JSON artefact */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Artefact is not local-streamable */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Artefact missing or expired */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Job not yet completed */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_dsar_cancel_job: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description DSAR job id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CancelBody"];
-            };
-        };
-        responses: {
-            /** @description Job cancelled */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DsarJob"];
-                };
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Job not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Job is not in a cancellable state */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_dsar_approve_erase: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description DSAR job id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EraseApproveBody"];
-            };
-        };
-        responses: {
-            /** @description Erasure executed */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EraseApproveResponse"];
-                };
-            };
-            /** @description Validation failed */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden — self-approval is not permitted */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Job not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Job is not pending */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_bulk_update_submissions: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Form id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BulkActionRequest"];
-            };
-        };
-        responses: {
-            /** @description Bulk action applied */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BulkActionResponse"];
-                };
-            };
-            /** @description Unknown action */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    update_lesson: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Lesson id */
-                lesson_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateLessonRequest"];
-            };
-        };
-        responses: {
-            /** @description Lesson updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CourseLesson"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Lesson not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    delete_lesson: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Lesson id */
-                lesson_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Lesson deleted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Lesson not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_members_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateMemberRequest"];
-            };
-        };
-        responses: {
-            /** @description Member created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CreateMemberResponse"];
-                };
-            };
-            /** @description Validation failed */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Email already exists */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_members_search: {
-        parameters: {
-            query?: {
-                /** @description Free-text substring across email + name */
-                q?: string;
-                /** @description Role filter (member|author|support|admin) */
-                role?: string;
-                /** @description Status filter (active|suspended|banned|unverified) */
-                status?: string;
-                /** @description Page size (1-200, default 25) */
-                limit?: number;
-                /** @description Cursor offset */
-                offset?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Paginated member rows */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponse_UserResponse"];
-                };
-            };
-            /** @description Invalid filter */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    delete_member: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Member id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Member deleted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    update_member_profile: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Member id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateMemberRequest"];
-            };
-        };
-        responses: {
-            /** @description Member profile updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserResponse"];
-                };
-            };
-            /** @description Validation failed */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Member not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Email already in use */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ban_member: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LifecycleRequest"];
-            };
-        };
-        responses: {
-            /** @description Member banned */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Member not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Cannot ban an admin */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_member_billing_portal: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Member id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BillingPortalRequest"];
-            };
-        };
-        responses: {
-            /** @description Stripe billing portal URL */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BillingPortalResponse"];
-                };
-            };
-            /** @description Member has no subscription */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Member not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    member_detail: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Member id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Composite member detail */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemberDetailResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Member not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    force_password_reset: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Reset link dispatched */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ForcePasswordResetResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Member not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    reactivate_member: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Member reactivated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Member not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    update_member_role: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Member id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RoleUpdate"];
-            };
-        };
-        responses: {
-            /** @description Role updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    list_sessions: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Active sessions for the member */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SessionsResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    force_logout: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description All sessions revoked */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    revoke_session: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                session_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Session revoked */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Session not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_member_subscription_cancel: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Member id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Subscription scheduled to cancel at period end */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Member has no subscription */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Member not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_member_subscription_resume: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Member id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Subscription cancellation reversed */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Member has no subscription */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Member not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    suspend_member: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SuspendMemberRequest"];
-            };
-        };
-        responses: {
-            /** @description Member suspended */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserResponse"];
-                };
-            };
-            /** @description `until` is in the past */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Member not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Cannot suspend an admin */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    unban_member: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Ban lifted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Member not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    unsuspend_member: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Suspension lifted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Member not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    mark_email_verified: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Email marked verified */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Member not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    list_deliveries: {
-        parameters: {
-            query?: {
-                status?: string | null;
-                user_id?: string | null;
-                page?: number | null;
-                per_page?: number | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Paginated delivery log */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedDeliveriesResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    list_suppression: {
-        parameters: {
-            query?: {
-                page?: number | null;
-                per_page?: number | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Paginated suppression entries */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedSuppressionResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    add_suppression: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AddSuppressionRequest"];
-            };
-        };
-        responses: {
-            /** @description Address suppressed */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Suppression"];
-                };
-            };
-            /** @description Invalid payload */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    remove_suppression: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RemoveSuppressionRequest"];
-            };
-        };
-        responses: {
-            /** @description Whether a row was removed */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    list_templates: {
-        parameters: {
-            query?: {
-                key?: string | null;
-                channel?: string | null;
-                locale?: string | null;
-                active_only?: boolean | null;
-                page?: number | null;
-                per_page?: number | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Paginated template rows */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedTemplatesResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    create_template: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateTemplateRequest"];
-            };
-        };
-        responses: {
-            /** @description New template version */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Template"];
-                };
-            };
-            /** @description Invalid payload */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_template: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Template id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Template row */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Template"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    update_template: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Base template id (read for key/channel/locale lookup) */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateTemplateRequest"];
-            };
-        };
-        responses: {
-            /** @description New version row */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Template"];
-                };
-            };
-            /** @description Invalid payload */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    preview_template: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Template id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PreviewRequest"];
-            };
-        };
-        responses: {
-            /** @description Rendered template */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RenderedTemplate"];
-                };
-            };
-            /** @description Invalid template or context */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    test_send_template: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Template id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TestSendRequest"];
-            };
-        };
-        responses: {
-            /** @description Delivered via the live channel */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TestSendResponse"];
-                };
-            };
-            /** @description Invalid payload */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Channel provider unavailable */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_orders_list: {
-        parameters: {
-            query?: {
-                /** @description Substring across email + number */
-                q?: string;
-                /** @description Order status filter */
-                status?: string;
-                /** @description Page size (1-200, default 25) */
-                limit?: number;
-                /** @description Cursor offset */
-                offset?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Paginated orders */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OrderListEnvelope"];
-                };
-            };
-            /** @description Invalid filter */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_orders_create_manual: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ManualOrderRequest"];
-            };
-        };
-        responses: {
-            /** @description Manual order created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OrderDetail"];
-                };
-            };
-            /** @description Validation failed */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_orders_export_csv: {
-        parameters: {
-            query?: {
-                /** @description Order status filter */
-                status?: string;
-                /** @description Substring across email + number */
-                q?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description CSV stream */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/csv": unknown;
-                };
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_orders_read_one: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Order id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Order detail */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OrderDetail"];
-                };
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Order not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_orders_refund: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Order id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RefundRequest"];
-            };
-        };
-        responses: {
-            /** @description Refund recorded */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RefundResponse"];
-                };
-            };
-            /** @description Refund exceeds remaining balance */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Order not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_orders_void: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Order id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["VoidRequest"];
-            };
-        };
-        responses: {
-            /** @description Order cancelled */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OrderDetail"];
-                };
-            };
-            /** @description Order is in a terminal state */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Order not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    list_outbox: {
-        parameters: {
-            query?: {
-                /** @description Filter by lifecycle state. Omit to return every row. */
-                status?: string | null;
-                page?: number | null;
-                per_page?: number | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Paginated outbox rows */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedOutboxResponse"];
-                };
-            };
-            /** @description Invalid status filter */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_outbox: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Outbox event id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Outbox row */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OutboxRowDto"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    retry_outbox: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Outbox event id to retry */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Event re-queued */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OutboxRetryResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Event already delivered */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_create_popup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreatePopupRequest"];
-            };
-        };
-        responses: {
-            /** @description Popup created */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Popup"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_list_analytics: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Per-popup analytics roll-up */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PopupAnalyticsSummary"][];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_update_popup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Popup id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdatePopupRequest"];
-            };
-        };
-        responses: {
-            /** @description Popup updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Popup"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Popup not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_delete_popup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Popup id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Popup deleted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Popup not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_duplicate_popup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Popup id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Popup duplicated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Popup"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Popup not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_toggle_popup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Popup id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Popup active flag toggled */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Popup"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Popup not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_create_plan: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreatePricingPlanRequest"];
-            };
-        };
-        responses: {
-            /** @description Plan created */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PricingPlan"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_plan_price_change_log: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Recent amount_cents changes */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PricingPlanAmountChangeLogEntry"][];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_update_plan: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Plan id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdatePricingPlanRequest"];
-            };
-        };
-        responses: {
-            /** @description Plan updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AdminUpdatePricingPlanResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Plan not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_delete_plan: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Plan id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Plan deleted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Plan not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_toggle_plan: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Plan id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Plan active flag toggled */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PricingPlan"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Plan not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_create_product: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateProductRequest"];
-            };
-        };
-        responses: {
-            /** @description Product created */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Product"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Slug conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_update_product: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Product id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateProductRequest"];
-            };
-        };
-        responses: {
-            /** @description Product updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Product"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Product not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_delete_product: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Product id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Product deleted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Product not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_add_asset: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Product id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateAssetRequest"];
-            };
-        };
-        responses: {
-            /** @description Asset created */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DownloadableAsset"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_delete_asset: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Product id */
-                id: string;
-                /** @description Asset id */
-                asset_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Asset deleted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Asset not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_set_bundle_items: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Bundle product id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SetBundleItemsRequest"];
-            };
-        };
-        responses: {
-            /** @description Bundle items replaced */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BundleItem"][];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Bundle not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_set_status: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Product id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SetStatusRequest"];
-            };
-        };
-        responses: {
-            /** @description Product status updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Product"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Product not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_add_variant: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Product id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateVariantRequest"];
-            };
-        };
-        responses: {
-            /** @description Variant created */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProductVariant"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_update_variant: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Product id */
-                id: string;
-                /** @description Variant id */
-                variant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateVariantRequest"];
-            };
-        };
-        responses: {
-            /** @description Variant updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProductVariant"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Variant not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_delete_variant: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Product id */
-                id: string;
-                /** @description Variant id */
-                variant_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Variant deleted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Variant not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    list_audit_log: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Filtered admin_actions feed */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuditLogResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    list_failed_logins: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Filtered failed login attempts */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FailedLoginResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_impersonation_list: {
-        parameters: {
-            query?: {
-                /**
-                 * @description Cursor — `issued_at` of the last row from the previous page.
-                 *     Returns the newest page when omitted.
-                 */
-                after?: string;
-                /** @description Page size, clamped to 1..=100. Defaults to 25 when omitted. */
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Active impersonation sessions */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ListResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_impersonation_mint: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateImpersonationInput"];
-            };
-        };
-        responses: {
-            /** @description Impersonation token */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MintResponse"];
-                };
-            };
-            /** @description Invalid input or unsafe target */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Target user not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_impersonation_get_one: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Impersonation session id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Session row */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ImpersonationSession"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Session not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_impersonation_revoke: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Impersonation session id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RevokeRequest"];
-            };
-        };
-        responses: {
-            /** @description Session revoked */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ImpersonationSession"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Session not found or already revoked */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    list_entries: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Allowlist entries */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AllowlistResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    create_entry: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateAllowlistInput"];
-            };
-        };
-        responses: {
-            /** @description New allowlist entry */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AllowlistEntry"];
-                };
-            };
-            /** @description Invalid CIDR or label */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description CIDR already on the list */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    delete_entry: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Allowlist entry id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Entry removed */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Entry not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    toggle_entry: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Allowlist entry id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ToggleRequest"];
-            };
-        };
-        responses: {
-            /** @description Updated entry */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AllowlistEntry"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Entry not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_roles_list_matrix: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Role/permission matrix + catalogue */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MatrixResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_roles_reload: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Policy cache reloaded; returns pair count */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_roles_list_permissions: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Permission catalogue */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PermissionsResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_roles_replace: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Role label */
-                role: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReplaceRoleRequest"];
-            };
-        };
-        responses: {
-            /** @description Role permission set replaced atomically */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unknown role or permission */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Refusing to drop a self-lock guard */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_roles_grant: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Role label (member|author|support|admin) */
-                role: string;
-                /** @description Permission key */
-                permission: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Permission granted (idempotent) */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RolePermPair"];
-                };
-            };
-            /** @description Unknown role or permission */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_roles_revoke: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Role label (member|author|support|admin) */
-                role: string;
-                /** @description Permission key */
-                permission: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Permission revoked */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unknown role */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Refusing to revoke an admin self-lock guard */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_settings_list: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description All settings (secrets redacted) */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SettingListResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_settings_reload: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Cache reloaded; returns row count */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_settings_get_one: {
-        parameters: {
-            query?: {
-                /**
-                 * @description When `true` and the caller carries `admin.settings.read_secret`,
-                 *     the response includes the decrypted plaintext under
-                 *     `revealed_value`. Otherwise the value is redacted to `"***"`.
-                 */
-                reveal?: boolean;
-            };
-            header?: never;
-            path: {
-                /** @description Setting key (e.g. system.maintenance_mode) */
-                key: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Single setting */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SettingGetResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unknown key */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_settings_upsert: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Setting key */
-                key: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SettingUpsertRequest"];
-            };
-        };
-        responses: {
-            /** @description Persisted setting (redacted) */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SettingView"];
-                };
-            };
-            /** @description Value shape mismatched value_type */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Encryption key missing */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_subscriptions_list: {
-        parameters: {
-            query?: {
-                /** @description 1-based page number. Defaults to 1. */
-                page?: number | null;
-                /** @description Page size. Capped to 100 to keep the join + count cheap. */
-                per_page?: number | null;
-                /** @description Case-insensitive substring against `users.email`. */
-                search?: string | null;
-                /** @description One of `active|past_due|canceled|trialing|unpaid|paused`. */
-                status?: string | null;
-                /** @description One of `monthly|annual`. */
-                plan?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Paginated subscriptions */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedSubscriptionsResponse"];
-                };
-            };
-            /** @description Invalid filter value */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_subscriptions_by_user: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Member id */
-                user_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Subscription + memberships */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserSubscriptionView"];
-                };
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Member not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_subscriptions_comp_grant: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CompGrantRequest"];
-            };
-        };
-        responses: {
-            /** @description Comp membership minted */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CompGrantResponse"];
-                };
-            };
-            /** @description Validation failed */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Member or plan not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_subscriptions_stats: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Subscription KPIs */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SubscriptionStats"];
-                };
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_subscriptions_override_billing_cycle: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Subscription id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CycleOverrideRequest"];
-            };
-        };
-        responses: {
-            /** @description Billing cycle anchor overridden */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CycleOverrideResponse"];
-                };
-            };
-            /** @description Validation failed (anchor must be in the future) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Subscription not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    admin_subscriptions_extend_period: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Subscription id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ExtendRequest"];
-            };
-        };
-        responses: {
-            /** @description Period extended */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ExtendResponse"];
-                };
-            };
-            /** @description Validation failed */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Subscription not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    create_watchlist: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateWatchlistRequest"];
-            };
-        };
-        responses: {
-            /** @description Watchlist created */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Watchlist"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    update_watchlist: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Watchlist id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateWatchlistRequest"];
-            };
-        };
-        responses: {
-            /** @description Watchlist updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Watchlist"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    delete_watchlist: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Watchlist id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Watchlist deleted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    create_alert: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Watchlist id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateAlertRequest"];
-            };
-        };
-        responses: {
-            /** @description Alert created */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WatchlistAlert"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ingest_events: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AnalyticsIngestRequest"];
-            };
-        };
-        responses: {
-            /** @description Events accepted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Malformed event batch */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Rate-limited */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    forgot_password: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ForgotPasswordRequest"];
-            };
-        };
-        responses: {
-            /** @description Reset email dispatched if account exists */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    auth_impersonation_exit: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Impersonation session ended */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Caller is not currently impersonating */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    login: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LoginRequest"];
-            };
-        };
-        responses: {
-            /** @description Authenticated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthResponse"];
-                };
-            };
-            /** @description Invalid credentials */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    logout: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Logged out; refresh tokens revoked. When called under an impersonation token, ends the impersonation session instead and returns `{ "message": "Impersonation ended" }`. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    refresh: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RefreshRequest"];
-            };
-        };
-        responses: {
-            /** @description Token rotated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenResponse"];
-                };
-            };
-            /** @description Invalid or reused refresh token */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    register: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RegisterRequest"];
-            };
-        };
-        responses: {
-            /** @description Account created and authenticated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthResponse"];
-                };
-            };
-            /** @description Email already registered */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    resend_verification: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ResendVerificationRequest"];
-            };
-        };
-        responses: {
-            /** @description Verification email queued if account is pending verification */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    reset_password: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ResetPasswordRequest"];
-            };
-        };
-        responses: {
-            /** @description Password updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Invalid or expired reset token */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    verify_email: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["VerifyEmailRequest"];
-            };
-        };
-        responses: {
-            /** @description Email verified */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Invalid or expired verification token */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    public_unlock_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Post slug */
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["VerifyPostPasswordRequest"];
-            };
-        };
-        responses: {
-            /** @description Password accepted; full post returned */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BlogPostResponse"];
-                };
-            };
-            /** @description Post is not password protected */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Invalid password */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Post not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_banner: {
-        parameters: {
-            query?: {
-                /** @description BCP-47 locale tag; defaults to 'en'. */
-                locale?: string;
-                /** @description Regulatory region override (EU, UK, US-CA, …). Usually omitted — server resolves from request headers. */
-                region?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Resolved banner config */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BannerConfig"];
-                };
-            };
-            /** @description Consent tables not seeded */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_my_consent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Subject consent state */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MyConsentResponse"];
-                };
-            };
-            /** @description Authentication required */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    post_record: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ConsentRecordRequest"];
-            };
-        };
-        responses: {
-            /** @description Consent event recorded */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ConsentRecordResponse"];
-                };
-            };
-            /** @description Invalid action or missing subject identifier */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    public_apply_coupon: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ValidateCouponRequest"];
-            };
-        };
-        responses: {
-            /** @description Coupon applied */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CouponValidationResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    public_validate_coupon: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ValidateCouponRequest"];
-            };
-        };
-        responses: {
-            /** @description Coupon validation result */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CouponValidationResponse"];
-                };
-            };
-        };
-    };
-    csp_report: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description CSP violation report (application/csp-report or application/reports+json) */
-        requestBody: {
-            content: {
-                "text/plain": string;
-            };
-        };
-        responses: {
-            /** @description Report accepted */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Malformed report body */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Report body exceeds 8KB */
-            413: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Rate-limited */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    post_dsar: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DsarSubmitRequest"];
-            };
-        };
-        responses: {
-            /** @description DSAR request accepted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DsarSubmitResponse"];
-                };
-            };
-            /** @description Missing or invalid fields */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    public_geo_countries: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Country list */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Country"][];
-                };
-            };
-        };
-    };
-    public_geo_states: {
-        parameters: {
-            query: {
-                /** @description ISO 3166-1 alpha-2 */
-                country: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description State list */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["State"][];
-                };
-            };
-        };
-    };
-    public_get_form: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Form URL slug */
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Active form definition */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FormDefinition"];
-                };
-            };
-            /** @description Form not found or has no published version */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    public_save_partial: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Form URL slug */
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PartialRequest"];
-            };
-        };
-        responses: {
-            /** @description Partial saved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PartialResponse"];
-                };
-            };
-            /** @description Form not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    public_create_payment_intent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Form URL slug */
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PaymentIntentRequest"];
-            };
-        };
-        responses: {
-            /** @description Intent created */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaymentIntentClientResponse"];
-                };
-            };
-            /** @description Missing Idempotency-Key or invalid amount */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Form / field not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    public_submit: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Form URL slug */
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SubmitRequest"];
-            };
-        };
-        responses: {
-            /** @description Submission accepted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SubmitResponse"];
-                };
-            };
-            /** @description Form not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation failed; response body carries per-field errors */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    delete_account: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Account deleted; auth cookies cleared. Cancels any active Stripe subscription before deletion. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    post_billing_portal: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BillingPortalRequest"];
-            };
-        };
-        responses: {
-            /** @description Stripe billing portal session URL */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BillingPortalResponse"];
-                };
-            };
-            /** @description No subscription on file */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    post_apply_coupon: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ApplyCouponRequest"];
-            };
-        };
-        responses: {
-            /** @description Coupon applied to the member's active subscription */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApplyCouponResponse"];
-                };
-            };
-            /** @description Coupon is inactive, expired, exhausted, or no active subscription */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Coupon code not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Coupon already redeemed by this user */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    list_redeemed_coupons: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Coupon redemptions for the authenticated member */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemberCouponRedemptionResponse"][];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    enroll_course: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Course id */
-                course_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Enrolled */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CourseEnrollment"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Course not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    update_progress: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Course identifier */
-                course_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ProgressUpdate"];
-            };
-        };
-        responses: {
-            /** @description Enrollment progress updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CourseEnrollment"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    update_lesson_progress: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Lesson id */
-                lesson_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateLessonProgressRequest"];
-            };
-        };
-        responses: {
-            /** @description Progress updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LessonProgress"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Lesson not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_member_preferences: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Current user's notification preferences */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemberPreferencesResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    update_member_preferences: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BulkPreferenceUpdate"];
-            };
-        };
-        responses: {
-            /** @description Updated preferences */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemberPreferencesResponse"];
-                };
-            };
-            /** @description Invalid payload */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    list_orders: {
-        parameters: {
-            query?: {
-                /** @description 1-based page number (default 1) */
-                page?: number;
-                /** @description Page size (default 20, max 50) */
-                per_page?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Paginated orders for the authenticated member */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedMemberOrdersResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_order_detail: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Order id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Order detail */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemberOrderDetailResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Order not found or not owned by the member */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    post_change_password: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ChangePasswordRequest"];
-            };
-        };
-        responses: {
-            /** @description Password changed and a fresh access+refresh pair issued as cookies */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChangePasswordResponse"];
-                };
-            };
-            /** @description New password too short or current_password missing */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized or current_password mismatch */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    list_payment_methods: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Saved payment methods + the customer's current default */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemberPaymentMethodsResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Member has no Stripe customer on file */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    post_setup_intent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Stripe SetupIntent client_secret for Stripe Elements */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SetupIntentResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Member has no Stripe customer on file */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    delete_payment_method: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Stripe payment method id (`pm_*`) */
-                pm_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Payment method detached */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeletePaymentMethodResponse"];
-                };
-            };
-            /** @description Refused: card is the active subscription's default */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Payment method not found or not owned by the member */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    post_set_default_payment_method: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Stripe payment method id (`pm_*`) */
-                pm_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Default payment method updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SetDefaultPaymentMethodResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Payment method not found or not owned by the member */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    update_profile: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateProfileRequest"];
-            };
-        };
-        responses: {
-            /** @description Profile updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    post_subscription_cancel: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Subscription scheduled to cancel at period end */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description No subscription on file */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    post_subscription_resume: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Subscription cancellation reversed */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description No subscription on file */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    list_subscriptions: {
-        parameters: {
-            query?: {
-                /** @description 1-based page number (default 1) */
-                page?: number;
-                /** @description Page size (default 20, max 50) */
-                per_page?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Full subscription history for the authenticated member */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedMemberSubscriptionsResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_subscription_detail: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Subscription id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Subscription detail (plan + invoices + related orders) */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemberSubscriptionDetailResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Subscription not found or not owned by the member */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    post_cancel_subscription: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Subscription id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Cancel-at-period-end flag set on the subscription */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Subscription"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Subscription not found or not owned by the member */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    post_pause_subscription: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Subscription id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PauseSubscriptionRequest"];
-            };
-        };
-        responses: {
-            /** @description Subscription paused */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Subscription"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Subscription not found or not owned by the member */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    post_resume_subscription: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Subscription id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Cancel-at-period-end flag cleared */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Subscription"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Subscription not found or not owned by the member */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    post_switch_subscription_plan: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Subscription id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SwitchPlanRequest"];
-            };
-        };
-        responses: {
-            /** @description Subscription switched to the new plan */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Subscription"];
-                };
-            };
-            /** @description Target plan invalid (no Stripe price id, missing line item, etc.) */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Subscription or pricing plan not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_switch_plan_preview: {
-        parameters: {
-            query: {
-                /** @description Target pricing_plans.id to preview */
-                pricing_plan_id: string;
-            };
-            header?: never;
-            path: {
-                /** @description Subscription id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Stripe upcoming-invoice proration preview */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SwitchPlanPreviewResponse"];
-                };
-            };
-            /** @description Target plan invalid or local subscription has no Stripe twin */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Subscription or pricing plan not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    post_unpause_subscription: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Subscription id */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Subscription resumed */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Subscription"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Subscription not found or not owned by the member */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    public_track_event: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TrackEventRequest"];
-            };
-        };
-        responses: {
-            /** @description Event tracked */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Invalid event_type */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Popup not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    public_submit_form: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PopupSubmitRequest"];
-            };
-        };
-        responses: {
-            /** @description Form submitted */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PopupSubmission"];
-                };
-            };
-            /** @description Popup not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    resend_email_webhook: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Resend webhook JSON payload (email.sent, email.delivered, email.bounced, email.complained, email.opened, email.clicked, email.delivery_delayed) */
-        requestBody?: {
-            content: {
-                "application/json": unknown;
-            };
-        };
-        responses: {
-            /** @description Webhook processed (or duplicate) */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Invalid payload */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Invalid or missing signature */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    stripe_webhook: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Raw Stripe webhook JSON payload */
-        requestBody?: {
-            content: {
-                "application/json": unknown;
-            };
-        };
-        responses: {
-            /** @description Webhook processed */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Invalid signature or payload */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
+	update_alert: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Alert id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdateAlertRequest'];
+			};
+		};
+		responses: {
+			/** @description Alert updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['WatchlistAlert'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	delete_alert: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Alert id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Alert deleted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_audit_list: {
+		parameters: {
+			query?: {
+				/** @description Full-text query */
+				q?: string;
+				/** @description Filter by actor */
+				actor_id?: string;
+				/** @description Exact action key */
+				action?: string;
+				/** @description Exact target kind */
+				target_kind?: string;
+				/** @description Substring on target_id */
+				target_id?: string;
+				/** @description JSON object — metadata @> $ */
+				metadata_contains?: string;
+				/** @description Inclusive lower bound */
+				from?: string;
+				/** @description Inclusive upper bound */
+				to?: string;
+				/** @description Page size (1..=200) */
+				limit?: number;
+				/** @description Cursor offset */
+				offset?: number;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Paginated audit rows */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['AuditListEnvelope'];
+				};
+			};
+			/** @description Invalid filter */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_audit_export_csv: {
+		parameters: {
+			query?: {
+				/** @description Full-text query */
+				q?: string;
+				/** @description Filter by actor */
+				actor_id?: string;
+				/** @description Exact action */
+				action?: string;
+				/** @description Exact target_kind */
+				target_kind?: string;
+				/** @description Substring target_id */
+				target_id?: string;
+				/** @description JSON containment */
+				metadata_contains?: string;
+				/** @description Inclusive lower bound */
+				from?: string;
+				/** @description Inclusive upper bound */
+				to?: string;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description CSV stream */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'text/csv': unknown;
+				};
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_audit_read_one: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Audit row id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Audit row */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['AuditRow'];
+				};
+			};
+			/** @description Row not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_create_category: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreateCategoryRequest'];
+			};
+		};
+		responses: {
+			/** @description Category created */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['BlogCategory'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Validation error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_update_category: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Category id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdateCategoryRequest'];
+			};
+		};
+		responses: {
+			/** @description Category updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['BlogCategory'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_delete_category: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Category id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Category deleted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_upload_media: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: {
+			content: {
+				'multipart/form-data': unknown;
+			};
+		};
+		responses: {
+			/** @description Media uploaded */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Media'];
+				};
+			};
+			/** @description Invalid file or multipart error */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Upload exceeds size cap */
+			413: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_update_media: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Media id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdateMediaRequest'];
+			};
+		};
+		responses: {
+			/** @description Media metadata updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Media'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_delete_media: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Media id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Media deleted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_create_post: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreatePostRequest'];
+			};
+		};
+		responses: {
+			/** @description Post created */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['BlogPostResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Validation error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_update_post: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Post id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdatePostRequest'];
+			};
+		};
+		responses: {
+			/** @description Post updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['BlogPostResponse'];
+				};
+			};
+			/** @description Post in trash */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Post not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_delete_post: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Post id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Post permanently deleted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Post not in trash */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Post not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_autosave_post: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Post id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['AutosaveRequest'];
+			};
+		};
+		responses: {
+			/** @description Autosave recorded */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_upsert_post_meta: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Post id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpsertPostMetaRequest'];
+			};
+		};
+		responses: {
+			/** @description Meta upserted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['PostMeta'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_delete_post_meta: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Post id */
+				id: string;
+				/** @description Meta key to delete */
+				key: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Meta deleted */
+			204: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_restore_post_from_trash: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Post id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Post restored from trash */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['BlogPostResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_restore_revision: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Post id */
+				id: string;
+				/** @description Revision id */
+				rev_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Post restored from revision */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['BlogPostResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Post or revision not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_update_post_status: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Post id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdatePostStatusRequest'];
+			};
+		};
+		responses: {
+			/** @description Post status updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['BlogPostResponse'];
+				};
+			};
+			/** @description Post in trash */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Post not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_create_tag: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreateTagRequest'];
+			};
+		};
+		responses: {
+			/** @description Tag created */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['BlogTag'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Validation error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_delete_tag: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Tag id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Tag deleted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_list_dsar: {
+		parameters: {
+			query?: {
+				status?: string | null;
+				page?: number | null;
+				perPage?: number | null;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Paginated DSAR list */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['DsarListResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_fulfill_dsar: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description DSAR request id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['DsarFulfillRequest'];
+			};
+		};
+		responses: {
+			/** @description DSAR fulfilled */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['DsarFulfillResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description DSAR not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_create_coupon: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreateCouponRequest'];
+			};
+		};
+		responses: {
+			/** @description Coupon created */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Coupon'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Validation error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_bulk_create_coupons: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['BulkCouponRequest'];
+			};
+		};
+		responses: {
+			/** @description Bulk coupons created */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Coupon'][];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_coupon_stats: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Coupon dashboard aggregates */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CouponStats'];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_update_coupon: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Coupon id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdateCouponRequest'];
+			};
+		};
+		responses: {
+			/** @description Coupon updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Coupon'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Coupon not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_delete_coupon: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Coupon id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Coupon deleted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Coupon not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_update_coupon_engine: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Coupon id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdateCouponEngineRequest'];
+			};
+		};
+		responses: {
+			/** @description Coupon engine fields updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CouponEngineView'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Coupon not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_toggle_coupon: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Coupon id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Coupon active flag toggled */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Coupon'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Coupon not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	create_course: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreateCourseRequest'];
+			};
+		};
+		responses: {
+			/** @description Course created */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Course'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Validation error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	update_module: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Course id */
+				course_id: string;
+				/** @description Module id */
+				module_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdateModuleRequest'];
+			};
+		};
+		responses: {
+			/** @description Module updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CourseModule'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Module not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	delete_module: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Course id */
+				course_id: string;
+				/** @description Module id */
+				module_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Module deleted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Module not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	create_lesson: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Course id */
+				course_id: string;
+				/** @description Module id */
+				module_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreateLessonRequest'];
+			};
+		};
+		responses: {
+			/** @description Lesson created */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CourseLesson'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Module not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Validation error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	update_course: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Course id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdateCourseRequest'];
+			};
+		};
+		responses: {
+			/** @description Course updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Course'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Course not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	delete_course: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Course id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Course deleted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Course not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	create_module: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Course id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreateModuleRequest'];
+			};
+		};
+		responses: {
+			/** @description Module created */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CourseModule'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Course not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Validation error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	toggle_publish: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Course id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Publish toggled */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Course'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Course not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_dsar_list_jobs: {
+		parameters: {
+			query?: {
+				/** @description Status filter */
+				status?: string;
+				/** @description Kind filter (export|erase) */
+				kind?: string;
+				/** @description Filter by target user */
+				target_user_id?: string;
+				/** @description Page size (1..=200) */
+				limit?: number;
+				/** @description Cursor offset */
+				offset?: number;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Paginated DSAR jobs */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['JobListEnvelope'];
+				};
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_dsar_request_erase: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['EraseRequestBody'];
+			};
+		};
+		responses: {
+			/** @description Erasure pending approval */
+			201: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['DsarJob'];
+				};
+			};
+			/** @description Validation failed */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Target user not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Pending erasure already exists, or user already erased */
+			409: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_dsar_create_export: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['ExportRequest'];
+			};
+		};
+		responses: {
+			/** @description Export composed */
+			201: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['ExportResponse'];
+				};
+			};
+			/** @description Validation failed */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Target user not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_dsar_read_job: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description DSAR job id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description DSAR job */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['DsarJob'];
+				};
+			};
+			/** @description Job not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_dsar_stream_artifact: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description DSAR job id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Streamed JSON artefact */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': unknown;
+				};
+			};
+			/** @description Artefact is not local-streamable */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Artefact missing or expired */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Job not yet completed */
+			409: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_dsar_cancel_job: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description DSAR job id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CancelBody'];
+			};
+		};
+		responses: {
+			/** @description Job cancelled */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['DsarJob'];
+				};
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Job not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Job is not in a cancellable state */
+			409: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_dsar_approve_erase: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description DSAR job id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['EraseApproveBody'];
+			};
+		};
+		responses: {
+			/** @description Erasure executed */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['EraseApproveResponse'];
+				};
+			};
+			/** @description Validation failed */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden — self-approval is not permitted */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Job not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Job is not pending */
+			409: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_bulk_update_submissions: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Form id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['BulkActionRequest'];
+			};
+		};
+		responses: {
+			/** @description Bulk action applied */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['BulkActionResponse'];
+				};
+			};
+			/** @description Unknown action */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	update_lesson: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Lesson id */
+				lesson_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdateLessonRequest'];
+			};
+		};
+		responses: {
+			/** @description Lesson updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CourseLesson'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Lesson not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	delete_lesson: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Lesson id */
+				lesson_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Lesson deleted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Lesson not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_members_create: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreateMemberRequest'];
+			};
+		};
+		responses: {
+			/** @description Member created */
+			201: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CreateMemberResponse'];
+				};
+			};
+			/** @description Validation failed */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Email already exists */
+			409: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_members_search: {
+		parameters: {
+			query?: {
+				/** @description Free-text substring across email + name */
+				q?: string;
+				/** @description Role filter (member|author|support|admin) */
+				role?: string;
+				/** @description Status filter (active|suspended|banned|unverified) */
+				status?: string;
+				/** @description Page size (1-200, default 25) */
+				limit?: number;
+				/** @description Cursor offset */
+				offset?: number;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Paginated member rows */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['PaginatedResponse_UserResponse'];
+				};
+			};
+			/** @description Invalid filter */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	delete_member: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Member id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Member deleted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	update_member_profile: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Member id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdateMemberRequest'];
+			};
+		};
+		responses: {
+			/** @description Member profile updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['UserResponse'];
+				};
+			};
+			/** @description Validation failed */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Member not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Email already in use */
+			409: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	ban_member: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['LifecycleRequest'];
+			};
+		};
+		responses: {
+			/** @description Member banned */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['UserResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Member not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Cannot ban an admin */
+			409: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_member_billing_portal: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Member id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['BillingPortalRequest'];
+			};
+		};
+		responses: {
+			/** @description Stripe billing portal URL */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['BillingPortalResponse'];
+				};
+			};
+			/** @description Member has no subscription */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Member not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	member_detail: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Member id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Composite member detail */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MemberDetailResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Member not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	force_password_reset: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Reset link dispatched */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['ForcePasswordResetResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Member not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	reactivate_member: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Member reactivated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['UserResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Member not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	update_member_role: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Member id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['RoleUpdate'];
+			};
+		};
+		responses: {
+			/** @description Role updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['UserResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	list_sessions: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Active sessions for the member */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['SessionsResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	force_logout: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description All sessions revoked */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	revoke_session: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				id: string;
+				session_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Session revoked */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Session not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_member_subscription_cancel: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Member id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Subscription scheduled to cancel at period end */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Member has no subscription */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Member not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_member_subscription_resume: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Member id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Subscription cancellation reversed */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Member has no subscription */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Member not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	suspend_member: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['SuspendMemberRequest'];
+			};
+		};
+		responses: {
+			/** @description Member suspended */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['UserResponse'];
+				};
+			};
+			/** @description `until` is in the past */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Member not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Cannot suspend an admin */
+			409: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	unban_member: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Ban lifted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['UserResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Member not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	unsuspend_member: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Suspension lifted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['UserResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Member not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	mark_email_verified: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Email marked verified */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['UserResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Member not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	list_deliveries: {
+		parameters: {
+			query?: {
+				status?: string | null;
+				user_id?: string | null;
+				page?: number | null;
+				per_page?: number | null;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Paginated delivery log */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['PaginatedDeliveriesResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	list_suppression: {
+		parameters: {
+			query?: {
+				page?: number | null;
+				per_page?: number | null;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Paginated suppression entries */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['PaginatedSuppressionResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	add_suppression: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['AddSuppressionRequest'];
+			};
+		};
+		responses: {
+			/** @description Address suppressed */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Suppression'];
+				};
+			};
+			/** @description Invalid payload */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	remove_suppression: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['RemoveSuppressionRequest'];
+			};
+		};
+		responses: {
+			/** @description Whether a row was removed */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	list_templates: {
+		parameters: {
+			query?: {
+				key?: string | null;
+				channel?: string | null;
+				locale?: string | null;
+				active_only?: boolean | null;
+				page?: number | null;
+				per_page?: number | null;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Paginated template rows */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['PaginatedTemplatesResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	create_template: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreateTemplateRequest'];
+			};
+		};
+		responses: {
+			/** @description New template version */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Template'];
+				};
+			};
+			/** @description Invalid payload */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	get_template: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Template id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Template row */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Template'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	update_template: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Base template id (read for key/channel/locale lookup) */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdateTemplateRequest'];
+			};
+		};
+		responses: {
+			/** @description New version row */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Template'];
+				};
+			};
+			/** @description Invalid payload */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	preview_template: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Template id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['PreviewRequest'];
+			};
+		};
+		responses: {
+			/** @description Rendered template */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['RenderedTemplate'];
+				};
+			};
+			/** @description Invalid template or context */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	test_send_template: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Template id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['TestSendRequest'];
+			};
+		};
+		responses: {
+			/** @description Delivered via the live channel */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['TestSendResponse'];
+				};
+			};
+			/** @description Invalid payload */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Channel provider unavailable */
+			503: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_orders_list: {
+		parameters: {
+			query?: {
+				/** @description Substring across email + number */
+				q?: string;
+				/** @description Order status filter */
+				status?: string;
+				/** @description Page size (1-200, default 25) */
+				limit?: number;
+				/** @description Cursor offset */
+				offset?: number;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Paginated orders */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['OrderListEnvelope'];
+				};
+			};
+			/** @description Invalid filter */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_orders_create_manual: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['ManualOrderRequest'];
+			};
+		};
+		responses: {
+			/** @description Manual order created */
+			201: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['OrderDetail'];
+				};
+			};
+			/** @description Validation failed */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_orders_export_csv: {
+		parameters: {
+			query?: {
+				/** @description Order status filter */
+				status?: string;
+				/** @description Substring across email + number */
+				q?: string;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description CSV stream */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'text/csv': unknown;
+				};
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_orders_read_one: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Order id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Order detail */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['OrderDetail'];
+				};
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Order not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_orders_refund: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Order id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['RefundRequest'];
+			};
+		};
+		responses: {
+			/** @description Refund recorded */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['RefundResponse'];
+				};
+			};
+			/** @description Refund exceeds remaining balance */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Order not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_orders_void: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Order id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['VoidRequest'];
+			};
+		};
+		responses: {
+			/** @description Order cancelled */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['OrderDetail'];
+				};
+			};
+			/** @description Order is in a terminal state */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Order not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	list_outbox: {
+		parameters: {
+			query?: {
+				/** @description Filter by lifecycle state. Omit to return every row. */
+				status?: string | null;
+				page?: number | null;
+				per_page?: number | null;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Paginated outbox rows */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['PaginatedOutboxResponse'];
+				};
+			};
+			/** @description Invalid status filter */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	get_outbox: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Outbox event id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Outbox row */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['OutboxRowDto'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	retry_outbox: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Outbox event id to retry */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Event re-queued */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['OutboxRetryResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Event already delivered */
+			409: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_create_popup: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreatePopupRequest'];
+			};
+		};
+		responses: {
+			/** @description Popup created */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Popup'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Validation error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_list_analytics: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Per-popup analytics roll-up */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['PopupAnalyticsSummary'][];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_update_popup: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Popup id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdatePopupRequest'];
+			};
+		};
+		responses: {
+			/** @description Popup updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Popup'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Popup not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_delete_popup: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Popup id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Popup deleted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Popup not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_duplicate_popup: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Popup id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Popup duplicated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Popup'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Popup not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_toggle_popup: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Popup id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Popup active flag toggled */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Popup'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Popup not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_create_plan: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreatePricingPlanRequest'];
+			};
+		};
+		responses: {
+			/** @description Plan created */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['PricingPlan'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Validation error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_plan_price_change_log: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Recent amount_cents changes */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['PricingPlanAmountChangeLogEntry'][];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_update_plan: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Plan id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdatePricingPlanRequest'];
+			};
+		};
+		responses: {
+			/** @description Plan updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['AdminUpdatePricingPlanResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Plan not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_delete_plan: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Plan id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Plan deleted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Plan not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_toggle_plan: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Plan id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Plan active flag toggled */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['PricingPlan'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Plan not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_create_product: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreateProductRequest'];
+			};
+		};
+		responses: {
+			/** @description Product created */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Product'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Slug conflict */
+			409: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_update_product: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Product id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdateProductRequest'];
+			};
+		};
+		responses: {
+			/** @description Product updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Product'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Product not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_delete_product: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Product id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Product deleted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Product not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_add_asset: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Product id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreateAssetRequest'];
+			};
+		};
+		responses: {
+			/** @description Asset created */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['DownloadableAsset'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_delete_asset: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Product id */
+				id: string;
+				/** @description Asset id */
+				asset_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Asset deleted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Asset not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_set_bundle_items: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Bundle product id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['SetBundleItemsRequest'];
+			};
+		};
+		responses: {
+			/** @description Bundle items replaced */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['BundleItem'][];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Bundle not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_set_status: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Product id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['SetStatusRequest'];
+			};
+		};
+		responses: {
+			/** @description Product status updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Product'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Product not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_add_variant: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Product id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreateVariantRequest'];
+			};
+		};
+		responses: {
+			/** @description Variant created */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['ProductVariant'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_update_variant: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Product id */
+				id: string;
+				/** @description Variant id */
+				variant_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdateVariantRequest'];
+			};
+		};
+		responses: {
+			/** @description Variant updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['ProductVariant'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Variant not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_delete_variant: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Product id */
+				id: string;
+				/** @description Variant id */
+				variant_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Variant deleted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Variant not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	list_audit_log: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Filtered admin_actions feed */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['AuditLogResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	list_failed_logins: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Filtered failed login attempts */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['FailedLoginResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_impersonation_list: {
+		parameters: {
+			query?: {
+				/**
+				 * @description Cursor — `issued_at` of the last row from the previous page.
+				 *     Returns the newest page when omitted.
+				 */
+				after?: string;
+				/** @description Page size, clamped to 1..=100. Defaults to 25 when omitted. */
+				limit?: number;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Active impersonation sessions */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['ListResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_impersonation_mint: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreateImpersonationInput'];
+			};
+		};
+		responses: {
+			/** @description Impersonation token */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MintResponse'];
+				};
+			};
+			/** @description Invalid input or unsafe target */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Target user not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_impersonation_get_one: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Impersonation session id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Session row */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['ImpersonationSession'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Session not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_impersonation_revoke: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Impersonation session id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['RevokeRequest'];
+			};
+		};
+		responses: {
+			/** @description Session revoked */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['ImpersonationSession'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Session not found or already revoked */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	list_entries: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Allowlist entries */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['AllowlistResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	create_entry: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreateAllowlistInput'];
+			};
+		};
+		responses: {
+			/** @description New allowlist entry */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['AllowlistEntry'];
+				};
+			};
+			/** @description Invalid CIDR or label */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description CIDR already on the list */
+			409: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	delete_entry: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Allowlist entry id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Entry removed */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Entry not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	toggle_entry: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Allowlist entry id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['ToggleRequest'];
+			};
+		};
+		responses: {
+			/** @description Updated entry */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['AllowlistEntry'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Entry not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_roles_list_matrix: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Role/permission matrix + catalogue */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MatrixResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_roles_reload: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Policy cache reloaded; returns pair count */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_roles_list_permissions: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Permission catalogue */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['PermissionsResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_roles_replace: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Role label */
+				role: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['ReplaceRoleRequest'];
+			};
+		};
+		responses: {
+			/** @description Role permission set replaced atomically */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unknown role or permission */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Refusing to drop a self-lock guard */
+			409: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_roles_grant: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Role label (member|author|support|admin) */
+				role: string;
+				/** @description Permission key */
+				permission: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Permission granted (idempotent) */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['RolePermPair'];
+				};
+			};
+			/** @description Unknown role or permission */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_roles_revoke: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Role label (member|author|support|admin) */
+				role: string;
+				/** @description Permission key */
+				permission: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Permission revoked */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unknown role */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Refusing to revoke an admin self-lock guard */
+			409: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_settings_list: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description All settings (secrets redacted) */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['SettingListResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_settings_reload: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Cache reloaded; returns row count */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_settings_get_one: {
+		parameters: {
+			query?: {
+				/**
+				 * @description When `true` and the caller carries `admin.settings.read_secret`,
+				 *     the response includes the decrypted plaintext under
+				 *     `revealed_value`. Otherwise the value is redacted to `"***"`.
+				 */
+				reveal?: boolean;
+			};
+			header?: never;
+			path: {
+				/** @description Setting key (e.g. system.maintenance_mode) */
+				key: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Single setting */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['SettingGetResponse'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unknown key */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_settings_upsert: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Setting key */
+				key: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['SettingUpsertRequest'];
+			};
+		};
+		responses: {
+			/** @description Persisted setting (redacted) */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['SettingView'];
+				};
+			};
+			/** @description Value shape mismatched value_type */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Encryption key missing */
+			503: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_subscriptions_list: {
+		parameters: {
+			query?: {
+				/** @description 1-based page number. Defaults to 1. */
+				page?: number | null;
+				/** @description Page size. Capped to 100 to keep the join + count cheap. */
+				per_page?: number | null;
+				/** @description Case-insensitive substring against `users.email`. */
+				search?: string | null;
+				/** @description One of `active|past_due|canceled|trialing|unpaid|paused`. */
+				status?: string | null;
+				/** @description One of `monthly|annual`. */
+				plan?: string | null;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Paginated subscriptions */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['PaginatedSubscriptionsResponse'];
+				};
+			};
+			/** @description Invalid filter value */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_subscriptions_by_user: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Member id */
+				user_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Subscription + memberships */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['UserSubscriptionView'];
+				};
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Member not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_subscriptions_comp_grant: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CompGrantRequest'];
+			};
+		};
+		responses: {
+			/** @description Comp membership minted */
+			201: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CompGrantResponse'];
+				};
+			};
+			/** @description Validation failed */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Member or plan not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_subscriptions_stats: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Subscription KPIs */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['SubscriptionStats'];
+				};
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_subscriptions_override_billing_cycle: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Subscription id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CycleOverrideRequest'];
+			};
+		};
+		responses: {
+			/** @description Billing cycle anchor overridden */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CycleOverrideResponse'];
+				};
+			};
+			/** @description Validation failed (anchor must be in the future) */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Subscription not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	admin_subscriptions_extend_period: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Subscription id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['ExtendRequest'];
+			};
+		};
+		responses: {
+			/** @description Period extended */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['ExtendResponse'];
+				};
+			};
+			/** @description Validation failed */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Subscription not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	create_watchlist: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreateWatchlistRequest'];
+			};
+		};
+		responses: {
+			/** @description Watchlist created */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Watchlist'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Validation error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	update_watchlist: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Watchlist id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdateWatchlistRequest'];
+			};
+		};
+		responses: {
+			/** @description Watchlist updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Watchlist'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	delete_watchlist: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Watchlist id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Watchlist deleted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	create_alert: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Watchlist id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['CreateAlertRequest'];
+			};
+		};
+		responses: {
+			/** @description Alert created */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['WatchlistAlert'];
+				};
+			};
+			/** @description Forbidden */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Validation error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	ingest_events: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['AnalyticsIngestRequest'];
+			};
+		};
+		responses: {
+			/** @description Events accepted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Malformed event batch */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Rate-limited */
+			429: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	forgot_password: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['ForgotPasswordRequest'];
+			};
+		};
+		responses: {
+			/** @description Reset email dispatched if account exists */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Validation error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	auth_impersonation_exit: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Impersonation session ended */
+			204: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Caller is not currently impersonating */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthenticated */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	login: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['LoginRequest'];
+			};
+		};
+		responses: {
+			/** @description Authenticated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['AuthResponse'];
+				};
+			};
+			/** @description Invalid credentials */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Validation error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	logout: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Logged out; refresh tokens revoked. When called under an impersonation token, ends the impersonation session instead and returns `{ "message": "Impersonation ended" }`. */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	refresh: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['RefreshRequest'];
+			};
+		};
+		responses: {
+			/** @description Token rotated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['TokenResponse'];
+				};
+			};
+			/** @description Invalid or reused refresh token */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	register: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['RegisterRequest'];
+			};
+		};
+		responses: {
+			/** @description Account created and authenticated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['AuthResponse'];
+				};
+			};
+			/** @description Email already registered */
+			409: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Validation error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	resend_verification: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['ResendVerificationRequest'];
+			};
+		};
+		responses: {
+			/** @description Verification email queued if account is pending verification */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Validation error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	reset_password: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['ResetPasswordRequest'];
+			};
+		};
+		responses: {
+			/** @description Password updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Invalid or expired reset token */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Validation error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	verify_email: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['VerifyEmailRequest'];
+			};
+		};
+		responses: {
+			/** @description Email verified */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Invalid or expired verification token */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Validation error */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	public_unlock_post: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Post slug */
+				slug: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['VerifyPostPasswordRequest'];
+			};
+		};
+		responses: {
+			/** @description Password accepted; full post returned */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['BlogPostResponse'];
+				};
+			};
+			/** @description Post is not password protected */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Invalid password */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Post not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	get_banner: {
+		parameters: {
+			query?: {
+				/** @description BCP-47 locale tag; defaults to 'en'. */
+				locale?: string;
+				/** @description Regulatory region override (EU, UK, US-CA, …). Usually omitted — server resolves from request headers. */
+				region?: string;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Resolved banner config */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['BannerConfig'];
+				};
+			};
+			/** @description Consent tables not seeded */
+			503: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	get_my_consent: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Subject consent state */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MyConsentResponse'];
+				};
+			};
+			/** @description Authentication required */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	post_record: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['ConsentRecordRequest'];
+			};
+		};
+		responses: {
+			/** @description Consent event recorded */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['ConsentRecordResponse'];
+				};
+			};
+			/** @description Invalid action or missing subject identifier */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	public_apply_coupon: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['ValidateCouponRequest'];
+			};
+		};
+		responses: {
+			/** @description Coupon applied */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CouponValidationResponse'];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	public_validate_coupon: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['ValidateCouponRequest'];
+			};
+		};
+		responses: {
+			/** @description Coupon validation result */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CouponValidationResponse'];
+				};
+			};
+		};
+	};
+	csp_report: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** @description CSP violation report (application/csp-report or application/reports+json) */
+		requestBody: {
+			content: {
+				'text/plain': string;
+			};
+		};
+		responses: {
+			/** @description Report accepted */
+			204: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Malformed report body */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Report body exceeds 8KB */
+			413: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Rate-limited */
+			429: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	post_dsar: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['DsarSubmitRequest'];
+			};
+		};
+		responses: {
+			/** @description DSAR request accepted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['DsarSubmitResponse'];
+				};
+			};
+			/** @description Missing or invalid fields */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	public_geo_countries: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Country list */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Country'][];
+				};
+			};
+		};
+	};
+	public_geo_states: {
+		parameters: {
+			query: {
+				/** @description ISO 3166-1 alpha-2 */
+				country: string;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description State list */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['State'][];
+				};
+			};
+		};
+	};
+	public_get_form: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Form URL slug */
+				slug: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Active form definition */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['FormDefinition'];
+				};
+			};
+			/** @description Form not found or has no published version */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	public_save_partial: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Form URL slug */
+				slug: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['PartialRequest'];
+			};
+		};
+		responses: {
+			/** @description Partial saved */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['PartialResponse'];
+				};
+			};
+			/** @description Form not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	public_create_payment_intent: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Form URL slug */
+				slug: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['PaymentIntentRequest'];
+			};
+		};
+		responses: {
+			/** @description Intent created */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['PaymentIntentClientResponse'];
+				};
+			};
+			/** @description Missing Idempotency-Key or invalid amount */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Form / field not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	public_submit: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Form URL slug */
+				slug: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['SubmitRequest'];
+			};
+		};
+		responses: {
+			/** @description Submission accepted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['SubmitResponse'];
+				};
+			};
+			/** @description Form not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Validation failed; response body carries per-field errors */
+			422: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	delete_account: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Account deleted; auth cookies cleared. Cancels any active Stripe subscription before deletion. */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	post_billing_portal: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['BillingPortalRequest'];
+			};
+		};
+		responses: {
+			/** @description Stripe billing portal session URL */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['BillingPortalResponse'];
+				};
+			};
+			/** @description No subscription on file */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	post_apply_coupon: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['ApplyCouponRequest'];
+			};
+		};
+		responses: {
+			/** @description Coupon applied to the member's active subscription */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['ApplyCouponResponse'];
+				};
+			};
+			/** @description Coupon is inactive, expired, exhausted, or no active subscription */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Coupon code not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Coupon already redeemed by this user */
+			409: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	list_redeemed_coupons: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Coupon redemptions for the authenticated member */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MemberCouponRedemptionResponse'][];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	enroll_course: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Course id */
+				course_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Enrolled */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CourseEnrollment'];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Course not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	update_progress: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Course identifier */
+				course_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['ProgressUpdate'];
+			};
+		};
+		responses: {
+			/** @description Enrollment progress updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['CourseEnrollment'];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	update_lesson_progress: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Lesson id */
+				lesson_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdateLessonProgressRequest'];
+			};
+		};
+		responses: {
+			/** @description Progress updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['LessonProgress'];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Lesson not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	get_member_preferences: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Current user's notification preferences */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MemberPreferencesResponse'];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	update_member_preferences: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['BulkPreferenceUpdate'];
+			};
+		};
+		responses: {
+			/** @description Updated preferences */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MemberPreferencesResponse'];
+				};
+			};
+			/** @description Invalid payload */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	list_orders: {
+		parameters: {
+			query?: {
+				/** @description 1-based page number (default 1) */
+				page?: number;
+				/** @description Page size (default 20, max 50) */
+				per_page?: number;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Paginated orders for the authenticated member */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['PaginatedMemberOrdersResponse'];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	get_order_detail: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Order id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Order detail */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MemberOrderDetailResponse'];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Order not found or not owned by the member */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	post_change_password: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['ChangePasswordRequest'];
+			};
+		};
+		responses: {
+			/** @description Password changed and a fresh access+refresh pair issued as cookies */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['ChangePasswordResponse'];
+				};
+			};
+			/** @description New password too short or current_password missing */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthorized or current_password mismatch */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	list_payment_methods: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Saved payment methods + the customer's current default */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MemberPaymentMethodsResponse'];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Member has no Stripe customer on file */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	post_setup_intent: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Stripe SetupIntent client_secret for Stripe Elements */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['SetupIntentResponse'];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Member has no Stripe customer on file */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	delete_payment_method: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Stripe payment method id (`pm_*`) */
+				pm_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Payment method detached */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['DeletePaymentMethodResponse'];
+				};
+			};
+			/** @description Refused: card is the active subscription's default */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Payment method not found or not owned by the member */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	post_set_default_payment_method: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Stripe payment method id (`pm_*`) */
+				pm_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Default payment method updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['SetDefaultPaymentMethodResponse'];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Payment method not found or not owned by the member */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	update_profile: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['UpdateProfileRequest'];
+			};
+		};
+		responses: {
+			/** @description Profile updated */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['UserResponse'];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	post_subscription_cancel: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Subscription scheduled to cancel at period end */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description No subscription on file */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	post_subscription_resume: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Subscription cancellation reversed */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description No subscription on file */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	list_subscriptions: {
+		parameters: {
+			query?: {
+				/** @description 1-based page number (default 1) */
+				page?: number;
+				/** @description Page size (default 20, max 50) */
+				per_page?: number;
+			};
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Full subscription history for the authenticated member */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['PaginatedMemberSubscriptionsResponse'];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	get_subscription_detail: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Subscription id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Subscription detail (plan + invoices + related orders) */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['MemberSubscriptionDetailResponse'];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Subscription not found or not owned by the member */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	post_cancel_subscription: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Subscription id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Cancel-at-period-end flag set on the subscription */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Subscription'];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Subscription not found or not owned by the member */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	post_pause_subscription: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Subscription id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['PauseSubscriptionRequest'];
+			};
+		};
+		responses: {
+			/** @description Subscription paused */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Subscription'];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Subscription not found or not owned by the member */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	post_resume_subscription: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Subscription id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Cancel-at-period-end flag cleared */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Subscription'];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Subscription not found or not owned by the member */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	post_switch_subscription_plan: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Subscription id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['SwitchPlanRequest'];
+			};
+		};
+		responses: {
+			/** @description Subscription switched to the new plan */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Subscription'];
+				};
+			};
+			/** @description Target plan invalid (no Stripe price id, missing line item, etc.) */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Subscription or pricing plan not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	get_switch_plan_preview: {
+		parameters: {
+			query: {
+				/** @description Target pricing_plans.id to preview */
+				pricing_plan_id: string;
+			};
+			header?: never;
+			path: {
+				/** @description Subscription id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Stripe upcoming-invoice proration preview */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['SwitchPlanPreviewResponse'];
+				};
+			};
+			/** @description Target plan invalid or local subscription has no Stripe twin */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Subscription or pricing plan not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	post_unpause_subscription: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				/** @description Subscription id */
+				id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Subscription resumed */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['Subscription'];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Subscription not found or not owned by the member */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	public_track_event: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['TrackEventRequest'];
+			};
+		};
+		responses: {
+			/** @description Event tracked */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Invalid event_type */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Popup not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	public_submit_form: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				'application/json': components['schemas']['PopupSubmitRequest'];
+			};
+		};
+		responses: {
+			/** @description Form submitted */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					'application/json': components['schemas']['PopupSubmission'];
+				};
+			};
+			/** @description Popup not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	resend_email_webhook: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** @description Resend webhook JSON payload (email.sent, email.delivered, email.bounced, email.complained, email.opened, email.clicked, email.delivery_delayed) */
+		requestBody?: {
+			content: {
+				'application/json': unknown;
+			};
+		};
+		responses: {
+			/** @description Webhook processed (or duplicate) */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Invalid payload */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Invalid or missing signature */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Server error */
+			500: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	stripe_webhook: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** @description Raw Stripe webhook JSON payload */
+		requestBody?: {
+			content: {
+				'application/json': unknown;
+			};
+		};
+		responses: {
+			/** @description Webhook processed */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Invalid signature or payload */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Server error */
+			500: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
 }

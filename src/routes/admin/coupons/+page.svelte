@@ -438,8 +438,9 @@
 				{@const st = couponStatus(coupon)}
 				<div class="ccard">
 					<div class="ccard__top">
-						<a href={resolve('/admin/coupons/[id]', { id: coupon.id })} class="ccard__code"
-							>{coupon.code}</a
+						<a
+							href={resolve('/admin/coupons/[id]', { id: coupon.id })}
+							class="ccard__code">{coupon.code}</a
 						>
 						<span class="badge badge--{st}">{statusLabel(st)}</span>
 					</div>

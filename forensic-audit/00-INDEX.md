@@ -64,14 +64,15 @@ forensic-audit/
 
 (Empty until Phase 2 begins.)
 
-| ID | Title | Phase | Status |
-|----|-------|-------|--------|
+| ID  | Title | Phase | Status |
+| --- | ----- | ----- | ------ |
 
 ---
 
 ## Anti-lie protocol
 
 Before any phase reports complete, the dispatched agent must:
+
 1. Pick 3 random findings from its own output.
 2. Re-open the cited file at the cited line numbers. Confirm the code is what was quoted.
 3. Re-run the cited reproducer command. Confirm output matches captured artifact.

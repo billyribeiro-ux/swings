@@ -78,12 +78,12 @@ necessary but not sufficient proof.
 
 `swings` is a production full-stack membership and content platform.
 
-| Surface  | Stack                                                    | Host       |
-| -------- | -------------------------------------------------------- | ---------- |
-| Frontend | SvelteKit · Svelte 5 runes · scoped CSS (no Tailwind)    | Vercel     |
-| Backend  | Rust 2021 · Axum · `sqlx` · Tokio                        | Railway    |
-| Database | PostgreSQL 16 · forward-only `sqlx` migrations           | Railway    |
-| Storage  | Cloudflare R2 (S3-compatible)                            | Cloudflare |
+| Surface  | Stack                                                 | Host       |
+| -------- | ----------------------------------------------------- | ---------- |
+| Frontend | SvelteKit · Svelte 5 runes · scoped CSS (no Tailwind) | Vercel     |
+| Backend  | Rust 2021 · Axum · `sqlx` · Tokio                     | Railway    |
+| Database | PostgreSQL 16 · forward-only `sqlx` migrations        | Railway    |
+| Storage  | Cloudflare R2 (S3-compatible)                         | Cloudflare |
 
 Single pnpm workspace at root; Cargo crate at `backend/`. No separate frontend package.
 
@@ -91,21 +91,21 @@ Single pnpm workspace at root; Cargo crate at `backend/`. No separate frontend p
 
 ## Commands
 
-| Goal                           | Command                                                                           |
-| ------------------------------ | --------------------------------------------------------------------------------- |
-| Frontend dev                   | `pnpm dev`                                                                        |
-| Backend dev                    | `pnpm dev:api`                                                                    |
-| Both together                  | `pnpm dev:all`                                                                    |
-| Type-check frontend            | `pnpm check`                                                                      |
-| Lint frontend                  | `pnpm lint`                                                                       |
-| Frontend unit tests            | `pnpm test:unit`                                                                  |
-| Frontend E2E                   | `pnpm test:e2e`                                                                   |
-| Backend fmt check (CI parity)  | `cargo fmt --manifest-path backend/Cargo.toml --all -- --check`                   |
-| Backend lint (CI parity)       | `cargo clippy --manifest-path backend/Cargo.toml --all-targets -- -D warnings`    |
-| Backend tests (needs Postgres) | `cd backend && cargo test`                                                        |
-| Whole-repo CI parity           | `pnpm ci:all`                                                                     |
-| Regenerate OpenAPI TS types    | `pnpm gen:types`                                                                  |
-| Stripe webhook forwarding      | `pnpm stripe:listen`                                                              |
+| Goal                           | Command                                                                        |
+| ------------------------------ | ------------------------------------------------------------------------------ |
+| Frontend dev                   | `pnpm dev`                                                                     |
+| Backend dev                    | `pnpm dev:api`                                                                 |
+| Both together                  | `pnpm dev:all`                                                                 |
+| Type-check frontend            | `pnpm check`                                                                   |
+| Lint frontend                  | `pnpm lint`                                                                    |
+| Frontend unit tests            | `pnpm test:unit`                                                               |
+| Frontend E2E                   | `pnpm test:e2e`                                                                |
+| Backend fmt check (CI parity)  | `cargo fmt --manifest-path backend/Cargo.toml --all -- --check`                |
+| Backend lint (CI parity)       | `cargo clippy --manifest-path backend/Cargo.toml --all-targets -- -D warnings` |
+| Backend tests (needs Postgres) | `cd backend && cargo test`                                                     |
+| Whole-repo CI parity           | `pnpm ci:all`                                                                  |
+| Regenerate OpenAPI TS types    | `pnpm gen:types`                                                               |
+| Stripe webhook forwarding      | `pnpm stripe:listen`                                                           |
 
 Pre-commit hook: `pnpm lint && pnpm test:unit -- --run`. Do not bypass without documenting why in the commit message.
 
@@ -155,12 +155,12 @@ scripts/              Repo automation
 
 Spawned from `backend/src/main.rs`. Each emits a `*_last_success_unixtime` Prometheus gauge.
 
-| Worker                  | File                              |
-| ----------------------- | --------------------------------- |
-| Outbox event dispatcher | `events/worker.rs`                |
-| Audit log retention     | `services/audit_retention.rs`     |
-| DSAR export             | `services/dsar_worker.rs`         |
-| Idempotency-Key GC      | `services/idempotency_gc.rs`      |
+| Worker                  | File                          |
+| ----------------------- | ----------------------------- |
+| Outbox event dispatcher | `events/worker.rs`            |
+| Audit log retention     | `services/audit_retention.rs` |
+| DSAR export             | `services/dsar_worker.rs`     |
+| Idempotency-Key GC      | `services/idempotency_gc.rs`  |
 
 When adding a worker: add the metric, the Prometheus alert in `ops/`, and the runbook section in `docs/RUNBOOK.md` in the same PR.
 
@@ -197,6 +197,7 @@ When adding a worker: add the metric, the Prometheus alert in `ops/`, and the ru
 4. `rust_analyzer_hover` / `definition` / `references` / `completion` — type-aware navigation, cheaper than grep.
 
 **Fallback** (if the MCP server is unavailable):
+
 ```bash
 cargo fmt --manifest-path backend/Cargo.toml --all -- --check
 cargo clippy --manifest-path backend/Cargo.toml --all-targets -- -D warnings
@@ -206,10 +207,10 @@ cargo clippy --manifest-path backend/Cargo.toml --all-targets -- -D warnings
 
 ## Deployment
 
-| Surface  | Platform | Config                                         |
-| -------- | -------- | ---------------------------------------------- |
-| Frontend | Vercel   | `vercel.json` + `svelte.config.js`             |
-| Backend  | Railway  | `Dockerfile` at repo root (single file)        |
+| Surface  | Platform | Config                                  |
+| -------- | -------- | --------------------------------------- |
+| Frontend | Vercel   | `vercel.json` + `svelte.config.js`      |
+| Backend  | Railway  | `Dockerfile` at repo root (single file) |
 
 One Dockerfile serves both Railway and local `docker-compose.yml`. Do not create a second one.
 
@@ -219,9 +220,9 @@ Full guide: [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md). Runbook: [`docs/RUNBOO
 
 ## Known open items (non-blockers)
 
-| # | Item |
-| - | ---- |
+| #   | Item                                                                                                |
+| --- | --------------------------------------------------------------------------------------------------- |
 | O-1 | `consent.rs` admin handlers use `AdminUser` extractor only — no fine-grained `policy.require()` yet |
-| O-2 | TOTP / MFA for admin roles — not yet implemented |
-| O-3 | `/api/greeks-pdf` returns `success: true` without a real PDF |
-| O-4 | `anchor_recent` in `consent/integrity.rs` has no worker invoking it |
+| O-2 | TOTP / MFA for admin roles — not yet implemented                                                    |
+| O-3 | `/api/greeks-pdf` returns `success: true` without a real PDF                                        |
+| O-4 | `anchor_recent` in `consent/integrity.rs` has no worker invoking it                                 |

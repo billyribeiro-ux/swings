@@ -43,10 +43,7 @@ function siteOrigin(): string {
 	const configured = publicEnv.PUBLIC_APP_URL?.trim();
 	if (configured) return configured.replace(/\/$/, '');
 	if (env.NODE_ENV === 'production' || env.VERCEL_ENV === 'production') {
-		error(
-			500,
-			'Checkout is not configured: PUBLIC_APP_URL must be set in production'
-		);
+		error(500, 'Checkout is not configured: PUBLIC_APP_URL must be set in production');
 	}
 	return 'http://localhost:5173';
 }

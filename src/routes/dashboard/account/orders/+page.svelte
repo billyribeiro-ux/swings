@@ -141,7 +141,9 @@
 							<th scope="row" class="orders__cell-number">
 								<a
 									class="orders__num-link"
-									href={resolve('/dashboard/account/orders/[id]', { id: order.id })}
+									href={resolve('/dashboard/account/orders/[id]', {
+										id: order.id
+									})}
 								>
 									#{order.number}
 								</a>
@@ -176,7 +178,9 @@
 							<td class="orders__col-actions">
 								<a
 									class="orders__view"
-									href={resolve('/dashboard/account/orders/[id]', { id: order.id })}
+									href={resolve('/dashboard/account/orders/[id]', {
+										id: order.id
+									})}
 									aria-label="View order #{order.number}"
 								>
 									<EyeIcon size={14} weight="bold" />
@@ -219,7 +223,9 @@
 						<dl class="card__rows">
 							<div>
 								<dt>Total</dt>
-								<dd class="card__num-val">{formatMoney(order.total_cents, order.currency)}</dd>
+								<dd class="card__num-val">
+									{formatMoney(order.total_cents, order.currency)}
+								</dd>
 							</div>
 							<div>
 								<dt>Date</dt>

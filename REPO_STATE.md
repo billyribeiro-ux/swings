@@ -17,18 +17,18 @@ has either shipped or never existed; the legacy ledgers were stale by ~7 days.
 This document is the new single source of truth — older ledgers are recommended
 for deletion (§5).
 
-| Surface | Result |
-|---|---|
-| Frontend lint (`pnpm lint`) | clean |
-| Frontend type-check (`pnpm check`) | 0 errors / 0 warnings |
-| Frontend unit tests (`pnpm test:unit`) | 12 files / **103 tests** pass |
-| Backend `cargo fmt --all -- --check` | clean |
-| Backend `cargo clippy --all-targets -- -D warnings` | clean |
-| Backend `cargo test --lib` | **524 tests** pass / 0 ignored |
-| Backend `cargo test --tests` (40 binaries) | **850 tests** pass / 0 ignored |
-| Migrations (`backend/migrations/*.sql`) | 72 files; latest `080_subscription_price_protection.sql` |
-| OpenAPI snapshot | regenerated 2026-05-01 to absorb new endpoints |
-| Frontend OpenAPI types | regenerated 2026-05-01 in lockstep |
+| Surface                                             | Result                                                   |
+| --------------------------------------------------- | -------------------------------------------------------- |
+| Frontend lint (`pnpm lint`)                         | clean                                                    |
+| Frontend type-check (`pnpm check`)                  | 0 errors / 0 warnings                                    |
+| Frontend unit tests (`pnpm test:unit`)              | 12 files / **103 tests** pass                            |
+| Backend `cargo fmt --all -- --check`                | clean                                                    |
+| Backend `cargo clippy --all-targets -- -D warnings` | clean                                                    |
+| Backend `cargo test --lib`                          | **524 tests** pass / 0 ignored                           |
+| Backend `cargo test --tests` (40 binaries)          | **850 tests** pass / 0 ignored                           |
+| Migrations (`backend/migrations/*.sql`)             | 72 files; latest `080_subscription_price_protection.sql` |
+| OpenAPI snapshot                                    | regenerated 2026-05-01 to absorb new endpoints           |
+| Frontend OpenAPI types                              | regenerated 2026-05-01 in lockstep                       |
 
 **Total automated checks passing: 1,477 tests across the repo, zero ignored, zero failed.**
 
@@ -38,28 +38,28 @@ for deletion (§5).
 
 ### 1.1 Top-level audit ledgers — historical, retire after merging into this doc
 
-| File | Date | Status | Disposition |
-|---|---|---|---|
-| `AUDIT.md` | 2026-04-24 | All Phase-1 blockers shipped; release checklist is operator-side, not code-side | **DELETE** (superseded by this doc) |
-| `AUDIT_FIX_PLAN.md` | derived from 2026-04-26 report | All 6 blockers shipped — see §3 | **DELETE** |
-| `AUDIT_REPORT.md` | 2026-04-26 | Findings closed (incl. observability ignore — actually never had `#[ignore]`) | **DELETE** |
-| `TODO_AUDIT.md` | 2026-04-26 | Annotated as RESOLVED in-file; only #8 (`/api/greeks-pdf`) and #14 (consent anchor) still open — see §4 | **DELETE** (open items folded into §4 below) |
-| `docs/REMAINING-WORK.md` | 2026-04-25 | 2 of 4 P0 items shipped (Stripe webhooks, BFF cookies); RBAC partial; MFA still open — see §4 | **DELETE** (open items folded into §4 below) |
+| File                     | Date                           | Status                                                                                                  | Disposition                                  |
+| ------------------------ | ------------------------------ | ------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `AUDIT.md`               | 2026-04-24                     | All Phase-1 blockers shipped; release checklist is operator-side, not code-side                         | **DELETE** (superseded by this doc)          |
+| `AUDIT_FIX_PLAN.md`      | derived from 2026-04-26 report | All 6 blockers shipped — see §3                                                                         | **DELETE**                                   |
+| `AUDIT_REPORT.md`        | 2026-04-26                     | Findings closed (incl. observability ignore — actually never had `#[ignore]`)                           | **DELETE**                                   |
+| `TODO_AUDIT.md`          | 2026-04-26                     | Annotated as RESOLVED in-file; only #8 (`/api/greeks-pdf`) and #14 (consent anchor) still open — see §4 | **DELETE** (open items folded into §4 below) |
+| `docs/REMAINING-WORK.md` | 2026-04-25                     | 2 of 4 P0 items shipped (Stripe webhooks, BFF cookies); RBAC partial; MFA still open — see §4           | **DELETE** (open items folded into §4 below) |
 
 ### 1.2 Canonical docs — keep, refresh
 
-| File | Status | Action |
-|---|---|---|
-| `README.md` | Active; migration count line says "67 / 001–075" — **stale** | Update to reflect 72 / 001–080 |
-| `AGENTS.md` | Active; says "001–074, gap-tolerant" — **stale** | Update to 001–080 |
-| `CLAUDE.md` | Thin alias to AGENTS.md | Keep |
-| `SECURITY.md` | Minimal disclosure policy | Keep |
-| `CHANGELOG.md` | Maintained format; entries from 2026-04-24 + 2026-05-01 | Keep |
-| `backend/README.md` | Active crate-level guide; says "66 migrations / 001–074" — **stale** | Update to 72 / 001–080 |
-| `e2e/README.md` | Playwright runbook + sketched-but-unmerged CI workflow | Keep |
-| `ops/README.md` | Prometheus/Grafana provisioning + metric inventory | Keep |
-| `.github/pull_request_template.md` | PR scaffold | Keep |
-| `.windsurf/workflows/terms.md` | **Empty file** (0 bytes) | **DELETE** |
+| File                               | Status                                                               | Action                         |
+| ---------------------------------- | -------------------------------------------------------------------- | ------------------------------ |
+| `README.md`                        | Active; migration count line says "67 / 001–075" — **stale**         | Update to reflect 72 / 001–080 |
+| `AGENTS.md`                        | Active; says "001–074, gap-tolerant" — **stale**                     | Update to 001–080              |
+| `CLAUDE.md`                        | Thin alias to AGENTS.md                                              | Keep                           |
+| `SECURITY.md`                      | Minimal disclosure policy                                            | Keep                           |
+| `CHANGELOG.md`                     | Maintained format; entries from 2026-04-24 + 2026-05-01              | Keep                           |
+| `backend/README.md`                | Active crate-level guide; says "66 migrations / 001–074" — **stale** | Update to 72 / 001–080         |
+| `e2e/README.md`                    | Playwright runbook + sketched-but-unmerged CI workflow               | Keep                           |
+| `ops/README.md`                    | Prometheus/Grafana provisioning + metric inventory                   | Keep                           |
+| `.github/pull_request_template.md` | PR scaffold                                                          | Keep                           |
+| `.windsurf/workflows/terms.md`     | **Empty file** (0 bytes)                                             | **DELETE**                     |
 
 ### 1.3 docs/ — keep as canonical operator/developer references
 
@@ -78,16 +78,16 @@ flag has either shipped or moved into the live ledgers (which themselves are
 about to be retired by this doc). Their commit history is preserved in git;
 no information loss from deletion.
 
-| File | What it was | Why safe to delete |
-|---|---|---|
-| `AUDIT_PHASE1_RECON.md` | 2026-04-17 repo recon | Snapshot, not a live reference |
-| `AUDIT_PHASE2_GAPS.md` | 2026-04-17 gap analysis | All gaps shipped |
-| `AUDIT_PHASE3_PLAN.md` | 2026-04-17 implementation plan; §12 has the authz matrix | The matrix is now seeded by `021_rbac.sql`; that's the source of truth, not this doc |
-| `ADMIN_TODO.md` | Closed admin-scope ledger | All tasks shipped |
-| `BACKEND-AUDIT-REPORT.md` | Phase 1–4 engineering report | Findings shipped |
-| `deployment-readiness-report.md` | Pre-deploy gate review | Superseded by live monitoring + DEPLOYMENT.md |
-| `wiring-verification-report.md` | Confirms wiring docs were applied | Already verified — runtime is the proof |
-| `project-audit.md` | ~15.5k-line verbatim file dump | Regenerable on demand by `scripts/audit-dump.*` |
+| File                             | What it was                                              | Why safe to delete                                                                   |
+| -------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `AUDIT_PHASE1_RECON.md`          | 2026-04-17 repo recon                                    | Snapshot, not a live reference                                                       |
+| `AUDIT_PHASE2_GAPS.md`           | 2026-04-17 gap analysis                                  | All gaps shipped                                                                     |
+| `AUDIT_PHASE3_PLAN.md`           | 2026-04-17 implementation plan; §12 has the authz matrix | The matrix is now seeded by `021_rbac.sql`; that's the source of truth, not this doc |
+| `ADMIN_TODO.md`                  | Closed admin-scope ledger                                | All tasks shipped                                                                    |
+| `BACKEND-AUDIT-REPORT.md`        | Phase 1–4 engineering report                             | Findings shipped                                                                     |
+| `deployment-readiness-report.md` | Pre-deploy gate review                                   | Superseded by live monitoring + DEPLOYMENT.md                                        |
+| `wiring-verification-report.md`  | Confirms wiring docs were applied                        | Already verified — runtime is the proof                                              |
+| `project-audit.md`               | ~15.5k-line verbatim file dump                           | Regenerable on demand by `scripts/audit-dump.*`                                      |
 
 **Recommendation:** delete the entire `docs/archive/` folder (8 files,
 ~17.6k lines combined). Note: `README.md` and `backend/README.md` link to
@@ -126,14 +126,14 @@ backlinks in `README.md` and `backend/README.md` will be updated to point at
 
 Every blocker from `AUDIT_FIX_PLAN.md` re-verified by grep + file read.
 
-| # | Blocker | Status | Evidence |
-|---|---|---|---|
-| 1.1 | Doubled-prefix routes (coupons/courses/products) | ✅ DONE | `backend/src/handlers/{coupons,courses,products}.rs` use `.route("/", ...)` with no doubled `/coupons/coupons` paths; nesting verified in `main.rs` |
-| 1.2 | Mount `forms::{public_router, admin_router}` | ✅ DONE | `handlers/forms.rs:47,77` — both nested in `main.rs` at `/api/forms` and `/api/admin/forms` |
-| 1.3 | Forms admin CRUD wired | ⚠ PARTIAL | Frontend pages exist; backend `admin_router` only exposes `/{id}/submissions`. Form CRUD lands via the public form-builder API. Not a blocker — gap is documented and already understood. |
-| 1.4 | Idempotency middleware reads BFF cookie | ✅ DONE | `middleware/idempotency.rs:198` calls `extract_access_token(headers)` which checks both `Authorization: Bearer` and the `swings_access` cookie |
-| 1.5 | RUSTSEC patches | ✅ DONE | `aws-sdk-s3 = "1.120"` pinned; commit `35e81bb` closes RUSTSEC-2024-0384 |
-| 1.6 | Default `JWT_SECRET` removed from compose | ✅ DONE | `docker-compose.yml:33` is `JWT_SECRET: ${JWT_SECRET:?...}` — fails fast |
+| #   | Blocker                                          | Status    | Evidence                                                                                                                                                                                  |
+| --- | ------------------------------------------------ | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.1 | Doubled-prefix routes (coupons/courses/products) | ✅ DONE   | `backend/src/handlers/{coupons,courses,products}.rs` use `.route("/", ...)` with no doubled `/coupons/coupons` paths; nesting verified in `main.rs`                                       |
+| 1.2 | Mount `forms::{public_router, admin_router}`     | ✅ DONE   | `handlers/forms.rs:47,77` — both nested in `main.rs` at `/api/forms` and `/api/admin/forms`                                                                                               |
+| 1.3 | Forms admin CRUD wired                           | ⚠ PARTIAL | Frontend pages exist; backend `admin_router` only exposes `/{id}/submissions`. Form CRUD lands via the public form-builder API. Not a blocker — gap is documented and already understood. |
+| 1.4 | Idempotency middleware reads BFF cookie          | ✅ DONE   | `middleware/idempotency.rs:198` calls `extract_access_token(headers)` which checks both `Authorization: Bearer` and the `swings_access` cookie                                            |
+| 1.5 | RUSTSEC patches                                  | ✅ DONE   | `aws-sdk-s3 = "1.120"` pinned; commit `35e81bb` closes RUSTSEC-2024-0384                                                                                                                  |
+| 1.6 | Default `JWT_SECRET` removed from compose        | ✅ DONE   | `docker-compose.yml:33` is `JWT_SECRET: ${JWT_SECRET:?...}` — fails fast                                                                                                                  |
 
 ---
 
@@ -142,14 +142,14 @@ Every blocker from `AUDIT_FIX_PLAN.md` re-verified by grep + file read.
 These are the **only** code-side gaps that survived verification. None are
 blockers; all are tracked here as the authoritative open list:
 
-| # | Item | Severity | Where |
-|---|---|---|---|
-| O-1 | RBAC fine-grained `admin.require()` not yet added to `consent.rs` admin handlers (uses `AdminUser` extractor only) | medium | `backend/src/handlers/consent.rs` |
-| O-2 | TOTP / MFA for admin/support roles | medium-high | not yet implemented; no migration exists |
-| O-3 | `/api/greeks-pdf` (frontend route) returns `success: true` without sending a PDF | low | `src/routes/api/greeks-pdf/+server.ts:33-35` |
-| O-4 | CONSENT-08 anchor scheduler not wired (`anchor_recent` exists but no worker invokes it) | low | `backend/src/consent/integrity.rs:97` |
-| O-5 | `SETTINGS_ENCRYPTION_KEY` length not validated at startup (only on first decrypt) | low | `backend/src/config.rs:170-175` |
-| O-6 | `e2e/README.md` references a `.github/workflows/e2e.yml` that does not exist; CI lane is sketched but not merged | low | `e2e/README.md:108-162` |
+| #   | Item                                                                                                               | Severity    | Where                                        |
+| --- | ------------------------------------------------------------------------------------------------------------------ | ----------- | -------------------------------------------- |
+| O-1 | RBAC fine-grained `admin.require()` not yet added to `consent.rs` admin handlers (uses `AdminUser` extractor only) | medium      | `backend/src/handlers/consent.rs`            |
+| O-2 | TOTP / MFA for admin/support roles                                                                                 | medium-high | not yet implemented; no migration exists     |
+| O-3 | `/api/greeks-pdf` (frontend route) returns `success: true` without sending a PDF                                   | low         | `src/routes/api/greeks-pdf/+server.ts:33-35` |
+| O-4 | CONSENT-08 anchor scheduler not wired (`anchor_recent` exists but no worker invokes it)                            | low         | `backend/src/consent/integrity.rs:97`        |
+| O-5 | `SETTINGS_ENCRYPTION_KEY` length not validated at startup (only on first decrypt)                                  | low         | `backend/src/config.rs:170-175`              |
+| O-6 | `e2e/README.md` references a `.github/workflows/e2e.yml` that does not exist; CI lane is sketched but not merged   | low         | `e2e/README.md:108-162`                      |
 
 Notes on RBAC: the legacy claim that "10 handlers lack RBAC" was **incorrect**.
 Direct grep shows `blog.rs` (17), `courses.rs` (10), `coupons.rs` (7),

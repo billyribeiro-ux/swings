@@ -5,8 +5,8 @@ Timestamps use the operator-facing calendar date attached to the change list.
 
 > **Convention (from 2026-05-01 onward):** every session that changes code
 > must prepend a new `## YYYY-MM-DD HH:MM ET — <title>` section at the top
-> of this log. Each entry documents the *why* and *impact*; the diff is the
-> full record of *what*.
+> of this log. Each entry documents the _why_ and _impact_; the diff is the
+> full record of _what_.
 
 ---
 
@@ -18,6 +18,7 @@ has a full members list with filters), not on the operator's main
 landing — admin home is for ops health (KPIs, quick actions), not
 member-acquisition feeds. Removed the section in
 `src/routes/admin/+page.svelte` and cleaned up:
+
 - The orphan `formatDate()` helper (only used by the removed section)
 - All orphan CSS (`.admin-dash__link`, `.admin-dash__empty`,
   `.admin-dash__table-wrap`, `.admin-dash__cards`, the entire
@@ -59,10 +60,10 @@ Two new forward-only migrations DELETE the demo content seeded by older
 migrations so a fresh DB renders empty states everywhere:
 
 - **`086_strip_seeded_pricing_plans.sql`** — `DELETE FROM pricing_plans
-  WHERE slug IN ('monthly', 'annual')`. The operator builds the real
+WHERE slug IN ('monthly', 'annual')`. The operator builds the real
   catalog through the admin pricing UI on a clean DB.
 - **`087_strip_seeded_popup_templates.sql`** — `DELETE FROM popups WHERE
-  is_template = TRUE`. The popup-templates seed in `052_popup_templates.sql`
+is_template = TRUE`. The popup-templates seed in `052_popup_templates.sql`
   was confusing the empty-state UX.
 
 Frontend: `Testimonials.svelte` had three hard-coded fake testimonials
@@ -121,6 +122,7 @@ Exported from `src/lib/components/shared/index.ts` for reuse.
 21:00 ship is at `z-index: 50`. On `/dashboard/*` and `/admin/*` mobile
 viewports the bottom of the banner was being painted UNDER the tab bar.
 Two fixes:
+
 - Bumped banner `z-index` to `60` so it floats above the tab bar
 - On `< 768px`, added `inset-block-end: calc(56px + env(safe-area-inset-bottom, 0px))`
   for both `bar` and `box` layouts so the banner sits ABOVE the tab bar
@@ -129,18 +131,18 @@ Two fixes:
 
 ### Verification gate (commit `0597bb1`)
 
-| Check | Result |
-|---|---|
-| `cargo fmt --all -- --check` | clean (exit 0) |
-| `cargo clippy --all-targets -- -D warnings` | clean (0 warnings) |
-| `cargo test --lib` | **524 passed / 0 failed / 0 ignored** |
-| `cargo test --test admin_blog_post_update` | **1 / 1** new regression test passes |
-| `cargo test --test admin_coupons_create` | 4 / 4 still pass |
-| `cargo test --test member_subscriptions` | 13 / 13 still pass |
-| Migration replay (fresh DB, `001..087`) | all apply; `pricing_plans=0`, `template_popups=0` |
-| `pnpm check` | **4426 files / 0 errors / 0 warnings** |
-| `pnpm lint` | 0 errors, 1 pre-existing warning (`forensic-cls.spec.ts` unused arg, unrelated) |
-| `pnpm test:unit -- --run` | **103 / 103 passed** |
+| Check                                       | Result                                                                          |
+| ------------------------------------------- | ------------------------------------------------------------------------------- |
+| `cargo fmt --all -- --check`                | clean (exit 0)                                                                  |
+| `cargo clippy --all-targets -- -D warnings` | clean (0 warnings)                                                              |
+| `cargo test --lib`                          | **524 passed / 0 failed / 0 ignored**                                           |
+| `cargo test --test admin_blog_post_update`  | **1 / 1** new regression test passes                                            |
+| `cargo test --test admin_coupons_create`    | 4 / 4 still pass                                                                |
+| `cargo test --test member_subscriptions`    | 13 / 13 still pass                                                              |
+| Migration replay (fresh DB, `001..087`)     | all apply; `pricing_plans=0`, `template_popups=0`                               |
+| `pnpm check`                                | **4426 files / 0 errors / 0 warnings**                                          |
+| `pnpm lint`                                 | 0 errors, 1 pre-existing warning (`forensic-cls.spec.ts` unused arg, unrelated) |
+| `pnpm test:unit -- --run`                   | **103 / 103 passed**                                                            |
 
 ---
 
@@ -167,6 +169,7 @@ fail at the `Json<>` extractor:
    (would have stored `5¢` instead of `$5`).
 
 Fix touched both pages:
+
 - `src/routes/admin/coupons/new/+page.svelte` — corrected field names,
   added `dollarsToCents()` / `dateToIso()` / `intOrNull()` helpers,
   dropdown value `"fixed"` → `"fixed_amount"`.
@@ -179,6 +182,7 @@ Fix touched both pages:
 ### Regression test added
 
 `backend/tests/admin_coupons_create.rs` (new file, 4 tests):
+
 - `create_with_percentage_returns_200_and_persists_row`
 - `create_with_fixed_amount_returns_200`
 - `create_with_free_trial_returns_200`
@@ -191,6 +195,7 @@ All 4 pass against a real Postgres test DB.
 ### Tooltip polish
 
 `src/lib/components/ui/Tooltip.svelte` — Google-grade visual refresh:
+
 - **Arrow / stem added.** Hybrid CSS + measurement: a CSS triangle on
   a sibling `<span class="tooltip__arrow">` is positioned via
   `--tooltip-arrow-offset` set from `computePosition()`. Result: the
@@ -231,16 +236,16 @@ into `git status`. Added `/uploads/` to `backend/.gitignore`.
 
 ### Verification
 
-| Check | Result |
-|---|---|
-| `cargo fmt --all -- --check` | clean |
-| `cargo clippy --all-targets -- -D warnings` | clean |
-| `cargo test --lib` | 524 / 0 / 0 |
-| `cargo test --test admin_coupons_create` | **4 / 4** new tests pass |
-| `pnpm check` | 4423 files / 0 errors / 0 warnings |
-| `pnpm lint` | clean |
-| `pnpm test:unit -- --run` | 103 / 103 |
-| `pnpm test:unit -- Tooltip --run` (browser) | 6 / 6 |
+| Check                                       | Result                             |
+| ------------------------------------------- | ---------------------------------- |
+| `cargo fmt --all -- --check`                | clean                              |
+| `cargo clippy --all-targets -- -D warnings` | clean                              |
+| `cargo test --lib`                          | 524 / 0 / 0                        |
+| `cargo test --test admin_coupons_create`    | **4 / 4** new tests pass           |
+| `pnpm check`                                | 4423 files / 0 errors / 0 warnings |
+| `pnpm lint`                                 | clean                              |
+| `pnpm test:unit -- --run`                   | 103 / 103                          |
+| `pnpm test:unit -- Tooltip --run` (browser) | 6 / 6                              |
 
 ---
 
@@ -264,10 +269,12 @@ route is wired (401 on unauth, 404 on nonsense path).
 ### New member endpoints (`backend/src/handlers/member.rs`)
 
 Orders
+
 - `GET  /api/member/orders` — paginated history (own orders only)
 - `GET  /api/member/orders/{id}` — items + refunds + state-log
 
 Subscriptions (full history, not just current)
+
 - `GET  /api/member/subscriptions` — paginated, includes cancelled/paused
 - `GET  /api/member/subscriptions/{id}` — sub + plan + invoices + related orders
 - `POST /api/member/subscriptions/{id}/cancel` — cancel-at-period-end
@@ -278,10 +285,12 @@ Subscriptions (full history, not just current)
 - `GET  /api/member/subscriptions/{id}/switch-plan/preview` — Stripe upcoming-invoice proration dry-run
 
 Coupons / Profile
+
 - `GET  /api/member/coupons/redeemed` — redemption history with `currency` + `order_id`
 - Extended `PUT /api/member/profile` to accept `phone` + `billing_address`
 
 Payment methods (native, Stripe-Elements based — no portal redirect)
+
 - `GET    /api/member/payment-methods`
 - `POST   /api/member/payment-methods/setup-intent` — returns Stripe SetupIntent client_secret
 - `POST   /api/member/payment-methods/{pm_id}/set-default`
@@ -321,8 +330,8 @@ struct → OpenAPI → frontend types pipeline. Now they are:
   `invoice.paid` / `invoice.payment_failed` event (COALESCE-style so
   drafts that lack the field don't blank out previously-stored values).
 - `085_coupon_usages_currency_order.sql` — add `currency TEXT NOT NULL
-  DEFAULT 'usd'` and `order_id UUID REFERENCES orders(id) ON DELETE
-  SET NULL` to `coupon_usages`. Both apply-coupon writers (member +
+DEFAULT 'usd'` and `order_id UUID REFERENCES orders(id) ON DELETE
+SET NULL` to `coupon_usages`. Both apply-coupon writers (member +
   public) now persist them; reader and `MemberCouponRedemptionResponse`
   return them; coupons frontend page renders `currency` next to the
   discount and adds a "View order →" deep-link column.
@@ -330,6 +339,7 @@ struct → OpenAPI → frontend types pipeline. Now they are:
 ### New frontend routes
 
 `src/routes/dashboard/account/`:
+
 - `+layout.svelte` — left-rail nav with active link highlighting,
   mobile horizontal-scroll pill bar, divider, "Log out" at the bottom
 - `+page.svelte` — redirects to `/dashboard/account/subscriptions`
@@ -374,17 +384,17 @@ the member has uploaded one.
 
 ### Verification (binding evidence)
 
-| Check | Result |
-|---|---|
-| `cargo fmt --all -- --check` | clean (exit 0) |
-| `cargo clippy --all-targets -- -D warnings` | clean (exit 0) |
-| `cargo test --lib` | 524 passed / 0 failed / 0 ignored |
-| `cargo test --tests --no-fail-fast` (real Postgres on :5433) | 930 passed / 0 failed / 0 ignored across 48 binaries |
-| `pnpm check` (incl. OpenAPI regen + svelte-kit sync) | 4423 files / 0 errors / 0 warnings |
-| `pnpm lint` | clean |
-| `pnpm test:unit -- --run` | 103 passed / 103 total across 12 files |
-| Migration replay (fresh DB, `001..085` in order) | all 85 apply cleanly; new columns confirmed via `\d` |
-| Live smoke test (cargo run + curl) | 11/11 new endpoints return 401 (route wired); negative path returns 404 |
+| Check                                                        | Result                                                                  |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| `cargo fmt --all -- --check`                                 | clean (exit 0)                                                          |
+| `cargo clippy --all-targets -- -D warnings`                  | clean (exit 0)                                                          |
+| `cargo test --lib`                                           | 524 passed / 0 failed / 0 ignored                                       |
+| `cargo test --tests --no-fail-fast` (real Postgres on :5433) | 930 passed / 0 failed / 0 ignored across 48 binaries                    |
+| `pnpm check` (incl. OpenAPI regen + svelte-kit sync)         | 4423 files / 0 errors / 0 warnings                                      |
+| `pnpm lint`                                                  | clean                                                                   |
+| `pnpm test:unit -- --run`                                    | 103 passed / 103 total across 12 files                                  |
+| Migration replay (fresh DB, `001..085` in order)             | all 85 apply cleanly; new columns confirmed via `\d`                    |
+| Live smoke test (cargo run + curl)                           | 11/11 new endpoints return 401 (route wired); negative path returns 404 |
 
 ### Decisions worth flagging
 
@@ -617,15 +627,15 @@ config end-to-end.
 
 ### Verified, classified, kept
 
-| File | Verdict | Why |
-|---|---|---|
-| `.editorconfig`, `.npmrc`, `.nvmrc`, `.prettierrc`, `.prettierignore` | KEEP | standard tooling configs |
-| `.sqlfluff` | KEEP | live config consumed by `.github/workflows/sql-lint.yml` |
-| `.trivyignore` | KEEP | live config consumed by `.github/workflows/security.yml`; currently empty list (intentional — file documents the suppression policy and provides a curated home for any future entry) |
-| `.vercelignore`, `.dockerignore`, `.gitignore` | KEEP | active build excludes |
-| `.mcp.json` | KEEP | project-level MCP server registration (Svelte + rust-analyzer) |
-| `project.inlang/settings.json` | KEEP | inlang IDE / Sherlock / Fink tooling source-of-truth + planned migration path for `src/lib/i18n/paraglide.ts` shim |
-| `backend/.env.example`, `.env.example` | KEEP | committed templates; documented `SWINGS_ALLOW_HTTP_WEBHOOKS` (the one env var production code reads but the template did not list) |
+| File                                                                  | Verdict | Why                                                                                                                                                                                   |
+| --------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.editorconfig`, `.npmrc`, `.nvmrc`, `.prettierrc`, `.prettierignore` | KEEP    | standard tooling configs                                                                                                                                                              |
+| `.sqlfluff`                                                           | KEEP    | live config consumed by `.github/workflows/sql-lint.yml`                                                                                                                              |
+| `.trivyignore`                                                        | KEEP    | live config consumed by `.github/workflows/security.yml`; currently empty list (intentional — file documents the suppression policy and provides a curated home for any future entry) |
+| `.vercelignore`, `.dockerignore`, `.gitignore`                        | KEEP    | active build excludes                                                                                                                                                                 |
+| `.mcp.json`                                                           | KEEP    | project-level MCP server registration (Svelte + rust-analyzer)                                                                                                                        |
+| `project.inlang/settings.json`                                        | KEEP    | inlang IDE / Sherlock / Fink tooling source-of-truth + planned migration path for `src/lib/i18n/paraglide.ts` shim                                                                    |
+| `backend/.env.example`, `.env.example`                                | KEEP    | committed templates; documented `SWINGS_ALLOW_HTTP_WEBHOOKS` (the one env var production code reads but the template did not list)                                                    |
 
 ### Deleted
 
@@ -652,7 +662,7 @@ config end-to-end.
 - `docs/INFRASTRUCTURE.md` deployment checklist — "Create Neon Scale
   account" replaced with "Provision the Railway PostgreSQL add-on".
 - `backend/README.md` — `db.rs` annotation changed from "Neon-tuned" to
-  "env-tuned via PGPOOL_*"; `DATABASE_URL` row updated to drop the
+  "env-tuned via PGPOOL\_\*"; `DATABASE_URL` row updated to drop the
   Neon-specific framing.
 - `backend/src/main.rs` — pool-tuning comment retargeted away from Neon.
 
@@ -820,25 +830,25 @@ modules, RBAC, integration/unit/E2E test coverage, and the admin frontend.
 
 ### All-clear findings (no code changes needed)
 
-| Area | Result |
-|------|--------|
-| Admin mutation `policy.require` enforcement | All 31 handlers compliant |
-| Admin mutation `audit_admin` recording | All 31 handlers compliant |
-| Idempotency-Key middleware on all admin POST/PUT/DELETE | Fully wired |
-| `unwrap` / `expect` / `panic!` in non-test production code | Zero violations |
-| Handler registration — orphaned or unregistered handlers | None found |
-| Database table ↔ HTTP endpoint coverage | 100% |
-| Background worker graceful-shutdown paths | All 5 workers correct |
-| Migration sequence 001–079 (gaps 029/040 intentional) | Clean |
-| Migration foreign-key ordering | No violations |
-| RBAC permission matrix: handler calls vs. seeded migrations | 37/37 match |
-| Domain modules completeness (commerce, consent, popups, forms, notifications, pdf) | All fully implemented |
-| Admin frontend: idempotency keys auto-injected by API client | Correct |
-| Admin frontend: BFF HttpOnly-cookie auth pattern | Correctly implemented |
-| Admin frontend: route auth guards | All protected, no gaps |
-| Admin frontend: TypeScript strict mode, zero `any` types | Confirmed |
-| Backend integration tests — `#[ignore]` violations | Zero (policy maintained) |
-| Backend integration tests — handler coverage | 36 tests, all 31 handlers covered |
+| Area                                                                               | Result                            |
+| ---------------------------------------------------------------------------------- | --------------------------------- |
+| Admin mutation `policy.require` enforcement                                        | All 31 handlers compliant         |
+| Admin mutation `audit_admin` recording                                             | All 31 handlers compliant         |
+| Idempotency-Key middleware on all admin POST/PUT/DELETE                            | Fully wired                       |
+| `unwrap` / `expect` / `panic!` in non-test production code                         | Zero violations                   |
+| Handler registration — orphaned or unregistered handlers                           | None found                        |
+| Database table ↔ HTTP endpoint coverage                                            | 100%                              |
+| Background worker graceful-shutdown paths                                          | All 5 workers correct             |
+| Migration sequence 001–079 (gaps 029/040 intentional)                              | Clean                             |
+| Migration foreign-key ordering                                                     | No violations                     |
+| RBAC permission matrix: handler calls vs. seeded migrations                        | 37/37 match                       |
+| Domain modules completeness (commerce, consent, popups, forms, notifications, pdf) | All fully implemented             |
+| Admin frontend: idempotency keys auto-injected by API client                       | Correct                           |
+| Admin frontend: BFF HttpOnly-cookie auth pattern                                   | Correctly implemented             |
+| Admin frontend: route auth guards                                                  | All protected, no gaps            |
+| Admin frontend: TypeScript strict mode, zero `any` types                           | Confirmed                         |
+| Backend integration tests — `#[ignore]` violations                                 | Zero (policy maintained)          |
+| Backend integration tests — handler coverage                                       | 36 tests, all 31 handlers covered |
 
 ### False positive resolved
 

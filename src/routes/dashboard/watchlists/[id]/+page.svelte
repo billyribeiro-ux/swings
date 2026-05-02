@@ -21,7 +21,9 @@
 		if (!url) return null;
 		const trimmed = url.trim();
 
-		const ytWatch = trimmed.match(/(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?(?:.*&)?v=([\w-]{6,})/);
+		const ytWatch = trimmed.match(
+			/(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?(?:.*&)?v=([\w-]{6,})/
+		);
 		if (ytWatch) {
 			return `https://www.youtube.com/embed/${ytWatch[1]}?rel=0&modestbranding=1`;
 		}
@@ -126,7 +128,11 @@
 			{#if alerts.length === 0}
 				<p class="wl-detail__empty">No alerts in this watchlist yet.</p>
 			{:else}
-				<div class="wl-detail__filters" role="tablist" aria-label="Filter alerts by direction">
+				<div
+					class="wl-detail__filters"
+					role="tablist"
+					aria-label="Filter alerts by direction"
+				>
 					<button
 						type="button"
 						role="tab"
@@ -209,7 +215,9 @@
 									</div>
 									<div class="alert-card__level">
 										<dt class="alert-card__level-label">Invalidation</dt>
-										<dd class="alert-card__level-value alert-card__level-value--red">
+										<dd
+											class="alert-card__level-value alert-card__level-value--red"
+										>
 											{alert.invalidation}
 										</dd>
 									</div>
@@ -432,20 +440,12 @@
 
 	.alert-card--bull {
 		border-left-color: var(--color-teal);
-		background-image: linear-gradient(
-			to right,
-			rgba(15, 164, 175, 0.08),
-			transparent 35%
-		);
+		background-image: linear-gradient(to right, rgba(15, 164, 175, 0.08), transparent 35%);
 	}
 
 	.alert-card--bear {
 		border-left-color: oklch(0.62 0.2 25);
-		background-image: linear-gradient(
-			to right,
-			oklch(0.62 0.2 25 / 0.1),
-			transparent 35%
-		);
+		background-image: linear-gradient(to right, oklch(0.62 0.2 25 / 0.1), transparent 35%);
 	}
 
 	.alert-card__header {

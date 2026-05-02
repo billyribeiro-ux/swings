@@ -102,9 +102,7 @@
 		loadMembers();
 	}
 
-	const hasMemberFilters = $derived(
-		Boolean(search.trim() || roleFilter || statusFilter)
-	);
+	const hasMemberFilters = $derived(Boolean(search.trim() || roleFilter || statusFilter));
 
 	function changeRole(r: typeof roleFilter) {
 		roleFilter = r;
@@ -283,8 +281,8 @@
 			<h1 class="members-page__title">Members</h1>
 			<p class="members-page__subtitle">
 				{total.toLocaleString()} total {total === 1 ? 'member' : 'members'} — manage roles, lifecycle,
-				and billing profile. To add someone new, use <strong>Search &amp; create</strong> (role, temp
-				password, optional setup email).
+				and billing profile. To add someone new, use <strong>Search &amp; create</strong> (role,
+				temp password, optional setup email).
 			</p>
 		</div>
 		<a class="members-page__cta" href={resolve('/admin/members/manage')}>
@@ -486,10 +484,7 @@
 								</button>
 							{/snippet}
 							{#snippet items()}
-								<ActionMenuItem
-									icon={UserIcon}
-									onclick={() => viewMember(member)}
-								>
+								<ActionMenuItem icon={UserIcon} onclick={() => viewMember(member)}>
 									View profile
 								</ActionMenuItem>
 								<ActionMenuItem
@@ -508,7 +503,9 @@
 									icon={ShieldCheckIcon}
 									onclick={() => toggleRole(member)}
 								>
-									{member.role === 'admin' ? 'Demote to member' : 'Promote to admin'}
+									{member.role === 'admin'
+										? 'Demote to member'
+										: 'Promote to admin'}
 								</ActionMenuItem>
 								<ActionMenuItem
 									icon={ProhibitIcon}
@@ -608,7 +605,9 @@
 												icon={ClockCountdownIcon}
 												onclick={() => suspendOrUnsuspend(member)}
 											>
-												{member.suspended_at ? 'Lift suspension' : 'Suspend sign-in'}
+												{member.suspended_at
+													? 'Lift suspension'
+													: 'Suspend sign-in'}
 											</ActionMenuItem>
 											<ActionMenuItem
 												icon={ShieldCheckIcon}

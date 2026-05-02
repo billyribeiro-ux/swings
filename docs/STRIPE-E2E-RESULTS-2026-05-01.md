@@ -35,30 +35,30 @@ analysis below is preserved across runs.
 
 ## Stack under test
 
-| Component | Version / Source |
-| --- | --- |
-| Backend | local debug build of `swings-api`, snake_case enum + Paused variant + course-enroll + refund-created fixes applied |
-| DB | Postgres 16 on `:5434`, migrations 001–083 applied |
-| Stripe API version | `2026-03-25.dahlia` (pinned by stripe CLI) |
-| Stripe account | `SaaS Pro sandbox` (test mode) |
-| Stripe CLI | v1.40.6 |
-| Webhook signing | `stripe listen` whsec, regenerated each driver session |
+| Component          | Version / Source                                                                                                   |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| Backend            | local debug build of `swings-api`, snake_case enum + Paused variant + course-enroll + refund-created fixes applied |
+| DB                 | Postgres 16 on `:5434`, migrations 001–083 applied                                                                 |
+| Stripe API version | `2026-03-25.dahlia` (pinned by stripe CLI)                                                                         |
+| Stripe account     | `SaaS Pro sandbox` (test mode)                                                                                     |
+| Stripe CLI         | v1.40.6                                                                                                            |
+| Webhook signing    | `stripe listen` whsec, regenerated each driver session                                                             |
 
 ## Summary
 
-| # | Title | Result |
-| --- | --- | :-: |
-| 1 | Happy-path subscribe (no trial) | ✅ |
-| 2 | Trial subscription `is_active=true` | ✅ |
-| 3 | `invoice.payment_failed` → past_due → access denied | ✅ |
-| 4 | `customer.subscription.deleted` → canceled + `canceled_at` populated | ✅ |
-| 5 | `customer.subscription.trial_will_end` reaches backend (idempotent) | ✅ |
-| 6 | `pause_collection` → status=paused → access denied | ✅ |
-| 7 | resume → status=active → access restored | ✅ |
-| 8 | `charge.refunded` mirrored | ✅ |
-| 9 | `charge.dispute.created` mirrored | ✅ |
-| 10 | Banned user with active subscription → instant lockout, sub stays in Stripe | ✅ |
-| 11 | Sub-included course: subscriber enrolls (200), non-subscriber blocked (403) | ✅ |
+| #   | Title                                                                       | Result |
+| --- | --------------------------------------------------------------------------- | :----: |
+| 1   | Happy-path subscribe (no trial)                                             |   ✅   |
+| 2   | Trial subscription `is_active=true`                                         |   ✅   |
+| 3   | `invoice.payment_failed` → past_due → access denied                         |   ✅   |
+| 4   | `customer.subscription.deleted` → canceled + `canceled_at` populated        |   ✅   |
+| 5   | `customer.subscription.trial_will_end` reaches backend (idempotent)         |   ✅   |
+| 6   | `pause_collection` → status=paused → access denied                          |   ✅   |
+| 7   | resume → status=active → access restored                                    |   ✅   |
+| 8   | `charge.refunded` mirrored                                                  |   ✅   |
+| 9   | `charge.dispute.created` mirrored                                           |   ✅   |
+| 10  | Banned user with active subscription → instant lockout, sub stays in Stripe |   ✅   |
+| 11  | Sub-included course: subscriber enrolls (200), non-subscriber blocked (403) |   ✅   |
 
 ## Per-scenario detail
 
@@ -168,7 +168,7 @@ ban-keep-the-money. The platform must NOT make that call for them.
   re-checks `users.banned_at` on every request)
 - ✅ `subscriptions.status` stays `active` in the local DB (Stripe sub
   is also still active in Stripe — verified via `stripe subscriptions
-  retrieve`)
+retrieve`)
 
 ### 11. Course enrollment gate
 
@@ -230,7 +230,7 @@ Per operator request to support 7 / 14 / 30 day trials with and without
 credit card.
 
 - **Migration 083**: `pricing_plans.collect_payment_method_at_checkout
-  BOOLEAN DEFAULT TRUE`. When `false`, the BFF Checkout Session is
+BOOLEAN DEFAULT TRUE`. When `false`, the BFF Checkout Session is
   created with `payment_method_collection: 'if_required'`, which lets a
   user start the trial without entering a card.
 - **BFF `createCheckoutSession`** now reads `plan.trial_days` and passes

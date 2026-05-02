@@ -277,8 +277,8 @@
 	<header class="pm__header">
 		<h1 class="pm__title">Payment Methods</h1>
 		<p class="pm__sub">
-			Manage the cards we charge for your subscription and any future purchases. Cards are stored
-			securely by Stripe — we never see or store the full card number.
+			Manage the cards we charge for your subscription and any future purchases. Cards are
+			stored securely by Stripe — we never see or store the full card number.
 		</p>
 	</header>
 
@@ -292,7 +292,10 @@
 	{:else if paymentMethods.length === 0}
 		<div class="pm__empty">
 			<CreditCardIcon size={36} weight="duotone" />
-			<p>You don't have any saved cards yet. Add one to manage subscriptions and make purchases.</p>
+			<p>
+				You don't have any saved cards yet. Add one to manage subscriptions and make
+				purchases.
+			</p>
 			<button type="button" class="btn btn--primary" onclick={openAddCardModal}>
 				<PlusIcon size={16} weight="bold" />
 				Add a new card
@@ -342,7 +345,9 @@
 							onclick={() => askDelete(pm)}
 						>
 							<TrashIcon size={14} weight="bold" />
-							{busyPmId === pm.id && confirmDeletePm?.id === pm.id ? 'Removing…' : 'Delete'}
+							{busyPmId === pm.id && confirmDeletePm?.id === pm.id
+								? 'Removing…'
+								: 'Delete'}
 						</button>
 					</div>
 				</li>
@@ -376,8 +381,8 @@
 		>
 			<h2 id="pm-confirm-title" class="pm-modal__title">Remove this card?</h2>
 			<p class="pm-modal__copy">
-				{brandLabel(confirmDeletePm.brand)} ending in {confirmDeletePm.last4} will be detached from
-				your account. You can add it back any time.
+				{brandLabel(confirmDeletePm.brand)} ending in {confirmDeletePm.last4} will be detached
+				from your account. You can add it back any time.
 			</p>
 			<div class="pm-modal__actions">
 				<button
@@ -440,7 +445,11 @@
 			{:else}
 				<form onsubmit={submitNewCard} class="pm-form">
 					<label class="pm-form__label" for="pm-card-slot">Card details</label>
-					<div id="pm-card-slot" class="pm-form__cardSlot" aria-busy={!cardSlotMounted}></div>
+					<div
+						id="pm-card-slot"
+						class="pm-form__cardSlot"
+						aria-busy={!cardSlotMounted}
+					></div>
 					{#if cardError}
 						<p class="pm-form__err" role="alert">{cardError}</p>
 					{/if}

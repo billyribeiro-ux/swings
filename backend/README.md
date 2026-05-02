@@ -107,7 +107,7 @@ every background worker, and begin serving on `$PORT` (default `3001`).
 | Environment    | Where `ADMIN_EMAIL` / `ADMIN_PASSWORD` go                                                                                                                                                                                                                                   |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Local**      | `backend/.env` only — file is **gitignored** (`backend/.gitignore`). Copy from `.env.example`, put your real password there. That is the normal way to work: secrets on disk for dev, never in git.                                                                         |
-| **Production** | Same variable names in Railway **Variables** UI — not a committed file.                                                                                                                                                                                     |
+| **Production** | Same variable names in Railway **Variables** UI — not a committed file.                                                                                                                                                                                                     |
 | **Database**   | After first successful seed, only `users.password_hash` exists (Argon2). Plaintext is not recoverable. Changing `.env` later does not rotate an existing admin’s password (see `db::seed_admin` `ON CONFLICT`); delete the user row or use password reset if you forgot it. |
 
 ---
@@ -120,10 +120,10 @@ missing or empty.
 
 ### Required (always)
 
-| Variable       | Purpose                                   |
-| -------------- | ----------------------------------------- |
+| Variable       | Purpose                                        |
+| -------------- | ---------------------------------------------- |
 | `DATABASE_URL` | Postgres DSN (`sslmode=require` in production) |
-| `JWT_SECRET`   | HS256 signing key for access tokens       |
+| `JWT_SECRET`   | HS256 signing key for access tokens            |
 
 ### Required in production
 

@@ -93,7 +93,10 @@
 		}
 	}
 
-	function formatMoney(cents: number | null | undefined, currency: string | null | undefined): string {
+	function formatMoney(
+		cents: number | null | undefined,
+		currency: string | null | undefined
+	): string {
 		if (cents == null) return '—';
 		const cur = (currency ?? 'usd').toUpperCase();
 		try {
@@ -150,7 +153,9 @@
 	async function loadPlans() {
 		if (plansLoaded) return;
 		try {
-			const res = await api.get<SchemaPricingPlan[]>('/api/pricing/plans', { skipAuth: true });
+			const res = await api.get<SchemaPricingPlan[]>('/api/pricing/plans', {
+				skipAuth: true
+			});
 			plans = res.filter((p) => p.is_active);
 			plansLoaded = true;
 		} catch {
@@ -344,9 +349,13 @@
 	const sub = $derived(detail?.subscription ?? null);
 	const isCancelPending = $derived(sub ? sub.cancel_at != null : false);
 	const isPaused = $derived(sub ? sub.status === 'Paused' || sub.paused_at != null : false);
-	const isActiveLike = $derived(sub ? sub.status === 'Active' || sub.status === 'Trialing' : false);
+	const isActiveLike = $derived(
+		sub ? sub.status === 'Active' || sub.status === 'Trialing' : false
+	);
 	const isReactivatable = $derived(
-		sub ? sub.status === 'Canceled' || sub.status === 'PastDue' || sub.status === 'Unpaid' : false
+		sub
+			? sub.status === 'Canceled' || sub.status === 'PastDue' || sub.status === 'Unpaid'
+			: false
 	);
 
 	onMount(() => {
@@ -385,7 +394,8 @@
 				<div>
 					<h1 class="sd__id">Subscription #{sub.id.slice(0, 8)}</h1>
 					<p class="sd__plan-name">
-						{detail.plan?.name ?? (sub.plan === 'Annual' ? 'Annual plan' : 'Monthly plan')}
+						{detail.plan?.name ??
+							(sub.plan === 'Annual' ? 'Annual plan' : 'Monthly plan')}
 					</p>
 				</div>
 				<div class="sd__header-meta">
@@ -435,7 +445,10 @@
 								{formatMoney(detail.plan.amount_cents, detail.plan.currency)}
 								<span class="sd__interval">{formatInterval(detail.plan)}</span>
 							{:else if sub.grandfathered_price_cents != null}
-								{formatMoney(sub.grandfathered_price_cents, sub.grandfathered_currency)}
+								{formatMoney(
+									sub.grandfathered_price_cents,
+									sub.grandfathered_currency
+								)}
 							{:else}
 								—
 							{/if}
@@ -463,7 +476,9 @@
 					<div>
 						<dt>Current period</dt>
 						<dd>
-							{formatDate(sub.current_period_start)} → {formatDate(sub.current_period_end)}
+							{formatDate(sub.current_period_start)} → {formatDate(
+								sub.current_period_end
+							)}
 						</dd>
 					</div>
 					{#if sub.trial_end}
@@ -477,7 +492,11 @@
 				{#if isCancelPending}
 					<div class="sd__notice sd__notice--gold">
 						<WarningIcon size={16} weight="fill" />
-						<span>Will cancel on {formatDate(sub.cancel_at ?? sub.current_period_end)}</span>
+						<span
+							>Will cancel on {formatDate(
+								sub.cancel_at ?? sub.current_period_end
+							)}</span
+						>
 					</div>
 				{/if}
 
@@ -501,35 +520,67 @@
 
 				<div class="sd__actions">
 					{#if isActiveLike && !isCancelPending}
-						<button type="button" class="btn btn--danger" onclick={() => (showCancel = true)} disabled={busy}>
+						<button
+							type="button"
+							class="btn btn--danger"
+							onclick={() => (showCancel = true)}
+							disabled={busy}
+						>
 							<XCircleIcon size={16} weight="bold" />
 							Cancel Subscription
 						</button>
-						<button type="button" class="btn btn--ghost" onclick={() => (showPause = true)} disabled={busy}>
+						<button
+							type="button"
+							class="btn btn--ghost"
+							onclick={() => (showPause = true)}
+							disabled={busy}
+						>
 							<PauseCircleIcon size={16} weight="bold" />
 							Pause Subscription
 						</button>
-						<button type="button" class="btn btn--primary" onclick={openSwitch} disabled={busy}>
+						<button
+							type="button"
+							class="btn btn--primary"
+							onclick={openSwitch}
+							disabled={busy}
+						>
 							<ArrowRightIcon size={16} weight="bold" />
 							Switch Plan
 						</button>
 					{:else if isActiveLike && isCancelPending}
-						<button type="button" class="btn btn--primary" onclick={doResumeCancel} disabled={busy}>
+						<button
+							type="button"
+							class="btn btn--primary"
+							onclick={doResumeCancel}
+							disabled={busy}
+						>
 							<CheckCircleIcon size={16} weight="bold" />
 							{busy ? 'Resuming…' : 'Resume Subscription'}
 						</button>
 					{:else if isPaused}
-						<button type="button" class="btn btn--primary" onclick={doUnpause} disabled={busy}>
+						<button
+							type="button"
+							class="btn btn--primary"
+							onclick={doUnpause}
+							disabled={busy}
+						>
 							<CheckCircleIcon size={16} weight="bold" />
 							{busy ? 'Unpausing…' : 'Unpause Subscription'}
 						</button>
 					{:else if isReactivatable}
-						<button type="button" class="btn btn--primary" onclick={openBillingPortal} disabled={busy}>
+						<button
+							type="button"
+							class="btn btn--primary"
+							onclick={openBillingPortal}
+							disabled={busy}
+						>
 							<ArrowRightIcon size={16} weight="bold" />
 							{busy ? 'Opening…' : 'Reactivate via Billing Portal'}
 						</button>
 					{:else}
-						<p class="sd__muted">No actions available for this subscription right now.</p>
+						<p class="sd__muted">
+							No actions available for this subscription right now.
+						</p>
 					{/if}
 				</div>
 			</section>
@@ -559,20 +610,32 @@
 									<th scope="row">{formatDate(inv.paid_at ?? inv.created_at)}</th>
 									<td class="sd__inv-desc">
 										{#if inv.period_start && inv.period_end}
-											Billing period {formatDate(inv.period_start)} – {formatDate(inv.period_end)}
+											Billing period {formatDate(inv.period_start)} – {formatDate(
+												inv.period_end
+											)}
 										{:else}
 											Subscription invoice
 										{/if}
 										<span class="sd__inv-id">{inv.stripe_invoice_id}</span>
 									</td>
-									<td class="sd__col-num">{formatMoney(inv.amount_due_cents, inv.currency)}</td>
+									<td class="sd__col-num"
+										>{formatMoney(inv.amount_due_cents, inv.currency)}</td
+									>
 									<td>
-										<span class="badge badge--{itone}">{statusLabelText(inv.status)}</span>
+										<span class="badge badge--{itone}"
+											>{statusLabelText(inv.status)}</span
+										>
 									</td>
 									<td class="sd__col-actions">
 										{#if inv.hosted_invoice_url}
 											<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- hosted_invoice_url is a Stripe-hosted external URL -->
-											<a class="btn-mini" href={inv.hosted_invoice_url} target="_blank" rel="noopener noreferrer" aria-label="View receipt for invoice {inv.stripe_invoice_id}">
+											<a
+												class="btn-mini"
+												href={inv.hosted_invoice_url}
+												target="_blank"
+												rel="noopener noreferrer"
+												aria-label="View receipt for invoice {inv.stripe_invoice_id}"
+											>
 												<ReceiptIcon size={14} weight="bold" />
 												View Receipt
 											</a>
@@ -610,20 +673,28 @@
 									<th scope="row">
 										<a
 											class="sd__inline-link"
-											href={resolve('/dashboard/account/orders/[id]', { id: o.id })}
+											href={resolve('/dashboard/account/orders/[id]', {
+												id: o.id
+											})}
 										>
 											#{o.number}
 										</a>
 									</th>
 									<td>{formatDate(o.placed_at ?? o.created_at)}</td>
-									<td class="sd__col-num">{formatMoney(o.total_cents, o.currency)}</td>
+									<td class="sd__col-num"
+										>{formatMoney(o.total_cents, o.currency)}</td
+									>
 									<td>
-										<span class="badge badge--{otone}">{statusLabelText(o.status)}</span>
+										<span class="badge badge--{otone}"
+											>{statusLabelText(o.status)}</span
+										>
 									</td>
 									<td class="sd__col-actions">
 										<a
 											class="btn-mini"
-											href={resolve('/dashboard/account/orders/[id]', { id: o.id })}
+											href={resolve('/dashboard/account/orders/[id]', {
+												id: o.id
+											})}
 										>
 											<EyeIcon size={14} weight="bold" />
 											View
@@ -662,7 +733,12 @@
 				)}.
 			</p>
 			<div class="dialog__actions">
-				<button type="button" class="btn btn--ghost" onclick={() => (showCancel = false)} disabled={busy}>
+				<button
+					type="button"
+					class="btn btn--ghost"
+					onclick={() => (showCancel = false)}
+					disabled={busy}
+				>
 					Keep subscription
 				</button>
 				<button type="button" class="btn btn--danger" onclick={doCancel} disabled={busy}>
@@ -702,12 +778,22 @@
 					<span>Resume in 3 months</span>
 				</label>
 				<label class="radio">
-					<input type="radio" name="pause-window" value="indef" bind:group={pauseChoice} />
+					<input
+						type="radio"
+						name="pause-window"
+						value="indef"
+						bind:group={pauseChoice}
+					/>
 					<span>Indefinite (manual resume)</span>
 				</label>
 			</fieldset>
 			<div class="dialog__actions">
-				<button type="button" class="btn btn--ghost" onclick={() => (showPause = false)} disabled={busy}>
+				<button
+					type="button"
+					class="btn btn--ghost"
+					onclick={() => (showPause = false)}
+					disabled={busy}
+				>
 					Cancel
 				</button>
 				<button type="button" class="btn btn--primary" onclick={doPause} disabled={busy}>
@@ -736,8 +822,8 @@
 		<div class="dialog dialog--wide">
 			<h3 id="switch-title" class="dialog__title">Switch plan</h3>
 			<p class="dialog__body">
-				Pick a target plan and preview the proration before confirming. Your switch is immediate
-				and prorated against your current period.
+				Pick a target plan and preview the proration before confirming. Your switch is
+				immediate and prorated against your current period.
 			</p>
 
 			{#if !plansLoaded}
@@ -749,11 +835,16 @@
 					{#each plans as p (p.id)}
 						{@const isCurrent = p.id === sub.pricing_plan_id}
 						{@const isSelected = p.id === switchTargetId}
-						<li class="plan" class:plan--selected={isSelected} class:plan--current={isCurrent}>
+						<li
+							class="plan"
+							class:plan--selected={isSelected}
+							class:plan--current={isCurrent}
+						>
 							<div class="plan__main">
 								<div class="plan__name-row">
 									<span class="plan__name">{p.name}</span>
-									{#if isCurrent}<span class="badge badge--teal">Current</span>{/if}
+									{#if isCurrent}<span class="badge badge--teal">Current</span
+										>{/if}
 								</div>
 								<span class="plan__price">
 									{formatMoney(p.amount_cents, p.currency)}
@@ -835,7 +926,12 @@
 			{/if}
 
 			<div class="dialog__actions">
-				<button type="button" class="btn btn--ghost" onclick={() => (showSwitch = false)} disabled={busy}>
+				<button
+					type="button"
+					class="btn btn--ghost"
+					onclick={() => (showSwitch = false)}
+					disabled={busy}
+				>
 					Cancel
 				</button>
 				<button
@@ -852,117 +948,566 @@
 {/if}
 
 <style>
-	.sd { display: flex; flex-direction: column; gap: 1.25rem; }
-	.sd__back { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--color-teal); font-size: var(--fs-sm); font-weight: var(--w-semibold); text-decoration: none; align-self: flex-start; }
-	.sd__back:hover { text-decoration: underline; }
-	.sd__loading { color: var(--color-grey-400); font-size: var(--fs-sm); padding: 1.5rem 0; }
-	.sd__error { padding: 0.85rem 1rem; border-radius: var(--radius-lg); background-color: rgba(224, 72, 72, 0.1); border: 1px solid rgba(224, 72, 72, 0.25); color: var(--color-red); font-size: var(--fs-sm); }
-	.sd__success { padding: 0.85rem 1rem; border-radius: var(--radius-lg); background-color: rgba(34, 181, 115, 0.1); border: 1px solid rgba(34, 181, 115, 0.25); color: var(--color-green); font-size: var(--fs-sm); }
-	.sd__notfound { text-align: center; padding: 3rem 1.5rem; border: 1px dashed rgba(255, 255, 255, 0.12); border-radius: var(--radius-xl); background-color: rgba(255, 255, 255, 0.01); display: flex; flex-direction: column; align-items: center; gap: 0.65rem; }
-	.empty__icon { display: inline-flex; align-items: center; justify-content: center; width: 4rem; height: 4rem; border-radius: var(--radius-full); background-color: rgba(15, 164, 175, 0.1); color: var(--color-teal); }
-	.empty__title { font-size: var(--fs-md); font-weight: var(--w-semibold); color: var(--color-white); font-family: var(--font-heading); }
-	.empty__body { font-size: var(--fs-sm); color: var(--color-grey-400); max-width: 22rem; }
-	.empty__cta { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.5rem; padding: 0.55rem 1.1rem; font-size: var(--fs-sm); font-weight: var(--w-semibold); color: var(--color-teal); background-color: rgba(15, 164, 175, 0.1); border: 1px solid rgba(15, 164, 175, 0.25); border-radius: var(--radius-lg); text-decoration: none; }
+	.sd {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+	.sd__back {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		color: var(--color-teal);
+		font-size: var(--fs-sm);
+		font-weight: var(--w-semibold);
+		text-decoration: none;
+		align-self: flex-start;
+	}
+	.sd__back:hover {
+		text-decoration: underline;
+	}
+	.sd__loading {
+		color: var(--color-grey-400);
+		font-size: var(--fs-sm);
+		padding: 1.5rem 0;
+	}
+	.sd__error {
+		padding: 0.85rem 1rem;
+		border-radius: var(--radius-lg);
+		background-color: rgba(224, 72, 72, 0.1);
+		border: 1px solid rgba(224, 72, 72, 0.25);
+		color: var(--color-red);
+		font-size: var(--fs-sm);
+	}
+	.sd__success {
+		padding: 0.85rem 1rem;
+		border-radius: var(--radius-lg);
+		background-color: rgba(34, 181, 115, 0.1);
+		border: 1px solid rgba(34, 181, 115, 0.25);
+		color: var(--color-green);
+		font-size: var(--fs-sm);
+	}
+	.sd__notfound {
+		text-align: center;
+		padding: 3rem 1.5rem;
+		border: 1px dashed rgba(255, 255, 255, 0.12);
+		border-radius: var(--radius-xl);
+		background-color: rgba(255, 255, 255, 0.01);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.65rem;
+	}
+	.empty__icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 4rem;
+		height: 4rem;
+		border-radius: var(--radius-full);
+		background-color: rgba(15, 164, 175, 0.1);
+		color: var(--color-teal);
+	}
+	.empty__title {
+		font-size: var(--fs-md);
+		font-weight: var(--w-semibold);
+		color: var(--color-white);
+		font-family: var(--font-heading);
+	}
+	.empty__body {
+		font-size: var(--fs-sm);
+		color: var(--color-grey-400);
+		max-width: 22rem;
+	}
+	.empty__cta {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		margin-top: 0.5rem;
+		padding: 0.55rem 1.1rem;
+		font-size: var(--fs-sm);
+		font-weight: var(--w-semibold);
+		color: var(--color-teal);
+		background-color: rgba(15, 164, 175, 0.1);
+		border: 1px solid rgba(15, 164, 175, 0.25);
+		border-radius: var(--radius-lg);
+		text-decoration: none;
+	}
 
-	.sd__header { background-color: var(--color-navy-mid); border: 1px solid rgba(255, 255, 255, 0.06); border-top: 2px solid var(--color-teal); border-radius: var(--radius-xl); padding: 1.25rem 1.5rem; }
-	.sd__header-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-	.sd__id { font-size: var(--fs-xl); font-weight: var(--w-bold); color: var(--color-white); font-family: var(--font-heading); }
-	.sd__plan-name { color: var(--color-grey-400); font-size: var(--fs-sm); margin-top: 0.25rem; }
-	.sd__header-meta { display: inline-flex; align-items: center; gap: 1rem; }
+	.sd__header {
+		background-color: var(--color-navy-mid);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-top: 2px solid var(--color-teal);
+		border-radius: var(--radius-xl);
+		padding: 1.25rem 1.5rem;
+	}
+	.sd__header-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+	.sd__id {
+		font-size: var(--fs-xl);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+		font-family: var(--font-heading);
+	}
+	.sd__plan-name {
+		color: var(--color-grey-400);
+		font-size: var(--fs-sm);
+		margin-top: 0.25rem;
+	}
+	.sd__header-meta {
+		display: inline-flex;
+		align-items: center;
+		gap: 1rem;
+	}
 
-	.sd__grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem; }
-	.sd__card { background-color: var(--color-navy-mid); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: var(--radius-xl); padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
-	.sd__section-title { font-size: var(--fs-md); font-weight: var(--w-bold); color: var(--color-white); font-family: var(--font-heading); }
+	.sd__grid {
+		display: grid;
+		grid-template-columns: 2fr 1fr;
+		gap: 1.25rem;
+	}
+	.sd__card {
+		background-color: var(--color-navy-mid);
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: var(--radius-xl);
+		padding: 1.25rem 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+	.sd__section-title {
+		font-size: var(--fs-md);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+		font-family: var(--font-heading);
+	}
 
-	.sd__kv { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem 1.25rem; }
-	.sd__kv > div { display: flex; flex-direction: column; gap: 0.2rem; }
-	.sd__kv dt { font-size: var(--fs-xs); color: var(--color-grey-400); text-transform: uppercase; letter-spacing: 0.04em; }
-	.sd__kv dd { margin: 0; font-size: var(--fs-sm); color: var(--color-white); }
-	.sd__num { font-variant-numeric: tabular-nums; }
-	.sd__interval { color: var(--color-grey-400); font-size: var(--fs-xs); margin-left: 0.35rem; }
+	.sd__kv {
+		margin: 0;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.85rem 1.25rem;
+	}
+	.sd__kv > div {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+	}
+	.sd__kv dt {
+		font-size: var(--fs-xs);
+		color: var(--color-grey-400);
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+	.sd__kv dd {
+		margin: 0;
+		font-size: var(--fs-sm);
+		color: var(--color-white);
+	}
+	.sd__num {
+		font-variant-numeric: tabular-nums;
+	}
+	.sd__interval {
+		color: var(--color-grey-400);
+		font-size: var(--fs-xs);
+		margin-left: 0.35rem;
+	}
 
-	.sd__notice { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 0.85rem; border-radius: var(--radius-lg); font-size: var(--fs-sm); }
-	.sd__notice--gold { background-color: rgba(212, 168, 67, 0.12); border: 1px solid rgba(212, 168, 67, 0.3); color: var(--color-gold); }
+	.sd__notice {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.65rem 0.85rem;
+		border-radius: var(--radius-lg);
+		font-size: var(--fs-sm);
+	}
+	.sd__notice--gold {
+		background-color: rgba(212, 168, 67, 0.12);
+		border: 1px solid rgba(212, 168, 67, 0.3);
+		color: var(--color-gold);
+	}
 
-	.sd__actions { display: flex; flex-direction: column; gap: 0.5rem; }
-	.sd__muted { color: var(--color-grey-400); font-size: var(--fs-sm); }
+	.sd__actions {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+	.sd__muted {
+		color: var(--color-grey-400);
+		font-size: var(--fs-sm);
+	}
 
-	.btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.6rem 0.9rem; border-radius: var(--radius-lg); font-size: var(--fs-sm); font-weight: var(--w-semibold); cursor: pointer; border: 1px solid transparent; transition: opacity 200ms var(--ease-out), background-color 200ms var(--ease-out), border-color 200ms var(--ease-out); }
-	.btn:disabled { opacity: 0.55; cursor: not-allowed; }
-	.btn--small { padding: 0.4rem 0.7rem; font-size: var(--fs-xs); }
-	.btn--primary { background: linear-gradient(135deg, var(--color-teal), #0d8a94); color: var(--color-white); }
-	.btn--primary:not(:disabled):hover { opacity: 0.9; }
-	.btn--ghost { background-color: transparent; border-color: rgba(255, 255, 255, 0.12); color: var(--color-grey-300); }
-	.btn--ghost:not(:disabled):hover { color: var(--color-white); border-color: rgba(15, 164, 175, 0.3); background-color: rgba(15, 164, 175, 0.06); }
-	.btn--danger { background-color: rgba(224, 72, 72, 0.1); border-color: rgba(224, 72, 72, 0.3); color: var(--color-red); }
-	.btn--danger:not(:disabled):hover { background-color: rgba(224, 72, 72, 0.18); }
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.4rem;
+		padding: 0.6rem 0.9rem;
+		border-radius: var(--radius-lg);
+		font-size: var(--fs-sm);
+		font-weight: var(--w-semibold);
+		cursor: pointer;
+		border: 1px solid transparent;
+		transition:
+			opacity 200ms var(--ease-out),
+			background-color 200ms var(--ease-out),
+			border-color 200ms var(--ease-out);
+	}
+	.btn:disabled {
+		opacity: 0.55;
+		cursor: not-allowed;
+	}
+	.btn--small {
+		padding: 0.4rem 0.7rem;
+		font-size: var(--fs-xs);
+	}
+	.btn--primary {
+		background: linear-gradient(135deg, var(--color-teal), #0d8a94);
+		color: var(--color-white);
+	}
+	.btn--primary:not(:disabled):hover {
+		opacity: 0.9;
+	}
+	.btn--ghost {
+		background-color: transparent;
+		border-color: rgba(255, 255, 255, 0.12);
+		color: var(--color-grey-300);
+	}
+	.btn--ghost:not(:disabled):hover {
+		color: var(--color-white);
+		border-color: rgba(15, 164, 175, 0.3);
+		background-color: rgba(15, 164, 175, 0.06);
+	}
+	.btn--danger {
+		background-color: rgba(224, 72, 72, 0.1);
+		border-color: rgba(224, 72, 72, 0.3);
+		color: var(--color-red);
+	}
+	.btn--danger:not(:disabled):hover {
+		background-color: rgba(224, 72, 72, 0.18);
+	}
 
-	.btn-mini { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.65rem; border-radius: var(--radius-lg); font-size: var(--fs-xs); font-weight: var(--w-semibold); color: var(--color-teal); background-color: rgba(15, 164, 175, 0.1); border: 1px solid rgba(15, 164, 175, 0.25); text-decoration: none; }
-	.btn-mini:hover { background-color: rgba(15, 164, 175, 0.2); }
+	.btn-mini {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.35rem 0.65rem;
+		border-radius: var(--radius-lg);
+		font-size: var(--fs-xs);
+		font-weight: var(--w-semibold);
+		color: var(--color-teal);
+		background-color: rgba(15, 164, 175, 0.1);
+		border: 1px solid rgba(15, 164, 175, 0.25);
+		text-decoration: none;
+	}
+	.btn-mini:hover {
+		background-color: rgba(15, 164, 175, 0.2);
+	}
 
-	.sd__table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid rgba(255, 255, 255, 0.05); }
-	.sd__table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
-	.sd__table thead { background-color: rgba(255, 255, 255, 0.02); }
-	.sd__table th, .sd__table td { text-align: left; padding: 0.7rem 0.9rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); color: var(--color-grey-300); vertical-align: middle; }
-	.sd__table tbody tr:last-child th, .sd__table tbody tr:last-child td { border-bottom: none; }
-	.sd__table thead th { font-size: var(--fs-xs); font-weight: var(--w-semibold); text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-grey-400); }
-	.sd__col-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--color-white); font-weight: var(--w-semibold); }
-	.sd__col-actions { text-align: right; width: 1%; white-space: nowrap; }
-	.sd__inv-desc { display: flex; flex-direction: column; gap: 0.15rem; color: var(--color-white); }
-	.sd__inv-id { font-size: var(--fs-xs); color: var(--color-grey-400); font-family: ui-monospace, SFMono-Regular, monospace; }
-	.sd__dash { color: var(--color-grey-400); }
-	.sd__inline-link { color: var(--color-white); text-decoration: none; font-family: var(--font-heading); font-weight: var(--w-semibold); }
-	.sd__inline-link:hover { color: var(--color-teal); }
+	.sd__table-wrap {
+		overflow-x: auto;
+		border-radius: var(--radius-lg);
+		border: 1px solid rgba(255, 255, 255, 0.05);
+	}
+	.sd__table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: var(--fs-sm);
+	}
+	.sd__table thead {
+		background-color: rgba(255, 255, 255, 0.02);
+	}
+	.sd__table th,
+	.sd__table td {
+		text-align: left;
+		padding: 0.7rem 0.9rem;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+		color: var(--color-grey-300);
+		vertical-align: middle;
+	}
+	.sd__table tbody tr:last-child th,
+	.sd__table tbody tr:last-child td {
+		border-bottom: none;
+	}
+	.sd__table thead th {
+		font-size: var(--fs-xs);
+		font-weight: var(--w-semibold);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--color-grey-400);
+	}
+	.sd__col-num {
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+		color: var(--color-white);
+		font-weight: var(--w-semibold);
+	}
+	.sd__col-actions {
+		text-align: right;
+		width: 1%;
+		white-space: nowrap;
+	}
+	.sd__inv-desc {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+		color: var(--color-white);
+	}
+	.sd__inv-id {
+		font-size: var(--fs-xs);
+		color: var(--color-grey-400);
+		font-family: ui-monospace, SFMono-Regular, monospace;
+	}
+	.sd__dash {
+		color: var(--color-grey-400);
+	}
+	.sd__inline-link {
+		color: var(--color-white);
+		text-decoration: none;
+		font-family: var(--font-heading);
+		font-weight: var(--w-semibold);
+	}
+	.sd__inline-link:hover {
+		color: var(--color-teal);
+	}
 
-	.badge { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.6rem; border-radius: var(--radius-full); font-size: var(--fs-xs); font-weight: var(--w-semibold); letter-spacing: 0.02em; white-space: nowrap; }
-	.badge__icon { display: inline-flex; align-items: center; }
-	.badge--green { background-color: rgba(34, 181, 115, 0.15); color: var(--color-green); }
-	.badge--gold { background-color: rgba(212, 168, 67, 0.18); color: var(--color-gold); }
-	.badge--teal { background-color: rgba(15, 164, 175, 0.15); color: var(--color-teal); }
-	.badge--red { background-color: rgba(224, 72, 72, 0.15); color: var(--color-red); }
-	.badge--grey { background-color: rgba(255, 255, 255, 0.06); color: var(--color-grey-300); }
+	.badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.2rem 0.6rem;
+		border-radius: var(--radius-full);
+		font-size: var(--fs-xs);
+		font-weight: var(--w-semibold);
+		letter-spacing: 0.02em;
+		white-space: nowrap;
+	}
+	.badge__icon {
+		display: inline-flex;
+		align-items: center;
+	}
+	.badge--green {
+		background-color: rgba(34, 181, 115, 0.15);
+		color: var(--color-green);
+	}
+	.badge--gold {
+		background-color: rgba(212, 168, 67, 0.18);
+		color: var(--color-gold);
+	}
+	.badge--teal {
+		background-color: rgba(15, 164, 175, 0.15);
+		color: var(--color-teal);
+	}
+	.badge--red {
+		background-color: rgba(224, 72, 72, 0.15);
+		color: var(--color-red);
+	}
+	.badge--grey {
+		background-color: rgba(255, 255, 255, 0.06);
+		color: var(--color-grey-300);
+	}
 
 	/* Dialog */
-	.dialog__backdrop { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.55); display: flex; align-items: center; justify-content: center; padding: 1rem; z-index: 200; }
-	.dialog { background-color: var(--color-navy-mid); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-xl); padding: 1.5rem; width: 100%; max-width: 28rem; display: flex; flex-direction: column; gap: 1rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); }
-	.dialog--wide { max-width: 38rem; }
-	.dialog__title { font-size: var(--fs-lg); font-weight: var(--w-bold); color: var(--color-white); font-family: var(--font-heading); }
-	.dialog__body { color: var(--color-grey-300); font-size: var(--fs-sm); }
-	.dialog__error { color: var(--color-red); font-size: var(--fs-sm); }
-	.dialog__actions { display: flex; gap: 0.65rem; justify-content: flex-end; flex-wrap: wrap; }
-	.dialog__radios { border: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+	.dialog__backdrop {
+		position: fixed;
+		inset: 0;
+		background-color: rgba(0, 0, 0, 0.55);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+		z-index: 200;
+	}
+	.dialog {
+		background-color: var(--color-navy-mid);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: var(--radius-xl);
+		padding: 1.5rem;
+		width: 100%;
+		max-width: 28rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+	}
+	.dialog--wide {
+		max-width: 38rem;
+	}
+	.dialog__title {
+		font-size: var(--fs-lg);
+		font-weight: var(--w-bold);
+		color: var(--color-white);
+		font-family: var(--font-heading);
+	}
+	.dialog__body {
+		color: var(--color-grey-300);
+		font-size: var(--fs-sm);
+	}
+	.dialog__error {
+		color: var(--color-red);
+		font-size: var(--fs-sm);
+	}
+	.dialog__actions {
+		display: flex;
+		gap: 0.65rem;
+		justify-content: flex-end;
+		flex-wrap: wrap;
+	}
+	.dialog__radios {
+		border: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
 
-	.radio { display: inline-flex; align-items: center; gap: 0.55rem; color: var(--color-grey-300); font-size: var(--fs-sm); cursor: pointer; padding: 0.4rem 0.5rem; border-radius: var(--radius-lg); }
-	.radio:hover { background-color: rgba(15, 164, 175, 0.06); }
-	.radio input { accent-color: var(--color-teal); }
+	.radio {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.55rem;
+		color: var(--color-grey-300);
+		font-size: var(--fs-sm);
+		cursor: pointer;
+		padding: 0.4rem 0.5rem;
+		border-radius: var(--radius-lg);
+	}
+	.radio:hover {
+		background-color: rgba(15, 164, 175, 0.06);
+	}
+	.radio input {
+		accent-color: var(--color-teal);
+	}
 
-	.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		border: 0;
+	}
 
-	.plans { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; max-height: 18rem; overflow-y: auto; }
-	.plan { display: flex; gap: 1rem; padding: 0.85rem 1rem; border-radius: var(--radius-lg); border: 1px solid rgba(255, 255, 255, 0.07); background-color: rgba(255, 255, 255, 0.02); align-items: center; justify-content: space-between; }
-	.plan--selected { border-color: rgba(15, 164, 175, 0.45); background-color: rgba(15, 164, 175, 0.06); }
-	.plan--current { opacity: 0.65; }
-	.plan__main { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
-	.plan__name-row { display: inline-flex; align-items: center; gap: 0.5rem; }
-	.plan__name { color: var(--color-white); font-weight: var(--w-semibold); font-size: var(--fs-sm); }
-	.plan__price { color: var(--color-white); font-variant-numeric: tabular-nums; font-size: var(--fs-sm); }
-	.plan__interval { color: var(--color-grey-400); font-size: var(--fs-xs); margin-left: 0.25rem; }
-	.plan__desc { color: var(--color-grey-400); font-size: var(--fs-xs); }
+	.plans {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		max-height: 18rem;
+		overflow-y: auto;
+	}
+	.plan {
+		display: flex;
+		gap: 1rem;
+		padding: 0.85rem 1rem;
+		border-radius: var(--radius-lg);
+		border: 1px solid rgba(255, 255, 255, 0.07);
+		background-color: rgba(255, 255, 255, 0.02);
+		align-items: center;
+		justify-content: space-between;
+	}
+	.plan--selected {
+		border-color: rgba(15, 164, 175, 0.45);
+		background-color: rgba(15, 164, 175, 0.06);
+	}
+	.plan--current {
+		opacity: 0.65;
+	}
+	.plan__main {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+		min-width: 0;
+	}
+	.plan__name-row {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	.plan__name {
+		color: var(--color-white);
+		font-weight: var(--w-semibold);
+		font-size: var(--fs-sm);
+	}
+	.plan__price {
+		color: var(--color-white);
+		font-variant-numeric: tabular-nums;
+		font-size: var(--fs-sm);
+	}
+	.plan__interval {
+		color: var(--color-grey-400);
+		font-size: var(--fs-xs);
+		margin-left: 0.25rem;
+	}
+	.plan__desc {
+		color: var(--color-grey-400);
+		font-size: var(--fs-xs);
+	}
 
-	.preview { padding: 0.85rem 1rem; background-color: rgba(15, 164, 175, 0.06); border: 1px solid rgba(15, 164, 175, 0.18); border-radius: var(--radius-lg); display: flex; flex-direction: column; gap: 0.5rem; }
-	.preview__line { color: var(--color-grey-300); font-size: var(--fs-sm); }
-	.preview__line strong { color: var(--color-white); }
-	.preview__details { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin: 0; }
-	.preview__details > div { display: flex; flex-direction: column; gap: 0.15rem; }
-	.preview__details dt { font-size: var(--fs-xs); color: var(--color-grey-400); text-transform: uppercase; letter-spacing: 0.04em; }
-	.preview__details dd { margin: 0; color: var(--color-white); font-variant-numeric: tabular-nums; font-size: var(--fs-sm); }
+	.preview {
+		padding: 0.85rem 1rem;
+		background-color: rgba(15, 164, 175, 0.06);
+		border: 1px solid rgba(15, 164, 175, 0.18);
+		border-radius: var(--radius-lg);
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+	.preview__line {
+		color: var(--color-grey-300);
+		font-size: var(--fs-sm);
+	}
+	.preview__line strong {
+		color: var(--color-white);
+	}
+	.preview__details {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0.5rem;
+		margin: 0;
+	}
+	.preview__details > div {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+	}
+	.preview__details dt {
+		font-size: var(--fs-xs);
+		color: var(--color-grey-400);
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+	.preview__details dd {
+		margin: 0;
+		color: var(--color-white);
+		font-variant-numeric: tabular-nums;
+		font-size: var(--fs-sm);
+	}
 
 	@media (max-width: 900px) {
-		.sd__grid { grid-template-columns: 1fr; }
+		.sd__grid {
+			grid-template-columns: 1fr;
+		}
 	}
 	@media (max-width: 640px) {
-		.sd__header, .sd__card { padding: 1rem; }
-		.sd__kv { grid-template-columns: 1fr; }
-		.preview__details { grid-template-columns: 1fr; }
+		.sd__header,
+		.sd__card {
+			padding: 1rem;
+		}
+		.sd__kv {
+			grid-template-columns: 1fr;
+		}
+		.preview__details {
+			grid-template-columns: 1fr;
+		}
 	}
 </style>

@@ -23,16 +23,16 @@ The root [`README.md`](../README.md) is the entry point and links here.
 | [`google-tracking-setup-guide.md`](./google-tracking-setup-guide.md) | GA4 + GTM + Search Console setup for the SvelteKit app.                                                                                                                                                                    | Marketing / data                  |
 | [`stripe-local-testing.md`](./stripe-local-testing.md)               | Test-mode keys, `stripe listen`, DB price IDs, test cards, signup + checkout E2E on localhost.                                                                                                                             | Developers                        |
 | [`stripe-pricing-models.md`](./stripe-pricing-models.md)             | Stripe Price IDs vs DB-driven `price_data`: pros/cons, enterprise norms, and Swings setup for each.                                                                                                                        | Engineers, RevOps                 |
-| [`STRIPE-E2E-QA.md`](./STRIPE-E2E-QA.md)                             | Release-day QA drill for Stripe webhook expansion: test card matrix, manual checklist, verification queries.                                                                                                                | Engineers, QA                     |
+| [`STRIPE-E2E-QA.md`](./STRIPE-E2E-QA.md)                             | Release-day QA drill for Stripe webhook expansion: test card matrix, manual checklist, verification queries.                                                                                                               | Engineers, QA                     |
 
 ---
 
 ## Repo-level references
 
-| Document                                       | Purpose                                                                                       |
-| ---------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| [`../CHANGELOG.md`](../CHANGELOG.md)           | Dated record of every behaviour-affecting change. The canonical historical reference.         |
-| [`../REPO_STATE.md`](../REPO_STATE.md)         | Most recent end-to-end audit snapshot — current status, open items, deletion ledger.          |
+| Document                               | Purpose                                                                               |
+| -------------------------------------- | ------------------------------------------------------------------------------------- |
+| [`../CHANGELOG.md`](../CHANGELOG.md)   | Dated record of every behaviour-affecting change. The canonical historical reference. |
+| [`../REPO_STATE.md`](../REPO_STATE.md) | Most recent end-to-end audit snapshot — current status, open items, deletion ledger.  |
 
 ---
 

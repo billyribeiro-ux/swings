@@ -47,11 +47,7 @@
 		};
 	};
 
-	type Placement =
-		| 'bottom-start'
-		| 'bottom-end'
-		| 'top-start'
-		| 'top-end';
+	type Placement = 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end';
 
 	interface TriggerProps {
 		'aria-haspopup': 'menu';
@@ -204,7 +200,9 @@
 
 	function focusItem(index: number) {
 		if (!menuEl) return;
-		const itemList = menuEl.querySelectorAll<HTMLElement>('[role="menuitem"]:not([aria-disabled="true"])');
+		const itemList = menuEl.querySelectorAll<HTMLElement>(
+			'[role="menuitem"]:not([aria-disabled="true"])'
+		);
 		if (itemList.length === 0) return;
 		const wrapped = ((index % itemList.length) + itemList.length) % itemList.length;
 		itemList[wrapped]?.focus();

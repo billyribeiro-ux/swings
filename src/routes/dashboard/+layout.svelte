@@ -33,7 +33,12 @@
 			exact: false
 		},
 		{ href: resolve('/dashboard/courses'), label: 'Courses', icon: BookOpenIcon, exact: false },
-		{ href: resolve('/dashboard/account'), label: 'Account', icon: UserCircleIcon, exact: false }
+		{
+			href: resolve('/dashboard/account'),
+			label: 'Account',
+			icon: UserCircleIcon,
+			exact: false
+		}
 	];
 
 	const currentPath = $derived(page.url.pathname);

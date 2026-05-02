@@ -564,7 +564,8 @@
 													<li>
 														<strong
 															>{rolloutPreview.would_skip_grandfathered}</strong
-														> grandfathered member(s) will keep their current price
+														> grandfathered member(s) will keep their current
+														price
 													</li>
 												{/if}
 											</ul>

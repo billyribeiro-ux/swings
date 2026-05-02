@@ -38,7 +38,11 @@
 			label: 'Payment Methods',
 			icon: CreditCardIcon
 		},
-		{ href: resolve('/dashboard/account/details'), label: 'Account Details', icon: UserCircleIcon }
+		{
+			href: resolve('/dashboard/account/details'),
+			label: 'Account Details',
+			icon: UserCircleIcon
+		}
 	];
 
 	const currentPath = $derived(page.url.pathname);
