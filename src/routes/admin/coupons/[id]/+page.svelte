@@ -11,22 +11,29 @@
 	import UsersIcon from 'phosphor-svelte/lib/UsersIcon';
 	import { confirmDialog } from '$lib/stores/confirm.svelte';
 
+	type DiscountType = 'percentage' | 'fixed_amount' | 'free_trial';
+
+	/**
+	 * Local mirror of the backend `Coupon` shape — kept narrow so we don't
+	 * accidentally render fields the API doesn't surface. The canonical type
+	 * lives in `$lib/api/types::Coupon`; this is the subset this page edits.
+	 */
 	interface Coupon {
 		id: string;
 		code: string;
 		description: string | null;
-		discount_type: 'percentage' | 'fixed' | 'free_trial';
-		value: number;
-		min_purchase: number | null;
-		max_discount: number | null;
+		discount_type: DiscountType;
+		discount_value: string | number;
+		min_purchase_cents: number | null;
+		max_discount_cents: number | null;
 		usage_limit: number | null;
 		usage_count: number;
 		per_user_limit: number | null;
-		start_date: string | null;
-		expiry_date: string | null;
+		starts_at: string | null;
+		expires_at: string | null;
 		stackable: boolean;
 		first_purchase_only: boolean;
-		active: boolean;
+		is_active: boolean;
 		recent_usages?: { user_email: string; used_at: string; amount: number }[];
 	}
 
@@ -37,7 +44,7 @@
 	let error = $state('');
 	let successMsg = $state('');
 	let description = $state('');
-	let discountType = $state<'percentage' | 'fixed' | 'free_trial'>('percentage');
+	let discountType = $state<DiscountType>('percentage');
 	let value = $state('');
 	let minPurchase = $state('');
 	let maxDiscount = $state('');
@@ -55,22 +62,55 @@
 			: 0
 	);
 
+	function centsToDollarStr(cents: number | null | undefined): string {
+		if (cents == null) return '';
+		return (cents / 100).toFixed(2).replace(/\.00$/, '');
+	}
+
+	function dollarsToCents(input: string): number | null {
+		const trimmed = input.trim();
+		if (!trimmed) return null;
+		const n = Number(trimmed);
+		if (!Number.isFinite(n)) return null;
+		return Math.round(n * 100);
+	}
+
+	function dateToIso(input: string): string | null {
+		if (!input) return null;
+		// Already-ISO timestamp from backend round-trips back as-is for the
+		// date input via `dateInputValue()`; this only fires on user edits.
+		return `${input}T00:00:00Z`;
+	}
+
+	/** Backend ISO string → `<input type="date">` value (YYYY-MM-DD). */
+	function dateInputValue(iso: string | null): string {
+		if (!iso) return '';
+		return iso.slice(0, 10);
+	}
+
+	function intOrNull(input: string): number | null {
+		const trimmed = input.trim();
+		if (!trimmed) return null;
+		const n = Number(trimmed);
+		return Number.isFinite(n) ? Math.trunc(n) : null;
+	}
+
 	onMount(async () => {
 		try {
 			const data = await api.get<Coupon>(`/api/admin/coupons/${page.params.id}`);
 			coupon = data;
 			description = data.description ?? '';
 			discountType = data.discount_type;
-			value = String(data.value);
-			minPurchase = data.min_purchase != null ? String(data.min_purchase) : '';
-			maxDiscount = data.max_discount != null ? String(data.max_discount) : '';
+			value = data.discount_value != null ? String(data.discount_value) : '';
+			minPurchase = centsToDollarStr(data.min_purchase_cents);
+			maxDiscount = centsToDollarStr(data.max_discount_cents);
 			usageLimit = data.usage_limit != null ? String(data.usage_limit) : '';
 			perUserLimit = data.per_user_limit != null ? String(data.per_user_limit) : '';
-			startDate = data.start_date ?? '';
-			expiryDate = data.expiry_date ?? '';
+			startDate = dateInputValue(data.starts_at);
+			expiryDate = dateInputValue(data.expires_at);
 			stackable = data.stackable;
 			firstPurchaseOnly = data.first_purchase_only;
-			active = data.active;
+			active = data.is_active;
 		} catch {
 			error = 'Coupon not found';
 		} finally {
@@ -85,18 +125,18 @@
 		successMsg = '';
 		try {
 			const updated = await api.put<Coupon>(`/api/admin/coupons/${page.params.id}`, {
-				description: description || null,
+				description: description.trim() || null,
 				discount_type: discountType,
-				value: value ? Number(value) : 0,
-				min_purchase: minPurchase ? Number(minPurchase) : null,
-				max_discount: maxDiscount ? Number(maxDiscount) : null,
-				usage_limit: usageLimit ? Number(usageLimit) : null,
-				per_user_limit: perUserLimit ? Number(perUserLimit) : null,
-				start_date: startDate || null,
-				expiry_date: expiryDate || null,
+				discount_value: value ? Number(value) : 0,
+				min_purchase_cents: dollarsToCents(minPurchase),
+				max_discount_cents: dollarsToCents(maxDiscount),
+				usage_limit: intOrNull(usageLimit),
+				per_user_limit: intOrNull(perUserLimit),
+				starts_at: dateToIso(startDate),
+				expires_at: dateToIso(expiryDate),
 				stackable,
 				first_purchase_only: firstPurchaseOnly,
-				active
+				is_active: active
 			});
 			coupon = updated;
 			successMsg = 'Coupon updated!';
@@ -218,7 +258,7 @@
 						<label for="discountType" class="ce__lbl">Discount Type</label>
 						<select id="discountType" bind:value={discountType} class="ce__inp">
 							<option value="percentage">Percentage</option>
-							<option value="fixed">Fixed Amount</option>
+							<option value="fixed_amount">Fixed Amount</option>
 							<option value="free_trial">Free Trial</option>
 						</select>
 					</div>
@@ -226,7 +266,7 @@
 						<label for="value" class="ce__lbl"
 							>Value {discountType === 'percentage'
 								? '(%)'
-								: discountType === 'fixed'
+								: discountType === 'fixed_amount'
 									? '($)'
 									: '(days)'}</label
 						>

@@ -1229,6 +1229,7 @@
 
 	.member-card__btn:hover {
 		background-color: rgba(255, 255, 255, 0.1);
+		border-color: rgba(255, 255, 255, 0.12);
 	}
 
 	.member-card__btn--warn {
@@ -1236,7 +1237,8 @@
 	}
 
 	.member-card__btn--warn:hover {
-		background-color: rgba(245, 158, 11, 0.15);
+		background-color: rgba(245, 158, 11, 0.18);
+		border-color: rgba(245, 158, 11, 0.4);
 	}
 
 	.member-card__btn--danger {
@@ -1244,7 +1246,8 @@
 	}
 
 	.member-card__btn--danger:hover {
-		background-color: rgba(239, 68, 68, 0.15);
+		background-color: rgba(239, 68, 68, 0.18);
+		border-color: rgba(239, 68, 68, 0.4);
 	}
 
 	.member-card__btn--delete {
@@ -1252,7 +1255,8 @@
 	}
 
 	.member-card__btn--delete:hover {
-		background-color: rgba(239, 68, 68, 0.2);
+		background-color: rgba(239, 68, 68, 0.22);
+		border-color: rgba(239, 68, 68, 0.5);
 	}
 
 	@media (max-width: 767px) {

@@ -1423,6 +1423,7 @@ pub struct PricingChangeLog {
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, PartialEq, ToSchema)]
 #[sqlx(type_name = "discount_type", rename_all = "lowercase")]
+#[serde(rename_all = "snake_case")]
 pub enum DiscountType {
     Percentage,
     #[sqlx(rename = "fixed_amount")]

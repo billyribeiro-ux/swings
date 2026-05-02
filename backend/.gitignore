@@ -1,2 +1,6 @@
 /target
 .env
+
+# Runtime upload destination (R2 in prod, local fs in dev). Never commit
+# user-uploaded files — they belong in R2/storage, not git history.
+/uploads/

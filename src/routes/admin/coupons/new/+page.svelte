@@ -6,9 +6,11 @@
 	import TicketIcon from 'phosphor-svelte/lib/TicketIcon';
 	import ArrowsClockwiseIcon from 'phosphor-svelte/lib/ArrowsClockwiseIcon';
 
+	type DiscountType = 'percentage' | 'fixed_amount' | 'free_trial';
+
 	let code = $state('');
 	let description = $state('');
-	let discountType = $state<'percentage' | 'fixed' | 'free_trial'>('percentage');
+	let discountType = $state<DiscountType>('percentage');
 	let value = $state('');
 	let minPurchase = $state('');
 	let maxDiscount = $state('');
@@ -29,25 +31,55 @@
 		code = result;
 	}
 
+	/** Convert a "5.49" dollar string into integer cents; null when empty. */
+	function dollarsToCents(input: string): number | null {
+		const trimmed = input.trim();
+		if (!trimmed) return null;
+		const n = Number(trimmed);
+		if (!Number.isFinite(n)) return null;
+		return Math.round(n * 100);
+	}
+
+	/** Date input → ISO 8601 (UTC midnight) the backend's chrono expects. */
+	function dateToIso(input: string): string | null {
+		if (!input) return null;
+		// `<input type="date">` returns YYYY-MM-DD; append UTC midnight so chrono
+		// parses it as DateTime<Utc> without a timezone-offset round-trip surprise.
+		return `${input}T00:00:00Z`;
+	}
+
+	function intOrNull(input: string): number | null {
+		const trimmed = input.trim();
+		if (!trimmed) return null;
+		const n = Number(trimmed);
+		return Number.isFinite(n) ? Math.trunc(n) : null;
+	}
+
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
 		saving = true;
 		error = '';
 		try {
+			// `discount_value` is a percentage for `percentage`, dollar amount
+			// for `fixed_amount`, day count for `free_trial`. The backend stores
+			// it as a Decimal, so percentages and day counts pass through; only
+			// the dollar amount needs to be a count of *units* (the per-cent
+			// math happens server-side against `min_purchase_cents` / line items).
+			const discountValue = value ? Number(value) : 0;
 			await api.post('/api/admin/coupons', {
-				code,
-				description: description || null,
+				code: code.trim().toUpperCase(),
+				description: description.trim() || null,
 				discount_type: discountType,
-				value: value ? Number(value) : 0,
-				min_purchase: minPurchase ? Number(minPurchase) : null,
-				max_discount: maxDiscount ? Number(maxDiscount) : null,
-				usage_limit: usageLimit ? Number(usageLimit) : null,
-				per_user_limit: perUserLimit ? Number(perUserLimit) : null,
-				start_date: startDate || null,
-				expiry_date: expiryDate || null,
+				discount_value: discountValue,
+				min_purchase_cents: dollarsToCents(minPurchase),
+				max_discount_cents: dollarsToCents(maxDiscount),
+				usage_limit: intOrNull(usageLimit),
+				per_user_limit: intOrNull(perUserLimit),
+				starts_at: dateToIso(startDate),
+				expires_at: dateToIso(expiryDate),
 				stackable,
 				first_purchase_only: firstPurchaseOnly,
-				active
+				is_active: active
 			});
 			goto(resolve('/admin/coupons'));
 		} catch (err) {
@@ -107,7 +139,7 @@
 					<label for="discountType">Discount Type</label>
 					<select id="discountType" bind:value={discountType}>
 						<option value="percentage">Percentage</option>
-						<option value="fixed">Fixed Amount</option>
+						<option value="fixed_amount">Fixed Amount</option>
 						<option value="free_trial">Free Trial</option>
 					</select>
 				</div>
@@ -115,7 +147,7 @@
 					<label for="value"
 						>Value {discountType === 'percentage'
 							? '(%)'
-							: discountType === 'fixed'
+							: discountType === 'fixed_amount'
 								? '($)'
 								: '(days)'}</label
 					>
@@ -128,7 +160,7 @@
 						required
 						placeholder={discountType === 'percentage'
 							? '10'
-							: discountType === 'fixed'
+							: discountType === 'fixed_amount'
 								? '5.00'
 								: '14'}
 					/>

@@ -10,6 +10,106 @@ Timestamps use the operator-facing calendar date attached to the change list.
 
 ---
 
+## 2026-05-01 22:30 ET — Polish: tooltip refresh, coupon-create 422 fix, icon audit
+
+### Fixed: `POST /api/admin/coupons` 422 on every submit
+
+Two compounding bugs caused every authenticated coupon-create request to
+fail at the `Json<>` extractor:
+
+1. **`DiscountType` had no serde rename.** The enum derived
+   `Serialize` / `Deserialize` directly, so the wire format expected
+   `"Percentage"` / `"FixedAmount"` / `"FreeTrial"` (Rust variant names
+   verbatim). The SPA was sending `"percentage"` / `"fixed"` /
+   `"free_trial"` — none matched. Added
+   `#[serde(rename_all = "snake_case")]` so the wire shape matches the
+   SQL enum (`fixed_amount` etc.) and the SPA convention.
+2. **Stale field names in the new-coupon UI.** The form was sending
+   `value`, `min_purchase`, `max_discount`, `start_date`, `expiry_date`,
+   `active` instead of the canonical `discount_value`,
+   `min_purchase_cents`, `max_discount_cents`, `starts_at`,
+   `expires_at`, `is_active`. The dropdown also used `"fixed"` instead
+   of `"fixed_amount"`. And dollar amounts were sent as raw numbers
+   (would have stored `5¢` instead of `$5`).
+
+Fix touched both pages:
+- `src/routes/admin/coupons/new/+page.svelte` — corrected field names,
+  added `dollarsToCents()` / `dateToIso()` / `intOrNull()` helpers,
+  dropdown value `"fixed"` → `"fixed_amount"`.
+- `src/routes/admin/coupons/[id]/+page.svelte` — same corrections plus
+  GET-side `centsToDollarStr()` and `dateInputValue()` helpers so the
+  edit form actually pre-fills the values that the API returns
+  (previously every numeric field came back blank because the local
+  `Coupon` interface declared the wrong column names).
+
+### Regression test added
+
+`backend/tests/admin_coupons_create.rs` (new file, 4 tests):
+- `create_with_percentage_returns_200_and_persists_row`
+- `create_with_fixed_amount_returns_200`
+- `create_with_free_trial_returns_200`
+- `create_with_camelcase_discount_type_is_rejected_422` — guards
+  against accidentally re-introducing the silent dual-acceptance via
+  `#[serde(alias = ...)]` in a future refactor
+
+All 4 pass against a real Postgres test DB.
+
+### Tooltip polish
+
+`src/lib/components/ui/Tooltip.svelte` — Google-grade visual refresh:
+- **Arrow / stem added.** Hybrid CSS + measurement: a CSS triangle on
+  a sibling `<span class="tooltip__arrow">` is positioned via
+  `--tooltip-arrow-offset` set from `computePosition()`. Result: the
+  arrow always points at the trigger center even when the bubble is
+  clamped against the viewport edge (the most common "messy tooltip"
+  bug).
+- **Refreshed palette.** Background `oklch(16% 0.02 252)` (near-black
+  with subtle navy tint), border `oklch(32% 0.02 252)` (teal-tinted),
+  single softer shadow `0 4px 16px rgba(0,0,0,0.35)` — replaces the
+  noisy double-shadow + inset highlight that competed with admin chrome.
+- **Better reading rhythm.** `font-size: 0.8125rem` (was `0.75`),
+  `line-height: 1.4` (was `1.35`), padding `0.5rem 0.75rem` (was
+  cramped at `0.35rem 0.55rem`).
+- **kbd chip lifted** for legibility against the new bg.
+- All 6 existing Tooltip browser tests still pass without changes.
+
+### Admin members action-cluster polish
+
+`src/routes/admin/members/+page.svelte` — destructive icon buttons
+(`--warn`, `--danger`, `--delete`) now visibly pop more on hover than
+the neutral ones via tinted `border-color` shifts and stronger
+background tints. Sizing + tab order were already cohesive, left
+those alone.
+
+### Sitewide icon audit (no work needed)
+
+Confirmed: zero non-Phosphor icon library imports anywhere; 689
+Phosphor imports across 119 .svelte files; only one inline `<svg>` in
+the whole `src/routes/` tree (the data-driven circular progress ring
+on `/dashboard/+page.svelte` — no Phosphor equivalent, must remain SVG
+by design); the two `.svg` files in `static/` and `src/lib/assets/`
+are brand favicons.
+
+### `backend/uploads/` now gitignored
+
+Runtime upload destination was leaking accidentally-checked-in files
+into `git status`. Added `/uploads/` to `backend/.gitignore`.
+
+### Verification
+
+| Check | Result |
+|---|---|
+| `cargo fmt --all -- --check` | clean |
+| `cargo clippy --all-targets -- -D warnings` | clean |
+| `cargo test --lib` | 524 / 0 / 0 |
+| `cargo test --test admin_coupons_create` | **4 / 4** new tests pass |
+| `pnpm check` | 4423 files / 0 errors / 0 warnings |
+| `pnpm lint` | clean |
+| `pnpm test:unit -- --run` | 103 / 103 |
+| `pnpm test:unit -- Tooltip --run` (browser) | 6 / 6 |
+
+---
+
 ## 2026-05-01 21:00 ET — Member account self-service (orders, subscriptions, coupons, billing, payment methods)
 
 ### What this session shipped

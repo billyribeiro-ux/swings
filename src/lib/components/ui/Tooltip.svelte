@@ -85,6 +85,10 @@
 	// from the current `placement` prop, optionally flipped to fit the viewport.
 	let resolvedPlacement = $state<Placement>('top');
 	let coords = $state<{ top: number; left: number }>({ top: 0, left: 0 });
+	// Distance from the bubble's leading edge (left for top/bottom, top for left/right)
+	// to the centre of the arrow. Recomputed on every layout pass so the arrow keeps
+	// pointing at the trigger even when the bubble is clamped against the viewport.
+	let arrowOffset = $state(0);
 
 	let openTimer: ReturnType<typeof setTimeout> | null = null;
 	let isTouchInteraction = false;
@@ -139,6 +143,11 @@
 		return triggerEl.getBoundingClientRect();
 	}
 
+	// Minimum gap between the arrow centre and the bubble's near corner so the
+	// rotated arrow square (whose size is set by --tooltip-arrow-size in CSS)
+	// never pokes past the rounded corner.
+	const ARROW_EDGE_PAD = 10;
+
 	function computePosition() {
 		if (!tooltipEl) return;
 		const rect = getTriggerRect();
@@ -147,7 +156,7 @@
 		const tipRect = tooltipEl.getBoundingClientRect();
 		const vw = window.innerWidth;
 		const vh = window.innerHeight;
-		const gap = 8;
+		const gap = 10;
 		const margin = 6;
 
 		const fitsTop = rect.top - tipRect.height - gap >= margin;
@@ -185,10 +194,31 @@
 		}
 
 		// Clamp to viewport so tooltip never clips off-screen.
-		left = Math.max(margin, Math.min(left, vw - tipRect.width - margin));
-		top = Math.max(margin, Math.min(top, vh - tipRect.height - margin));
+		const clampedLeft = Math.max(margin, Math.min(left, vw - tipRect.width - margin));
+		const clampedTop = Math.max(margin, Math.min(top, vh - tipRect.height - margin));
 
-		coords = { top, left };
+		coords = { top: clampedTop, left: clampedLeft };
+
+		// Re-anchor the arrow at the trigger centre even after the bubble was
+		// clamped: the bubble may have shifted, but the arrow should still point
+		// at the trigger. We compute the trigger centre's position relative to
+		// the *clamped* bubble, then clamp to the bubble's safe inner range so
+		// the rotated square never overruns the rounded corner.
+		if (next === 'top' || next === 'bottom') {
+			const triggerCentreX = rect.left + rect.width / 2;
+			const rawOffset = triggerCentreX - clampedLeft;
+			arrowOffset = Math.max(
+				ARROW_EDGE_PAD,
+				Math.min(rawOffset, tipRect.width - ARROW_EDGE_PAD)
+			);
+		} else {
+			const triggerCentreY = rect.top + rect.height / 2;
+			const rawOffset = triggerCentreY - clampedTop;
+			arrowOffset = Math.max(
+				ARROW_EDGE_PAD,
+				Math.min(rawOffset, tipRect.height - ARROW_EDGE_PAD)
+			);
+		}
 	}
 
 	$effect(() => {
@@ -289,11 +319,13 @@
 		class="tooltip tooltip--{resolvedPlacement}"
 		style:top="{coords.top}px"
 		style:left="{coords.left}px"
+		style:--tooltip-arrow-offset="{arrowOffset}px"
 	>
 		<span class="tooltip__label">{label}</span>
 		{#if hotkey}
 			<kbd class="tooltip__kbd">{hotkey}</kbd>
 		{/if}
+		<span class="tooltip__arrow" aria-hidden="true"></span>
 	</div>
 {/if}
 
@@ -303,24 +335,29 @@
 	}
 
 	.tooltip {
+		/* Local design tokens — keep one-off oklch values discoverable in one place. */
+		--tooltip-bg: oklch(16% 0.02 252);
+		--tooltip-border: oklch(32% 0.02 252);
+		--tooltip-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+		--tooltip-arrow-size: 8px;
+		--tooltip-arrow-half: 4px;
+
 		position: fixed;
 		/* Above command palette (10000) and admin chrome */
 		z-index: var(--z-tooltip, 11000);
 		display: inline-flex;
 		align-items: center;
 		max-width: 22rem;
-		padding: 0.35rem 0.55rem;
-		background: var(--color-navy-deep);
-		border: 1px solid rgba(255, 255, 255, 0.12);
+		padding: 0.5rem 0.75rem;
+		background: var(--tooltip-bg);
+		border: 1px solid var(--tooltip-border);
 		border-radius: var(--radius-md);
-		box-shadow:
-			0 8px 24px rgba(0, 0, 0, 0.4),
-			0 1px 0 rgba(255, 255, 255, 0.08) inset;
-		color: var(--color-grey-200);
+		box-shadow: var(--tooltip-shadow);
+		color: var(--color-grey-100, #f3f4f6);
 		font-family: var(--font-ui);
-		font-size: 0.75rem;
+		font-size: 0.8125rem;
 		font-weight: var(--w-medium);
-		line-height: 1.35;
+		line-height: 1.4;
 		white-space: normal;
 		pointer-events: none;
 		opacity: 0;
@@ -348,15 +385,60 @@
 	.tooltip__kbd {
 		display: inline-flex;
 		align-items: center;
-		margin-left: 0.4rem;
-		padding: 0 0.3rem;
-		background: rgba(255, 255, 255, 0.08);
+		margin-left: 0.5rem;
+		padding: 0 0.35rem;
+		background: oklch(26% 0.02 252);
+		border: 1px solid oklch(36% 0.02 252);
 		border-radius: var(--radius-xs);
-		color: var(--color-grey-400);
+		color: var(--color-grey-300, #d1d5db);
 		font-family: var(--font-ui);
 		font-size: 0.7rem;
 		font-weight: var(--w-semibold);
 		line-height: 1.4;
+	}
+
+	/*
+	 * Arrow — a rotated 8x8 square that inherits the bubble background and shows
+	 * exactly two of its four borders (the two facing away from the bubble) so it
+	 * reads as a continuation of the bubble's outline. `--tooltip-arrow-offset`
+	 * is updated in JS during computePosition() to keep the arrow pointing at the
+	 * trigger centre even when the bubble is clamped against the viewport.
+	 */
+	.tooltip__arrow {
+		position: absolute;
+		width: var(--tooltip-arrow-size);
+		height: var(--tooltip-arrow-size);
+		background: var(--tooltip-bg);
+		transform: rotate(45deg);
+		pointer-events: none;
+	}
+
+	.tooltip--top .tooltip__arrow {
+		bottom: calc(-1 * var(--tooltip-arrow-half));
+		left: calc(var(--tooltip-arrow-offset, 50%) - var(--tooltip-arrow-half));
+		border-right: 1px solid var(--tooltip-border);
+		border-bottom: 1px solid var(--tooltip-border);
+	}
+
+	.tooltip--bottom .tooltip__arrow {
+		top: calc(-1 * var(--tooltip-arrow-half));
+		left: calc(var(--tooltip-arrow-offset, 50%) - var(--tooltip-arrow-half));
+		border-left: 1px solid var(--tooltip-border);
+		border-top: 1px solid var(--tooltip-border);
+	}
+
+	.tooltip--left .tooltip__arrow {
+		right: calc(-1 * var(--tooltip-arrow-half));
+		top: calc(var(--tooltip-arrow-offset, 50%) - var(--tooltip-arrow-half));
+		border-top: 1px solid var(--tooltip-border);
+		border-right: 1px solid var(--tooltip-border);
+	}
+
+	.tooltip--right .tooltip__arrow {
+		left: calc(-1 * var(--tooltip-arrow-half));
+		top: calc(var(--tooltip-arrow-offset, 50%) - var(--tooltip-arrow-half));
+		border-bottom: 1px solid var(--tooltip-border);
+		border-left: 1px solid var(--tooltip-border);
 	}
 
 	@keyframes tooltip-in-top {
