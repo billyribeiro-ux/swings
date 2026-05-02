@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api } from '$lib/api/client';
+	import { api, ApiError } from '$lib/api/client';
 	import type { BlogCategory } from '$lib/api/types';
 	import { confirmDialog } from '$lib/stores/confirm.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 
 	let categories: BlogCategory[] = $state([]);
 	let loading = $state(true);
@@ -19,7 +20,7 @@
 		try {
 			categories = await api.get<BlogCategory[]>('/api/admin/blog/categories');
 		} catch (e) {
-			console.error('Failed to load categories', e);
+			toast.error(e instanceof ApiError ? e.message : 'Failed to load categories');
 		} finally {
 			loading = false;
 		}
@@ -35,8 +36,9 @@
 			categories = [...categories, cat];
 			newName = '';
 			newDescription = '';
+			toast.success('Category created');
 		} catch (e) {
-			console.error('Failed to create category', e);
+			toast.error(e instanceof ApiError ? e.message : 'Failed to create category');
 		}
 	}
 
@@ -55,8 +57,9 @@
 			});
 			categories = categories.map((c) => (c.id === editingId ? updated : c));
 			editingId = null;
+			toast.success('Category updated');
 		} catch (e) {
-			console.error('Failed to update category', e);
+			toast.error(e instanceof ApiError ? e.message : 'Failed to update category');
 		}
 	}
 
@@ -71,8 +74,9 @@
 		try {
 			await api.delete(`/api/admin/blog/categories/${id}`);
 			categories = categories.filter((c) => c.id !== id);
+			toast.success('Category deleted');
 		} catch (e) {
-			console.error('Failed to delete category', e);
+			toast.error(e instanceof ApiError ? e.message : 'Failed to delete category');
 		}
 	}
 </script>

@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api } from '$lib/api/client';
+	import { api, ApiError } from '$lib/api/client';
 	import type { BlogTag } from '$lib/api/types';
 	import { confirmDialog } from '$lib/stores/confirm.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 
 	let tags: BlogTag[] = $state([]);
 	let loading = $state(true);
@@ -15,7 +16,7 @@
 		try {
 			tags = await api.get<BlogTag[]>('/api/admin/blog/tags');
 		} catch (e) {
-			console.error('Failed to load tags', e);
+			toast.error(e instanceof ApiError ? e.message : 'Failed to load tags');
 		} finally {
 			loading = false;
 		}
@@ -27,8 +28,9 @@
 			const tag = await api.post<BlogTag>('/api/admin/blog/tags', { name: newName });
 			tags = [...tags, tag];
 			newName = '';
+			toast.success('Tag created');
 		} catch (e) {
-			console.error('Failed to create tag', e);
+			toast.error(e instanceof ApiError ? e.message : 'Failed to create tag');
 		}
 	}
 
@@ -43,8 +45,9 @@
 		try {
 			await api.delete(`/api/admin/blog/tags/${id}`);
 			tags = tags.filter((t) => t.id !== id);
+			toast.success('Tag deleted');
 		} catch (e) {
-			console.error('Failed to delete tag', e);
+			toast.error(e instanceof ApiError ? e.message : 'Failed to delete tag');
 		}
 	}
 </script>
