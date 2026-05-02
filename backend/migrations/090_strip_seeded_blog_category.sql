@@ -1,0 +1,22 @@
+-- Migration 090: strip the demo "Uncategorized" blog category seeded in 002.
+--
+-- The historical 002_blog.sql migration seeded a single "Uncategorized"
+-- row into `blog_categories` so the admin UI had a default selectable
+-- option on first run. The operator now wants the category list to start
+-- empty so admin-authored taxonomy is the only thing the UI surfaces.
+--
+-- Migrations are forward-only (see CLAUDE.md hard rule #1), so we add
+-- this DELETE in a new file rather than editing 002. Idempotent: if the
+-- row is already gone (deleted by an admin from the UI before this
+-- migration shipped) the DELETE is a no-op.
+--
+-- Safe-by-construction:
+--   * matches by `slug = 'uncategorized'` so we only touch the one
+--     specific row 002 seeded;
+--   * the FK from `blog_post_categories` ON DELETE CASCADE means any
+--     post-category links pointing at this row drop with it. This is
+--     the desired behaviour — a post that was tagged only with the
+--     placeholder "uncategorized" is left untagged, which is the
+--     correct state once the placeholder is gone.
+
+DELETE FROM blog_categories WHERE slug = 'uncategorized';

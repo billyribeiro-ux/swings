@@ -26,8 +26,29 @@ function getStripe(): Stripe {
 	return stripeClient;
 }
 
+/**
+ * Resolve the public origin for Stripe success/cancel callbacks.
+ *
+ * In production we refuse to fall back: if `PUBLIC_APP_URL` is unset on a
+ * Vercel/Netlify deploy the checkout would silently route customers back
+ * to `http://localhost:5173`, which 100% breaks the post-payment flow on
+ * every device that isn't the operator's own dev box. Failing the
+ * checkout call early surfaces the misconfig as a 500 the operator can
+ * see, not as silent customer loss.
+ *
+ * In dev we keep the convenience fallback so `vite dev` works without
+ * extra env wiring.
+ */
 function siteOrigin(): string {
-	return (publicEnv.PUBLIC_APP_URL || 'http://localhost:5173').replace(/\/$/, '');
+	const configured = publicEnv.PUBLIC_APP_URL?.trim();
+	if (configured) return configured.replace(/\/$/, '');
+	if (env.NODE_ENV === 'production' || env.VERCEL_ENV === 'production') {
+		error(
+			500,
+			'Checkout is not configured: PUBLIC_APP_URL must be set in production'
+		);
+	}
+	return 'http://localhost:5173';
 }
 
 /** Load active plans the same way the browser does, via same-origin rewrites to the Rust API. */
@@ -193,7 +214,7 @@ export const createCheckoutSession = command(
 		}
 
 		const stripe = getStripe();
-		const appUrl = publicEnv.PUBLIC_APP_URL || 'http://localhost:5173';
+		const appUrl = siteOrigin();
 
 		try {
 			const session = await stripe.checkout.sessions.create({

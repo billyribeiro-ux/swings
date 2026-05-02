@@ -1,4 +1,10 @@
 <script lang="ts">
+	/**
+	 * Generic action-menu item primitive. When `href` is supplied the consumer
+	 * is responsible for resolving typed routes via SvelteKit's `resolve()`
+	 * helper — this primitive cannot statically know which typed route is
+	 * being passed, so it accepts a pre-resolved string.
+	 */
 	import type { Component, Snippet } from 'svelte';
 	import type { SVGAttributes } from 'svelte/elements';
 
@@ -27,6 +33,14 @@
 		variant?: Variant | undefined;
 		disabled?: boolean | undefined;
 		onclick?: ((event: MouseEvent) => void) | undefined;
+		/**
+		 * When set, the item renders as a real `<a>` element so middle-click /
+		 * cmd-click open the target in a new tab — the standard browser
+		 * affordance for navigation. Mutually exclusive with `onclick` in
+		 * intent, but both can coexist if the consumer needs e.g. an
+		 * analytics ping on follow.
+		 */
+		href?: string | undefined;
 		children: Snippet;
 	}
 
@@ -35,6 +49,7 @@
 		variant = 'default',
 		disabled = false,
 		onclick,
+		href,
 		children
 	}: Props = $props();
 
@@ -48,22 +63,42 @@
 	}
 </script>
 
-<button
-	type="button"
-	role="menuitem"
-	tabindex="-1"
-	class="action-menu__item action-menu__item--{variant}"
-	aria-disabled={disabled ? 'true' : undefined}
-	onclick={handleClick}
->
-	{#if icon}
-		{@const Icon = icon}
-		<span class="action-menu__icon" aria-hidden="true">
-			<Icon size={16} weight="bold" />
-		</span>
-	{/if}
-	<span class="action-menu__label">{@render children()}</span>
-</button>
+{#if href}
+	<svelte:element
+		this={'a'}
+		role="menuitem"
+		tabindex="-1"
+		class="action-menu__item action-menu__item--{variant}"
+		aria-disabled={disabled ? 'true' : undefined}
+		{href}
+		onclick={handleClick}
+	>
+		{#if icon}
+			{@const Icon = icon}
+			<span class="action-menu__icon" aria-hidden="true">
+				<Icon size={16} weight="bold" />
+			</span>
+		{/if}
+		<span class="action-menu__label">{@render children()}</span>
+	</svelte:element>
+{:else}
+	<button
+		type="button"
+		role="menuitem"
+		tabindex="-1"
+		class="action-menu__item action-menu__item--{variant}"
+		aria-disabled={disabled ? 'true' : undefined}
+		onclick={handleClick}
+	>
+		{#if icon}
+			{@const Icon = icon}
+			<span class="action-menu__icon" aria-hidden="true">
+				<Icon size={16} weight="bold" />
+			</span>
+		{/if}
+		<span class="action-menu__label">{@render children()}</span>
+	</button>
+{/if}
 
 <style>
 	.action-menu__item {
@@ -81,7 +116,9 @@
 		font-weight: var(--w-medium);
 		line-height: 1.3;
 		text-align: left;
+		text-decoration: none;
 		cursor: pointer;
+		box-sizing: border-box;
 		transition:
 			background-color 120ms var(--ease-out),
 			color 120ms var(--ease-out);

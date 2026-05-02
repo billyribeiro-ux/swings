@@ -146,20 +146,6 @@ export function generateLineData(
 	return data;
 }
 
-// Sample stock tickers for price ticker
-export const sampleTickers = [
-	{ symbol: 'SPY', name: 'SPDR S&P 500', basePrice: 450 },
-	{ symbol: 'QQQ', name: 'Invesco QQQ', basePrice: 380 },
-	{ symbol: 'AAPL', name: 'Apple Inc.', basePrice: 175 },
-	{ symbol: 'MSFT', name: 'Microsoft', basePrice: 330 },
-	{ symbol: 'NVDA', name: 'NVIDIA', basePrice: 480 },
-	{ symbol: 'TSLA', name: 'Tesla Inc.', basePrice: 240 },
-	{ symbol: 'AMD', name: 'AMD', basePrice: 145 },
-	{ symbol: 'META', name: 'Meta Platforms', basePrice: 320 },
-	{ symbol: 'AMZN', name: 'Amazon', basePrice: 145 },
-	{ symbol: 'GOOGL', name: 'Alphabet', basePrice: 140 }
-];
-
 // Generate live price updates
 export function generateLivePrice(basePrice: number): {
 	price: number;

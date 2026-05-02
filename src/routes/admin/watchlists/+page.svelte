@@ -11,6 +11,10 @@
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import ListChecksIcon from 'phosphor-svelte/lib/ListChecksIcon';
+	import DotsThreeVerticalIcon from 'phosphor-svelte/lib/DotsThreeVerticalIcon';
+	import ActionMenu from '$lib/components/shared/ActionMenu.svelte';
+	import ActionMenuItem from '$lib/components/shared/ActionMenuItem.svelte';
+	import ActionMenuDivider from '$lib/components/shared/ActionMenuDivider.svelte';
 	import { confirmDialog } from '$lib/stores/confirm.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 
@@ -152,33 +156,45 @@
 					<div class="wl-card__actions">
 						<a
 							href={resolve('/admin/watchlists/[id]', { id: wl.id })}
-							class="wl-card__btn wl-card__btn--edit"
-							title="Edit"
+							class="wl-card__primary"
 						>
 							<PencilSimpleIcon size={16} weight="bold" />
-							<span>Edit</span>
+							<span>Open</span>
 						</a>
-						<button
-							onclick={() => togglePublish(wl)}
-							class="wl-card__btn wl-card__btn--publish"
-							title={wl.published ? 'Unpublish' : 'Publish'}
-						>
-							{#if wl.published}
-								<EyeSlashIcon size={16} weight="bold" />
-								<span>Unpublish</span>
-							{:else}
-								<EyeIcon size={16} weight="bold" />
-								<span>Publish</span>
-							{/if}
-						</button>
-						<button
-							onclick={() => deleteWatchlist(wl)}
-							class="wl-card__btn wl-card__btn--delete"
-							title="Delete"
-						>
-							<TrashIcon size={16} weight="bold" />
-							<span>Delete</span>
-						</button>
+						<ActionMenu placement="bottom-end" label="Watchlist actions">
+							{#snippet trigger(p)}
+								<button
+									type="button"
+									{...p}
+									class="wl-card__menu-trigger"
+									aria-label="Open watchlist actions menu"
+								>
+									<DotsThreeVerticalIcon size={18} weight="bold" />
+								</button>
+							{/snippet}
+							{#snippet items()}
+								<ActionMenuItem
+									icon={PencilSimpleIcon}
+									href={resolve('/admin/watchlists/[id]', { id: wl.id })}
+								>
+									Edit
+								</ActionMenuItem>
+								<ActionMenuItem
+									icon={wl.published ? EyeSlashIcon : EyeIcon}
+									onclick={() => togglePublish(wl)}
+								>
+									{wl.published ? 'Unpublish' : 'Publish'}
+								</ActionMenuItem>
+								<ActionMenuDivider />
+								<ActionMenuItem
+									icon={TrashIcon}
+									variant="danger"
+									onclick={() => deleteWatchlist(wl)}
+								>
+									Delete
+								</ActionMenuItem>
+							{/snippet}
+						</ActionMenu>
 					</div>
 				</div>
 			{/each}
@@ -216,34 +232,48 @@
 							<td class="wl-table__muted">{formatDate(wl.published_at)}</td>
 							<td>
 								<div class="wl-table__actions">
-									<a
-										href={resolve('/admin/watchlists/[id]', { id: wl.id })}
-										class="wl-table__btn wl-table__btn--edit"
-										title="Edit"
-										aria-label="Edit"
+									<ActionMenu
+										placement="bottom-end"
+										label="Watchlist actions"
 									>
-										<PencilSimpleIcon size={16} weight="bold" />
-									</a>
-									<button
-										onclick={() => togglePublish(wl)}
-										class="wl-table__btn wl-table__btn--publish"
-										title={wl.published ? 'Unpublish' : 'Publish'}
-										aria-label={wl.published ? 'Unpublish' : 'Publish'}
-									>
-										{#if wl.published}
-											<EyeSlashIcon size={16} weight="bold" />
-										{:else}
-											<EyeIcon size={16} weight="bold" />
-										{/if}
-									</button>
-									<button
-										onclick={() => deleteWatchlist(wl)}
-										class="wl-table__btn wl-table__btn--delete"
-										title="Delete"
-										aria-label="Delete"
-									>
-										<TrashIcon size={16} weight="bold" />
-									</button>
+										{#snippet trigger(p)}
+											<button
+												type="button"
+												{...p}
+												class="wl-table__menu-trigger"
+												aria-label="Open watchlist actions menu"
+											>
+												<DotsThreeVerticalIcon
+													size={18}
+													weight="bold"
+												/>
+											</button>
+										{/snippet}
+										{#snippet items()}
+											<ActionMenuItem
+												icon={PencilSimpleIcon}
+												href={resolve('/admin/watchlists/[id]', {
+													id: wl.id
+												})}
+											>
+												Edit
+											</ActionMenuItem>
+											<ActionMenuItem
+												icon={wl.published ? EyeSlashIcon : EyeIcon}
+												onclick={() => togglePublish(wl)}
+											>
+												{wl.published ? 'Unpublish' : 'Publish'}
+											</ActionMenuItem>
+											<ActionMenuDivider />
+											<ActionMenuItem
+												icon={TrashIcon}
+												variant="danger"
+												onclick={() => deleteWatchlist(wl)}
+											>
+												Delete
+											</ActionMenuItem>
+										{/snippet}
+									</ActionMenu>
 								</div>
 							</td>
 						</tr>
@@ -503,13 +533,14 @@
 
 	.wl-card__actions {
 		display: flex;
+		align-items: center;
 		gap: 0.5rem;
 		margin-top: 0.25rem;
 		padding-top: 0.625rem;
 		border-top: 1px solid rgba(255, 255, 255, 0.06);
 	}
 
-	.wl-card__btn {
+	.wl-card__primary {
 		flex: 1;
 		display: inline-flex;
 		align-items: center;
@@ -519,6 +550,8 @@
 		padding: 0.5rem 0.5rem;
 		border-radius: var(--radius-2xl);
 		border: 1px solid transparent;
+		background-color: rgba(59, 130, 246, 0.1);
+		color: #60a5fa;
 		cursor: pointer;
 		font-size: 0.75rem;
 		font-weight: 600;
@@ -526,31 +559,39 @@
 		transition: all 150ms var(--ease-out);
 	}
 
-	.wl-card__btn--edit {
-		background-color: rgba(59, 130, 246, 0.1);
-		color: #60a5fa;
-	}
-
-	.wl-card__btn--edit:hover {
+	.wl-card__primary:hover {
 		background-color: rgba(59, 130, 246, 0.22);
 	}
 
-	.wl-card__btn--publish {
-		background-color: rgba(34, 197, 94, 0.1);
-		color: #22c55e;
+	.wl-card__menu-trigger {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		padding: 0;
+		border-radius: var(--radius-md);
+		border: 1px solid transparent;
+		background: transparent;
+		color: var(--color-grey-300);
+		cursor: pointer;
+		transition:
+			background-color 150ms var(--ease-out),
+			color 150ms var(--ease-out),
+			border-color 150ms var(--ease-out);
+		flex-shrink: 0;
 	}
 
-	.wl-card__btn--publish:hover {
-		background-color: rgba(34, 197, 94, 0.22);
+	.wl-card__menu-trigger:hover,
+	.wl-card__menu-trigger:focus-visible,
+	.wl-card__menu-trigger[aria-expanded='true'] {
+		background-color: rgba(255, 255, 255, 0.08);
+		color: var(--color-white);
+		outline: none;
 	}
 
-	.wl-card__btn--delete {
-		background-color: rgba(239, 68, 68, 0.08);
-		color: #ef4444;
-	}
-
-	.wl-card__btn--delete:hover {
-		background-color: rgba(239, 68, 68, 0.2);
+	.wl-card__menu-trigger:focus-visible {
+		border-color: rgba(15, 164, 175, 0.5);
 	}
 
 	/* ====================================================================
@@ -712,47 +753,36 @@
 		.wl-table__actions {
 			display: flex;
 			justify-content: flex-end;
-			gap: 0.4rem;
 		}
 
-		.wl-table__btn {
-			width: 2rem;
-			height: 2rem;
+		.wl-table__menu-trigger {
 			display: inline-flex;
 			align-items: center;
 			justify-content: center;
+			width: 2rem;
+			height: 2rem;
+			padding: 0;
 			border-radius: var(--radius-md);
 			border: 1px solid transparent;
+			background: transparent;
+			color: var(--color-grey-300);
 			cursor: pointer;
-			text-decoration: none;
-			transition: all 150ms var(--ease-out);
+			transition:
+				background-color 150ms var(--ease-out),
+				color 150ms var(--ease-out),
+				border-color 150ms var(--ease-out);
 		}
 
-		.wl-table__btn--edit {
-			background-color: rgba(59, 130, 246, 0.1);
-			color: #60a5fa;
+		.wl-table__menu-trigger:hover,
+		.wl-table__menu-trigger:focus-visible,
+		.wl-table__menu-trigger[aria-expanded='true'] {
+			background-color: rgba(255, 255, 255, 0.08);
+			color: var(--color-white);
+			outline: none;
 		}
 
-		.wl-table__btn--edit:hover {
-			background-color: rgba(59, 130, 246, 0.22);
-		}
-
-		.wl-table__btn--publish {
-			background-color: rgba(34, 197, 94, 0.1);
-			color: #22c55e;
-		}
-
-		.wl-table__btn--publish:hover {
-			background-color: rgba(34, 197, 94, 0.22);
-		}
-
-		.wl-table__btn--delete {
-			background-color: rgba(239, 68, 68, 0.08);
-			color: #ef4444;
-		}
-
-		.wl-table__btn--delete:hover {
-			background-color: rgba(239, 68, 68, 0.2);
+		.wl-table__menu-trigger:focus-visible {
+			border-color: rgba(15, 164, 175, 0.5);
 		}
 
 		.wl-admin__pagination {

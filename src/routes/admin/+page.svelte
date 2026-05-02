@@ -907,8 +907,11 @@
 	}
 
 	.admin-dash__skeleton-card {
-		height: 6.5rem;
-		border-radius: var(--radius-lg);
+		/* CLS guard: must match `.kpi` height EXACTLY so the layout box
+		   doesn't shift when the skeleton is replaced by the real card.
+		   Real `.kpi` uses `min-height: 7.5rem` + `border-radius: var(--radius-2xl)`. */
+		height: 7.5rem;
+		border-radius: var(--radius-2xl);
 		background: linear-gradient(
 			90deg,
 			rgba(255, 255, 255, 0.03) 0%,
@@ -992,7 +995,11 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
-		min-height: 6.5rem;
+		/* CLS-locked height — see `.admin-dash__skeleton-card`. The
+		   delta badges + value stack settle at ~7.5rem on a typical 1280px
+		   layout; pinning prevents the post-fetch grow that the audit
+		   measured at ~0.04 CLS per card × 6 = ~0.24 cumulative. */
+		min-height: 7.5rem;
 		padding: 1rem 1.25rem;
 		background: linear-gradient(135deg, rgba(19, 43, 80, 0.45) 0%, rgba(19, 43, 80, 0.25) 100%);
 		backdrop-filter: blur(24px);

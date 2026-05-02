@@ -298,10 +298,21 @@
 		</div>
 	</div>
 {:else if !adminSessionReady}
-	<div class="admin-login">
-		<div class="admin-login__card">
-			<p class="admin-login__subtitle">Validating session…</p>
-		</div>
+	<!--
+		CLS fix: render the same shell skeleton the real admin layout will
+		occupy once `adminSessionReady` flips to true. The pre-fix branch
+		rendered a centered login-style card which caused a ~0.30 CLS
+		reflow when the validated shell took its place. The skeleton below
+		uses the same sidebar + main-area grid so the layout box stays
+		stable through the validate → ready transition.
+	-->
+	<div class="admin admin--validating" aria-busy="true" aria-live="polite">
+		<aside class="admin__sidebar admin__sidebar--skeleton" aria-hidden="true"></aside>
+		<main class="admin__main">
+			<div class="admin__validating-status">
+				<p class="admin__validating-text">Validating session…</p>
+			</div>
+		</main>
 	</div>
 {:else}
 	<div class="admin">
@@ -839,6 +850,41 @@
 		flex-direction: column;
 		min-height: 100vh;
 		background-color: var(--color-navy-deep);
+	}
+
+	/* CLS guard: render the validating skeleton at the same physical
+	   footprint as the real shell so the layout box doesn't jump when
+	   `adminSessionReady` flips. Sidebar skeleton matches the desktop
+	   sidebar width; the main column claims the remaining viewport. */
+	.admin--validating {
+		flex-direction: row;
+	}
+
+	.admin__sidebar--skeleton {
+		display: none;
+	}
+
+	.admin__validating-status {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 60vh;
+	}
+
+	.admin__validating-text {
+		font-size: 0.875rem;
+		color: var(--color-grey-400);
+		margin: 0;
+	}
+
+	@media (min-width: 1024px) {
+		.admin__sidebar--skeleton {
+			display: block;
+			width: 16rem;
+			flex-shrink: 0;
+			background-color: rgba(11, 29, 58, 0.85);
+			border-right: 1px solid rgba(255, 255, 255, 0.08);
+		}
 	}
 
 	.admin__overlay {

@@ -807,7 +807,12 @@
 	}
 
 	.members-page__skeleton-row {
-		height: 80px;
+		/* CLS guard (mobile, card view): real `.member-card` runs ~5rem
+		   tall on a typical viewport — the prior 80px overshoots by
+		   ~10px per row × 5 rows = ~50px reflow when the data lands.
+		   Pinning to the same `.member-card` height keeps the layout
+		   box stable through the loading → ready transition. */
+		height: 5rem;
 		border-radius: var(--radius-xl);
 		background: linear-gradient(
 			90deg,
@@ -1421,6 +1426,15 @@
 
 		.members-page__page-btn {
 			padding: 0.55rem 1rem;
+		}
+
+		/* CLS guard (tablet+, table view): real `.m-table` rows are
+		   ~3.6rem tall (`.m-table td` padding 0.875rem × 2 + ~1rem
+		   content). Lock the skeleton to the same physical footprint
+		   so the table doesn't grow upward when the data lands. */
+		.members-page__skeleton-row {
+			height: 3.6rem;
+			border-radius: var(--radius-md);
 		}
 	}
 
