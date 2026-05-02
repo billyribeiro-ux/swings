@@ -10,6 +10,147 @@ Timestamps use the operator-facing calendar date attached to the change list.
 
 ---
 
+## 2026-05-02 04:35 ET — Architectural CLS fix on `/admin/members` + dev-DB cleanup
+
+Two work items shipped in one session.
+
+### Fixed: filter-tab clicks on `/admin/members` produced visible page drift
+
+User report: clicking "All roles / Admins / Members / Any status / Active /
+Suspended / Banned" tabs caused "huge drift" — every element below the
+table jumped as the row count changed. The previous CLS work
+(`f67af54`) had added `silent: true` to mutation handlers (delete /
+ban / suspend) so they'd avoid flashing the skeleton, but **filter
+handlers, search, and pagination still flipped `loading=true`**, which
+unmounted the table → mounted the 5-row skeleton → mounted the new
+table at whatever row count came back. Two layout shifts per click.
+
+Fixed in two passes:
+
+1. **`silent: true` on every non-mount call site of `loadMembers()`**
+   — `changeRole`, `changeStatus`, `clearMemberFilters`,
+   `scheduleSearchReload`, `commitSearchNow`, prev-page, next-page.
+   The list stays mounted, the `<tbody>` swaps in place. This alone
+   takes mutation-CLS to 0.0000 across all 14 filter clicks ×
+   2 viewports.
+
+2. **Reserved-space layout architecture** so the underlying
+   class-of-bug ("table-wrap height = N × row-h, where N is variable")
+   cannot recur on a larger dataset. Single source of truth: a
+   `PER_PAGE = 15` script constant + CSS custom properties
+   (`--row-h: 3.6rem`, `--cards-row-h: 9rem`, etc.) on
+   `.members-page`. From there:
+   - **Cards block (mobile) and table-wrap (≥768px) always mounted**,
+     each with `min-height: PER_PAGE × row-h + chrome`. Going from a
+     filter that returns 15 rows to one that returns 0 (or vice
+     versa) cannot resize either container.
+   - **Empty state renders inline** inside the reserved box (centered
+     via `display: grid; place-items: center` on the table-wrap)
+     instead of unmounting the wrapper to swap in a standalone empty
+     panel.
+   - **Skeleton renders exactly `PER_PAGE` rows** (was 5) and real
+     `<tr>` rows are locked to `height: var(--row-h)` so the
+     loading → ready transition is a pure in-place row swap with no
+     height delta. Content variability (long names / wrapped emails)
+     can no longer drift row height between filter swaps.
+   - **Pagination slot always reserved** — when `totalPages <= 1` we
+     render phantom controls with `visibility: hidden` so the slot's
+     vertical space is preserved. Without this, going from a
+     multi-page filter result to a single-page one would unmount the
+     row and bounce the page footer up by ~3rem.
+   - **Live count badge extracted** from the descriptive subtitle
+     (`{total} total members — manage roles…`) into a dedicated
+     `.members-page__count` pill next to the H1. The dynamic value
+     no longer changes character count inside a wrapping paragraph,
+     which was the single largest contributor to first-paint CLS
+     (~0.034 desktop, traced to a `<p>` line-wrap shift).
+
+### Added: mutation-CLS gate spec + load-time CLS gate
+
+`e2e/admin/members-filter-cls.spec.ts` — authenticated Playwright
+spec that runs against both viewports (1280×800 desktop / 390×844
+mobile), captures `PerformanceObserver({ type: 'layout-shift',
+buffered: true })`, and asserts:
+
+- **Load-time CLS < 0.02** (threshold gate; reserved-space invariant).
+- **Per-click delta < 0.01** for each of 7 filter tabs.
+
+Final numbers: filter-click delta = **0.0000** on all 14 click events
+(7 tabs × 2 viewports). Load-time = **0.0051 desktop / 0.0066 mobile**
+(was 0.0421 / 0.0113 before the badge extraction — ~88% / ~42%
+reduction respectively). The remaining ~5–7 thousandths is 1px
+font-metric drift after web-font swap — a known web-platform issue,
+20× below Google's "good CLS" threshold of 0.1.
+
+When load-time CLS > 0.001, the spec dumps offending DOM sources
+(tag + outerHTML + rect deltas) so future regressions name the
+offender automatically.
+
+### Cleaned: local dev DB — drop test data, keep the operator
+
+Cleanup of the local Postgres on `:5434`:
+
+- **1,622 leaked `test_*` schemas dropped** — the Rust integration
+  test harness creates a per-test ephemeral schema and is supposed
+  to drop it on teardown; previous crash-paths left them behind.
+  This was also the cause of `pg_dump` failing with
+  `out of shared memory` (locking 1,622 × ~90 dependent objects
+  exceeded `max_locks_per_transaction`). Dropped via 1,622
+  individual auto-commit `DROP SCHEMA … CASCADE` statements
+  (`/tmp/drop-test-schemas.sql`) outside the data-cleanup
+  transaction.
+- **45 of 46 user rows deleted**, leaving only the operator
+  (`b9d628f7-42af-4d78-af93-cb13ba0b092b` / `billy.ribeiro@icloud.com`).
+  CASCADE FKs swept dependents (subscriptions, refresh_tokens,
+  addresses, course_enrollments, etc.) automatically.
+- **Content/seed tables wiped**: pricing_plans, coupons, popups +
+  variants + submissions + events, blog_posts + categories + tags
+  + revisions, courses + modules + lessons, forms + versions +
+  submissions, products + variants + categories, watchlists +
+  alerts, analytics events/sessions, outbox events, idempotency
+  keys, rate-limit buckets, consent records, dsar_jobs/requests,
+  impersonation_sessions, stripe_webhook_audit, etc.
+- **Preserved**: operator's `users` row, operator's
+  `admin_actions` (91 rows — operator audit trail), `permissions`
+  + `role_permissions` (RBAC matrix from `021_rbac.sql`),
+  `consent_categories` / `consent_services` / `consent_policies` /
+  `consent_banner_configs` (config tables), `popup_types`,
+  `app_settings`, `notification_templates`, `_sqlx_migrations`.
+- Single transaction with `ON_ERROR_STOP=1`. Pre-cleanup
+  `pg_dump` (public schema only) saved at
+  `/tmp/swings-backup-20260502-091016.sql` (1.0 MB) — restorable
+  with `psql … < <backup>`.
+
+Verified by post-cleanup `POST /api/auth/login` against the
+operator credentials → HTTP 200, JWT issued.
+
+### Verification
+
+- `pnpm exec svelte-check` → 4427 files / **0 errors / 0 warnings**.
+- `pnpm lint` → clean.
+- `pnpm test:unit` → **103/103 passing** across 12 test files.
+- `e2e/admin/members-filter-cls.spec.ts` → **2/2 passing** (desktop
+  + mobile).
+
+### Files changed
+
+- [src/routes/admin/members/+page.svelte](src/routes/admin/members/+page.svelte)
+  — `silent: true` on filter/search/pagination call sites; reserved-space
+  architecture (CSS custom properties, always-mounted wrappers,
+  inline empty state, reserved pagination slot, count-badge
+  extraction); `PER_PAGE` lifted to script constant.
+- [e2e/admin/members-filter-cls.spec.ts](e2e/admin/members-filter-cls.spec.ts)
+  — new authenticated CLS gate spec, both viewports.
+- [e2e/admin/forensic-cls-dashboard.spec.ts](e2e/admin/forensic-cls-dashboard.spec.ts)
+  — new forensic sweep for member-facing `/dashboard/*` routes
+  (mirror of the admin sweep, no CLS assertions, JSON evidence
+  to `/tmp/forensic/cls-dash-*.json`).
+- [CLAUDE.md](CLAUDE.md) — migration ceiling bumped from "001–087"
+  to "highest: 091" (the file in `backend/migrations/` reflects
+  this; CLAUDE.md was lagging).
+
+---
+
 ## 2026-05-01 23:30 ET — Removed "Recent sign-ups" from admin home
 
 The admin home page was rendering a "Recent sign-ups" table as the
