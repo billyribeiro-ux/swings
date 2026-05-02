@@ -437,7 +437,10 @@
 	-->
 
 	<!-- Mobile: Card view -->
-	<div class="members-page__cards" data-state={loading ? 'loading' : showInlineEmpty ? 'empty' : 'ready'}>
+	<div
+		class="members-page__cards"
+		data-state={loading ? 'loading' : showInlineEmpty ? 'empty' : 'ready'}
+	>
 		{#if loading}
 			{#each Array(PER_PAGE) as _, i (i)}
 				<div class="members-page__skeleton-row" aria-hidden="true"></div>
@@ -620,7 +623,10 @@
 													class="m-table__menu-trigger"
 													aria-label="Open member actions menu"
 												>
-													<DotsThreeVerticalIcon size={18} weight="bold" />
+													<DotsThreeVerticalIcon
+														size={18}
+														weight="bold"
+													/>
 												</button>
 											{/snippet}
 											{#snippet items()}
@@ -1668,7 +1674,6 @@
 		.members-page__page-btn {
 			padding: 0.55rem 1rem;
 		}
-
 	}
 
 	/*

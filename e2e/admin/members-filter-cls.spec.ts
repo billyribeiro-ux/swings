@@ -57,104 +57,16 @@ for (const vp of VIEWPORTS) {
 	}: Fixtures) => {
 		test.setTimeout(120_000);
 
-	// Install the observer BEFORE the page loads so `buffered: true` catches
-	// every shift from first paint onward. We expose helpers on `window` to
-	// snapshot/diff the cumulative score from spec code.
-	await page.addInitScript(() => {
-		const w = window as unknown as {
-			__clsTotal: number;
-			__clsEntries: Array<{
-				value: number;
-				hadRecentInput: boolean;
-				startTime: number;
-				sources: Array<{
-					tag: string | undefined;
-					html: string;
-					prev: { x: number; y: number; w: number; h: number } | null;
-					curr: { x: number; y: number; w: number; h: number } | null;
-				}>;
-			}>;
-		};
-		w.__clsTotal = 0;
-		w.__clsEntries = [];
-		try {
-			const po = new PerformanceObserver((list) => {
-				for (const e of list.getEntries()) {
-					const ls = e as PerformanceEntry & {
-						value: number;
-						hadRecentInput: boolean;
-						sources?: Array<{
-							node?: { nodeName?: string; outerHTML?: string };
-							currentRect: DOMRectReadOnly | null;
-							previousRect: DOMRectReadOnly | null;
-						}>;
-					};
-					if (ls.hadRecentInput) continue;
-					w.__clsTotal += ls.value;
-					w.__clsEntries.push({
-						value: ls.value,
-						hadRecentInput: ls.hadRecentInput,
-						startTime: ls.startTime,
-						sources: (ls.sources ?? []).map((s) => ({
-							tag: s.node?.nodeName,
-							html: (s.node?.outerHTML ?? '').slice(0, 200),
-							prev: s.previousRect
-								? {
-										x: s.previousRect.x,
-										y: s.previousRect.y,
-										w: s.previousRect.width,
-										h: s.previousRect.height
-									}
-								: null,
-							curr: s.currentRect
-								? {
-										x: s.currentRect.x,
-										y: s.currentRect.y,
-										w: s.currentRect.width,
-										h: s.currentRect.height
-									}
-								: null
-						}))
-					});
-				}
-			});
-			po.observe({ type: 'layout-shift', buffered: true });
-		} catch {
-			/* layout-shift not supported (firefox/webkit) — spec only meaningful in chromium */
-		}
-	});
-
-	await page.setViewportSize({ width: vp.width, height: vp.height });
-
-	await page.goto('/admin/members', { waitUntil: 'domcontentloaded' });
-
-	// Wait for the initial list to render in whichever DOM block is visible
-	// at this viewport (table on desktop, cards on mobile).
-	await page.locator(vp.listSelector).first().waitFor({ timeout: 15_000 });
-
-	// Allow any post-paint shifts (font-swap, async images, etc.) to settle so
-	// they don't pollute the per-click deltas.
-	await page.waitForTimeout(1500);
-
-	type Snapshot = {
-		total: number;
-		entries: Array<{
-			value: number;
-			sources: Array<{
-				tag: string | undefined;
-				html: string;
-				prev: { x: number; y: number; w: number; h: number } | null;
-				curr: { x: number; y: number; w: number; h: number } | null;
-			}>;
-		}>;
-	};
-
-	async function readCls(): Promise<Snapshot> {
-		return page.evaluate(() => {
+		// Install the observer BEFORE the page loads so `buffered: true` catches
+		// every shift from first paint onward. We expose helpers on `window` to
+		// snapshot/diff the cumulative score from spec code.
+		await page.addInitScript(() => {
 			const w = window as unknown as {
 				__clsTotal: number;
 				__clsEntries: Array<{
 					value: number;
+					hadRecentInput: boolean;
+					startTime: number;
 					sources: Array<{
 						tag: string | undefined;
 						html: string;
@@ -163,110 +75,193 @@ for (const vp of VIEWPORTS) {
 					}>;
 				}>;
 			};
-			return {
-				total: w.__clsTotal ?? 0,
-				entries: (w.__clsEntries ?? []).map((e) => ({
-					value: e.value,
-					sources: e.sources
-				}))
-			};
+			w.__clsTotal = 0;
+			w.__clsEntries = [];
+			try {
+				const po = new PerformanceObserver((list) => {
+					for (const e of list.getEntries()) {
+						const ls = e as PerformanceEntry & {
+							value: number;
+							hadRecentInput: boolean;
+							sources?: Array<{
+								node?: { nodeName?: string; outerHTML?: string };
+								currentRect: DOMRectReadOnly | null;
+								previousRect: DOMRectReadOnly | null;
+							}>;
+						};
+						if (ls.hadRecentInput) continue;
+						w.__clsTotal += ls.value;
+						w.__clsEntries.push({
+							value: ls.value,
+							hadRecentInput: ls.hadRecentInput,
+							startTime: ls.startTime,
+							sources: (ls.sources ?? []).map((s) => ({
+								tag: s.node?.nodeName,
+								html: (s.node?.outerHTML ?? '').slice(0, 200),
+								prev: s.previousRect
+									? {
+											x: s.previousRect.x,
+											y: s.previousRect.y,
+											w: s.previousRect.width,
+											h: s.previousRect.height
+										}
+									: null,
+								curr: s.currentRect
+									? {
+											x: s.currentRect.x,
+											y: s.currentRect.y,
+											w: s.currentRect.width,
+											h: s.currentRect.height
+										}
+									: null
+							}))
+						});
+					}
+				});
+				po.observe({ type: 'layout-shift', buffered: true });
+			} catch {
+				/* layout-shift not supported (firefox/webkit) — spec only meaningful in chromium */
+			}
 		});
-	}
 
-	// Load-time CLS gate — verifies the skeleton → real-data transition is
-	// a pure in-place row swap. If this fails, the reserved-space invariant
-	// (skeleton row-h must equal real row-h, skeleton count must equal
-	// PER_PAGE) was broken by a downstream edit.
-	const loadSnapshot = await readCls();
-	 
-	console.log(`[${vp.name} load] cls=${loadSnapshot.total.toFixed(4)}`);
-	if (loadSnapshot.total > 0.001) {
-		 
-		console.log(
-			`[${vp.name} load] offending sources:\n` +
-				loadSnapshot.entries
-					.flatMap((e) =>
-						e.sources.map(
-							(s) =>
-								`  Δ=${e.value.toFixed(4)} ${s.tag} ${s.prev?.h ?? '?'}→${s.curr?.h ?? '?'}h ${s.prev?.y ?? '?'}→${s.curr?.y ?? '?'}y ${s.html.slice(0, 120)}`
-						)
-					)
-					.slice(0, 6)
-					.join('\n')
-		);
-	}
-	expect(
-		loadSnapshot.total,
-		`[${vp.name}] Load-time CLS too high — reserved-space invariant broken.`
-	).toBeLessThan(0.02);
+		await page.setViewportSize({ width: vp.width, height: vp.height });
 
-	const failures: Array<{
-		click: string;
-		delta: number;
-		offenders: Array<{ tag: string | undefined; html: string }>;
-	}> = [];
+		await page.goto('/admin/members', { waitUntil: 'domcontentloaded' });
 
-	for (const tab of FILTER_TABS) {
-		const before = await readCls();
+		// Wait for the initial list to render in whichever DOM block is visible
+		// at this viewport (table on desktop, cards on mobile).
+		await page.locator(vp.listSelector).first().waitFor({ timeout: 15_000 });
 
-		// Click the tab inside its labeled tablist so the role/status selectors
-		// don't collide on identical labels (e.g. there's a "Members" tab AND
-		// a column heading literally called "Members" elsewhere).
-		const groupAria =
-			tab.group === 'role' ? 'Filter by role' : 'Filter by status';
-		const tabLocator = page
-			.locator(`[role="tablist"][aria-label="${groupAria}"]`)
-			.getByRole('tab', { name: tab.label, exact: true });
+		// Allow any post-paint shifts (font-swap, async images, etc.) to settle so
+		// they don't pollute the per-click deltas.
+		await page.waitForTimeout(1500);
 
-		// Fire the click and wait for the resulting list refetch. The page
-		// only triggers a single GET /api/admin/members per filter change.
-		await Promise.all([
-			page.waitForResponse(
-				(r) =>
-					r.url().includes('/api/admin/members') &&
-					r.request().method() === 'GET',
-				{ timeout: 10_000 }
-			),
-			tabLocator.click()
-		]);
+		type Snapshot = {
+			total: number;
+			entries: Array<{
+				value: number;
+				sources: Array<{
+					tag: string | undefined;
+					html: string;
+					prev: { x: number; y: number; w: number; h: number } | null;
+					curr: { x: number; y: number; w: number; h: number } | null;
+				}>;
+			}>;
+		};
 
-		// Let the response render. 350ms is generous: the Svelte 5 micro-task
-		// queue fires the DOM patch within one frame, but we want any post-
-		// patch reflow (e.g. a tbody re-layout) to settle into the observer.
-		await page.waitForTimeout(350);
-
-		const after = await readCls();
-		const delta = after.total - before.total;
-		const newEntries = after.entries.slice(before.entries.length);
-
-		 
-		console.log(
-			`[${vp.name} ${tab.group}:${tab.label}] cls Δ=${delta.toFixed(4)} entries=${newEntries.length}`
-		);
-
-		if (delta > MAX_DELTA_PER_CLICK) {
-			const offenders = newEntries.flatMap((e) =>
-				e.sources.map((s) => ({ tag: s.tag, html: s.html }))
-			);
-			failures.push({ click: `${tab.group}:${tab.label}`, delta, offenders });
+		async function readCls(): Promise<Snapshot> {
+			return page.evaluate(() => {
+				const w = window as unknown as {
+					__clsTotal: number;
+					__clsEntries: Array<{
+						value: number;
+						sources: Array<{
+							tag: string | undefined;
+							html: string;
+							prev: { x: number; y: number; w: number; h: number } | null;
+							curr: { x: number; y: number; w: number; h: number } | null;
+						}>;
+					}>;
+				};
+				return {
+					total: w.__clsTotal ?? 0,
+					entries: (w.__clsEntries ?? []).map((e) => ({
+						value: e.value,
+						sources: e.sources
+					}))
+				};
+			});
 		}
-	}
 
-	if (failures.length > 0) {
-		const summary = failures
-			.map(
-				(f) =>
-					`  ${f.click} → Δ=${f.delta.toFixed(4)}\n` +
-					f.offenders
-						.slice(0, 3)
-						.map((o) => `    ${o.tag}: ${o.html}`)
+		// Load-time CLS gate — verifies the skeleton → real-data transition is
+		// a pure in-place row swap. If this fails, the reserved-space invariant
+		// (skeleton row-h must equal real row-h, skeleton count must equal
+		// PER_PAGE) was broken by a downstream edit.
+		const loadSnapshot = await readCls();
+
+		console.log(`[${vp.name} load] cls=${loadSnapshot.total.toFixed(4)}`);
+		if (loadSnapshot.total > 0.001) {
+			console.log(
+				`[${vp.name} load] offending sources:\n` +
+					loadSnapshot.entries
+						.flatMap((e) =>
+							e.sources.map(
+								(s) =>
+									`  Δ=${e.value.toFixed(4)} ${s.tag} ${s.prev?.h ?? '?'}→${s.curr?.h ?? '?'}h ${s.prev?.y ?? '?'}→${s.curr?.y ?? '?'}y ${s.html.slice(0, 120)}`
+							)
+						)
+						.slice(0, 6)
 						.join('\n')
-			)
-			.join('\n');
+			);
+		}
 		expect(
-			failures,
-			`[${vp.name}] Filter clicks produced layout shift above ${MAX_DELTA_PER_CLICK}:\n${summary}`
-		).toEqual([]);
-	}
+			loadSnapshot.total,
+			`[${vp.name}] Load-time CLS too high — reserved-space invariant broken.`
+		).toBeLessThan(0.02);
+
+		const failures: Array<{
+			click: string;
+			delta: number;
+			offenders: Array<{ tag: string | undefined; html: string }>;
+		}> = [];
+
+		for (const tab of FILTER_TABS) {
+			const before = await readCls();
+
+			// Click the tab inside its labeled tablist so the role/status selectors
+			// don't collide on identical labels (e.g. there's a "Members" tab AND
+			// a column heading literally called "Members" elsewhere).
+			const groupAria = tab.group === 'role' ? 'Filter by role' : 'Filter by status';
+			const tabLocator = page
+				.locator(`[role="tablist"][aria-label="${groupAria}"]`)
+				.getByRole('tab', { name: tab.label, exact: true });
+
+			// Fire the click and wait for the resulting list refetch. The page
+			// only triggers a single GET /api/admin/members per filter change.
+			await Promise.all([
+				page.waitForResponse(
+					(r) => r.url().includes('/api/admin/members') && r.request().method() === 'GET',
+					{ timeout: 10_000 }
+				),
+				tabLocator.click()
+			]);
+
+			// Let the response render. 350ms is generous: the Svelte 5 micro-task
+			// queue fires the DOM patch within one frame, but we want any post-
+			// patch reflow (e.g. a tbody re-layout) to settle into the observer.
+			await page.waitForTimeout(350);
+
+			const after = await readCls();
+			const delta = after.total - before.total;
+			const newEntries = after.entries.slice(before.entries.length);
+
+			console.log(
+				`[${vp.name} ${tab.group}:${tab.label}] cls Δ=${delta.toFixed(4)} entries=${newEntries.length}`
+			);
+
+			if (delta > MAX_DELTA_PER_CLICK) {
+				const offenders = newEntries.flatMap((e) =>
+					e.sources.map((s) => ({ tag: s.tag, html: s.html }))
+				);
+				failures.push({ click: `${tab.group}:${tab.label}`, delta, offenders });
+			}
+		}
+
+		if (failures.length > 0) {
+			const summary = failures
+				.map(
+					(f) =>
+						`  ${f.click} → Δ=${f.delta.toFixed(4)}\n` +
+						f.offenders
+							.slice(0, 3)
+							.map((o) => `    ${o.tag}: ${o.html}`)
+							.join('\n')
+				)
+				.join('\n');
+			expect(
+				failures,
+				`[${vp.name}] Filter clicks produced layout shift above ${MAX_DELTA_PER_CLICK}:\n${summary}`
+			).toEqual([]);
+		}
 	});
 }

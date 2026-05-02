@@ -105,17 +105,17 @@ Cleanup of the local Postgres on `:5434`:
   addresses, course_enrollments, etc.) automatically.
 - **Content/seed tables wiped**: pricing_plans, coupons, popups +
   variants + submissions + events, blog_posts + categories + tags
-  + revisions, courses + modules + lessons, forms + versions +
-  submissions, products + variants + categories, watchlists +
-  alerts, analytics events/sessions, outbox events, idempotency
-  keys, rate-limit buckets, consent records, dsar_jobs/requests,
-  impersonation_sessions, stripe_webhook_audit, etc.
+  - revisions, courses + modules + lessons, forms + versions +
+    submissions, products + variants + categories, watchlists +
+    alerts, analytics events/sessions, outbox events, idempotency
+    keys, rate-limit buckets, consent records, dsar_jobs/requests,
+    impersonation_sessions, stripe_webhook_audit, etc.
 - **Preserved**: operator's `users` row, operator's
   `admin_actions` (91 rows — operator audit trail), `permissions`
-  + `role_permissions` (RBAC matrix from `021_rbac.sql`),
-  `consent_categories` / `consent_services` / `consent_policies` /
-  `consent_banner_configs` (config tables), `popup_types`,
-  `app_settings`, `notification_templates`, `_sqlx_migrations`.
+  - `role_permissions` (RBAC matrix from `021_rbac.sql`),
+    `consent_categories` / `consent_services` / `consent_policies` /
+    `consent_banner_configs` (config tables), `popup_types`,
+    `app_settings`, `notification_templates`, `_sqlx_migrations`.
 - Single transaction with `ON_ERROR_STOP=1`. Pre-cleanup
   `pg_dump` (public schema only) saved at
   `/tmp/swings-backup-20260502-091016.sql` (1.0 MB) — restorable
@@ -130,7 +130,7 @@ operator credentials → HTTP 200, JWT issued.
 - `pnpm lint` → clean.
 - `pnpm test:unit` → **103/103 passing** across 12 test files.
 - `e2e/admin/members-filter-cls.spec.ts` → **2/2 passing** (desktop
-  + mobile).
+  - mobile).
 
 ### Files changed
 
