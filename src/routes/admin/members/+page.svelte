@@ -1588,7 +1588,7 @@
 			text-transform: uppercase;
 			letter-spacing: 0.05em;
 			padding: 0.875rem 1rem;
-			border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+			border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 		}
 
 		.m-table__th-actions {
@@ -1600,7 +1600,7 @@
 			font-size: 0.875rem;
 			font-weight: 400;
 			color: var(--color-grey-300);
-			border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+			border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 			vertical-align: middle;
 		}
 
