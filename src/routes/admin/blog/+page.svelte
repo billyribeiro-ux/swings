@@ -24,6 +24,8 @@
 	let page = $state(1);
 	let totalPages = $state(1);
 	let loading = $state(true);
+	/** Monotonic guard: prevents slower responses from overwriting newer results. */
+	let blogLoadGeneration = 0;
 	let statusFilter: PostStatus | '' = $state('');
 	let search = $state('');
 
@@ -109,22 +111,25 @@
 
 	onMount(loadPosts);
 
-	async function loadPosts() {
-		loading = true;
+	async function loadPosts(opts: { silent?: boolean } = {}) {
+		const gen = ++blogLoadGeneration;
+		if (!opts.silent) loading = true;
 		try {
 			let url = `/api/admin/blog/posts?page=${page}&per_page=20`;
 			if (statusFilter) url += `&status=${statusFilter}`;
 			if (search) url += `&search=${encodeURIComponent(search)}`;
 			const res = await api.get<PaginatedResponse<BlogPostListItem>>(url);
+			if (gen !== blogLoadGeneration) return;
 			posts = res.data;
 			total = res.total;
 			totalPages = res.total_pages;
 		} catch (e) {
+			if (gen !== blogLoadGeneration) return;
 			toast.error('Failed to load posts', {
 				description: e instanceof Error ? e.message : undefined
 			});
 		} finally {
-			loading = false;
+			if (gen === blogLoadGeneration) loading = false;
 		}
 	}
 
@@ -134,14 +139,14 @@
 		searchTimeout = setTimeout(() => {
 			search = val;
 			page = 1;
-			loadPosts();
+			loadPosts({ silent: true });
 		}, 300);
 	}
 
 	function changeStatus(s: PostStatus | '') {
 		statusFilter = s;
 		page = 1;
-		loadPosts();
+		loadPosts({ silent: true });
 	}
 
 	async function deletePost(id: string) {
@@ -752,6 +757,7 @@
 	}
 
 	.blog-admin__tab {
+		min-height: 2.75rem;
 		padding: 0.45rem 0.75rem;
 		border: none;
 		border-radius: var(--radius-md);
@@ -765,6 +771,11 @@
 
 	.blog-admin__tab:hover {
 		color: var(--color-white);
+	}
+
+	.blog-admin__tab:focus-visible {
+		outline: 2px solid var(--color-teal);
+		outline-offset: 2px;
 	}
 
 	.blog-admin__tab--active {
@@ -806,9 +817,10 @@
 		color: var(--color-grey-500);
 	}
 
-	.blog-admin__search-input:focus {
+	.blog-admin__search-input:focus-visible {
+		outline: none;
 		border-color: var(--color-teal);
-		box-shadow: 0 0 0 3px rgba(15, 164, 175, 0.15);
+		box-shadow: 0 0 0 3px var(--color-teal-glow);
 	}
 
 	/* ====================================================================
@@ -1238,6 +1250,12 @@
 			text-decoration: underline;
 		}
 
+		.action-link:focus-visible {
+			outline: 2px solid var(--color-teal);
+			outline-offset: 2px;
+			border-radius: var(--radius-sm);
+		}
+
 		.action-btn {
 			border: none;
 			background: none;
@@ -1256,12 +1274,17 @@
 			background: rgba(255, 255, 255, 0.05);
 		}
 
+		.action-btn:focus-visible {
+			outline: 2px solid var(--color-teal);
+			outline-offset: 2px;
+		}
+
 		.action-btn--danger {
-			color: #ef4444;
+			color: var(--status-danger-500);
 		}
 
 		.action-btn--danger:hover {
-			color: #fca5a5;
+			color: var(--status-danger-50);
 			background: rgba(239, 68, 68, 0.1);
 		}
 

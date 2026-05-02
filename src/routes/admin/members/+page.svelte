@@ -25,6 +25,34 @@
 
 	type StatusFilter = '' | 'active' | 'suspended' | 'banned' | 'unverified';
 
+	// ─── Ban / Suspend inline modal ───────────────────────────────────────────
+	// Replaces window.prompt() (unstyled, blocks event loop, doesn't match dark
+	// theme). Resolves via Promise so existing async callers stay unchanged.
+	type ModalMode = 'ban' | 'suspend';
+	let modalMember = $state<UserResponse | null>(null);
+	let modalMode = $state<ModalMode>('ban');
+	let modalReason = $state('');
+	let modalDays = $state('');
+	let modalResolve = $state<((v: { reason: string; days: string } | null) => void) | null>(null);
+
+	function openActionModal(member: UserResponse, mode: ModalMode): Promise<{ reason: string; days: string } | null> {
+		return new Promise((resolve) => {
+			modalMember = member;
+			modalMode = mode;
+			modalReason = '';
+			modalDays = '';
+			modalResolve = resolve;
+		});
+	}
+
+	function closeActionModal(submit: boolean) {
+		if (modalResolve) {
+			modalResolve(submit ? { reason: modalReason, days: modalDays } : null);
+		}
+		modalMember = null;
+		modalResolve = null;
+	}
+
 	/**
 	 * Page size — single source of truth for both the API query and the
 	 * reserved layout box. The cards wrapper and the table-wrap each have a
@@ -172,16 +200,10 @@
 			}
 			return;
 		}
-		const reason = window.prompt(`Reason for banning ${member.name}? (optional)`) ?? '';
-		const ok = await confirmDialog({
-			title: 'Ban member?',
-			message: `Banning ${member.name} revokes their session and immediately cancels any active subscription.`,
-			confirmLabel: 'Ban member',
-			variant: 'danger'
-		});
-		if (!ok) return;
+		const result = await openActionModal(member, 'ban');
+		if (!result) return;
 		try {
-			await api.post(`/api/admin/members/${member.id}/ban`, { reason });
+			await api.post(`/api/admin/members/${member.id}/ban`, { reason: result.reason });
 			toast.success('Member banned');
 			await loadMembers({ silent: true });
 		} catch (e) {
@@ -207,15 +229,15 @@
 			}
 			return;
 		}
-		const reason = window.prompt(`Reason for suspending ${member.name}? (optional)`) ?? '';
-		const days = window.prompt('Suspension duration in days (blank = open-ended):', '');
+		const result = await openActionModal(member, 'suspend');
+		if (!result) return;
 		let until: string | undefined;
-		if (days && Number.parseInt(days, 10) > 0) {
-			const ts = new Date(Date.now() + Number.parseInt(days, 10) * 86400000);
+		if (result.days && Number.parseInt(result.days, 10) > 0) {
+			const ts = new Date(Date.now() + Number.parseInt(result.days, 10) * 86400000);
 			until = ts.toISOString();
 		}
 		try {
-			await api.post(`/api/admin/members/${member.id}/suspend`, { reason, until });
+			await api.post(`/api/admin/members/${member.id}/suspend`, { reason: result.reason, until });
 			toast.success(
 				until
 					? `Suspended until ${new Date(until).toLocaleDateString()}`
@@ -781,6 +803,75 @@
 		</div>
 	</div>
 {/snippet}
+
+{#if modalMember}
+	<div
+		class="action-modal-backdrop"
+		role="presentation"
+		onclick={(e) => e.target === e.currentTarget && closeActionModal(false)}
+		onkeydown={(e) => e.key === 'Escape' && closeActionModal(false)}
+	>
+		<div
+			class="action-modal"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="action-modal-title"
+		>
+			<h2 id="action-modal-title" class="action-modal__title">
+				{modalMode === 'ban' ? `Ban ${modalMember.name}?` : `Suspend ${modalMember.name}?`}
+			</h2>
+			<p class="action-modal__body">
+				{#if modalMode === 'ban'}
+					Banning revokes their session and immediately cancels any active subscription.
+				{:else}
+					Suspended members cannot sign in. Leave duration blank for open-ended.
+				{/if}
+			</p>
+
+			<div class="action-modal__fields">
+				<label class="action-modal__label" for="action-modal-reason">
+					Reason <span class="action-modal__optional">(optional)</span>
+				</label>
+				<input
+					id="action-modal-reason"
+					type="text"
+					class="action-modal__input"
+					placeholder="e.g. Terms of service violation"
+					bind:value={modalReason}
+				/>
+
+				{#if modalMode === 'suspend'}
+					<label class="action-modal__label" for="action-modal-days">
+						Duration in days <span class="action-modal__optional">(blank = open-ended)</span>
+					</label>
+					<input
+						id="action-modal-days"
+						type="number"
+						min="1"
+						class="action-modal__input"
+						placeholder="e.g. 7"
+						bind:value={modalDays}
+					/>
+				{/if}
+			</div>
+
+			<div class="action-modal__footer">
+				<button type="button" class="action-modal__btn action-modal__btn--cancel" onclick={() => closeActionModal(false)}>
+					Cancel
+				</button>
+				<button
+					type="button"
+					class="action-modal__btn action-modal__btn--confirm"
+					class:action-modal__btn--danger={modalMode === 'ban'}
+					class:action-modal__btn--warning={modalMode === 'suspend'}
+					onclick={() => closeActionModal(true)}
+				>
+					{modalMode === 'ban' ? 'Ban member' : 'Suspend member'}
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}
 
 <style>
 	@keyframes shimmer {
@@ -1707,5 +1798,168 @@
 		.m-table__skeleton-row td {
 			animation: none;
 		}
+	}
+
+	/* ── Ban / Suspend modal ──────────────────────────────────────────────── */
+	.action-modal-backdrop {
+		position: fixed;
+		inset: 0;
+		z-index: 9000;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+		background: rgba(0, 0, 0, 0.6);
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
+	}
+
+	.action-modal {
+		width: clamp(320px, 92vw, 440px);
+		padding: 1.5rem;
+		background: var(--color-navy-deep);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		border-radius: var(--radius-xl);
+		box-shadow:
+			0 24px 64px rgba(0, 0, 0, 0.5),
+			0 1px 0 rgba(255, 255, 255, 0.06) inset;
+	}
+
+	.action-modal__title {
+		font-family: var(--font-heading);
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--color-white);
+		margin: 0 0 0.5rem;
+		line-height: 1.3;
+	}
+
+	.action-modal__body {
+		font-size: 0.875rem;
+		color: var(--color-grey-300);
+		line-height: 1.5;
+		margin: 0 0 1.25rem;
+	}
+
+	.action-modal__fields {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.action-modal__label {
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--color-grey-400);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.action-modal__optional {
+		font-weight: 400;
+		text-transform: none;
+		letter-spacing: 0;
+		opacity: 0.7;
+	}
+
+	.action-modal__input {
+		width: 100%;
+		min-height: 2.75rem;
+		padding: 0.55rem 0.875rem;
+		background: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		border-radius: var(--radius-lg);
+		color: var(--color-white);
+		font-size: 0.875rem;
+		font-family: var(--font-ui);
+		transition:
+			border-color 150ms var(--ease-out),
+			box-shadow 150ms var(--ease-out);
+	}
+
+	.action-modal__input::placeholder {
+		color: var(--color-grey-500);
+	}
+
+	.action-modal__input:focus-visible {
+		outline: none;
+		border-color: var(--color-teal);
+		box-shadow: 0 0 0 3px var(--color-teal-glow);
+	}
+
+	.action-modal__footer {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.5rem;
+	}
+
+	@media (max-width: 480px) {
+		.action-modal__footer {
+			flex-direction: column-reverse;
+		}
+	}
+
+	.action-modal__btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 2.75rem;
+		padding: 0 1rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		font-family: var(--font-ui);
+		border-radius: var(--radius-lg);
+		border: 1px solid transparent;
+		cursor: pointer;
+		transition:
+			background-color 150ms var(--ease-out),
+			border-color 150ms var(--ease-out),
+			color 150ms var(--ease-out);
+	}
+
+	.action-modal__btn:focus-visible {
+		outline: 2px solid var(--color-teal);
+		outline-offset: 2px;
+	}
+
+	@media (max-width: 480px) {
+		.action-modal__btn {
+			width: 100%;
+		}
+	}
+
+	.action-modal__btn--cancel {
+		background: rgba(255, 255, 255, 0.05);
+		border-color: rgba(255, 255, 255, 0.1);
+		color: var(--color-grey-200);
+	}
+
+	.action-modal__btn--cancel:hover {
+		background: rgba(255, 255, 255, 0.09);
+		border-color: rgba(255, 255, 255, 0.16);
+		color: var(--color-white);
+	}
+
+	.action-modal__btn--danger {
+		background: rgba(239, 68, 68, 0.15);
+		border-color: rgba(239, 68, 68, 0.4);
+		color: var(--status-danger-50);
+	}
+
+	.action-modal__btn--danger:hover {
+		background: rgba(239, 68, 68, 0.28);
+		border-color: rgba(239, 68, 68, 0.6);
+	}
+
+	.action-modal__btn--warning {
+		background: rgba(245, 158, 11, 0.15);
+		border-color: rgba(245, 158, 11, 0.4);
+		color: var(--status-warning-50);
+	}
+
+	.action-modal__btn--warning:hover {
+		background: rgba(245, 158, 11, 0.28);
+		border-color: rgba(245, 158, 11, 0.6);
 	}
 </style>
