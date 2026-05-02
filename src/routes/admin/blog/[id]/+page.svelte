@@ -34,6 +34,17 @@
 			payload as UpdatePostPayload
 		);
 	}
+
+	// After every save (including Publish), refresh the editor with the
+	// server's authoritative copy so the UI clears its dirty state, the
+	// status badge reflects the new value, autosave restarts from a clean
+	// baseline, and revisions / published_at / updated_at sync. The
+	// `{#key postData.updated_at}` block downstream remounts the editor on
+	// the new timestamp, which is the standard "clear back to a fresh
+	// canvas" behaviour every blog editor exhibits after Publish.
+	async function handleSaved(updated: BlogPostResponse) {
+		postData = updated;
+	}
 </script>
 
 <svelte:head>
@@ -47,7 +58,13 @@
 {:else if postData}
 	<svelte:boundary>
 		{#key postData.updated_at}
-			<PostEditor mode="edit" post={postData} onSave={updatePost} onRestored={loadPost} />
+			<PostEditor
+				mode="edit"
+				post={postData}
+				onSave={updatePost}
+				onSaved={handleSaved}
+				onRestored={loadPost}
+			/>
 		{/key}
 		{#snippet failed(err, reset)}
 			<div class="editor-error">

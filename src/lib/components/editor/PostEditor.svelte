@@ -302,7 +302,14 @@
 	async function handleSave(overrideStatus?: PostStatus) {
 		if (!title.trim()) {
 			saveMessage = 'Title is required';
+			toast.error('Title is required');
 			return;
+		}
+		// Cancel any pending autosave so it can't race the explicit save and
+		// stomp the new server-authoritative state on its next callback.
+		if (autosaveTimer) {
+			clearTimeout(autosaveTimer);
+			autosaveStatus = 'idle';
 		}
 		saving = true;
 		saveMessage = '';
@@ -311,6 +318,18 @@
 			if (overrideStatus) payload.status = overrideStatus;
 			const result = await onSave(payload);
 			saveMessage = overrideStatus === 'published' ? 'Published!' : 'Saved!';
+			// Visible confirmation that survives the parent's remount
+			// (the edit route reassigns `postData` on `onSaved`, which
+			// re-keys the PostEditor block — the local `saveMessage` is
+			// destroyed with the old instance, so a global toast is the
+			// only persistence point that survives the swap).
+			if (overrideStatus === 'published') {
+				toast.success('Post published');
+			} else if (overrideStatus === 'draft') {
+				toast.success('Saved as draft');
+			} else {
+				toast.success('Post saved');
+			}
 			onSaved?.(result);
 			if (mode === 'edit') {
 				loadRevisions();
@@ -318,6 +337,8 @@
 			setTimeout(() => (saveMessage = ''), 3000);
 		} catch (e) {
 			saveMessage = 'Save failed';
+			const message = e instanceof Error ? e.message : 'Save failed';
+			toast.error('Save failed', { description: message });
 			console.error(e);
 		} finally {
 			saving = false;
