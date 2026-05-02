@@ -162,7 +162,12 @@
 <style>
 	.banner {
 		position: fixed;
-		z-index: var(--z-40);
+		/* Stack ABOVE the dashboard's mobile bottom tab bar (z=50). Without
+		 * this lift the banner gets visually cropped at its bottom on
+		 * `/dashboard/*` and `/admin/*` mobile viewports. Tooltips
+		 * (z=11000) and Dialog (manages its own focus-trap layer) still
+		 * float over the banner. */
+		z-index: 60;
 		background-color: var(--surface-bg-canvas);
 		color: var(--surface-fg-default);
 		border: 1px solid var(--surface-border-subtle);
@@ -182,6 +187,23 @@
 	.banner[data-layout='bar'][data-position='bottom-end'] {
 		inset-block-end: 0;
 		border-block-end: 0;
+	}
+
+	/* On mobile (< 768px), the dashboard mounts a 56px bottom tab bar.
+	 * Push the banner up by that height + a comfortable gap so tap targets
+	 * don't overlap and the banner is fully visible — not just stacked on
+	 * top of the bar. Desktop is unaffected. */
+	@media (max-width: 768px) {
+		.banner[data-layout='bar'][data-position='bottom'],
+		.banner[data-layout='bar'][data-position='bottom-start'],
+		.banner[data-layout='bar'][data-position='bottom-end'] {
+			inset-block-end: calc(56px + env(safe-area-inset-bottom, 0px));
+		}
+		.banner[data-layout='box'][data-position='bottom'],
+		.banner[data-layout='box'][data-position='bottom-start'],
+		.banner[data-layout='box'][data-position='bottom-end'] {
+			inset-block-end: calc(var(--space-4) + 56px + env(safe-area-inset-bottom, 0px));
+		}
 	}
 	.banner[data-layout='bar'][data-position='top'] {
 		inset-block-start: 0;

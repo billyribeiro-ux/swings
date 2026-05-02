@@ -2197,7 +2197,13 @@ pub async fn create_blog_revision(
     content: &str,
     content_json: Option<&serde_json::Value>,
 ) -> Result<BlogRevision, sqlx::Error> {
-    let next_rev: (i64,) = sqlx::query_as(
+    // `revision_number` is INT4 in the schema (`002_blog.sql:revision_number INT
+    // NOT NULL`), so `COALESCE(MAX(revision_number), 0) + 1` returns INT4 too.
+    // Decoding the row tuple as `(i64,)` raised `ColumnDecode { i64 vs INT4 }`
+    // and caused every `PUT /api/admin/blog/posts/{id}` to 500. Use `(i32,)`
+    // to match the column type — the `as i32` cast on the bind is therefore
+    // also redundant.
+    let next_rev: (i32,) = sqlx::query_as(
         "SELECT COALESCE(MAX(revision_number), 0) + 1 FROM blog_revisions WHERE post_id = $1",
     )
     .bind(post_id)
@@ -2216,7 +2222,7 @@ pub async fn create_blog_revision(
     .bind(title)
     .bind(content)
     .bind(content_json)
-    .bind(next_rev.0 as i32)
+    .bind(next_rev.0)
     .fetch_one(pool)
     .await
 }

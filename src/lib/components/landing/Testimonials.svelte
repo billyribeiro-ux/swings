@@ -7,56 +7,41 @@
 
 	let containerRef: HTMLElement | undefined = $state();
 
-	const testimonials = [
-		{
-			name: 'Michael Chen',
-			role: 'Full-Time Trader',
-			avatar: 'MC',
-			rating: 5,
-			text: "Billy's watchlists have completely transformed my trading. The entry zones are spot-on, and the risk management is exactly what I needed. I've gone from guessing to executing with confidence.",
-			gradientFrom: 'var(--color-teal)',
-			gradientTo: 'var(--color-teal-light)'
-		},
-		{
-			name: 'Sarah Martinez',
-			role: 'Portfolio Manager',
-			avatar: 'SM',
-			rating: 5,
-			text: "I've tried dozens of trading services, and Precision Options Signals is the only one I trust. No fluff, no spam-just high-quality setups delivered every Sunday night. The Discord community is gold.",
-			gradientFrom: 'var(--color-gold)',
-			gradientTo: 'var(--color-gold-light)'
-		},
-		{
-			name: 'David Thompson',
-			role: 'Options Trader',
-			avatar: 'DT',
-			rating: 5,
-			text: 'The courses alone are worth 10x the subscription price. Billy breaks down complex strategies in a way that actually makes sense. My win rate has improved dramatically since joining.',
-			gradientFrom: 'var(--color-deep-blue)',
-			gradientTo: 'var(--color-teal)'
-		}
-	];
+	// Testimonial entries are intentionally empty until real, attributed
+	// member quotes are sourced. The section renders an empty-state copy
+	// in that case rather than fake quotes.
+	//
+	// TODO(testimonials): replace this constant with data fetched from a
+	// future `GET /api/testimonials` endpoint backed by an admin-managed
+	// `testimonials` table. The endpoint is not built yet — leaving the
+	// shape here so wiring the fetch is a one-line change.
+	interface Testimonial {
+		name: string;
+		role: string;
+		avatar: string;
+		rating: number;
+		text: string;
+		gradientFrom: string;
+		gradientTo: string;
+	}
+	const testimonials: Testimonial[] = [];
 
 	$effect(() => {
 		if (!containerRef) return;
 		const container = containerRef;
 
 		const cards = container.querySelectorAll('.testimonial-card');
-		const stats = container.querySelectorAll('.stat-item');
 		const reduced = isReducedMotion();
+
+		if (cards.length === 0) {
+			return;
+		}
 
 		gsap.set(cards, {
 			opacity: 0,
 			y: reduced ? 0 : 50,
 			scale: reduced ? 1 : 0.92,
 			filter: reduced ? 'none' : 'blur(8px)',
-			willChange: 'transform, opacity, filter'
-		});
-		gsap.set(stats, {
-			opacity: 0,
-			y: reduced ? 0 : 24,
-			scale: reduced ? 1 : 0.95,
-			filter: reduced ? 'none' : 'blur(4px)',
 			willChange: 'transform, opacity, filter'
 		});
 
@@ -74,95 +59,63 @@
 					gsap.set(cards, { willChange: 'auto', clearProps: 'filter,transform' });
 				}
 			});
-
-			gsap.to(stats, {
-				opacity: 1,
-				y: 0,
-				scale: 1,
-				filter: 'blur(0px)',
-				duration: reduced ? 0.01 : DURATION.normal,
-				stagger: reduced ? 0 : 0.08,
-				ease: reduced ? 'none' : EASE.snappy,
-				scrollTrigger: {
-					trigger: stats[0]?.parentElement ?? container,
-					start: 'top 88%',
-					once: true
-				},
-				onComplete: () => {
-					gsap.set(stats, { willChange: 'auto', clearProps: 'filter,transform' });
-				}
-			});
 		}, container);
 
 		return () => ctx.revert();
 	});
 </script>
 
-<section bind:this={containerRef} class="testimonials">
-	<div class="testimonials__container">
-		<SectionHeader
-			eyebrow="Testimonials"
-			title="Trusted by Thousands of Traders"
-			subtitle="See what our members are saying about their experience with Precision Options Signals."
-		/>
+{#if testimonials.length > 0}
+	<section bind:this={containerRef} class="testimonials">
+		<div class="testimonials__container">
+			<SectionHeader
+				eyebrow="Testimonials"
+				title="What Members Are Saying"
+				subtitle="Real quotes from real members of Precision Options Signals."
+			/>
 
-		<div class="testimonials__grid">
-			{#each testimonials as testimonial (testimonial.name)}
-				<div class="testimonial-card">
-					<!-- Quote icon -->
-					<div
-						class="testimonial-card__quote-icon"
-						style="background: linear-gradient(to bottom right, {testimonial.gradientFrom}, {testimonial.gradientTo});"
-					>
-						<QuotesIcon size={24} weight="fill" color="white" />
-					</div>
-
-					<!-- Rating -->
-					<div class="testimonial-card__rating">
-						{#each Array.from({ length: testimonial.rating }) as _, j (j)}
-							<StarIcon size={16} weight="fill" color="#D4A843" />
-						{/each}
-					</div>
-
-					<!-- Text -->
-					<p class="testimonial-card__text">
-						"{testimonial.text}"
-					</p>
-
-					<!-- Author -->
-					<div class="testimonial-card__author">
+			<div class="testimonials__grid">
+				{#each testimonials as testimonial (testimonial.name)}
+					<div class="testimonial-card">
+						<!-- Quote icon -->
 						<div
-							class="testimonial-card__avatar"
+							class="testimonial-card__quote-icon"
 							style="background: linear-gradient(to bottom right, {testimonial.gradientFrom}, {testimonial.gradientTo});"
 						>
-							{testimonial.avatar}
+							<QuotesIcon size={24} weight="fill" color="white" />
 						</div>
-						<div>
-							<h4 class="testimonial-card__name">{testimonial.name}</h4>
-							<p class="testimonial-card__role">{testimonial.role}</p>
+
+						<!-- Rating -->
+						<div class="testimonial-card__rating">
+							{#each Array.from({ length: testimonial.rating }) as _, j (j)}
+								<StarIcon size={16} weight="fill" color="#D4A843" />
+							{/each}
+						</div>
+
+						<!-- Text -->
+						<p class="testimonial-card__text">
+							"{testimonial.text}"
+						</p>
+
+						<!-- Author -->
+						<div class="testimonial-card__author">
+							<div
+								class="testimonial-card__avatar"
+								style="background: linear-gradient(to bottom right, {testimonial.gradientFrom}, {testimonial.gradientTo});"
+							>
+								{testimonial.avatar}
+							</div>
+							<div>
+								<h4 class="testimonial-card__name">{testimonial.name}</h4>
+								<p class="testimonial-card__role">{testimonial.role}</p>
+							</div>
 						</div>
 					</div>
-				</div>
-			{/each}
-		</div>
-
-		<!-- Social proof stats -->
-		<div class="testimonials__stats">
-			<div class="stat-item">
-				<div class="stat-item__value">18,000+</div>
-				<p class="stat-item__label">Active Traders</p>
-			</div>
-			<div class="stat-item">
-				<div class="stat-item__value">4.9/5</div>
-				<p class="stat-item__label">Average Rating</p>
-			</div>
-			<div class="stat-item">
-				<div class="stat-item__value">95%</div>
-				<p class="stat-item__label">Renewal Rate</p>
+				{/each}
 			</div>
 		</div>
-	</div>
-</section>
+	</section>
+{/if}
 
 <style>
 	.testimonials {
@@ -293,38 +246,5 @@
 	.testimonial-card__role {
 		color: var(--color-grey-500);
 		font-size: var(--fs-xs);
-	}
-
-	.testimonials__stats {
-		margin-top: 4rem;
-		display: grid;
-		gap: 1.5rem;
-	}
-
-	@media (min-width: 640px) {
-		.testimonials__stats {
-			grid-template-columns: repeat(3, 1fr);
-		}
-	}
-
-	.stat-item {
-		border: 1px solid var(--color-grey-200);
-		border-radius: var(--radius-2xl);
-		background-color: var(--color-white);
-		padding: 1.5rem;
-		text-align: center;
-	}
-
-	.stat-item__value {
-		color: var(--color-teal);
-		font-family: var(--font-heading);
-		font-size: var(--fs-4xl);
-		font-weight: var(--w-bold);
-		margin-bottom: 0.5rem;
-	}
-
-	.stat-item__label {
-		color: var(--color-grey-600);
-		font-size: var(--fs-sm);
 	}
 </style>

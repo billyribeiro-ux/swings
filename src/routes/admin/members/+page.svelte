@@ -4,7 +4,9 @@
 	import { resolve } from '$app/paths';
 	import { api, ApiError } from '$lib/api/client';
 	import type { UserResponse, PaginatedResponse } from '$lib/api/types';
-	import Tooltip from '$lib/components/ui/Tooltip.svelte';
+	import ActionMenu from '$lib/components/shared/ActionMenu.svelte';
+	import ActionMenuItem from '$lib/components/shared/ActionMenuItem.svelte';
+	import ActionMenuDivider from '$lib/components/shared/ActionMenuDivider.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { confirmDialog } from '$lib/stores/confirm.svelte';
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
@@ -15,9 +17,11 @@
 	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
 	import UsersIcon from 'phosphor-svelte/lib/UsersIcon';
 	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
+	import UserIcon from 'phosphor-svelte/lib/UserIcon';
 	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
 	import ProhibitIcon from 'phosphor-svelte/lib/ProhibitIcon';
 	import ClockCountdownIcon from 'phosphor-svelte/lib/ClockCountdownIcon';
+	import DotsThreeVerticalIcon from 'phosphor-svelte/lib/DotsThreeVerticalIcon';
 
 	type StatusFilter = '' | 'active' | 'suspended' | 'banned' | 'unverified';
 
@@ -439,102 +443,66 @@
 						<span class="member-card__label">Joined</span>
 						<span class="member-card__value">{formatDate(member.created_at)}</span>
 					</div>
-					<a
-						href={resolve('/admin/members/[id]', { id: member.id })}
-						class="member-card__profile"
-					>
-						<EyeIcon size={14} weight="bold" />
-						<span>View profile</span>
-					</a>
 					<div class="member-card__actions">
-						<Tooltip
-							label="Edit profile — name, email, and other directory fields."
-							placement="bottom"
-							delay={320}
+						<a
+							href={resolve('/admin/members/[id]', { id: member.id })}
+							class="member-card__profile"
 						>
+							<EyeIcon size={14} weight="bold" />
+							<span>View profile</span>
+						</a>
+						<ActionMenu placement="bottom-end" label="Member actions">
 							{#snippet trigger(p)}
 								<button
+									type="button"
 									{...p}
+									class="member-card__menu-trigger"
+									aria-label="Open member actions menu"
+								>
+									<DotsThreeVerticalIcon size={18} weight="bold" />
+								</button>
+							{/snippet}
+							{#snippet items()}
+								<ActionMenuItem
+									icon={UserIcon}
+									onclick={() => viewMember(member)}
+								>
+									View profile
+								</ActionMenuItem>
+								<ActionMenuItem
+									icon={PencilSimpleIcon}
 									onclick={() => quickEdit(member)}
-									class="member-card__btn"
-									aria-label="Edit member profile"
 								>
-									<PencilSimpleIcon size={16} weight="bold" />
-								</button>
-							{/snippet}
-						</Tooltip>
-						<Tooltip
-							label={member.suspended_at
-								? "Lift suspension — restores this person's ability to sign in."
-								: 'Suspend sign-in — optional end date for cooling-off or review.'}
-							placement="bottom"
-							delay={320}
-						>
-							{#snippet trigger(p)}
-								<button
-									{...p}
+									Edit profile
+								</ActionMenuItem>
+								<ActionMenuItem
+									icon={ClockCountdownIcon}
 									onclick={() => suspendOrUnsuspend(member)}
-									class="member-card__btn member-card__btn--warn"
-									aria-label={member.suspended_at
-										? 'Lift suspension'
-										: 'Suspend member sign-in'}
 								>
-									<ClockCountdownIcon size={16} weight="bold" />
-								</button>
-							{/snippet}
-						</Tooltip>
-						<Tooltip
-							label={member.banned_at
-								? 'Lift ban — reinstate a previously banned account.'
-								: 'Ban — blocks sign-in and cancels active subscriptions immediately.'}
-							placement="bottom"
-							delay={320}
-						>
-							{#snippet trigger(p)}
-								<button
-									{...p}
-									onclick={() => banOrUnban(member)}
-									class="member-card__btn member-card__btn--danger"
-									aria-label={member.banned_at ? 'Lift ban' : 'Ban member'}
-								>
-									<ProhibitIcon size={16} weight="bold" />
-								</button>
-							{/snippet}
-						</Tooltip>
-						<Tooltip
-							label={member.role === 'admin'
-								? 'Demote to member — removes administrator access.'
-								: 'Promote to admin — grants full operator console access.'}
-							placement="bottom"
-							delay={320}
-						>
-							{#snippet trigger(p)}
-								<button
-									{...p}
+									{member.suspended_at ? 'Lift suspension' : 'Suspend sign-in'}
+								</ActionMenuItem>
+								<ActionMenuItem
+									icon={ShieldCheckIcon}
 									onclick={() => toggleRole(member)}
-									class="member-card__btn"
-									aria-label={member.role === 'admin' ? 'Demote to member' : 'Promote to admin'}
 								>
-									<ShieldCheckIcon size={16} weight="bold" />
-								</button>
-							{/snippet}
-						</Tooltip>
-						<Tooltip
-							label="Delete permanently — removes the account and billing; cannot be undone."
-							placement="bottom"
-							delay={320}
-						>
-							{#snippet trigger(p)}
-								<button
-									{...p}
+									{member.role === 'admin' ? 'Demote to member' : 'Promote to admin'}
+								</ActionMenuItem>
+								<ActionMenuItem
+									icon={ProhibitIcon}
+									onclick={() => banOrUnban(member)}
+								>
+									{member.banned_at ? 'Lift ban' : 'Ban'}
+								</ActionMenuItem>
+								<ActionMenuDivider />
+								<ActionMenuItem
+									icon={TrashIcon}
+									variant="danger"
 									onclick={() => deleteMember(member)}
-									class="member-card__btn member-card__btn--delete"
-									aria-label="Delete member account"
 								>
-									<TrashIcon size={16} weight="bold" />
-								</button>
+									Delete account
+								</ActionMenuItem>
 							{/snippet}
-						</Tooltip>
+						</ActionMenu>
 					</div>
 				</div>
 			{/each}
@@ -589,118 +557,60 @@
 							<td class="m-table__muted">{formatDate(member.created_at)}</td>
 							<td>
 								<div class="m-table__actions">
-									<Tooltip
-										label="View full profile — notes, subscriptions, orders, and lifecycle."
-										placement="bottom"
-										delay={320}
-									>
+									<ActionMenu placement="bottom-end" label="Member actions">
 										{#snippet trigger(p)}
 											<button
 												type="button"
 												{...p}
+												class="m-table__menu-trigger"
+												aria-label="Open member actions menu"
+											>
+												<DotsThreeVerticalIcon size={18} weight="bold" />
+											</button>
+										{/snippet}
+										{#snippet items()}
+											<ActionMenuItem
+												icon={UserIcon}
 												onclick={() => viewMember(member)}
-												class="m-table__btn"
-												aria-label="View member profile"
 											>
-												<EyeIcon size={16} weight="bold" />
-											</button>
-										{/snippet}
-									</Tooltip>
-									<Tooltip
-										label="Edit profile — name, email, and other directory fields."
-										placement="bottom"
-										delay={320}
-									>
-										{#snippet trigger(p)}
-											<button
-												type="button"
-												{...p}
+												View profile
+											</ActionMenuItem>
+											<ActionMenuItem
+												icon={PencilSimpleIcon}
 												onclick={() => quickEdit(member)}
-												class="m-table__btn"
-												aria-label="Edit member profile"
 											>
-												<PencilSimpleIcon size={16} weight="bold" />
-											</button>
-										{/snippet}
-									</Tooltip>
-									<Tooltip
-										label={member.suspended_at
-											? "Lift suspension — restores this person's ability to sign in."
-											: 'Suspend sign-in — optional end date for cooling-off or review.'}
-										placement="bottom"
-										delay={320}
-									>
-										{#snippet trigger(p)}
-											<button
-												type="button"
-												{...p}
+												Edit profile
+											</ActionMenuItem>
+											<ActionMenuItem
+												icon={ClockCountdownIcon}
 												onclick={() => suspendOrUnsuspend(member)}
-												class="m-table__btn m-table__btn--warn"
-												aria-label={member.suspended_at
-													? 'Lift suspension'
-													: 'Suspend member sign-in'}
 											>
-												<ClockCountdownIcon size={16} weight="bold" />
-											</button>
-										{/snippet}
-									</Tooltip>
-									<Tooltip
-										label={member.banned_at
-											? 'Lift ban — reinstate a previously banned account.'
-											: 'Ban — blocks sign-in and cancels active subscriptions immediately.'}
-										placement="bottom"
-										delay={320}
-									>
-										{#snippet trigger(p)}
-											<button
-												type="button"
-												{...p}
-												onclick={() => banOrUnban(member)}
-												class="m-table__btn m-table__btn--danger"
-												aria-label={member.banned_at ? 'Lift ban' : 'Ban member'}
-											>
-												<ProhibitIcon size={16} weight="bold" />
-											</button>
-										{/snippet}
-									</Tooltip>
-									<Tooltip
-										label={member.role === 'admin'
-											? 'Demote to member — removes administrator access.'
-											: 'Promote to admin — grants full operator console access.'}
-										placement="bottom"
-										delay={320}
-									>
-										{#snippet trigger(p)}
-											<button
-												type="button"
-												{...p}
+												{member.suspended_at ? 'Lift suspension' : 'Suspend sign-in'}
+											</ActionMenuItem>
+											<ActionMenuItem
+												icon={ShieldCheckIcon}
 												onclick={() => toggleRole(member)}
-												class="m-table__btn m-table__btn--role"
-												aria-label={member.role === 'admin'
+											>
+												{member.role === 'admin'
 													? 'Demote to member'
 													: 'Promote to admin'}
+											</ActionMenuItem>
+											<ActionMenuItem
+												icon={ProhibitIcon}
+												onclick={() => banOrUnban(member)}
 											>
-												<ShieldCheckIcon size={16} weight="bold" />
-											</button>
-										{/snippet}
-									</Tooltip>
-									<Tooltip
-										label="Delete permanently — removes the account and billing; cannot be undone."
-										placement="bottom"
-										delay={320}
-									>
-										{#snippet trigger(p)}
-											<button
-												type="button"
-												{...p}
+												{member.banned_at ? 'Lift ban' : 'Ban'}
+											</ActionMenuItem>
+											<ActionMenuDivider />
+											<ActionMenuItem
+												icon={TrashIcon}
+												variant="danger"
 												onclick={() => deleteMember(member)}
-												class="m-table__btn m-table__btn--delete"
-												aria-label="Delete member account"
 											>
-												<TrashIcon size={16} weight="bold" />
-											</button>
+												Delete account
+											</ActionMenuItem>
 										{/snippet}
-									</Tooltip>
+									</ActionMenu>
 								</div>
 							</td>
 						</tr>
@@ -1205,65 +1115,41 @@
 	.member-card__actions {
 		display: flex;
 		gap: 0.4rem;
+		align-items: center;
+		justify-content: space-between;
 		margin-top: 0.25rem;
 		padding-top: 0.625rem;
 		border-top: 1px solid rgba(255, 255, 255, 0.06);
-		flex-wrap: wrap;
 	}
 
-	.member-card__btn {
-		flex: 1;
-		min-width: 2.75rem;
+	.member-card__menu-trigger {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		min-height: 2.75rem;
-		padding: 0.5rem;
-		border-radius: var(--radius-lg);
+		width: 2rem;
+		height: 2rem;
+		padding: 0;
+		border-radius: var(--radius-md);
 		border: 1px solid transparent;
-		background-color: rgba(255, 255, 255, 0.05);
-		color: var(--color-grey-200);
+		background: transparent;
+		color: var(--color-grey-300);
 		cursor: pointer;
-		transition: all 150ms var(--ease-out);
+		transition:
+			background-color 150ms var(--ease-out),
+			color 150ms var(--ease-out),
+			border-color 150ms var(--ease-out);
 	}
 
-	.member-card__btn:hover {
-		background-color: rgba(255, 255, 255, 0.1);
-		border-color: rgba(255, 255, 255, 0.12);
+	.member-card__menu-trigger:hover,
+	.member-card__menu-trigger:focus-visible,
+	.member-card__menu-trigger[aria-expanded='true'] {
+		background-color: rgba(255, 255, 255, 0.08);
+		color: var(--color-white);
+		outline: none;
 	}
 
-	.member-card__btn--warn {
-		color: #f59e0b;
-	}
-
-	.member-card__btn--warn:hover {
-		background-color: rgba(245, 158, 11, 0.18);
-		border-color: rgba(245, 158, 11, 0.4);
-	}
-
-	.member-card__btn--danger {
-		color: #ef4444;
-	}
-
-	.member-card__btn--danger:hover {
-		background-color: rgba(239, 68, 68, 0.18);
-		border-color: rgba(239, 68, 68, 0.4);
-	}
-
-	.member-card__btn--delete {
-		color: #ef4444;
-	}
-
-	.member-card__btn--delete:hover {
-		background-color: rgba(239, 68, 68, 0.22);
-		border-color: rgba(239, 68, 68, 0.5);
-	}
-
-	@media (max-width: 767px) {
-		.member-card__btn {
-			min-height: 2.75rem;
-			min-width: 2.75rem;
-		}
+	.member-card__menu-trigger:focus-visible {
+		border-color: rgba(15, 164, 175, 0.5);
 	}
 
 	.members-page__pagination {
@@ -1496,57 +1382,36 @@
 			display: flex;
 			justify-content: flex-end;
 			gap: 0.4rem;
-			flex-wrap: wrap;
 		}
 
-		.m-table__btn {
-			width: 2.5rem;
-			height: 2.5rem;
+		.m-table__menu-trigger {
 			display: inline-flex;
 			align-items: center;
 			justify-content: center;
-			border-radius: var(--radius-lg);
+			width: 2rem;
+			height: 2rem;
+			padding: 0;
+			border-radius: var(--radius-md);
 			border: 1px solid transparent;
-			background: rgba(255, 255, 255, 0.05);
-			color: var(--color-grey-200);
+			background: transparent;
+			color: var(--color-grey-300);
 			cursor: pointer;
-			transition: all 150ms var(--ease-out);
+			transition:
+				background-color 150ms var(--ease-out),
+				color 150ms var(--ease-out),
+				border-color 150ms var(--ease-out);
 		}
 
-		.m-table__btn:hover {
-			background-color: rgba(255, 255, 255, 0.1);
+		.m-table__menu-trigger:hover,
+		.m-table__menu-trigger:focus-visible,
+		.m-table__menu-trigger[aria-expanded='true'] {
+			background-color: rgba(255, 255, 255, 0.08);
+			color: var(--color-white);
+			outline: none;
 		}
 
-		.m-table__btn--warn {
-			color: #f59e0b;
-		}
-
-		.m-table__btn--warn:hover {
-			background-color: rgba(245, 158, 11, 0.15);
-		}
-
-		.m-table__btn--danger {
-			color: #ef4444;
-		}
-
-		.m-table__btn--danger:hover {
-			background-color: rgba(239, 68, 68, 0.15);
-		}
-
-		.m-table__btn--role {
-			color: var(--color-teal);
-		}
-
-		.m-table__btn--role:hover {
-			background-color: rgba(15, 164, 175, 0.18);
-		}
-
-		.m-table__btn--delete {
-			color: #ef4444;
-		}
-
-		.m-table__btn--delete:hover {
-			background-color: rgba(239, 68, 68, 0.2);
+		.m-table__menu-trigger:focus-visible {
+			border-color: rgba(15, 164, 175, 0.5);
 		}
 
 		.members-page__pagination {

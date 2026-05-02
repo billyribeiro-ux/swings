@@ -38,6 +38,10 @@ export type { FormFieldChildContext, FormFieldProps } from './FormField.types';
 export { default as Breadcrumbs } from './Breadcrumbs.svelte';
 export type { BreadcrumbItem, BreadcrumbsProps } from './Breadcrumbs.types';
 
+export { default as ActionMenu } from './ActionMenu.svelte';
+export { default as ActionMenuItem } from './ActionMenuItem.svelte';
+export { default as ActionMenuDivider } from './ActionMenuDivider.svelte';
+
 export { default as EmptyState } from './EmptyState.svelte';
 export type { EmptyStateProps } from './EmptyState.types';
 
