@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "//1": "Project-level enforcement of CLAUDE.md MCP-first workflow.",
+  "//2": "User-level ~/.claude/settings.json permissions are preserved (arrays merge).",
+  "//3": "PreToolUse hooks fire BEFORE Edit/Write/MultiEdit on .svelte / .rs files.",
+  "//4": "Each hook surfaces the MCP-first rule via stderr and exits 1 (non-blocking",
+  "//5": "warning). The model sees the stderr in its next turn as a system reminder",
+  "//6": "and self-enforces. Exit 2 would block the tool call entirely; we don't do",
+  "//7": "that because the hook is stateless and can't tell whether the model already",
+  "//8": "invoked the MCP earlier in the session — blocking would livelock retries.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -er '.tool_input.file_path // empty' | grep -qE '\\.svelte$' && { echo '⚠️  CLAUDE.md MCP-FIRST — editing a .svelte file. BEFORE writing code, you MUST: (1) call mcp__svelte__list-sections; (2) call mcp__svelte__get-documentation for every section whose use_cases matches your change (runes, lifecycle, snippets, $effect, $derived, etc.); (3) THEN write code; (4) call mcp__svelte__svelte-autofixer until clean. The autofixer is the LAST gate, not the only one. In your next response cite which docs sections you pulled before editing.' >&2; exit 1; } || exit 0"
+          },
+          {
+            "type": "command",
+            "command": "jq -er '.tool_input.file_path // empty' | grep -qE '\\.rs$' && { echo '⚠️  CLAUDE.md MCP-FIRST — editing a .rs file. Use rust-analyzer MCP: (1) mcp__rust-analyzer__rust_analyzer_set_workspace pinned to backend/ (once per session); (2) mcp__rust-analyzer__rust_analyzer_workspace_diagnostics instead of cargo check; (3) mcp__rust-analyzer__rust_analyzer_format on every edited file before commit; (4) cargo clippy -D warnings as the FINAL gate. Fall back to cargo CLI ONLY if the MCP server is unresponsive.' >&2; exit 1; } || exit 0"
+          }
+        ]
+      }
+    ]
+  }
+}

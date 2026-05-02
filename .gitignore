@@ -30,5 +30,8 @@ test-results
 playwright-report
 .env*.local
 
-# Claude Code session/IDE state — runtime locks, worktree scratch, settings
-.claude/
+# Claude Code session/IDE state — runtime locks, worktree scratch.
+# `.claude/settings.json` IS committed (project-shared MCP-enforcement
+# hooks); only the per-session runtime caches are ignored.
+.claude/*
+!.claude/settings.json
