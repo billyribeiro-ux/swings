@@ -31,10 +31,23 @@ fn load_dotenv() {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // W3-13: env-aware default log level. The previous fallback emitted
+    // `tower_http=debug`, which logs every HTTP request/response in
+    // production — a fire-hose that buries real errors in noise and
+    // multiplies log-shipping bills under load. The new default keeps
+    // `tower_http=warn` in production (so tracing-otlp drops the per-
+    // request spans) while staying noisy locally for development.
+    // Operators can still override via `RUST_LOG=...` for ad-hoc
+    // debugging without a redeploy.
+    let default_filter = if cfg!(debug_assertions) {
+        "swings_api=debug,tower_http=debug"
+    } else {
+        "swings_api=info,tower_http=warn"
+    };
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "swings_api=debug,tower_http=debug".into()),
+                .unwrap_or_else(|_| default_filter.into()),
         )
         .with(observability::tracing_layer())
         .init();

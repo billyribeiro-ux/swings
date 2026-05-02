@@ -23,10 +23,6 @@
 //!   `admin.role.manage` (same gate as assigning roles elsewhere).
 //!   The created row is audited under `admin.member.create`.
 
-use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
-    Argon2,
-};
 use axum::{
     extract::{Query, State},
     http::StatusCode,
@@ -221,19 +217,11 @@ pub async fn create(
         ));
     }
 
-    // Hash the optional temp password. The argon2 invocation mirrors
-    // /api/auth/register so the credential format is identical to the
-    // self-serve registration path; this keeps the auth.rs login
-    // verification a single code path.
-    let password_hash = match req.temp_password.as_deref() {
-        Some(pw) => {
-            let salt = SaltString::generate(&mut OsRng);
-            let hash = Argon2::default()
-                .hash_password(pw.as_bytes(), &salt)
-                .map_err(|e| AppError::BadRequest(format!("Password hash error: {e}")))?
-                .to_string();
-            Some(hash)
-        }
+    // Hash the optional temp password on the blocking pool (W3-2). The
+    // credential format mirrors /api/auth/register so login verification
+    // stays a single code path.
+    let password_hash = match req.temp_password.clone() {
+        Some(pw) => Some(crate::common::password::hash_password(pw).await?),
         None => None,
     };
     let requires_password_setup = password_hash.is_none();

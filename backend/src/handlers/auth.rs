@@ -1,7 +1,3 @@
-use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
-    Argon2,
-};
 use axum::{
     extract::State,
     http::{header, HeaderMap, HeaderValue},
@@ -191,11 +187,9 @@ pub(crate) async fn register(
         return Err(AppError::Conflict("Email already registered".to_string()));
     }
 
-    let salt = SaltString::generate(&mut OsRng);
-    let password_hash = Argon2::default()
-        .hash_password(req.password.as_bytes(), &salt)
-        .map_err(|e| AppError::BadRequest(format!("Password hash error: {e}")))?
-        .to_string();
+    // W3-2: hash on the blocking pool so the request worker isn't pinned
+    // for ~100ms of Argon2 CPU.
+    let password_hash = crate::common::password::hash_password(req.password.clone()).await?;
 
     let user = db::create_user(&state.db, &req.email, &password_hash, &req.name).await?;
 
@@ -270,7 +264,8 @@ pub(crate) async fn login(
             // as a valid-email-with-bad-password branch. Prevents the
             // timing side-channel that would otherwise let an attacker
             // enumerate registered accounts by measuring 401 latency.
-            consume_login_timing_budget();
+            // W3-2: now also off-loaded to the blocking pool.
+            crate::common::password::run_timing_equaliser_verify().await;
             return Err(AppError::Unauthorized);
         }
     };
@@ -304,20 +299,17 @@ pub(crate) async fn login(
         return Err(AppError::Unauthorized);
     }
 
-    let parsed_hash = match PasswordHash::new(&user.password_hash) {
-        Ok(h) => h,
-        Err(_) => {
+    // W3-2: verify on the blocking pool. The helper handles malformed
+    // stored hashes (returns AppError::Internal) and wrong-password
+    // (returns Ok(false)) the same way as the inline path used to.
+    match crate::common::password::verify_password(req.password.clone(), user.password_hash.clone())
+        .await
+    {
+        Ok(true) => {}
+        Ok(false) | Err(_) => {
             log_failed_login(&state, &req.email, &client, "bad_password").await;
             return Err(AppError::Unauthorized);
         }
-    };
-
-    if Argon2::default()
-        .verify_password(req.password.as_bytes(), &parsed_hash)
-        .is_err()
-    {
-        log_failed_login(&state, &req.email, &client, "bad_password").await;
-        return Err(AppError::Unauthorized);
     }
 
     let (access_token, refresh_token) = generate_tokens(&state, &user).await?;
@@ -331,33 +323,6 @@ pub(crate) async fn login(
             refresh_token,
         }),
     ))
-}
-
-/// SECURITY: burn an Argon2 verification budget against a fixed dummy hash
-/// so the unknown-email branch of `/api/auth/login` takes a comparable amount
-/// of wall-clock time to the valid-email + bad-password branch. This closes
-/// the timing side-channel an attacker would otherwise use to enumerate
-/// registered accounts by measuring 401 response latency.
-///
-/// We generate the hash exactly once on first call (lazy), then run
-/// `verify_password` on every subsequent invocation so the cost matches
-/// a real `verify_password` call.
-fn consume_login_timing_budget() {
-    static DUMMY_HASH: std::sync::OnceLock<String> = std::sync::OnceLock::new();
-    let encoded = DUMMY_HASH.get_or_init(|| {
-        let salt = SaltString::generate(&mut OsRng);
-        Argon2::default()
-            .hash_password(b"timing-equalisation-dummy", &salt)
-            .map(|h| h.to_string())
-            // If Argon2 ever refuses to hash the fixed input on this build,
-            // fall through with an empty string; `PasswordHash::new` below
-            // will error and we skip the verify. A best-effort defence is
-            // still strictly better than none.
-            .unwrap_or_default()
-    });
-    if let Ok(parsed) = PasswordHash::new(encoded) {
-        let _ = Argon2::default().verify_password(b"not-a-real-password", &parsed);
-    }
 }
 
 /// ADM-02: best-effort write to `failed_login_attempts`.
@@ -683,11 +648,8 @@ pub(crate) async fn reset_password(
         ))?;
 
     // Hash new password
-    let salt = SaltString::generate(&mut OsRng);
-    let password_hash = Argon2::default()
-        .hash_password(req.new_password.as_bytes(), &salt)
-        .map_err(|e| AppError::BadRequest(format!("Password hash error: {e}")))?
-        .to_string();
+    // W3-2: hash on the blocking pool.
+    let password_hash = crate::common::password::hash_password(req.new_password.clone()).await?;
 
     // Update password and mark token as used
     db::update_user_password(&state.db, reset_token.user_id, &password_hash).await?;

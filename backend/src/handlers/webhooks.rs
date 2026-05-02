@@ -162,6 +162,23 @@ pub(crate) async fn stripe_webhook(
         }
     };
 
+    // W3-6: per-event_type result counter. Without this, a "invoice.paid"
+    // handler that has been broken for an hour is invisible to
+    // Prometheus — operators only notice when subscribers complain.
+    // The label set is bounded by the explicit match arms above, so
+    // cardinality stays small (≤ ~15 series).
+    let result_label = if dispatch.is_ok() {
+        "success"
+    } else {
+        "failure"
+    };
+    metrics::counter!(
+        "stripe_webhook_dispatch_total",
+        "event_type" => event_type.to_string(),
+        "result"     => result_label,
+    )
+    .increment(1);
+
     if let Err(e) = dispatch {
         tracing::error!(event_id, event_type, error = %e, "stripe webhook handler failed");
         return StatusCode::INTERNAL_SERVER_ERROR;

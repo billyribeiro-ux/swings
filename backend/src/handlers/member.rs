@@ -1,7 +1,3 @@
-use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
-    Argon2,
-};
 use axum::{
     extract::{Path, Query, State},
     http::HeaderMap,
@@ -444,25 +440,22 @@ pub(crate) async fn post_change_password(
         .await?
         .ok_or(AppError::Unauthorized)?;
 
-    // Verify current_password against the stored Argon2 hash. A parse
-    // failure (e.g. legacy plain-text hash that should never exist in
-    // production) is treated as an authentication failure rather than
-    // a 500 — the caller cannot do anything useful with a parse error.
-    let parsed = PasswordHash::new(&user.password_hash).map_err(|_| AppError::Unauthorized)?;
-    if Argon2::default()
-        .verify_password(req.current_password.as_bytes(), &parsed)
-        .is_err()
-    {
+    // W3-2: verify on the blocking pool. A parse failure of the stored
+    // hash bubbles as Internal — that branch indicates corrupted state,
+    // not a wrong password, and should never silently 401 the caller.
+    let ok = crate::common::password::verify_password(
+        req.current_password.clone(),
+        user.password_hash.clone(),
+    )
+    .await
+    .map_err(|_| AppError::Unauthorized)?;
+    if !ok {
         return Err(AppError::Unauthorized);
     }
 
-    // Hash + persist the new password. New salt every time per Argon2
-    // recommendation; the salt is embedded in the resulting PHC string.
-    let salt = SaltString::generate(&mut OsRng);
-    let new_hash = Argon2::default()
-        .hash_password(req.new_password.as_bytes(), &salt)
-        .map_err(|e| AppError::BadRequest(format!("Password hash error: {e}")))?
-        .to_string();
+    // Hash + persist the new password (also off-loaded to the blocking
+    // pool). New salt every time; the salt is embedded in the PHC string.
+    let new_hash = crate::common::password::hash_password(req.new_password.clone()).await?;
 
     db::update_user_password(&state.db, auth.user_id, &new_hash).await?;
 

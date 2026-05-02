@@ -16,4 +16,5 @@
 pub mod geo;
 pub mod html;
 pub mod money;
+pub mod password;
 pub mod ua;

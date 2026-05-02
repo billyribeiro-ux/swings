@@ -77,6 +77,13 @@ const STRIPE_API_VERSION: &str = "2024-06-20";
 /// latency for the endpoints we hit; 30s allows for retry-on-network-error
 /// behaviour without leaving sockets hanging on a wedged TLS handshake.
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
+/// Connect timeout. Forensic Wave-3 (W3-6): the prior client only set
+/// the per-request timeout, which means a hung TCP+TLS handshake (slow
+/// DNS, BGP hijack, TLS-record drop) holds the call open for the full
+/// 30s before reqwest gives up. A 5s connect ceiling fails fast on
+/// unreachable network paths so the request worker can recover and the
+/// upstream queue doesn't pile up on every checkout / webhook reply.
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 
 // ─── Form-encoding helpers (Stripe bracket notation) ───────────────────
 
@@ -177,6 +184,7 @@ impl Client {
     fn build(secret_key: impl Into<String>, base_url: String, https_only: bool) -> AppResult<Self> {
         let http = HttpClient::builder()
             .timeout(REQUEST_TIMEOUT)
+            .connect_timeout(CONNECT_TIMEOUT)
             .https_only(https_only)
             .build()
             .map_err(|e| {

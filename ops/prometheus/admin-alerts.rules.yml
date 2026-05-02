@@ -285,3 +285,91 @@ groups:
             off in `app_settings`. If intentional, suppress this alert
             for the duration of the maintenance window.
           runbook_url: 'https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#MaintenanceModeActive'
+
+  # ---------------------------------------------------------------
+  # 7. Outbox event dispatcher (W3-10)
+  # ---------------------------------------------------------------
+  # The outbox dispatcher is the load-bearing async surface for DSAR
+  # verification, popup attribution, digital delivery, and form
+  # webhooks. A wedged dispatcher silently halts all of those flows.
+  - name: swings_outbox_dispatcher
+    interval: 30s
+    rules:
+      - alert: OutboxDispatcherStuck
+        expr: |
+          time() - max(outbox_last_success_unixtime) > 600
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+          domain: outbox
+        annotations:
+          summary: 'Outbox dispatcher has not succeeded a tick in over 10 minutes'
+          description: |
+            The outbox worker emits `outbox_last_success_unixtime` after
+            every successful tick. No advance for 10+ minutes means the
+            worker is wedged or panic-looping. DSAR verification, popup
+            attribution, digital delivery, and form webhooks will all
+            queue silently until this is unstuck.
+          runbook_url: 'https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#OutboxDispatcherStuck'
+
+  # ---------------------------------------------------------------
+  # 8. Blog scheduler (W3-10)
+  # ---------------------------------------------------------------
+  # The blog scheduler flips status='scheduled' -> 'published' when
+  # scheduled_at <= NOW(). Author-facing contract: posts must publish
+  # within 1 minute of their scheduled time. A 30-min stuck threshold
+  # gives breathing room for cron skew without missing real outages.
+  - name: swings_blog_scheduler
+    interval: 60s
+    rules:
+      - alert: BlogSchedulerStuck
+        expr: |
+          time() - max(blog_scheduler_last_success_unixtime) > 1800
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          domain: blog
+        annotations:
+          summary: 'Blog scheduler has not succeeded a tick in over 30 minutes'
+          description: |
+            The blog scheduler emits `blog_scheduler_last_success_unixtime`
+            after every successful tick. No advance for 30+ minutes
+            means scheduled posts will publish late or not at all.
+            Verify the worker process is alive; check
+            `blog_scheduler_tick_failed_total` for SQL errors.
+          runbook_url: 'https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#BlogSchedulerStuck'
+
+  # ---------------------------------------------------------------
+  # 9. Stripe webhook dispatch (W3-6)
+  # ---------------------------------------------------------------
+  # Per-event_type counter introduced by W3-6. A handler for one event
+  # type can be broken (e.g. `invoice.paid`) without anyone noticing
+  # because Stripe just retries silently for hours. The alert fires
+  # when the failure rate for ANY single event_type crosses 5% over
+  # a 15-minute window.
+  - name: swings_stripe_webhooks
+    interval: 30s
+    rules:
+      - alert: StripeWebhookDispatchFailing
+        expr: |
+          sum by (event_type) (rate(stripe_webhook_dispatch_total{result="failure"}[15m]))
+            /
+          (sum by (event_type) (rate(stripe_webhook_dispatch_total[15m])) > 0)
+            > 0.05
+        for: 15m
+        labels:
+          severity: critical
+          team: platform
+          domain: billing
+        annotations:
+          summary: 'Stripe webhook handler {{ $labels.event_type }} is failing > 5%'
+          description: |
+            More than 5% of `{{ $labels.event_type }}` webhook deliveries
+            have failed over the last 15 minutes. Stripe will retry but
+            backoff is bounded — sustained failures cause silent billing
+            drift (subscriptions not activated, refunds not recorded,
+            disputes not surfaced). Inspect handler logs for the
+            specific event_id.
+          runbook_url: 'https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#StripeWebhookDispatchFailing'
