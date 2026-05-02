@@ -30,5 +30,5 @@ test-results
 playwright-report
 .env*.local
 
-# Claude Code worktree scratch
-.claude/worktrees/
+# Claude Code session/IDE state — runtime locks, worktree scratch, settings
+.claude/
