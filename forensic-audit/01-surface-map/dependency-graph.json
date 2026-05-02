@@ -1,0 +1,318 @@
+{
+  "../../messages/ar.json": [],
+  "../../messages/cs.json": [],
+  "../../messages/da.json": [],
+  "../../messages/de.json": [],
+  "../../messages/en.json": [],
+  "../../messages/es.json": [],
+  "../../messages/fi.json": [],
+  "../../messages/fr.json": [],
+  "../../messages/it.json": [],
+  "../../messages/ja.json": [],
+  "../../messages/ko.json": [],
+  "../../messages/nb.json": [],
+  "../../messages/nl.json": [],
+  "../../messages/pl.json": [],
+  "../../messages/pt-BR.json": [],
+  "../../messages/sv.json": [],
+  "../../messages/zh-Hans.json": [],
+  "../../messages/zh-Hant.json": [],
+  "../routes/api/checkout.remote.ts": [],
+  "analytics/AnalyticsBeacon.svelte": [],
+  "analytics/constants.ts": [],
+  "analytics/cta.ts": [
+    "analytics/constants.ts"
+  ],
+  "api/admin-consent.ts": [],
+  "api/admin-form-submissions.ts": [],
+  "api/admin-members.ts": [
+    "api/client.ts",
+    "api/types.ts"
+  ],
+  "api/admin-notifications.ts": [],
+  "api/admin-orders.ts": [
+    "api/client.ts"
+  ],
+  "api/admin-outbox.ts": [],
+  "api/admin-security.ts": [
+    "api/client.ts"
+  ],
+  "api/admin-subs.ts": [
+    "api/client.ts"
+  ],
+  "api/client.test.ts": [
+    "api/client.ts"
+  ],
+  "api/client.ts": [],
+  "api/consent.ts": [],
+  "api/forms.ts": [],
+  "api/products.ts": [],
+  "api/publicApiBase.ts": [],
+  "api/publicPricing.ts": [],
+  "api/resolvePublicApiBase.test.ts": [
+    "api/resolvePublicApiBase.ts"
+  ],
+  "api/resolvePublicApiBase.ts": [],
+  "api/schema.d.ts": [],
+  "api/types.ts": [],
+  "client/service-worker-dev-policy.test.ts": [
+    "client/service-worker-dev-policy.ts"
+  ],
+  "client/service-worker-dev-policy.ts": [],
+  "components/admin/AdminSiteBar.svelte": [],
+  "components/admin/CommandPalette.svelte": [],
+  "components/admin/admin-nav.ts": [],
+  "components/admin/forms/FieldCanvas.svelte": [],
+  "components/admin/forms/FieldEditor.svelte": [],
+  "components/admin/forms/FieldPalette.svelte": [],
+  "components/charts/HeroChart.svelte": [],
+  "components/charts/MiniChart.svelte": [],
+  "components/charts/RevenueChart.svelte": [],
+  "components/charts/TrafficChart.svelte": [],
+  "components/consent/ConsentBanner.svelte": [],
+  "components/consent/ConsentBanner.svelte.spec.ts": [
+    "components/consent/_fixtures/ConsentBannerHarness.svelte"
+  ],
+  "components/consent/ConsentGate.svelte": [],
+  "components/consent/ConsentPreferencesModal.svelte": [],
+  "components/consent/_fixtures/ConsentBannerHarness.svelte": [],
+  "components/editor/BlogEditor.svelte": [],
+  "components/editor/EditorToolbar.svelte": [],
+  "components/editor/MediaLibrary.svelte": [],
+  "components/editor/PostEditor.svelte": [],
+  "components/editor/SlashMenu.svelte": [],
+  "components/editor/post-editor-utils.test.ts": [
+    "components/editor/post-editor-utils.ts"
+  ],
+  "components/editor/post-editor-utils.ts": [],
+  "components/forms/FormField.svelte": [],
+  "components/forms/FormRenderer.svelte": [],
+  "components/forms/StepProgress.svelte": [],
+  "components/forms/fields/AddressField.svelte": [],
+  "components/forms/fields/CalculationField.svelte": [],
+  "components/forms/fields/CheckboxField.svelte": [],
+  "components/forms/fields/CountryStateField.svelte": [],
+  "components/forms/fields/CustomHtmlField.svelte": [],
+  "components/forms/fields/DateField.svelte": [],
+  "components/forms/fields/DatetimeField.svelte": [],
+  "components/forms/fields/DynamicDropdownField.svelte": [],
+  "components/forms/fields/EmailField.svelte": [],
+  "components/forms/fields/FieldFrame.svelte": [],
+  "components/forms/fields/FileUploadField.svelte": [],
+  "components/forms/fields/GdprConsentField.svelte": [],
+  "components/forms/fields/HiddenField.svelte": [],
+  "components/forms/fields/HtmlBlockField.svelte": [],
+  "components/forms/fields/ImageUploadField.svelte": [],
+  "components/forms/fields/LikertField.svelte": [],
+  "components/forms/fields/MatrixField.svelte": [],
+  "components/forms/fields/MultiSelectField.svelte": [],
+  "components/forms/fields/NpsField.svelte": [],
+  "components/forms/fields/NumberField.svelte": [],
+  "components/forms/fields/PageBreakField.svelte": [],
+  "components/forms/fields/PaymentField.svelte": [],
+  "components/forms/fields/PhoneField.svelte": [],
+  "components/forms/fields/PostProductSelectorField.svelte": [],
+  "components/forms/fields/QuizField.svelte": [],
+  "components/forms/fields/RadioField.svelte": [],
+  "components/forms/fields/RankingField.svelte": [],
+  "components/forms/fields/RatingField.svelte": [],
+  "components/forms/fields/RichTextField.svelte": [],
+  "components/forms/fields/SectionBreakField.svelte": [],
+  "components/forms/fields/SelectField.svelte": [],
+  "components/forms/fields/SignatureField.svelte": [],
+  "components/forms/fields/SliderField.svelte": [],
+  "components/forms/fields/SubscriptionField.svelte": [],
+  "components/forms/fields/TermsField.svelte": [],
+  "components/forms/fields/TextField.svelte": [],
+  "components/forms/fields/TextareaField.svelte": [],
+  "components/forms/fields/TimeField.svelte": [],
+  "components/forms/fields/UrlField.svelte": [],
+  "components/forms/types.ts": [],
+  "components/landing/About.svelte": [],
+  "components/landing/Courses.svelte": [],
+  "components/landing/FinalCta.svelte": [],
+  "components/landing/GreeksPdfCta.svelte": [],
+  "components/landing/Hero.svelte": [],
+  "components/landing/Pricing.svelte": [],
+  "components/landing/SampleAlertCard.svelte": [],
+  "components/landing/ScheduleCountdowns.svelte": [],
+  "components/landing/Testimonials.svelte": [],
+  "components/landing/WhatYouGet.svelte": [],
+  "components/landing/WhoItsFor.svelte": [],
+  "components/landing/WhyDifferent.svelte": [],
+  "components/legal/LegalPage.svelte": [],
+  "components/popups/PopupEngine.svelte": [],
+  "components/popups/PopupRenderer.svelte": [],
+  "components/shared/ActionMenu.svelte": [],
+  "components/shared/ActionMenuDivider.svelte": [],
+  "components/shared/ActionMenuItem.svelte": [],
+  "components/shared/Breadcrumbs.svelte": [],
+  "components/shared/Breadcrumbs.types.ts": [],
+  "components/shared/Button.svelte": [],
+  "components/shared/Button.svelte.spec.ts": [
+    "components/shared/Button.svelte",
+    "components/shared/_fixtures/ButtonWithChildren.svelte"
+  ],
+  "components/shared/Button.types.ts": [],
+  "components/shared/Dialog.svelte": [],
+  "components/shared/Dialog.svelte.spec.ts": [
+    "components/shared/_fixtures/DialogHarness.svelte"
+  ],
+  "components/shared/Dialog.types.ts": [],
+  "components/shared/Drawer.svelte": [],
+  "components/shared/Drawer.types.ts": [],
+  "components/shared/EmptyState.svelte": [],
+  "components/shared/EmptyState.types.ts": [],
+  "components/shared/FormField.svelte": [],
+  "components/shared/FormField.types.ts": [],
+  "components/shared/Spinner.svelte": [],
+  "components/shared/Stepper.svelte": [],
+  "components/shared/Stepper.types.ts": [],
+  "components/shared/Toast.svelte": [],
+  "components/shared/Toast.types.ts": [],
+  "components/shared/ToastRegion.svelte": [],
+  "components/shared/ToastRegion.types.ts": [],
+  "components/shared/VisuallyHidden.svelte": [],
+  "components/shared/_fixtures/ButtonWithChildren.svelte": [],
+  "components/shared/_fixtures/DialogHarness.svelte": [],
+  "components/shared/index.ts": [
+    "components/shared/ActionMenu.svelte",
+    "components/shared/ActionMenuDivider.svelte",
+    "components/shared/ActionMenuItem.svelte",
+    "components/shared/Breadcrumbs.svelte",
+    "components/shared/Breadcrumbs.types.ts",
+    "components/shared/Button.svelte",
+    "components/shared/Button.types.ts",
+    "components/shared/Dialog.svelte",
+    "components/shared/Dialog.types.ts",
+    "components/shared/Drawer.svelte",
+    "components/shared/Drawer.types.ts",
+    "components/shared/EmptyState.svelte",
+    "components/shared/EmptyState.types.ts",
+    "components/shared/FormField.svelte",
+    "components/shared/FormField.types.ts",
+    "components/shared/Spinner.svelte",
+    "components/shared/Stepper.svelte",
+    "components/shared/Stepper.types.ts",
+    "components/shared/Toast.svelte",
+    "components/shared/Toast.types.ts",
+    "components/shared/ToastRegion.svelte",
+    "components/shared/ToastRegion.types.ts",
+    "components/shared/VisuallyHidden.svelte"
+  ],
+  "components/traders/TraderCard.svelte": [],
+  "components/traders/TraderProfile.svelte": [],
+  "components/traders/TradersModal.svelte": [],
+  "components/ui/Button.svelte": [],
+  "components/ui/ConfirmDialog.svelte": [],
+  "components/ui/ConfirmDialog.svelte.spec.ts": [
+    "components/ui/ConfirmDialog.svelte"
+  ],
+  "components/ui/ConfirmDialogHost.svelte": [],
+  "components/ui/ConfirmDialogHost.svelte.spec.ts": [
+    "components/ui/ConfirmDialogHost.svelte"
+  ],
+  "components/ui/EmptyState.svelte": [],
+  "components/ui/FloatingButton.svelte": [],
+  "components/ui/Footer.svelte": [],
+  "components/ui/Nav.svelte": [],
+  "components/ui/ScrollReveal.svelte": [],
+  "components/ui/SectionHeader.svelte": [],
+  "components/ui/Toaster.svelte": [],
+  "components/ui/Toaster.svelte.spec.ts": [
+    "components/ui/Toaster.svelte"
+  ],
+  "components/ui/Tooltip.svelte": [],
+  "components/ui/Tooltip.svelte.spec.ts": [
+    "components/ui/_fixtures/TooltipHarness.svelte"
+  ],
+  "components/ui/_fixtures/TooltipHarness.svelte": [],
+  "consent/gate.ts": [],
+  "consent/gcm.spec.ts": [
+    "consent/gcm.ts"
+  ],
+  "consent/gcm.ts": [],
+  "consent/tcf.spec.ts": [
+    "consent/tcf.ts"
+  ],
+  "consent/tcf.ts": [],
+  "data/alerts.ts": [],
+  "data/courses.ts": [],
+  "data/pricing.ts": [],
+  "data/traders.ts": [],
+  "forms/validate.test.ts": [
+    "forms/validate.ts"
+  ],
+  "forms/validate.ts": [],
+  "i18n/paraglide.spec.ts": [
+    "i18n/paraglide.ts"
+  ],
+  "i18n/paraglide.ts": [
+    "../../messages/ar.json",
+    "../../messages/cs.json",
+    "../../messages/da.json",
+    "../../messages/de.json",
+    "../../messages/en.json",
+    "../../messages/es.json",
+    "../../messages/fi.json",
+    "../../messages/fr.json",
+    "../../messages/it.json",
+    "../../messages/ja.json",
+    "../../messages/ko.json",
+    "../../messages/nb.json",
+    "../../messages/nl.json",
+    "../../messages/pl.json",
+    "../../messages/pt-BR.json",
+    "../../messages/sv.json",
+    "../../messages/zh-Hans.json",
+    "../../messages/zh-Hant.json"
+  ],
+  "index.ts": [],
+  "seo/Seo.svelte": [],
+  "seo/config.ts": [],
+  "seo/jsonld.ts": [
+    "seo/config.ts"
+  ],
+  "stores/auth.svelte.spec.ts": [
+    "stores/auth.svelte.ts"
+  ],
+  "stores/auth.svelte.ts": [],
+  "stores/confirm.svelte.spec.ts": [
+    "stores/confirm.svelte.ts"
+  ],
+  "stores/confirm.svelte.ts": [],
+  "stores/consent.svelte.spec.ts": [
+    "stores/consent.svelte.ts"
+  ],
+  "stores/consent.svelte.ts": [],
+  "stores/modal.svelte.spec.ts": [
+    "stores/modal.svelte.ts"
+  ],
+  "stores/modal.svelte.ts": [],
+  "stores/toast.svelte.spec.ts": [
+    "stores/toast.svelte.ts"
+  ],
+  "stores/toast.svelte.ts": [],
+  "stores/toasts.svelte.spec.ts": [
+    "stores/toasts.svelte.ts"
+  ],
+  "stores/toasts.svelte.ts": [],
+  "utils/animations.ts": [],
+  "utils/apexCandlestick.ts": [],
+  "utils/chartData.ts": [],
+  "utils/chartThemes.ts": [],
+  "utils/checkout.test.ts": [
+    "utils/checkout.ts"
+  ],
+  "utils/checkout.ts": [
+    "../routes/api/checkout.remote.ts"
+  ],
+  "utils/safeHtml.test.ts": [
+    "utils/safeHtml.ts"
+  ],
+  "utils/safeHtml.ts": [],
+  "utils/tradingSchedule.test.ts": [
+    "utils/tradingSchedule.ts"
+  ],
+  "utils/tradingSchedule.ts": []
+}

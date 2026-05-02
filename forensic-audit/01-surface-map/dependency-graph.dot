@@ -1,0 +1,5 @@
+
+✖ Error: Graphviz could not be found. Ensure that "gvpr" is in your $PATH. Error: spawn gvpr ENOENT
+    at checkGraphvizInstalled (/Users/billyribeiro/Library/Caches/pnpm/dlx/6a80bb619fc860282619a71dbea0071b7b35d3ec428380965846bc8fa8727af2/19de6dc87b4-58ee/node_modules/.pnpm/madge@8.0.0_typescript@5.9.3/node_modules/madge/lib/graph.js:33:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
