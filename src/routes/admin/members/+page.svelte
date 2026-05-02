@@ -37,9 +37,17 @@
 	/** Monotonic guard so slower network responses cannot overwrite newer search/filter results. */
 	let membersLoadGeneration = 0;
 
-	async function loadMembers() {
+	/**
+	 * @param silent - when true, skip the `loading = true` skeleton swap.
+	 *   Used after mutations (delete / role-change / suspend) where the row
+	 *   has already been removed/updated optimistically; the refetch only
+	 *   re-syncs `total` / `totalPages` / pagination state. Without `silent`
+	 *   every mutation would briefly flash the skeleton, which Web Vitals
+	 *   counts as layout shift (CLS spike on every delete).
+	 */
+	async function loadMembers(opts: { silent?: boolean } = {}) {
 		const gen = ++membersLoadGeneration;
-		loading = true;
+		if (!opts.silent) loading = true;
 		try {
 			// We hand-build the query string instead of allocating a
 			// `URLSearchParams` because `svelte/prefer-svelte-reactivity`
@@ -61,7 +69,7 @@
 			if (gen !== membersLoadGeneration) return;
 			toast.error(e instanceof ApiError ? e.message : 'Failed to load members');
 		} finally {
-			if (gen === membersLoadGeneration) loading = false;
+			if (gen === membersLoadGeneration && !opts.silent) loading = false;
 		}
 	}
 
@@ -137,7 +145,8 @@
 			try {
 				await api.post(`/api/admin/members/${member.id}/unban`, {});
 				toast.success('Ban lifted');
-				await loadMembers();
+				// Silent refetch — keep the table mounted, re-sync state.
+				await loadMembers({ silent: true });
 			} catch (e) {
 				toast.error(e instanceof ApiError ? e.message : 'Failed to lift ban');
 			}
@@ -154,7 +163,7 @@
 		try {
 			await api.post(`/api/admin/members/${member.id}/ban`, { reason });
 			toast.success('Member banned');
-			await loadMembers();
+			await loadMembers({ silent: true });
 		} catch (e) {
 			toast.error(e instanceof ApiError ? e.message : 'Ban failed');
 		}
@@ -172,7 +181,7 @@
 			try {
 				await api.post(`/api/admin/members/${member.id}/unsuspend`, {});
 				toast.success('Suspension lifted');
-				await loadMembers();
+				await loadMembers({ silent: true });
 			} catch (e) {
 				toast.error(e instanceof ApiError ? e.message : 'Failed to lift suspension');
 			}
@@ -192,7 +201,7 @@
 					? `Suspended until ${new Date(until).toLocaleDateString()}`
 					: 'Member suspended'
 			);
-			await loadMembers();
+			await loadMembers({ silent: true });
 		} catch (e) {
 			toast.error(e instanceof ApiError ? e.message : 'Suspension failed');
 		}
@@ -207,11 +216,25 @@
 			variant: 'danger'
 		});
 		if (!ok) return;
+		// Optimistic update: drop the row from the local list immediately so
+		// the table doesn't reflow back to the skeleton on refetch.
+		// Without this, every delete flashes the loading skeleton for ~200ms
+		// — which counts as layout shift in Web Vitals (CLS spike per click).
+		const previous = members;
+		const previousTotal = total;
+		members = members.filter((m) => m.id !== member.id);
+		total = Math.max(0, total - 1);
 		try {
 			await api.del(`/api/admin/members/${member.id}`);
 			toast.success('Member deleted');
-			await loadMembers();
+			// Silent refetch — re-syncs `total` / `totalPages` / pagination
+			// without flipping `loading=true`, so the table stays mounted.
+			await loadMembers({ silent: true });
 		} catch (e) {
+			// Roll back the optimistic removal so the user sees the row
+			// is still there if the backend rejected the delete.
+			members = previous;
+			total = previousTotal;
 			toast.error(e instanceof ApiError ? e.message : 'Delete failed');
 		}
 	}
@@ -235,7 +258,7 @@
 		try {
 			await api.put(`/api/admin/members/${member.id}/role`, { role: newRole });
 			toast.success('Role updated');
-			await loadMembers();
+			await loadMembers({ silent: true });
 		} catch (e) {
 			toast.error(e instanceof ApiError ? e.message : 'Failed to update role');
 		}
