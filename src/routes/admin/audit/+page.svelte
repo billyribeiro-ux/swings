@@ -11,6 +11,7 @@
 	import { ApiError } from '$lib/api/client';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { Drawer } from '$lib/components/shared';
+	import TableSkeleton from '$lib/components/admin/TableSkeleton.svelte';
 	import {
 		auditLog,
 		type AuditListEnvelope,
@@ -287,15 +288,36 @@
 	</form>
 
 	{#if loading}
-		<div class="state state--loading">
-			<div class="state__spinner" aria-hidden="true"></div>
-			<span>Loading audit rows…</span>
-		</div>
+		<TableSkeleton rows={6} label="Loading audit rows" />
 	{:else if !envelope || envelope.data.length === 0}
-		<div class="empty">
-			<EyeIcon size={48} weight="duotone" />
-			<p class="empty__title">No matching audit rows</p>
-			<p class="empty__sub">Adjust filters or widen the date range.</p>
+		{@const filtered = Boolean(
+			filters.q?.trim() ||
+				filters.action?.trim() ||
+				filters.actor_id?.trim() ||
+				filters.target_kind?.trim() ||
+				filters.target_id?.trim() ||
+				filters.metadata_contains?.trim() ||
+				filters.from ||
+				filters.to
+		)}
+		<div class="empty" role="status">
+			<div class="empty__icon" aria-hidden="true">
+				<EyeIcon size={28} weight="duotone" />
+			</div>
+			<p class="empty__title">
+				{filtered ? 'No matching audit rows' : 'No audit activity yet'}
+			</p>
+			<p class="empty__sub">
+				{filtered
+					? 'Try widening the date range, removing the action prefix, or clearing free-text search.'
+					: 'Privileged admin actions are recorded automatically. Once operators start working, the log fills up here.'}
+			</p>
+			{#if filtered}
+				<button class="btn btn--secondary" type="button" onclick={clearFilters}>
+					<XIcon size={14} weight="bold" />
+					<span>Clear filters</span>
+				</button>
+			{/if}
 		</div>
 	{:else}
 		<section class="card table-card">
@@ -615,53 +637,44 @@
 		font-size: 0.75rem;
 	}
 
-	.state {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.75rem;
-		padding: 4rem 0;
-		color: var(--color-grey-400);
-		font-size: 0.875rem;
-	}
-	.state__spinner {
-		width: 1.25rem;
-		height: 1.25rem;
-		border: 2px solid rgba(255, 255, 255, 0.1);
-		border-top-color: var(--color-teal);
-		border-radius: 50%;
-		animation: spin 0.7s linear infinite;
-	}
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
 	.empty {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 0.5rem;
-		padding: 3rem 1rem;
+		gap: 0.65rem;
+		padding: clamp(2.5rem, 6vw, 3.5rem) 1.5rem;
 		background: rgba(19, 43, 80, 0.35);
 		backdrop-filter: blur(24px);
 		-webkit-backdrop-filter: blur(24px);
-		border: 1px dashed rgba(255, 255, 255, 0.1);
+		border: 1px solid rgba(255, 255, 255, 0.06);
 		border-radius: var(--radius-2xl);
 		color: var(--color-grey-500);
 		text-align: center;
 	}
+	.empty__icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 3.5rem;
+		height: 3.5rem;
+		border-radius: var(--radius-full);
+		background: rgba(15, 164, 175, 0.1);
+		color: var(--color-teal-light);
+	}
 	.empty__title {
-		margin: 0.5rem 0 0;
-		font-size: 1rem;
+		margin: 0.25rem 0 0;
+		font-family: var(--font-heading);
+		font-size: 1.125rem;
 		font-weight: 600;
 		color: var(--color-white);
+		letter-spacing: -0.01em;
 	}
 	.empty__sub {
-		margin: 0;
+		margin: 0 0 0.625rem;
 		font-size: 0.875rem;
 		color: var(--color-grey-400);
+		max-width: 38ch;
+		line-height: 1.55;
 	}
 
 	.card {

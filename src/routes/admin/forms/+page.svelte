@@ -15,6 +15,7 @@
 	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
 	import { toast } from '$lib/stores/toast.svelte';
+	import { confirmDialog } from '$lib/stores/confirm.svelte';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
 	import ListBulletsIcon from 'phosphor-svelte/lib/ListBulletsIcon';
@@ -24,6 +25,7 @@
 	import ClockCounterClockwiseIcon from 'phosphor-svelte/lib/ClockCounterClockwiseIcon';
 	import StackIcon from 'phosphor-svelte/lib/StackIcon';
 	import WarningIcon from 'phosphor-svelte/lib/WarningIcon';
+	import TableSkeleton from '$lib/components/admin/TableSkeleton.svelte';
 
 	interface FormRow {
 		readonly id: string;
@@ -54,8 +56,21 @@
 	onMount(load);
 
 	async function toggleArchive(row: FormRow) {
-		acting = row.id;
 		const next = !row.is_active;
+		// Archive is recoverable but still hides the form from the public surface;
+		// gate it behind a confirm to avoid accidental kebab/touch hits. Restore
+		// is non-destructive — no prompt needed.
+		if (!next) {
+			const ok = await confirmDialog({
+				title: `Archive "${row.name}"?`,
+				message:
+					'Archiving hides the form from public pages. Submissions and versions are kept; you can restore it from the same row.',
+				confirmLabel: 'Archive',
+				variant: 'warning'
+			});
+			if (!ok) return;
+		}
+		acting = row.id;
 		try {
 			await api.put(`/admin/forms/${row.id}`, { is_active: next });
 			toast.success(next ? `Restored "${row.name}"` : `Archived "${row.name}"`);
@@ -74,12 +89,13 @@
 
 <div class="forms-page">
 	<header class="forms-page__header">
-		<div class="forms-page__title-row">
-			<StackIcon size={28} weight="duotone" />
-			<div class="forms-page__copy">
-				<h1 class="forms-page__title">Forms</h1>
-				<p class="forms-page__subtitle">Build, preview, and manage collection forms.</p>
-			</div>
+		<div class="forms-page__heading">
+			<span class="forms-page__eyebrow">Collection</span>
+			<h1 class="forms-page__title">Forms</h1>
+			<p class="forms-page__subtitle">
+				Build, preview, and manage collection forms. Track submissions and versions per
+				form; archive hides without deleting.
+			</p>
 		</div>
 		<button class="btn btn--primary" type="button" onclick={() => goto(resolve('/admin/forms/new'))}>
 			<PlusIcon size={16} weight="bold" />
@@ -95,18 +111,20 @@
 	{/if}
 
 	{#if loading}
-		<div class="state state--loading">
-			<div class="state__spinner" aria-hidden="true"></div>
-			<span>Loading forms…</span>
-		</div>
+		<TableSkeleton rows={4} label="Loading forms" />
 	{:else if forms.length === 0}
-		<div class="empty">
-			<StackIcon size={48} weight="duotone" />
+		<div class="empty" role="status">
+			<div class="empty__icon" aria-hidden="true">
+				<StackIcon size={28} weight="duotone" />
+			</div>
 			<p class="empty__title">No forms yet</p>
-			<p class="empty__sub">Create one to start collecting submissions.</p>
+			<p class="empty__sub">
+				Build a form once, then drop it into a popup, blog post, or standalone page.
+				Submissions and version history are tracked per form.
+			</p>
 			<button class="btn btn--primary" type="button" onclick={() => goto(resolve('/admin/forms/new'))}>
 				<PlusIcon size={16} weight="bold" />
-				<span>Create your first form</span>
+				<span>Create first form</span>
 			</button>
 		</div>
 	{:else}
@@ -229,14 +247,18 @@
 		gap: 1rem;
 		margin-bottom: 1.5rem;
 	}
-	.forms-page__title-row {
+	.forms-page__heading {
 		display: flex;
-		align-items: flex-start;
-		gap: 0.85rem;
-		color: var(--color-white);
-	}
-	.forms-page__copy {
+		flex-direction: column;
+		gap: 0.4rem;
 		min-width: 0;
+	}
+	.forms-page__eyebrow {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		color: var(--color-grey-500);
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
 	}
 	.forms-page__title {
 		margin: 0;
@@ -248,7 +270,7 @@
 		line-height: 1.2;
 	}
 	.forms-page__subtitle {
-		margin: 0.35rem 0 0;
+		margin: 0;
 		font-size: 0.875rem;
 		color: var(--color-grey-400);
 		max-width: 42rem;
@@ -305,53 +327,44 @@
 		color: #fca5a5;
 	}
 
-	.state {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.75rem;
-		padding: 4rem 0;
-		color: var(--color-grey-400);
-		font-size: 0.875rem;
-	}
-	.state__spinner {
-		width: 1.25rem;
-		height: 1.25rem;
-		border: 2px solid rgba(255, 255, 255, 0.1);
-		border-top-color: var(--color-teal);
-		border-radius: 50%;
-		animation: spin 0.7s linear infinite;
-	}
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
 	.empty {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 0.5rem;
-		padding: 3rem 1rem;
+		gap: 0.65rem;
+		padding: clamp(2.5rem, 6vw, 3.5rem) 1.5rem;
 		background: rgba(19, 43, 80, 0.35);
 		backdrop-filter: blur(24px);
 		-webkit-backdrop-filter: blur(24px);
-		border: 1px dashed rgba(255, 255, 255, 0.15);
+		border: 1px solid rgba(255, 255, 255, 0.06);
 		border-radius: var(--radius-2xl);
 		color: var(--color-grey-500);
 		text-align: center;
 	}
+	.empty__icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 3.5rem;
+		height: 3.5rem;
+		border-radius: var(--radius-full);
+		background: rgba(15, 164, 175, 0.1);
+		color: var(--color-teal-light);
+	}
 	.empty__title {
-		margin: 0.5rem 0 0;
-		font-size: 1rem;
+		margin: 0.25rem 0 0;
+		font-family: var(--font-heading);
+		font-size: 1.125rem;
 		font-weight: 600;
 		color: var(--color-white);
+		letter-spacing: -0.01em;
 	}
 	.empty__sub {
-		margin: 0 0 0.5rem;
+		margin: 0 0 0.625rem;
 		font-size: 0.875rem;
 		color: var(--color-grey-400);
+		max-width: 38ch;
+		line-height: 1.55;
 	}
 
 	.card {

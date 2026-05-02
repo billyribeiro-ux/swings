@@ -27,6 +27,7 @@
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
+	import TableSkeleton from '$lib/components/admin/TableSkeleton.svelte';
 
 	let rows = $state<Product[]>([]);
 	let total = $state(0);
@@ -219,18 +220,40 @@
 	</div>
 
 	{#if loading}
-		<div class="pr-admin__loading">Loading…</div>
+		<TableSkeleton rows={6} label="Loading products" />
 	{:else if rows.length === 0}
-		<div class="pr-admin__empty">
-			<PackageIcon size={48} weight="duotone" />
-			<h2 class="pr-admin__empty-title">No products yet</h2>
+		{@const filtered = Boolean(search.trim() || statusFilter || typeFilter)}
+		<div class="pr-admin__empty" role="status">
+			<div class="pr-admin__empty-icon" aria-hidden="true">
+				<PackageIcon size={28} weight="duotone" />
+			</div>
+			<h2 class="pr-admin__empty-title">
+				{filtered ? 'No products match' : 'No products yet'}
+			</h2>
 			<p class="pr-admin__empty-desc">
-				Get started by creating your first product. You can configure pricing, type, and
-				status in seconds.
+				{filtered
+					? 'Adjust your search, status, or type filter to see more of the catalog.'
+					: 'Add a simple good, subscription, downloadable, or bundle. Pricing and status are configurable in seconds.'}
 			</p>
-			<Button variant="secondary" onclick={openCreate} iconLeading={plusIcon}>
-				Create your first product
-			</Button>
+			<div class="pr-admin__empty-actions">
+				{#if filtered}
+					<Button
+						variant="secondary"
+						onclick={() => {
+							search = '';
+							statusFilter = '';
+							typeFilter = '';
+							page = 1;
+							load();
+						}}
+					>
+						Clear filters
+					</Button>
+				{/if}
+				<Button onclick={openCreate} iconLeading={plusIcon}>
+					{filtered ? 'New product' : 'Create first product'}
+				</Button>
+			</div>
 		</div>
 	{:else}
 		<div class="pr-table-wrap">
@@ -569,26 +592,14 @@
 		color: var(--color-white);
 	}
 
-	/* ── Loading / empty ────────────────── */
-	.pr-admin__loading {
-		padding: 2.5rem 1rem;
-		text-align: center;
-		background: rgba(19, 43, 80, 0.35);
-		backdrop-filter: blur(24px);
-		-webkit-backdrop-filter: blur(24px);
-		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-2xl);
-		color: var(--color-grey-400);
-		font-size: 0.875rem;
-	}
-
+	/* ── Empty state ────────────────────── */
 	.pr-admin__empty {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 0.85rem;
+		gap: 0.65rem;
 		text-align: center;
-		padding: 3rem 1.5rem;
+		padding: clamp(2.5rem, 6vw, 3.5rem) 1.5rem;
 		background: rgba(19, 43, 80, 0.35);
 		backdrop-filter: blur(24px);
 		-webkit-backdrop-filter: blur(24px);
@@ -597,23 +608,41 @@
 		color: var(--color-grey-500);
 	}
 
-	.pr-admin__empty :global(svg) {
-		color: var(--color-grey-500);
+	.pr-admin__empty-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 3.5rem;
+		height: 3.5rem;
+		border-radius: var(--radius-full);
+		background: rgba(15, 164, 175, 0.1);
+		color: var(--color-teal-light);
 	}
 
 	.pr-admin__empty-title {
-		font-size: 1rem;
+		font-family: var(--font-heading);
+		font-size: 1.125rem;
 		font-weight: 600;
 		color: var(--color-white);
-		margin: 0;
+		letter-spacing: -0.01em;
+		margin: 0.25rem 0 0;
 	}
 
 	.pr-admin__empty-desc {
 		font-size: 0.875rem;
 		color: var(--color-grey-400);
-		max-width: 36ch;
+		max-width: 38ch;
 		margin: 0;
 		line-height: 1.55;
+	}
+
+	.pr-admin__empty-actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		align-items: center;
+		gap: 0.5rem;
+		margin-top: 0.625rem;
 	}
 
 	/* ── Table ──────────────────────────── */

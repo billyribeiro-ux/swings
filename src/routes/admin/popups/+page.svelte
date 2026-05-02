@@ -10,7 +10,6 @@
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import EyeIcon from 'phosphor-svelte/lib/EyeIcon';
-	import ChartBarIcon from 'phosphor-svelte/lib/ChartBarIcon';
 	import LightningIcon from 'phosphor-svelte/lib/LightningIcon';
 	import UsersIcon from 'phosphor-svelte/lib/UsersIcon';
 	import PercentIcon from 'phosphor-svelte/lib/PercentIcon';
@@ -18,6 +17,7 @@
 	import { confirmDialog } from '$lib/stores/confirm.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
+	import TableSkeleton from '$lib/components/admin/TableSkeleton.svelte';
 
 	let popups = $state<Popup[]>([]);
 	let analytics = $state<PopupAnalytics[]>([]);
@@ -184,10 +184,7 @@
 	</header>
 
 	{#if loading}
-		<div class="state state--loading">
-			<div class="state__spinner" aria-hidden="true"></div>
-			<span>Loading popups…</span>
-		</div>
+		<TableSkeleton rows={5} label="Loading popups" />
 	{:else}
 		<section class="stats" aria-label="Popup metrics">
 			<div class="stat-card">
@@ -233,13 +230,18 @@
 		</section>
 
 		{#if popups.length === 0}
-			<div class="empty">
-				<ChartBarIcon size={48} weight="duotone" />
-				<p class="empty__title">No popups created yet</p>
-				<p class="empty__sub">Build a modal, banner, or slide-in to engage visitors.</p>
+			<div class="empty" role="status">
+				<div class="empty__icon" aria-hidden="true">
+					<ChatCircleDotsIcon size={28} weight="duotone" />
+				</div>
+				<p class="empty__title">No popups yet</p>
+				<p class="empty__sub">
+					Modals, slide-ins, banners — capture attention with a targeted prompt. Build
+					your first one and we'll start tracking impressions and conversions.
+				</p>
 				<a href={resolve('/admin/popups/new')} class="btn btn--primary">
 					<PlusIcon size={16} weight="bold" />
-					<span>Create your first popup</span>
+					<span>Create first popup</span>
 				</a>
 			</div>
 		{:else}
@@ -509,29 +511,6 @@
 		cursor: not-allowed;
 	}
 
-	.state {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.75rem;
-		padding: 4rem 0;
-		color: var(--color-grey-400);
-		font-size: 0.875rem;
-	}
-	.state__spinner {
-		width: 1.25rem;
-		height: 1.25rem;
-		border: 2px solid rgba(255, 255, 255, 0.1);
-		border-top-color: var(--color-teal);
-		border-radius: 50%;
-		animation: spin 0.7s linear infinite;
-	}
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
 	.stats {
 		display: grid;
 		grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -607,26 +586,40 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 0.5rem;
-		padding: 3rem 1rem;
+		gap: 0.65rem;
+		padding: clamp(2.5rem, 6vw, 3.5rem) 1.5rem;
 		background: rgba(19, 43, 80, 0.35);
 		backdrop-filter: blur(24px);
 		-webkit-backdrop-filter: blur(24px);
-		border: 1px dashed rgba(255, 255, 255, 0.1);
+		border: 1px solid rgba(255, 255, 255, 0.06);
 		border-radius: var(--radius-2xl);
 		color: var(--color-grey-500);
 		text-align: center;
 	}
+	.empty__icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 3.5rem;
+		height: 3.5rem;
+		border-radius: var(--radius-full);
+		background: rgba(15, 164, 175, 0.1);
+		color: var(--color-teal-light);
+	}
 	.empty__title {
-		margin: 0.5rem 0 0;
-		font-size: 1rem;
+		margin: 0.25rem 0 0;
+		font-family: var(--font-heading);
+		font-size: 1.125rem;
 		font-weight: 600;
 		color: var(--color-white);
+		letter-spacing: -0.01em;
 	}
 	.empty__sub {
-		margin: 0 0 0.5rem;
+		margin: 0 0 0.625rem;
 		font-size: 0.875rem;
 		color: var(--color-grey-400);
+		max-width: 38ch;
+		line-height: 1.55;
 	}
 
 	.pill {
