@@ -10,6 +10,121 @@ Timestamps use the operator-facing calendar date attached to the change list.
 
 ---
 
+## 2026-05-01 23:15 ET — Clean-DB pass: seed strip, blog-post 500 fix, ellipsis member actions, consent banner z-index
+
+Shipped under commit `0597bb1` (squashed by the operator). This entry
+documents what landed and the verification gate for it.
+
+### Fixed: `PUT /api/admin/blog/posts/{id}` 500 on every update
+
+`db::create_blog_revision` decoded `COALESCE(MAX(revision_number), 0) + 1`
+into `(i64,)`, but `blog_revisions.revision_number` is `INT4` per
+`002_blog.sql`. PostgreSQL returns INT4 from `MAX(int4) + int4`, so once a
+single revision existed the read failed with
+`ColumnDecode { i64 vs INT4 }` and the entire admin update flow 500'd
+the moment the operator tried to save a second time. The first save
+silently passed because the COALESCE branch returned `0` — but in PG that
+literal was BIGINT-coerced before `+ 1`, so it accidentally worked. Fix
+swaps the tuple to `(i32,)` and drops the now-redundant `as i32` cast on
+the bind. Comment in the source documents the trap.
+
+Regression test: `backend/tests/admin_blog_post_update.rs` —
+`update_blog_post_twice_succeeds_and_writes_revisions` creates a post,
+then PUTs **twice** (the second call exercises the revision INSERT
+against a non-empty table, which is exactly the path that 500'd), and
+asserts `blog_revisions` ends with rows numbered `[1, 2]`.
+
+### Stripped seeded / placeholder data for clean end-to-end testing
+
+Two new forward-only migrations DELETE the demo content seeded by older
+migrations so a fresh DB renders empty states everywhere:
+
+- **`086_strip_seeded_pricing_plans.sql`** — `DELETE FROM pricing_plans
+  WHERE slug IN ('monthly', 'annual')`. The operator builds the real
+  catalog through the admin pricing UI on a clean DB.
+- **`087_strip_seeded_popup_templates.sql`** — `DELETE FROM popups WHERE
+  is_template = TRUE`. The popup-templates seed in `052_popup_templates.sql`
+  was confusing the empty-state UX.
+
+Frontend: `Testimonials.svelte` had three hard-coded fake testimonials
+(Michael Chen, Sarah Martinez, David Thompson) plus a fake-stat block
+("18,000+ Active Traders / 4.9/5 / 95% Renewal Rate"). The `testimonials`
+constant is now `[]` with a `TODO(testimonials)` pointing at the future
+`GET /api/testimonials` endpoint, and the section is wrapped in
+`{#if testimonials.length > 0}` so it just doesn't render until real
+content exists.
+
+Other founder-claim copy (about-page stats, real product feature copy)
+was deliberately left intact — those are product positioning, not "demo
+data," and changing them is a product decision.
+
+### Replaced admin members icon-cluster with an ellipsis (⋯) action menu
+
+`admin/members/+page.svelte` was rendering a row of 5 icon buttons per
+member (Edit / Suspend / Ban / Promote / Delete), each wrapped in a
+Tooltip. The cluster was visually noisy and tap targets crowded each
+other on dense rows. Replaced both the mobile-card and tablet-table
+clusters with a single `DotsThreeVerticalIcon` trigger driving a new
+`ActionMenu` component — items in this order:
+
+1. View profile (`UserIcon`)
+2. Edit profile (`PencilSimpleIcon`)
+3. Suspend sign-in / Lift suspension (`ClockCountdownIcon`, label
+   switches on `suspended_at`)
+4. **Promote to admin / Demote to member** (`ShieldCheckIcon`, label
+   switches on `role === 'admin'`) — explicitly added because the
+   operator asked for an obvious admin-grant path
+5. Ban / Lift ban (`ProhibitIcon`)
+6. ── divider ──
+7. **Delete account** (`TrashIcon`, danger variant — red on hover)
+
+### New `ActionMenu` primitive
+
+`src/lib/components/shared/ActionMenu.svelte` (426 LOC) +
+`ActionMenuItem.svelte` (118 LOC) + `ActionMenuDivider.svelte` (13 LOC).
+Mirrors the engineering quality of the polished `Tooltip`:
+portals to `document.body` to escape ancestor `overflow:hidden`,
+viewport-clamped placement with auto-flip, single-active coordination
+across instances (only one menu open at a time), full keyboard nav
+(Arrow Up/Down, Home/End, Tab/Shift-Tab, Escape), focus management
+(opens to first item on keyboard, returns to trigger on close),
+proper ARIA wiring (`role="menu"` + `role="menuitem"` +
+`aria-orientation` + `aria-haspopup` + `aria-expanded`), 120ms
+fade/slide animation honouring `prefers-reduced-motion`. Visual style
+matches the new tooltip palette (near-black + teal-tinted edge).
+
+Exported from `src/lib/components/shared/index.ts` for reuse.
+
+### Fixed consent banner being clipped by mobile bottom tab bar
+
+`src/lib/components/consent/ConsentBanner.svelte` z-index was
+`var(--z-40)` (40), but the dashboard's mobile bottom tab bar from the
+21:00 ship is at `z-index: 50`. On `/dashboard/*` and `/admin/*` mobile
+viewports the bottom of the banner was being painted UNDER the tab bar.
+Two fixes:
+- Bumped banner `z-index` to `60` so it floats above the tab bar
+- On `< 768px`, added `inset-block-end: calc(56px + env(safe-area-inset-bottom, 0px))`
+  for both `bar` and `box` layouts so the banner sits ABOVE the tab bar
+  with a comfortable gap — not just stacked on top of it. Desktop is
+  unaffected.
+
+### Verification gate (commit `0597bb1`)
+
+| Check | Result |
+|---|---|
+| `cargo fmt --all -- --check` | clean (exit 0) |
+| `cargo clippy --all-targets -- -D warnings` | clean (0 warnings) |
+| `cargo test --lib` | **524 passed / 0 failed / 0 ignored** |
+| `cargo test --test admin_blog_post_update` | **1 / 1** new regression test passes |
+| `cargo test --test admin_coupons_create` | 4 / 4 still pass |
+| `cargo test --test member_subscriptions` | 13 / 13 still pass |
+| Migration replay (fresh DB, `001..087`) | all apply; `pricing_plans=0`, `template_popups=0` |
+| `pnpm check` | **4426 files / 0 errors / 0 warnings** |
+| `pnpm lint` | 0 errors, 1 pre-existing warning (`forensic-cls.spec.ts` unused arg, unrelated) |
+| `pnpm test:unit -- --run` | **103 / 103 passed** |
+
+---
+
 ## 2026-05-01 22:30 ET — Polish: tooltip refresh, coupon-create 422 fix, icon audit
 
 ### Fixed: `POST /api/admin/coupons` 422 on every submit
