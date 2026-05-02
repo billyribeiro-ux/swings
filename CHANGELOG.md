@@ -53,20 +53,20 @@ length commit SHA." We weren't.
 the human-readable tag preserved in a trailing `# v4` comment so the
 file remains auditable. SHAs were resolved authoritatively via
 `git ls-remote ... refs/tags/<tag>^{}` (which dereferences annotated
-tag objects to the commit they point at — the tag-object SHA is *not*
+tag objects to the commit they point at — the tag-object SHA is _not_
 what GitHub Actions executes). Coverage:
 
-| Action | Pinned SHA |
-| --- | --- |
-| `actions/checkout@v4` | `34e1148...` |
-| `actions/setup-node@v4` | `49933ea...` |
-| `actions/upload-artifact@v4` | `ea165f8...` |
-| `actions/cache@v4` | `0057852...` |
-| `pnpm/action-setup@v4` | `b906aff...` |
+| Action                                 | Pinned SHA   |
+| -------------------------------------- | ------------ |
+| `actions/checkout@v4`                  | `34e1148...` |
+| `actions/setup-node@v4`                | `49933ea...` |
+| `actions/upload-artifact@v4`           | `ea165f8...` |
+| `actions/cache@v4`                     | `0057852...` |
+| `pnpm/action-setup@v4`                 | `b906aff...` |
 | `dtolnay/rust-toolchain@1.93` (branch) | `2ea1b3b...` |
-| `Swatinem/rust-cache@v2` | `e18b497...` |
-| `cargo-bins/cargo-binstall@v1.12.0` | `acd08f1...` |
-| `aquasecurity/trivy-action@0.35.0` | `57a97c7...` |
+| `Swatinem/rust-cache@v2`               | `e18b497...` |
+| `cargo-bins/cargo-binstall@v1.12.0`    | `acd08f1...` |
+| `aquasecurity/trivy-action@0.35.0`     | `57a97c7...` |
 | `github/codeql-action/upload-sarif@v3` | `0daab03...` |
 
 When upgrading, resolve the new tag via the same `ls-remote` command and
@@ -167,7 +167,7 @@ doesn't re-diff them as "still broken":
   (compile-time constants, hardcoded regexes that pass at compile time,
   `FixedOffset::east_opt(0)` which is mathematically `Some(_)`). Hard
   Rule 7 says "no `unwrap`/`expect`/`panic` in non-test code"; there is
-  *no clippy lint enforcing this* in `Cargo.toml`. The rule's intent is
+  _no clippy lint enforcing this_ in `Cargo.toml`. The rule's intent is
   "no surprise panics from runtime-fallible operations." Mechanically
   converting compile-time-sound `expect()` to `unwrap_or` introduces
   fake fallback paths for impossible cases, which makes future readers
@@ -193,7 +193,7 @@ doesn't re-diff them as "still broken":
   delete-by-key safety semantics. Out of scope.
 
 - **SECURITY.md missing email** — the audit overstated this. SECURITY.md
-  *does* document a disclosure procedure; what it lacks is a specific
+  _does_ document a disclosure procedure; what it lacks is a specific
   `security@` address. That's a policy choice, not a code defect.
 
 ### Evidence
