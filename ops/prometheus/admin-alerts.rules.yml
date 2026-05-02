@@ -203,6 +203,12 @@ groups:
           domain: audit
         annotations:
           summary: 'Audit pruner is erroring at non-trivial rate'
+          description: |
+            The audit-retention worker is failing more than 0.05 errors/sec
+            over a sustained 15m window. The pruner may still be making
+            partial progress, but errors at this rate suggest a systemic
+            issue (DB pressure, schema drift, permissions). Investigate
+            before the table outgrows the configured retention window.
           runbook_url: 'https://github.com/billyribeiro-ux/swings/blob/main/docs/RUNBOOK.md#AuditPruneErrorRate'
 
   # ---------------------------------------------------------------

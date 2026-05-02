@@ -628,6 +628,7 @@ pub(crate) async fn admin_update_post_status(
 pub(crate) async fn admin_autosave_post(
     State(state): State<AppState>,
     admin: PrivilegedUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<AutosaveRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
@@ -637,6 +638,27 @@ pub(crate) async fn admin_autosave_post(
     require_blog_post_action(&state.policy, &admin, &existing, "blog.post.update")?;
 
     db::autosave_blog_post(&state.db, id, &req).await?;
+
+    // Hard Rule 4 — admin mutations must be audited. Autosave is a real
+    // mutation (overwrites blog_posts.title/content/content_json), so it
+    // emits an audit row. We split it from `blog.post.update` (used by the
+    // explicit Save endpoint) under its own action key so audit retention /
+    // dashboards can downsample or filter the high-volume autosave stream
+    // without losing the low-volume explicit edits.
+    audit_admin_priv(
+        &state.db,
+        &admin,
+        &client,
+        "blog.post.autosave",
+        "blog_post",
+        existing.id,
+        serde_json::json!({
+            "slug": existing.slug,
+            "owned_by_actor": existing.author_id == admin.user_id,
+        }),
+    )
+    .await;
+
     Ok(Json(serde_json::json!({ "message": "Autosaved" })))
 }
 

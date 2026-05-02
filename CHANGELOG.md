@@ -10,6 +10,207 @@ Timestamps use the operator-facing calendar date attached to the change list.
 
 ---
 
+## 2026-05-02 14:40 ET — Audit-report batch (high-severity items 1, 3, 8, 9, 11, 12, 14)
+
+Verified, evidence-backed remediation of the items from a full-codebase
+forensic audit. Three independent verification agents cross-checked every
+claim against `file:line` in the actual source before any code was touched
+— see the chat thread for the verification report. Items already tracked
+under CLAUDE.md "Known open items" (O-1, O-3, O-4) were excluded from this
+batch since they are documented gaps, not new findings. Style-only `expect()`
+violations were declined; see "Deliberate non-fixes" below.
+
+### Fixed: `admin_autosave_post` was missing audit (Hard Rule 4)
+
+**Location:** [`backend/src/handlers/blog.rs`](./backend/src/handlers/blog.rs).
+**Why it mattered:** `admin_autosave_post` overwrites the live `blog_posts`
+row (`title`, `content`, `content_json`, `word_count`,
+`reading_time_minutes`, `updated_at`) — a real mutation by every project
+definition — but emitted no `admin_actions` row. Compare its sibling
+`admin_update_post` at lines 349-447, which calls `audit_admin_priv(...)`.
+Hard Rule 4 ("audit every admin mutation") was being violated for any
+in-progress autosave.
+
+**Fix:** added a `ClientInfo` extractor and an `audit_admin_priv` call
+under a distinct action key (`blog.post.autosave`). Splitting the action
+key from `blog.post.update` lets audit retention and dashboards
+downsample / filter the high-volume autosave stream without losing the
+low-volume explicit-edit signal — a deliberate engineering trade-off,
+documented inline.
+
+### Fixed: GitHub Actions pinned to floating tags (supply-chain risk)
+
+**Locations:** [`ci.yml`](./.github/workflows/ci.yml),
+[`security.yml`](./.github/workflows/security.yml).
+**Why it mattered:** all 19 `uses:` directives across both workflows
+referenced floating tag refs (`@v4`, `@1.93`, `@v3`). A maintainer of any
+upstream action could rewrite the tag to point at malicious code and our
+next CI run would execute it with `secrets.GITHUB_TOKEN`. GitHub's own
+hardening guide for Actions says: "Pin third-party actions to a full
+length commit SHA." We weren't.
+
+**Fix:** every `uses:` line now points to a 40-char commit SHA, with
+the human-readable tag preserved in a trailing `# v4` comment so the
+file remains auditable. SHAs were resolved authoritatively via
+`git ls-remote ... refs/tags/<tag>^{}` (which dereferences annotated
+tag objects to the commit they point at — the tag-object SHA is _not_
+what GitHub Actions executes). Coverage:
+
+| Action                                 | Pinned SHA   |
+| -------------------------------------- | ------------ |
+| `actions/checkout@v4`                  | `34e1148...` |
+| `actions/setup-node@v4`                | `49933ea...` |
+| `actions/upload-artifact@v4`           | `ea165f8...` |
+| `actions/cache@v4`                     | `0057852...` |
+| `pnpm/action-setup@v4`                 | `b906aff...` |
+| `dtolnay/rust-toolchain@1.93` (branch) | `2ea1b3b...` |
+| `Swatinem/rust-cache@v2`               | `e18b497...` |
+| `cargo-bins/cargo-binstall@v1.12.0`    | `acd08f1...` |
+| `aquasecurity/trivy-action@0.35.0`     | `57a97c7...` |
+| `github/codeql-action/upload-sarif@v3` | `0daab03...` |
+
+When upgrading, resolve the new tag via the same `ls-remote` command and
+update the comment alongside the SHA so reviewers can verify the binding.
+
+### Fixed: `security.yml` concurrency group cancelled nightly scans
+
+**Location:** [`.github/workflows/security.yml`](./.github/workflows/security.yml).
+**Why it mattered:** the concurrency key was
+`${{ github.workflow }}-${{ github.ref }}` with `cancel-in-progress: true`.
+A nightly `schedule:` run on `main` and a PR merge into `main` (or any
+push to `main`) collide on the same key. The newer run cancelled the
+older one — meaning a busy night of merges could silently kill the
+nightly scan that detects newly-disclosed CVEs against quiet branches.
+The whole point of the cron is to surface advisories during sleep hours,
+which the cancel was defeating.
+
+**Fix:** the group key now switches by event:
+`${{ github.workflow }}-${{ github.event_name == 'schedule' && 'schedule' || github.ref }}`.
+Scheduled runs queue under `Security-schedule`, isolated from PR/push
+runs. `cancel-in-progress` is also disabled for scheduled runs so a
+nightly cannot be terminated by a later trigger (it will run to
+completion or be killed by the workflow's own timeout).
+
+### Fixed: orphaned `#[ignore]` doc on observability integration test
+
+**Location:** [`backend/tests/observability.rs`](./backend/tests/observability.rs).
+**Why it mattered:** the doc comment said "Gated behind `#[ignore]`
+because the test harness's `build_router` currently omits the
+observability layers." The attribute was missing — so when a CI runner
+had a test DB available (i.e., `TestApp::try_new()` returned `Some`),
+the test would assert `X-Request-Id` was stamped by middleware that
+the harness explicitly does not include, and fail. Without the DB it
+returned vacuously. A latent two-state bug.
+
+**Fix:** added `#[ignore = "TestApp omits observability layers — see
+module docs"]` matching the documented intent. The companion test
+`recorder_renders_catalogue` (which doesn't need the harness) keeps
+running. Verified via `cargo test --test observability`:
+`1 passed; 0 failed; 1 ignored`.
+
+### Fixed: `AuditPruneErrorRate` Prometheus alert had no `description`
+
+**Location:** [`ops/prometheus/admin-alerts.rules.yml`](./ops/prometheus/admin-alerts.rules.yml).
+**Why it mattered:** every other alert in the file carries both
+`summary` and `description`. The pager / oncall flow assumes both:
+`summary` is the page title, `description` is the actionable body.
+A missing `description` ships a notification with no context — the
+oncall has to grep code to find what the alert means.
+
+**Fix:** added a description matching the style of neighbouring alerts,
+explaining the threshold, the time window, and the consequence of
+ignoring it (table outgrows retention window). YAML structure verified
+via `python -c "import yaml; yaml.safe_load(...)"`.
+
+### Fixed: `/admin/blog/tags` and `/admin/blog/categories` swallowed API errors
+
+**Locations:**
+[`src/routes/admin/blog/tags/+page.svelte`](./src/routes/admin/blog/tags/+page.svelte),
+[`src/routes/admin/blog/categories/+page.svelte`](./src/routes/admin/blog/categories/+page.svelte).
+**Why it mattered:** every `catch` block on these pages was
+`console.error('Failed to ...', e)`. Operators using these screens had
+no visual indication when a create/update/delete failed — the UI would
+appear to succeed (state didn't change because the optimistic update was
+inside the `try`) while the only signal sat in the browser devtools.
+Classic "silent breakage" landmine called out in user-level CLAUDE.md.
+
+**Fix:** every catch now `toast.error(e instanceof ApiError ? e.message : 'Fallback')`,
+matching the established pattern from the members and blog admin pages.
+Successful mutations also `toast.success(...)` so the user gets a
+positive ack on every state change. Both files re-run through
+`mcp__svelte__svelte-autofixer` — clean.
+
+### Fixed: `AGENTS.md` had stale migration ranges and missing worker
+
+**Location:** [`AGENTS.md`](./AGENTS.md).
+**Why it mattered:** §2 cited "versions 001–074" and §5 cited
+"001–028, 030–039, 041–043, 050–080" — both written when the
+ceiling was 080. Actual current ceiling is `091_perf_indexes.sql`. A new
+contributor following AGENTS.md as the source of truth would think
+081–091 didn't exist. Separately, §7's worker table omitted
+`blog_scheduler` (spawned in `main.rs:455`, default 60s interval) — so
+the operator-facing "every worker has a `_last_success_unixtime` gauge"
+audit becomes incomplete for half the runtime population.
+
+**Fix:** ranges updated to actual gap-aware truth (`001–028, 030–039,
+041–043, 050–091`); §7 table now includes `Blog post scheduler` with
+its file path and default interval.
+
+### Deliberate non-fixes (documented for future reviewers)
+
+The audit also flagged these. After analysis, **none of them was fixed
+in this batch** — and the rationale is recorded here so a future agent
+doesn't re-diff them as "still broken":
+
+- **`expect()` calls in `rate_limit.rs`, `impersonation_banner.rs`,
+  `validation.rs`, `preferences.rs`** — every site is provably infallible
+  (compile-time constants, hardcoded regexes that pass at compile time,
+  `FixedOffset::east_opt(0)` which is mathematically `Some(_)`). Hard
+  Rule 7 says "no `unwrap`/`expect`/`panic` in non-test code"; there is
+  _no clippy lint enforcing this_ in `Cargo.toml`. The rule's intent is
+  "no surprise panics from runtime-fallible operations." Mechanically
+  converting compile-time-sound `expect()` to `unwrap_or` introduces
+  fake fallback paths for impossible cases, which makes future readers
+  hunt for the impossible state. Senior judgment: keep the `expect()`
+  with its message-as-documentation. If the project later wants to hard-
+  enforce this (via `clippy::expect_used = "deny"`), do that separately
+  and refactor the affected sites to non-zero types in the same pass.
+
+- **`unsafe-inline` in CSP** (`src/hooks.server.ts:46`) — the existing
+  comment acknowledges this is needed for Svelte transitions and Google
+  Fonts. Migrating to nonce-based CSP is a multi-day project (every
+  `<style>` and inline event handler must accept a per-request nonce);
+  out of scope for an audit-cleanup PR.
+
+- **Webhook stub** (`backend/src/notifications/channels/webhook.rs`) —
+  returns a clean `Permanent("not implemented")` error already, which is
+  the correct stub pattern. Implementing requires product spec for retry
+  policy, signing, payload schema. Out of scope.
+
+- **R2 asset deletion has no cleanup worker** (`backend/src/commerce/repo.rs:472`)
+  — designing a cleanup worker requires a retention policy decision
+  ("keep deleted asset for N days for restore?") and idempotent
+  delete-by-key safety semantics. Out of scope.
+
+- **SECURITY.md missing email** — the audit overstated this. SECURITY.md
+  _does_ document a disclosure procedure; what it lacks is a specific
+  `security@` address. That's a policy choice, not a code defect.
+
+### Evidence
+
+- `cargo fmt --check` — clean.
+- `cargo clippy --all-targets -- -D warnings` — **0 warnings**.
+- `cargo test --lib` — **538 passed, 0 failed, 0 ignored**.
+- `cargo test --test observability` — **1 passed, 1 ignored** (matches
+  the documented intent).
+- `pnpm check` — **0 errors / 0 warnings** across 4427 files.
+- `pnpm lint` — clean.
+- `pnpm test:unit` — **103/103 passed**.
+- `mcp__svelte__svelte-autofixer` — clean on both modified `.svelte` files.
+- YAML lint on the alerts file — parses.
+
+---
+
 ## 2026-05-02 04:35 ET — Architectural CLS fix on `/admin/members` + dev-DB cleanup
 
 Two work items shipped in one session.

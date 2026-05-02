@@ -68,7 +68,11 @@ fn recorder_renders_catalogue() {
 /// currently omits the observability layers. See the module docs above
 /// for the rationale; remove the `#[ignore]` after
 /// `docs/wiring/OBSERVABILITY-WIRING.md` step 3 lands.
+///
+/// Run with `cargo test --test observability -- --ignored` once the
+/// integrator wires the layers into `TestApp::build_router`.
 #[tokio::test]
+#[ignore = "TestApp omits observability layers — see module docs"]
 async fn request_carries_correlation_id_and_counter_fires() {
     let Some(app) = TestApp::try_new().await else {
         return;

@@ -48,7 +48,7 @@ backend/
     security/         Impersonation + IP allowlist primitives
     observability/    Tracing + metrics scaffolding
     commerce/ consent/ popups/ forms/ notifications/ pdf/   Domain modules
-  migrations/         sqlx forward-only migrations (versions 001–074)
+  migrations/         sqlx forward-only migrations (highest: 091)
   tests/              Integration tests against a real Postgres
 ops/                  Prometheus rules + Grafana dashboard
 docs/                 All long-form documentation (see docs/README.md)
@@ -129,7 +129,7 @@ not bypass it without a documented reason in the commit message.
 ## 5. Migrations
 
 - Files live in `backend/migrations/` named `0NN_short_description.sql`.
-- Versions in use today: `001–028, 030–039, 041–043, 050–080` (gaps are fine
+- Versions in use today: `001–028, 030–039, 041–043, 050–091` (gaps are fine
   but every prefix must be unique).
 - Two safe defaults when authoring a new migration:
   - Use `IF NOT EXISTS` / `IF EXISTS` and `ON CONFLICT DO NOTHING` so a
@@ -179,6 +179,7 @@ ctrl-c handler.
 | DSAR export             | `services/dsar_worker.rs`         | `30s`            |
 | DSAR artefact TTL sweep | `services/dsar_artifact_sweep.rs` | `3600s`          |
 | Idempotency-Key GC      | `services/idempotency_gc.rs`      | `300s`           |
+| Blog post scheduler     | `services/blog_scheduler.rs`      | `60s`            |
 
 Every worker emits `*_last_success_unixtime` so the runbook can
 detect a stalled loop. Add the same shape when introducing a new one.
