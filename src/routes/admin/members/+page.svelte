@@ -1542,14 +1542,14 @@
 		.members-page__table-wrap {
 			/*
 			 * Reserved-space container.
-			 * - `display: grid` makes the empty-panel center inside the
-			 *   reserved box (`place-items: center`).
-			 * - `min-height` is locked to PER_PAGE × row-h + the thead
-			 *   block. Going from a 15-row result to a 0-row empty panel
-			 *   does not shrink this container, so nothing below it moves.
+			 * `display: block` keeps the table top-aligned regardless of
+			 * row count. `min-height` is locked to PER_PAGE × row-h + thead
+			 * so the box never shrinks on a filter swap — CLS stays at 0.
+			 * (Previous `display: grid; place-items: stretch` caused the
+			 * table to fill the full reserved height and browsers then
+			 * vertically centered tbody rows inside that expanded height.)
 			 */
-			display: grid;
-			place-items: stretch;
+			display: block;
 			min-height: calc(var(--per-page) * var(--row-h) + var(--table-thead-h));
 			/* `hidden` on one axis forces the other to `auto` (unwanted vertical bar). */
 			overflow-x: clip;
@@ -1563,10 +1563,11 @@
 				0 16px 32px -8px rgba(0, 0, 0, 0.3);
 		}
 
-		/* When the table is showing the inline empty panel, center the panel
-		   inside the reserved box. (The grid container's default would stretch.) */
+		/* Empty panel centers itself inside the reserved box via its own flex. */
 		.members-page__table-wrap[data-state='empty'] {
-			place-items: center;
+			display: flex;
+			align-items: center;
+			justify-content: center;
 		}
 
 		.m-table {
