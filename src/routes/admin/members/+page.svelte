@@ -1600,7 +1600,7 @@
 			font-size: 0.875rem;
 			font-weight: 400;
 			color: var(--color-grey-300);
-			border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+			border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 			vertical-align: middle;
 		}
 
