@@ -125,6 +125,28 @@ pub(crate) async fn stripe_webhook(
     // behaviour for malformed payloads. Per AGENTS.md hard-rule #7 we
     // never `unwrap()`; handlers downgrade unrecoverable parse errors
     // to a logged 200 so Stripe doesn't retry into an endless loop.
+    // Normalise the metric label to ONE OF a fixed set so the Prometheus
+    // series count stays bounded. If we forwarded `event_type` raw,
+    // every new Stripe event we don't handle would create a fresh
+    // series — Stripe has 100+ event types and ships new ones routinely.
+    // Unknown events all roll up under `"unhandled"`.
+    let metric_event_type: &'static str = match event_type {
+        "customer.subscription.created" => "customer.subscription.created",
+        "customer.subscription.updated" => "customer.subscription.updated",
+        "customer.subscription.deleted" => "customer.subscription.deleted",
+        "customer.subscription.paused" => "customer.subscription.paused",
+        "customer.subscription.resumed" => "customer.subscription.resumed",
+        "customer.subscription.trial_will_end" => "customer.subscription.trial_will_end",
+        "checkout.session.completed" => "checkout.session.completed",
+        "invoice.payment_failed" => "invoice.payment_failed",
+        "invoice.paid" => "invoice.paid",
+        "charge.refunded" => "charge.refunded",
+        "refund.created" => "refund.created",
+        "payment_intent.payment_failed" => "payment_intent.payment_failed",
+        "charge.dispute.created" => "charge.dispute.created",
+        _ => "unhandled",
+    };
+
     let dispatch = match event_type {
         "customer.subscription.created" | "customer.subscription.updated" => {
             handle_subscription_update(&state, event_id, &event).await
@@ -165,8 +187,8 @@ pub(crate) async fn stripe_webhook(
     // W3-6: per-event_type result counter. Without this, a "invoice.paid"
     // handler that has been broken for an hour is invisible to
     // Prometheus — operators only notice when subscribers complain.
-    // The label set is bounded by the explicit match arms above, so
-    // cardinality stays small (≤ ~15 series).
+    // Cardinality is bounded by the `metric_event_type` lookup above
+    // (≤ 14 series × 2 results = ≤ 28 series).
     let result_label = if dispatch.is_ok() {
         "success"
     } else {
@@ -174,7 +196,7 @@ pub(crate) async fn stripe_webhook(
     };
     metrics::counter!(
         "stripe_webhook_dispatch_total",
-        "event_type" => event_type.to_string(),
+        "event_type" => metric_event_type,
         "result"     => result_label,
     )
     .increment(1);

@@ -72,20 +72,32 @@ pub async fn verify_password(plaintext: String, stored_hash: String) -> AppResul
 /// non-existent accounts via response latency.
 ///
 /// Hot path: this fires on every failed login. The blocking pool is
-/// the right home — same rationale as [`hash_password`]. The function
-/// returns `()` because the result is intentionally discarded.
+/// the right home — same rationale as [`hash_password`].
+///
+/// The dummy hash is computed lazily once per process via [`OnceLock`]
+/// and cached. **This matters**: the real verify branch does a single
+/// `verify_password` call (one Argon2 invocation). If we re-hashed the
+/// dummy on every call we'd burn ~2× the wall time and make the
+/// unknown-email branch *more* discoverable to a timing attacker —
+/// the opposite of the intent. Cache the hash; only the verify runs
+/// per call.
 pub async fn run_timing_equaliser_verify() {
-    let _ = tokio::task::spawn_blocking(|| {
-        // Generate a one-shot dummy hash so the verify path runs against
-        // a real `PasswordHash` shape rather than a constant. The
-        // hash result is dropped; only the wall time matters.
+    static DUMMY_HASH: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    let encoded = DUMMY_HASH.get_or_init(|| {
         let salt = SaltString::generate(&mut OsRng);
-        if let Ok(dummy_hash) = Argon2::default().hash_password(b"timing-equalisation-dummy", &salt)
-        {
-            let serialized = dummy_hash.to_string();
-            if let Ok(parsed) = PasswordHash::new(&serialized) {
-                let _ = Argon2::default().verify_password(b"not-a-real-password", &parsed);
-            }
+        Argon2::default()
+            .hash_password(b"timing-equalisation-dummy", &salt)
+            .map(|h| h.to_string())
+            // If Argon2 ever refuses to hash the fixed input on this
+            // build, fall through with an empty string; the verify
+            // below will then no-op via the parse-error branch — a
+            // best-effort defence is still better than none.
+            .unwrap_or_default()
+    });
+    let encoded = encoded.clone();
+    let _ = tokio::task::spawn_blocking(move || {
+        if let Ok(parsed) = PasswordHash::new(&encoded) {
+            let _ = Argon2::default().verify_password(b"not-a-real-password", &parsed);
         }
     })
     .await;

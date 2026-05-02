@@ -290,12 +290,21 @@ pub(crate) async fn login(
     // ADM-02: hard ban / suspension gate. Both states return 401 (not 403)
     // to avoid leaking account existence — the response is identical to a
     // bad-password failure.
+    //
+    // SECURITY: also burn the timing budget on these branches so an
+    // attacker can't distinguish "banned" or "suspended" from "wrong
+    // password" by measuring 401 latency. Without this, the
+    // banned/suspended branches return ~50ms after lookup while a real
+    // bad-password takes ~150ms (the Argon2 verify). The forensic
+    // wave-1 audit flagged this as M-Members-1.
     if user.banned_at.is_some() {
         log_failed_login(&state, &req.email, &client, "banned").await;
+        crate::common::password::run_timing_equaliser_verify().await;
         return Err(AppError::Unauthorized);
     }
     if user.suspended_at.is_some() {
         log_failed_login(&state, &req.email, &client, "suspended").await;
+        crate::common::password::run_timing_equaliser_verify().await;
         return Err(AppError::Unauthorized);
     }
 
