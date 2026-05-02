@@ -1458,6 +1458,13 @@ pub struct Coupon {
     pub created_by: Uuid,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    /// ISO-4217 currency code (lowercase) the fixed-amount coupon is
+    /// denominated in. `None` means "currency-agnostic" — typical for
+    /// percent-discount coupons or legacy rows that pre-date migration
+    /// 089. The redemption flow refuses to apply a coupon whose
+    /// currency mismatches the cart's currency when both sides are
+    /// populated.
+    pub currency: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Validate, ToSchema)]
@@ -1465,13 +1472,27 @@ pub struct CreateCouponRequest {
     pub code: Option<String>,
     pub description: Option<String>,
     pub discount_type: DiscountType,
+    /// Discount magnitude. Interpretation depends on `discount_type`:
+    ///   * `percentage` → value in 0.0..=100.0 (e.g. 25.0 = 25% off)
+    ///   * `fixed_amount` → value in cents, ≥ 0 (e.g. 5_000 = $50.00)
+    ///   * `free_trial` → value in days, ≥ 0
+    ///
+    /// Negative, NaN, infinite, or out-of-range values are rejected by
+    /// `validate_discount_value` at handler entry — the `validator`
+    /// crate has no built-in `range(min, max)` for `f64`, so we
+    /// hand-roll the check.
     pub discount_value: f64,
+    /// ISO-4217 currency code (lowercase) for fixed-amount coupons.
+    /// `None` for percent / free-trial coupons or legacy rows.
+    pub currency: Option<String>,
     pub min_purchase_cents: Option<i64>,
     pub max_discount_cents: Option<i64>,
     pub applies_to: Option<String>,
     pub applicable_plan_ids: Option<Vec<Uuid>>,
     pub applicable_course_ids: Option<Vec<Uuid>>,
+    #[validate(range(min = 0))]
     pub usage_limit: Option<i32>,
+    #[validate(range(min = 0))]
     pub per_user_limit: Option<i32>,
     pub starts_at: Option<DateTime<Utc>>,
     pub expires_at: Option<DateTime<Utc>>,
@@ -1480,17 +1501,20 @@ pub struct CreateCouponRequest {
     pub first_purchase_only: Option<bool>,
 }
 
-#[derive(Debug, Deserialize, ToSchema)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct UpdateCouponRequest {
     pub description: Option<String>,
     pub discount_type: Option<DiscountType>,
     pub discount_value: Option<f64>,
+    pub currency: Option<String>,
     pub min_purchase_cents: Option<i64>,
     pub max_discount_cents: Option<i64>,
     pub applies_to: Option<String>,
     pub applicable_plan_ids: Option<Vec<Uuid>>,
     pub applicable_course_ids: Option<Vec<Uuid>>,
+    #[validate(range(min = 0))]
     pub usage_limit: Option<i32>,
+    #[validate(range(min = 0))]
     pub per_user_limit: Option<i32>,
     pub starts_at: Option<DateTime<Utc>>,
     pub expires_at: Option<DateTime<Utc>>,

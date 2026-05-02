@@ -449,10 +449,13 @@ async fn get_member_subscription_admin(
 )]
 pub(crate) async fn admin_member_billing_portal(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(user_id): Path<Uuid>,
     Json(req): Json<BillingPortalRequest>,
 ) -> AppResult<Json<BillingPortalResponse>> {
+    admin.require(&state.policy, "admin.member.billing_portal")?;
+
     db::find_user_by_id(&state.db, user_id)
         .await?
         .ok_or(AppError::NotFound("Member not found".to_string()))?;
@@ -469,6 +472,24 @@ pub(crate) async fn admin_member_billing_portal(
     let url =
         stripe_api::create_billing_portal_session(&state, &sub.stripe_customer_id, &return_url)
             .await?;
+
+    let actor_role = UserRole::from_str_lower(&admin.role).unwrap_or(UserRole::Admin);
+    record_admin_action_best_effort(
+        &state.db,
+        AdminAction::new(
+            admin.user_id,
+            actor_role,
+            "subscription.billing_portal.issue",
+            "subscription",
+        )
+        .with_target_id(sub.stripe_customer_id.clone())
+        .with_client(&client)
+        .with_metadata(serde_json::json!({
+            "user_id": user_id,
+            "return_url": return_url,
+        })),
+    )
+    .await;
 
     Ok(Json(BillingPortalResponse { url }))
 }
@@ -492,6 +513,8 @@ pub(crate) async fn admin_member_subscription_cancel(
     client: ClientInfo,
     Path(user_id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "admin.member.subscription.manage")?;
+
     db::find_user_by_id(&state.db, user_id)
         .await?
         .ok_or(AppError::NotFound("Member not found".to_string()))?;
@@ -545,6 +568,8 @@ pub(crate) async fn admin_member_subscription_resume(
     client: ClientInfo,
     Path(user_id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "admin.member.subscription.manage")?;
+
     db::find_user_by_id(&state.db, user_id)
         .await?
         .ok_or(AppError::NotFound("Member not found".to_string()))?;
@@ -603,10 +628,36 @@ pub(crate) async fn update_member_role(
     Path(id): Path<Uuid>,
     Json(req): Json<RoleUpdate>,
 ) -> AppResult<Json<UserResponse>> {
+    admin.require(&state.policy, "admin.member.role.update")?;
+
     // Capture the prior role for the audit trail so a privilege escalation
     // can be reconstructed from the log alone (without the actor having to
     // carry the previous state separately).
     let prior_role = db::find_user_by_id(&state.db, id).await?.map(|u| u.role);
+
+    // Demote-last-admin guard: refuse to change the role of the only
+    // remaining `admin` user away from `admin`. Mirrors the self-lock
+    // pattern in `admin_roles::replace_role_permissions`. Without this,
+    // the matrix can be left with zero admins and recovery requires a
+    // SQL console.
+    if matches!(prior_role, Some(UserRole::Admin)) && req.role != UserRole::Admin {
+        let admin_count = db::count_admins(&state.db).await?;
+        if admin_count <= 1 {
+            return Err(AppError::Conflict(
+                "refusing to demote the last admin — promote another user to admin first"
+                    .to_string(),
+            ));
+        }
+        // Self-lock: an actor cannot demote *themselves* even when other
+        // admins exist, because the demotion would invalidate the JWT
+        // mid-request and leave the session in an inconsistent state on
+        // the next call. The actor must ask another admin to do it.
+        if id == admin.user_id {
+            return Err(AppError::Conflict(
+                "refusing to self-demote — ask another admin to perform the change".to_string(),
+            ));
+        }
+    }
 
     let user = db::update_user_role(&state.db, id, &req.role).await?;
 
@@ -849,10 +900,34 @@ pub(crate) async fn delete_member(
     client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "admin.member.delete")?;
+
     // Snapshot identity before the row disappears so the audit log keeps a
     // human-readable record (admin_actions has no FK to users; deletes
     // wouldn't cascade through the audit table — that's intentional).
     let snapshot = db::find_user_by_id(&state.db, id).await?;
+
+    // Don't let the actor delete themselves: the JWT survives the row
+    // drop and would loop on every subsequent request as the per-request
+    // lifecycle gate fails to find the user.
+    if id == admin.user_id {
+        return Err(AppError::Conflict(
+            "refusing to self-delete — ask another admin to perform the deletion".to_string(),
+        ));
+    }
+
+    // Refuse to delete the last admin row for the same reason
+    // `update_member_role` refuses to demote it: zero-admin recovery
+    // requires a SQL console.
+    if matches!(snapshot.as_ref().map(|u| u.role), Some(UserRole::Admin)) {
+        let admin_count = db::count_admins(&state.db).await?;
+        if admin_count <= 1 {
+            return Err(AppError::Conflict(
+                "refusing to delete the last admin — promote another user to admin first"
+                    .to_string(),
+            ));
+        }
+    }
 
     // ADM-15: cancel any active Stripe subscription before tearing the
     // user row down — leaving it open would orphan the recurring charge
@@ -907,9 +982,11 @@ pub(crate) async fn delete_member(
 
 async fn list_watchlists(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
     Query(params): Query<PaginationParams>,
 ) -> AppResult<Json<PaginatedResponse<Watchlist>>> {
+    admin.require(&state.policy, "admin.watchlist.read")?;
+
     let per_page = params.per_page();
     let offset = params.offset();
     let page = params.page.unwrap_or(1).max(1);
@@ -940,30 +1017,50 @@ async fn list_watchlists(
 )]
 pub(crate) async fn create_watchlist(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Json(req): Json<CreateWatchlistRequest>,
 ) -> AppResult<Json<Watchlist>> {
+    admin.require(&state.policy, "admin.watchlist.manage")?;
+
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
 
+    let published = req.published.unwrap_or(false);
     let watchlist = db::create_watchlist(
         &state.db,
         &req.title,
         req.week_of,
         req.video_url.as_deref(),
         req.notes.as_deref(),
-        req.published.unwrap_or(false),
+        published,
     )
     .await?;
+
+    let actor_role = UserRole::from_str_lower(&admin.role).unwrap_or(UserRole::Admin);
+    record_admin_action_best_effort(
+        &state.db,
+        AdminAction::new(admin.user_id, actor_role, "watchlist.create", "watchlist")
+            .with_target_id(watchlist.id.to_string())
+            .with_client(&client)
+            .with_metadata(serde_json::json!({
+                "title": watchlist.title,
+                "week_of": watchlist.week_of,
+                "published": published,
+            })),
+    )
+    .await;
 
     Ok(Json(watchlist))
 }
 
 async fn get_watchlist(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<WatchlistWithAlerts>> {
+    admin.require(&state.policy, "admin.watchlist.read")?;
+
     let watchlist = db::get_watchlist(&state.db, id)
         .await?
         .ok_or(AppError::NotFound("Watchlist not found".to_string()))?;
@@ -987,11 +1084,31 @@ async fn get_watchlist(
 )]
 pub(crate) async fn update_watchlist(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateWatchlistRequest>,
 ) -> AppResult<Json<Watchlist>> {
+    admin.require(&state.policy, "admin.watchlist.manage")?;
+
     let watchlist = db::update_watchlist(&state.db, id, &req).await?;
+
+    let actor_role = UserRole::from_str_lower(&admin.role).unwrap_or(UserRole::Admin);
+    record_admin_action_best_effort(
+        &state.db,
+        AdminAction::new(admin.user_id, actor_role, "watchlist.update", "watchlist")
+            .with_target_id(id.to_string())
+            .with_client(&client)
+            .with_metadata(serde_json::json!({
+                "title_changed":     req.title.is_some(),
+                "week_of_changed":   req.week_of.is_some(),
+                "video_url_changed": req.video_url.is_some(),
+                "notes_changed":     req.notes.is_some(),
+                "published_changed": req.published.is_some(),
+            })),
+    )
+    .await;
+
     Ok(Json(watchlist))
 }
 
@@ -1008,10 +1125,30 @@ pub(crate) async fn update_watchlist(
 )]
 pub(crate) async fn delete_watchlist(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "admin.watchlist.manage")?;
+
+    // Snapshot before delete so the audit row carries title/week_of for
+    // post-incident review even after the row is gone.
+    let snapshot = db::get_watchlist(&state.db, id).await?;
     db::delete_watchlist(&state.db, id).await?;
+
+    let actor_role = UserRole::from_str_lower(&admin.role).unwrap_or(UserRole::Admin);
+    record_admin_action_best_effort(
+        &state.db,
+        AdminAction::new(admin.user_id, actor_role, "watchlist.delete", "watchlist")
+            .with_target_id(id.to_string())
+            .with_client(&client)
+            .with_metadata(serde_json::json!({
+                "title":   snapshot.as_ref().map(|w| w.title.clone()),
+                "week_of": snapshot.as_ref().map(|w| w.week_of),
+            })),
+    )
+    .await;
+
     Ok(Json(serde_json::json!({ "message": "Watchlist deleted" })))
 }
 
@@ -1019,9 +1156,11 @@ pub(crate) async fn delete_watchlist(
 
 async fn get_watchlist_alerts(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<Vec<WatchlistAlert>>> {
+    admin.require(&state.policy, "admin.watchlist.alert.read")?;
+
     let alerts = db::get_alerts_for_watchlist(&state.db, id).await?;
     Ok(Json(alerts))
 }
@@ -1041,14 +1180,37 @@ async fn get_watchlist_alerts(
 )]
 pub(crate) async fn create_alert(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(watchlist_id): Path<Uuid>,
     Json(req): Json<CreateAlertRequest>,
 ) -> AppResult<Json<WatchlistAlert>> {
+    admin.require(&state.policy, "admin.watchlist.alert.manage")?;
+
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
 
     let alert = db::create_alert(&state.db, watchlist_id, &req).await?;
+
+    let actor_role = UserRole::from_str_lower(&admin.role).unwrap_or(UserRole::Admin);
+    record_admin_action_best_effort(
+        &state.db,
+        AdminAction::new(
+            admin.user_id,
+            actor_role,
+            "watchlist.alert.create",
+            "watchlist_alert",
+        )
+        .with_target_id(alert.id.to_string())
+        .with_client(&client)
+        .with_metadata(serde_json::json!({
+            "watchlist_id": watchlist_id,
+            "ticker": alert.ticker,
+            "direction": alert.direction,
+        })),
+    )
+    .await;
+
     Ok(Json(alert))
 }
 
@@ -1066,11 +1228,38 @@ pub(crate) async fn create_alert(
 )]
 pub(crate) async fn update_alert(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateAlertRequest>,
 ) -> AppResult<Json<WatchlistAlert>> {
+    admin.require(&state.policy, "admin.watchlist.alert.manage")?;
+
     let alert = db::update_alert(&state.db, id, &req).await?;
+
+    let actor_role = UserRole::from_str_lower(&admin.role).unwrap_or(UserRole::Admin);
+    record_admin_action_best_effort(
+        &state.db,
+        AdminAction::new(
+            admin.user_id,
+            actor_role,
+            "watchlist.alert.update",
+            "watchlist_alert",
+        )
+        .with_target_id(id.to_string())
+        .with_client(&client)
+        .with_metadata(serde_json::json!({
+            "ticker_changed":       req.ticker.is_some(),
+            "direction_changed":    req.direction.is_some(),
+            "entry_zone_changed":   req.entry_zone.is_some(),
+            "invalidation_changed": req.invalidation.is_some(),
+            "profit_zones_changed": req.profit_zones.is_some(),
+            "notes_changed":        req.notes.is_some(),
+            "chart_url_changed":    req.chart_url.is_some(),
+        })),
+    )
+    .await;
+
     Ok(Json(alert))
 }
 
@@ -1087,9 +1276,28 @@ pub(crate) async fn update_alert(
 )]
 pub(crate) async fn delete_alert(
     State(state): State<AppState>,
-    _admin: AdminUser,
+    admin: AdminUser,
+    client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
+    admin.require(&state.policy, "admin.watchlist.alert.manage")?;
+
     db::delete_alert(&state.db, id).await?;
+
+    let actor_role = UserRole::from_str_lower(&admin.role).unwrap_or(UserRole::Admin);
+    record_admin_action_best_effort(
+        &state.db,
+        AdminAction::new(
+            admin.user_id,
+            actor_role,
+            "watchlist.alert.delete",
+            "watchlist_alert",
+        )
+        .with_target_id(id.to_string())
+        .with_client(&client)
+        .with_metadata(serde_json::Value::Null),
+    )
+    .await;
+
     Ok(Json(serde_json::json!({ "message": "Alert deleted" })))
 }

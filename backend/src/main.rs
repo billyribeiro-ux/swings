@@ -430,6 +430,25 @@ async fn main() -> Result<()> {
         "idempotency-gc worker spawned"
     );
 
+    // Forensic Wave-2 PR-7 (C-6): scheduled blog posts publication. The
+    // 60s default interval matches the publishing-tolerance contract
+    // surfaced to authors ("post will appear within 1 minute of the
+    // scheduled time"). Operators can tune via `BLOG_SCHEDULER_INTERVAL_SECS`.
+    let blog_scheduler_interval_secs: u64 = std::env::var("BLOG_SCHEDULER_INTERVAL_SECS")
+        .ok()
+        .and_then(|s| s.parse::<u64>().ok())
+        .filter(|n| *n > 0)
+        .unwrap_or(60);
+    let blog_scheduler_handle = tokio::spawn(swings_api::services::blog_scheduler::run_loop(
+        state.db.clone(),
+        outbox_shutdown.subscribe(),
+        std::time::Duration::from_secs(blog_scheduler_interval_secs),
+    ));
+    tracing::info!(
+        interval_secs = blog_scheduler_interval_secs,
+        "blog-scheduler worker spawned"
+    );
+
     let allowed_origins = state
         .config
         .cors_allowed_origins
@@ -485,32 +504,78 @@ async fn main() -> Result<()> {
         .nest(
             "/api/admin",
             handlers::admin::router()
-                .merge(handlers::admin_security::router())
+                // ADM-15 (forensic C-1): the legacy admin router carries
+                // ~30 mutating routes (member role/delete, billing-portal,
+                // sub cancel/resume, watchlists, alerts) that pre-date the
+                // per-domain split. Wrap it in the same Idempotency-Key
+                // middleware that already protects every newer admin nest
+                // so a retried `POST /api/admin/members/{id}/billing-portal`
+                // or `PUT /api/admin/members/{id}/role` cannot mint a
+                // second token / write a second audit row.
+                .layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    swings_api::middleware::idempotency::enforce,
+                ))
+                .merge(handlers::admin_security::router().layer(
+                    axum::middleware::from_fn_with_state(
+                        state.clone(),
+                        swings_api::middleware::idempotency::enforce,
+                    ),
+                ))
                 // ADM-10: indexed members search + manual create.
                 // Merged (not nested) so it shares the
                 // `/api/admin/members` prefix with the legacy
                 // member routes in `admin::router()` without an
                 // Axum prefix collision.
-                .merge(Router::new().nest("/members", handlers::admin_members::router()))
+                .merge(
+                    Router::new()
+                        .nest("/members", handlers::admin_members::router())
+                        .layer(axum::middleware::from_fn_with_state(
+                            state.clone(),
+                            swings_api::middleware::idempotency::enforce,
+                        )),
+                )
                 // ADM-06: IP-allowlist CRUD lives under /api/admin/security/ip-allowlist.
                 .nest(
                     "/security/ip-allowlist",
-                    handlers::admin_ip_allowlist::router(),
+                    handlers::admin_ip_allowlist::router().layer(
+                        axum::middleware::from_fn_with_state(
+                            state.clone(),
+                            swings_api::middleware::idempotency::enforce,
+                        ),
+                    ),
                 )
                 // ADM-07: impersonation CRUD lives under
                 // /api/admin/security/impersonation.
                 .nest(
                     "/security/impersonation",
-                    handlers::admin_impersonation::router(),
+                    handlers::admin_impersonation::router().layer(
+                        axum::middleware::from_fn_with_state(
+                            state.clone(),
+                            swings_api::middleware::idempotency::enforce,
+                        ),
+                    ),
                 )
                 // ADM-08: typed settings catalogue (incl. maintenance
                 // mode kill-switch). The maintenance middleware uses
                 // `state.settings` directly, so this nest only owns
                 // the CRUD surface.
-                .nest("/settings", handlers::admin_settings::router())
+                .nest(
+                    "/settings",
+                    handlers::admin_settings::router().layer(axum::middleware::from_fn_with_state(
+                        state.clone(),
+                        swings_api::middleware::idempotency::enforce,
+                    )),
+                )
                 // ADM-09: role / permission matrix. Mutations
                 // hot-reload `state.policy`.
-                .nest("/security/roles", handlers::admin_roles::router())
+                .nest(
+                    "/security/roles",
+                    handlers::admin_roles::router().layer(axum::middleware::from_fn_with_state(
+                        state.clone(),
+                        swings_api::middleware::idempotency::enforce,
+                    )),
+                )
                 // ADM-11: manual subscription operations
                 // (comp / extend / billing-cycle override). Wrapped in
                 // the ADM-15 Idempotency-Key middleware so retried
@@ -826,6 +891,15 @@ async fn main() -> Result<()> {
         tracing::warn!("idempotency-gc worker did not stop within grace window");
     } else {
         tracing::info!("idempotency-gc worker stopped");
+    }
+
+    if tokio::time::timeout(Duration::from_secs(5), blog_scheduler_handle)
+        .await
+        .is_err()
+    {
+        tracing::warn!("blog-scheduler worker did not stop within grace window");
+    } else {
+        tracing::info!("blog-scheduler worker stopped");
     }
 
     Ok(())

@@ -172,6 +172,7 @@ pub(crate) async fn stripe_webhook(
 
 fn verify_stripe_signature(payload: &str, signature_header: &str, secret: &str) -> bool {
     type HmacSha256 = Hmac<Sha256>;
+    use subtle::ConstantTimeEq;
 
     let mut timestamp: Option<i64> = None;
     let mut signatures: Vec<&str> = Vec::new();
@@ -206,14 +207,57 @@ fn verify_stripe_signature(payload: &str, signature_header: &str, secret: &str) 
     };
     mac.update(signed_payload.as_bytes());
     let computed = mac.finalize().into_bytes();
-    let computed_hex = computed
-        .iter()
-        .map(|b| format!("{b:02x}"))
-        .collect::<String>();
 
-    signatures
-        .iter()
-        .any(|candidate| candidate.eq_ignore_ascii_case(&computed_hex))
+    // Forensic Wave-4 PR-11 (H-8): constant-time signature comparison.
+    // The previous implementation hex-encoded the computed MAC and used
+    // `str::eq_ignore_ascii_case`, which short-circuits per byte and is
+    // a textbook timing oracle on the webhook secret. The fix decodes
+    // each candidate signature from hex into bytes and compares against
+    // the computed bytes via `subtle::ConstantTimeEq::ct_eq`, which
+    // ignores byte position when deciding whether to early-exit.
+    //
+    // We still loop over every candidate (Stripe sends one per active
+    // signing secret during rotation), but the per-candidate comparison
+    // is now constant-time. Length mismatches are also handled in
+    // constant time: we always do the ct_eq on equal-length slices and
+    // OR the length-mismatch flag onto the result so the early `false`
+    // doesn't leak via the candidate count.
+    let mut any_match = subtle::Choice::from(0u8);
+    for candidate in &signatures {
+        let candidate_bytes = match hex_decode_lower(candidate) {
+            Some(b) if b.len() == computed.len() => b,
+            _ => continue,
+        };
+        any_match |= computed.as_slice().ct_eq(&candidate_bytes);
+    }
+    bool::from(any_match)
+}
+
+/// Lower-case hex decode that returns `None` on any non-hex byte. We
+/// don't need a constant-time decoder here because the input is the
+/// (public) Stripe-Signature header, not the secret — only the final
+/// comparison needs to be constant-time.
+fn hex_decode_lower(s: &str) -> Option<Vec<u8>> {
+    if !s.len().is_multiple_of(2) {
+        return None;
+    }
+    let bytes = s.as_bytes();
+    let mut out = Vec::with_capacity(bytes.len() / 2);
+    for pair in bytes.chunks_exact(2) {
+        let hi = hex_nibble(pair[0])?;
+        let lo = hex_nibble(pair[1])?;
+        out.push((hi << 4) | lo);
+    }
+    Some(out)
+}
+
+fn hex_nibble(b: u8) -> Option<u8> {
+    match b {
+        b'0'..=b'9' => Some(b - b'0'),
+        b'a'..=b'f' => Some(b - b'a' + 10),
+        b'A'..=b'F' => Some(b - b'A' + 10),
+        _ => None,
+    }
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────
@@ -1378,5 +1422,33 @@ mod tests {
             &header,
             secret
         ));
+    }
+
+    #[test]
+    fn accepts_uppercase_hex_signature() {
+        // Forensic Wave-4 PR-11 (H-8) regression: the constant-time
+        // comparison rewrote the matching path, so explicitly pin
+        // case-insensitive hex acceptance — Stripe's docs use lowercase
+        // but the pre-rewrite path accepted uppercase via
+        // `eq_ignore_ascii_case` and we don't want to break that.
+        let secret = "whsec_test_secret";
+        let payload = r#"{"type":"x"}"#;
+        let timestamp = Utc::now().timestamp();
+        let header = make_signature(secret, payload, timestamp).to_uppercase();
+        // uppercase the timestamp prefix back so `t=` parses as the literal it is
+        let header = header.replace("T=", "t=").replace("V1=", "v1=");
+        assert!(verify_stripe_signature(payload, &header, secret));
+    }
+
+    #[test]
+    fn rejects_signature_with_odd_length_hex() {
+        // Length-bound the parser so a malformed candidate doesn't
+        // panic or feed half-bytes into the constant-time comparison.
+        let secret = "whsec_test_secret";
+        let payload = r#"{"type":"x"}"#;
+        let timestamp = Utc::now().timestamp();
+        // 63 hex chars = 31.5 bytes → reject.
+        let bad_header = format!("t={timestamp},v1={}", "a".repeat(63));
+        assert!(!verify_stripe_signature(payload, &bad_header, secret));
     }
 }

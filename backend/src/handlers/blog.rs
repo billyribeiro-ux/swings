@@ -14,11 +14,44 @@ use validator::Validate;
 use crate::{
     db,
     error::{AppError, AppResult},
-    extractors::{AdminUser, ClientInfo},
+    extractors::{AdminUser, ClientInfo, PrivilegedUser},
     models::*,
-    services::{audit::audit_admin, MediaBackend, R2Storage},
+    services::{
+        audit::{audit_admin, audit_admin_priv},
+        MediaBackend, R2Storage,
+    },
     AppState,
 };
+
+/// Resolve which permission key to enforce for a post-mutation handler
+/// when an actor is operating on `existing.author_id`.
+///
+/// The FDN-07 matrix splits blog mutators into `_own` and `_any` variants
+/// (021_rbac.sql:62-72). `author` carries the `_own` set; `admin` carries
+/// both. This helper picks the correct key based on whether the actor
+/// authored the post in question, then delegates to `policy.require()`
+/// for the actual gate.
+///
+/// Forensic Wave-2 PR-7 (C-7): until this helper landed, every blog
+/// mutator hard-coded `_any`, which made the `_own` permissions dead
+/// code and meant authors got 403 on every mutation except create.
+fn require_blog_post_action(
+    policy: &crate::authz::PolicyHandle,
+    actor: &PrivilegedUser,
+    existing: &BlogPost,
+    base_action: &str,
+) -> AppResult<()> {
+    let key = if existing.author_id == actor.user_id {
+        format!("{base_action}_own")
+    } else {
+        format!("{base_action}_any")
+    };
+    if policy.has(actor.role, &key) {
+        Ok(())
+    } else {
+        Err(AppError::Forbidden)
+    }
+}
 
 // ── Admin Blog Router ──────────────────────────────────────────────────
 
@@ -315,12 +348,20 @@ async fn admin_get_post(
 )]
 pub(crate) async fn admin_update_post(
     State(state): State<AppState>,
-    admin: AdminUser,
+    admin: PrivilegedUser,
     client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(mut req): Json<UpdatePostRequest>,
 ) -> AppResult<Json<BlogPostResponse>> {
-    admin.require(&state.policy, "blog.post.update_any")?;
+    // Ownership-aware RBAC: authors satisfy `blog.post.update_own` on their
+    // own posts; admins (who hold both keys) reach any post under
+    // `blog.post.update_any`. Resolved against the freshly-read `existing`
+    // row so a stale ownership claim cannot privilege escalate.
+    let existing = db::get_blog_post(&state.db, id)
+        .await?
+        .ok_or(AppError::NotFound("Post not found".to_string()))?;
+    require_blog_post_action(&state.policy, &admin, &existing, "blog.post.update")?;
+
     // SECURITY (XSS): sanitize author-supplied HTML at the write boundary —
     // see `admin_create_post` for the full rationale.
     if let Some(c) = req.content.as_deref() {
@@ -329,10 +370,6 @@ pub(crate) async fn admin_update_post(
     if let Some(e) = req.excerpt.as_deref() {
         req.excerpt = Some(crate::common::html::sanitize_plain_text(e));
     }
-
-    let existing = db::get_blog_post(&state.db, id)
-        .await?
-        .ok_or(AppError::NotFound("Post not found".to_string()))?;
 
     if existing.status == PostStatus::Trash {
         if let Some(ref s) = req.status {
@@ -394,7 +431,7 @@ pub(crate) async fn admin_update_post(
 
     let response = build_post_response(&state.db, post).await?;
 
-    audit_admin(
+    audit_admin_priv(
         &state.db,
         &admin,
         &client,
@@ -404,6 +441,7 @@ pub(crate) async fn admin_update_post(
         serde_json::json!({
             "slug": response.slug,
             "status": response.status,
+            "owned_by_actor": existing.author_id == admin.user_id,
         }),
     )
     .await;
@@ -426,14 +464,15 @@ pub(crate) async fn admin_update_post(
 )]
 pub(crate) async fn admin_delete_post(
     State(state): State<AppState>,
-    admin: AdminUser,
+    admin: PrivilegedUser,
     client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<serde_json::Value>> {
-    admin.require(&state.policy, "blog.post.delete_any")?;
     let existing = db::get_blog_post(&state.db, id)
         .await?
         .ok_or(AppError::NotFound("Post not found".to_string()))?;
+    require_blog_post_action(&state.policy, &admin, &existing, "blog.post.delete")?;
+
     if existing.status != PostStatus::Trash {
         return Err(AppError::BadRequest(
             "Only posts in the trash can be permanently deleted. Move the post to trash first."
@@ -442,7 +481,7 @@ pub(crate) async fn admin_delete_post(
     }
     db::delete_blog_post(&state.db, id).await?;
 
-    audit_admin(
+    audit_admin_priv(
         &state.db,
         &admin,
         &client,
@@ -452,6 +491,7 @@ pub(crate) async fn admin_delete_post(
         serde_json::json!({
             "slug": existing.slug,
             "title": existing.title,
+            "owned_by_actor": existing.author_id == admin.user_id,
         }),
     )
     .await;
@@ -474,15 +514,19 @@ pub(crate) async fn admin_delete_post(
 )]
 pub(crate) async fn admin_restore_post_from_trash(
     State(state): State<AppState>,
-    admin: AdminUser,
+    admin: PrivilegedUser,
     client: ClientInfo,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<BlogPostResponse>> {
-    admin.require(&state.policy, "blog.post.update_any")?;
+    let existing = db::get_blog_post(&state.db, id)
+        .await?
+        .ok_or(AppError::NotFound("Post not found".to_string()))?;
+    require_blog_post_action(&state.policy, &admin, &existing, "blog.post.update")?;
+
     let post = db::restore_post_from_trash(&state.db, id).await?;
     let response = build_post_response(&state.db, post).await?;
 
-    audit_admin(
+    audit_admin_priv(
         &state.db,
         &admin,
         &client,
@@ -492,6 +536,7 @@ pub(crate) async fn admin_restore_post_from_trash(
         serde_json::json!({
             "slug": response.slug,
             "status": response.status,
+            "owned_by_actor": existing.author_id == admin.user_id,
         }),
     )
     .await;
@@ -515,15 +560,27 @@ pub(crate) async fn admin_restore_post_from_trash(
 )]
 pub(crate) async fn admin_update_post_status(
     State(state): State<AppState>,
-    admin: AdminUser,
+    admin: PrivilegedUser,
     client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<UpdatePostStatusRequest>,
 ) -> AppResult<Json<BlogPostResponse>> {
-    admin.require(&state.policy, "blog.post.publish")?;
     let existing = db::get_blog_post(&state.db, id)
         .await?
         .ok_or(AppError::NotFound("Post not found".to_string()))?;
+
+    // The `publish` key has no `_own/_any` split (021_rbac.sql:69), so we
+    // pair it with an explicit ownership check: the actor must hold
+    // `blog.post.publish` AND either own the post or hold `update_any`.
+    // This lets author publish their own posts while preventing them
+    // from publishing another author's draft.
+    if !state.policy.has(admin.role, "blog.post.publish") {
+        return Err(AppError::Forbidden);
+    }
+    if existing.author_id != admin.user_id && !state.policy.has(admin.role, "blog.post.update_any")
+    {
+        return Err(AppError::Forbidden);
+    }
 
     let post = if req.status == PostStatus::Trash {
         db::move_post_to_trash(&state.db, id).await?
@@ -537,7 +594,7 @@ pub(crate) async fn admin_update_post_status(
     };
     let response = build_post_response(&state.db, post).await?;
 
-    audit_admin(
+    audit_admin_priv(
         &state.db,
         &admin,
         &client,
@@ -548,6 +605,7 @@ pub(crate) async fn admin_update_post_status(
             "slug": response.slug,
             "from": existing.status,
             "to": req.status,
+            "owned_by_actor": existing.author_id == admin.user_id,
         }),
     )
     .await;
@@ -569,11 +627,15 @@ pub(crate) async fn admin_update_post_status(
 )]
 pub(crate) async fn admin_autosave_post(
     State(state): State<AppState>,
-    admin: AdminUser,
+    admin: PrivilegedUser,
     Path(id): Path<Uuid>,
     Json(req): Json<AutosaveRequest>,
 ) -> AppResult<Json<serde_json::Value>> {
-    admin.require(&state.policy, "blog.post.update_any")?;
+    let existing = db::get_blog_post(&state.db, id)
+        .await?
+        .ok_or(AppError::NotFound("Post not found".to_string()))?;
+    require_blog_post_action(&state.policy, &admin, &existing, "blog.post.update")?;
+
     db::autosave_blog_post(&state.db, id, &req).await?;
     Ok(Json(serde_json::json!({ "message": "Autosaved" })))
 }
@@ -626,14 +688,14 @@ pub struct RevisionRestorePath {
 )]
 pub(crate) async fn admin_restore_revision(
     State(state): State<AppState>,
-    admin: AdminUser,
+    admin: PrivilegedUser,
     client: ClientInfo,
     Path(path): Path<RevisionRestorePath>,
 ) -> AppResult<Json<BlogPostResponse>> {
-    admin.require(&state.policy, "blog.post.update_any")?;
     let existing = db::get_blog_post(&state.db, path.id)
         .await?
         .ok_or(AppError::NotFound("Post not found".to_string()))?;
+    require_blog_post_action(&state.policy, &admin, &existing, "blog.post.update")?;
 
     let revision = db::get_blog_revision(&state.db, path.rev_id)
         .await?
@@ -677,7 +739,7 @@ pub(crate) async fn admin_restore_revision(
     let post = db::update_blog_post(&state.db, path.id, &req, None, None).await?;
     let response = build_post_response(&state.db, post).await?;
 
-    audit_admin(
+    audit_admin_priv(
         &state.db,
         &admin,
         &client,
@@ -688,6 +750,7 @@ pub(crate) async fn admin_restore_revision(
             "slug": response.slug,
             "revision_id": path.rev_id,
             "revision_number": revision.revision_number,
+            "owned_by_actor": existing.author_id == admin.user_id,
         }),
     )
     .await;
@@ -1353,15 +1416,19 @@ async fn admin_list_post_meta(
 )]
 pub(crate) async fn admin_upsert_post_meta(
     State(state): State<AppState>,
-    admin: AdminUser,
+    admin: PrivilegedUser,
     client: ClientInfo,
     Path(id): Path<Uuid>,
     Json(req): Json<UpsertPostMetaRequest>,
 ) -> AppResult<Json<PostMeta>> {
-    admin.require(&state.policy, "blog.post.update_any")?;
+    let existing = db::get_blog_post(&state.db, id)
+        .await?
+        .ok_or(AppError::NotFound("Post not found".to_string()))?;
+    require_blog_post_action(&state.policy, &admin, &existing, "blog.post.update")?;
+
     let item = db::upsert_post_meta(&state.db, id, &req.meta_key, &req.meta_value).await?;
 
-    audit_admin(
+    audit_admin_priv(
         &state.db,
         &admin,
         &client,
@@ -1371,6 +1438,7 @@ pub(crate) async fn admin_upsert_post_meta(
         serde_json::json!({
             "post_id": id,
             "meta_key": req.meta_key,
+            "owned_by_actor": existing.author_id == admin.user_id,
         }),
     )
     .await;
@@ -1394,14 +1462,18 @@ pub(crate) async fn admin_upsert_post_meta(
 )]
 pub(crate) async fn admin_delete_post_meta(
     State(state): State<AppState>,
-    admin: AdminUser,
+    admin: PrivilegedUser,
     client: ClientInfo,
     Path((id, key)): Path<(Uuid, String)>,
 ) -> AppResult<axum::http::StatusCode> {
-    admin.require(&state.policy, "blog.post.update_any")?;
+    let existing = db::get_blog_post(&state.db, id)
+        .await?
+        .ok_or(AppError::NotFound("Post not found".to_string()))?;
+    require_blog_post_action(&state.policy, &admin, &existing, "blog.post.update")?;
+
     db::delete_post_meta(&state.db, id, &key).await?;
 
-    audit_admin(
+    audit_admin_priv(
         &state.db,
         &admin,
         &client,
@@ -1411,6 +1483,7 @@ pub(crate) async fn admin_delete_post_meta(
         serde_json::json!({
             "post_id": id,
             "meta_key": key,
+            "owned_by_actor": existing.author_id == admin.user_id,
         }),
     )
     .await;

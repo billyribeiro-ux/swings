@@ -91,6 +91,19 @@ pub async fn delete_user(pool: &PgPool, user_id: Uuid) -> Result<(), sqlx::Error
     Ok(())
 }
 
+/// Count users currently holding the `admin` role.
+///
+/// Used by the demote-last-admin / delete-last-admin guards in the admin
+/// surface. A `< 2` result on the actor's own row blocks the demote so the
+/// matrix can never end up with zero admins — recovery from that state
+/// requires a SQL console, not the UI.
+pub async fn count_admins(pool: &PgPool) -> Result<i64, sqlx::Error> {
+    let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM users WHERE role = 'admin'::user_role")
+        .fetch_one(pool)
+        .await?;
+    Ok(row.0)
+}
+
 /// ADM-15: lift an expired temporary suspension on first read.
 ///
 /// The `users.suspended_until` column carries the deadline for a

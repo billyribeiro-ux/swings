@@ -43,6 +43,11 @@ thiserror = "2"
 anyhow = "1"
 sha2 = "0.10"
 hmac = "0.12"
+# Constant-time byte comparison for HMAC signature verification. Already
+# pulled in transitively by `hmac` / `sha2` / `argon2`; promoted to a
+# direct dep so `webhooks::verify_signature` doesn't depend on the
+# transitive surface staying stable.
+subtle = "2"
 validator = { version = "0.20", features = ["derive"] }
 
 # Stripe — no SDK. We hand-roll a minimal HTTP wrapper around `reqwest`

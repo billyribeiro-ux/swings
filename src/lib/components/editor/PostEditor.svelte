@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { api } from '$lib/api/client';
+	import { toast } from '$lib/stores/toast.svelte';
 	import type {
 		BlogPostResponse,
 		BlogCategory,
@@ -349,10 +350,20 @@
 		focalX = Math.round(((clientX - rect.left) / rect.width) * 100) / 100;
 		focalY = Math.round(((clientY - rect.top) / rect.height) * 100) / 100;
 		if (featuredImageId) {
-			api.put(`/api/admin/media/${featuredImageId}`, {
+			// Forensic Wave-2 PR-8 (C-8): the route is mounted under the
+			// `/api/admin/blog` nest in `backend/src/handlers/blog.rs`, not
+			// `/api/admin/media/...` — the prior URL 404'd silently because
+			// `.catch(() => {})` swallowed the error and the focal point
+			// never persisted. Surface the failure via the global toast so
+			// editors notice instead of saving and reloading to find the
+			// crop reset.
+			api.put(`/api/admin/blog/media/${featuredImageId}`, {
 				focal_x: focalX,
 				focal_y: focalY
-			}).catch(() => {});
+			}).catch((err: unknown) => {
+				const message = err instanceof Error ? err.message : 'Could not save focal point';
+				toast.error('Focal point not saved', { description: message });
+			});
 		}
 	}
 

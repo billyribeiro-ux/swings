@@ -128,6 +128,77 @@ fn generate_coupon_code(prefix: Option<&str>) -> String {
     }
 }
 
+/// Forensic Wave-1 PR-5 (C-10): validate `discount_value` against the
+/// semantics implied by `discount_type`. The `validator` crate has no
+/// `range(min, max)` for `f64`, and the original `#[derive(Validate)]`
+/// without field constraints was a no-op, so the type used to accept
+/// `-1.0`, `NaN`, `+Inf`, and 99_999% off without complaint.
+///
+/// Rules:
+///   * `Percentage` → finite, 0.0 ≤ x ≤ 100.0
+///   * `FixedAmount` → finite, x ≥ 0.0, ≤ i64::MAX cents (no negative
+///     refunds via discount); fractional cents round at the storage
+///     boundary, but we reject obviously broken values (>2^53).
+///   * `FreeTrial` → finite, 0.0 ≤ x ≤ 3650.0 (10 year ceiling — anything
+///     longer is almost certainly a typo).
+fn validate_discount_value(discount_type: &DiscountType, value: f64) -> Result<(), AppError> {
+    if !value.is_finite() {
+        return Err(AppError::Validation(
+            "discount_value must be a finite number".to_string(),
+        ));
+    }
+    match discount_type {
+        DiscountType::Percentage => {
+            if !(0.0..=100.0).contains(&value) {
+                return Err(AppError::Validation(
+                    "percentage discount_value must be between 0 and 100".to_string(),
+                ));
+            }
+        }
+        DiscountType::FixedAmount => {
+            if value < 0.0 {
+                return Err(AppError::Validation(
+                    "fixed-amount discount_value must be ≥ 0".to_string(),
+                ));
+            }
+            // 2^53 cents = ~$90 trillion. Anything past this is a clear
+            // accident or an attack on the f64→Decimal round-trip.
+            if value > 9_007_199_254_740_992.0 {
+                return Err(AppError::Validation(
+                    "fixed-amount discount_value exceeds the safe-integer ceiling".to_string(),
+                ));
+            }
+        }
+        DiscountType::FreeTrial => {
+            if !(0.0..=3650.0).contains(&value) {
+                return Err(AppError::Validation(
+                    "free-trial discount_value must be between 0 and 3650 days".to_string(),
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Normalise + validate an ISO-4217 currency code. Empty / whitespace
+/// inputs become `None`; otherwise the value is lower-cased and required
+/// to be exactly 3 ASCII alphabetic characters. Used for both
+/// `coupon.currency` (storage) and the redemption-time cart currency
+/// check.
+fn normalise_currency_code(input: Option<&str>) -> Result<Option<String>, AppError> {
+    let Some(raw) = input else { return Ok(None) };
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return Ok(None);
+    }
+    if trimmed.len() != 3 || !trimmed.chars().all(|c| c.is_ascii_alphabetic()) {
+        return Err(AppError::Validation(
+            "currency must be a 3-letter ISO-4217 code".to_string(),
+        ));
+    }
+    Ok(Some(trimmed.to_ascii_lowercase()))
+}
+
 /// Shape fetched out of the `coupons` table carrying the EC-11 enriched
 /// columns. Read via a separate query so the legacy [`Coupon`] struct can
 /// stay unchanged this cycle — the compat migration keeps both column sets.
@@ -536,6 +607,17 @@ pub(crate) async fn admin_create_coupon(
     admin.require(&state.policy, "coupon.manage")?;
     req.validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
+    // Forensic C-10: hand-rolled finite/range check for `discount_value`
+    // because the `validator` crate has no `range` rule for f64.
+    validate_discount_value(&req.discount_type, req.discount_value)?;
+    // Forensic H-6: persist a per-coupon currency for fixed-amount
+    // discounts so a USD coupon can't be redeemed against a EUR cart.
+    let currency = normalise_currency_code(req.currency.as_deref())?;
+    if matches!(req.discount_type, DiscountType::FixedAmount) && currency.is_none() {
+        return Err(AppError::Validation(
+            "fixed-amount coupons require a currency code".to_string(),
+        ));
+    }
 
     let code = match req.code {
         Some(ref c) if !c.is_empty() => c.to_uppercase(),
@@ -560,6 +642,7 @@ pub(crate) async fn admin_create_coupon(
         r#"
         INSERT INTO coupons (
             id, code, description, discount_type, discount_value,
+            currency,
             min_purchase_cents, max_discount_cents, applies_to,
             applicable_plan_ids, applicable_course_ids,
             usage_limit, usage_count, per_user_limit,
@@ -567,11 +650,12 @@ pub(crate) async fn admin_create_coupon(
             created_by, created_at, updated_at
         ) VALUES (
             $1, $2, $3, $4, $5,
-            $6, $7, $8,
-            $9, $10,
-            $11, 0, $12,
-            $13, $14, $15, $16, $17,
-            $18, NOW(), NOW()
+            $6,
+            $7, $8, $9,
+            $10, $11,
+            $12, 0, $13,
+            $14, $15, $16, $17, $18,
+            $19, NOW(), NOW()
         )
         RETURNING *
         "#,
@@ -581,6 +665,7 @@ pub(crate) async fn admin_create_coupon(
     .bind(&req.description)
     .bind(&req.discount_type)
     .bind(rust_decimal::Decimal::from_f64_retain(req.discount_value).unwrap_or_default())
+    .bind(currency.as_deref())
     .bind(req.min_purchase_cents)
     .bind(req.max_discount_cents)
     .bind(req.applies_to.as_deref().unwrap_or("all"))
@@ -685,6 +770,9 @@ pub(crate) async fn admin_update_coupon(
     Json(req): Json<UpdateCouponRequest>,
 ) -> AppResult<Json<Coupon>> {
     admin.require(&state.policy, "coupon.manage")?;
+    req.validate()
+        .map_err(|e| AppError::Validation(e.to_string()))?;
+
     let existing: Coupon = sqlx::query_as("SELECT * FROM coupons WHERE id = $1")
         .bind(id)
         .fetch_optional(&state.db)
@@ -692,6 +780,9 @@ pub(crate) async fn admin_update_coupon(
         .ok_or(AppError::NotFound("Coupon not found".to_string()))?;
 
     let discount_type = req.discount_type.unwrap_or(existing.discount_type);
+    if let Some(v) = req.discount_value {
+        validate_discount_value(&discount_type, v)?;
+    }
     let discount_value = req
         .discount_value
         .map(|v| rust_decimal::Decimal::from_f64_retain(v).unwrap_or_default())
@@ -715,6 +806,18 @@ pub(crate) async fn admin_update_coupon(
     let first_purchase_only = req
         .first_purchase_only
         .unwrap_or(existing.first_purchase_only);
+    // Currency: if the caller passes one, validate + lower-case it; if not,
+    // preserve the existing value. Forensic H-6 rule: a fixed-amount coupon
+    // must always carry a currency once this migration ships.
+    let currency = match req.currency.as_deref() {
+        Some(_) => normalise_currency_code(req.currency.as_deref())?,
+        None => existing.currency.clone(),
+    };
+    if matches!(discount_type, DiscountType::FixedAmount) && currency.is_none() {
+        return Err(AppError::Validation(
+            "fixed-amount coupons require a currency code".to_string(),
+        ));
+    }
 
     let coupon: Coupon = sqlx::query_as(
         r#"
@@ -722,26 +825,28 @@ pub(crate) async fn admin_update_coupon(
             description = $1,
             discount_type = $2,
             discount_value = $3,
-            min_purchase_cents = $4,
-            max_discount_cents = $5,
-            applies_to = $6,
-            applicable_plan_ids = $7,
-            applicable_course_ids = $8,
-            usage_limit = $9,
-            per_user_limit = $10,
-            starts_at = $11,
-            expires_at = $12,
-            is_active = $13,
-            stackable = $14,
-            first_purchase_only = $15,
+            currency = $4,
+            min_purchase_cents = $5,
+            max_discount_cents = $6,
+            applies_to = $7,
+            applicable_plan_ids = $8,
+            applicable_course_ids = $9,
+            usage_limit = $10,
+            per_user_limit = $11,
+            starts_at = $12,
+            expires_at = $13,
+            is_active = $14,
+            stackable = $15,
+            first_purchase_only = $16,
             updated_at = NOW()
-        WHERE id = $16
+        WHERE id = $17
         RETURNING *
         "#,
     )
     .bind(&description)
     .bind(&discount_type)
     .bind(discount_value)
+    .bind(currency.as_deref())
     .bind(min_purchase_cents)
     .bind(max_discount_cents)
     .bind(&applies_to)
@@ -1132,7 +1237,27 @@ pub(crate) async fn public_apply_coupon(
         }
     }
 
-    // Check first_purchase_only
+    // Forensic H-6: per-coupon currency check. The cart currency comes from
+    // the request (defaults to USD when absent — preserves legacy
+    // behaviour). When BOTH the coupon and the cart specify a currency,
+    // they must match; mismatched values are a bug or an exploit attempt.
+    let cart_currency =
+        normalise_currency_code(req.currency.as_deref())?.unwrap_or_else(|| "usd".to_string());
+    if let Some(ref coupon_currency) = coupon.currency {
+        if coupon_currency != &cart_currency {
+            return Err(AppError::BadRequest(format!(
+                "Coupon is denominated in {} but the cart is in {}",
+                coupon_currency.to_uppercase(),
+                cart_currency.to_uppercase()
+            )));
+        }
+    }
+
+    // Check first_purchase_only — done eagerly here so the user gets a
+    // clear "this coupon is first-purchase-only" message instead of the
+    // generic limit-reached error from the atomic claim below. The same
+    // condition is enforced atomically in the INSERT to close the
+    // double-claim race.
     if coupon.first_purchase_only {
         let has_prior: i64 =
             sqlx::query_scalar("SELECT COUNT(*) FROM coupon_usages WHERE user_id = $1")
@@ -1152,19 +1277,78 @@ pub(crate) async fn public_apply_coupon(
         .await?
         .unwrap_or(0);
 
-    // Insert usage record and increment usage_count in a transaction
+    // ── Atomic claim ────────────────────────────────────────────────────
+    // Forensic Wave-1 PR-5 (C-9): the prior implementation read
+    // `usage_count` / `per_user_limit` / `first_purchase_only` in a
+    // separate SELECT and then unconditionally INSERTed + INCREMENTed.
+    // Two concurrent requests at `usage_limit = 1` could both pass the
+    // SELECT and both succeed at the INSERT, racing past the limit.
+    //
+    // The fix: a single conditional UPDATE that atomically increments
+    // `usage_count` ONLY when the row's own (latest!) `usage_count <
+    // usage_limit` predicate holds. If `RETURNING` yields zero rows, a
+    // concurrent caller already claimed the last slot and we abort.
+    // Postgres holds a row-level exclusive lock for the duration of the
+    // UPDATE so two transactions cannot both observe the pre-increment
+    // value.
+    //
+    // The per-user limit + first_purchase_only invariants are also
+    // re-checked atomically inside the same transaction via SELECT
+    // statements that run AFTER the UPDATE acquired the row lock — the
+    // lock prevents another writer from inserting a `coupon_usages` row
+    // for the same user while we're in here.
     let mut tx = state.db.begin().await?;
 
-    // `currency` falls back to `'usd'` because the legacy `coupons` table
-    // has no per-row currency column; if the caller passes one explicitly
-    // we honour it (lowercased to match the storage convention).
-    // `order_id` is taken from the request when present, NULL otherwise.
-    let currency = req
-        .currency
-        .as_deref()
-        .map(|c| c.trim().to_lowercase())
-        .filter(|c| !c.is_empty())
-        .unwrap_or_else(|| "usd".to_string());
+    let claimed = sqlx::query(
+        r#"
+        UPDATE coupons
+           SET usage_count = usage_count + 1,
+               updated_at  = NOW()
+         WHERE id = $1
+           AND (usage_limit IS NULL OR usage_count < usage_limit)
+        "#,
+    )
+    .bind(coupon.id)
+    .execute(&mut *tx)
+    .await?;
+    if claimed.rows_affected() == 0 {
+        // Releases the tx via Drop without an explicit ROLLBACK — sqlx
+        // sends ROLLBACK automatically when the tx goes out of scope.
+        return Err(AppError::BadRequest(
+            "Coupon usage limit has been reached".to_string(),
+        ));
+    }
+
+    // Per-user re-check inside the held tx so a second concurrent
+    // application from the same user lands here only after the first
+    // committed (the row lock is released at COMMIT). The lock on the
+    // coupon row serialises this branch.
+    let user_usage_count: i64 = sqlx::query_scalar(
+        "SELECT COUNT(*) FROM coupon_usages WHERE coupon_id = $1 AND user_id = $2",
+    )
+    .bind(coupon.id)
+    .bind(auth.user_id)
+    .fetch_one(&mut *tx)
+    .await?;
+    if user_usage_count >= coupon.per_user_limit as i64 {
+        return Err(AppError::BadRequest(
+            "You have already used this coupon the maximum number of times".to_string(),
+        ));
+    }
+
+    if coupon.first_purchase_only {
+        let has_prior: i64 =
+            sqlx::query_scalar("SELECT COUNT(*) FROM coupon_usages WHERE user_id = $1")
+                .bind(auth.user_id)
+                .fetch_one(&mut *tx)
+                .await?;
+        if has_prior > 0 {
+            return Err(AppError::BadRequest(
+                "This coupon is only valid for first-time purchases".to_string(),
+            ));
+        }
+    }
+
     let usage: CouponUsage = sqlx::query_as(
         r#"
         INSERT INTO coupon_usages
@@ -1179,16 +1363,9 @@ pub(crate) async fn public_apply_coupon(
     .bind(auth.user_id)
     .bind(req.subscription_id)
     .bind(discount_applied_cents)
-    .bind(currency)
+    .bind(&cart_currency)
     .bind(req.order_id)
     .fetch_one(&mut *tx)
-    .await?;
-
-    sqlx::query(
-        "UPDATE coupons SET usage_count = usage_count + 1, updated_at = NOW() WHERE id = $1",
-    )
-    .bind(coupon.id)
-    .execute(&mut *tx)
     .await?;
 
     tx.commit().await?;
