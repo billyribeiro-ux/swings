@@ -7,6 +7,73 @@ This file is a structured summary of the most critical points.
 
 ---
 
+## ⛔ NON-NEGOTIABLE — MCP-FIRST WORKFLOW
+
+These rules apply on **every** session and **every** edit. The CI gate
+catches some of this; the rules below catch the rest. Skipping them is
+the most common way bad code lands in this repo. There are NO exceptions
+for "small" changes — the bugs that ship are the ones that look small.
+
+### Before writing or editing any `.svelte` file
+
+1. `mcp__svelte__list-sections` — get the table of contents.
+2. `mcp__svelte__get-documentation` — fetch every section whose
+   `use_cases` matches the change (runes, lifecycle, snippets, forms,
+   transitions, accessibility, etc.). **Read them first, write code second.**
+3. Write the code.
+4. `mcp__svelte__svelte-autofixer` on every modified `.svelte` file.
+   Loop until the autofixer reports clean. The autofixer is the LAST
+   gate, not the only one.
+
+If you skip steps 1–2 and let the autofixer "find it later," you will
+ship Svelte 4 idioms in a Svelte 5 codebase. That is exactly how the
+"Publish doesn't clear the editor", "members delete flashes the
+skeleton", and "watchlists kebab does nothing on tablet" classes of bug
+land. You have been warned.
+
+### Before writing or editing any `.rs` file
+
+1. `mcp__rust-analyzer__rust_analyzer_set_workspace` — pin to
+   `/Users/billyribeiro/Desktop/my-websites/swings/backend`. Once per
+   session is enough; don't re-pin per file.
+2. `mcp__rust-analyzer__rust_analyzer_workspace_diagnostics` — runs
+   real rust-analyzer instead of `cargo check`. Catches clippy/rustfmt
+   drift seconds faster.
+3. `mcp__rust-analyzer__rust_analyzer_hover` /
+   `definition` / `references` / `completion` — type-aware navigation.
+   Use these instead of `grep` when you need to know "what does this
+   trait return" or "who calls this fn".
+4. `mcp__rust-analyzer__rust_analyzer_format` on every edited `.rs`
+   file before commit.
+5. `cargo clippy --manifest-path backend/Cargo.toml --all-targets -- -D warnings`
+   as the final gate (catches what rust-analyzer doesn't).
+
+### Cite the rule in your work
+
+When you make a change covered by a hard rule below (Migrations,
+RBAC, Audit, Idempotency, etc.), cite the rule number in your commit
+message or PR description. This is how the user can audit at-a-glance
+that you actually followed the rule instead of pattern-matched a
+similar edit.
+
+### Behavioural verification, not just gates
+
+`pnpm check` + `pnpm lint` + `pnpm test:unit` and `cargo test --lib`
+prove the code COMPILES. They do NOT prove the feature works. For any
+UI-visible change (CLS, button state, modal flow, optimistic updates,
+loading skeletons, toast feedback) you MUST either:
+
+- write a Playwright spec in `e2e/admin/*.spec.ts` that exercises the
+  flow and captures CLS via `PerformanceObserver({ type: 'layout-shift' })`,
+  OR
+- explicitly tell the user "I can't see this — please open the browser
+  and verify X, Y, Z".
+
+Do not claim "this is done" based on CI gates alone. CI gates are a
+necessary but not sufficient proof.
+
+---
+
 ## What this repo is
 
 `swings` is a production full-stack membership and content platform.
