@@ -13,6 +13,7 @@
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import CaretDownIcon from 'phosphor-svelte/lib/CaretDownIcon';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
+	import TableSkeleton from '$lib/components/admin/TableSkeleton.svelte';
 
 	interface Course {
 		id: string;
@@ -211,36 +212,42 @@
 
 	<!-- Loading skeleton -->
 	{#if loading}
-		<div class="skeleton-grid">
-			{#each Array(4) as _, i (i)}
-				<div class="skeleton-card">
-					<div class="skeleton-card__thumb"></div>
-					<div class="skeleton-card__body">
-						<div class="skeleton-line skeleton-line--title"></div>
-						<div class="skeleton-line skeleton-line--short"></div>
-						<div class="skeleton-line skeleton-line--meta"></div>
-					</div>
-				</div>
-			{/each}
-		</div>
+		<TableSkeleton rows={5} mobileRowHeight="5.25rem" label="Loading courses" />
 	{:else if courses.length === 0}
+		{@const filtered = Boolean(search || statusFilter !== 'all')}
 		<!-- Empty state -->
-		<div class="empty-state">
-			<BookOpenIcon size={48} weight="duotone" />
-			<h2 class="empty-state__title">No courses found</h2>
+		<div class="empty-state" role="status">
+			<div class="empty-state__icon" aria-hidden="true">
+				<BookOpenIcon size={28} weight="duotone" />
+			</div>
+			<h2 class="empty-state__title">
+				{filtered ? 'No courses match' : 'No courses yet'}
+			</h2>
 			<p class="empty-state__desc">
-				{#if search || statusFilter !== 'all'}
-					Try adjusting your search or filters to see more courses.
-				{:else}
-					Get started by creating your first course.
-				{/if}
+				{filtered
+					? 'Adjust your search or status filter to see more courses.'
+					: 'Build your first course — chapters, lessons, and pricing all live in one place.'}
 			</p>
-			{#if !search && statusFilter === 'all'}
+			<div class="empty-state__actions">
+				{#if filtered}
+					<button
+						type="button"
+						class="btn--secondary-empty"
+						onclick={() => {
+							search = '';
+							statusFilter = 'all';
+							page = 1;
+							loadCourses();
+						}}
+					>
+						Clear filters
+					</button>
+				{/if}
 				<a href={resolve('/admin/courses/new')} class="btn-primary">
 					<PlusIcon size={16} weight="bold" />
-					<span>Create course</span>
+					<span>{filtered ? 'New course' : 'Create first course'}</span>
 				</a>
-			{/if}
+			</div>
 		</div>
 	{:else}
 		<!-- Mobile: Cards -->
@@ -676,69 +683,6 @@
 		color: var(--color-white);
 	}
 
-	/* ── Skeleton loading ───────────────── */
-	.skeleton-grid {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-	}
-
-	.skeleton-card {
-		display: flex;
-		gap: 1rem;
-		padding: 1rem;
-		background: rgba(19, 43, 80, 0.35);
-		backdrop-filter: blur(24px);
-		-webkit-backdrop-filter: blur(24px);
-		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-2xl);
-		animation: pulse 1.5s ease-in-out infinite;
-	}
-
-	.skeleton-card__thumb {
-		width: 4.5rem;
-		height: 3.25rem;
-		border-radius: var(--radius-md);
-		background: rgba(255, 255, 255, 0.06);
-		flex-shrink: 0;
-	}
-
-	.skeleton-card__body {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.skeleton-line {
-		border-radius: var(--radius-sm);
-		background: rgba(255, 255, 255, 0.06);
-		height: 0.75rem;
-	}
-
-	.skeleton-line--title {
-		width: 65%;
-		height: 0.9rem;
-	}
-
-	.skeleton-line--short {
-		width: 40%;
-	}
-
-	.skeleton-line--meta {
-		width: 55%;
-	}
-
-	@keyframes pulse {
-		0%,
-		100% {
-			opacity: 1;
-		}
-		50% {
-			opacity: 0.5;
-		}
-	}
-
 	/* ── Empty state ────────────────────── */
 	.empty-state {
 		display: flex;
@@ -746,8 +690,8 @@
 		align-items: center;
 		justify-content: center;
 		text-align: center;
-		gap: 0.85rem;
-		padding: 3.5rem 2rem;
+		gap: 0.65rem;
+		padding: clamp(2.5rem, 6vw, 3.5rem) 1.5rem;
 		background: rgba(19, 43, 80, 0.35);
 		backdrop-filter: blur(24px);
 		-webkit-backdrop-filter: blur(24px);
@@ -756,23 +700,65 @@
 		color: var(--color-grey-500);
 	}
 
-	.empty-state :global(svg) {
-		color: var(--color-grey-500);
+	.empty-state__icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 3.5rem;
+		height: 3.5rem;
+		border-radius: var(--radius-full);
+		background: rgba(15, 164, 175, 0.1);
+		color: var(--color-teal-light);
 	}
 
 	.empty-state__title {
-		font-size: 1rem;
+		font-family: var(--font-heading);
+		font-size: 1.125rem;
 		font-weight: 600;
 		color: var(--color-white);
-		margin: 0;
+		letter-spacing: -0.01em;
+		margin: 0.25rem 0 0;
 	}
 
 	.empty-state__desc {
 		font-size: 0.875rem;
 		color: var(--color-grey-400);
-		max-width: 36ch;
+		max-width: 38ch;
 		line-height: 1.55;
 		margin: 0;
+	}
+
+	.empty-state__actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		align-items: center;
+		gap: 0.5rem;
+		margin-top: 0.5rem;
+	}
+
+	.btn--secondary-empty {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 2.5rem;
+		padding: 0.5rem 1rem;
+		background: rgba(255, 255, 255, 0.06);
+		border: 1px solid rgba(255, 255, 255, 0.14);
+		border-radius: var(--radius-2xl);
+		color: var(--color-grey-200);
+		font-size: 0.8125rem;
+		font-weight: 600;
+		font-family: var(--font-ui);
+		cursor: pointer;
+		transition:
+			background-color 150ms var(--ease-out),
+			border-color 150ms var(--ease-out);
+	}
+
+	.btn--secondary-empty:hover {
+		background: rgba(255, 255, 255, 0.1);
+		border-color: rgba(255, 255, 255, 0.22);
 	}
 
 	/* ── Mobile Cards ───────────────────── */
@@ -1180,10 +1166,6 @@
 			background-color: rgba(15, 164, 175, 0.12);
 			border-color: rgba(15, 164, 175, 0.3);
 			color: var(--color-teal-light);
-		}
-
-		.skeleton-grid {
-			gap: 0.5rem;
 		}
 	}
 

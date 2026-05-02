@@ -17,6 +17,7 @@
 	import LightningIcon from 'phosphor-svelte/lib/LightningIcon';
 	import PencilSimpleIcon from 'phosphor-svelte/lib/PencilSimpleIcon';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
+	import TableSkeleton from '$lib/components/admin/TableSkeleton.svelte';
 
 	interface CouponStats {
 		active_count: number;
@@ -394,21 +395,41 @@
 	</div>
 
 	{#if loading}
-		<div class="cp__skel">
-			{#each Array(6) as _, i (i)}
-				<div class="skelrow">
-					<div class="skel skel--full"></div>
-				</div>
-			{/each}
-		</div>
+		<TableSkeleton rows={6} label="Loading coupons" />
 	{:else if coupons.length === 0}
-		<div class="empty-state">
-			<TicketIcon size={48} weight="duotone" />
-			<h2 class="empty-state__title">No coupons found</h2>
+		{@const filtered = Boolean(search.trim() || filter !== 'all')}
+		<div class="empty-state" role="status">
+			<div class="empty-state__icon" aria-hidden="true">
+				<TicketIcon size={28} weight="duotone" />
+			</div>
+			<h2 class="empty-state__title">
+				{filtered ? 'No coupons match' : 'No coupons yet'}
+			</h2>
 			<p class="empty-state__desc">
-				Try adjusting your search or status filter, or create a new coupon to start offering
-				discounts.
+				{filtered
+					? 'Adjust your search or status filter to see more codes.'
+					: 'Issue percent-off, fixed-amount, or trial coupons. Generate one at a time, or use bulk for campaigns.'}
 			</p>
+			<div class="empty-state__actions">
+				{#if filtered}
+					<button
+						type="button"
+						class="btn btn--secondary"
+						onclick={() => {
+							search = '';
+							filter = 'all';
+							page = 1;
+							loadCoupons();
+						}}
+					>
+						Clear filters
+					</button>
+				{/if}
+				<a href={resolve('/admin/coupons/new')} class="btn btn--primary">
+					<PlusIcon size={16} weight="bold" />
+					<span>{filtered ? 'Create coupon' : 'Create first coupon'}</span>
+				</a>
+			</div>
 		</div>
 	{:else}
 		<!-- Mobile: cards -->
@@ -811,11 +832,6 @@
 		height: 1rem;
 	}
 
-	.skel--full {
-		width: 100%;
-		height: 2.5rem;
-	}
-
 	@keyframes shimmer {
 		0%,
 		100% {
@@ -972,30 +988,15 @@
 		color: var(--color-white);
 	}
 
-	/* ── Skel row / empty ───────────────── */
-	.cp__skel {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.skelrow {
-		padding: 1rem;
-		background: rgba(19, 43, 80, 0.35);
-		backdrop-filter: blur(24px);
-		-webkit-backdrop-filter: blur(24px);
-		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: var(--radius-2xl);
-	}
-
+	/* ── Empty state ────────────────────── */
 	.empty-state {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
 		text-align: center;
-		gap: 0.85rem;
-		padding: 3.5rem 2rem;
+		gap: 0.65rem;
+		padding: clamp(2.5rem, 6vw, 3.5rem) 1.5rem;
 		background: rgba(19, 43, 80, 0.35);
 		backdrop-filter: blur(24px);
 		-webkit-backdrop-filter: blur(24px);
@@ -1004,23 +1005,40 @@
 		color: var(--color-grey-500);
 	}
 
-	.empty-state :global(svg) {
-		color: var(--color-grey-500);
+	.empty-state__icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 3.5rem;
+		height: 3.5rem;
+		border-radius: var(--radius-full);
+		background: rgba(15, 164, 175, 0.1);
+		color: var(--color-teal-light);
 	}
 
 	.empty-state__title {
-		font-size: 1rem;
+		font-family: var(--font-heading);
+		font-size: 1.125rem;
 		font-weight: 600;
 		color: var(--color-white);
-		margin: 0;
+		letter-spacing: -0.01em;
+		margin: 0.25rem 0 0;
 	}
 
 	.empty-state__desc {
 		font-size: 0.875rem;
 		color: var(--color-grey-400);
-		max-width: 36ch;
+		max-width: 38ch;
 		line-height: 1.55;
 		margin: 0;
+	}
+
+	.empty-state__actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.5rem;
+		margin-top: 0.5rem;
 	}
 
 	/* ── Badges ─────────────────────────── */

@@ -17,6 +17,7 @@
 	import XIcon from 'phosphor-svelte/lib/XIcon';
 	import { confirmDialog } from '$lib/stores/confirm.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
+	import TableSkeleton from '$lib/components/admin/TableSkeleton.svelte';
 
 	let posts: BlogPostListItem[] = $state([]);
 	let total = $state(0);
@@ -362,26 +363,25 @@
 
 	<!-- Posts table -->
 	{#if loading}
-		<div class="blog-admin__skeleton" aria-hidden="true">
-			{#each Array(5) as _, i (i)}
-				<div class="blog-admin__skeleton-row"></div>
-			{/each}
-		</div>
+		<TableSkeleton rows={6} label="Loading blog posts" />
 	{:else if posts.length === 0}
-		<div class="blog-admin__empty">
-			<ArticleIcon size={48} weight="duotone" color="var(--color-grey-500)" />
-			<p class="blog-admin__empty-title">No posts found</p>
-			<p class="blog-admin__empty-body">
-				{search || statusFilter
-					? 'Try adjusting your search or filters.'
-					: 'Get started by creating your first post.'}
+		{@const filtered = Boolean(search || statusFilter)}
+		<div class="blog-admin__empty" role="status">
+			<div class="blog-admin__empty-icon" aria-hidden="true">
+				<ArticleIcon size={28} weight="duotone" />
+			</div>
+			<p class="blog-admin__empty-title">
+				{filtered ? 'No posts match' : 'No posts yet'}
 			</p>
-			{#if !search && !statusFilter}
-				<a href={resolve('/admin/blog/new')} class="blog-admin__cta blog-admin__cta--empty">
-					<PlusIcon size={16} weight="bold" />
-					<span>New post</span>
-				</a>
-			{/if}
+			<p class="blog-admin__empty-body">
+				{filtered
+					? 'Adjust your search or status filter to see more drafts and published posts.'
+					: 'Drafts, scheduled posts, and the trash all live here. Start by writing your first post.'}
+			</p>
+			<a href={resolve('/admin/blog/new')} class="blog-admin__cta blog-admin__cta--empty">
+				<PlusIcon size={16} weight="bold" />
+				<span>{filtered ? 'New post' : 'Write first post'}</span>
+			</a>
 		</div>
 	{:else}
 		<!-- Mobile: Card view -->
@@ -662,15 +662,6 @@
 </div>
 
 <style>
-	@keyframes shimmer {
-		0% {
-			background-position: -200% 0;
-		}
-		100% {
-			background-position: 200% 0;
-		}
-	}
-
 	/* ====================================================================
 	   PAGE HEADER
 	   ==================================================================== */
@@ -821,53 +812,48 @@
 	}
 
 	/* ====================================================================
-	   SKELETON / EMPTY STATE
+	   EMPTY STATE
 	   ==================================================================== */
-	.blog-admin__skeleton {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.blog-admin__skeleton-row {
-		height: 80px;
-		border-radius: var(--radius-2xl);
-		background: linear-gradient(
-			90deg,
-			rgba(255, 255, 255, 0.03) 0%,
-			rgba(255, 255, 255, 0.06) 50%,
-			rgba(255, 255, 255, 0.03) 100%
-		);
-		background-size: 200% 100%;
-		animation: shimmer 1.6s ease-in-out infinite;
-	}
-
 	.blog-admin__empty {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 0.5rem;
-		padding: 3rem 1rem;
+		gap: 0.65rem;
+		padding: clamp(2.5rem, 6vw, 3.5rem) 1.5rem;
 		background: rgba(19, 43, 80, 0.35);
 		backdrop-filter: blur(24px);
 		-webkit-backdrop-filter: blur(24px);
-		border: 1px dashed rgba(255, 255, 255, 0.1);
+		border: 1px solid rgba(255, 255, 255, 0.06);
 		border-radius: var(--radius-2xl);
 		text-align: center;
 	}
 
+	.blog-admin__empty-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 3.5rem;
+		height: 3.5rem;
+		border-radius: var(--radius-full);
+		background: rgba(15, 164, 175, 0.1);
+		color: var(--color-teal-light);
+	}
+
 	.blog-admin__empty-title {
-		font-size: 1rem;
+		font-family: var(--font-heading);
+		font-size: 1.125rem;
 		font-weight: 600;
 		color: var(--color-white);
-		margin: 0.5rem 0 0;
+		letter-spacing: -0.01em;
+		margin: 0.25rem 0 0;
 	}
 
 	.blog-admin__empty-body {
 		font-size: 0.875rem;
 		color: var(--color-grey-400);
-		margin: 0;
-		max-width: 36ch;
+		margin: 0 0 0.5rem;
+		max-width: 38ch;
+		line-height: 1.55;
 	}
 
 	/* ====================================================================
@@ -1495,9 +1481,4 @@
 		border-color: rgba(255, 255, 255, 0.22);
 	}
 
-	@media (prefers-reduced-motion: reduce) {
-		.blog-admin__skeleton-row {
-			animation: none;
-		}
-	}
 </style>

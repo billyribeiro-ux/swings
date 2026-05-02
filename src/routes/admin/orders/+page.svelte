@@ -13,6 +13,7 @@
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import XIcon from 'phosphor-svelte/lib/XIcon';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
+	import TableSkeleton from '$lib/components/admin/TableSkeleton.svelte';
 	import { ApiError } from '$lib/api/client';
 	import {
 		adminOrders,
@@ -436,14 +437,45 @@
 	{/if}
 
 	{#if loading}
-		<div class="muted card card--center">Loading…</div>
+		<TableSkeleton rows={6} label="Loading orders" />
 	{:else if !envelope || envelope.data.length === 0}
-		<div class="empty-state">
-			<ReceiptIcon size={48} weight="duotone" />
-			<h2 class="empty-state__title">No orders match</h2>
+		{@const filtersActive = Boolean(filters.q?.trim() || filters.status?.trim())}
+		<div class="empty-state" role="status">
+			<div class="empty-state__icon" aria-hidden="true">
+				<ReceiptIcon size={28} weight="duotone" />
+			</div>
+			<h2 class="empty-state__title">
+				{filtersActive ? 'No orders match' : 'No orders yet'}
+			</h2>
 			<p class="empty-state__desc">
-				Try widening your search, clearing the status filter, or creating a manual order.
+				{filtersActive
+					? 'Try widening your search or clearing the status filter to see more.'
+					: 'Live checkouts land here automatically. You can also create a manual order with comp pricing.'}
 			</p>
+			<div class="empty-state__actions">
+				{#if filtersActive}
+					<button
+						type="button"
+						class="btn btn--secondary"
+						onclick={() => {
+							filters.q = '';
+							filters.status = '';
+							filters.offset = 0;
+							void refresh();
+						}}
+					>
+						Clear filters
+					</button>
+				{/if}
+				<button
+					type="button"
+					class="btn btn--primary"
+					onclick={() => (showCreate = true)}
+				>
+					<PlusIcon size={16} weight="bold" />
+					<span>{filtersActive ? 'Manual order' : 'Create first order'}</span>
+				</button>
+			</div>
 		</div>
 	{:else}
 		<div class="card table-wrap">
@@ -1063,7 +1095,7 @@
 		justify-content: center;
 		text-align: center;
 		gap: 0.85rem;
-		padding: 3.5rem 2rem;
+		padding: clamp(2.5rem, 6vw, 3.5rem) 2rem;
 		background: rgba(19, 43, 80, 0.35);
 		backdrop-filter: blur(24px);
 		-webkit-backdrop-filter: blur(24px);
@@ -1072,23 +1104,41 @@
 		color: var(--color-grey-500);
 	}
 
-	.empty-state :global(svg) {
-		color: var(--color-grey-500);
+	.empty-state__icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 3.5rem;
+		height: 3.5rem;
+		border-radius: var(--radius-full);
+		background: rgba(15, 164, 175, 0.1);
+		color: var(--color-teal-light);
+		margin-bottom: 0.25rem;
 	}
 
 	.empty-state__title {
-		font-size: 1rem;
+		font-size: 1.125rem;
 		font-weight: 600;
+		font-family: var(--font-heading);
 		color: var(--color-white);
+		letter-spacing: -0.01em;
 		margin: 0;
 	}
 
 	.empty-state__desc {
 		font-size: 0.875rem;
 		color: var(--color-grey-400);
-		max-width: 36ch;
+		max-width: 38ch;
 		line-height: 1.55;
 		margin: 0;
+	}
+
+	.empty-state__actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.5rem;
+		margin-top: 0.625rem;
 	}
 
 	/* ── Table ──────────────────────────── */
