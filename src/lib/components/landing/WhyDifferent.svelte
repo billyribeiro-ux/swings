@@ -40,8 +40,8 @@
 			cardsRef.forEach((card, i) => {
 				gsap.set(card, {
 					opacity: 0,
-					rotateX: -15,
-					rotateY: i === 0 ? -10 : i === 2 ? 10 : 0,
+					rotationX: -15,
+					rotationY: i === 0 ? -10 : i === 2 ? 10 : 0,
 					z: -50,
 					transformPerspective: 1000
 				});
@@ -53,13 +53,17 @@
 					onEnter: () => {
 						gsap.to(card, {
 							opacity: 1,
-							rotateX: 0,
-							rotateY: 0,
+							rotationX: 0,
+							rotationY: 0,
 							z: 0,
 							duration: 0.9,
 							delay: i * 0.15,
 							ease: 'expo.out',
-							clearProps: 'transform'
+							onComplete: () => {
+								gsap.set(card, {
+									clearProps: 'transform,transformPerspective'
+								});
+							}
 						});
 					}
 				});

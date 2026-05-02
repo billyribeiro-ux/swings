@@ -2,11 +2,17 @@ import { dev } from '$app/environment';
 import { injectSpeedInsights } from '@vercel/speed-insights/sveltekit';
 import { injectAnalytics } from '@vercel/analytics/sveltekit';
 
-// Vercel Speed Insights (client-only); enable in project → Speed Insights. Latest: @vercel/speed-insights@2.0.0.
-injectSpeedInsights();
+const vercelObservabilityInDev =
+	import.meta.env.PUBLIC_VERCEL_OBSERVABILITY_IN_DEV === '1' ||
+	import.meta.env.PUBLIC_VERCEL_OBSERVABILITY_IN_DEV === 'true';
 
-// Vercel Web Analytics (client-only); enable in project → Analytics. Latest: @vercel/analytics@2.0.1.
-injectAnalytics({ mode: dev ? 'development' : 'production' });
+// Vercel injects scripts that call `history.pushState`; SvelteKit patches that API in
+// dev and warns once per session. Skip locally unless explicitly enabled.
+if (!dev || vercelObservabilityInDev) {
+	// Latest: @vercel/speed-insights@2.0.0, @vercel/analytics@2.0.1
+	injectSpeedInsights();
+	injectAnalytics({ mode: dev ? 'development' : 'production' });
+}
 
 export const prerender = true;
 export const trailingSlash = 'never';

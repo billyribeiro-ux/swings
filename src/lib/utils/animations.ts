@@ -214,10 +214,13 @@ export function hoverTilt(opts: HoverTiltOpts = {}): Attachment<HTMLElement> {
 			willChange: 'transform'
 		});
 
-		// quickTo is highly optimized for mouse tracking (re-evaluates mid-tween instantly)
-		const xTo = gsap.quickTo(node, 'rotateY', { duration, ease: 'power3.out' });
-		const yTo = gsap.quickTo(node, 'rotateX', { duration, ease: 'power3.out' });
-		const scaleTo = gsap.quickTo(node, 'scale', { duration, ease: 'power3.out' });
+		// Use rotationX/rotationY + scaleX/scaleY (not rotate* / scale shorthand):
+		// quickTo → resetTo() cannot attach PropTweens to split transform aliases, which
+		// spams "not eligible for reset" in GSAP 3.15+.
+		const rotYTo = gsap.quickTo(node, 'rotationY', { duration, ease: 'power3.out' });
+		const rotXTo = gsap.quickTo(node, 'rotationX', { duration, ease: 'power3.out' });
+		const scaleXTo = gsap.quickTo(node, 'scaleX', { duration, ease: 'power3.out' });
+		const scaleYTo = gsap.quickTo(node, 'scaleY', { duration, ease: 'power3.out' });
 
 		const onMouseMove = (e: MouseEvent) => {
 			const rect = node.getBoundingClientRect();
@@ -226,15 +229,17 @@ export function hoverTilt(opts: HoverTiltOpts = {}): Attachment<HTMLElement> {
 			const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
 
 			// Invert Y rotation for natural physically-based tilt
-			xTo(x * maxTilt);
-			yTo(-(y * maxTilt));
-			scaleTo(scale);
+			rotYTo(x * maxTilt);
+			rotXTo(-(y * maxTilt));
+			scaleXTo(scale);
+			scaleYTo(scale);
 		};
 
 		const onMouseLeave = () => {
-			xTo(0);
-			yTo(0);
-			scaleTo(1);
+			rotYTo(0);
+			rotXTo(0);
+			scaleXTo(1);
+			scaleYTo(1);
 		};
 
 		node.addEventListener('mousemove', onMouseMove, { passive: true });

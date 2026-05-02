@@ -124,6 +124,23 @@ test.describe('forensic admin sweep', () => {
 				}
 			});
 
+			// Drive a real UI login first to wire up the session cookie
+			// and the auth store identically to a real session.
+			await page.goto('/admin/login', { waitUntil: 'domcontentloaded' });
+			try {
+				await page.locator('input[type="email"]').first().fill(process.env.ADMIN_EMAIL ?? '');
+				await page.locator('input[type="password"]').first().fill(process.env.ADMIN_PASSWORD ?? '');
+				await Promise.all([
+					page.waitForResponse((r) => r.url().includes('/api/auth/login'), { timeout: 10_000 }),
+					page.locator('button[type="submit"]').first().click()
+				]);
+				await page.waitForURL((u) => !u.toString().includes('/admin/login'), {
+					timeout: 10_000
+				});
+			} catch (e) {
+				consoleErrors.push(`LOGIN_FAIL ${(e as Error).message}`);
+			}
+
 			let navStatus = 0;
 			try {
 				const resp = await page.goto(url, { waitUntil: 'domcontentloaded' });
