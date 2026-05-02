@@ -628,7 +628,8 @@
 									</td>
 									<td class="sd__col-actions">
 										{#if inv.hosted_invoice_url}
-											<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- hosted_invoice_url is a Stripe-hosted external URL -->
+											<!-- eslint-disable svelte/no-navigation-without-resolve -->
+											<!-- hosted_invoice_url is a Stripe-hosted absolute URL, not a SvelteKit typed route. -->
 											<a
 												class="btn-mini"
 												href={inv.hosted_invoice_url}
@@ -639,6 +640,7 @@
 												<ReceiptIcon size={14} weight="bold" />
 												View Receipt
 											</a>
+											<!-- eslint-enable svelte/no-navigation-without-resolve -->
 										{:else}
 											<span class="sd__dash">—</span>
 										{/if}

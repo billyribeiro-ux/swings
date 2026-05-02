@@ -51,7 +51,11 @@ test.describe('forensic admin sweep', () => {
 	test.setTimeout(180_000);
 
 	for (const { slug, url } of ADMIN_PAGES) {
-		test(`forensic ${slug}`, async ({ app, page }: Fixtures) => {
+		// `app` is destructured to spin up the fixture (Playwright won't
+		// initialise a fixture that isn't requested) but the spec body only
+		// touches `page`. Renaming to `_app` matches the eslint allowed-
+		// unused-args pattern (`/^_/u`).
+		test(`forensic ${slug}`, async ({ app: _app, page }: Fixtures) => {
 			await mkdir(OUT, { recursive: true });
 			const consoleErrors: string[] = [];
 			const consoleWarnings: string[] = [];
